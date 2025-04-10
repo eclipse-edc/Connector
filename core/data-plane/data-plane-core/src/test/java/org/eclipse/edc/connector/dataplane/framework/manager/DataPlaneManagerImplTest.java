@@ -382,7 +382,7 @@ class DataPlaneManagerImplTest {
     void completed_shouldNotifyResultToControlPlane() {
         var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
         when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-        when(transferProcessApiClient.completed(any())).thenReturn(Result.success());
+        when(transferProcessApiClient.completed(any())).thenReturn(StatusResult.success());
 
         manager.start();
 
@@ -393,10 +393,10 @@ class DataPlaneManagerImplTest {
     }
 
     @Test
-    void completed_shouldNotTransitionToNotified() {
+    void completed_whenRetryableError_shouldTransitionToCompleted() {
         var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
         when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-        when(transferProcessApiClient.completed(any())).thenReturn(Result.failure(""));
+        when(transferProcessApiClient.completed(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
 
         manager.start();
 
@@ -407,12 +407,26 @@ class DataPlaneManagerImplTest {
     }
 
     @Test
+    void completed_whenFatalError_shouldTransitionToTerminated() {
+        var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
+        when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+        when(transferProcessApiClient.completed(any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessApiClient).completed(any());
+            verify(store).save(argThat(it -> it.getState() == TERMINATED.code()));
+        });
+    }
+
+    @Test
     void failed_shouldNotifyResultToControlPlane() {
         var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
         when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
         when(store.findById(any())).thenReturn(dataFlow);
 
-        when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(Result.success());
+        when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(StatusResult.success());
 
         manager.start();
 
@@ -423,18 +437,34 @@ class DataPlaneManagerImplTest {
     }
 
     @Test
-    void failed_shouldNotTransitionToNotified() {
+    void failed_whenRetryableError_shouldNotTransitionToFailed() {
         var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
         when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
         when(store.findById(any())).thenReturn(dataFlow);
 
-        when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(Result.failure("an error"));
+        when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(StatusResult.failure(ERROR_RETRY));
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(transferProcessApiClient).failed(any(), eq("an error"));
             verify(store).save(argThat(it -> it.getState() == FAILED.code()));
+        });
+    }
+
+    @Test
+    void failed_whenFatalError_shouldNotTransitionToTerminated() {
+        var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
+        when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+        when(store.findById(any())).thenReturn(dataFlow);
+
+        when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(StatusResult.failure(FATAL_ERROR));
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessApiClient).failed(any(), eq("an error"));
+            verify(store).save(argThat(it -> it.getState() == TERMINATED.code()));
         });
     }
 

@@ -335,27 +335,39 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     private boolean processCompleted(DataFlow dataFlow) {
-        var response = transferProcessClient.completed(dataFlow.toRequest());
-        if (response.succeeded()) {
-            dataFlow.transitToNotified();
-            update(dataFlow);
-        } else {
-            dataFlow.transitToCompleted();
-            update(dataFlow);
-        }
-        return true;
+        return entityRetryProcessFactory.retryProcessor(dataFlow)
+                .doProcess(Process.result("Complete data flow", (d, v) -> transferProcessClient.completed(dataFlow.toRequest())))
+                .onSuccess((d, v) -> {
+                    dataFlow.transitToNotified();
+                    update(dataFlow);
+                })
+                .onFailure((d, t) -> {
+                    dataFlow.transitToCompleted();
+                    update(dataFlow);
+                })
+                .onFinalFailure((d, t) -> {
+                    dataFlow.transitToTerminated(t.getMessage());
+                    update(dataFlow);
+                })
+                .execute();
     }
 
     private boolean processFailed(DataFlow dataFlow) {
-        var response = transferProcessClient.failed(dataFlow.toRequest(), dataFlow.getErrorDetail());
-        if (response.succeeded()) {
-            dataFlow.transitToNotified();
-            update(dataFlow);
-        } else {
-            dataFlow.transitToFailed(dataFlow.getErrorDetail());
-            update(dataFlow);
-        }
-        return true;
+        return entityRetryProcessFactory.retryProcessor(dataFlow)
+                .doProcess(Process.result("Fail data flow", (d, v) -> transferProcessClient.failed(dataFlow.toRequest(), dataFlow.getErrorDetail())))
+                .onSuccess((d, v) -> {
+                    dataFlow.transitToNotified();
+                    update(dataFlow);
+                })
+                .onFailure((d, t) -> {
+                    dataFlow.transitToFailed(dataFlow.getErrorDetail());
+                    update(dataFlow);
+                })
+                .onFinalFailure((d, t) -> {
+                    dataFlow.transitToTerminated(t.getMessage());
+                    update(dataFlow);
+                })
+                .execute();
     }
 
     @SafeVarargs

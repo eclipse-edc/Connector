@@ -23,10 +23,13 @@ import org.eclipse.edc.connector.controlplane.api.client.transferprocess.model.T
 import org.eclipse.edc.connector.dataplane.spi.port.TransferProcessApiClient;
 import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
+
+import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 
 import java.net.URI;
 
@@ -48,12 +51,12 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
     }
 
     @Override
-    public Result<Void> completed(DataFlowStartMessage dataFlowStartMessage) {
+    public StatusResult<Void> completed(DataFlowStartMessage dataFlowStartMessage) {
         return sendRequest(dataFlowStartMessage, "complete", null);
     }
 
     @Override
-    public Result<Void> failed(DataFlowStartMessage dataFlowStartMessage, String reason) {
+    public StatusResult<Void> failed(DataFlowStartMessage dataFlowStartMessage, String reason) {
         return sendRequest(dataFlowStartMessage, "fail", TransferProcessFailRequest.Builder.newInstance().errorMessage(reason).build());
     }
 
@@ -62,8 +65,7 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
         return Result.failure("to be implemented");
     }
 
-    private Result<Void> sendRequest(DataFlowStartMessage dataFlowStartMessage, String action, Object body) {
-
+    private StatusResult<Void> sendRequest(DataFlowStartMessage dataFlowStartMessage, String action, Object body) {
         if (dataFlowStartMessage.getCallbackAddress() != null) {
             try {
                 var builder = new Request.Builder()
@@ -74,17 +76,16 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
                 if (result.failed()) {
                     var message = "Failed to send callback request: %s".formatted(result.getFailureDetail());
                     monitor.severe(message);
-                    return Result.failure(message);
+                    return StatusResult.failure(ERROR_RETRY, message);
                 }
             } catch (Exception e) {
                 monitor.severe("Failed to send callback request", e);
-                return Result.failure("Failed to send callback request: " + e.getMessage());
+                return StatusResult.failure(ERROR_RETRY, "Failed to send callback request: " + e.getMessage());
             }
         } else {
             monitor.warning(String.format("Missing callback address in DataFlowRequest %s", dataFlowStartMessage.getId()));
         }
-        return Result.success();
-
+        return StatusResult.success();
     }
 
     @NotNull

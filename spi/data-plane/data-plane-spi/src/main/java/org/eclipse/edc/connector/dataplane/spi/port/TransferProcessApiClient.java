@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.spi.port;
 
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
@@ -34,14 +35,14 @@ public interface TransferProcessApiClient {
      *
      * @param request The completed {@link DataFlowStartMessage}
      */
-    Result<Void> completed(DataFlowStartMessage request);
+    StatusResult<Void> completed(DataFlowStartMessage request);
 
     /**
      * Mark the TransferProcess referenced by {@link DataFlowStartMessage#getProcessId()} as failed
      *
      * @param request The failed {@link DataFlowStartMessage}
      */
-    Result<Void> failed(DataFlowStartMessage request, String reason);
+    StatusResult<Void> failed(DataFlowStartMessage request, String reason);
 
     /**
      * Mark the TransferProcess as provisioned.
