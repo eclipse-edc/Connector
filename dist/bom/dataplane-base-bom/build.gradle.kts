@@ -25,7 +25,6 @@ dependencies {
     api(project(":core:common:connector-core"))
     api(project(":core:common:runtime-core"))
     api(project(":core:common:token-core"))
-    api(project(":core:common:runtime-core"))
     api(project(":core:data-plane:data-plane-core"))
 
     // extension dependencies
