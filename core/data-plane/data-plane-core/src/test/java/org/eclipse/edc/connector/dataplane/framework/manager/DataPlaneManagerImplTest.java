@@ -393,7 +393,7 @@ class DataPlaneManagerImplTest {
     }
 
     @Test
-    void completed_whenRetryableError_shouldTransitionToCompleted() {
+    void completed_shouldTransitionToCompleted_whenRetryableError() {
         var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
         when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
         when(transferProcessApiClient.completed(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
@@ -407,7 +407,7 @@ class DataPlaneManagerImplTest {
     }
 
     @Test
-    void completed_whenFatalError_shouldTransitionToTerminated() {
+    void completed_shouldTransitionToTerminated_whenFatalError() {
         var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
         when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
         when(transferProcessApiClient.completed(any())).thenReturn(StatusResult.failure(FATAL_ERROR));
@@ -437,7 +437,7 @@ class DataPlaneManagerImplTest {
     }
 
     @Test
-    void failed_whenRetryableError_shouldNotTransitionToFailed() {
+    void failed_shouldTransitionToFailed_whenRetryableError() {
         var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
         when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
         when(store.findById(any())).thenReturn(dataFlow);
@@ -453,7 +453,7 @@ class DataPlaneManagerImplTest {
     }
 
     @Test
-    void failed_whenFatalError_shouldNotTransitionToTerminated() {
+    void failed_shouldTransitionToTerminated_whenFatalError() {
         var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
         when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
         when(store.findById(any())).thenReturn(dataFlow);
