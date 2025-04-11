@@ -17,7 +17,7 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.jetty.websocket)
+    implementation(libs.jetty.server)
     implementation(project(":extensions:common:http:jetty-core"))
     api(libs.micrometer)
 
