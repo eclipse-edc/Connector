@@ -20,9 +20,9 @@ import org.eclipse.edc.spi.response.StatusResult;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Performs provisioning of a specific resource type.
+ * Performs deprovisioning of a specific resource type.
  */
-public interface Provisioner {
+public interface Deprovisioner {
 
     /**
      * Return the supported {@link ProvisionResourceDefinition} type.
@@ -32,7 +32,7 @@ public interface Provisioner {
     String supportedType();
 
     /**
-     * Asynchronously provisions a resource required to perform the data transfer.
+     * Asynchronously deprovisions a resource used to perform the data transfer.
      * Implementations must be idempotent.
      * Implementations should not throw exceptions. If an unexpected exception occurs and the flow should be re-attempted, return
      * {@link ResponseStatus#ERROR_RETRY}. If an exception occurs and re-tries should not be re-attempted, return
@@ -40,6 +40,6 @@ public interface Provisioner {
      *
      * @param provisionResourceDefinition that contains metadata associated with the provision operation
      */
-    CompletableFuture<StatusResult<ProvisionedResource>> provision(ProvisionResourceDefinition provisionResourceDefinition);
+    CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionResourceDefinition provisionResourceDefinition);
 
 }

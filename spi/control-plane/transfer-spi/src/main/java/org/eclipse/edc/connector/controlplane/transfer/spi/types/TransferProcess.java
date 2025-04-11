@@ -48,6 +48,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONING_REQUESTED;
@@ -310,8 +311,12 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         transition(COMPLETING, state -> canBeCompleted());
     }
 
+    public void transitionCompletingRequested() {
+        transition(COMPLETING_REQUESTED, state -> canBeCompleted());
+    }
+
     public void transitionCompleted() {
-        transition(COMPLETED, COMPLETED, COMPLETING, STARTED);
+        transition(COMPLETED, COMPLETED, COMPLETING, COMPLETING_REQUESTED, STARTED);
     }
 
     public boolean canBeDeprovisioned() {
@@ -337,8 +342,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     public boolean canBeTerminated() {
         return currentStateIsOneOf(INITIAL, PROVISIONING, PROVISIONING_REQUESTED, PROVISIONED, REQUESTING, REQUESTED,
-                STARTING, STARTED, COMPLETING, SUSPENDING, SUSPENDING_REQUESTED, SUSPENDED, RESUMING, TERMINATING,
-                TERMINATING_REQUESTED);
+                STARTING, STARTED, COMPLETING, COMPLETING_REQUESTED, SUSPENDING, SUSPENDING_REQUESTED, SUSPENDED,
+                RESUMING, TERMINATING, TERMINATING_REQUESTED);
     }
 
     public void transitionTerminating(@Nullable String errorDetail) {
@@ -511,6 +516,10 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     public boolean terminationWasRequestedByCounterParty() {
         return getState() == TERMINATING_REQUESTED.code();
+    }
+
+    public boolean completionWasRequestedByCounterParty() {
+        return getState() == COMPLETING_REQUESTED.code();
     }
 
     public Builder toBuilder() {

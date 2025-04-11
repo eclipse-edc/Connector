@@ -20,17 +20,20 @@ import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.connector.dataplane.spi.port.TransferProcessApiClient;
+import org.eclipse.edc.connector.dataplane.spi.provision.DeprovisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceDefinition;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionerManager;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.ResponseFailure;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
@@ -38,6 +41,7 @@ import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.spi.types.domain.transfer.TransferType;
+import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -56,6 +60,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlow.TERMINATION_REASON;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISIONED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISIONING;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISION_FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONED;
@@ -88,6 +95,9 @@ import static org.mockito.Mockito.when;
 
 class DataPlaneManagerImplTest {
 
+    private static final int RETRY_LIMIT = 1;
+    private static final int RETRY_EXHAUSTED = RETRY_LIMIT + 1;
+
     private final TransferService transferService = mock();
     private final TransferProcessApiClient transferProcessApiClient = mock();
     private final DataPlaneStore store = mock();
@@ -113,6 +123,7 @@ class DataPlaneManagerImplTest {
                 .monitor(mock())
                 .runtimeId(runtimeId)
                 .waitStrategy(() -> 10000L)
+                .entityRetryProcessConfiguration(new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)))
                 .build();
     }
 
@@ -263,119 +274,138 @@ class DataPlaneManagerImplTest {
 
     }
 
-    @Test
-    void terminate_shouldTerminateDataFlow() {
-        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
-        when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
-        when(registry.resolveTransferService(any())).thenReturn(transferService);
-        when(transferService.terminate(any())).thenReturn(StreamResult.success());
+    @Nested
+    class Terminate {
 
-        var result = manager.terminate("dataFlowId");
+        @Test
+        void shouldTerminateDataFlow() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.terminate(any())).thenReturn(StreamResult.success());
 
-        assertThat(result).isSucceeded();
-        verify(store).save(argThat(d -> d.getState() == TERMINATED.code()));
-        verify(transferService).terminate(dataFlow);
-    }
+            var result = manager.terminate("dataFlowId");
 
-    @Test
-    void terminate_shouldTerminatePullDataFlow() {
-        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).id("dataFlowId").transferType(new TransferType("DestinationType", FlowType.PULL)).build();
-        when(store.findByIdAndLease(dataFlow.getId())).thenReturn(StoreResult.success(dataFlow));
-        when(authorizationService.revokeEndpointDataReference(dataFlow.getId(), null)).thenReturn(Result.success());
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(d -> d.getState() == TERMINATED.code()));
+            verify(transferService).terminate(dataFlow);
+        }
 
-        var result = manager.terminate(dataFlow.getId(), null);
+        @Test
+        void shouldTerminatePullDataFlow() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).id("dataFlowId").transferType(new TransferType("DestinationType", FlowType.PULL)).build();
+            when(store.findByIdAndLease(dataFlow.getId())).thenReturn(StoreResult.success(dataFlow));
+            when(authorizationService.revokeEndpointDataReference(dataFlow.getId(), null)).thenReturn(Result.success());
 
-        assertThat(result).isSucceeded();
-        verify(store).save(argThat(d -> d.getState() == TERMINATED.code()));
-        verify(authorizationService).revokeEndpointDataReference(dataFlow.getId(), null);
-    }
+            var result = manager.terminate(dataFlow.getId(), null);
 
-    @Test
-    void terminate_shouldFailToTerminatePullDataFlow_whenRevocationFails() {
-        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).id("dataFlowId").transferType(new TransferType("DestinationType", FlowType.PULL)).build();
-        when(store.findByIdAndLease(dataFlow.getId())).thenReturn(StoreResult.success(dataFlow));
-        when(authorizationService.revokeEndpointDataReference(dataFlow.getId(), null)).thenReturn(Result.failure("failure"));
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(d -> d.getState() == TERMINATED.code()));
+            verify(authorizationService).revokeEndpointDataReference(dataFlow.getId(), null);
+        }
 
-        var result = manager.terminate(dataFlow.getId(), null);
+        @Test
+        void shouldFailToTerminatePullDataFlow_whenRevocationFails() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).id("dataFlowId").transferType(new TransferType("DestinationType", FlowType.PULL)).build();
+            when(store.findByIdAndLease(dataFlow.getId())).thenReturn(StoreResult.success(dataFlow));
+            when(authorizationService.revokeEndpointDataReference(dataFlow.getId(), null)).thenReturn(Result.failure("failure"));
 
-        assertThat(result).isFailed();
-        verify(store, never()).save(any());
-        verify(authorizationService).revokeEndpointDataReference(dataFlow.getId(), null);
-    }
+            var result = manager.terminate(dataFlow.getId(), null);
 
-    @Test
-    void terminate_shouldTerminateDataFlow_withReason() {
-        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
-        when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
-        when(registry.resolveTransferService(any())).thenReturn(transferService);
-        when(transferService.terminate(any())).thenReturn(StreamResult.success());
+            assertThat(result).isFailed();
+            verify(store, never()).save(any());
+            verify(authorizationService).revokeEndpointDataReference(dataFlow.getId(), null);
+        }
 
-        var result = manager.terminate("dataFlowId", "test-reason");
+        @Test
+        void shouldTerminateDataFlow_withReason() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.terminate(any())).thenReturn(StreamResult.success());
 
-        assertThat(result).isSucceeded();
-        verify(store).save(argThat(d -> d.getState() == TERMINATED.code() && d.getProperties().get(TERMINATION_REASON).equals("test-reason")));
-        verify(transferService).terminate(dataFlow);
-    }
+            var result = manager.terminate("dataFlowId", "test-reason");
 
-    @Test
-    void terminate_shouldReturnFatalError_whenDataFlowDoesNotExist() {
-        when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.notFound("not found"));
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(d -> d.getState() == TERMINATED.code() && d.getProperties().get(TERMINATION_REASON).equals("test-reason")));
+            verify(transferService).terminate(dataFlow);
+        }
 
-        var result = manager.terminate("dataFlowId");
+        @Test
+        void shouldReturnFatalError_whenDataFlowDoesNotExist() {
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.notFound("not found"));
 
-        assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
-        verify(store, never()).save(any());
-        verifyNoInteractions(transferService);
-    }
+            var result = manager.terminate("dataFlowId");
 
-    @Test
-    void terminate_shouldReturnRetryError_whenEntityCannotBeLeased() {
-        when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.alreadyLeased("already leased"));
+            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
+            verify(store, never()).save(any());
+            verifyNoInteractions(transferService);
+        }
 
-        var result = manager.terminate("dataFlowId");
+        @Test
+        void shouldReturnRetryError_whenEntityCannotBeLeased() {
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.alreadyLeased("already leased"));
 
-        assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(ERROR_RETRY);
-        verify(store, never()).save(any());
-        verifyNoInteractions(transferService);
-    }
+            var result = manager.terminate("dataFlowId");
 
-    @Test
-    void terminate_shouldReturnFatalError_whenTransferServiceNotFound() {
-        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
-        when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
-        when(registry.resolveTransferService(any())).thenReturn(null);
+            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(ERROR_RETRY);
+            verify(store, never()).save(any());
+            verifyNoInteractions(transferService);
+        }
 
-        var result = manager.terminate("dataFlowId");
+        @Test
+        void shouldReturnFatalError_whenTransferServiceNotFound() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+            when(registry.resolveTransferService(any())).thenReturn(null);
 
-        assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
-        verify(store, never()).save(any());
-        verifyNoInteractions(transferService);
-    }
+            var result = manager.terminate("dataFlowId");
 
-    @Test
-    void terminate_shouldReturnFatalError_whenDataFlowCannotBeTerminated() {
-        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
-        when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
-        when(registry.resolveTransferService(any())).thenReturn(transferService);
-        when(transferService.terminate(any())).thenReturn(StreamResult.error("cannot be terminated"));
+            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
+            verify(store, never()).save(any());
+            verifyNoInteractions(transferService);
+        }
 
-        var result = manager.terminate("dataFlowId");
+        @Test
+        void shouldReturnFatalError_whenDataFlowCannotBeTerminated() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.terminate(any())).thenReturn(StreamResult.error("cannot be terminated"));
 
-        assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
-        verify(store, never()).save(any());
-    }
+            var result = manager.terminate("dataFlowId");
 
-    @Test
-    void terminate_shouldStillTerminate_whenDataFlowHasNoSource() {
-        var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
-        when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
-        when(registry.resolveTransferService(any())).thenReturn(transferService);
-        when(transferService.terminate(any())).thenReturn(StreamResult.notFound());
+            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
+            verify(store, never()).save(any());
+        }
 
-        var result = manager.terminate("dataFlowId", "test-reason");
+        @Test
+        void shouldStillTerminate_whenDataFlowHasNoSource() {
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.terminate(any())).thenReturn(StreamResult.notFound());
 
-        assertThat(result).isSucceeded();
-        verify(store).save(argThat(f -> f.getProperties().containsKey(TERMINATION_REASON)));
+            var result = manager.terminate("dataFlowId", "test-reason");
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(f -> f.getProperties().containsKey(TERMINATION_REASON)));
+        }
+
+        @Test
+        void shouldTransitionToDeprovisioning_whenFlowIsProvisionedOnConsumerSide() {
+            var dataFlow = dataFlowBuilder().state(PROVISIONED.code()).build();
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.terminate(any())).thenReturn(StreamResult.success());
+
+            var result = manager.terminate("dataFlowId");
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(d -> d.getState() == DEPROVISIONING.code()));
+            verifyNoInteractions(transferService, authorizationService);
+        }
+
     }
 
     @Test
@@ -592,6 +622,62 @@ class DataPlaneManagerImplTest {
                 verify(store, atLeastOnce()).save(argThat(it -> it.getState() == FAILED.code()));
             });
         }
+    }
+
+    @Nested
+    class Deprovisioning {
+
+        @Test
+        void shouldDeprovision() {
+            var resourceDefinition = ProvisionResourceDefinition.Builder.newInstance().build();
+            var provisionedResource = DeprovisionedResource.Builder.from(resourceDefinition).build();
+            var dataFlow = dataFlowBuilder().state(DEPROVISIONING.code()).resourceDefinitions(List.of(resourceDefinition)).build();
+            when(store.nextNotLeased(anyInt(), stateIs(DEPROVISIONING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(provisionerManager.deprovision(any())).thenReturn(completedFuture(List.of(StatusResult.success(provisionedResource))));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(provisionerManager).deprovision(List.of(resourceDefinition));
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                var storedDataFlow = captor.getValue();
+                assertThat(storedDataFlow.stateAsString()).isEqualTo(DEPROVISIONED.name());
+            });
+        }
+
+        @Test
+        void shouldTransitionToDeprovisioning_whenError() {
+            var dataFlow = dataFlowBuilder().state(DEPROVISIONING.code()).build();
+            when(store.nextNotLeased(anyInt(), stateIs(DEPROVISIONING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(provisionerManager.deprovision(any())).thenReturn(failedFuture(new EdcException("generic error")));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                var storedDataFlow = captor.getValue();
+                assertThat(storedDataFlow.stateAsString()).isEqualTo(DEPROVISIONING.name());
+            });
+        }
+
+        @Test
+        void shouldTransitionToDeprovisionFailed_whenRetryExpired() {
+            var dataFlow = dataFlowBuilder().state(DEPROVISIONING.code()).stateCount(RETRY_EXHAUSTED).build();
+            when(store.nextNotLeased(anyInt(), stateIs(DEPROVISIONING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(provisionerManager.deprovision(any())).thenReturn(failedFuture(new EdcException("generic error")));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                var storedDataFlow = captor.getValue();
+                assertThat(storedDataFlow.stateAsString()).isEqualTo(DEPROVISION_FAILED.name());
+            });
+        }
+
     }
 
     @Nested

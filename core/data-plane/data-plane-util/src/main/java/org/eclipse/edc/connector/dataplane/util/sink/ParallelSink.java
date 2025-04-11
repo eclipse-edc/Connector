@@ -17,9 +17,7 @@ package org.eclipse.edc.connector.dataplane.util.sink;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
-import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.util.stream.PartitionIterator;
@@ -30,7 +28,9 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.eclipse.edc.util.async.AsyncUtils.asyncAllOf;
 
@@ -47,30 +47,30 @@ public abstract class ParallelSink implements DataSink {
     @WithSpan
     @Override
     public CompletableFuture<StreamResult<Object>> transfer(DataSource source) {
-        return supplyAsync(() -> source.openPartStream().orElseThrow(StreamException::new), executorService)
-                .thenCompose(parts -> {
-                    try (parts) {
-                        return PartitionIterator.streamOf(parts, partitionSize)
-                                .map(this::processPartsAsync)
-                                .collect(asyncAllOf())
-                                .thenApply(results -> results.stream()
-                                        .filter(StreamResult::failed)
-                                        .findFirst()
-                                        .map(r -> StreamResult.failure(r.getFailure()))
-                                        .orElseGet(this::complete));
-                    }
-                })
-                .exceptionally(throwable -> {
-                    if (throwable instanceof StreamException streamException) {
-                        return StreamResult.failure(streamException.failure);
-                    } else {
-                        return StreamResult.error("Error processing data transfer request - Request ID: %s. Message: %s".formatted(requestId, throwable.getMessage()));
-                    }
-                });
+        return supplyAsync(source::openPartStream, executorService)
+                .thenCompose(result -> result
+                        .map(this::process)
+                        .orElse(f -> completedFuture(error(f.getFailureDetail()))))
+                .exceptionally(throwable -> error(throwable.getMessage()));
+    }
+
+    protected abstract StreamResult<Object> transferParts(List<DataSource.Part> parts);
+
+    private @NotNull CompletableFuture<StreamResult<Object>> process(Stream<DataSource.Part> parts) {
+        try (parts) {
+            return PartitionIterator.streamOf(parts, partitionSize)
+                    .map(this::processPartitionAsync)
+                    .collect(asyncAllOf())
+                    .thenApply(results -> results.stream()
+                            .filter(StreamResult::failed)
+                            .findFirst()
+                            .map(r -> StreamResult.failure(r.getFailure()))
+                            .orElseGet(this::complete));
+        }
     }
 
     @NotNull
-    private CompletableFuture<StreamResult<Object>> processPartsAsync(List<DataSource.Part> parts) {
+    private CompletableFuture<StreamResult<Object>> processPartitionAsync(List<DataSource.Part> parts) {
         return supplyAsync(transfer(parts), executorService);
     }
 
@@ -78,7 +78,9 @@ public abstract class ParallelSink implements DataSink {
         return telemetry.contextPropagationMiddleware(() -> transferParts(parts), telemetry.getTraceCarrierWithCurrentContext());
     }
 
-    protected abstract StreamResult<Object> transferParts(List<DataSource.Part> parts);
+    private @NotNull StreamResult<Object> error(String message) {
+        return StreamResult.error("Error processing data transfer request - Request ID: %s. Message: %s".formatted(requestId, message));
+    }
 
     /**
      * Called after all parallel parts are transferred, only if all parts were successfully transferred.
@@ -89,16 +91,6 @@ public abstract class ParallelSink implements DataSink {
      */
     protected StreamResult<Object> complete() {
         return StreamResult.success();
-    }
-
-    private static class StreamException extends EdcException {
-
-        private final StreamFailure failure;
-
-        StreamException(StreamFailure failure) {
-            super(failure.getFailureDetail());
-            this.failure = failure;
-        }
     }
 
     protected abstract static class Builder<B extends Builder<B, T>, T extends ParallelSink> {

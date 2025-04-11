@@ -54,7 +54,9 @@ import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONING;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
@@ -63,6 +65,7 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.spi.result.Result.success;
 import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PULL;
 import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
+import static org.eclipse.edc.statemachine.retry.processor.Process.future;
 
 /**
  * Default data manager implementation.
@@ -84,7 +87,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     @Override
     public Result<Boolean> validate(DataFlowStartMessage dataRequest) {
         // TODO for now no validation for pull scenario, since the transfer service registry
-        //  is not applicable here. Probably validation only on the source part required.
+        //      is not applicable here. Probably validation only on the source part required.
         if (PULL.equals(dataRequest.getFlowType())) {
             return success(true);
         } else {
@@ -115,7 +118,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
             dataFlow.transitionToProvisioning(resources);
         }
 
-        store.save(dataFlow);
+        update(dataFlow);
 
         return Result.success(DataFlowResponseMessage.Builder.newInstance()
                 .provisioning(!resources.isEmpty())
@@ -150,21 +153,32 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
     @Override
     public StatusResult<Void> suspend(String dataFlowId) {
-        return stop(dataFlowId)
-                .map(dataFlow -> {
+        return store.findByIdAndLease(dataFlowId)
+                .flatMap(StatusResult::from)
+                .compose(this::stop)
+                .onSuccess(dataFlow -> {
                     dataFlow.transitToSuspended();
-                    store.save(dataFlow);
-                    return null;
-                });
+                    update(dataFlow);
+                })
+                .mapEmpty();
     }
 
     @Override
     public StatusResult<Void> terminate(String dataFlowId, @Nullable String reason) {
-        return stop(dataFlowId, reason)
-                .map(dataFlow -> {
-                    dataFlow.transitToTerminated(reason);
-                    store.save(dataFlow);
-                    return null;
+        return store.findByIdAndLease(dataFlowId)
+                .flatMap(StatusResult::from)
+                .compose(dataFlow -> {
+                    if (dataFlow.getState() == PROVISIONED.code()) {
+                        dataFlow.transitionToDeprovisioning();
+                        update(dataFlow);
+                        return StatusResult.success();
+                    }
+                    return stop(dataFlow, reason)
+                            .onSuccess(flow -> {
+                                flow.transitToTerminated(reason);
+                                update(dataFlow);
+                            })
+                            .mapEmpty();
                 });
     }
 
@@ -198,7 +212,8 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .processor(processDataFlowInState(STARTED, this::restartFlow, ownedByAnotherRuntime, danglingTransfer))
                 .processor(processDataFlowInState(RECEIVED, this::processReceived))
                 .processor(processDataFlowInState(COMPLETED, this::processCompleted))
-                .processor(processDataFlowInState(FAILED, this::processFailed));
+                .processor(processDataFlowInState(FAILED, this::processFailed))
+                .processor(processDataFlowInState(DEPROVISIONING, this::processDeprovisioning));
     }
 
     private boolean updateFlowLease(DataFlow dataFlow) {
@@ -215,37 +230,30 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         return true;
     }
 
-    private StatusResult<DataFlow> stop(String dataFlowId) {
-        return stop(dataFlowId, null);
+    private StatusResult<DataFlow> stop(DataFlow dataFlow) {
+        return stop(dataFlow, null);
     }
 
-    private StatusResult<DataFlow> stop(String dataFlowId, String reason) {
-        var result = store.findByIdAndLease(dataFlowId);
-        if (result.failed()) {
-            return StatusResult.from(result).mapFailure();
-        }
-
-        var dataFlow = result.getContent();
-
+    private StatusResult<DataFlow> stop(DataFlow dataFlow, String reason) {
         if (FlowType.PUSH.equals(dataFlow.getTransferType().flowType())) {
             var transferService = transferServiceRegistry.resolveTransferService(dataFlow.toRequest());
 
             if (transferService == null) {
-                return StatusResult.failure(FATAL_ERROR, "TransferService cannot be resolved for DataFlow %s".formatted(dataFlowId));
+                return StatusResult.failure(FATAL_ERROR, "TransferService cannot be resolved for DataFlow %s".formatted(dataFlow.getId()));
             }
 
             var terminateResult = transferService.terminate(dataFlow);
             if (terminateResult.failed()) {
                 if (terminateResult.reason().equals(StreamFailure.Reason.NOT_FOUND)) {
-                    monitor.warning("No source was found for DataFlow '%s'. This may indicate an inconsistent state.".formatted(dataFlowId));
+                    monitor.warning("No source was found for DataFlow '%s'. This may indicate an inconsistent state.".formatted(dataFlow.getId()));
                 } else {
-                    return StatusResult.failure(FATAL_ERROR, "DataFlow %s cannot be terminated: %s".formatted(dataFlowId, terminateResult.getFailureDetail()));
+                    return StatusResult.failure(FATAL_ERROR, "DataFlow %s cannot be terminated: %s".formatted(dataFlow.getId(), terminateResult.getFailureDetail()));
                 }
             }
         } else {
-            var revokeResult = authorizationService.revokeEndpointDataReference(dataFlowId, reason);
+            var revokeResult = authorizationService.revokeEndpointDataReference(dataFlow.getId(), reason);
             if (revokeResult.failed()) {
-                return StatusResult.failure(FATAL_ERROR, "DataFlow %s cannot be terminated: %s".formatted(dataFlowId, revokeResult.getFailureDetail()));
+                return StatusResult.failure(FATAL_ERROR, "DataFlow %s cannot be terminated: %s".formatted(dataFlow.getId(), revokeResult.getFailureDetail()));
             }
         }
 
@@ -279,7 +287,6 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     private boolean processProvisioning(DataFlow dataFlow) {
-
         provisionerManager.provision(dataFlow.getResourceDefinitions())
                 .thenAccept(results -> {
                     var newAddress = results.stream().map(AbstractResult::getContent)
@@ -292,6 +299,24 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 });
 
         return true;
+    }
+
+    private boolean processDeprovisioning(DataFlow dataFlow) {
+        return entityRetryProcessFactory.retryProcessor(dataFlow)
+                .doProcess(future("deprovisioning", (flow, e) -> provisionerManager.deprovision(flow.getResourceDefinitions())))
+                .onSuccess((f, results) -> {
+                    dataFlow.transitionToDeprovisioned();
+                    update(dataFlow);
+                })
+                .onFailure((f, t) -> {
+                    dataFlow.transitionToDeprovisioning();
+                    update(dataFlow);
+                })
+                .onFinalFailure((f, t) -> {
+                    dataFlow.transitionToDeprovisionFailed();
+                    update(dataFlow);
+                })
+                .execute();
     }
 
     private boolean processReceived(DataFlow dataFlow) {

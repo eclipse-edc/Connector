@@ -14,19 +14,12 @@
 
 package org.eclipse.edc.connector.dataplane.spi.provision;
 
-import org.eclipse.edc.spi.types.domain.DataAddress;
-
 import java.util.UUID;
 
-public class ProvisionedResource {
+public class DeprovisionedResource {
 
     private String id;
     private String flowId;
-    private DataAddress dataAddress;
-
-    public DataAddress getDataAddress() {
-        return dataAddress;
-    }
 
     public String getId() {
         return id;
@@ -38,14 +31,14 @@ public class ProvisionedResource {
 
     public static class Builder {
 
-        private ProvisionedResource resource;
+        private DeprovisionedResource resource;
 
         public static Builder newInstance() {
             return new Builder();
         }
 
         private Builder() {
-            resource = new ProvisionedResource();
+            resource = new DeprovisionedResource();
         }
 
         public static Builder from(ProvisionResourceDefinition definition) {
@@ -55,16 +48,11 @@ public class ProvisionedResource {
             return builder;
         }
 
-        public ProvisionedResource build() {
+        public DeprovisionedResource build() {
             if (resource.id == null) {
                 resource.id = UUID.randomUUID().toString();
             }
             return resource;
-        }
-
-        public Builder dataAddress(DataAddress dataAddress) {
-            resource.dataAddress = dataAddress;
-            return this;
         }
 
         public Builder flowId(String flowId) {

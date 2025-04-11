@@ -84,6 +84,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONED;
@@ -300,46 +301,64 @@ class TransferProcessManagerImplTest {
         });
     }
 
-    @Test
-    void completing_provider_shouldTransitionToDeprovisioning_whenSendingMessageSucceed() {
-        var process = createTransferProcessBuilder(COMPLETING).type(PROVIDER).correlationId("correlationId").build();
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(COMPLETING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING.code()).build());
-        when(dispatcherRegistry.dispatch(any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+    @Nested
+    class Completing {
 
-        manager.start();
+        @Test
+        void provider_shouldTransitionToDeprovisioning_whenSendingMessageSucceed() {
+            var process = createTransferProcessBuilder(COMPLETING).type(PROVIDER).correlationId("correlationId").build();
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(COMPLETING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING.code()).build());
+            when(dispatcherRegistry.dispatch(any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
-        await().untilAsserted(() -> {
-            var captor = ArgumentCaptor.forClass(TransferCompletionMessage.class);
-            verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
-            var message = captor.getValue();
-            assertThat(message.getProviderPid()).isEqualTo(process.getId());
-            assertThat(message.getConsumerPid()).isEqualTo("correlationId");
-            assertThat(message.getProcessId()).isEqualTo("correlationId");
-            verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == DEPROVISIONING.code()));
-            verify(listener).completed(process);
-        });
-    }
+            manager.start();
 
-    @Test
-    void completing_consumer_shouldTransitionToCompleted_whenSendingMessageSucceed() {
-        var process = createTransferProcessBuilder(COMPLETING).type(CONSUMER).correlationId("correlationId").build();
-        when(transferProcessStore.nextNotLeased(anyInt(), stateIs(COMPLETING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-        when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING.code()).build());
-        when(dispatcherRegistry.dispatch(any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            await().untilAsserted(() -> {
+                var captor = ArgumentCaptor.forClass(TransferCompletionMessage.class);
+                verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
+                var message = captor.getValue();
+                assertThat(message.getProviderPid()).isEqualTo(process.getId());
+                assertThat(message.getConsumerPid()).isEqualTo("correlationId");
+                assertThat(message.getProcessId()).isEqualTo("correlationId");
+                verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == DEPROVISIONING.code()));
+                verify(listener).completed(process);
+            });
+        }
 
-        manager.start();
+        @Test
+        void consumer_shouldTransitionToComplete_whenSendingMessageSucceed() {
+            var process = createTransferProcessBuilder(COMPLETING).type(CONSUMER).correlationId("correlationId").build();
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(COMPLETING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING.code()).build());
+            when(dispatcherRegistry.dispatch(any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
-        await().untilAsserted(() -> {
-            var captor = ArgumentCaptor.forClass(TransferCompletionMessage.class);
-            verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
-            var message = captor.getValue();
-            assertThat(message.getProviderPid()).isEqualTo("correlationId");
-            assertThat(message.getConsumerPid()).isEqualTo(process.getId());
-            assertThat(message.getProcessId()).isEqualTo("correlationId");
-            verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == COMPLETED.code()));
-            verify(listener).completed(process);
-        });
+            manager.start();
+
+            await().untilAsserted(() -> {
+                var captor = ArgumentCaptor.forClass(TransferCompletionMessage.class);
+                verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
+                var message = captor.getValue();
+                assertThat(message.getProviderPid()).isEqualTo("correlationId");
+                assertThat(message.getConsumerPid()).isEqualTo(process.getId());
+                assertThat(message.getProcessId()).isEqualTo("correlationId");
+                verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == COMPLETED.code()));
+                verify(listener).completed(process);
+            });
+        }
+
+        @Test
+        void shouldTerminateDataFlow_whenTransferCompletedByCounterPart() {
+            var process = createTransferProcessBuilder(COMPLETING_REQUESTED).type(CONSUMER).correlationId("correlationId").build();
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(COMPLETING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING_REQUESTED.code()).build());
+            when(dispatcherRegistry.dispatch(any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(dataFlowManager).terminate(process);
+            });
+        }
     }
 
     @Nested
@@ -416,10 +435,12 @@ class TransferProcessManagerImplTest {
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
             when(dispatcherRegistry.dispatch(any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
 
             manager.start();
 
             await().untilAsserted(() -> {
+                verify(dataFlowManager).terminate(process);
                 var captor = ArgumentCaptor.forClass(TransferTerminationMessage.class);
                 verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
                 var message = captor.getValue();
@@ -431,25 +452,6 @@ class TransferProcessManagerImplTest {
             });
         }
 
-        @Test
-        void shouldNotTerminateDataTransfer() {
-            var process = createTransferProcessBuilder(TERMINATING).type(CONSUMER).correlationId("correlationId").build();
-            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-            when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
-            when(dispatcherRegistry.dispatch(any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
-
-            manager.start();
-
-            await().untilAsserted(() -> {
-                verifyNoInteractions(dataFlowManager);
-                var captor = ArgumentCaptor.forClass(TransferTerminationMessage.class);
-                verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
-                var message = captor.getValue();
-                assertThat(message.getProcessId()).isEqualTo("correlationId");
-                verify(transferProcessStore, times(RETRY_LIMIT)).save(argThat(p -> p.getState() == TERMINATED.code()));
-                verify(listener).terminated(process);
-            });
-        }
     }
 
     @Nested

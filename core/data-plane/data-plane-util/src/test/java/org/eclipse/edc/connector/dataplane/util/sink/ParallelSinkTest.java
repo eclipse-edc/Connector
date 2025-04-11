@@ -30,32 +30,32 @@ import java.util.stream.IntStream;
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class ParallelSinkTest {
 
     private final Duration timeout = Duration.of(500, MILLIS);
-    private final String errorMessage = "test-errormessage";
     private final String dataFlowRequestId = randomUUID().toString();
     private final FakeParallelSink fakeSink = new FakeParallelSink.Builder().monitor(mock())
             .executorService(Executors.newFixedThreadPool(2))
             .requestId(dataFlowRequestId).build();
 
     @Test
-    void transfer_succeeds() {
+    void shouldTransferFromSourceToSink() {
         var dataSource = dataSource();
 
         var future = fakeSink.transfer(dataSource);
         
         assertThat(future).succeedsWithin(timeout)
-                .satisfies(transferResult -> assertThat(transferResult.succeeded()).isTrue());
+                .satisfies(transferResult -> assertThat(transferResult).isSucceeded());
         assertThat(fakeSink.parts).containsExactly(dataSource);
         assertThat(fakeSink.complete).isEqualTo(1);
     }
 
     @Test
-    void transfer_whenCompleteFails_fails() {
+    void shouldForwardFailedResult() {
         var dataSource = dataSource();
         fakeSink.completeResponse = StreamResult.error("General error");
 
@@ -65,52 +65,68 @@ class ParallelSinkTest {
     }
 
     @Test
-    void transfer_whenExceptionOpeningPartStream_fails() {
+    void shouldReturnFailedResult_whenOpenPartFails() {
         var dataSourceMock = mock(DataSource.class);
 
-        when(dataSourceMock.openPartStream()).thenThrow(new RuntimeException(errorMessage));
+        when(dataSourceMock.openPartStream()).thenReturn(StreamResult.error("an error"));
 
         var future = fakeSink.transfer(dataSourceMock);
         
         assertThat(future).succeedsWithin(timeout)
-                .satisfies(transferResult -> assertThat(transferResult.failed()).isTrue())
+                .satisfies(transferResult -> assertThat(transferResult).isFailed())
+                .satisfies(transferResult -> assertThat(transferResult.getFailure().getReason()).isEqualTo(StreamFailure.Reason.GENERAL_ERROR))
                 .satisfies(transferResult -> assertThat(transferResult.getFailureDetail())
-                        .contains("Error processing data transfer request").contains(dataFlowRequestId).contains(errorMessage));
+                        .contains("an error").contains(dataFlowRequestId));
         assertThat(fakeSink.complete).isEqualTo(0);
     }
 
     @Test
-    void transfer_whenFailureDuringTransfer_fails() {
+    void shouldReturnFailedResult_whenOpenPartThrowsException() {
+        var dataSourceMock = mock(DataSource.class);
+
+        when(dataSourceMock.openPartStream()).thenThrow(new RuntimeException("an exception"));
+
+        var future = fakeSink.transfer(dataSourceMock);
+
+        assertThat(future).succeedsWithin(timeout)
+                .satisfies(transferResult -> assertThat(transferResult).isFailed())
+                .satisfies(transferResult -> assertThat(transferResult.getFailure().getReason()).isEqualTo(StreamFailure.Reason.GENERAL_ERROR))
+                .satisfies(transferResult -> assertThat(transferResult.getFailureDetail())
+                        .contains("Error processing data transfer request").contains(dataFlowRequestId).contains("an exception"));
+        assertThat(fakeSink.complete).isEqualTo(0);
+    }
+
+    @Test
+    void shouldReturnFailedResult_whenSinkTransferFails() {
         var dataSource = dataSource();
-        fakeSink.transferResultSupplier = () -> StreamResult.error(errorMessage);
+        fakeSink.transferResultSupplier = () -> StreamResult.error("an error");
 
         var future = fakeSink.transfer(dataSource);
         
         assertThat(future).succeedsWithin(timeout)
-                .satisfies(transferResult -> assertThat(transferResult.failed()).isTrue())
+                .satisfies(transferResult -> assertThat(transferResult).isFailed())
                 .satisfies(transferResult -> assertThat(transferResult.getFailure().getReason()).isEqualTo(StreamFailure.Reason.GENERAL_ERROR))
-                .satisfies(transferResult -> assertThat(transferResult.getFailureMessages()).containsExactly(errorMessage));
+                .satisfies(transferResult -> assertThat(transferResult.getFailureMessages()).containsExactly("an error"));
 
         assertThat(fakeSink.parts).containsExactly(dataSource);
         assertThat(fakeSink.complete).isEqualTo(0);
     }
 
     @Test
-    void transfer_whenExceptionDuringTransfer_fails() {
+    void shouldReturnFailedResult_whenSinkTransferThrowsException() {
         var dataSource = dataSource();
         fakeSink.transferResultSupplier = () -> {
-            throw new RuntimeException(errorMessage);
+            throw new RuntimeException("an error");
         };
 
         var future = fakeSink.transfer(dataSource);
-        
+
         assertThat(future).succeedsWithin(timeout)
-                .satisfies(transferResult -> assertThat(transferResult.failed()).isTrue())
+                .satisfies(transferResult -> assertThat(transferResult).isFailed())
                 .satisfies(transferResult -> assertThat(transferResult.getFailure().getReason()).isEqualTo(StreamFailure.Reason.GENERAL_ERROR))
                 .satisfies(transferResult -> assertThat(transferResult.getFailureDetail())
-                        .contains("Error processing data transfer request").contains(dataFlowRequestId).contains(errorMessage));
+                        .contains("Error processing data transfer request").contains(dataFlowRequestId).contains("an error"));
 
-        assertThat(fakeSink.parts).containsExactly(dataSource);
         assertThat(fakeSink.complete).isEqualTo(0);
     }
 

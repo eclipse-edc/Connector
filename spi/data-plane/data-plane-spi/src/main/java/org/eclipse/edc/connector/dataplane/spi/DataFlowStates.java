@@ -30,7 +30,10 @@ public enum DataFlowStates {
     SUSPENDED(225),
     TERMINATED(250),
     FAILED(300),
-    NOTIFIED(400);
+    NOTIFIED(400),
+    DEPROVISIONING(500),
+    DEPROVISIONED(600),
+    DEPROVISION_FAILED(700);
 
     private final int code;
 

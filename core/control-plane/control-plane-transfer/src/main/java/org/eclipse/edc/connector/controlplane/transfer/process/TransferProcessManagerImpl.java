@@ -70,6 +70,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONED;
@@ -181,6 +182,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .processor(processProviderTransfersInState(RESUMING, this::processProviderResuming))
                 .processor(processConsumerTransfersInState(RESUMING, this::processConsumerResuming))
                 .processor(processTransfersInState(COMPLETING, this::processCompleting))
+                .processor(processTransfersInState(COMPLETING_REQUESTED, this::processCompleting))
                 .processor(processTransfersInState(TERMINATING, this::processTerminating))
                 .processor(processTransfersInState(TERMINATING_REQUESTED, this::processTerminating))
                 .processor(processTransfersInState(DEPROVISIONING, this::processDeprovisioning));
@@ -410,7 +412,14 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
         return entityRetryProcessFactory.retryProcessor(process)
                 .doProcess(futureResult("Dispatch TransferCompletionMessage to " + process.getCounterPartyAddress(),
-                        (t, dataFlowResponse) -> dispatch(builder, t, Object.class))
+                        (t, dataFlowResponse) -> {
+                            if (t.completionWasRequestedByCounterParty()) {
+                                var result = dataFlowManager.terminate(t);
+                                return completedFuture(result.mapEmpty());
+                            } else {
+                                return dispatch(builder, t, Object.class);
+                            }
+                        })
                 )
                 .onSuccess((t, c) -> {
                     transitionToCompleted(t);
@@ -473,7 +482,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         }
 
         return entityRetryProcessFactory.retryProcessor(process)
-                .doProcess(result("Terminate DataFlow", (p, i) -> terminateDataFlow(process)))
+                .doProcess(result("Terminate DataFlow", (p, i) -> dataFlowManager.terminate(process)))
                 .doProcess(futureResult("Dispatch TransferTerminationMessage", (t, n) -> {
                     if (t.terminationWasRequestedByCounterParty()) {
                         return completedFuture(StatusResult.success(null));
@@ -525,15 +534,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     private StatusResult<Void> suspendDataFlow(TransferProcess process) {
         if (process.getType() == PROVIDER) {
             return dataFlowManager.suspend(process);
-        } else {
-            return StatusResult.success();
-        }
-    }
-
-    @NotNull
-    private StatusResult<Void> terminateDataFlow(TransferProcess process) {
-        if (process.getType() == PROVIDER) {
-            return dataFlowManager.terminate(process);
         } else {
             return StatusResult.success();
         }
