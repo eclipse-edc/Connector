@@ -65,6 +65,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
@@ -219,93 +220,96 @@ class TransferProcessProtocolServiceImplTest {
         verifyNoInteractions(listener);
     }
 
-    @Test
-    void notifyCompleted_shouldTransitionToCompleted() {
-        var participantAgent = participantAgent();
-        var tokenRepresentation = tokenRepresentation();
-        var message = TransferCompletionMessage.Builder.newInstance()
-                .protocol("protocol")
-                .consumerPid("consumerPid")
-                .providerPid("providerPid")
-                .counterPartyAddress("http://any")
-                .processId("correlationId")
-                .build();
-        var agreement = contractAgreement();
-        var transferProcess = transferProcess(STARTED, "transferProcessId");
+    @Nested
+    class NotifyCompleted {
+        @Test
+        void shouldTransitionToCompletingRequested() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferCompletionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .build();
+            var agreement = contractAgreement();
+            var transferProcess = transferProcess(STARTED, "transferProcessId");
 
-        when(store.findById("correlationId")).thenReturn(transferProcess);
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-        when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
-        when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-        when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
 
-        var result = service.notifyCompleted(message, tokenRepresentation);
+            var result = service.notifyCompleted(message, tokenRepresentation);
 
-        assertThat(result).isSucceeded();
-        verify(listener).preCompleted(any());
-        verify(store).save(argThat(t -> t.getState() == COMPLETED.code()));
-        verify(listener).completed(any());
-        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
-    }
+            assertThat(result).isSucceeded();
+            verify(listener).preCompleted(any());
+            verify(store).save(argThat(t -> t.getState() == COMPLETING_REQUESTED.code()));
+            verify(listener).completed(any());
+            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+        }
 
-    @Test
-    void notifyCompleted_shouldReturnConflict_whenStatusIsNotValid() {
-        var participantAgent = participantAgent();
-        var tokenRepresentation = tokenRepresentation();
-        var transferProcess = transferProcess(REQUESTED, UUID.randomUUID().toString());
-        var message = TransferCompletionMessage.Builder.newInstance()
-                .protocol("protocol")
-                .consumerPid("consumerPid")
-                .providerPid("providerPid")
-                .counterPartyAddress("http://any")
-                .processId("correlationId")
-                .build();
-        var agreement = contractAgreement();
+        @Test
+        void shouldReturnConflict_whenStatusIsNotValid() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var transferProcess = transferProcess(REQUESTED, UUID.randomUUID().toString());
+            var message = TransferCompletionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .build();
+            var agreement = contractAgreement();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-        when(store.findById("correlationId")).thenReturn(transferProcess);
-        when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
-        when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-        when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
 
-        var result = service.notifyCompleted(message, tokenRepresentation);
+            var result = service.notifyCompleted(message, tokenRepresentation);
 
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-        // state didn't change
-        verify(store, times(1)).save(argThat(tp -> tp.getState() == REQUESTED.code()));
-        verifyNoInteractions(listener);
-    }
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            // state didn't change
+            verify(store, times(1)).save(argThat(tp -> tp.getState() == REQUESTED.code()));
+            verifyNoInteractions(listener);
+        }
 
-    @Test
-    void notifyCompleted_shouldReturnBadRequest_whenCounterPartyUnauthorized() {
-        var participantAgent = participantAgent();
-        var tokenRepresentation = tokenRepresentation();
-        var message = TransferCompletionMessage.Builder.newInstance()
-                .protocol("protocol")
-                .consumerPid("consumerPid")
-                .providerPid("providerPid")
-                .counterPartyAddress("http://any")
-                .processId("correlationId")
-                .build();
+        @Test
+        void shouldReturnBadRequest_whenCounterPartyUnauthorized() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferCompletionMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .build();
 
-        var agreement = contractAgreement();
+            var agreement = contractAgreement();
 
-        var transferProcess = transferProcess(STARTED, "transferProcessId");
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-        when(store.findById("correlationId")).thenReturn(transferProcess);
-        when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
-        when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
-        when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
+            var transferProcess = transferProcess(STARTED, "transferProcessId");
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
 
-        var result = service.notifyCompleted(message, tokenRepresentation);
+            var result = service.notifyCompleted(message, tokenRepresentation);
 
-        assertThat(result)
-                .isFailed()
-                .extracting(ServiceFailure::getReason)
-                .isEqualTo(BAD_REQUEST);
+            assertThat(result)
+                    .isFailed()
+                    .extracting(ServiceFailure::getReason)
+                    .isEqualTo(BAD_REQUEST);
 
-        verify(store, times(1)).save(any());
+            verify(store, times(1)).save(any());
 
+        }
     }
 
     @Nested

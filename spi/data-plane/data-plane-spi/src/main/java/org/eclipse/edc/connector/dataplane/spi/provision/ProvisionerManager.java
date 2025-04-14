@@ -30,8 +30,18 @@ public interface ProvisionerManager {
     void register(Provisioner provisioner);
 
     /**
+     * Registers the provisioner.
+     */
+    void register(Deprovisioner deprovisioner);
+
+    /**
      * Provisions resources required to perform the data flow. This operation is idempotent.
      */
     CompletableFuture<List<StatusResult<ProvisionedResource>>> provision(List<ProvisionResourceDefinition> definitions);
+
+    /**
+     * Deprovisions resources required to perform the data flow. This operation is idempotent.
+     */
+    CompletableFuture<List<StatusResult<DeprovisionedResource>>> deprovision(List<ProvisionResourceDefinition> definitions);
 
 }

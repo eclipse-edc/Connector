@@ -32,6 +32,9 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISIONED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISIONING;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISION_FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONED;
@@ -117,6 +120,10 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         transitionTo(PROVISIONING.code());
     }
 
+    public void transitionToDeprovisioning() {
+        transitionTo(DEPROVISIONING.code());
+    }
+
     public void transitToCompleted() {
         transitionTo(COMPLETED.code());
     }
@@ -156,6 +163,14 @@ public class DataFlow extends StatefulEntity<DataFlow> {
 
     public void transitionToProvisioned() {
         transitionTo(PROVISIONED.code());
+    }
+
+    public void transitionToDeprovisioned() {
+        transitionTo(DEPROVISIONED.code());
+    }
+
+    public void transitionToDeprovisionFailed() {
+        transitionTo(DEPROVISION_FAILED.code());
     }
 
     @JsonPOJOBuilder(withPrefix = "")

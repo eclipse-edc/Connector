@@ -198,7 +198,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         if (transferProcess.canBeCompleted()) {
             observable.invokeForEach(l -> l.preCompleted(transferProcess));
             transferProcess.protocolMessageReceived(message.getId());
-            transferProcess.transitionCompleted();
+            transferProcess.transitionCompletingRequested();
             update(transferProcess);
             observable.invokeForEach(l -> l.completed(transferProcess));
             return ServiceResult.success(transferProcess);

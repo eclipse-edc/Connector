@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.connector.dataplane.framework.provision;
 
+import org.eclipse.edc.connector.dataplane.spi.provision.DeprovisionedResource;
+import org.eclipse.edc.connector.dataplane.spi.provision.Deprovisioner;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceDefinition;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.Provisioner;
@@ -34,6 +36,7 @@ import static org.eclipse.edc.util.async.AsyncUtils.asyncAllOf;
 public class ProvisionerManagerImpl implements ProvisionerManager {
 
     private final List<Provisioner> provisioners = new ArrayList<>();
+    private final List<Deprovisioner> deprovisioners = new ArrayList<>();
     private final Monitor monitor;
 
     public ProvisionerManagerImpl(Monitor monitor) {
@@ -46,9 +49,21 @@ public class ProvisionerManagerImpl implements ProvisionerManager {
     }
 
     @Override
+    public void register(Deprovisioner deprovisioner) {
+        deprovisioners.add(deprovisioner);
+    }
+
+    @Override
     public CompletableFuture<List<StatusResult<ProvisionedResource>>> provision(List<ProvisionResourceDefinition> definitions) {
         return definitions.stream()
                 .map(definition -> provision(definition).whenComplete(logOnError(definition)))
+                .collect(asyncAllOf());
+    }
+
+    @Override
+    public CompletableFuture<List<StatusResult<DeprovisionedResource>>> deprovision(List<ProvisionResourceDefinition> definitions) {
+        return definitions.stream()
+                .map(definition -> deprovision(definition).whenComplete(logOnError(definition)))
                 .collect(asyncAllOf());
     }
 
@@ -65,9 +80,21 @@ public class ProvisionerManagerImpl implements ProvisionerManager {
         }
     }
 
+    @NotNull
+    private CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionResourceDefinition definition) {
+        try {
+            return deprovisioners.stream()
+                    .filter(it -> it.supportedType().equals(definition.getType()))
+                    .findFirst()
+                    .map(p -> p.deprovision(definition))
+                    .orElseGet(() -> failedFuture(new EdcException("No deprovisioner available for definition type %s".formatted(definition.getType()))));
+        } catch (Exception e) {
+            return failedFuture(e);
+        }
+    }
 
     @NotNull
-    private BiConsumer<StatusResult<ProvisionedResource>, Throwable> logOnError(ProvisionResourceDefinition definition) {
+    private BiConsumer<StatusResult<?>, Throwable> logOnError(ProvisionResourceDefinition definition) {
         return (result, throwable) -> {
             if (throwable != null) {
                 monitor.severe("Error provisioning definition %s for flow %s: %s".formatted(definition.getId(), definition.getFlowId(), throwable.getMessage()));

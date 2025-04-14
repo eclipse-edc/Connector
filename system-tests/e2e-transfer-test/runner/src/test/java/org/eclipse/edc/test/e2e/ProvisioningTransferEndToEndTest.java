@@ -14,16 +14,21 @@
 
 package org.eclipse.edc.test.e2e;
 
+import okhttp3.Request;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
+import org.eclipse.edc.connector.dataplane.spi.provision.DeprovisionedResource;
+import org.eclipse.edc.connector.dataplane.spi.provision.Deprovisioner;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceDefinition;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.Provisioner;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionerManager;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGenerator;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -32,19 +37,21 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.HttpResponse;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static jakarta.json.Json.createObjectBuilder;
+import static java.util.Collections.emptyList;
+import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
 
 public class ProvisioningTransferEndToEndTest {
 
@@ -56,6 +63,7 @@ public class ProvisioningTransferEndToEndTest {
             .name("provider")
             .id("urn:connector:provider")
             .build();
+    private static final int DESTINATION_BACKEND_PORT = getFreePort();
 
     @RegisterExtension
     @Order(0)
@@ -73,11 +81,12 @@ public class ProvisioningTransferEndToEndTest {
     );
 
     @Test
-    void shouldExecuteConsumerProvisioning() {
+    void shouldExecuteConsumerProvisioningAndDeprovisioning() {
         var source = ClientAndServer.startClientAndServer(getFreePort());
-        source.when(request()).respond(HttpResponse.response("data"));
-        var destination = ClientAndServer.startClientAndServer(getFreePort());
-        destination.when(request()).respond(HttpResponse.response());
+        source.when(request("/source")).respond(response("data"));
+        var destination = ClientAndServer.startClientAndServer(DESTINATION_BACKEND_PORT);
+        destination.when(request()).respond(response());
+        destination.when(request("/deprovision")).respond(response());
 
         var assetId = UUID.randomUUID().toString();
         var sourceDataAddress = Map.<String, Object>of(
@@ -102,6 +111,10 @@ public class ProvisioningTransferEndToEndTest {
 
         destination.verify(request().withHeader("provisionHeader", "value"));
 
+        await().untilAsserted(() -> {
+            destination.verify(request("/deprovision"));
+        });
+
         source.stop();
         destination.stop();
     }
@@ -120,6 +133,9 @@ public class ProvisioningTransferEndToEndTest {
         @Inject
         private ProvisionerManager provisionerManager;
 
+        @Inject
+        private EdcHttpClient httpClient;
+
         @Override
         public void initialize(ServiceExtensionContext context) {
             resourceDefinitionGeneratorManager.registerConsumerGenerator(new ResourceDefinitionGenerator() {
@@ -135,28 +151,59 @@ public class ProvisioningTransferEndToEndTest {
                             .newInstance()
                             .dataAddress(dataFlow.getDestination())
                             .type("AddHeader")
+                            .property("deprovisionEndpoint", "http://localhost:%d/deprovision".formatted(DESTINATION_BACKEND_PORT))
                             .build();
                 }
             });
 
-            provisionerManager.register(new Provisioner() {
-                @Override
-                public String supportedType() {
-                    return "AddHeader";
-                }
+            provisionerManager.register(new AddHeaderProvisioner());
+            provisionerManager.register(new CallEndpointDeprovisioner(httpClient));
+        }
 
-                @Override
-                public CompletableFuture<StatusResult<ProvisionedResource>> provision(ProvisionResourceDefinition provisionResourceDefinition) {
-                    var provisionedResource = ProvisionedResource.Builder.newInstance()
-                            .dataAddress(DataAddress.Builder.newInstance()
-                                    .properties(provisionResourceDefinition.getDataAddress().getProperties())
-                                    .property("header:provisionHeader", "value")
-                                    .build())
-                            .build();
-                    return CompletableFuture.completedFuture(StatusResult.success(provisionedResource));
-                }
+        private static class AddHeaderProvisioner implements Provisioner {
+            @Override
+            public String supportedType() {
+                return "AddHeader";
+            }
 
-            });
+            @Override
+            public CompletableFuture<StatusResult<ProvisionedResource>> provision(ProvisionResourceDefinition provisionResourceDefinition) {
+                var provisionedResource = ProvisionedResource.Builder.from(provisionResourceDefinition)
+                        .dataAddress(DataAddress.Builder.newInstance()
+                                .properties(provisionResourceDefinition.getDataAddress().getProperties())
+                                .property("header:provisionHeader", "value")
+                                .build())
+                        .build();
+                return CompletableFuture.completedFuture(StatusResult.success(provisionedResource));
+            }
+
+        }
+
+        private static class CallEndpointDeprovisioner implements Deprovisioner {
+
+            private final EdcHttpClient httpClient;
+
+            CallEndpointDeprovisioner(EdcHttpClient httpClient) {
+                this.httpClient = httpClient;
+            }
+
+            @Override
+            public String supportedType() {
+                return "AddHeader";
+            }
+
+            @Override
+            public CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionResourceDefinition definition) {
+                var deprovisionEndpoint = definition.getProperty("deprovisionEndpoint");
+                return httpClient.executeAsync(new Request.Builder().url((String) deprovisionEndpoint).build(), emptyList())
+                        .thenCompose(response -> {
+                            if (response.isSuccessful()) {
+                                return CompletableFuture.completedFuture(StatusResult.success(DeprovisionedResource.Builder.from(definition).build()));
+                            } else {
+                                return CompletableFuture.failedFuture(new EdcException("Deprovision failed"));
+                            }
+                        });
+            }
         }
     }
 }
