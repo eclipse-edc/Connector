@@ -18,9 +18,12 @@ import java.util.Collection;
 
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.CONTAINS;
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.EQUAL;
+import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.GREATER_THAN;
+import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.GREATER_THAN_EQUAL;
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.ILIKE;
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.IN;
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.LESS_THAN;
+import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.LESS_THAN_EQUAL;
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.LIKE;
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.NOT_EQUAL;
 
@@ -39,6 +42,9 @@ public class PostgresqlOperatorTranslator implements SqlOperatorTranslator {
             case IN -> new SqlOperator("in", Collection.class);
             case CONTAINS -> new SqlOperator("??", Object.class);
             case LESS_THAN -> new SqlOperator("<", Object.class);
+            case LESS_THAN_EQUAL -> new SqlOperator("<=", Object.class);
+            case GREATER_THAN -> new SqlOperator(">", Object.class);
+            case GREATER_THAN_EQUAL -> new SqlOperator(">=", Object.class);
             default -> null;
         };
     }
