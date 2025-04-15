@@ -23,11 +23,14 @@ import static java.util.Optional.ofNullable;
 
 public class EqualOperatorPredicate implements OperatorPredicate {
 
+    private final OperatorPredicate numberStringOperatorPredicate = NumberStringOperatorPredicate.equal();
+
     @Override
     public boolean test(Object property, Object operandRight) {
         if (property == null) {
             return operandRight == null;
         }
+
         if (property.getClass().isEnum()) {
             var enumProperty = (Enum<?>) property;
             if (operandRight instanceof String) {
@@ -37,20 +40,18 @@ public class EqualOperatorPredicate implements OperatorPredicate {
             }
         }
 
-        if (property instanceof Number c1 && operandRight instanceof Number c2) {
-            // interpret as double to not lose any precision
-            return Double.compare(c1.doubleValue(), c2.doubleValue()) == 0;
-        }
-
-        if (property instanceof List<?> list) {
-            return list.stream().anyMatch(it -> Objects.equals(it, operandRight));
-        } else if (property instanceof Boolean booleanProperty) {
+        if (property instanceof Boolean booleanProperty) {
             return ofNullable(operandRight)
                     .map(Object::toString)
                     .map(Boolean::parseBoolean)
                     .map(booleanOperand -> booleanOperand == booleanProperty)
                     .orElse(false);
         }
-        return Objects.equals(property, operandRight);
+
+        if (property instanceof List<?> list) {
+            return list.stream().anyMatch(it -> Objects.equals(it, operandRight));
+        }
+
+        return numberStringOperatorPredicate.test(property, operandRight);
     }
 }
