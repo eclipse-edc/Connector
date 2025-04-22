@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Cofinity-X - extract webhook and port mapping creation
  *
  */
 
@@ -22,15 +23,11 @@ import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFrom
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
-import org.eclipse.edc.policy.model.AtomicConstraint;
-import org.eclipse.edc.policy.model.LiteralExpression;
-import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
+import org.eclipse.edc.protocol.dsp.http.spi.api.DspBaseWebhookAddress;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
-import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -43,16 +40,9 @@ import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromQuerySpecTra
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToCriterionTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
-import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
-import org.eclipse.edc.web.spi.WebService;
-import org.eclipse.edc.web.spi.configuration.ApiContext;
-import org.eclipse.edc.web.spi.configuration.PortMapping;
-import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 
 import java.util.Map;
 
-import static java.lang.String.format;
-import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
@@ -82,23 +72,13 @@ public class DspApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol API Configuration Extension";
 
-    static final String DEFAULT_PROTOCOL_PATH = "/api/protocol";
-    static final int DEFAULT_PROTOCOL_PORT = 8282;
-
     private static final boolean DEFAULT_WELL_KNOWN_PATH = false;
 
     @Setting(description = "If set enable the well known path resolution scheme will be used", key = "edc.dsp.well-known-path.enabled", required = false, defaultValue = DEFAULT_WELL_KNOWN_PATH + "")
     private boolean wellKnownPathEnabled;
 
-    @Setting(description = "Configures endpoint for reaching the Protocol API in the form \"<hostname:protocol.port/protocol.path>\"", key = "edc.dsp.callback.address", required = false)
-    private String callbackAddress;
-    @Configuration
-    private DspApiConfiguration apiConfiguration;
-
     @Inject
     private TypeManager typeManager;
-    @Inject
-    private WebService webService;
     @Inject
     private JsonLd jsonLd;
     @Inject
@@ -106,10 +86,7 @@ public class DspApiConfigurationExtension implements ServiceExtension {
     @Inject
     private ParticipantIdMapper participantIdMapper;
     @Inject
-    private Hostname hostname;
-    @Inject
-    private PortMappingRegistry portMappingRegistry;
-
+    private DspBaseWebhookAddress dspWebhookAddress;
     @Inject
     private ProtocolWebhookRegistry protocolWebhookRegistry;
 
@@ -120,32 +97,19 @@ public class DspApiConfigurationExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var portMapping = new PortMapping(ApiContext.PROTOCOL, apiConfiguration.port(), apiConfiguration.path());
-        portMappingRegistry.register(portMapping);
+        var v2024Path = dspWebhookAddress.get() + (wellKnownPathEnabled ? "" : V_2024_1_PATH);
 
-        var dspWebhookAddress = ofNullable(callbackAddress).orElseGet(() -> format("http://%s:%s%s", hostname.get(), portMapping.port(), portMapping.path()));
-
-        var v2024Path = dspWebhookAddress + (wellKnownPathEnabled ? "" : V_2024_1_PATH);
-
-        protocolWebhookRegistry.registerWebhook(DATASPACE_PROTOCOL_HTTP, () -> dspWebhookAddress);
+        protocolWebhookRegistry.registerWebhook(DATASPACE_PROTOCOL_HTTP, () -> dspWebhookAddress.get());
         protocolWebhookRegistry.registerWebhook(DATASPACE_PROTOCOL_HTTP_V_2024_1, () -> v2024Path);
 
         // registers ns for DSP scope
         registerNamespaces(DSP_SCOPE_V_08, DSP_NAMESPACE_V_08);
         registerNamespaces(DSP_SCOPE_V_2024_1, DSP_NAMESPACE_V_2024_1);
 
-        webService.registerResource(ApiContext.PROTOCOL, new ObjectMapperProvider(typeManager, JSON_LD));
-
         registerV08Transformers();
         registerV2024Transformers();
         registerTransformers(DSP_TRANSFORMER_CONTEXT_V_08, DSP_NAMESPACE_V_08);
         registerTransformers(DSP_TRANSFORMER_CONTEXT_V_2024_1, DSP_NAMESPACE_V_2024_1);
-    }
-
-    @Override
-    public void prepare() {
-        var mapper = typeManager.getMapper(JSON_LD);
-        mapper.registerSubtypes(AtomicConstraint.class, LiteralExpression.class);
     }
 
     private void registerNamespaces(String scope, JsonLdNamespace dspNamespace) {
@@ -195,15 +159,5 @@ public class DspApiConfigurationExtension implements ServiceExtension {
 
         dspApiTransformerRegistry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory, participantIdMapper, true));
         dspApiTransformerRegistry.register(new JsonObjectFromDataAddressDspace2024Transformer(jsonBuilderFactory, typeManager, JSON_LD));
-    }
-
-    @Settings
-    record DspApiConfiguration(
-            @Setting(key = "web.http." + ApiContext.PROTOCOL + ".port", description = "Port for " + ApiContext.PROTOCOL + " api context", defaultValue = DEFAULT_PROTOCOL_PORT + "")
-            int port,
-            @Setting(key = "web.http." + ApiContext.PROTOCOL + ".path", description = "Path for " + ApiContext.PROTOCOL + " api context", defaultValue = DEFAULT_PROTOCOL_PATH)
-            String path
-    ) {
-
     }
 }
