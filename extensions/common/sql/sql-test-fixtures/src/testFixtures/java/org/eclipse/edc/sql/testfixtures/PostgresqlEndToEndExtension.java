@@ -25,7 +25,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Map;
 
-import static java.lang.String.format;
 import static org.testcontainers.containers.PostgreSQLContainer.POSTGRESQL_PORT;
 
 /**
@@ -86,9 +85,9 @@ public class PostgresqlEndToEndExtension implements BeforeAllCallback, AfterAllC
     public void createDatabase(String name) {
         var jdbcUrl = postgres.getJdbcUrl() + postgres.getDatabaseName();
         try (var connection = DriverManager.getConnection(jdbcUrl, postgres.getUsername(), postgres.getPassword())) {
-            connection.createStatement().execute(format("create database %s;", name));
+            connection.createStatement().execute("drop database if exists %s; create database %s;".formatted(name, name));
         } catch (SQLException e) {
-            // database could already exist
+            throw new RuntimeException(e);
         }
     }
 

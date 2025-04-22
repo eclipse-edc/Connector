@@ -119,7 +119,6 @@ public class TransferStreamingEndToEndTest {
             POSTGRESQL_EXTENSION.createDatabase(PROVIDER.getName());
         };
 
-
         @RegisterExtension
         static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
                 Runtimes.POSTGRES_CONTROL_PLANE.create("consumer-control-plane")
