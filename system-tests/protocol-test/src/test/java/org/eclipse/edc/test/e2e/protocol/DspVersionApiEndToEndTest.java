@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - unauthenticated version endpoint
  *
  */
 
@@ -31,11 +32,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PATH;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PROTOCOL_VERSIONS;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_VERSION;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.nullValue;
 
 @EndToEndTest
-public class DspVersionApiEndToEndTest {
+class DspVersionApiEndToEndTest {
 
     private static final int PROTOCOL_PORT = Ports.getFreePort();
     @RegisterExtension
@@ -52,7 +52,6 @@ public class DspVersionApiEndToEndTest {
         var response = given()
                 .port(PROTOCOL_PORT)
                 .basePath("/protocol")
-                .header("Authorization", "{\"region\": \"any\", \"audience\": \"any\", \"clientId\":\"any\"}")
                 .get("/.well-known/dspace-version")
                 .then()
                 .log().ifError()
@@ -70,24 +69,29 @@ public class DspVersionApiEndToEndTest {
     }
 
     @Test
-    void shouldReturnError_whenNotAuthorized() {
+    void shouldIgnoreAuthorizationHeader() {
 
         var authorizationHeader = """
                 {"region": "any", "audience": "any", "clientId":"faultyClientId"}"
                 """;
 
-        given()
+        var response = given()
                 .port(PROTOCOL_PORT)
                 .basePath("/protocol")
                 .header("Authorization", authorizationHeader)
                 .get("/.well-known/dspace-version")
                 .then()
                 .log().ifError()
-                .statusCode(401)
+                .statusCode(200)
                 .contentType(ContentType.JSON)
-                .body("code", equalTo("401"))
-                .body("reason[0]", equalTo("Unauthorized"))
-                .body("'@context'", nullValue());
+                .body("'@context'", nullValue())
+                .extract().body().as(JsonObject.class);
+        
+        
+        assertThat(response.getJsonArray(DSPACE_PROPERTY_PROTOCOL_VERSIONS))
+                .hasSize(1)
+                .extracting(JsonValue::asJsonObject)
+                .first().satisfies(protocolVersion -> versionIs(protocolVersion, "1.0", "/v1/path"));
     }
 
     private void versionIs(JsonObject protocolVersion, String version, String path) {
