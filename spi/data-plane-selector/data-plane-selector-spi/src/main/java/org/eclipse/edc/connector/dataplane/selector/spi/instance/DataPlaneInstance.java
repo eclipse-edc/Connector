@@ -141,8 +141,8 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
         return destinationProvisionTypes;
     }
 
-    public boolean canProvisionDestination(DataAddress destination) {
-        return destinationProvisionTypes.contains(destination.getType());
+    public boolean canProvisionDestination(@Nullable DataAddress destination) {
+        return destination != null && destinationProvisionTypes.contains(destination.getType());
     }
 
     public void transitionToRegistered() {

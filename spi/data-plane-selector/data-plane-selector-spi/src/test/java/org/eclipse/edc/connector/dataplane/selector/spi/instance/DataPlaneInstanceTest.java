@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Instant;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -84,6 +85,22 @@ class DataPlaneInstanceTest {
         assertThat(inst.canHandle(createAddress(srcType2), transferType2)).isTrue();
         assertThat(inst.canHandle(createAddress(srcType2), transferType2)).isTrue();
         assertThat(inst.canHandle(createAddress(srcType1), "notexist")).isFalse();
+    }
+
+    @Test
+    void verifyCanProvisionDestination() throws MalformedURLException {
+        var provisionType = "provisionType";
+        var inst = DataPlaneInstance.Builder.newInstance()
+                .id("test-id")
+                .url(new URL("http://localhost:8234/some/path"))
+                .allowedSourceType("srcType")
+                .allowedTransferType("destType")
+                .destinationProvisionTypes(Set.of("provisionType"))
+                .build();
+
+        assertThat(inst.canProvisionDestination(null)).isFalse();
+        assertThat(inst.canProvisionDestination(createAddress(provisionType))).isTrue();
+        assertThat(inst.canProvisionDestination(createAddress("anotherType"))).isFalse();
     }
 
     private DataAddress createAddress(String type) {

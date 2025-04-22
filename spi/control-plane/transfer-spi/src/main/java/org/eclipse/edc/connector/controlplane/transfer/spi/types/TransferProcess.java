@@ -455,6 +455,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         return contractId;
     }
 
+    @Nullable
     @JsonIgnore
     public DataAddress getDataDestination() {
         return dataDestination;
