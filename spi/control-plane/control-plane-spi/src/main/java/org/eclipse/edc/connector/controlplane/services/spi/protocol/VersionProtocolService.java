@@ -9,12 +9,12 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - unauthenticated DSP version endpoint
  *
  */
 
 package org.eclipse.edc.connector.controlplane.services.spi.protocol;
 
-import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
 
 /**
@@ -25,8 +25,7 @@ public interface VersionProtocolService {
     /**
      * Get all the versions.
      *
-     * @param tokenRepresentation the token.
      * @return a {@link ServiceResult} with the list of versions.
      */
-    ServiceResult<ProtocolVersions> getAll(TokenRepresentation tokenRepresentation);
+    ServiceResult<ProtocolVersions> getAll();
 }

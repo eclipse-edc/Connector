@@ -9,13 +9,13 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - unauthenticated DSP version endpoint
  *
  */
 
 package org.eclipse.edc.protocol.dsp.version.http.api;
 
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
@@ -25,7 +25,6 @@ import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionsErro
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 
-import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
@@ -40,12 +39,12 @@ public class DspVersionApiController {
         this.requestHandler = requestHandler;
         this.service = service;
     }
-
+    
     @GET
-    public Response getProtocolVersions(@HeaderParam(AUTHORIZATION) String token) {
+    public Response getProtocolVersions() {
         var request = GetDspRequest.Builder.newInstance(ProtocolVersions.class, VersionsError.class)
-                .token(token)
-                .serviceCall((id, tokenRepresentation) -> service.getAll(tokenRepresentation))
+                .token("no-auth-required")
+                .serviceCall((id, tokenRepresentation) -> service.getAll())
                 .protocol(DATASPACE_PROTOCOL_HTTP)
                 .errorProvider(VersionsError.Builder::newInstance)
                 .build();
