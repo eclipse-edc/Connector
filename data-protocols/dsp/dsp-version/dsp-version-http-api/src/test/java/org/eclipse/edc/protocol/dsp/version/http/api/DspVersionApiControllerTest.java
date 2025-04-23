@@ -57,7 +57,8 @@ class DspVersionApiControllerTest extends RestControllerTestBase {
 
         var captor = ArgumentCaptor.forClass(GetDspRequest.class);
         verify(requestHandler).getResource(captor.capture());
-        assertThat(captor.getValue().getToken()).isEqualTo("no-auth-required");
+        assertThat(captor.getValue().getToken()).isNull();
+        assertThat(captor.getValue().isAuthRequired()).isFalse();
     }
     
     @Test
@@ -76,7 +77,8 @@ class DspVersionApiControllerTest extends RestControllerTestBase {
         
         var captor = ArgumentCaptor.forClass(GetDspRequest.class);
         verify(requestHandler).getResource(captor.capture());
-        assertThat(captor.getValue().getToken()).isEqualTo("no-auth-required");
+        assertThat(captor.getValue().getToken()).isNull();
+        assertThat(captor.getValue().isAuthRequired()).isFalse();
     }
 
     @Override

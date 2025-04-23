@@ -43,7 +43,8 @@ public class DspVersionApiController {
     @GET
     public Response getProtocolVersions() {
         var request = GetDspRequest.Builder.newInstance(ProtocolVersions.class, VersionsError.class)
-                .token("no-auth-required")
+                .token(null)
+                .authRequired(false)
                 .serviceCall((id, tokenRepresentation) -> service.getAll())
                 .protocol(DATASPACE_PROTOCOL_HTTP)
                 .errorProvider(VersionsError.Builder::newInstance)
