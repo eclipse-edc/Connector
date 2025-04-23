@@ -9,7 +9,8 @@ We will add a `contract.agreement` policy scope, that will be evaluated by the p
 The negotiation flow is at the moment an automatic one: a negotiation can happen if the `contract.negotiation` policy 
 scope evaluation succeeds, or it gets terminated if the evaluation fails.
 
-To implement "manual negotiation approval", the `PendingGuard` service can be used, but this doesn't permit to
+To implement "manual negotiation approval", the `PendingGuard` service can be used, but this doesn't permit to leverage
+on the flexibility and extensibility of the policy engine. 
 
 ## Approach
 
