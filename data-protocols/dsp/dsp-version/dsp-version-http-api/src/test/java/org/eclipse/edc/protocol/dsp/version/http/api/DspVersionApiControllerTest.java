@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - unauthenticated DSP version endpoint
  *
  */
 
@@ -47,7 +48,6 @@ class DspVersionApiControllerTest extends RestControllerTestBase {
         when(requestHandler.getResource(any())).thenReturn(Response.ok(output).build());
 
         baseRequest()
-                .header(AUTHORIZATION, "token")
                 .get(".well-known/dspace-version")
                 .then()
                 .log().ifError()
@@ -57,7 +57,28 @@ class DspVersionApiControllerTest extends RestControllerTestBase {
 
         var captor = ArgumentCaptor.forClass(GetDspRequest.class);
         verify(requestHandler).getResource(captor.capture());
-        assertThat(captor.getValue().getToken()).isEqualTo("token");
+        assertThat(captor.getValue().getToken()).isNull();
+        assertThat(captor.getValue().isAuthRequired()).isFalse();
+    }
+    
+    @Test
+    void whenAuthorizationHeaderSet_shouldIgnoreToken() {
+        var output = Json.createObjectBuilder().add("protocolVersions", Json.createArrayBuilder().add(Json.createObjectBuilder().add("version", "1.0")).build()).build();
+        when(requestHandler.getResource(any())).thenReturn(Response.ok(output).build());
+        
+        baseRequest()
+                .header(AUTHORIZATION, "token")
+                .get(".well-known/dspace-version")
+                .then()
+                .log().ifError()
+                .statusCode(200)
+                .contentType(APPLICATION_JSON)
+                .body("protocolVersions[0].version", is("1.0"));
+        
+        var captor = ArgumentCaptor.forClass(GetDspRequest.class);
+        verify(requestHandler).getResource(captor.capture());
+        assertThat(captor.getValue().getToken()).isNull();
+        assertThat(captor.getValue().isAuthRequired()).isFalse();
     }
 
     @Override

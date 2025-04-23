@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - unauthenticated DSP version endpoint
  *
  */
 
@@ -282,7 +283,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Provider
     public VersionProtocolService versionProtocolService() {
-        return new VersionProtocolServiceImpl(protocolVersionRegistry, protocolTokenValidator());
+        return new VersionProtocolServiceImpl(protocolVersionRegistry);
     }
 
     @Provider

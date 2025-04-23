@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - unauthenticated DSP version endpoint
  *
  */
 
@@ -19,6 +20,7 @@ import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
 public class GetDspRequest<R, E extends ErrorMessage> extends DspRequest<String, R, E> {
 
     private String id;
+    private boolean authRequired = true;
 
     private GetDspRequest(Class<R> resultClass, Class<E> errorClass) {
         super(String.class, resultClass, errorClass);
@@ -26,6 +28,10 @@ public class GetDspRequest<R, E extends ErrorMessage> extends DspRequest<String,
 
     public String getId() {
         return id;
+    }
+    
+    public boolean isAuthRequired() {
+        return authRequired;
     }
 
     public static class Builder<R, E extends ErrorMessage> extends DspRequest.Builder<String, R, GetDspRequest<R, E>, E, Builder<R, E>> {
@@ -40,6 +46,11 @@ public class GetDspRequest<R, E extends ErrorMessage> extends DspRequest<String,
 
         public Builder<R, E> id(String id) {
             super.message.id = id;
+            return this;
+        }
+        
+        public Builder<R, E> authRequired(boolean authRequired) {
+            super.message.authRequired = authRequired;
             return this;
         }
 

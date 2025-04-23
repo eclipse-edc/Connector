@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - unauthenticated DSP version endpoint
  *
  */
 
@@ -57,7 +58,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
         monitor.debug(() -> "DSP: Incoming resource request for %s id %s".formatted(request.getResultClass(), request.getId()));
 
         var token = request.getToken();
-        if (token == null) {
+        if (token == null && request.isAuthRequired()) {
             return unauthorized(request);
         }
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).build();
