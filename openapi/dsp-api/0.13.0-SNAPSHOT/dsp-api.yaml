@@ -9,14 +9,6 @@ paths:
   /.well-known/dspace-version:
     get:
       operationId: getProtocolVersions
-      parameters:
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
       responses:
         default:
           description: default response
