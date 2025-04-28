@@ -84,6 +84,7 @@ include(":core:policy-monitor:policy-monitor-core")
 
 // modules that provide implementations for data ingress/egress ------------------------------------
 include(":data-protocols:dsp:dsp-http-api-configuration")
+include(":data-protocols:dsp:dsp-http-api-base-configuration")
 include(":data-protocols:dsp:dsp-catalog")
 include(":data-protocols:dsp:dsp-catalog:dsp-catalog-http-api")
 include(":data-protocols:dsp:dsp-catalog:dsp-catalog-http-dispatcher")
