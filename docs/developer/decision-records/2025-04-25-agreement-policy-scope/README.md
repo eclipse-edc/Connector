@@ -45,30 +45,12 @@ An additional evaluation of the `PolicyEngine` will be added in the `ProviderCon
     }
 ```
 
-By doing this in the case the evaulation goes through the behavior will be the same (automatic agreement), otherwise the
+By doing this in the case the evaluation goes through the behavior will be the same (automatic agreement), otherwise the
 negotiation will be put as "pending", that's the flag that prevent it to be taken into consideration from the state
 machine.
 The `observable` call will be used to generate an event, so that the client could get notified about the negotiation
 waiting for manual interaction.
 
-The policy function could be bind to an ODRL `Duty` constraint in the `Permission` with the [`reviewPolicy` `Action`](https://www.w3.org/TR/odrl-vocab/#term-reviewPolicy).
-Example:
-```java
-{
-  "@context": "http://www.w3.org/ns/odrl.jsonld",
-  "@type": "Offer",
-  "permission": [{
-    "action": "use",
-    "duty": [{
-      "action": "reviewPolicy"
-    }]
-  }]
-}
-```
-
-The `reviewPolicy` type will be bound to the `contract.agreement` scope and a dedicated `PolicyRuleFunction` will be registered
-on the PolicyEngine.
-This function will always return `false`, because when invoked it means that the negotiation needs to manually validated.
 
 Possible follow up for this proposal would be endpoints and commands to approve or reject the negotiation, but they are
 not part of this proposal.

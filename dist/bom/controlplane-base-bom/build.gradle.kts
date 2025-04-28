@@ -42,6 +42,7 @@ dependencies {
     api(project(":extensions:common:api:version-api"))
 
     api(project(":extensions:common:http"))
+    api(project(":extensions:common:validator:validator-data-address-http-data"))
     api(project(":extensions:control-plane:api:control-plane-api"))
     api(project(":extensions:control-plane:api:management-api"))
     api(project(":extensions:control-plane:transfer:transfer-data-plane-signaling"))
@@ -52,6 +53,7 @@ dependencies {
     api(project(":extensions:control-plane:callback:callback-http-dispatcher"))
     api(project(":extensions:control-plane:callback:callback-static-endpoint"))
     api(project(":extensions:control-plane:edr:edr-store-receiver"))
+
 
     // libs
     api(project(":core:common:lib:transform-lib"))
