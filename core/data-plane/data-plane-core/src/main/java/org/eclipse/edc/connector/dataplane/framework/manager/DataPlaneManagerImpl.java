@@ -115,7 +115,8 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         if (resources.isEmpty()) {
             dataFlow.transitToNotified();
         } else {
-            dataFlow.transitionToProvisioning(resources);
+            dataFlow.addResourceDefinitions(resources);
+            dataFlow.transitionToProvisioning();
         }
 
         update(dataFlow);
@@ -287,34 +288,42 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     private boolean processProvisioning(DataFlow dataFlow) {
-        provisionerManager.provision(dataFlow.getResourceDefinitions())
-                .thenAccept(results -> {
+        return entityRetryProcessFactory.retryProcessor(dataFlow)
+                .doProcess(future("provisioning", (flow, e) -> provisionerManager.provision(flow.getResourceDefinitions())))
+                .onSuccess((flow, results) -> {
                     var newAddress = results.stream().map(AbstractResult::getContent)
                             .map(ProvisionedResource::getDataAddress)
                             .filter(Objects::nonNull)
                             .findFirst().orElse(null);
+                    transferProcessClient.provisioned(dataFlow.getId(), newAddress);
                     dataFlow.transitionToProvisioned();
                     update(dataFlow);
-                    transferProcessClient.provisioned(dataFlow.getId(), newAddress);
-                });
-
-        return true;
+                })
+                .onFailure((flow, t) -> {
+                    flow.transitionToProvisioning();
+                    update(dataFlow);
+                })
+                .onFinalFailure((flow, e) -> {
+                    flow.transitToFailed("Cannot provision: " + e.getMessage());
+                    update(dataFlow);
+                })
+                .execute();
     }
 
     private boolean processDeprovisioning(DataFlow dataFlow) {
         return entityRetryProcessFactory.retryProcessor(dataFlow)
                 .doProcess(future("deprovisioning", (flow, e) -> provisionerManager.deprovision(flow.getResourceDefinitions())))
-                .onSuccess((f, results) -> {
-                    dataFlow.transitionToDeprovisioned();
-                    update(dataFlow);
+                .onSuccess((flow, results) -> {
+                    flow.transitionToDeprovisioned();
+                    update(flow);
                 })
-                .onFailure((f, t) -> {
-                    dataFlow.transitionToDeprovisioning();
-                    update(dataFlow);
+                .onFailure((flow, t) -> {
+                    flow.transitionToDeprovisioning();
+                    update(flow);
                 })
-                .onFinalFailure((f, t) -> {
-                    dataFlow.transitionToDeprovisionFailed();
-                    update(dataFlow);
+                .onFinalFailure((flow, t) -> {
+                    flow.transitionToDeprovisionFailed();
+                    update(flow);
                 })
                 .execute();
     }

@@ -272,6 +272,38 @@ class DataPlaneManagerImplTest {
             });
         }
 
+        @Test
+        void shouldTransitionToProvisioning_whenError() {
+            var dataFlow = dataFlowBuilder().state(PROVISIONING.code()).build();
+            when(store.nextNotLeased(anyInt(), stateIs(PROVISIONING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(provisionerManager.provision(any())).thenReturn(failedFuture(new EdcException("generic error")));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                var storedDataFlow = captor.getValue();
+                assertThat(storedDataFlow.stateAsString()).isEqualTo(PROVISIONING.name());
+            });
+        }
+
+        @Test
+        void shouldTransitionToFailed_whenRetryExpired() {
+            var dataFlow = dataFlowBuilder().state(PROVISIONING.code()).stateCount(RETRY_EXHAUSTED).build();
+            when(store.nextNotLeased(anyInt(), stateIs(PROVISIONING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(provisionerManager.provision(any())).thenReturn(failedFuture(new EdcException("generic error")));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                var storedDataFlow = captor.getValue();
+                assertThat(storedDataFlow.stateAsString()).isEqualTo(FAILED.name());
+            });
+        }
+
     }
 
     @Nested
