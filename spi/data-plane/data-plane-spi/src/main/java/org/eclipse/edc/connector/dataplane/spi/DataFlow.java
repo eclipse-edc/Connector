@@ -115,8 +115,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
                 .build();
     }
 
-    public void transitionToProvisioning(List<ProvisionResourceDefinition> resourceDefinitions) {
-        this.resourceDefinitions.addAll(resourceDefinitions);
+    public void transitionToProvisioning() {
         transitionTo(PROVISIONING.code());
     }
 
@@ -171,6 +170,10 @@ public class DataFlow extends StatefulEntity<DataFlow> {
 
     public void transitionToDeprovisionFailed() {
         transitionTo(DEPROVISION_FAILED.code());
+    }
+
+    public void addResourceDefinitions(List<ProvisionResourceDefinition> definitions) {
+        resourceDefinitions.addAll(definitions);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
