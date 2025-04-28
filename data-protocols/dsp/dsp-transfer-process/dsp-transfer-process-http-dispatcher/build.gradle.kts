@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Cofinity-X - refactor DSP module structure to make versions pluggable
  *
  */
 
@@ -22,7 +23,7 @@ dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
 
     api(project(":data-protocols:dsp:dsp-http-spi"))
-    implementation(project(":data-protocols:dsp:dsp-http-core"))
+    implementation(project(":data-protocols:dsp:dsp-core:dsp-http-core"))
     implementation(project(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform"))
     implementation(project(":extensions:common:json-ld"))
 

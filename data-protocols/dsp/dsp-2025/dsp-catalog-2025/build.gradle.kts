@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Metaform Systems, Inc. - initial API and implementation
+ *       Cofinity-X - refactor DSP module structure to make versions pluggable
  *
  */
 
@@ -18,8 +19,6 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-
-    implementation(project(":core:common:lib:transform-lib"))
-    implementation(project(":data-protocols:dsp:dsp-catalog:lib:dsp-catalog-transform-lib"))
+    api(project(":data-protocols:dsp:dsp-2025:dsp-catalog-2025:dsp-catalog-http-api-2025"))
+    api(project(":data-protocols:dsp:dsp-2025:dsp-catalog-2025:dsp-catalog-transform-2025"))
 }

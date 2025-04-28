@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - refactor DSP module structure to make versions pluggable
  *
  */
 
@@ -17,7 +18,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":data-protocols:dsp:dsp-http-core"))
+    api(project(":data-protocols:dsp:dsp-core:dsp-http-core"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
     api(project(":spi:control-plane:protocol-version-spi"))
 

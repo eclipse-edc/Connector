@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Cofinity-X - refactor DSP module structure to make versions pluggable
  *
  */
 
@@ -20,5 +21,5 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:transform-spi"))
 
-    implementation(project(":data-protocols:dsp:dsp-negotiation:lib:dsp-negotiation-transform-lib"))
+    implementation(project(":data-protocols:dsp:dsp-lib:negotiation:dsp-negotiation-transform-lib"))
 }

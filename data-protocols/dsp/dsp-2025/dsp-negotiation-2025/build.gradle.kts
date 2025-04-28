@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Metaform Systems, Inc. - initial API and implementation
+ *       Cofinity-X - refactor DSP module structure to make versions pluggable
  *
  */
 
@@ -18,7 +19,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-2025:dsp-negotiation-http-api-2025"))
-    api(project(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-2025:dsp-negotiation-transform-2025"))
+    api(project(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025:dsp-negotiation-http-api-2025"))
+    api(project(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025:dsp-negotiation-transform-2025"))
 
 }

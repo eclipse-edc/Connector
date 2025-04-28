@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Metaform Systems, Inc. - initial API and implementation
+ *       Cofinity-X - refactor DSP module structure to make versions pluggable
  *
  */
 
@@ -18,24 +19,25 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:web-spi"))
-    api(project(":spi:control-plane:transfer-spi"))
-    api(project(":spi:control-plane:control-plane-spi"))
     api(project(":data-protocols:dsp:dsp-spi"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
+    api(project(":spi:common:core-spi"))
+    api(project(":spi:common:web-spi"))
+    api(project(":spi:common:json-ld-spi"))
 
-    implementation(project(":spi:common:json-ld-spi"))
-    implementation(project(":data-protocols:dsp:dsp-transfer-process:lib:dsp-transfer-process-validation-lib"))
-    implementation(project(":data-protocols:dsp:dsp-transfer-process:lib:dsp-transfer-process-http-api-lib"))
+    api(project(":spi:control-plane:control-plane-spi"))
+
     implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
+    implementation(project(":data-protocols:dsp:dsp-lib:catalog:dsp-catalog-validation-lib"))
+    implementation(project(":data-protocols:dsp:dsp-lib:catalog:dsp-catalog-http-api-lib"))
 
     implementation(libs.jakarta.rsApi)
 
-    testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
-    testImplementation(testFixtures(project(":data-protocols:dsp:dsp-transfer-process:lib:dsp-transfer-process-http-api-lib")))
-
+    testImplementation(project(":core:common:junit"))
     testImplementation(libs.restAssured)
+    testImplementation(testFixtures(project(":data-protocols:dsp:dsp-lib:catalog:dsp-catalog-http-api-lib")))
+
 }
 
 edcBuild {

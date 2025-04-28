@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - refactor DSP module structure to make versions pluggable
  *
  */
 
@@ -21,7 +22,5 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-http-api"))
     api(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-http-dispatcher"))
     api(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform"))
-    api(project(":data-protocols:dsp:dsp-catalog:lib:dsp-catalog-validation-lib"))
-    api(project(":data-protocols:dsp:dsp-catalog:lib:dsp-catalog-transform-lib"))
-    api(project(":data-protocols:dsp:dsp-catalog:lib:dsp-catalog-http-api-lib"))
+    api(project(":data-protocols:dsp:dsp-lib:catalog"))
 }

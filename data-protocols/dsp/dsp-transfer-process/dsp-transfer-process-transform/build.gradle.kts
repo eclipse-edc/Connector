@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Cofinity-X - refactor DSP module structure to make versions pluggable
  *
  */
 
@@ -23,7 +24,7 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-spi"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
     implementation(project(":core:common:lib:transform-lib"))
-    implementation(project(":data-protocols:dsp:dsp-transfer-process:lib:dsp-transfer-process-transform-lib"))
+    implementation(project(":data-protocols:dsp:dsp-lib:transfer-process:dsp-transfer-process-transform-lib"))
 
     testImplementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":core:common:junit"))

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Cofinity-X - refactor DSP module structure to make versions pluggable
  *
  */
 
@@ -25,8 +26,8 @@ dependencies {
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":extensions:common:json-ld"))
 
-    implementation(project(":data-protocols:dsp:dsp-negotiation:lib:dsp-negotiation-validation-lib"))
-    implementation(project(":data-protocols:dsp:dsp-negotiation:lib:dsp-negotiation-http-api-lib"))
+    implementation(project(":data-protocols:dsp:dsp-lib:negotiation:dsp-negotiation-validation-lib"))
+    implementation(project(":data-protocols:dsp:dsp-lib:negotiation:dsp-negotiation-http-api-lib"))
     implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
 
     implementation(libs.jakarta.rsApi)
@@ -34,7 +35,7 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
     testImplementation(libs.restAssured)
-    testImplementation(testFixtures(project(":data-protocols:dsp:dsp-negotiation:lib:dsp-negotiation-http-api-lib")))
+    testImplementation(testFixtures(project(":data-protocols:dsp:dsp-lib:negotiation:dsp-negotiation-http-api-lib")))
 
 }
 

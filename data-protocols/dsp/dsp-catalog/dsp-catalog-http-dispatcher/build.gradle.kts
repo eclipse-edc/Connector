@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Cofinity-X - refactor DSP module structure to make versions pluggable
  *
  */
 
@@ -18,7 +19,7 @@ plugins {
 
 dependencies {
     api(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform"))
-    api(project(":data-protocols:dsp:dsp-http-core"))
+    api(project(":data-protocols:dsp:dsp-core:dsp-http-core"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
     api(project(":extensions:common:json-ld"))
     api(project(":spi:control-plane:catalog-spi"))

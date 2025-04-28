@@ -9,8 +9,10 @@
  *
  *  Contributors:
  *       Metaform Systems, Inc. - initial API and implementation
+ *       Cofinity-X - refactor DSP module structure to make versions pluggable
  *
  */
+
 
 plugins {
     `java-library`
@@ -18,7 +20,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    api(project(":spi:common:transform-spi"))
 
-    implementation(project(":data-protocols:dsp:dsp-negotiation:lib:dsp-negotiation-transform-lib"))
+    implementation(project(":core:common:lib:transform-lib"))
+    implementation(project(":data-protocols:dsp:dsp-lib:catalog:dsp-catalog-transform-lib"))
 }

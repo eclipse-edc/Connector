@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - refactor DSP module structure to make versions pluggable
  *
  */
 
@@ -21,7 +22,5 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-http-api"))
     api(project(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-http-dispatcher"))
     api(project(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-transform"))
-    api(project(":data-protocols:dsp:dsp-negotiation:lib:dsp-negotiation-validation-lib"))
-    api(project(":data-protocols:dsp:dsp-negotiation:lib:dsp-negotiation-transform-lib"))
-    api(project(":data-protocols:dsp:dsp-negotiation:lib:dsp-negotiation-http-api-lib"))
+    api(project(":data-protocols:dsp:dsp-lib:negotiation"))
 }
