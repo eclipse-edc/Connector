@@ -24,5 +24,6 @@ dependencies {
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
 
     testImplementation(project(":tests:junit-base"));
+    testImplementation(project(":core:common:lib:json-lib"))
     testImplementation(project(":core:common:lib:json-ld-lib"))
 }
