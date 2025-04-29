@@ -312,6 +312,7 @@ include(":system-tests:telemetry:telemetry-test-runtime")
 include(":system-tests:bom-tests")
 include(":system-tests:dsp-compatibility-tests:connector-under-test")
 include(":system-tests:dsp-compatibility-tests:compatibility-test-runner")
+include(":system-tests:protocol-tck:tck-extension")
 
 // BOM modules ----------------------------------------------------------------
 include(":dist:bom:controlplane-base-bom")
