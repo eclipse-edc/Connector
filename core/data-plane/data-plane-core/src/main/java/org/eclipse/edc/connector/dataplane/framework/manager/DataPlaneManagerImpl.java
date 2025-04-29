@@ -66,6 +66,7 @@ import static org.eclipse.edc.spi.result.Result.success;
 import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PULL;
 import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
 import static org.eclipse.edc.statemachine.retry.processor.Process.future;
+import static org.eclipse.edc.statemachine.retry.processor.Process.result;
 
 /**
  * Default data manager implementation.
@@ -85,11 +86,11 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     @Override
-    public Result<Boolean> validate(DataFlowStartMessage dataRequest) {
+    public Result<Void> validate(DataFlowStartMessage dataRequest) {
         // TODO for now no validation for pull scenario, since the transfer service registry
         //      is not applicable here. Probably validation only on the source part required.
         if (PULL.equals(dataRequest.getFlowType())) {
-            return success(true);
+            return success();
         } else {
             var transferService = transferServiceRegistry.resolveTransferService(dataRequest);
             return transferService != null ?
@@ -199,7 +200,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
         return StatusResult.success();
     }
-    
+
     @Override
     protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
         Supplier<Criterion> ownedByThisRuntime = () -> new Criterion("runtimeId", "=", runtimeId);
@@ -338,24 +339,14 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
             return true;
         }
 
-        dataFlow.transitionToStarted(runtimeId);
-        update(dataFlow);
-
         return entityRetryProcessFactory.retryProcessor(dataFlow)
-                .doProcess(Process.<DataFlow, Object, StreamResult<Object>>future("Start data flow", (d, v) -> transferService.transfer(request))
-                        .entityReload(store::findByIdAndLease))
-                .onSuccess((f, r) -> {
-                    if (f.getState() != STARTED.code()) {
-                        return;
-                    }
+                .doProcess(result("Validate data flow", (d, v) -> transferService.validate(request)))
+                .onSuccess((flow, v) -> {
+                    transferService.transfer(request)
+                            .whenComplete((result, throwable) -> onTransferCompletion(result, throwable, dataFlow.getId()));
 
-                    if (r.succeeded()) {
-                        f.transitToCompleted();
-                    } else {
-                        f.transitToFailed(r.getFailureDetail());
-                    }
-
-                    update(f);
+                    flow.transitionToStarted(runtimeId);
+                    update(flow);
                 })
                 .onFailure((f, t) -> {
                     f.transitToReceived();
@@ -366,6 +357,27 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                     update(f);
                 })
                 .execute();
+    }
+
+    private void onTransferCompletion(StreamResult<Object> result, Throwable throwable, String id) {
+        store.findByIdAndLease(id)
+                .onSuccess(dataFlow -> {
+                    if (dataFlow.getState() != STARTED.code()) {
+                        return;
+                    }
+
+                    if (throwable != null) {
+                        dataFlow.transitToFailed("Unexpected exception: " + throwable.getMessage());
+                    } else {
+                        if (result.succeeded()) {
+                            dataFlow.transitToCompleted();
+                        } else {
+                            dataFlow.transitToFailed(result.getFailureDetail());
+                        }
+                    }
+
+                    update(dataFlow);
+                });
     }
 
     private boolean processCompleted(DataFlow dataFlow) {

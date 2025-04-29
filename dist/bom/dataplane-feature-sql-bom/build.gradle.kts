@@ -18,7 +18,6 @@ plugins {
 
 dependencies {
     // entity stores
-    api(project(":extensions:data-plane-selector:store:sql:data-plane-instance-store-sql"))
     api(project(":extensions:data-plane:store:sql:accesstokendata-store-sql"))
     api(project(":extensions:data-plane:store:sql:data-plane-store-sql"))
 

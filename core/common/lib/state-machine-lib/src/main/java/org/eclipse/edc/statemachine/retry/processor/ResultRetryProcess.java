@@ -16,6 +16,7 @@ package org.eclipse.edc.statemachine.retry.processor;
 
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.AbstractResult;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiFunction;
@@ -27,12 +28,12 @@ import java.util.function.BiFunction;
  * @param <I> process input type.
  * @param <O> process output type.
  */
-public class ResultRetryProcess<E extends StatefulEntity<E>, I, O> implements Process<E, I, O> {
+public class ResultRetryProcess<E extends StatefulEntity<E>, I, O, R extends AbstractResult<O, ?, R>> implements Process<E, I, O> {
 
     private final String name;
-    private final BiFunction<E, I, StatusResult<O>> function;
+    private final BiFunction<E, I, R> function;
 
-    public ResultRetryProcess(String name, BiFunction<E, I, StatusResult<O>> function) {
+    public ResultRetryProcess(String name, BiFunction<E, I, R> function) {
         this.name = name;
         this.function = function;
     }
@@ -42,7 +43,7 @@ public class ResultRetryProcess<E extends StatefulEntity<E>, I, O> implements Pr
         try {
             var result = function.apply(context.entity(), context.content());
 
-            if (result.fatalError()) {
+            if (result instanceof StatusResult<?> statusResult && statusResult.fatalError()) {
                 return CompletableFuture.failedFuture(new UnrecoverableEntityStateException(context.entity(), name, result.getFailureDetail()));
             }
 

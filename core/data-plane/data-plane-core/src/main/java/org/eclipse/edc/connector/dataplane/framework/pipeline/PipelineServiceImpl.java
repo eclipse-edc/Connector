@@ -59,7 +59,7 @@ public class PipelineServiceImpl implements PipelineService {
     }
 
     @Override
-    public Result<Boolean> validate(DataFlowStartMessage request) {
+    public Result<Void> validate(DataFlowStartMessage request) {
         var sourceFactory = getSourceFactory(request);
         if (sourceFactory == null) {
             // NB: do not include the source type as that can possibly leak internal information
@@ -82,7 +82,7 @@ public class PipelineServiceImpl implements PipelineService {
             return Result.failure(sinkValidation.getFailureMessages());
         }
 
-        return Result.success(true);
+        return Result.success();
     }
 
     @WithSpan

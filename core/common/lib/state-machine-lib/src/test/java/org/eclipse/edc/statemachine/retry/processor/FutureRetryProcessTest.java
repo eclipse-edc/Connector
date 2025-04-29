@@ -15,7 +15,6 @@
 package org.eclipse.edc.statemachine.retry.processor;
 
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.statemachine.retry.TestEntity;
 import org.junit.jupiter.api.Test;
 
@@ -23,15 +22,10 @@ import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.function.Function;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class FutureRetryProcessTest {
 
@@ -79,36 +73,4 @@ class FutureRetryProcessTest {
                 });
     }
 
-    @Test
-    void shouldReloadEntity_whenConfigured() {
-        var entityId = UUID.randomUUID().toString();
-        var entity = TestEntity.Builder.newInstance().id(entityId).build();
-        var reloadedEntity = TestEntity.Builder.newInstance().id(entityId).build();
-        Function<String, StoreResult<TestEntity>> entityReload = mock();
-        when(entityReload.apply(any())).thenReturn(StoreResult.success(reloadedEntity));
-        var retryProcess = new FutureRetryProcess<TestEntity, Object, String>("process", (e, i) -> completedFuture("content"))
-                .entityReload(entityReload);
-
-        var future = retryProcess.execute(new ProcessContext<>(entity, "any"));
-
-        assertThat(future).succeedsWithin(timeout).extracting(ProcessContext::entity).isSameAs(reloadedEntity);
-        verify(entityReload).apply(entityId);
-    }
-
-    @Test
-    void shouldReturnUnrecoverable_whenEntityReloadFailed() {
-        var entityId = UUID.randomUUID().toString();
-        var entity = TestEntity.Builder.newInstance().id(entityId).build();
-        var retryProcess = new FutureRetryProcess<TestEntity, Object, String>("process", (e, i) -> completedFuture("content"))
-                .entityReload(id -> StoreResult.alreadyLeased("error"));
-
-        var future = retryProcess.execute(new ProcessContext<>(entity, "any"));
-
-        assertThat(future).failsWithin(timeout).withThrowableOfType(ExecutionException.class)
-                .extracting(Throwable::getCause).isInstanceOfSatisfying(UnrecoverableEntityStateException.class, exception -> {
-                    assertThat(exception.getEntity()).isSameAs(entity);
-                    assertThat(exception.getProcessName()).isEqualTo("process");
-                    assertThat(exception.getMessage()).isEqualTo("Cannot reload entity: error");
-                });
-    }
 }

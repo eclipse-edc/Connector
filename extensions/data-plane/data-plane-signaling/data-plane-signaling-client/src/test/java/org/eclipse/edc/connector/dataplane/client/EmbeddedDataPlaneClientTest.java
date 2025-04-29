@@ -72,7 +72,7 @@ class EmbeddedDataPlaneClientTest {
     void transfer_shouldSucceed_whenTransferInitiatedCorrectly() {
         var response = DataFlowResponseMessage.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("type").build()).build();
         var request = createDataFlowRequest();
-        when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
+        when(dataPlaneManager.validate(any())).thenReturn(Result.success());
         when(dataPlaneManager.start(any())).thenReturn(Result.success(response));
 
         var result = client.start(request);
@@ -102,7 +102,7 @@ class EmbeddedDataPlaneClientTest {
     void transfer_shouldReturnFailedResult_whenStartFailure() {
         var errorMsg = "error";
         var request = createDataFlowRequest();
-        when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
+        when(dataPlaneManager.validate(any())).thenReturn(Result.success());
         when(dataPlaneManager.start(any())).thenReturn(Result.failure(errorMsg));
 
         var result = client.start(request);
