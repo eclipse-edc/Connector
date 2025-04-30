@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - refactor DSP module structure to make versions pluggable
  *
  */
 
@@ -23,7 +24,6 @@ dependencies {
     api(project(":spi:common:json-ld-spi"))
 
     testImplementation(project(":core:common:lib:transform-lib"))
-    testImplementation(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform"))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
     testImplementation(libs.restAssured)
 

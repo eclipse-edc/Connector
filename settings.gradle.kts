@@ -84,21 +84,14 @@ include(":core:policy-monitor:policy-monitor-core")
 
 
 // modules that provide implementations for data ingress/egress ------------------------------------
-include(":data-protocols:dsp:dsp-http-api-configuration")
 include(":data-protocols:dsp:dsp-catalog")
-include(":data-protocols:dsp:dsp-catalog:dsp-catalog-http-api")
 include(":data-protocols:dsp:dsp-catalog:dsp-catalog-http-dispatcher")
-include(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform")
 include(":data-protocols:dsp:dsp-spi")
 include(":data-protocols:dsp:dsp-negotiation")
-include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-http-api")
 include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-http-dispatcher")
-include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-transform")
 include(":data-protocols:dsp:dsp-http-spi")
 include(":data-protocols:dsp:dsp-transfer-process")
-include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-api")
 include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-dispatcher")
-include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform")
 include(":data-protocols:dsp:dsp-version:dsp-version-http-api")
 include(":data-protocols:dsp:dsp-version:dsp-version-http-dispatcher")
 
@@ -123,9 +116,29 @@ include(":data-protocols:dsp:dsp-lib:transfer-process:dsp-transfer-process-http-
 
 // dsp version 0.8
 include(":data-protocols:dsp:dsp-08")
+include(":data-protocols:dsp:dsp-08:dsp-http-api-configuration-08")
+include(":data-protocols:dsp:dsp-08:dsp-catalog-08")
+include(":data-protocols:dsp:dsp-08:dsp-catalog-08:dsp-catalog-http-api-08")
+include(":data-protocols:dsp:dsp-08:dsp-catalog-08:dsp-catalog-transform-08")
+include(":data-protocols:dsp:dsp-08:dsp-negotiation-08")
+include(":data-protocols:dsp:dsp-08:dsp-negotiation-08:dsp-negotiation-http-api-08")
+include(":data-protocols:dsp:dsp-08:dsp-negotiation-08:dsp-negotiation-transform-08")
+include(":data-protocols:dsp:dsp-08:dsp-transfer-process-08")
+include(":data-protocols:dsp:dsp-08:dsp-transfer-process-08:dsp-transfer-process-http-api-08")
+include(":data-protocols:dsp:dsp-08:dsp-transfer-process-08:dsp-transfer-process-transform-08")
 
 // dsp version 2024/1
 include(":data-protocols:dsp:dsp-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-http-api-configuration-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-catalog-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-catalog-2024:dsp-catalog-http-api-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-catalog-2024:dsp-catalog-transform-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-negotiation-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-negotiation-2024:dsp-negotiation-http-api-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-negotiation-2024:dsp-negotiation-transform-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-transfer-process-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-transfer-process-2024:dsp-transfer-process-http-api-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-transfer-process-2024:dsp-transfer-process-transform-2024")
 
 // dsp version 2025/1
 include(":data-protocols:dsp:dsp-2025")

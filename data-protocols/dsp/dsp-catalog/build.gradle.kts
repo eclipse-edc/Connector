@@ -19,8 +19,6 @@ plugins {
 }
 
 dependencies {
-    api(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-http-api"))
     api(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-http-dispatcher"))
-    api(project(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform"))
     api(project(":data-protocols:dsp:dsp-lib:catalog"))
 }
