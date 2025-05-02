@@ -14,10 +14,15 @@
 
 plugins {
     `java-library`
+    id("application")
 }
 
+application {
+    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
+}
 dependencies {
     api(project(":dist:bom:controlplane-base-bom"))
-    runtimeOnly(project(":extensions:tck-extension"))
+    api(project(":data-protocols:dsp:dsp-2025"))
+    runtimeOnly(project(":system-tests:protocol-tck:tck-extension"))
     runtimeOnly(libs.parsson)
 }

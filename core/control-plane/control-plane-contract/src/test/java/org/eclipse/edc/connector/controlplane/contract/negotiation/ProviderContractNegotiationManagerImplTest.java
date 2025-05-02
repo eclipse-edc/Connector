@@ -214,6 +214,7 @@ class ProviderContractNegotiationManagerImplTest {
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id("policyId").build());
+        when(protocolWebhookRegistry.resolve(negotiation.getProtocol())).thenReturn(() -> "http://callback.address");
 
         manager.start();
 
@@ -331,7 +332,7 @@ class ProviderContractNegotiationManagerImplTest {
     }
 
     private Criterion[] stateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state), isNotPending(), new Criterion("type", "=", "PROVIDER") });
+        return aryEq(new Criterion[]{hasState(state), isNotPending(), new Criterion("type", "=", "PROVIDER")});
     }
 
     private static class DispatchFailureArguments implements ArgumentsProvider {

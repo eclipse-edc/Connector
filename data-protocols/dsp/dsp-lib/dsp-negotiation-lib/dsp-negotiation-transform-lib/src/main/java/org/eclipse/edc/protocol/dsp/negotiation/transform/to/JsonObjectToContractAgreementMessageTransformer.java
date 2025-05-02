@@ -36,6 +36,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTyp
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_ID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
 
@@ -99,6 +100,9 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractNam
             return null;
         }
 
+        var callbackAddress = transformString(jsonAgreement.get(forNamespace(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM)), context);
+        messageBuilder.callbackAddress(callbackAddress);
+        
         messageBuilder.contractAgreement(agreement);
 
         return messageBuilder.build();

@@ -22,6 +22,8 @@ import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotia
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
+import org.eclipse.edc.policy.model.Action;
+import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.tck.dsp.guard.Trigger;
@@ -45,14 +47,20 @@ public class DataAssembly {
     private static final String POLICY_ID = "P123";
     private static final String CONTRACT_DEFINITION_ID = "CD123";
 
+    private DataAssembly() {
+    }
+
     public static Set<Asset> createAssets() {
         return ASSET_IDS.stream().map(DataAssembly::createAsset).collect(toSet());
     }
 
     public static Set<PolicyDefinition> createPolicyDefinitions() {
+        var permission = Permission.Builder.newInstance()
+                .action(Action.Builder.newInstance().type("http://www.w3.org/ns/odrl/2/use").build())
+                .build();
         return Set.of(PolicyDefinition.Builder.newInstance()
                 .id(POLICY_ID)
-                .policy(Policy.Builder.newInstance().build())
+                .policy(Policy.Builder.newInstance().permission(permission).build())
                 .build());
     }
 
@@ -121,7 +129,9 @@ public class DataAssembly {
 
         recorder.record("ACN0302", ContractNegotiation::transitionOffering);
         recorder.record("ACN0303", ContractNegotiation::transitionOffering)
-                .record("ACN0303", ContractNegotiation::transitionAccepting);
+                // TODO hack for making the process sleep once 03 tests are supported this can be removed
+                .record("ACN0303", ContractNegotiation::transitionTerminating);
+
 
         recorder.record("ACN0304", ContractNegotiation::transitionOffering);
     }
@@ -151,9 +161,6 @@ public class DataAssembly {
             }
             return false;
         }, action);
-    }
-
-    private DataAssembly() {
     }
 
     private static Asset createAsset(String id) {

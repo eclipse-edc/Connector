@@ -28,9 +28,8 @@ import java.util.List;
  * Fires triggers based on negotiation events.
  */
 public class ContractNegotiationTriggerSubscriber implements EventSubscriber, ContractNegotiationTriggerRegistry {
-    private StateEntityStore<ContractNegotiation> store;
-
-    private List<Trigger<ContractNegotiation>> triggers = new ArrayList<>();
+    private final List<Trigger<ContractNegotiation>> triggers = new ArrayList<>();
+    private final StateEntityStore<ContractNegotiation> store;
 
     public ContractNegotiationTriggerSubscriber(StateEntityStore<ContractNegotiation> store) {
         this.store = store;

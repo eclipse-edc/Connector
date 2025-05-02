@@ -14,17 +14,25 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.http.api.v2025.controller;
 
+import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.negotiation.http.api.controller.BaseDspNegotiationApiController;
 import org.eclipse.edc.protocol.dsp.spi.version.DspVersions;
 
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.BASE_PATH;
+import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.CONTRACT_OFFERS;
+import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.INITIAL_CONTRACT_OFFERS;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2025_1;
 
 /**
@@ -37,5 +45,35 @@ public class DspNegotiationApiController20251 extends BaseDspNegotiationApiContr
 
     public DspNegotiationApiController20251(ContractNegotiationProtocolService protocolService, DspRequestHandler dspRequestHandler) {
         super(protocolService, dspRequestHandler, DATASPACE_PROTOCOL_HTTP_V_2025_1, DSP_NAMESPACE_V_2025_1);
+    }
+
+
+    /**
+     * Consumer-specific endpoint.
+     *
+     * @param id    of contract negotiation.
+     * @param body  dspace:ContractOfferMessage sent by a provider.
+     * @param token identity token.
+     * @return empty response or error.
+     */
+    @POST
+    @Path("{id}" + CONTRACT_OFFERS)
+    @Override
+    public Response providerOffer(@PathParam("id") String id, JsonObject body, @HeaderParam(AUTHORIZATION) String token) {
+        return super.providerOffer(id, body, token);
+    }
+
+    /**
+     * Consumer-specific endpoint.
+     *
+     * @param jsonObject dspace:ContractOfferMessage sent by a consumer.
+     * @param token      identity token.
+     * @return the created contract negotiation or an error.
+     */
+    @POST
+    @Path(INITIAL_CONTRACT_OFFERS)
+    @Override
+    public Response initialContractOffer(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        return super.initialContractOffer(jsonObject, token);
     }
 }

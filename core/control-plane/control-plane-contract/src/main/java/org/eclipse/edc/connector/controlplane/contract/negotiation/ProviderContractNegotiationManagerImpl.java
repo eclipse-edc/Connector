@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.statemachine.StateMachineManager;
@@ -79,8 +80,15 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         var callbackAddress = protocolWebhookRegistry.resolve(negotiation.getProtocol());
 
         if (callbackAddress != null) {
+
+            var lastContractOffer = negotiation.getLastContractOffer();
+            var offer = ContractOffer.Builder.newInstance().id(lastContractOffer.getId())
+                    .policy(lastContractOffer.getPolicy().toBuilder().type(PolicyType.OFFER).build())
+                    .assetId(lastContractOffer.getAssetId())
+                    .build();
+
             var messageBuilder = ContractOfferMessage.Builder.newInstance()
-                    .contractOffer(negotiation.getLastContractOffer())
+                    .contractOffer(offer)
                     .callbackAddress(callbackAddress.url());
 
             return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class, "[Provider] send offer")
@@ -138,13 +146,23 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                             .build();
                 });
 
-        var messageBuilder = ContractAgreementMessage.Builder.newInstance().contractAgreement(agreement);
 
-        return dispatch(messageBuilder, negotiation, Object.class, "[Provider] send agreement")
-                .onSuccess((n, result) -> transitionToAgreed(n, agreement))
-                .onFailure((n, throwable) -> transitionToAgreeing(n))
-                .onFinalFailure((n, throwable) -> transitionToTerminating(n, format("Failed to send agreement to consumer: %s", throwable.getMessage())))
-                .execute();
+        var callbackAddress = protocolWebhookRegistry.resolve(negotiation.getProtocol());
+
+        if (callbackAddress != null) {
+            var messageBuilder = ContractAgreementMessage.Builder.newInstance()
+                    .callbackAddress(callbackAddress.url())
+                    .contractAgreement(agreement);
+
+            return dispatch(messageBuilder, negotiation, Object.class, "[Provider] send agreement")
+                    .onSuccess((n, result) -> transitionToAgreed(n, agreement))
+                    .onFailure((n, throwable) -> transitionToAgreeing(n))
+                    .onFinalFailure((n, throwable) -> transitionToTerminating(n, format("Failed to send agreement to consumer: %s", throwable.getMessage())))
+                    .execute();
+        } else {
+            transitionToTerminated(negotiation, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
+            return true;
+        }
     }
 
     /**

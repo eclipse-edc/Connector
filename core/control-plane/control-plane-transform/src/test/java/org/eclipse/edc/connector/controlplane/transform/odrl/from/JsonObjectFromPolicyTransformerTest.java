@@ -374,7 +374,7 @@ class JsonObjectFromPolicyTransformerTest {
 
     @Test
     void transform_assigneeAndAssignerAsIds() {
-        var transformer = new JsonObjectFromPolicyTransformer(jsonFactory, participantIdMapper, true);
+        var transformer = new JsonObjectFromPolicyTransformer(jsonFactory, participantIdMapper, true, false);
         var policy = Policy.Builder.newInstance()
                 .target("target")
                 .assignee("assignee")
@@ -385,6 +385,26 @@ class JsonObjectFromPolicyTransformerTest {
 
         assertThat(result.getJsonObject(ODRL_ASSIGNEE_ATTRIBUTE).getString(ID)).isEqualTo("assignee");
         assertThat(result.getJsonObject(ODRL_ASSIGNER_ATTRIBUTE).getString(ID)).isEqualTo("assigner");
+
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void transform_omitEmptyRules() {
+        var transformer = new JsonObjectFromPolicyTransformer(jsonFactory, participantIdMapper, true, true);
+        var policy = Policy.Builder.newInstance()
+                .target("target")
+                .assignee("assignee")
+                .assigner("assigner")
+                .build();
+
+        var result = transformer.transform(policy, context);
+
+        assertThat(result.getJsonObject(ODRL_ASSIGNEE_ATTRIBUTE).getString(ID)).isEqualTo("assignee");
+        assertThat(result.getJsonObject(ODRL_ASSIGNER_ATTRIBUTE).getString(ID)).isEqualTo("assigner");
+        assertThat(result.get(ODRL_PERMISSION_ATTRIBUTE)).isNull();
+        assertThat(result.get(ODRL_OBLIGATION_ATTRIBUTE)).isNull();
+        assertThat(result.get(ODRL_PROHIBITION_ATTRIBUTE)).isNull();
 
         verify(context, never()).reportProblem(anyString());
     }

@@ -121,7 +121,7 @@ public abstract class DspNegotiationApiControllerTestBase extends RestController
         var result = baseRequest()
                 .contentType(APPLICATION_JSON)
                 .body(requestBody)
-                .post(basePath() + INITIAL_CONTRACT_OFFER)
+                .post(basePath() + initialOffersPath())
                 .then()
                 .statusCode(200)
                 .contentType(APPLICATION_JSON);
@@ -168,9 +168,42 @@ public abstract class DspNegotiationApiControllerTestBase extends RestController
         assertThat(request.getResultClass()).isEqualTo(ContractNegotiation.class);
     }
 
+    @Test
+    void callEndpoint_shouldUpdateResource_whenContractOfferMessage() {
+        when(dspRequestHandler.updateResource(any())).thenReturn(Response.ok().type(APPLICATION_JSON_TYPE).build());
+        var requestBody = createObjectBuilder().add("http://schema/key", "value").build();
+
+        baseRequest()
+                .contentType(APPLICATION_JSON)
+                .body(requestBody)
+                .post(basePath() + "testId" + offersPath())
+                .then()
+                .contentType(APPLICATION_JSON)
+                .statusCode(200);
+
+        var captor = ArgumentCaptor.forClass(PostDspRequest.class);
+        verify(dspRequestHandler).updateResource(captor.capture());
+        var request = captor.getValue();
+        assertThat(request.getExpectedMessageType()).isEqualTo(namespace().toIri(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM));
+        assertThat(request.getToken()).isEqualTo("auth");
+        assertThat(request.getProcessId()).isEqualTo("testId");
+        assertThat(request.getMessage()).isNotNull();
+        assertThat(request.getInputClass()).isEqualTo(ContractOfferMessage.class);
+        assertThat(request.getResultClass()).isEqualTo(ContractNegotiation.class);
+    }
+
     protected abstract String basePath();
 
     protected abstract JsonLdNamespace namespace();
+
+
+    protected String offersPath() {
+        return CONTRACT_OFFER;
+    }
+
+    protected String initialOffersPath() {
+        return INITIAL_CONTRACT_OFFER;
+    }
 
     private RequestSpecification baseRequest() {
         var authHeader = "auth";
@@ -204,11 +237,7 @@ public abstract class DspNegotiationApiControllerTestBase extends RestController
                     Arguments.of(
                             "testId" + AGREEMENT,
                             ContractAgreementMessage.class,
-                            DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM),
-                    Arguments.of(
-                            "testId" + CONTRACT_OFFER,
-                            ContractOfferMessage.class,
-                            DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM)
+                            DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM)
             );
         }
     }

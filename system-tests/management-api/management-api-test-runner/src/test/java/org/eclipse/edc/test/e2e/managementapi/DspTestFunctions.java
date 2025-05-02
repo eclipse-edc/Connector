@@ -183,10 +183,8 @@ public class DspTestFunctions {
     public static JsonObjectBuilder policy(JsonObject permission, String type) {
         return createObjectBuilder()
                 .add(TYPE, type)
-                .add("obligation", createArrayBuilder().build())
                 .add("permission", createArrayBuilder().add(permission))
-                .add("target", "assetId")
-                .add("prohibition", createArrayBuilder().build());
+                .add("target", "assetId");
     }
 
     public static JsonObject inForceDatePermission(String operatorStart, Object startDate, String operatorEnd, Object endDate) {

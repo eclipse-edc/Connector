@@ -55,7 +55,7 @@ public class TckWebhookController {
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri(request.connectorAddress()).build()))
                 .counterPartyAddress(request.connectorAddress())
                 .contractOffer(contractOffer)
-                .protocol("dataspace-protocol-http")
+                .protocol("dataspace-protocol-http:2025/1")
                 .build();
         negotiationService.initiateNegotiation(contractRequest);
         System.out.println("Negotiation");

@@ -23,9 +23,14 @@ import java.util.Objects;
 public class ContractAgreementMessage extends ContractRemoteMessage {
 
     private ContractAgreement contractAgreement;
+    private String callbackAddress;
 
     public ContractAgreement getContractAgreement() {
         return contractAgreement;
+    }
+
+    public String getCallbackAddress() {
+        return callbackAddress;
     }
 
     public Policy getPolicy() {
@@ -44,6 +49,11 @@ public class ContractAgreementMessage extends ContractRemoteMessage {
 
         public Builder contractAgreement(ContractAgreement contractAgreement) {
             this.message.contractAgreement = contractAgreement;
+            return this;
+        }
+
+        public Builder callbackAddress(String callbackAddress) {
+            message.callbackAddress = callbackAddress;
             return this;
         }
 

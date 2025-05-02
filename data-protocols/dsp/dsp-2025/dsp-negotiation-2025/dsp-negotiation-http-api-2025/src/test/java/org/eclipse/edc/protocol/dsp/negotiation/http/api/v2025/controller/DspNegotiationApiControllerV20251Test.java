@@ -19,6 +19,8 @@ import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.protocol.dsp.negotiation.http.api.controller.DspNegotiationApiControllerTestBase;
 
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.BASE_PATH;
+import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.CONTRACT_OFFERS;
+import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.INITIAL_CONTRACT_OFFERS;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2025_1;
 import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2025_1_PATH;
 
@@ -38,5 +40,16 @@ class DspNegotiationApiControllerV20251Test extends DspNegotiationApiControllerT
     @Override
     protected Object controller() {
         return new DspNegotiationApiController20251(protocolService, dspRequestHandler);
+    }
+
+
+    @Override
+    protected String initialOffersPath() {
+        return INITIAL_CONTRACT_OFFERS;
+    }
+
+    @Override
+    protected String offersPath() {
+        return CONTRACT_OFFERS;
     }
 }

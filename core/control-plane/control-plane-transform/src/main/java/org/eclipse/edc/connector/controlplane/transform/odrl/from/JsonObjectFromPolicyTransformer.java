@@ -78,21 +78,23 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
     private final JsonBuilderFactory jsonFactory;
     private final ParticipantIdMapper participantIdMapper;
     private final boolean participantsAsId;
+    private final boolean omitEmptyRules;
 
     public JsonObjectFromPolicyTransformer(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper) {
-        this(jsonFactory, participantIdMapper, false);
+        this(jsonFactory, participantIdMapper, false, false);
     }
 
-    public JsonObjectFromPolicyTransformer(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper, boolean participantsAsId) {
+    public JsonObjectFromPolicyTransformer(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper, boolean participantsAsId, boolean omitEmptyRules) {
         super(Policy.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
         this.participantIdMapper = participantIdMapper;
         this.participantsAsId = participantsAsId;
+        this.omitEmptyRules = omitEmptyRules;
     }
 
     @Override
     public @Nullable JsonObject transform(@NotNull Policy policy, @NotNull TransformerContext context) {
-        return policy.accept(new Visitor(jsonFactory, participantIdMapper, participantsAsId));
+        return policy.accept(new Visitor(jsonFactory, participantIdMapper, participantsAsId, omitEmptyRules));
     }
 
     /**
@@ -102,11 +104,13 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
         private final JsonBuilderFactory jsonFactory;
         private final ParticipantIdMapper participantIdMapper;
         private final boolean participantsAsId;
+        private final boolean omitEmptyRules;
 
-        Visitor(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper, boolean participantsAsId) {
+        Visitor(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper, boolean participantsAsId, boolean omitEmptyRules) {
             this.jsonFactory = jsonFactory;
             this.participantIdMapper = participantIdMapper;
             this.participantsAsId = participantsAsId;
+            this.omitEmptyRules = omitEmptyRules;
         }
 
         @Override
@@ -146,21 +150,27 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
 
         @Override
         public JsonObject visitPolicy(Policy policy) {
-            var permissionsBuilder = jsonFactory.createArrayBuilder();
-            policy.getPermissions().forEach(permission -> permissionsBuilder.add(permission.accept(this)));
-
-            var prohibitionsBuilder = jsonFactory.createArrayBuilder();
-            policy.getProhibitions().forEach(prohibition -> prohibitionsBuilder.add(prohibition.accept(this)));
-
-            var obligationsBuilder = jsonFactory.createArrayBuilder();
-            policy.getObligations().forEach(duty -> obligationsBuilder.add(duty.accept(this)));
-
             var builder = jsonFactory.createObjectBuilder()
                     .add(ID, randomUUID().toString())
-                    .add(TYPE, getTypeAsString(policy.getType()))
-                    .add(ODRL_PERMISSION_ATTRIBUTE, permissionsBuilder)
-                    .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionsBuilder)
-                    .add(ODRL_OBLIGATION_ATTRIBUTE, obligationsBuilder);
+                    .add(TYPE, getTypeAsString(policy.getType()));
+
+            if (!this.omitEmptyRules || !policy.getPermissions().isEmpty()) {
+                var permissionsBuilder = jsonFactory.createArrayBuilder();
+                policy.getPermissions().forEach(permission -> permissionsBuilder.add(permission.accept(this)));
+                builder.add(ODRL_PERMISSION_ATTRIBUTE, permissionsBuilder);
+            }
+
+            if (!this.omitEmptyRules || !policy.getProhibitions().isEmpty()) {
+                var prohibitionsBuilder = jsonFactory.createArrayBuilder();
+                policy.getProhibitions().forEach(prohibition -> prohibitionsBuilder.add(prohibition.accept(this)));
+                builder.add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionsBuilder);
+            }
+
+            if (!this.omitEmptyRules || !policy.getObligations().isEmpty()) {
+                var obligationsBuilder = jsonFactory.createArrayBuilder();
+                policy.getObligations().forEach(duty -> obligationsBuilder.add(duty.accept(this)));
+                builder.add(ODRL_OBLIGATION_ATTRIBUTE, obligationsBuilder);
+            }
 
             Optional.ofNullable(policy.getAssignee()).map(participantIdMapper::toIri).ifPresent(it -> builder.add(ODRL_ASSIGNEE_ATTRIBUTE, visitParticipantId(it)));
             Optional.ofNullable(policy.getAssigner()).map(participantIdMapper::toIri).ifPresent(it -> builder.add(ODRL_ASSIGNER_ATTRIBUTE, visitParticipantId(it)));
