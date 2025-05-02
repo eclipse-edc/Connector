@@ -119,6 +119,18 @@ public interface ContractNegotiationApiV3 {
     )
     void terminateNegotiationV3(String id, JsonObject terminateNegotiation);
 
+    @Operation(description = "Removes the contract negotiation with the given ID.",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "ContractNegotiation is removed",
+                            links = @Link(name = "poll-state", operationId = "getNegotiationStateV3")),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                    @ApiResponse(responseCode = "403", description = "A contract negotiation with the given ID does not exist or is in a wrong state",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+            }
+    )
+    void removeNegotiationV3(String id);
+
     @Schema(name = "ContractRequest", example = ContractRequestSchema.CONTRACT_REQUEST_EXAMPLE)
     record ContractRequestSchema(
             @Schema(name = CONTEXT, requiredMode = REQUIRED)

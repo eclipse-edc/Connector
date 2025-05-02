@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.api.management.contractnegotiatio
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -77,5 +78,12 @@ public class ContractNegotiationApiV3Controller extends BaseContractNegotiationA
     @Override
     public void terminateNegotiationV3(@PathParam("id") String id, JsonObject terminateNegotiation) {
         terminateNegotiation(id, terminateNegotiation);
+    }
+
+    @DELETE
+    @Path("/{id}")
+    @Override
+    public void removeNegotiationV3(@PathParam("id") String id) {
+        removeNegotiation(id);
     }
 }

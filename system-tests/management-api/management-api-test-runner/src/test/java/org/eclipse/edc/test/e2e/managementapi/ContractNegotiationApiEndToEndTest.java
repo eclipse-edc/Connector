@@ -27,6 +27,7 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -43,7 +44,9 @@ import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.AGREED;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -182,6 +185,34 @@ public class ContractNegotiationApiEndToEndTest {
                     .then()
                     .log().ifError()
                     .statusCode(204);
+        }
+
+        @Test
+        void removeNegotiation_shouldSucceed(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1")
+                    .state(TERMINATED.code()).build());
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .delete("/v3/contractnegotiations/cn1")
+                    .then()
+                    .statusCode(204);
+
+            Assertions.assertNull(store.findById("cn1"));
+        }
+
+        @Test
+        void removeNegotiation_shouldFailDueToWrongState(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1")
+                    .state(AGREED.code()).build());
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .delete("/v3/contractnegotiations/cn1")
+                    .then()
+                    .statusCode(403);
+
+            Assertions.assertNotNull(store.findById("cn1"));
         }
 
         private ContractNegotiation.Builder createContractNegotiationBuilder(String negotiationId) {

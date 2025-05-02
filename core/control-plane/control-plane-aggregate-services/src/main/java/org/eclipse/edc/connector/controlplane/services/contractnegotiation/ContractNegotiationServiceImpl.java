@@ -100,4 +100,18 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
         });
     }
 
+    @Override
+    public ServiceResult<Void> removeNegotiation(String negotiationId) {
+        String state = getState(negotiationId);
+        if (!ContractNegotiationStates.TERMINATED.name().equals(state)) {
+            return ServiceResult.unauthorized(format("Error validating the contract negotiation state: %s", state));
+        }
+        try {
+            store.delete(negotiationId);
+            return ServiceResult.success();
+        } catch (IllegalStateException e) {
+            return ServiceResult.unauthorized(e.getMessage());
+        }
+    }
+
 }

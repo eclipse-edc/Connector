@@ -128,6 +128,10 @@ public class BaseContractNegotiationApiController {
         service.terminate(command).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
     }
 
+    public void removeNegotiation(String id) {
+        service.removeNegotiation(id).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
+    }
+
     private void logIfError(Result<?> result) {
         result.onFailure(f -> monitor.warning(f.getFailureDetail()));
     }
