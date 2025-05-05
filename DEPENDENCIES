@@ -26,7 +26,7 @@ maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.19.0, Apache
 maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.14.1, Apache-2.0 AND MIT, approved, #4303
 maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.16.2, Apache-2.0 AND MIT, approved, #11602
 maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.18.2, Apache-2.0 AND MIT, approved, #16371
-maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.19.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.19.0, Apache-2.0 AND BSD-2-Clause AND MIT, approved, clearlydefined
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.11.0, Apache-2.0, approved, CQ23093
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.14.0, Apache-2.0, approved, #4105
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.14.1, Apache-2.0, approved, #15232
