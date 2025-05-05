@@ -84,14 +84,8 @@ include(":core:policy-monitor:policy-monitor-core")
 
 
 // modules that provide implementations for data ingress/egress ------------------------------------
-include(":data-protocols:dsp:dsp-catalog")
-include(":data-protocols:dsp:dsp-catalog:dsp-catalog-http-dispatcher")
 include(":data-protocols:dsp:dsp-spi")
-include(":data-protocols:dsp:dsp-negotiation")
-include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-http-dispatcher")
 include(":data-protocols:dsp:dsp-http-spi")
-include(":data-protocols:dsp:dsp-transfer-process")
-include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-dispatcher")
 include(":data-protocols:dsp:dsp-version:dsp-version-http-api")
 include(":data-protocols:dsp:dsp-version:dsp-version-http-dispatcher")
 
@@ -99,6 +93,9 @@ include(":data-protocols:dsp:dsp-version:dsp-version-http-dispatcher")
 include(":data-protocols:dsp:dsp-core")
 include(":data-protocols:dsp:dsp-core:dsp-http-api-base-configuration")
 include(":data-protocols:dsp:dsp-core:dsp-http-core")
+include(":data-protocols:dsp:dsp-core:dsp-catalog-http-dispatcher")
+include(":data-protocols:dsp:dsp-core:dsp-negotiation-http-dispatcher")
+include(":data-protocols:dsp:dsp-core:dsp-transfer-process-http-dispatcher")
 
 // dsp lib
 include(":data-protocols:dsp:dsp-lib:catalog")
