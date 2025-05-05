@@ -66,7 +66,7 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
         var flowResponse = DataFlowResponseMessage.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("test-edr").build()).build();
         when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class)))
                 .thenReturn(success(flowStartMessage));
-        when(dataplaneManager.validate(any())).thenReturn(success(true));
+        when(dataplaneManager.validate(any())).thenReturn(success());
         when(dataplaneManager.start(any()))
                 .thenReturn(success(flowResponse));
 
@@ -133,7 +133,7 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
     void start_whenCreateEdrFails() {
         when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class)))
                 .thenReturn(success(createFlowStartMessage()));
-        when(dataplaneManager.validate(any())).thenReturn(success(true));
+        when(dataplaneManager.validate(any())).thenReturn(success());
         when(dataplaneManager.start(any()))
                 .thenReturn(Result.failure("test-failure"));
 
@@ -159,7 +159,7 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
 
         when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class)))
                 .thenReturn(success(flowStartMessage));
-        when(dataplaneManager.validate(any())).thenReturn(success(true));
+        when(dataplaneManager.validate(any())).thenReturn(success());
         when(dataplaneManager.start(any()))
                 .thenReturn(success(flowResponse));
 

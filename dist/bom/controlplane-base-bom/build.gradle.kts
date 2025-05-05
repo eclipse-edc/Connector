@@ -50,6 +50,7 @@ dependencies {
     api(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"))
     api(project(":extensions:control-plane:callback:callback-event-dispatcher"))
     api(project(":extensions:control-plane:callback:callback-http-dispatcher"))
+    api(project(":extensions:control-plane:callback:callback-static-endpoint"))
     api(project(":extensions:control-plane:edr:edr-store-receiver"))
 
     // libs

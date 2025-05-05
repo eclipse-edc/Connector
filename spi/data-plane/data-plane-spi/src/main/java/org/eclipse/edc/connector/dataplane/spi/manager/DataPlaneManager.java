@@ -36,7 +36,7 @@ public interface DataPlaneManager extends StateEntityManager {
     /**
      * Determines if the data flow request is valid and can be processed by this runtime.
      */
-    Result<Boolean> validate(DataFlowStartMessage dataRequest);
+    Result<Void> validate(DataFlowStartMessage dataRequest);
 
     /**
      * Provision a data flow on the consumer side.
