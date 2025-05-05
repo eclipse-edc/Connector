@@ -114,6 +114,7 @@ include(":data-protocols:dsp:dsp-lib:transfer-process:dsp-transfer-process-http-
 // dsp version 0.8
 include(":data-protocols:dsp:dsp-08")
 include(":data-protocols:dsp:dsp-08:dsp-http-api-configuration-08")
+include(":data-protocols:dsp:dsp-08:dsp-http-dispatcher-08")
 include(":data-protocols:dsp:dsp-08:dsp-catalog-08")
 include(":data-protocols:dsp:dsp-08:dsp-catalog-08:dsp-catalog-http-api-08")
 include(":data-protocols:dsp:dsp-08:dsp-catalog-08:dsp-catalog-transform-08")
@@ -127,6 +128,7 @@ include(":data-protocols:dsp:dsp-08:dsp-transfer-process-08:dsp-transfer-process
 // dsp version 2024/1
 include(":data-protocols:dsp:dsp-2024")
 include(":data-protocols:dsp:dsp-2024:dsp-http-api-configuration-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-http-dispatcher-2024")
 include(":data-protocols:dsp:dsp-2024:dsp-catalog-2024")
 include(":data-protocols:dsp:dsp-2024:dsp-catalog-2024:dsp-catalog-http-api-2024")
 include(":data-protocols:dsp:dsp-2024:dsp-catalog-2024:dsp-catalog-transform-2024")
@@ -140,6 +142,7 @@ include(":data-protocols:dsp:dsp-2024:dsp-transfer-process-2024:dsp-transfer-pro
 // dsp version 2025/1
 include(":data-protocols:dsp:dsp-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-http-api-configuration-2025")
+include(":data-protocols:dsp:dsp-2025:dsp-http-dispatcher-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-catalog-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-catalog-2025:dsp-catalog-http-api-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-catalog-2025:dsp-catalog-transform-2025")

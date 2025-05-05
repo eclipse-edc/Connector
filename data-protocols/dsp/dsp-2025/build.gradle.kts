@@ -23,6 +23,7 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-core:dsp-http-core"))
 
     api(project(":data-protocols:dsp:dsp-2025:dsp-http-api-configuration-2025"))
+    api(project(":data-protocols:dsp:dsp-2025:dsp-http-dispatcher-2025"))
     api(project(":data-protocols:dsp:dsp-2025:dsp-catalog-2025"))
     api(project(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025"))
     api(project(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025"))

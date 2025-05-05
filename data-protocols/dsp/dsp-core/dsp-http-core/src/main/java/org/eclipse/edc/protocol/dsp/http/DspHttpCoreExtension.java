@@ -68,8 +68,6 @@ import static org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyCon
 import static org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext.CONTRACT_NEGOTIATION_REQUEST_SCOPE;
 import static org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext.TRANSFER_PROCESS_REQUEST_SCOPE;
 import static org.eclipse.edc.policy.context.request.spi.RequestVersionPolicyContext.VERSION_REQUEST_SCOPE;
-import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
@@ -146,8 +144,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
         registerTransferProcessPolicyScopes(dispatcher);
         registerCatalogPolicyScopes(dispatcher);
         registerVersionPolicyScopes(dispatcher);
-        dispatcherRegistry.register(DATASPACE_PROTOCOL_HTTP, dispatcher);
-        dispatcherRegistry.register(DATASPACE_PROTOCOL_HTTP_V_2024_1, dispatcher);
+        
         return dispatcher;
     }
 
