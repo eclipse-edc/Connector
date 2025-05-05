@@ -15,7 +15,6 @@
 package org.eclipse.edc.protocol.dsp.negotiation.transform;
 
 import jakarta.json.Json;
-import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.from.JsonObjectFromContractNegotiationErrorTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.to.JsonObjectToContractAgreementMessageTransformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.to.JsonObjectToContractAgreementVerificationMessageTransformer;
@@ -60,30 +59,23 @@ public class DspNegotiationTransformV2024Extension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        registerV2024transformers();
-        
-        registerTransformers(DSP_TRANSFORMER_CONTEXT_V_2024_1, DSP_NAMESPACE_V_2024_1);
+        registerTransformers();
     }
 
-    private void registerTransformers(String version, JsonLdNamespace namespace) {
+    private void registerTransformers() {
         var builderFactory = Json.createBuilderFactory(Map.of());
 
-        var dspApiTransformerRegistry = registry.forContext(version);
-        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationErrorTransformer(builderFactory, namespace));
-
-        dspApiTransformerRegistry.register(new JsonObjectToContractAgreementMessageTransformer(namespace));
-        dspApiTransformerRegistry.register(new JsonObjectToContractAgreementVerificationMessageTransformer(namespace));
-        dspApiTransformerRegistry.register(new JsonObjectToContractNegotiationEventMessageTransformer(namespace));
-        dspApiTransformerRegistry.register(new JsonObjectToContractRequestMessageTransformer(namespace));
-        dspApiTransformerRegistry.register(new JsonObjectToContractNegotiationTerminationMessageTransformer(namespace));
-        dspApiTransformerRegistry.register(new JsonObjectToContractOfferMessageTransformer(namespace));
-        dspApiTransformerRegistry.register(new JsonObjectToContractNegotiationAckTransformer(namespace));
-    }
-
-    private void registerV2024transformers() {
-        var builderFactory = Json.createBuilderFactory(Map.of());
         var dspApiTransformerRegistry = registry.forContext(DSP_TRANSFORMER_CONTEXT_V_2024_1);
+        dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationErrorTransformer(builderFactory, DSP_NAMESPACE_V_2024_1));
 
+        dspApiTransformerRegistry.register(new JsonObjectToContractAgreementMessageTransformer(DSP_NAMESPACE_V_2024_1));
+        dspApiTransformerRegistry.register(new JsonObjectToContractAgreementVerificationMessageTransformer(DSP_NAMESPACE_V_2024_1));
+        dspApiTransformerRegistry.register(new JsonObjectToContractNegotiationEventMessageTransformer(DSP_NAMESPACE_V_2024_1));
+        dspApiTransformerRegistry.register(new JsonObjectToContractRequestMessageTransformer(DSP_NAMESPACE_V_2024_1));
+        dspApiTransformerRegistry.register(new JsonObjectToContractNegotiationTerminationMessageTransformer(DSP_NAMESPACE_V_2024_1));
+        dspApiTransformerRegistry.register(new JsonObjectToContractOfferMessageTransformer(DSP_NAMESPACE_V_2024_1));
+        dspApiTransformerRegistry.register(new JsonObjectToContractNegotiationAckTransformer(DSP_NAMESPACE_V_2024_1));
+        
         dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationV2024Transformer(builderFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromContractRequestMessageV2024Transformer(builderFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromContractOfferMessageV2024Transformer(builderFactory));
@@ -91,6 +83,5 @@ public class DspNegotiationTransformV2024Extension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonObjectFromContractAgreementVerificationMessageV2024Transformer(builderFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationEventMessageV2024Transformer(builderFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationTerminationMessageV2024Transformer(builderFactory));
-
     }
 }

@@ -17,7 +17,6 @@ package org.eclipse.edc.protocol.dsp.negotiation.http.api;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.negotiation.http.api.controller.DspNegotiationApiController20241;
 import org.eclipse.edc.protocol.dsp.negotiation.validation.ContractAgreementMessageValidator;
@@ -79,7 +78,7 @@ public class DspNegotiationApiV2024Extension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        registerValidators(DSP_NAMESPACE_V_2024_1);
+        registerValidators();
         
         webService.registerResource(ApiContext.PROTOCOL, new DspNegotiationApiController20241(protocolService, dspRequestHandler));
         webService.registerDynamicResource(ApiContext.PROTOCOL, DspNegotiationApiController20241.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, DSP_SCOPE_V_2024_1));
@@ -88,12 +87,12 @@ public class DspNegotiationApiV2024Extension implements ServiceExtension {
     }
 
 
-    private void registerValidators(JsonLdNamespace namespace) {
-        validatorRegistry.register(namespace.toIri(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM), ContractRequestMessageValidator.instance(namespace));
-        validatorRegistry.register(namespace.toIri(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM), ContractOfferMessageValidator.instance(namespace));
-        validatorRegistry.register(namespace.toIri(DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_TERM), ContractNegotiationEventMessageValidator.instance(namespace));
-        validatorRegistry.register(namespace.toIri(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM), ContractAgreementMessageValidator.instance(namespace));
-        validatorRegistry.register(namespace.toIri(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_TERM), ContractAgreementVerificationMessageValidator.instance(namespace));
-        validatorRegistry.register(namespace.toIri(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_TERM), ContractNegotiationTerminationMessageValidator.instance(namespace));
+    private void registerValidators() {
+        validatorRegistry.register(DSP_NAMESPACE_V_2024_1.toIri(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM), ContractRequestMessageValidator.instance(DSP_NAMESPACE_V_2024_1));
+        validatorRegistry.register(DSP_NAMESPACE_V_2024_1.toIri(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM), ContractOfferMessageValidator.instance(DSP_NAMESPACE_V_2024_1));
+        validatorRegistry.register(DSP_NAMESPACE_V_2024_1.toIri(DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_TERM), ContractNegotiationEventMessageValidator.instance(DSP_NAMESPACE_V_2024_1));
+        validatorRegistry.register(DSP_NAMESPACE_V_2024_1.toIri(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM), ContractAgreementMessageValidator.instance(DSP_NAMESPACE_V_2024_1));
+        validatorRegistry.register(DSP_NAMESPACE_V_2024_1.toIri(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_TERM), ContractAgreementVerificationMessageValidator.instance(DSP_NAMESPACE_V_2024_1));
+        validatorRegistry.register(DSP_NAMESPACE_V_2024_1.toIri(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_TERM), ContractNegotiationTerminationMessageValidator.instance(DSP_NAMESPACE_V_2024_1));
     }
 }

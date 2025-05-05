@@ -19,7 +19,6 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.controller.DspCatalogApiController20241;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.decorator.Base64continuationTokenSerDes;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.decorator.ContinuationTokenManagerImpl;
@@ -88,9 +87,9 @@ public class DspCatalogApiV2024Extension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        registerValidators(DSP_NAMESPACE_V_2024_1);
+        registerValidators();
 
-        webService.registerResource(ApiContext.PROTOCOL, new DspCatalogApiController20241(service, dspRequestHandler, continuationTokenManager(monitor, DSP_TRANSFORMER_CONTEXT_V_2024_1, DSP_NAMESPACE_V_2024_1)));
+        webService.registerResource(ApiContext.PROTOCOL, new DspCatalogApiController20241(service, dspRequestHandler, continuationTokenManager(monitor)));
         webService.registerDynamicResource(ApiContext.PROTOCOL, DspCatalogApiController20241.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, DSP_SCOPE_V_2024_1));
 
         versionRegistry.register(V_2024_1);
@@ -98,25 +97,25 @@ public class DspCatalogApiV2024Extension implements ServiceExtension {
 
     @Override
     public void prepare() {
-        registerDataService(DATASPACE_PROTOCOL_HTTP_V_2024_1);
+        registerDataService();
     }
 
-    private void registerDataService(String protocol) {
-        var webhook = protocolWebhookRegistry.resolve(protocol);
+    private void registerDataService() {
+        var webhook = protocolWebhookRegistry.resolve(DATASPACE_PROTOCOL_HTTP_V_2024_1);
         if (webhook != null) {
-            dataServiceRegistry.register(protocol, DataService.Builder.newInstance()
+            dataServiceRegistry.register(DATASPACE_PROTOCOL_HTTP_V_2024_1, DataService.Builder.newInstance()
                     .endpointDescription("dspace:connector")
                     .endpointUrl(webhook.url())
                     .build());
         }
     }
 
-    private ContinuationTokenManager continuationTokenManager(Monitor monitor, String version, JsonLdNamespace namespace) {
-        var continuationTokenSerDes = new Base64continuationTokenSerDes(transformerRegistry.forContext(version), jsonLd);
-        return new ContinuationTokenManagerImpl(continuationTokenSerDes, namespace, monitor);
+    private ContinuationTokenManager continuationTokenManager(Monitor monitor) {
+        var continuationTokenSerDes = new Base64continuationTokenSerDes(transformerRegistry.forContext(DSP_TRANSFORMER_CONTEXT_V_2024_1), jsonLd);
+        return new ContinuationTokenManagerImpl(continuationTokenSerDes, DSP_NAMESPACE_V_2024_1, monitor);
     }
 
-    private void registerValidators(JsonLdNamespace namespace) {
-        validatorRegistry.register(namespace.toIri(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM), CatalogRequestMessageValidator.instance(criterionOperatorRegistry, namespace));
+    private void registerValidators() {
+        validatorRegistry.register(DSP_NAMESPACE_V_2024_1.toIri(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM), CatalogRequestMessageValidator.instance(criterionOperatorRegistry, DSP_NAMESPACE_V_2024_1));
     }
 }

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Cofinity-X - refactor DSP module structure to make versions pluggable
  *
  */
 
@@ -19,7 +20,6 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.controller.DspCatalogApiController08;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.decorator.Base64continuationTokenSerDes;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.decorator.ContinuationTokenManagerImpl;
@@ -88,9 +88,9 @@ public class DspCatalogApiV08Extension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        registerValidators(DSP_NAMESPACE_V_08);
+        registerValidators();
 
-        webService.registerResource(ApiContext.PROTOCOL, new DspCatalogApiController08(service, dspRequestHandler, continuationTokenManager(monitor, DSP_TRANSFORMER_CONTEXT_V_08, DSP_NAMESPACE_V_08)));
+        webService.registerResource(ApiContext.PROTOCOL, new DspCatalogApiController08(service, dspRequestHandler, continuationTokenManager(monitor)));
         webService.registerDynamicResource(ApiContext.PROTOCOL, DspCatalogApiController08.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, DSP_SCOPE_V_08));
         
         versionRegistry.register(V_08);
@@ -98,25 +98,25 @@ public class DspCatalogApiV08Extension implements ServiceExtension {
 
     @Override
     public void prepare() {
-        registerDataService(DATASPACE_PROTOCOL_HTTP);
+        registerDataService();
     }
 
-    private void registerDataService(String protocol) {
-        var webhook = protocolWebhookRegistry.resolve(protocol);
+    private void registerDataService() {
+        var webhook = protocolWebhookRegistry.resolve(DATASPACE_PROTOCOL_HTTP);
         if (webhook != null) {
-            dataServiceRegistry.register(protocol, DataService.Builder.newInstance()
+            dataServiceRegistry.register(DATASPACE_PROTOCOL_HTTP, DataService.Builder.newInstance()
                     .endpointDescription("dspace:connector")
                     .endpointUrl(webhook.url())
                     .build());
         }
     }
 
-    private ContinuationTokenManager continuationTokenManager(Monitor monitor, String version, JsonLdNamespace namespace) {
-        var continuationTokenSerDes = new Base64continuationTokenSerDes(transformerRegistry.forContext(version), jsonLd);
-        return new ContinuationTokenManagerImpl(continuationTokenSerDes, namespace, monitor);
+    private ContinuationTokenManager continuationTokenManager(Monitor monitor) {
+        var continuationTokenSerDes = new Base64continuationTokenSerDes(transformerRegistry.forContext(DSP_TRANSFORMER_CONTEXT_V_08), jsonLd);
+        return new ContinuationTokenManagerImpl(continuationTokenSerDes, DSP_NAMESPACE_V_08, monitor);
     }
 
-    private void registerValidators(JsonLdNamespace namespace) {
-        validatorRegistry.register(namespace.toIri(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM), CatalogRequestMessageValidator.instance(criterionOperatorRegistry, namespace));
+    private void registerValidators() {
+        validatorRegistry.register(DSP_NAMESPACE_V_08.toIri(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM), CatalogRequestMessageValidator.instance(criterionOperatorRegistry, DSP_NAMESPACE_V_08));
     }
 }

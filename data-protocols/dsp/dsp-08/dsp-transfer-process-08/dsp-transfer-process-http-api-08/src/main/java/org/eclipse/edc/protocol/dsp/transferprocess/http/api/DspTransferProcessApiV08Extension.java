@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Cofinity-X - refactor DSP module structure to make versions pluggable
  *
  */
 
@@ -17,7 +18,6 @@ package org.eclipse.edc.protocol.dsp.transferprocess.http.api;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.transferprocess.http.api.controller.DspTransferProcessApiController08;
 import org.eclipse.edc.protocol.dsp.transferprocess.validation.TransferCompletionMessageValidator;
@@ -67,7 +67,7 @@ public class DspTransferProcessApiV08Extension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        registerValidators(DSP_NAMESPACE_V_08);
+        registerValidators();
 
         webService.registerResource(ApiContext.PROTOCOL, new DspTransferProcessApiController08(transferProcessProtocolService, dspRequestHandler));
         webService.registerDynamicResource(ApiContext.PROTOCOL, DspTransferProcessApiController08.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, DSP_SCOPE_V_08));
@@ -75,10 +75,10 @@ public class DspTransferProcessApiV08Extension implements ServiceExtension {
         versionRegistry.register(V_08);
     }
 
-    private void registerValidators(JsonLdNamespace namespace) {
-        validatorRegistry.register(namespace.toIri(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_TERM), TransferRequestMessageValidator.instance(namespace));
-        validatorRegistry.register(namespace.toIri(DSPACE_TYPE_TRANSFER_START_MESSAGE_TERM), TransferStartMessageValidator.instance(namespace));
-        validatorRegistry.register(namespace.toIri(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_TERM), TransferCompletionMessageValidator.instance(namespace));
-        validatorRegistry.register(namespace.toIri(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_TERM), TransferTerminationMessageValidator.instance(namespace));
+    private void registerValidators() {
+        validatorRegistry.register(DSP_NAMESPACE_V_08.toIri(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_TERM), TransferRequestMessageValidator.instance(DSP_NAMESPACE_V_08));
+        validatorRegistry.register(DSP_NAMESPACE_V_08.toIri(DSPACE_TYPE_TRANSFER_START_MESSAGE_TERM), TransferStartMessageValidator.instance(DSP_NAMESPACE_V_08));
+        validatorRegistry.register(DSP_NAMESPACE_V_08.toIri(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_TERM), TransferCompletionMessageValidator.instance(DSP_NAMESPACE_V_08));
+        validatorRegistry.register(DSP_NAMESPACE_V_08.toIri(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_TERM), TransferTerminationMessageValidator.instance(DSP_NAMESPACE_V_08));
     }
 }

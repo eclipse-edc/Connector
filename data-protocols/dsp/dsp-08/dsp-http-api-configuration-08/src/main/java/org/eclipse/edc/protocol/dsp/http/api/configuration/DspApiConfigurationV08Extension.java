@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.controlplane.transform.edc.to.JsonObjectToAsset
 import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
 import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFromPolicyTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.protocol.dsp.http.spi.api.DspBaseWebhookAddress;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -88,26 +87,24 @@ public class DspApiConfigurationV08Extension implements ServiceExtension {
         protocolWebhookRegistry.registerWebhook(DATASPACE_PROTOCOL_HTTP, () -> dspWebhookAddress.get());
 
         // registers ns for DSP scope
-        registerNamespaces(DSP_SCOPE_V_08, DSP_NAMESPACE_V_08);
-
-        registerV08Transformers();
-        registerTransformers(DSP_TRANSFORMER_CONTEXT_V_08, DSP_NAMESPACE_V_08);
+        registerNamespaces();
+        registerTransformers();
     }
 
-    private void registerNamespaces(String scope, JsonLdNamespace dspNamespace) {
-        jsonLd.registerNamespace(DCAT_PREFIX, DCAT_SCHEMA, scope);
-        jsonLd.registerNamespace(DCT_PREFIX, DCT_SCHEMA, scope);
-        jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, scope);
-        jsonLd.registerNamespace(DSPACE_PREFIX, dspNamespace.namespace(), scope);
-        jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE, scope);
-        jsonLd.registerNamespace(EDC_PREFIX, EDC_NAMESPACE, scope);
+    private void registerNamespaces() {
+        jsonLd.registerNamespace(DCAT_PREFIX, DCAT_SCHEMA, DSP_SCOPE_V_08);
+        jsonLd.registerNamespace(DCT_PREFIX, DCT_SCHEMA, DSP_SCOPE_V_08);
+        jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, DSP_SCOPE_V_08);
+        jsonLd.registerNamespace(DSPACE_PREFIX, DSP_NAMESPACE_V_08.namespace(), DSP_SCOPE_V_08);
+        jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE, DSP_SCOPE_V_08);
+        jsonLd.registerNamespace(EDC_PREFIX, EDC_NAMESPACE, DSP_SCOPE_V_08);
     }
 
-    private void registerTransformers(String version, JsonLdNamespace dspNamespace) {
+    private void registerTransformers() {
         var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
 
         // EDC model to JSON-LD transformers
-        var dspApiTransformerRegistry = transformerRegistry.forContext(version);
+        var dspApiTransformerRegistry = transformerRegistry.forContext(DSP_TRANSFORMER_CONTEXT_V_08);
         dspApiTransformerRegistry.register(new JsonObjectFromAssetTransformer(jsonBuilderFactory, typeManager, JSON_LD));
         dspApiTransformerRegistry.register(new JsonObjectFromQuerySpecTransformer(jsonBuilderFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromCriterionTransformer(jsonBuilderFactory, typeManager, JSON_LD));
@@ -120,15 +117,8 @@ public class DspApiConfigurationV08Extension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonObjectToAssetTransformer());
         dspApiTransformerRegistry.register(new JsonObjectToQuerySpecTransformer());
         dspApiTransformerRegistry.register(new JsonObjectToCriterionTransformer());
-        dspApiTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer(dspNamespace));
-    }
-
-    private void registerV08Transformers() {
-        var jsonBuilderFactory = Json.createBuilderFactory(Map.of());
-
-        // EDC model to JSON-LD transformers
-        var dspApiTransformerRegistry = transformerRegistry.forContext(DSP_TRANSFORMER_CONTEXT_V_08);
-
+        dspApiTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer(DSP_NAMESPACE_V_08));
+        
         dspApiTransformerRegistry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory, participantIdMapper));
         dspApiTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(jsonBuilderFactory, typeManager, JSON_LD));
     }
