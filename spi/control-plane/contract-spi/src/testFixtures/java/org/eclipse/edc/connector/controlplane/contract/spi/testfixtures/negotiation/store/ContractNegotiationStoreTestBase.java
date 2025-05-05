@@ -367,7 +367,7 @@ public abstract class ContractNegotiationStoreTestBase {
 
             assertThat(getContractNegotiationStore().findById(id)).isNotNull().usingRecursiveComparison().isEqualTo(n);
 
-            getContractNegotiationStore().delete(id);
+            getContractNegotiationStore().deleteNegociation(id);
 
             assertThat(getContractNegotiationStore().findById(id)).isNull();
         }
@@ -381,7 +381,7 @@ public abstract class ContractNegotiationStoreTestBase {
 
             leaseEntity(id, CONNECTOR_NAME);
 
-            assertThatThrownBy(() -> getContractNegotiationStore().delete(id)).isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> getContractNegotiationStore().deleteNegociation(id)).isInstanceOf(IllegalStateException.class);
         }
 
         @Test
@@ -393,7 +393,7 @@ public abstract class ContractNegotiationStoreTestBase {
 
             leaseEntity(id, "someone-else");
 
-            assertThatThrownBy(() -> getContractNegotiationStore().delete(id)).isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> getContractNegotiationStore().deleteNegociation(id)).isInstanceOf(IllegalStateException.class);
         }
 
         @Test
@@ -405,7 +405,7 @@ public abstract class ContractNegotiationStoreTestBase {
             getContractNegotiationStore().save(n);
 
             assertThat(getContractNegotiationStore().findById(id)).isNotNull().usingRecursiveComparison().isEqualTo(n);
-            assertThatThrownBy(() -> getContractNegotiationStore().delete(id)).isInstanceOf(IllegalStateException.class)
+            assertThatThrownBy(() -> getContractNegotiationStore().deleteNegociation(id)).isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("Cannot delete ContractNegotiation")
                     .hasMessageContaining("ContractAgreement already created.");
         }

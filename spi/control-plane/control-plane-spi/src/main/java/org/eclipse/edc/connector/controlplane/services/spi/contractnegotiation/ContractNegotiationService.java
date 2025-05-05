@@ -80,5 +80,5 @@ public interface ContractNegotiationService {
      * @param negotiationId the id of contract negotiation.
      * @return successful result if the contract negotiation is removed correctly, failure otherwise
      */
-    ServiceResult<Void> removeNegotiation(String negotiationId);
+    ServiceResult<Void> delete(String negotiationId);
 }

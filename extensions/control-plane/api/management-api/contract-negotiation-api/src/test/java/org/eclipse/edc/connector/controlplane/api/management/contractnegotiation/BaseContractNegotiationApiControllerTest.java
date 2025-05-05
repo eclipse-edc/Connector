@@ -450,8 +450,8 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
     }
 
     @Test
-    void removeNegotiation_shouldCallService() {
-        when(service.removeNegotiation(any())).thenReturn(ServiceResult.success());
+    void delete_shouldCallService() {
+        when(service.delete(any())).thenReturn(ServiceResult.success());
 
         baseRequest()
                 .contentType(JSON)
@@ -459,20 +459,20 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
                 .then()
                 .statusCode(204);
 
-        verify(service).removeNegotiation("cn1");
+        verify(service).delete("cn1");
     }
 
     @Test
-    void removeNegotiation_shouldFailDueToWrongState() {
-        when(service.removeNegotiation(any())).thenReturn(ServiceResult.unauthorized(format("Error validating the contract negotiation state: %s", ContractNegotiationStates.AGREED.name())));
+    void delete_shouldFailDueToWrongState() {
+        when(service.delete(any())).thenReturn(ServiceResult.conflict(format("Cannot delete negotiation in state: %s".formatted(ContractNegotiationStates.AGREED.name()))));
 
         baseRequest()
                 .contentType(JSON)
                 .delete("/cn1")
                 .then()
-                .statusCode(403);
+                .statusCode(409);
 
-        verify(service).removeNegotiation("cn1");
+        verify(service).delete("cn1");
     }
 
     protected abstract RequestSpecification baseRequest();

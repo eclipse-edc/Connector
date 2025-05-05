@@ -83,7 +83,7 @@ public class ContractNegotiationApiV3Controller extends BaseContractNegotiationA
     @DELETE
     @Path("/{id}")
     @Override
-    public void removeNegotiationV3(@PathParam("id") String id) {
-        removeNegotiation(id);
+    public void deleteNegotiationV3(@PathParam("id") String id) {
+        delete(id);
     }
 }

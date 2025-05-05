@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QueryResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.store.InMemoryStatefulEntityStore;
 import org.eclipse.edc.store.ReflectionBasedQueryResolver;
 import org.jetbrains.annotations.NotNull;
@@ -61,12 +62,13 @@ public class InMemoryContractNegotiationStore extends InMemoryStatefulEntityStor
     }
 
     @Override
-    public void delete(String negotiationId) {
+    public StoreResult<Void> deleteNegociation(String negotiationId) {
         var negotiation = findById(negotiationId);
         if (negotiation != null && negotiation.getContractAgreement() != null) {
             throw new IllegalStateException(format("Cannot delete ContractNegotiation [%s]: ContractAgreement already created.", negotiationId));
         }
         super.delete(negotiationId);
+        return StoreResult.success();
     }
 
     @Override

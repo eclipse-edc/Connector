@@ -149,8 +149,8 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     }
 
     @Override
-    public void delete(String negotiationId) {
-        transactionContext.execute(() -> {
+    public StoreResult<Void> deleteNegociation(String negotiationId) {
+        return transactionContext.execute(() -> {
             var existing = findById(negotiationId);
 
             //if exists, attempt delete
@@ -174,6 +174,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                     throw new EdcPersistenceException(e);
                 }
             }
+            return StoreResult.success();
         });
     }
 
