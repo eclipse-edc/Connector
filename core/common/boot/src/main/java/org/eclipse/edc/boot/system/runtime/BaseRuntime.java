@@ -39,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import static java.lang.Runtime.getRuntime;
 import static java.lang.String.format;
@@ -124,17 +125,8 @@ public class BaseRuntime {
      * shutdown to all the extensions in reverse order to the boot.
      */
     public void shutdown() {
-        var iterator = serviceExtensions.listIterator(serviceExtensions.size());
-        while (iterator.hasPrevious()) {
-            var extension = iterator.previous();
-            try {
-                monitor.debug("Shutdown " + extension.name());
-                extension.shutdown();
-            } catch (Throwable e) {
-                monitor.severe("Error while shutting down extension %s (%s)".formatted(extension.name(), extension.getClass().getSimpleName()), e);
-            }
-        }
-        monitor.info("Shutdown complete");
+        onAllExtensionsInReverseOrder("Shutdown", ServiceExtension::shutdown);
+        onAllExtensionsInReverseOrder("Cleanup", ServiceExtension::cleanup);
     }
 
     protected Monitor getMonitor() {
@@ -199,6 +191,20 @@ public class BaseRuntime {
     @NotNull
     protected Monitor createMonitor() {
         return extensionLoader.loadMonitor(programArgs);
+    }
+
+    private void onAllExtensionsInReverseOrder(String name, Consumer<ServiceExtension> operation) {
+        var iterator = serviceExtensions.listIterator(serviceExtensions.size());
+        while (iterator.hasPrevious()) {
+            var extension = iterator.previous();
+            try {
+                monitor.debug("%s %s".formatted(name, extension.name()));
+                operation.accept(extension);
+            } catch (Throwable e) {
+                monitor.severe("Error during extension %s (%s) %s".formatted(extension.name(), extension.getClass().getSimpleName(), name), e);
+            }
+        }
+        monitor.info("%s complete".formatted(name));
     }
 
 }

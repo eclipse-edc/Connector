@@ -87,10 +87,11 @@ public class BaseRuntimeTest {
     }
 
     @Test
-    void shouldShutdownAllExtensions_whenOneThrowsException() {
+    void shouldShutdownAllExtensionsAndCleanup_whenOneThrowsException() {
         ServiceExtension successful = mock();
         ServiceExtension unsuccessful = mock();
         doThrow(new RuntimeException("shutdown error")).when(unsuccessful).shutdown();
+        doThrow(new RuntimeException("shutdown error")).when(unsuccessful).cleanup();
 
         when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean()))
                 .thenReturn(mutableListOf(successful, unsuccessful));
@@ -99,7 +100,9 @@ public class BaseRuntimeTest {
 
         assertThatNoException().isThrownBy(runtime::shutdown);
         verify(successful).shutdown();
+        verify(successful).cleanup();
         verify(unsuccessful).shutdown();
+        verify(unsuccessful).cleanup();
     }
 
     @NotNull
