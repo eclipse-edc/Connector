@@ -55,7 +55,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -87,8 +86,6 @@ public class DspHttpCoreExtension implements ServiceExtension {
     @Setting(description = "If set enable the well known path resolution scheme will be used", key = "edc.dsp.well-known-path.enabled", required = false, defaultValue = DEFAULT_WELL_KNOWN_PATH + "")
     private boolean wellKnownPathEnabled;
 
-    @Inject
-    private RemoteMessageDispatcherRegistry dispatcherRegistry;
     @Inject
     private EdcHttpClient httpClient;
     @Inject
