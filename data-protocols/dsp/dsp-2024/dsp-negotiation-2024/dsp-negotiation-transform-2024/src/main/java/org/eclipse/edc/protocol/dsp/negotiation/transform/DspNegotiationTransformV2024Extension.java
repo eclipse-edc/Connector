@@ -42,7 +42,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_2024_1;
 
 /**
- * Provides the transformers for negotiation message types via the {@link TypeTransformerRegistry}.
+ * Provides the transformers for DSP v2024/1 negotiation message types via the {@link TypeTransformerRegistry}.
  */
 @Extension(value = DspNegotiationTransformV2024Extension.NAME)
 public class DspNegotiationTransformV2024Extension implements ServiceExtension {

@@ -42,7 +42,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
- * Provides the transformers for transferprocess message types via the {@link TypeTransformerRegistry}.
+ * Provides the transformers for DSP v2024/1 transferprocess message types via the {@link TypeTransformerRegistry}.
  */
 @Extension(value = DspTransferProcessTransformV2024Extension.NAME)
 public class DspTransferProcessTransformV2024Extension implements ServiceExtension {

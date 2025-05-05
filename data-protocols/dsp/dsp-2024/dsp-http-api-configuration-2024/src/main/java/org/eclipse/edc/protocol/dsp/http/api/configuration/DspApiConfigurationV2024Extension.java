@@ -58,7 +58,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
- * Configure 'protocol' api context.
+ * Registers protocol webhook, API transformers and namespaces for DSP v2024/1.
  */
 @Extension(value = DspApiConfigurationV2024Extension.NAME)
 public class DspApiConfigurationV2024Extension implements ServiceExtension {

@@ -49,7 +49,7 @@ import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_08;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
- * Creates and registers the controller for dataspace protocol catalog requests.
+ * Creates and registers the controller for dataspace protocol v0.8 catalog requests.
  */
 @Extension(value = DspCatalogApiV08Extension.NAME)
 public class DspCatalogApiV08Extension implements ServiceExtension {

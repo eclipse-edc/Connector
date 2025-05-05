@@ -22,6 +22,9 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
+/**
+ * Registers the message dispatcher for DSP v0.8.
+ */
 public class DspHttpDispatcherV08Extension implements ServiceExtension {
     
     @Inject

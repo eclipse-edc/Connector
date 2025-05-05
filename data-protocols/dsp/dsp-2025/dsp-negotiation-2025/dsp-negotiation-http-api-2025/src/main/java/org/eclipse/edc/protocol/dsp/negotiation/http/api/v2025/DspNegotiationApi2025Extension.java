@@ -47,12 +47,12 @@ import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2025_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
- * Creates and registers the controller for dataspace protocol negotiation requests.
+ * Creates and registers the controller for dataspace protocol v2025/1 negotiation requests.
  */
 @Extension(value = DspNegotiationApi2025Extension.NAME)
 public class DspNegotiationApi2025Extension implements ServiceExtension {
 
-    public static final String NAME = "Dataspace Protocol Negotiation Api";
+    public static final String NAME = "Dataspace Protocol Negotiation Api v2025/1";
 
     @Inject
     private WebService webService;

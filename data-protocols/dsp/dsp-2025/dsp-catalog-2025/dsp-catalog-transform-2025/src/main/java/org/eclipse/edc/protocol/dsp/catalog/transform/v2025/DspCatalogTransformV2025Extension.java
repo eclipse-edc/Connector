@@ -37,7 +37,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
- * Provides the transformers for catalog message types via the {@link TypeTransformerRegistry}.
+ * Provides the transformers for DSP v2025/1 catalog message types via the {@link TypeTransformerRegistry}.
  */
 @Extension(value = DspCatalogTransformV2025Extension.NAME)
 public class DspCatalogTransformV2025Extension implements ServiceExtension {

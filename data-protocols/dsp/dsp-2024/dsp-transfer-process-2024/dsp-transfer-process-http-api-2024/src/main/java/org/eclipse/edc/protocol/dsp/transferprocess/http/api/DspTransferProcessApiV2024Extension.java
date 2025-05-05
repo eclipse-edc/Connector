@@ -43,7 +43,7 @@ import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
- * Creates and registers the controller for dataspace protocol transfer process requests.
+ * Creates and registers the controller for dataspace protocol v2024/1 transfer process requests.
  */
 @Extension(value = DspTransferProcessApiV2024Extension.NAME)
 public class DspTransferProcessApiV2024Extension implements ServiceExtension {

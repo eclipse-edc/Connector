@@ -50,7 +50,7 @@ import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2025_1_PATH
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
- * Configure 'protocol' api context.
+ * Registers protocol webhook, API transformers and namespaces for DSP v2025/1.
  */
 @Extension(value = DspApiConfigurationV2025Extension.NAME)
 public class DspApiConfigurationV2025Extension implements ServiceExtension {
