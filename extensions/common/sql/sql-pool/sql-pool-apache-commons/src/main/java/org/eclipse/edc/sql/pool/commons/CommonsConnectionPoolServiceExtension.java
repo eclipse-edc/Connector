@@ -102,7 +102,7 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
     }
 
     @Override
-    public void shutdown() {
+    public void cleanup() {
         commonsConnectionPools.forEach(CommonsConnectionPool::close);
     }
 
