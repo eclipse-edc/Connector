@@ -374,7 +374,7 @@ class JsonObjectFromPolicyTransformerTest {
 
     @Test
     void transform_assigneeAndAssignerAsIds() {
-        var transformer = new JsonObjectFromPolicyTransformer(jsonFactory, participantIdMapper, true, false);
+        var transformer = new JsonObjectFromPolicyTransformer(jsonFactory, participantIdMapper, new JsonObjectFromPolicyTransformer.TransformerConfig(true, false));
         var policy = Policy.Builder.newInstance()
                 .target("target")
                 .assignee("assignee")
@@ -391,7 +391,7 @@ class JsonObjectFromPolicyTransformerTest {
 
     @Test
     void transform_omitEmptyRules() {
-        var transformer = new JsonObjectFromPolicyTransformer(jsonFactory, participantIdMapper, true, true);
+        var transformer = new JsonObjectFromPolicyTransformer(jsonFactory, participantIdMapper, new JsonObjectFromPolicyTransformer.TransformerConfig(true, true));
         var policy = Policy.Builder.newInstance()
                 .target("target")
                 .assignee("assignee")

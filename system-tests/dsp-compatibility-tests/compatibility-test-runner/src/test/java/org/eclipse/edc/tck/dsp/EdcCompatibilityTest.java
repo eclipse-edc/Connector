@@ -44,7 +44,7 @@ public class EdcCompatibilityTest {
 
     private static final GenericContainer<?> TCK_CONTAINER = new TckContainer<>("eclipsedataspacetck/dsp-tck-runtime:latest");
     @RegisterExtension
-    protected static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime("CUnT",
+    protected static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime("CUT",
             ":system-tests:dsp-compatibility-tests:connector-under-test"
     ).configurationProvider(EdcCompatibilityTest::runtimeConfiguration));
 

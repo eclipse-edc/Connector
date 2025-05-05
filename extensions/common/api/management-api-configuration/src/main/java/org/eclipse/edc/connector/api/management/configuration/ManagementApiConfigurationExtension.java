@@ -155,7 +155,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
 
         var managementApiTransformerRegistryV4Alpha = managementApiTransformerRegistry.forContext(MANAGEMENT_API_V_4_ALPHA);
 
-        managementApiTransformerRegistryV4Alpha.register(new JsonObjectFromPolicyTransformer(factory, participantIdMapper, true, false));
+        managementApiTransformerRegistryV4Alpha.register(new JsonObjectFromPolicyTransformer(factory, participantIdMapper, new JsonObjectFromPolicyTransformer.TransformerConfig(true, false)));
 
         registerVersionInfo(getClass().getClassLoader());
     }

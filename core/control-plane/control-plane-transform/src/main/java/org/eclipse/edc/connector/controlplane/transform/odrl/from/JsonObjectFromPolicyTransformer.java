@@ -77,24 +77,22 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_XONE_CONSTRAI
 public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<Policy, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
     private final ParticipantIdMapper participantIdMapper;
-    private final boolean participantsAsId;
-    private final boolean omitEmptyRules;
+    private TransformerConfig config;
 
     public JsonObjectFromPolicyTransformer(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper) {
-        this(jsonFactory, participantIdMapper, false, false);
+        this(jsonFactory, participantIdMapper, new TransformerConfig());
     }
 
-    public JsonObjectFromPolicyTransformer(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper, boolean participantsAsId, boolean omitEmptyRules) {
+    public JsonObjectFromPolicyTransformer(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper, TransformerConfig config) {
         super(Policy.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
         this.participantIdMapper = participantIdMapper;
-        this.participantsAsId = participantsAsId;
-        this.omitEmptyRules = omitEmptyRules;
+        this.config = config;
     }
 
     @Override
     public @Nullable JsonObject transform(@NotNull Policy policy, @NotNull TransformerContext context) {
-        return policy.accept(new Visitor(jsonFactory, participantIdMapper, participantsAsId, omitEmptyRules));
+        return policy.accept(new Visitor(jsonFactory, participantIdMapper, config));
     }
 
     /**
@@ -103,14 +101,13 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
     private static class Visitor implements Policy.Visitor<JsonObject>, Rule.Visitor<JsonObject>, Constraint.Visitor<JsonObject>, Expression.Visitor<JsonObject> {
         private final JsonBuilderFactory jsonFactory;
         private final ParticipantIdMapper participantIdMapper;
-        private final boolean participantsAsId;
-        private final boolean omitEmptyRules;
+        private TransformerConfig config;
 
-        Visitor(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper, boolean participantsAsId, boolean omitEmptyRules) {
+
+        Visitor(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper, TransformerConfig config) {
             this.jsonFactory = jsonFactory;
             this.participantIdMapper = participantIdMapper;
-            this.participantsAsId = participantsAsId;
-            this.omitEmptyRules = omitEmptyRules;
+            this.config = config;
         }
 
         @Override
@@ -154,19 +151,19 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
                     .add(ID, randomUUID().toString())
                     .add(TYPE, getTypeAsString(policy.getType()));
 
-            if (!this.omitEmptyRules || !policy.getPermissions().isEmpty()) {
+            if (!this.config.omitEmptyRules || !policy.getPermissions().isEmpty()) {
                 var permissionsBuilder = jsonFactory.createArrayBuilder();
                 policy.getPermissions().forEach(permission -> permissionsBuilder.add(permission.accept(this)));
                 builder.add(ODRL_PERMISSION_ATTRIBUTE, permissionsBuilder);
             }
 
-            if (!this.omitEmptyRules || !policy.getProhibitions().isEmpty()) {
+            if (!this.config.omitEmptyRules || !policy.getProhibitions().isEmpty()) {
                 var prohibitionsBuilder = jsonFactory.createArrayBuilder();
                 policy.getProhibitions().forEach(prohibition -> prohibitionsBuilder.add(prohibition.accept(this)));
                 builder.add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionsBuilder);
             }
 
-            if (!this.omitEmptyRules || !policy.getObligations().isEmpty()) {
+            if (!this.config.omitEmptyRules || !policy.getObligations().isEmpty()) {
                 var obligationsBuilder = jsonFactory.createArrayBuilder();
                 policy.getObligations().forEach(duty -> obligationsBuilder.add(duty.accept(this)));
                 builder.add(ODRL_OBLIGATION_ATTRIBUTE, obligationsBuilder);
@@ -226,7 +223,7 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
         }
 
         private JsonValue visitParticipantId(String participantId) {
-            if (participantsAsId) {
+            if (config.participantsAsId) {
                 return jsonFactory.createObjectBuilder().add(ID, participantId).build();
             } else {
                 return Json.createValue(participantId);
@@ -298,4 +295,10 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
 
     }
 
+    public record TransformerConfig(boolean participantsAsId, boolean omitEmptyRules) {
+
+        public TransformerConfig() {
+            this(false, false);
+        }
+    }
 }

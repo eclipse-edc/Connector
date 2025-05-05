@@ -31,6 +31,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.Contra
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
@@ -136,6 +137,7 @@ class ProviderContractNegotiationManagerImplTest {
             verify(dispatcherRegistry, only()).dispatch(any(), messageCaptor.capture());
             var message = messageCaptor.getValue();
             assertThat(message.getCallbackAddress()).isEqualTo("http://callback.address");
+            assertThat(message.getPolicy().getType()).isEqualTo(PolicyType.OFFER);
             verify(listener).offered(any());
         });
     }
