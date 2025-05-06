@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
- *       Cofinity-X - refactor DSP module structure to make versions pluggable
+ *       Cofinity-X - make DSP versions pluggable
  *
  */
 

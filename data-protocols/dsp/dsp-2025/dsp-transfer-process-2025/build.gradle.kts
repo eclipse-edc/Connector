@@ -9,10 +9,9 @@
  *
  *  Contributors:
  *       Metaform Systems, Inc. - initial API and implementation
- *       Cofinity-X - refactor DSP module structure to make versions pluggable
+ *       Cofinity-X - make DSP versions pluggable
  *
  */
-
 
 plugins {
     `java-library`

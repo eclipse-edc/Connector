@@ -13,7 +13,7 @@
  *       ZF Friedrichshafen AG - add dependency & reorder entries
  *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *       Mercedes-Benz Tech Innovation GmbH - publish public api context into dedicated swagger hub page
- *       Cofinity-X - refactor DSP module structure to make versions pluggable
+ *       Cofinity-X - make DSP versions pluggable
  *
  */
 

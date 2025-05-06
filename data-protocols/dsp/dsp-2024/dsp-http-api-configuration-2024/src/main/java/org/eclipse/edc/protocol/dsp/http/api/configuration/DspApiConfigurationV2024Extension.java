@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2025 Cofinity-X
+ *  Copyright (c) 2023 Fraunhofer Institute for Software and Systems Engineering
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,8 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Cofinity-X - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Cofinity-X - extract webhook and port mapping creation
  *
  */
 
