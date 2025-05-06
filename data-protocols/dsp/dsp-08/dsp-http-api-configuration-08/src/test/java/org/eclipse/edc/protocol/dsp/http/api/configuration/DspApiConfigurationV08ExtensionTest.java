@@ -27,8 +27,6 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Map;
 
@@ -40,10 +38,7 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_08;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_2024_1;
-import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1_PATH;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
@@ -82,7 +77,6 @@ class DspApiConfigurationV08ExtensionTest {
         extension.initialize(context);
 
         verify(protocolWebhookRegistry).registerWebhook(eq(DATASPACE_PROTOCOL_HTTP), argThat(webhook -> webhook.url().equals(webhookUrl)));
-        verify(protocolWebhookRegistry).registerWebhook(eq(DATASPACE_PROTOCOL_HTTP_V_2024_1), argThat(webhook -> webhook.url().equals(webhookUrl + V_2024_1_PATH)));
     }
 
     @Test
@@ -95,20 +89,18 @@ class DspApiConfigurationV08ExtensionTest {
         extension.initialize(context);
 
         verify(protocolWebhookRegistry).registerWebhook(eq(DATASPACE_PROTOCOL_HTTP), argThat(webhook -> webhook.url().equals(webhookUrl)));
-        verify(protocolWebhookRegistry).registerWebhook(eq(DATASPACE_PROTOCOL_HTTP_V_2024_1), argThat(webhook -> webhook.url().equals(webhookUrl)));
     }
 
-    @ParameterizedTest
-    @ValueSource(strings = {DSP_SCOPE_V_08, DSP_SCOPE_V_2024_1})
-    void initialize_shouldRegisterNamespaces(String scope, DspApiConfigurationV08Extension extension, ServiceExtensionContext context) {
+    @Test
+    void initialize_shouldRegisterNamespaces(DspApiConfigurationV08Extension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(jsonLd).registerNamespace(DCAT_PREFIX, DCAT_SCHEMA, scope);
-        verify(jsonLd).registerNamespace(DCT_PREFIX, DCT_SCHEMA, scope);
-        verify(jsonLd).registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, scope);
-        verify(jsonLd).registerNamespace(VOCAB, EDC_NAMESPACE, scope);
-        verify(jsonLd).registerNamespace(EDC_PREFIX, EDC_NAMESPACE, scope);
-        verify(jsonLd).registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, scope);
+        verify(jsonLd).registerNamespace(DCAT_PREFIX, DCAT_SCHEMA, DSP_SCOPE_V_08);
+        verify(jsonLd).registerNamespace(DCT_PREFIX, DCT_SCHEMA, DSP_SCOPE_V_08);
+        verify(jsonLd).registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, DSP_SCOPE_V_08);
+        verify(jsonLd).registerNamespace(VOCAB, EDC_NAMESPACE, DSP_SCOPE_V_08);
+        verify(jsonLd).registerNamespace(EDC_PREFIX, EDC_NAMESPACE, DSP_SCOPE_V_08);
+        verify(jsonLd).registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, DSP_SCOPE_V_08);
     }
 
 }

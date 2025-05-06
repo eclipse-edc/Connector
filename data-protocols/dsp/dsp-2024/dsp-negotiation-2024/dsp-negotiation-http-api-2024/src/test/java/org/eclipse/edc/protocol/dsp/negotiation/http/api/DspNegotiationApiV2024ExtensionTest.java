@@ -21,12 +21,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -46,11 +53,11 @@ class DspNegotiationApiV2024ExtensionTest {
     void shouldRegisterMessageValidators(DspNegotiationApiV2024Extension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(validatorRegistry).register(eq(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI), any());
-        verify(validatorRegistry).register(eq(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI), any());
-        verify(validatorRegistry).register(eq(DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_IRI), any());
-        verify(validatorRegistry).register(eq(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI), any());
-        verify(validatorRegistry).register(eq(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_IRI), any());
-        verify(validatorRegistry).register(eq(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_IRI), any());
+        verify(validatorRegistry).register(eq(DSP_NAMESPACE_V_2024_1.toIri(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM)), any());
+        verify(validatorRegistry).register(eq(DSP_NAMESPACE_V_2024_1.toIri(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM)), any());
+        verify(validatorRegistry).register(eq(DSP_NAMESPACE_V_2024_1.toIri(DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_TERM)), any());
+        verify(validatorRegistry).register(eq(DSP_NAMESPACE_V_2024_1.toIri(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM)), any());
+        verify(validatorRegistry).register(eq(DSP_NAMESPACE_V_2024_1.toIri(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_TERM)), any());
+        verify(validatorRegistry).register(eq(DSP_NAMESPACE_V_2024_1.toIri(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_TERM)), any());
     }
 }

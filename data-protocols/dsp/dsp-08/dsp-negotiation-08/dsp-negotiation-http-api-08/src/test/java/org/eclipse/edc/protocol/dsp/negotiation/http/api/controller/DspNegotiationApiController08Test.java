@@ -15,10 +15,12 @@
 package org.eclipse.edc.protocol.dsp.negotiation.http.api.controller;
 
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.junit.annotations.ApiTest;
 
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 
+@ApiTest
 class DspNegotiationApiController08Test extends DspNegotiationApiControllerTestBase {
     
     @Override
