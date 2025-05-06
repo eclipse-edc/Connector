@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - refactor DSP module structure to make versions pluggable
  *
  */
 
@@ -55,8 +56,8 @@ public class DspNegotiationApiEndToEndTest {
     @RegisterExtension
     static RuntimeExtension runtime = new RuntimePerClassExtension(DspRuntime.createRuntimeWith(
             PROTOCOL_PORT,
-            ":data-protocols:dsp:dsp-negotiation:dsp-negotiation-http-api",
-            ":data-protocols:dsp:dsp-negotiation:dsp-negotiation-transform"
+            ":data-protocols:dsp:dsp-08:dsp-negotiation-08",
+            ":data-protocols:dsp:dsp-2024:dsp-negotiation-2024"
     ));
 
     @ParameterizedTest

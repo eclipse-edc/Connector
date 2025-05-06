@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Metaform Systems, Inc. - initial API and implementation
+ *       Cofinity-X - refactor DSP module structure to make versions pluggable
  *
  */
 
@@ -58,9 +59,7 @@ public class DspTransferApi2025EndToEndTest {
     @RegisterExtension
     static RuntimeExtension runtime = new RuntimePerClassExtension(Dsp2025Runtime.createRuntimeWith(
             PROTOCOL_PORT,
-            ":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-api",
-            ":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform",
-            ":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-2025"
+            ":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025"
     ));
 
     @ParameterizedTest
