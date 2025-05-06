@@ -36,7 +36,7 @@ rsApi = "4.0.0"
 swagger = "2.2.30"
 titanium = "1.6.0"
 kafkaClients = "4.0.0"
-testcontainers = "1.20.6"
+testcontainers = "1.21.0"
 tink = "1.17.0"
 
 
