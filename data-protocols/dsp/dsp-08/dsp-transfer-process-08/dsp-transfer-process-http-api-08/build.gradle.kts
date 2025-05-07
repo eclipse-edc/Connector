@@ -26,15 +26,15 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-http-spi"))
 
     implementation(project(":spi:common:json-ld-spi"))
-    implementation(project(":data-protocols:dsp:dsp-lib:transfer-process:dsp-transfer-process-validation-lib"))
-    implementation(project(":data-protocols:dsp:dsp-lib:transfer-process:dsp-transfer-process-http-api-lib"))
+    implementation(project(":data-protocols:dsp:dsp-lib:dsp-transfer-process-lib:dsp-transfer-process-validation-lib"))
+    implementation(project(":data-protocols:dsp:dsp-lib:dsp-transfer-process-lib:dsp-transfer-process-http-api-lib"))
     implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
 
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
-    testImplementation(testFixtures(project(":data-protocols:dsp:dsp-lib:transfer-process:dsp-transfer-process-http-api-lib")))
+    testImplementation(testFixtures(project(":data-protocols:dsp:dsp-lib:dsp-transfer-process-lib:dsp-transfer-process-http-api-lib")))
 
     testImplementation(libs.restAssured)
 }

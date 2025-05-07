@@ -17,7 +17,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":data-protocols:dsp:dsp-lib:negotiation:dsp-negotiation-http-api-lib"))
-    api(project(":data-protocols:dsp:dsp-lib:negotiation:dsp-negotiation-transform-lib"))
-    api(project(":data-protocols:dsp:dsp-lib:negotiation:dsp-negotiation-validation-lib"))
+    api(project(":data-protocols:dsp:dsp-lib:dsp-catalog-lib:dsp-catalog-http-api-lib"))
+    api(project(":data-protocols:dsp:dsp-lib:dsp-catalog-lib:dsp-catalog-transform-lib"))
+    api(project(":data-protocols:dsp:dsp-lib:dsp-catalog-lib:dsp-catalog-validation-lib"))
 }

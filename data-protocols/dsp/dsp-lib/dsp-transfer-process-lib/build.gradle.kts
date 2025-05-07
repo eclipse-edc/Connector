@@ -17,7 +17,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":data-protocols:dsp:dsp-lib:transfer-process:dsp-transfer-process-http-api-lib"))
-    api(project(":data-protocols:dsp:dsp-lib:transfer-process:dsp-transfer-process-transform-lib"))
-    api(project(":data-protocols:dsp:dsp-lib:transfer-process:dsp-transfer-process-validation-lib"))
+    api(project(":data-protocols:dsp:dsp-lib:dsp-transfer-process-lib:dsp-transfer-process-http-api-lib"))
+    api(project(":data-protocols:dsp:dsp-lib:dsp-transfer-process-lib:dsp-transfer-process-transform-lib"))
+    api(project(":data-protocols:dsp:dsp-lib:dsp-transfer-process-lib:dsp-transfer-process-validation-lib"))
 }

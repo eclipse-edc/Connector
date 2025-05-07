@@ -20,5 +20,5 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:transform-spi"))
 
-    implementation(project(":data-protocols:dsp:dsp-lib:negotiation:dsp-negotiation-transform-lib"))
+    implementation(project(":data-protocols:dsp:dsp-lib:dsp-negotiation-lib:dsp-negotiation-transform-lib"))
 }
