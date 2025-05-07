@@ -149,32 +149,30 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     }
 
     @Override
-    public StoreResult<Void> deleteNegociation(String negotiationId) {
+    public StoreResult<Void> deleteById(String negotiationId) {
+
         return transactionContext.execute(() -> {
             var existing = findById(negotiationId);
-
-            //if exists, attempt delete
-            if (existing != null) {
-                if (existing.getContractAgreement() != null) {
-                    throw new IllegalStateException(format("Cannot delete ContractNegotiation [ID=%s] - ContractAgreement already created.", negotiationId));
-                }
-                try (var connection = getConnection()) {
-
-                    // attempt to acquire lease - should fail if someone else holds the lease
-                    leaseContext.withConnection(connection).acquireLease(negotiationId);
-
-                    var stmt = statements.getDeleteTemplate();
-                    queryExecutor.execute(connection, stmt, negotiationId);
-
-                    //necessary to delete the row in edc_lease
-                    leaseContext.withConnection(connection).breakLease(negotiationId);
-
-                    // return existing;
-                } catch (SQLException e) {
-                    throw new EdcPersistenceException(e);
-                }
+            if (existing == null) {
+                return StoreResult.notFound(format("ContractNegotiation %s not found", negotiationId));
             }
-            return StoreResult.success();
+            //if exists, attempt delete
+            try (var connection = getConnection()) {
+
+                // attempt to acquire lease - should fail if someone else holds the lease
+                leaseContext.withConnection(connection).acquireLease(negotiationId);
+
+                var stmt = statements.getDeleteTemplate();
+                queryExecutor.execute(connection, stmt, negotiationId);
+
+                //necessary to delete the row in edc_lease
+                leaseContext.withConnection(connection).breakLease(negotiationId);
+
+                // return existing;
+                return StoreResult.success();
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
         });
     }
 

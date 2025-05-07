@@ -367,7 +367,7 @@ public abstract class ContractNegotiationStoreTestBase {
 
             assertThat(getContractNegotiationStore().findById(id)).isNotNull().usingRecursiveComparison().isEqualTo(n);
 
-            getContractNegotiationStore().deleteNegociation(id);
+            getContractNegotiationStore().deleteById(id);
 
             assertThat(getContractNegotiationStore().findById(id)).isNull();
         }
@@ -381,7 +381,7 @@ public abstract class ContractNegotiationStoreTestBase {
 
             leaseEntity(id, CONNECTOR_NAME);
 
-            assertThatThrownBy(() -> getContractNegotiationStore().deleteNegociation(id)).isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> getContractNegotiationStore().deleteById(id)).isInstanceOf(IllegalStateException.class);
         }
 
         @Test
@@ -393,22 +393,9 @@ public abstract class ContractNegotiationStoreTestBase {
 
             leaseEntity(id, "someone-else");
 
-            assertThatThrownBy(() -> getContractNegotiationStore().deleteNegociation(id)).isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> getContractNegotiationStore().deleteById(id)).isInstanceOf(IllegalStateException.class);
         }
 
-        @Test
-        @DisplayName("Verify that attempting to delete a negotiation with a contract raises an exception")
-        void contractExists() {
-            var id = UUID.randomUUID().toString();
-            var contract = createContract(ContractOfferId.create("definition", "asset"));
-            var n = createNegotiation(id, contract);
-            getContractNegotiationStore().save(n);
-
-            assertThat(getContractNegotiationStore().findById(id)).isNotNull().usingRecursiveComparison().isEqualTo(n);
-            assertThatThrownBy(() -> getContractNegotiationStore().deleteNegociation(id)).isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("Cannot delete ContractNegotiation")
-                    .hasMessageContaining("ContractAgreement already created.");
-        }
     }
 
     @Nested
@@ -719,7 +706,7 @@ public abstract class ContractNegotiationStoreTestBase {
                     .state(REQUESTED.code())
                     .type(CONSUMER)
                     .build()).forEach(getContractNegotiationStore()::save);
-            var criteria = new Criterion[]{ hasState(REQUESTED.code()), new Criterion("type", "=", "CONSUMER") };
+            var criteria = new Criterion[] {hasState(REQUESTED.code()), new Criterion("type", "=", "CONSUMER")};
 
             var result = getContractNegotiationStore().nextNotLeased(10, criteria);
 

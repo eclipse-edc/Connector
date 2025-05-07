@@ -62,10 +62,10 @@ public class InMemoryContractNegotiationStore extends InMemoryStatefulEntityStor
     }
 
     @Override
-    public StoreResult<Void> deleteNegociation(String negotiationId) {
-        var negotiation = findById(negotiationId);
-        if (negotiation != null && negotiation.getContractAgreement() != null) {
-            throw new IllegalStateException(format("Cannot delete ContractNegotiation [%s]: ContractAgreement already created.", negotiationId));
+    public StoreResult<Void> deleteById(String negotiationId) {
+        var existing = findById(negotiationId);
+        if (existing == null) {
+            return StoreResult.notFound(format("ContractNegotiation %s not found", negotiationId));
         }
         super.delete(negotiationId);
         return StoreResult.success();

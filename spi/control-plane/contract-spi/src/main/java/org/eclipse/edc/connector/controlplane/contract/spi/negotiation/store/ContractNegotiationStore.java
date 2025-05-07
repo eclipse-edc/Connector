@@ -42,7 +42,7 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
     /**
      * Removes a contract negotiation for the given id.
      */
-    StoreResult<Void> deleteNegociation(String negotiationId);
+    StoreResult<Void> deleteById(String negotiationId);
 
     /**
      * Finds all contract negotiations that are covered by a specific {@link QuerySpec}. If no

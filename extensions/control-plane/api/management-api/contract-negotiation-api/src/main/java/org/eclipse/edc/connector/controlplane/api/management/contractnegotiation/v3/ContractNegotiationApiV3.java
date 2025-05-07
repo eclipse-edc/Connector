@@ -125,7 +125,9 @@ public interface ContractNegotiationApiV3 {
                             links = @Link(name = "poll-state", operationId = "getNegotiationStateV3")),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
-                    @ApiResponse(responseCode = "409", description = "A contract negotiation with the given ID does not exist or is in a wrong state",
+                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                    @ApiResponse(responseCode = "409", description = "The given contract negotiation cannot be deleted due to a wrong state or has existing contract agreement",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )

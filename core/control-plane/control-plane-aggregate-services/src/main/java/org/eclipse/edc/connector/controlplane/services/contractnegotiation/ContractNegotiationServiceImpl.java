@@ -103,12 +103,18 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
     @Override
     public ServiceResult<Void> delete(String negotiationId) {
         return transactionContext.execute(() -> {
-            var state = getState(negotiationId);
-            if (!ContractNegotiationStates.TERMINATED.name().equals(state)) {
+            var existing = findbyId(negotiationId);
+            if (existing == null) {
+                return ServiceResult.notFound(format("ContractNegotiation %s not found", negotiationId));
+            }
+            if (existing.getContractAgreement() != null) {
+                return ServiceResult.conflict(format("Cannot delete ContractNegotiation [ID=%s] - ContractAgreement already created.", negotiationId));
+            }
+            var state = existing.getState();
+            if (state != ContractNegotiationStates.TERMINATED.code()) {
                 return ServiceResult.conflict(format("Cannot delete negotiation in state: %s".formatted(state)));
             }
-            store.deleteNegociation(negotiationId);
-            return ServiceResult.success();
+            return ServiceResult.from(store.deleteById(negotiationId));
         });
     }
 

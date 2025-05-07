@@ -30,6 +30,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.junit.jupiter.api.Nested;
@@ -278,11 +279,39 @@ class ContractNegotiationServiceImplTest {
                     .state(TERMINATED.code())
                     .build();
             when(store.findById("negotiationId")).thenReturn(negotiation);
+            when(store.deleteById("negotiationId")).thenReturn(StoreResult.success());
+
 
             var result = service.delete("negotiationId");
 
             assertThat(result).isSucceeded();
-            verify(store).deleteNegociation("negotiationId");
+            verify(store).deleteById("negotiationId");
+        }
+
+        @Test
+        void delete_shouldFailDueToNegotiationNotFound() {
+            when(store.findById("negotiationId")).thenReturn(null);
+
+            var result = service.delete("negotiationId");
+
+            assertThat(result).isFailed();
+            assertThat(result.reason()).isEqualTo(NOT_FOUND);
+            verify(store, never()).deleteById(any());
+        }
+
+        @Test
+        void delete_shouldFailDueToExistingContractAgreement() {
+            var negotiation = createContractNegotiationBuilder("negotiationId")
+                    .state(AGREED.code())
+                    .contractAgreement(createContractAgreement("agreementId"))
+                    .build();
+            when(store.findById("negotiationId")).thenReturn(negotiation);
+
+            var result = service.delete("negotiationId");
+
+            assertThat(result).isFailed();
+            assertThat(result.reason()).isEqualTo(CONFLICT);
+            verify(store, never()).deleteById(any());
         }
 
         @Test
@@ -296,7 +325,7 @@ class ContractNegotiationServiceImplTest {
 
             assertThat(result).isFailed();
             assertThat(result.reason()).isEqualTo(CONFLICT);
-            verify(store, never()).deleteNegociation(any());
+            verify(store, never()).deleteById(any());
         }
     }
 }

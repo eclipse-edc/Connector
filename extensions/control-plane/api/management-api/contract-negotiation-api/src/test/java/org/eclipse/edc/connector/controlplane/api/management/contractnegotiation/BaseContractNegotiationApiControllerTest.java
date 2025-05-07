@@ -475,6 +475,19 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
         verify(service).delete("cn1");
     }
 
+    @Test
+    void delete_shouldFailDueToNegotiationNotFound() {
+        when(service.delete(any())).thenReturn(ServiceResult.notFound("ContractNegotiation negotiationId not found"));
+
+        baseRequest()
+                .contentType(JSON)
+                .delete("/cn1")
+                .then()
+                .statusCode(404);
+
+        verify(service).delete("cn1");
+    }
+
     protected abstract RequestSpecification baseRequest();
 
     private ContractNegotiation createContractNegotiation(String negotiationId) {
