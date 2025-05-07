@@ -70,12 +70,11 @@ public class DspCatalogTransformV08Extension implements ServiceExtension {
         var dspApiTransformerRegistry = registry.forContext(DSP_TRANSFORMER_CONTEXT_V_08);
         dspApiTransformerRegistry.register(new JsonObjectFromCatalogRequestMessageTransformer(jsonFactory, DSP_NAMESPACE_V_08));
         dspApiTransformerRegistry.register(new JsonObjectToCatalogRequestMessageTransformer(DSP_NAMESPACE_V_08));
-
+        
+        dspApiTransformerRegistry.register(new JsonObjectFromCatalogTransformer(jsonFactory, typeManager, JSON_LD, participantIdMapper, DSP_NAMESPACE_V_08));
         dspApiTransformerRegistry.register(new JsonObjectFromDatasetTransformer(jsonFactory, typeManager, JSON_LD));
         dspApiTransformerRegistry.register(new JsonObjectFromDistributionTransformer(jsonFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromDataServiceTransformer(jsonFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromCatalogErrorTransformer(jsonFactory, DSP_NAMESPACE_V_08));
-        
-        dspApiTransformerRegistry.register(new JsonObjectFromCatalogTransformer(jsonFactory, typeManager, JSON_LD, participantIdMapper, DSP_NAMESPACE_V_08));
     }
 }
