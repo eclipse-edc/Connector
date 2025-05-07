@@ -92,7 +92,7 @@ public class DspApiConfigurationV2024Extension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var v2024Path = dspWebhookAddress.get() + (wellKnownPathEnabled ? "" : V_2024_1_PATH);
-        
+
         protocolWebhookRegistry.registerWebhook(DATASPACE_PROTOCOL_HTTP_V_2024_1, () -> v2024Path);
 
         // registers ns for DSP scope
@@ -127,8 +127,8 @@ public class DspApiConfigurationV2024Extension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonObjectToQuerySpecTransformer());
         dspApiTransformerRegistry.register(new JsonObjectToCriterionTransformer());
         dspApiTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer(DSP_NAMESPACE_V_2024_1));
-        
-        dspApiTransformerRegistry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory, participantIdMapper, true));
+
+        dspApiTransformerRegistry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory, participantIdMapper, new JsonObjectFromPolicyTransformer.TransformerConfig(true, false)));
         dspApiTransformerRegistry.register(new JsonObjectFromDataAddressDspace2024Transformer(jsonBuilderFactory, typeManager, JSON_LD));
     }
 }

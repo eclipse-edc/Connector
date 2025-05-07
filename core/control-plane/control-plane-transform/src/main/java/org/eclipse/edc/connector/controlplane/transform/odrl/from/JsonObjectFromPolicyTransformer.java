@@ -77,7 +77,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_XONE_CONSTRAI
 public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<Policy, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
     private final ParticipantIdMapper participantIdMapper;
-    private TransformerConfig config;
+    private final TransformerConfig config;
 
     public JsonObjectFromPolicyTransformer(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper) {
         this(jsonFactory, participantIdMapper, new TransformerConfig());
