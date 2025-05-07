@@ -25,7 +25,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.statemachine.StateMachineManager;
@@ -82,14 +81,8 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
             return true;
         }
 
-        var lastContractOffer = negotiation.getLastContractOffer();
-        var offer = ContractOffer.Builder.newInstance().id(lastContractOffer.getId())
-                .policy(lastContractOffer.getPolicy().toBuilder().type(PolicyType.OFFER).build())
-                .assetId(lastContractOffer.getAssetId())
-                .build();
-
         var messageBuilder = ContractOfferMessage.Builder.newInstance()
-                .contractOffer(offer)
+                .contractOffer(negotiation.getLastContractOffer())
                 .callbackAddress(callbackAddress.url());
 
         return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class, "[Provider] send offer")
@@ -149,7 +142,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                             .assetId(lastOffer.getAssetId())
                             .build();
                 });
-        
+
         var messageBuilder = ContractAgreementMessage.Builder.newInstance()
                 .callbackAddress(callbackAddress.url())
                 .contractAgreement(agreement);

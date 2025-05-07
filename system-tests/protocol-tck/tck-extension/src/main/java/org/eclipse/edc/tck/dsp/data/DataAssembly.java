@@ -19,9 +19,14 @@ import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotia
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationAgreed;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationEvent;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationOffered;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
+import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessEvent;
+import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
@@ -44,6 +49,9 @@ public class DataAssembly {
             "ACN0201", "ACN0202", "ACN0203", "ACN0204", "ACN0205", "ACN0206", "ACN0207",
             "ACN0301", "ACN0302", "ACN0303", "ACN0304");
 
+
+    private static final Set<String> AGREEMENT_IDS = Set.of("ATP0101", "ATPC0101");
+
     private static final String POLICY_ID = "P123";
     private static final String CONTRACT_DEFINITION_ID = "CD123";
 
@@ -51,7 +59,11 @@ public class DataAssembly {
     }
 
     public static Set<Asset> createAssets() {
-        return ASSET_IDS.stream().map(DataAssembly::createAsset).collect(toSet());
+        var assets = ASSET_IDS.stream().map(DataAssembly::createAsset).collect(toSet());
+
+        assets.add(Asset.Builder.newInstance().id("ATP0101")
+                .dataAddress(DataAddress.Builder.newInstance().type("HttpData").build()).build());
+        return assets;
     }
 
     public static Set<PolicyDefinition> createPolicyDefinitions() {
@@ -70,6 +82,11 @@ public class DataAssembly {
                 .accessPolicyId(POLICY_ID)
                 .contractPolicyId(POLICY_ID)
                 .build());
+    }
+
+
+    public static Set<ContractNegotiation> createContractNegotiations() {
+        return AGREEMENT_IDS.stream().map(DataAssembly::createContractNegotiation).collect(toSet());
     }
 
     public static StepRecorder<ContractNegotiation> createNegotiationRecorder() {
@@ -152,6 +169,13 @@ public class DataAssembly {
         );
     }
 
+    public static List<Trigger<TransferProcess>> createTransferProcessTriggers() {
+        return List.of(
+                createTransferTrigger(TransferProcessStarted.class, "ATP0101", TransferProcess::transitionTerminating)
+        );
+    }
+
+
     private static <E extends ContractNegotiationEvent> Trigger<ContractNegotiation> createTrigger(Class<E> type,
                                                                                                    String assetId,
                                                                                                    Consumer<ContractNegotiation> action) {
@@ -163,10 +187,40 @@ public class DataAssembly {
         }, action);
     }
 
+    private static <E extends TransferProcessEvent> Trigger<TransferProcess> createTransferTrigger(Class<E> type,
+                                                                                                   String agreementId,
+                                                                                                   Consumer<TransferProcess> action) {
+        return new Trigger<>(event -> {
+            if (event.getClass().equals(type)) {
+                return agreementId.equals(((TransferProcessEvent) event).getContractId());
+            }
+            return false;
+        }, action);
+    }
+
     private static Asset createAsset(String id) {
         return Asset.Builder.newInstance()
                 .id(id)
                 .dataAddress(DataAddress.Builder.newInstance().type("HTTP").build())
+                .build();
+    }
+
+    private static ContractNegotiation createContractNegotiation(String id) {
+
+        return ContractNegotiation.Builder.newInstance()
+                .contractAgreement(ContractAgreement.Builder.newInstance()
+                        .id(id)
+                        .providerId("providerId")
+                        .consumerId("TCK_PARTICIPANT")
+                        .assetId("ATP0101")
+                        .contractSigningDate(System.currentTimeMillis())
+                        .policy(Policy.Builder.newInstance().build())
+                        .build())
+                .type(ContractNegotiation.Type.PROVIDER)
+                .state(ContractNegotiationStates.FINALIZED.code())
+                .counterPartyId("counterPartyId")
+                .counterPartyAddress("https://test.com")
+                .protocol("test")
                 .build();
     }
 }

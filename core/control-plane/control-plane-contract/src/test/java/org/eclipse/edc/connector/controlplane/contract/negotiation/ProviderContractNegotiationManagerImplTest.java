@@ -328,7 +328,7 @@ class ProviderContractNegotiationManagerImplTest {
     private ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance()
                 .id(ContractOfferId.create("1", "test-asset-id").toString())
-                .policy(Policy.Builder.newInstance().build())
+                .policy(Policy.Builder.newInstance().type(PolicyType.OFFER).build())
                 .assetId("assetId")
                 .build();
     }

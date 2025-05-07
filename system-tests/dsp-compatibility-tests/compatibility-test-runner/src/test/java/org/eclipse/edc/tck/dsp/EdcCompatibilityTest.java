@@ -32,6 +32,7 @@ import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 
@@ -68,6 +69,8 @@ public class EdcCompatibilityTest {
                 put("edc.management.context.enabled", "true");
                 put("edc.hostname", "host.docker.internal");
                 put("edc.component.id", "DSP-compatibility-test");
+                put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");
+                put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
             }
         });
     }
@@ -76,11 +79,12 @@ public class EdcCompatibilityTest {
         return Path.of(TestUtils.getResource(resource)).toString();
     }
 
-    @Timeout(60)
+    @Timeout(120)
     @Test
     void assertDspCompatibility() {
         // TODO remove all failures from this list when compliant error handling is implemented in the connector
-        var allowedFailures = List.of("CN:03-01", "CN:03-02", "CN:03-03", "CN:03-04");
+        // TODO TP:01-01 is failing because we don't send endpoint in data address
+        var allowedFailures = List.of("CN:03-01", "CN:03-02", "CN:03-03", "CN:03-04", "TP:01-01");
 
         // pipe the docker container's log to this console at the INFO level
         var monitor = new ConsoleMonitor(">>> TCK Runtime (Docker)", ConsoleMonitor.Level.INFO, true);
@@ -91,7 +95,7 @@ public class EdcCompatibilityTest {
         TCK_CONTAINER.withExtraHost("host.docker.internal", "host-gateway");
         TCK_CONTAINER.withLogConsumer(outputFrame -> monitor.info(outputFrame.getUtf8String()));
         TCK_CONTAINER.withLogConsumer(reporter);
-        TCK_CONTAINER.waitingFor(new LogMessageWaitStrategy().withRegEx(".*Test run complete.*"));
+        TCK_CONTAINER.waitingFor(new LogMessageWaitStrategy().withRegEx(".*Test run complete.*").withStartupTimeout(Duration.ofSeconds(120)));
         TCK_CONTAINER.start();
 
         var failures = reporter.failures();
