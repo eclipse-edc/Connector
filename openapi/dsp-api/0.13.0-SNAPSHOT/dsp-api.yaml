@@ -16,7 +16,7 @@ paths:
             application/json: {}
   /2024/1/catalog/datasets/{id}:
     get:
-      operationId: getDataset_1
+      operationId: getDataset
       parameters:
       - name: id
         in: path
@@ -39,7 +39,7 @@ paths:
             application/json: {}
   /2024/1/catalog/request:
     post:
-      operationId: requestCatalog_1
+      operationId: requestCatalog
       parameters:
       - name: Authorization
         in: header
@@ -82,7 +82,7 @@ paths:
             application/json: {}
   /2024/1/negotiations/offer:
     post:
-      operationId: initialContractOffer_1
+      operationId: initialContractOffer
       parameters:
       - name: Authorization
         in: header
@@ -118,7 +118,7 @@ paths:
             application/json: {}
   /2024/1/negotiations/request:
     post:
-      operationId: initialContractRequest_1
+      operationId: initialContractRequest
       parameters:
       - name: Authorization
         in: header
@@ -154,7 +154,7 @@ paths:
             application/json: {}
   /2024/1/negotiations/{id}:
     get:
-      operationId: getNegotiation_1
+      operationId: getNegotiation
       parameters:
       - name: id
         in: path
@@ -177,7 +177,7 @@ paths:
             application/json: {}
   /2024/1/negotiations/{id}/agreement:
     post:
-      operationId: createAgreement_1
+      operationId: createAgreement
       parameters:
       - name: id
         in: path
@@ -220,7 +220,7 @@ paths:
             application/json: {}
   /2024/1/negotiations/{id}/agreement/verification:
     post:
-      operationId: verifyAgreement_1
+      operationId: verifyAgreement
       parameters:
       - name: id
         in: path
@@ -263,7 +263,7 @@ paths:
             application/json: {}
   /2024/1/negotiations/{id}/events:
     post:
-      operationId: createEvent_1
+      operationId: createEvent
       parameters:
       - name: id
         in: path
@@ -306,7 +306,7 @@ paths:
             application/json: {}
   /2024/1/negotiations/{id}/offer:
     post:
-      operationId: providerOffer_1
+      operationId: providerOffer
       parameters:
       - name: id
         in: path
@@ -349,7 +349,7 @@ paths:
             application/json: {}
   /2024/1/negotiations/{id}/request:
     post:
-      operationId: contractRequest_1
+      operationId: contractRequest
       parameters:
       - name: id
         in: path
@@ -392,7 +392,7 @@ paths:
             application/json: {}
   /2024/1/negotiations/{id}/termination:
     post:
-      operationId: terminateNegotiation_1
+      operationId: terminateNegotiation
       parameters:
       - name: id
         in: path
@@ -435,7 +435,7 @@ paths:
             application/json: {}
   /2024/1/transfers/request:
     post:
-      operationId: initiateTransferProcess_1
+      operationId: initiateTransferProcess
       parameters:
       - name: Authorization
         in: header
@@ -471,7 +471,7 @@ paths:
             application/json: {}
   /2024/1/transfers/{id}:
     get:
-      operationId: getTransferProcess_1
+      operationId: getTransferProcess
       parameters:
       - name: id
         in: path
@@ -494,7 +494,7 @@ paths:
             application/json: {}
   /2024/1/transfers/{id}/completion:
     post:
-      operationId: transferProcessCompletion_1
+      operationId: transferProcessCompletion
       parameters:
       - name: id
         in: path
@@ -537,7 +537,7 @@ paths:
             application/json: {}
   /2024/1/transfers/{id}/start:
     post:
-      operationId: transferProcessStart_1
+      operationId: transferProcessStart
       parameters:
       - name: id
         in: path
@@ -580,7 +580,7 @@ paths:
             application/json: {}
   /2024/1/transfers/{id}/suspension:
     post:
-      operationId: transferProcessSuspension_1
+      operationId: transferProcessSuspension
       parameters:
       - name: id
         in: path
@@ -623,7 +623,7 @@ paths:
             application/json: {}
   /2024/1/transfers/{id}/termination:
     post:
-      operationId: transferProcessTermination_1
+      operationId: transferProcessTermination
       parameters:
       - name: id
         in: path
