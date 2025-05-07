@@ -10,6 +10,7 @@
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       Cofinity-X - extract webhook and port mapping creation
+ *       Cofinity-X - make DSP versions pluggable
  *
  */
 
@@ -18,12 +19,9 @@ plugins {
 }
 
 dependencies {
-    api(project(":data-protocols:dsp:dsp-http-api-configuration"))
-    api(project(":data-protocols:dsp:dsp-http-api-base-configuration"))
-    api(project(":data-protocols:dsp:dsp-catalog"))
-    api(project(":data-protocols:dsp:dsp-http-core"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
-    api(project(":data-protocols:dsp:dsp-negotiation"))
-    api(project(":data-protocols:dsp:dsp-transfer-process"))
+    api(project(":data-protocols:dsp:dsp-core"))
+    api(project(":data-protocols:dsp:dsp-08"))
+    api(project(":data-protocols:dsp:dsp-2024"))
     api(project(":data-protocols:dsp:dsp-version"))
 }

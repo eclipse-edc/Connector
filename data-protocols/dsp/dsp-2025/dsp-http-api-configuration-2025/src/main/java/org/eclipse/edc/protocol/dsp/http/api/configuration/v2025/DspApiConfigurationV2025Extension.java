@@ -23,10 +23,8 @@ import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFrom
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.protocol.dsp.http.spi.api.DspBaseWebhookAddress;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -52,7 +50,7 @@ import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2025_1_PATH
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
- * Configure 'protocol' api context.
+ * Registers protocol webhook, API transformers and namespaces for DSP v2025/1.
  */
 @Extension(value = DspApiConfigurationV2025Extension.NAME)
 public class DspApiConfigurationV2025Extension implements ServiceExtension {
@@ -68,10 +66,6 @@ public class DspApiConfigurationV2025Extension implements ServiceExtension {
     @Inject
     private ParticipantIdMapper participantIdMapper;
     @Inject
-    private RemoteMessageDispatcherRegistry dispatcherRegistry;
-    @Inject
-    private DspHttpRemoteMessageDispatcher dispatcher;
-    @Inject
     private DspBaseWebhookAddress dspWebhookAddress;
     @Inject
     private ProtocolWebhookRegistry protocolWebhookRegistry;
@@ -86,7 +80,6 @@ public class DspApiConfigurationV2025Extension implements ServiceExtension {
         // registers ns for DSP 2025/1 scope
         registerNamespaces();
         registerTransformers();
-        dispatcherRegistry.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, dispatcher);
 
         protocolWebhookRegistry.registerWebhook(DATASPACE_PROTOCOL_HTTP_V_2025_1, () -> dspWebhookAddress.get() + V_2025_1_PATH);
     }

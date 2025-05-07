@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - make DSP versions pluggable
  *
  */
 
@@ -58,8 +59,8 @@ public class DspCatalogApiEndToEndTest {
     @RegisterExtension
     static RuntimeExtension runtime = new RuntimePerClassExtension(DspRuntime.createRuntimeWith(
             PROTOCOL_PORT,
-            ":data-protocols:dsp:dsp-catalog:dsp-catalog-http-api",
-            ":data-protocols:dsp:dsp-catalog:dsp-catalog-transform"
+            ":data-protocols:dsp:dsp-08:dsp-catalog-08",
+            ":data-protocols:dsp:dsp-2024:dsp-catalog-2024"
     ));
     
     @ParameterizedTest

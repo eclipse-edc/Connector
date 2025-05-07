@@ -25,9 +25,10 @@ public interface DspRuntime {
 
     static EmbeddedRuntime createRuntimeWith(int protocolPort, String... additionalModules) {
         var baseModules = Stream.of(
-                ":data-protocols:dsp:dsp-http-api-configuration",
-                ":data-protocols:dsp:dsp-http-api-base-configuration",
-                ":data-protocols:dsp:dsp-http-core",
+                ":data-protocols:dsp:dsp-core:dsp-http-api-base-configuration",
+                ":data-protocols:dsp:dsp-08:dsp-http-api-configuration-08",
+                ":data-protocols:dsp:dsp-2024:dsp-http-api-configuration-2024",
+                ":data-protocols:dsp:dsp-core:dsp-http-core",
                 ":extensions:common:iam:iam-mock",
                 ":core:control-plane:control-plane-aggregate-services",
                 ":core:control-plane:control-plane-core",
