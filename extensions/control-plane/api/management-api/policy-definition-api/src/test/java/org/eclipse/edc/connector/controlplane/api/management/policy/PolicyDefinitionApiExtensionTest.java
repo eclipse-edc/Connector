@@ -62,6 +62,5 @@ class PolicyDefinitionApiExtensionTest {
         extension.initialize(context);
 
         verify(webService).registerResource(any(), isA(PolicyDefinitionApiV3Controller.class));
-        verify(webService).registerResource(any(), isA(PolicyDefinitionApiV3Controller.class));
     }
 }

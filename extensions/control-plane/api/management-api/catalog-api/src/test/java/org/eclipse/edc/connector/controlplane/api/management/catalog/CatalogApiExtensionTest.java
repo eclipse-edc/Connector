@@ -56,6 +56,5 @@ class CatalogApiExtensionTest {
         extension.initialize(context);
 
         verify(webService).registerResource(any(), isA(CatalogApiV3Controller.class));
-        verify(webService).registerResource(any(), isA(CatalogApiV3Controller.class));
     }
 }
