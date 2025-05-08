@@ -2,14 +2,8 @@
   {
     "version": "3.0.6",
     "urlPath": "/v3",
-    "lastUpdated": "2025-01-10T16:46:00Z",
+    "lastUpdated": "2025-05-08T16:45:00Z",
     "maturity": "stable"
-  },
-  {
-    "version": "3.1.0-alpha",
-    "urlPath": "/v3.1alpha",
-    "lastUpdated": "2024-09-04T10:17:00Z",
-    "maturity": "alpha"
   },
   {
     "version": "4.0.0-alpha",
