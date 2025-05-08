@@ -43,7 +43,7 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -78,6 +78,7 @@ class ContractNegotiationEventDispatchTest {
     private final ClaimToken token = ClaimToken.Builder.newInstance().claim(ParticipantAgentService.DEFAULT_IDENTITY_CLAIM_KEY, CONSUMER).build();
 
     private final TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance().token(UUID.randomUUID().toString()).build();
+    protected ProtocolWebhookRegistry protocolWebhookRegistry = mock();
 
 
     @BeforeEach
@@ -89,10 +90,12 @@ class ContractNegotiationEventDispatchTest {
                 "edc.negotiation.provider.send.retry.limit", "0"
         ));
         extension.registerServiceMock(NegotiationWaitStrategy.class, () -> 1);
-        extension.registerServiceMock(ProtocolWebhook.class, mock());
+        extension.registerServiceMock(ProtocolWebhookRegistry.class, protocolWebhookRegistry);
         extension.registerServiceMock(DataPlaneInstanceStore.class, mock());
         extension.registerServiceMock(IdentityService.class, identityService);
         extension.registerServiceMock(DataPlaneClientFactory.class, mock());
+
+        when(protocolWebhookRegistry.resolve(any())).thenReturn(() -> "http://callback.address");
     }
 
     @Test

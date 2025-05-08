@@ -17,6 +17,8 @@ package org.eclipse.edc.tck.dsp.guard;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationEvent;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuard;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessEvent;
+import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.event.EventRouter;
@@ -24,6 +26,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 
 import static org.eclipse.edc.tck.dsp.data.DataAssembly.createNegotiationRecorder;
 import static org.eclipse.edc.tck.dsp.data.DataAssembly.createNegotiationTriggers;
+import static org.eclipse.edc.tck.dsp.data.DataAssembly.createTransferProcessTriggers;
 
 /**
  * Loads the transition guard.
@@ -35,6 +38,9 @@ public class TckGuardExtension implements ServiceExtension {
 
     @Inject
     private ContractNegotiationStore store;
+
+    @Inject
+    private TransferProcessStore transferProcessStore;
 
     @Inject
     private EventRouter router;
@@ -51,6 +57,10 @@ public class TckGuardExtension implements ServiceExtension {
         var registry = new ContractNegotiationTriggerSubscriber(store);
         createNegotiationTriggers().forEach(registry::register);
         router.register(ContractNegotiationEvent.class, registry);
+
+        var tpRegistry = new TransferProcessTriggerSubscriber(transferProcessStore);
+        createTransferProcessTriggers().forEach(tpRegistry::register);
+        router.register(TransferProcessEvent.class, tpRegistry);
 
         negotiationGuard = new ContractNegotiationGuard(cn -> recorder.playNext(cn.getContractOffers().get(0).getAssetId(), cn), store);
         return negotiationGuard;

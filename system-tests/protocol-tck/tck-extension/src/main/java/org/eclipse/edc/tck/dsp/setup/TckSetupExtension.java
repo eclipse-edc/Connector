@@ -15,6 +15,7 @@
 package org.eclipse.edc.tck.dsp.setup;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -23,6 +24,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 
 import static org.eclipse.edc.tck.dsp.data.DataAssembly.createAssets;
 import static org.eclipse.edc.tck.dsp.data.DataAssembly.createContractDefinitions;
+import static org.eclipse.edc.tck.dsp.data.DataAssembly.createContractNegotiations;
 import static org.eclipse.edc.tck.dsp.data.DataAssembly.createPolicyDefinitions;
 import static org.eclipse.edc.tck.dsp.setup.TckSetupExtension.NAME;
 
@@ -42,6 +44,9 @@ public class TckSetupExtension implements ServiceExtension {
     @Inject
     private ContractDefinitionService contractDefinitionService;
 
+    @Inject
+    private ContractNegotiationStore contractNegotiationStore;
+
     @Override
     public String name() {
         return NAME;
@@ -52,6 +57,7 @@ public class TckSetupExtension implements ServiceExtension {
         createAssets().forEach(asset -> assetIndex.create(asset));
         createPolicyDefinitions().forEach(definition -> policyDefinitionService.create(definition));
         createContractDefinitions().forEach(definition -> contractDefinitionService.create(definition));
+        createContractNegotiations().forEach(negotiation -> contractNegotiationStore.save(negotiation));
     }
 
 

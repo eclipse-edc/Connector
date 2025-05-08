@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.tck.dsp.guard;
 
-import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationEvent;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessEvent;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventSubscriber;
@@ -25,18 +25,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Fires triggers based on negotiation events.
+ * Fires triggers based on transfer events.
  */
-public class ContractNegotiationTriggerSubscriber implements EventSubscriber, ContractNegotiationTriggerRegistry {
-    private final List<Trigger<ContractNegotiation>> triggers = new ArrayList<>();
-    private final StateEntityStore<ContractNegotiation> store;
+public class TransferProcessTriggerSubscriber implements EventSubscriber, TransferProcessTriggerRegistry {
+    private final List<Trigger<TransferProcess>> triggers = new ArrayList<>();
+    private final StateEntityStore<TransferProcess> store;
 
-    public ContractNegotiationTriggerSubscriber(StateEntityStore<ContractNegotiation> store) {
+    public TransferProcessTriggerSubscriber(StateEntityStore<TransferProcess> store) {
         this.store = store;
     }
 
     @Override
-    public void register(Trigger<ContractNegotiation> trigger) {
+    public void register(Trigger<TransferProcess> trigger) {
         triggers.add(trigger);
     }
 
@@ -45,8 +45,8 @@ public class ContractNegotiationTriggerSubscriber implements EventSubscriber, Co
         triggers.stream()
                 .filter(trigger -> trigger.predicate().test(envelope.getPayload()))
                 .forEach(trigger -> {
-                    var event = (ContractNegotiationEvent) envelope.getPayload();
-                    var negotiation = store.findByIdAndLease(event.getContractNegotiationId()).getContent();
+                    var event = (TransferProcessEvent) envelope.getPayload();
+                    var negotiation = store.findByIdAndLease(event.getTransferProcessId()).getContent();
                     trigger.action().accept(negotiation);
                     store.save(negotiation);
                 });

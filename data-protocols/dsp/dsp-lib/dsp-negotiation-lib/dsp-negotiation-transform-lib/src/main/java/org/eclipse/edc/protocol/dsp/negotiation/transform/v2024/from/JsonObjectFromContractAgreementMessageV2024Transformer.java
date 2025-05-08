@@ -33,6 +33,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
 
@@ -76,13 +77,18 @@ public class JsonObjectFromContractAgreementMessageV2024Transformer extends Abst
                 .add(forNamespace(DSPACE_PROPERTY_TIMESTAMP_TERM), signing)
                 .build();
 
-        return jsonFactory.createObjectBuilder()
+        var builder = jsonFactory.createObjectBuilder()
                 .add(ID, agreementMessage.getId())
                 .add(TYPE, forNamespace(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM))
                 .add(forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), createId(jsonFactory, agreementMessage.getProviderPid()))
                 .add(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), createId(jsonFactory, agreementMessage.getConsumerPid()))
-                .add(forNamespace(DSPACE_PROPERTY_AGREEMENT_TERM), copiedPolicy)
-                .build();
+                .add(forNamespace(DSPACE_PROPERTY_AGREEMENT_TERM), copiedPolicy);
+
+        if (agreementMessage.getCallbackAddress() != null) {
+            builder.add(forNamespace(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM), agreementMessage.getCallbackAddress());
+        }
+
+        return builder.build();
     }
 
 }

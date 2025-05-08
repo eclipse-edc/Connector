@@ -31,6 +31,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.Contra
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
@@ -136,6 +137,7 @@ class ProviderContractNegotiationManagerImplTest {
             verify(dispatcherRegistry, only()).dispatch(any(), messageCaptor.capture());
             var message = messageCaptor.getValue();
             assertThat(message.getCallbackAddress()).isEqualTo("http://callback.address");
+            assertThat(message.getPolicy().getType()).isEqualTo(PolicyType.OFFER);
             verify(listener).offered(any());
         });
     }
@@ -214,6 +216,7 @@ class ProviderContractNegotiationManagerImplTest {
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id("policyId").build());
+        when(protocolWebhookRegistry.resolve(negotiation.getProtocol())).thenReturn(() -> "http://callback.address");
 
         manager.start();
 
@@ -325,13 +328,13 @@ class ProviderContractNegotiationManagerImplTest {
     private ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance()
                 .id(ContractOfferId.create("1", "test-asset-id").toString())
-                .policy(Policy.Builder.newInstance().build())
+                .policy(Policy.Builder.newInstance().type(PolicyType.OFFER).build())
                 .assetId("assetId")
                 .build();
     }
 
     private Criterion[] stateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state), isNotPending(), new Criterion("type", "=", "PROVIDER") });
+        return aryEq(new Criterion[]{hasState(state), isNotPending(), new Criterion("type", "=", "PROVIDER")});
     }
 
     private static class DispatchFailureArguments implements ArgumentsProvider {

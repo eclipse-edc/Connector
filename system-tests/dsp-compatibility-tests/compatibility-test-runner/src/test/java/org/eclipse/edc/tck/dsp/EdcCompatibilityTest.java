@@ -20,7 +20,8 @@ import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
-import org.junit.jupiter.api.Disabled;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -31,58 +32,79 @@ import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
-@Disabled(value = "Need to disable this test until the connector is 100% compliant with DSP")
 @NightlyTest
 @Testcontainers
 public class EdcCompatibilityTest {
 
     private static final GenericContainer<?> TCK_CONTAINER = new TckContainer<>("eclipsedataspacetck/dsp-tck-runtime:latest");
+    @RegisterExtension
+    protected static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime("CUT",
+            ":system-tests:dsp-compatibility-tests:connector-under-test"
+    ).configurationProvider(EdcCompatibilityTest::runtimeConfiguration));
 
-    private static String resource(String s) {
-        return Path.of(TestUtils.getResource("docker.tck.properties")).toString();
+
+    private static Config runtimeConfiguration() {
+        return ConfigFactory.fromMap(new HashMap<>() {
+            {
+                put("edc.participant.id", "CONNECTOR_UNDER_TEST");
+                put("web.http.port", "8080");
+                put("web.http.path", "/api");
+                put("web.http.version.port", String.valueOf(getFreePort()));
+                put("web.http.version.path", "/api/version");
+                put("web.http.control.port", String.valueOf(getFreePort()));
+                put("web.http.control.path", "/api/control");
+                put("web.http.management.port", "8081");
+                put("web.http.management.path", "/api/management");
+                put("web.http.protocol.port", "8282"); // this must match the configured connector url in resources/docker.tck.properties
+                put("web.http.protocol.path", "/api/dsp"); // this must match the configured connector url in resources/docker.tck.properties
+                put("web.api.auth.key", "password");
+                put("edc.dsp.callback.address", "http://host.docker.internal:8282/api/dsp"); // host.docker.internal is required by the container to communicate with the host
+                put("edc.management.context.enabled", "true");
+                put("edc.hostname", "host.docker.internal");
+                put("edc.component.id", "DSP-compatibility-test");
+                put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");
+                put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
+            }
+        });
     }
 
-    @RegisterExtension
-    protected static RuntimeExtension runtime =
-            new RuntimePerClassExtension(new EmbeddedRuntime("CUnT",
-                    new HashMap<>() {
-                        {
-                            put("edc.participant.id", "CONNECTOR_UNDER_TEST");
-                            put("web.http.port", "8080");
-                            put("web.http.path", "/api");
-                            put("web.http.version.port", String.valueOf(getFreePort()));
-                            put("web.http.version.path", "/api/version");
-                            put("web.http.control.port", String.valueOf(getFreePort()));
-                            put("web.http.control.path", "/api/control");
-                            put("web.http.management.port", "8081");
-                            put("web.http.management.path", "/api/management");
-                            put("web.http.protocol.port", "8282"); // this must match the configured connector url in resources/docker.tck.properties
-                            put("web.http.protocol.path", "/api/dsp"); // this must match the configured connector url in resources/docker.tck.properties
-                            put("web.api.auth.key", "password");
-                            put("edc.dsp.callback.address", "http://host.docker.internal:8282/api/dsp"); // host.docker.internal is required by the container to communicate with the host
-                            put("edc.management.context.enabled", "true");
-                            put("edc.hostname", "host.docker.internal");
-                            put("edc.component.id", "DSP-compatibility-test");
-                        }
-                    },
-                    ":system-tests:dsp-compatibility-tests:connector-under-test"
-            ));
+    private static String resourceConfig(String resource) {
+        return Path.of(TestUtils.getResource(resource)).toString();
+    }
 
-    @Timeout(60)
+    @Timeout(120)
     @Test
     void assertDspCompatibility() {
+        // TODO remove all failures from this list when compliant error handling is implemented in the connector
+        // TODO TP:01-01 is failing because we don't send endpoint in data address
+        var allowedFailures = List.of("CN:03-01", "CN:03-02", "CN:03-03", "CN:03-04", "TP:01-01");
+
         // pipe the docker container's log to this console at the INFO level
         var monitor = new ConsoleMonitor(">>> TCK Runtime (Docker)", ConsoleMonitor.Level.INFO, true);
-        TCK_CONTAINER.addFileSystemBind(resource("docker.tck.properties"), "/etc/tck/config.properties", BindMode.READ_ONLY, SelinuxContext.SINGLE);
+        var reporter = new TckTestReporter();
+
+        TCK_CONTAINER.addFileSystemBind(resourceConfig("docker.tck.properties"), "/etc/tck/config.properties", BindMode.READ_ONLY, SelinuxContext.SINGLE);
+        TCK_CONTAINER.addFileSystemBind(resourceConfig("dspace-edc-context-v1.jsonld"), "/etc/tck/dspace-edc-context-v1.jsonld", BindMode.READ_ONLY, SelinuxContext.SINGLE);
+        TCK_CONTAINER.withExtraHost("host.docker.internal", "host-gateway");
         TCK_CONTAINER.withLogConsumer(outputFrame -> monitor.info(outputFrame.getUtf8String()));
-        TCK_CONTAINER.waitingFor(new LogMessageWaitStrategy().withRegEx(".*Test run complete.*"));
+        TCK_CONTAINER.withLogConsumer(reporter);
+        TCK_CONTAINER.waitingFor(new LogMessageWaitStrategy().withRegEx(".*Test run complete.*").withStartupTimeout(Duration.ofSeconds(120)));
         TCK_CONTAINER.start();
 
-        // todo: obtain test report from the container
+        var failures = reporter.failures();
+        failures.removeAll(allowedFailures);
+
+        assertThat(failures).isEmpty();
+
     }
+
+
 }
 

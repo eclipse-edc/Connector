@@ -75,23 +75,22 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processOffering(ContractNegotiation negotiation) {
-
         var callbackAddress = protocolWebhookRegistry.resolve(negotiation.getProtocol());
-
-        if (callbackAddress != null) {
-            var messageBuilder = ContractOfferMessage.Builder.newInstance()
-                    .contractOffer(negotiation.getLastContractOffer())
-                    .callbackAddress(callbackAddress.url());
-
-            return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class, "[Provider] send offer")
-                    .onSuccess(this::transitionToOffered)
-                    .onFailure((n, throwable) -> transitionToOffering(n))
-                    .onFinalFailure((n, throwable) -> transitionToTerminating(n, format("Failed to send offer to consumer: %s", throwable.getMessage())))
-                    .execute();
-        } else {
+        if (callbackAddress == null) {
             transitionToTerminated(negotiation, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
             return true;
         }
+
+        var messageBuilder = ContractOfferMessage.Builder.newInstance()
+                .contractOffer(negotiation.getLastContractOffer())
+                .callbackAddress(callbackAddress.url());
+
+        return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class, "[Provider] send offer")
+                .onSuccess(this::transitionToOffered)
+                .onFailure((n, throwable) -> transitionToOffering(n))
+                .onFinalFailure((n, throwable) -> transitionToTerminating(n, format("Failed to send offer to consumer: %s", throwable.getMessage())))
+                .execute();
+
     }
 
     /**
@@ -125,6 +124,12 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processAgreeing(ContractNegotiation negotiation) {
+        var callbackAddress = protocolWebhookRegistry.resolve(negotiation.getProtocol());
+        if (callbackAddress == null) {
+            transitionToTerminated(negotiation, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
+            return true;
+        }
+
         var agreement = Optional.ofNullable(negotiation.getContractAgreement())
                 .orElseGet(() -> {
                     var lastOffer = negotiation.getLastContractOffer();
@@ -138,13 +143,16 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                             .build();
                 });
 
-        var messageBuilder = ContractAgreementMessage.Builder.newInstance().contractAgreement(agreement);
+        var messageBuilder = ContractAgreementMessage.Builder.newInstance()
+                .callbackAddress(callbackAddress.url())
+                .contractAgreement(agreement);
 
         return dispatch(messageBuilder, negotiation, Object.class, "[Provider] send agreement")
                 .onSuccess((n, result) -> transitionToAgreed(n, agreement))
                 .onFailure((n, throwable) -> transitionToAgreeing(n))
                 .onFinalFailure((n, throwable) -> transitionToTerminating(n, format("Failed to send agreement to consumer: %s", throwable.getMessage())))
                 .execute();
+
     }
 
     /**

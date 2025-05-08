@@ -15,7 +15,9 @@
 package org.eclipse.edc.tck.dsp.controller;
 
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebServer;
@@ -43,6 +45,12 @@ public class TckControllerExtension implements ServiceExtension {
     @Inject
     private ContractNegotiationService negotiationService;
 
+    @Inject
+    private TransferProcessService transferProcessService;
+
+    @Inject
+    private Monitor monitor;
+
     @Override
     public String name() {
         return NAME;
@@ -52,6 +60,6 @@ public class TckControllerExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         mappingRegistry.register(new PortMapping(PROTOCOL, 8687, PATH));
 
-        webService.registerResource(PROTOCOL, new TckWebhookController(negotiationService));
+        webService.registerResource(PROTOCOL, new TckWebhookController(monitor, negotiationService, transferProcessService));
     }
 }
