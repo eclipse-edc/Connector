@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.controlplane.api.management.policy.transform.Js
 import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectToPolicyDefinitionTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectToPolicyEvaluationPlanRequestTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3Controller;
-import org.eclipse.edc.connector.controlplane.api.management.policy.v31alpha.PolicyDefinitionApiV31AlphaController;
 import org.eclipse.edc.connector.controlplane.api.management.policy.validation.PolicyDefinitionValidator;
 import org.eclipse.edc.connector.controlplane.api.management.policy.validation.PolicyEvaluationPlanRequestValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
@@ -82,6 +81,6 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
 
         var monitor = context.getMonitor();
         webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV3Controller(monitor, managementApiTransformerRegistry, service, validatorRegistry));
-        webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV31AlphaController(monitor, managementApiTransformerRegistry, service, validatorRegistry));
+        webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV3Controller(monitor, managementApiTransformerRegistry, service, validatorRegistry));
     }
 }
