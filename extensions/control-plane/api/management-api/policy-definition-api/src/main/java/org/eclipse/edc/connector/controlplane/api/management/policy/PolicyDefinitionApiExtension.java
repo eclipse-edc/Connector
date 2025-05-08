@@ -81,6 +81,5 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
 
         var monitor = context.getMonitor();
         webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV3Controller(monitor, managementApiTransformerRegistry, service, validatorRegistry));
-        webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV3Controller(monitor, managementApiTransformerRegistry, service, validatorRegistry));
     }
 }

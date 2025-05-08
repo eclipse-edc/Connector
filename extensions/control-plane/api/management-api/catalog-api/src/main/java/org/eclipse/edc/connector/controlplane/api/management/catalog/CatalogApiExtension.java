@@ -65,7 +65,6 @@ public class CatalogApiExtension implements ServiceExtension {
 
         var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
         webService.registerResource(ApiContext.MANAGEMENT, new CatalogApiV3Controller(service, managementApiTransformerRegistry, validatorRegistry));
-        webService.registerResource(ApiContext.MANAGEMENT, new CatalogApiV3Controller(service, managementApiTransformerRegistry, validatorRegistry));
 
         validatorRegistry.register(CATALOG_REQUEST_TYPE, CatalogRequestValidator.instance(criterionOperatorRegistry));
         validatorRegistry.register(DATASET_REQUEST_TYPE, DatasetRequestValidator.instance());
