@@ -730,7 +730,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/negotiations/offer:
+  /2025/1/negotiations/offers:
     post:
       operationId: initialContractOffer
       parameters:
@@ -954,7 +954,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/negotiations/{id}/offer:
+  /2025/1/negotiations/{id}/offers:
     post:
       operationId: providerOffer
       parameters:
