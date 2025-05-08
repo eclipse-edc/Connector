@@ -14,7 +14,7 @@
 ## Documentation
 
 Base documentation can be found on the [documentation website](https://eclipse-edc.github.io). \
-Developer documentation can be found under [docs/developer](docs/developer/README.md), \
+Developer documentation can be found under [docs/developer](docs/developer), \
 where the main concepts and decisions are captured as [decision records](docs/developer/decision-records/README.md).
 
 ## Directory structure
