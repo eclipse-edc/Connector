@@ -27,6 +27,8 @@ import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 import org.eclipse.edc.api.model.ApiCoreSchema;
 
+import java.util.List;
+
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.NOT_REQUIRED;
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
@@ -72,6 +74,8 @@ public interface CatalogApiV3 {
             String counterPartyId,
             @Schema(requiredMode = REQUIRED)
             String protocol,
+            @Schema(requiredMode = NOT_REQUIRED)
+            List<String> additionalScopes,
             ApiCoreSchema.QuerySpecSchema querySpec) {
 
         public static final String CATALOG_REQUEST_EXAMPLE = """
@@ -81,6 +85,7 @@ public interface CatalogApiV3 {
                     "counterPartyAddress": "http://provider-address",
                     "counterPartyId": "providerId",
                     "protocol": "dataspace-protocol-http",
+                    "additionalScopes": [ "org.eclipse.edc.vc.type:SomeCredential:read", "org.eclipse.edc.vc.type:AnotherCredential:write" ],
                     "querySpec": {
                         "offset": 0,
                         "limit": 50,
