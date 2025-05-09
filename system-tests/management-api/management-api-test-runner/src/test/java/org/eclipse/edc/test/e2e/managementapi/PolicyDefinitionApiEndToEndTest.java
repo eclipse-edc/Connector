@@ -302,7 +302,7 @@ public class PolicyDefinitionApiEndToEndTest {
 
             context.baseRequest()
                     .contentType(JSON)
-                    .post("/v3.1alpha/policydefinitions/" + id + "/validate")
+                    .post("/v3/policydefinitions/" + id + "/validate")
                     .then()
                     .statusCode(200)
                     .body("isValid", is(false))
@@ -338,7 +338,7 @@ public class PolicyDefinitionApiEndToEndTest {
             context.baseRequest()
                     .contentType(JSON)
                     .body(planBody)
-                    .post("/v3.1alpha/policydefinitions/" + id + "/evaluationplan")
+                    .post("/v3/policydefinitions/" + id + "/evaluationplan")
                     .then()
                     .statusCode(200)
                     .body("preValidators.size()", is(0))

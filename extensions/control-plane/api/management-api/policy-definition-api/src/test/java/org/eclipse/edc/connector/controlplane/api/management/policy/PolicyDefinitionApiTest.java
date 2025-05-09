@@ -37,9 +37,9 @@ import static org.eclipse.edc.connector.controlplane.api.management.policy.model
 import static org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyValidationResult.EDC_POLICY_VALIDATION_RESULT_TYPE;
 import static org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3.PolicyDefinitionInputSchema.POLICY_DEFINITION_INPUT_EXAMPLE;
 import static org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3.PolicyDefinitionOutputSchema.POLICY_DEFINITION_OUTPUT_EXAMPLE;
-import static org.eclipse.edc.connector.controlplane.api.management.policy.v31alpha.PolicyDefinitionApiV31Alpha.PolicyEvaluationPlanRequestSchema.POLICY_EVALUATION_PLAN_REQUEST_INPUT_EXAMPLE;
-import static org.eclipse.edc.connector.controlplane.api.management.policy.v31alpha.PolicyDefinitionApiV31Alpha.PolicyEvaluationPlanSchema.POLICY_EVALUATION_PLANE_OUTPUT_EXAMPLE;
-import static org.eclipse.edc.connector.controlplane.api.management.policy.v31alpha.PolicyDefinitionApiV31Alpha.PolicyValidationResultSchema.POLICY_VALIDATION_RESULT_OUTPUT_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3.PolicyEvaluationPlanRequestSchema.POLICY_EVALUATION_PLAN_REQUEST_INPUT_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3.PolicyEvaluationPlanSchema.POLICY_EVALUATION_PLANE_OUTPUT_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3.PolicyValidationResultSchema.POLICY_VALIDATION_RESULT_OUTPUT_EXAMPLE;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -110,7 +110,7 @@ class PolicyDefinitionApiTest {
             assertThat(content.getJsonArray(EDC_POLICY_VALIDATION_RESULT_ERRORS).size()).isEqualTo(2);
         });
     }
-    
+
     @Test
     void policyEvaluationPlanRequestExample() throws JsonProcessingException {
         var jsonObject = objectMapper.readValue(POLICY_EVALUATION_PLAN_REQUEST_INPUT_EXAMPLE, JsonObject.class);
