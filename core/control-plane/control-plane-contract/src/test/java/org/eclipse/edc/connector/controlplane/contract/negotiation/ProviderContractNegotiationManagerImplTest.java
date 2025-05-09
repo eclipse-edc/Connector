@@ -229,6 +229,8 @@ class ProviderContractNegotiationManagerImplTest {
             var stored = storedCaptor.getValue();
             assertThat(stored.getState()).isEqualTo(AGREED.code());
             assertThat(stored.getContractAgreement().getPolicy().getType()).isEqualTo(CONTRACT);
+            assertThat(stored.getContractAgreement().getPolicy().getAssignee()).isEqualTo(stored.getContractAgreement().getConsumerId());
+            assertThat(stored.getContractAgreement().getPolicy().getAssigner()).isEqualTo(stored.getContractAgreement().getProviderId());
             verify(listener).agreed(any());
         });
     }
