@@ -22,6 +22,6 @@ dependencies {
         exclude(module = "data-plane-selector-client")
     }
     api(project(":data-protocols:dsp:dsp-2025"))
-    runtimeOnly(project(":system-tests:protocol-tck:tck-extension"))
+    api(project(":system-tests:protocol-tck:tck-extension"))
     runtimeOnly(libs.parsson)
 }
