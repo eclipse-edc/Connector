@@ -127,7 +127,8 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         transitionTo(COMPLETED.code());
     }
 
-    public void transitToReceived() {
+    public void transitToReceived(String runtimeId) {
+        this.runtimeId = runtimeId;
         transitionTo(RECEIVED.code());
     }
 
