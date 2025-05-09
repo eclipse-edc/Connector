@@ -21,7 +21,8 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
 import org.eclipse.edc.connector.dataplane.spi.port.TransferProcessApiClient;
 import org.eclipse.edc.connector.dataplane.spi.provision.DeprovisionedResource;
-import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceDefinition;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResource;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceStates;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionerManager;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
@@ -215,7 +216,7 @@ class DataPlaneManagerImplTest {
                     .processId("1")
                     .destination(newDestination)
                     .build();
-            var definition = ProvisionResourceDefinition.Builder.newInstance().build();
+            var definition = ProvisionResource.Builder.newInstance().build();
             when(resourceDefinitionGeneratorManager.generateConsumerResourceDefinition(any())).thenReturn(List.of(definition));
 
             var result = manager.provision(request);
@@ -252,23 +253,46 @@ class DataPlaneManagerImplTest {
     class Provisioning {
 
         @Test
-        void shouldProvision() {
-            var resourceDefinition = ProvisionResourceDefinition.Builder.newInstance().build();
+        void shouldProvisionResourcesToBeProvisioned() {
+            var resourceToBeProvisioned = ProvisionResource.Builder.newInstance().state(ProvisionResourceStates.CREATED.code()).build();
+            var resourceAlreadyProvisioned = ProvisionResource.Builder.newInstance().state(ProvisionResourceStates.PROVISIONED.code()).build();
             var newDataAddress = DataAddress.Builder.newInstance().type("any").build();
-            var provisionedResource = ProvisionedResource.Builder.newInstance().dataAddress(newDataAddress).build();
-            var dataFlow = dataFlowBuilder().state(PROVISIONING.code()).resourceDefinitions(List.of(resourceDefinition)).build();
+            var provisionedResource = ProvisionedResource.Builder.from(resourceToBeProvisioned).dataAddress(newDataAddress).build();
+            var dataFlow = dataFlowBuilder().state(PROVISIONING.code()).resourceDefinitions(List.of(resourceToBeProvisioned, resourceAlreadyProvisioned)).build();
             when(store.nextNotLeased(anyInt(), stateIs(PROVISIONING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
             when(provisionerManager.provision(any())).thenReturn(completedFuture(List.of(StatusResult.success(provisionedResource))));
 
             manager.start();
 
             await().untilAsserted(() -> {
-                verify(provisionerManager).provision(List.of(resourceDefinition));
+                verify(provisionerManager).provision(List.of(resourceToBeProvisioned));
                 verify(transferProcessApiClient).provisioned(dataFlow.getId(), newDataAddress);
                 var captor = ArgumentCaptor.forClass(DataFlow.class);
                 verify(store).save(captor.capture());
                 var storedDataFlow = captor.getValue();
                 assertThat(storedDataFlow.stateAsString()).isEqualTo(PROVISIONED.name());
+                assertThat(storedDataFlow.getResourceDefinitions()).allMatch(it -> it.getState() == ProvisionResourceStates.PROVISIONED.code());
+            });
+        }
+
+        @Test
+        void shouldTransitionToProvisioning_whenThereAreStillResourcesToBeProvisioned() {
+            var resourceDefinition = ProvisionResource.Builder.newInstance().build();
+            var newDataAddress = DataAddress.Builder.newInstance().type("any").build();
+            var dataFlow = dataFlowBuilder().state(PROVISIONING.code()).resourceDefinitions(List.of(resourceDefinition)).build();
+            when(store.nextNotLeased(anyInt(), stateIs(PROVISIONING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(provisionerManager.provision(any())).thenReturn(completedFuture(List.of(StatusResult.failure(ERROR_RETRY, "error in provisioning"))));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(provisionerManager).provision(List.of(resourceDefinition));
+                verifyNoInteractions(transferProcessApiClient);
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                var storedDataFlow = captor.getValue();
+                assertThat(storedDataFlow.stateAsString()).isEqualTo(PROVISIONING.name());
+                assertThat(storedDataFlow.getErrorDetail()).contains("error in provisioning");
             });
         }
 
@@ -678,12 +702,34 @@ class DataPlaneManagerImplTest {
     class Deprovisioning {
 
         @Test
-        void shouldDeprovision() {
-            var resourceDefinition = ProvisionResourceDefinition.Builder.newInstance().build();
-            var provisionedResource = DeprovisionedResource.Builder.from(resourceDefinition).build();
+        void shouldDeprovisionResourcesToBeProvisioned() {
+            var toBeDeprovisionedResource = ProvisionResource.Builder.newInstance().state(ProvisionResourceStates.PROVISIONED.code()).build();
+            var alreadyDeprovisionedResource = ProvisionResource.Builder.newInstance().state(ProvisionResourceStates.DEPROVISIONED.code()).build();
+            var deprovisionedResource = DeprovisionedResource.Builder.from(toBeDeprovisionedResource).build();
+            var dataFlow = dataFlowBuilder().state(DEPROVISIONING.code()).resourceDefinitions(List.of(toBeDeprovisionedResource, alreadyDeprovisionedResource)).build();
+            when(store.nextNotLeased(anyInt(), stateIs(DEPROVISIONING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(provisionerManager.deprovision(any())).thenReturn(completedFuture(List.of(StatusResult.success(deprovisionedResource))));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(provisionerManager).deprovision(List.of(toBeDeprovisionedResource));
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                var storedDataFlow = captor.getValue();
+                assertThat(storedDataFlow.stateAsString()).isEqualTo(DEPROVISIONED.name());
+                assertThat(storedDataFlow.getResourceDefinitions()).allMatch(it -> it.getState() == ProvisionResourceStates.DEPROVISIONED.code());
+            });
+        }
+
+        @Test
+        void shouldTransitionToDeprovisioning_whenThereAreStillResourcesToBeDeprovisioned() {
+            var resourceDefinition = ProvisionResource.Builder.newInstance().state(ProvisionResourceStates.PROVISIONED.code()).build();
             var dataFlow = dataFlowBuilder().state(DEPROVISIONING.code()).resourceDefinitions(List.of(resourceDefinition)).build();
             when(store.nextNotLeased(anyInt(), stateIs(DEPROVISIONING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(provisionerManager.deprovision(any())).thenReturn(completedFuture(List.of(StatusResult.success(provisionedResource))));
+            when(provisionerManager.deprovision(any())).thenReturn(completedFuture(List.of(
+                    StatusResult.failure(ERROR_RETRY, "deprovision failure")
+            )));
 
             manager.start();
 
@@ -692,7 +738,8 @@ class DataPlaneManagerImplTest {
                 var captor = ArgumentCaptor.forClass(DataFlow.class);
                 verify(store).save(captor.capture());
                 var storedDataFlow = captor.getValue();
-                assertThat(storedDataFlow.stateAsString()).isEqualTo(DEPROVISIONED.name());
+                assertThat(storedDataFlow.stateAsString()).isEqualTo(DEPROVISIONING.name());
+                assertThat(storedDataFlow.getErrorDetail()).contains("deprovision failure");
             });
         }
 

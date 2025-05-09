@@ -33,6 +33,6 @@ public interface ResourceDefinitionGenerator {
      *
      * @param dataFlow the data flow
      */
-    ProvisionResourceDefinition generate(DataFlow dataFlow);
+    ProvisionResource generate(DataFlow dataFlow);
 
 }

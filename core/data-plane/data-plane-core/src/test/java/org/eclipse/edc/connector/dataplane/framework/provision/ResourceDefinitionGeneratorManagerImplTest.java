@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.dataplane.framework.provision;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
-import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceDefinition;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGenerator;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -40,7 +40,7 @@ class ResourceDefinitionGeneratorManagerImplTest {
         @BeforeEach
         void setUp() {
             when(supportedGenerator.supportedType()).thenReturn("supportedType");
-            when(supportedGenerator.generate(any())).thenReturn(new ProvisionResourceDefinition());
+            when(supportedGenerator.generate(any())).thenReturn(new ProvisionResource());
 
             manager.registerConsumerGenerator(supportedGenerator);
         }

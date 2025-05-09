@@ -45,7 +45,7 @@ public interface ResourceDefinitionGeneratorManager {
      * @param dataFlow the data flow
      * @return succeeded if generation went through, failure otherwise
      */
-    List<ProvisionResourceDefinition> generateConsumerResourceDefinition(DataFlow dataFlow);
+    List<ProvisionResource> generateConsumerResourceDefinition(DataFlow dataFlow);
 
     /**
      * Generates resource definitions for a provider-side transfer. Operations must be idempotent.
@@ -53,7 +53,7 @@ public interface ResourceDefinitionGeneratorManager {
      * @param dataFlow the data flow
      * @return succeeded if generation went through, failure otherwise
      */
-    List<ProvisionResourceDefinition> generateProviderResourceDefinition(DataFlow dataFlow);
+    List<ProvisionResource> generateProviderResourceDefinition(DataFlow dataFlow);
 
     /**
      * Return a set of the supported destination types
