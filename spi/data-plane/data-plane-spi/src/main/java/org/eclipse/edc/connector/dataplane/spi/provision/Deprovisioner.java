@@ -25,7 +25,7 @@ import java.util.concurrent.CompletableFuture;
 public interface Deprovisioner {
 
     /**
-     * Return the supported {@link ProvisionResourceDefinition} type.
+     * Return the supported {@link ProvisionResource} type.
      *
      * @return supported type.
      */
@@ -38,8 +38,8 @@ public interface Deprovisioner {
      * {@link ResponseStatus#ERROR_RETRY}. If an exception occurs and re-tries should not be re-attempted, return
      * {@link ResponseStatus#FATAL_ERROR}.
      *
-     * @param provisionResourceDefinition that contains metadata associated with the provision operation
+     * @param provisionResource that contains metadata associated with the provision operation
      */
-    CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionResourceDefinition provisionResourceDefinition);
+    CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionResource provisionResource);
 
 }

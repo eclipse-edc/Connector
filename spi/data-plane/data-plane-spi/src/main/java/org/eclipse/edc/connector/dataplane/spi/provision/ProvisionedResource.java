@@ -18,6 +18,9 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.UUID;
 
+/**
+ * Provisioned resource
+ */
 public class ProvisionedResource {
 
     private String id;
@@ -48,7 +51,7 @@ public class ProvisionedResource {
             resource = new ProvisionedResource();
         }
 
-        public static Builder from(ProvisionResourceDefinition definition) {
+        public static Builder from(ProvisionResource definition) {
             var builder = new Builder();
             builder.resource.id = definition.getId();
             builder.resource.flowId = definition.getFlowId();

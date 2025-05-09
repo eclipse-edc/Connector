@@ -16,6 +16,9 @@ package org.eclipse.edc.connector.dataplane.spi.provision;
 
 import java.util.UUID;
 
+/**
+ * Deprovisioned resource
+ */
 public class DeprovisionedResource {
 
     private String id;
@@ -41,7 +44,7 @@ public class DeprovisionedResource {
             resource = new DeprovisionedResource();
         }
 
-        public static Builder from(ProvisionResourceDefinition definition) {
+        public static Builder from(ProvisionResource definition) {
             var builder = new Builder();
             builder.resource.id = definition.getId();
             builder.resource.flowId = definition.getFlowId();

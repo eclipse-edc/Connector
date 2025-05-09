@@ -16,7 +16,9 @@ package org.eclipse.edc.connector.dataplane.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceDefinition;
+import org.eclipse.edc.connector.dataplane.spi.provision.DeprovisionedResource;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResource;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionedResource;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
@@ -29,6 +31,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
@@ -57,7 +60,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     private Map<String, String> properties = new HashMap<>();
     private TransferType transferType;
     private String runtimeId;
-    private final List<ProvisionResourceDefinition> resourceDefinitions = new ArrayList<>();
+    private final List<ProvisionResource> resourceDefinitions = new ArrayList<>();
 
     @Override
     public DataFlow copy() {
@@ -157,7 +160,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         transitionTo(SUSPENDED.code());
     }
 
-    public List<ProvisionResourceDefinition> getResourceDefinitions() {
+    public List<ProvisionResource> getResourceDefinitions() {
         return resourceDefinitions;
     }
 
@@ -173,8 +176,38 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         transitionTo(DEPROVISION_FAILED.code());
     }
 
-    public void addResourceDefinitions(List<ProvisionResourceDefinition> definitions) {
+    public void addResourceDefinitions(List<ProvisionResource> definitions) {
         resourceDefinitions.addAll(definitions);
+    }
+
+    public List<ProvisionResource> resourcesToBeProvisioned() {
+        return resourceDefinitions.stream().filter(ProvisionResource::hasToBeProvisioned).toList();
+    }
+
+    public List<ProvisionResource> resourcesToBeDeprovisioned() {
+        return resourceDefinitions.stream().filter(ProvisionResource::hasToBeDeprovisioned).toList();
+    }
+
+    public void resourceProvisioned(ProvisionedResource provisionedResource) {
+        resourceDefinitions.stream()
+                .filter(resource -> resource.getId().equals(provisionedResource.getId()))
+                .findAny()
+                .ifPresent(resource -> resource.transitionProvisioned(provisionedResource));
+    }
+
+    public void resourceDeprovisioned(DeprovisionedResource deprovisionedResource) {
+        resourceDefinitions.stream()
+                .filter(resource -> resource.getId().equals(deprovisionedResource.getId()))
+                .findAny()
+                .ifPresent(resource -> resource.transitionDeprovisioned(deprovisionedResource));
+    }
+
+    public DataAddress provisionedDataAddress() {
+        return resourceDefinitions.stream()
+                .map(ProvisionResource::getProvisionedResource)
+                .map(ProvisionedResource::getDataAddress)
+                .filter(Objects::nonNull)
+                .findFirst().orElse(null);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -235,7 +268,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
             return this;
         }
 
-        public Builder resourceDefinitions(List<ProvisionResourceDefinition> resourceDefinitions) {
+        public Builder resourceDefinitions(List<ProvisionResource> resourceDefinitions) {
             entity.resourceDefinitions.addAll(resourceDefinitions);
             return this;
         }

@@ -37,11 +37,11 @@ public interface ProvisionerManager {
     /**
      * Provisions resources required to perform the data flow. This operation is idempotent.
      */
-    CompletableFuture<List<StatusResult<ProvisionedResource>>> provision(List<ProvisionResourceDefinition> definitions);
+    CompletableFuture<List<StatusResult<ProvisionedResource>>> provision(List<ProvisionResource> definitions);
 
     /**
      * Deprovisions resources required to perform the data flow. This operation is idempotent.
      */
-    CompletableFuture<List<StatusResult<DeprovisionedResource>>> deprovision(List<ProvisionResourceDefinition> definitions);
+    CompletableFuture<List<StatusResult<DeprovisionedResource>>> deprovision(List<ProvisionResource> definitions);
 
 }
