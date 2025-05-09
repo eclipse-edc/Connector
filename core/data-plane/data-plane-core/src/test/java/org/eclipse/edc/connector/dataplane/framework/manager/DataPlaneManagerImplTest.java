@@ -77,6 +77,7 @@ import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.GENERAL_ERROR;
+import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -127,83 +128,87 @@ class DataPlaneManagerImplTest {
                 .build();
     }
 
-    @Test
-    void initiateDataFlow() {
-        var request = DataFlowStartMessage.Builder.newInstance()
-                .id("1")
-                .processId("1")
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
-                .callbackAddress(URI.create("http://any"))
-                .properties(Map.of("key", "value"))
-                .flowType(FlowType.PUSH)
-                .build();
+    @Nested
+    class Start {
 
-        manager.start(request);
+        @Test
+        void shouldInitiatePushDataFlow() {
+            var request = DataFlowStartMessage.Builder.newInstance()
+                    .id("1")
+                    .processId("1")
+                    .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                    .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                    .callbackAddress(URI.create("http://any"))
+                    .properties(Map.of("key", "value"))
+                    .flowType(PUSH)
+                    .build();
 
-        var captor = ArgumentCaptor.forClass(DataFlow.class);
-        verify(store).save(captor.capture());
-        var dataFlow = captor.getValue();
-        assertThat(dataFlow.getId()).isEqualTo(request.getProcessId());
-        assertThat(dataFlow.getSource()).isSameAs(request.getSourceDataAddress());
-        assertThat(dataFlow.getDestination()).isSameAs(request.getDestinationDataAddress());
-        assertThat(dataFlow.getCallbackAddress()).isEqualTo(URI.create("http://any"));
-        assertThat(dataFlow.getProperties()).isEqualTo(request.getProperties());
-        assertThat(dataFlow.getState()).isEqualTo(RECEIVED.code());
+            manager.start(request);
 
-        verifyNoInteractions(authorizationService);
-    }
+            var captor = ArgumentCaptor.forClass(DataFlow.class);
+            verify(store).save(captor.capture());
+            var dataFlow = captor.getValue();
+            assertThat(dataFlow.getId()).isEqualTo(request.getProcessId());
+            assertThat(dataFlow.getSource()).isSameAs(request.getSourceDataAddress());
+            assertThat(dataFlow.getDestination()).isSameAs(request.getDestinationDataAddress());
+            assertThat(dataFlow.getCallbackAddress()).isEqualTo(URI.create("http://any"));
+            assertThat(dataFlow.getProperties()).isEqualTo(request.getProperties());
+            assertThat(dataFlow.getState()).isEqualTo(RECEIVED.code());
 
-    @Test
-    void initiatePullDataFlow() {
+            verifyNoInteractions(authorizationService);
+        }
 
-        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-        var request = DataFlowStartMessage.Builder.newInstance()
-                .id("1")
-                .processId("1")
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
-                .callbackAddress(URI.create("http://any"))
-                .properties(Map.of("key", "value"))
-                .flowType(FlowType.PULL)
-                .build();
+        @Test
+        void shouldInitiatePullDataFlow() {
 
-        when(authorizationService.createEndpointDataReference(request)).thenReturn(Result.success(dataAddress));
+            var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+            var request = DataFlowStartMessage.Builder.newInstance()
+                    .id("1")
+                    .processId("1")
+                    .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                    .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                    .callbackAddress(URI.create("http://any"))
+                    .properties(Map.of("key", "value"))
+                    .flowType(FlowType.PULL)
+                    .build();
 
-        var result = manager.start(request);
+            when(authorizationService.createEndpointDataReference(request)).thenReturn(Result.success(dataAddress));
 
-        assertThat(result).isSucceeded().extracting(DataFlowResponseMessage::getDataAddress).isEqualTo(dataAddress);
+            var result = manager.start(request);
 
-        var captor = ArgumentCaptor.forClass(DataFlow.class);
-        verify(store).save(captor.capture());
-        var dataFlow = captor.getValue();
-        assertThat(dataFlow.getId()).isEqualTo(request.getProcessId());
-        assertThat(dataFlow.getSource()).isSameAs(request.getSourceDataAddress());
-        assertThat(dataFlow.getDestination()).isSameAs(request.getDestinationDataAddress());
-        assertThat(dataFlow.getCallbackAddress()).isEqualTo(URI.create("http://any"));
-        assertThat(dataFlow.getProperties()).isEqualTo(request.getProperties());
-        assertThat(dataFlow.getState()).isEqualTo(STARTED.code());
-    }
+            assertThat(result).isSucceeded().extracting(DataFlowResponseMessage::getDataAddress).isEqualTo(dataAddress);
 
-    @Test
-    void initiatePullDataFlow_shouldFail_whenEdrCreationFails() {
-        var request = DataFlowStartMessage.Builder.newInstance()
-                .id("1")
-                .processId("1")
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
-                .callbackAddress(URI.create("http://any"))
-                .properties(Map.of("key", "value"))
-                .flowType(FlowType.PULL)
-                .build();
+            var captor = ArgumentCaptor.forClass(DataFlow.class);
+            verify(store).save(captor.capture());
+            var dataFlow = captor.getValue();
+            assertThat(dataFlow.getId()).isEqualTo(request.getProcessId());
+            assertThat(dataFlow.getSource()).isSameAs(request.getSourceDataAddress());
+            assertThat(dataFlow.getDestination()).isSameAs(request.getDestinationDataAddress());
+            assertThat(dataFlow.getCallbackAddress()).isEqualTo(URI.create("http://any"));
+            assertThat(dataFlow.getProperties()).isEqualTo(request.getProperties());
+            assertThat(dataFlow.getState()).isEqualTo(STARTED.code());
+        }
 
-        when(authorizationService.createEndpointDataReference(request)).thenReturn(Result.failure("failure"));
+        @Test
+        void shouldNotInitiatePullDataFlow_whenEdrCreationFails() {
+            var request = DataFlowStartMessage.Builder.newInstance()
+                    .id("1")
+                    .processId("1")
+                    .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                    .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                    .callbackAddress(URI.create("http://any"))
+                    .properties(Map.of("key", "value"))
+                    .flowType(FlowType.PULL)
+                    .build();
 
-        var result = manager.start(request);
+            when(authorizationService.createEndpointDataReference(request)).thenReturn(Result.failure("failure"));
 
-        assertThat(result).isFailed().detail().contains("failure");
+            var result = manager.start(request);
 
-        verifyNoInteractions(store);
+            assertThat(result).isFailed().detail().contains("failure");
+
+            verifyNoInteractions(store);
+        }
     }
 
     @Nested
@@ -828,21 +833,16 @@ class DataPlaneManagerImplTest {
 
         @Test
         void shouldRestartFlows() {
-            var dataFlow = dataFlowBuilder().state(STARTED.code()).build();
-            var anotherDataFlow = dataFlowBuilder().state(STARTED.code()).build();
+            var dataFlow = dataFlowBuilder().state(STARTED.code()).transferType(new TransferType("any", PUSH)).build();
+            var anotherDataFlow = dataFlowBuilder().state(STARTED.code()).transferType(new TransferType("any", PUSH)).build();
             when(store.nextNotLeased(anyInt(), any(Criterion[].class)))
                     .thenReturn(List.of(dataFlow)).thenReturn(List.of(anotherDataFlow)).thenReturn(emptyList());
-            when(registry.resolveTransferService(any())).thenReturn(transferService);
-            when(transferService.canHandle(any())).thenReturn(true);
-            when(transferService.validate(any())).thenReturn(Result.success());
-            when(transferService.transfer(any())).thenReturn(new CompletableFuture<>());
 
             var result = manager.restartFlows();
 
             assertThat(result).isSucceeded();
             await().untilAsserted(() -> {
-                verify(transferService, times(2)).transfer(isA(DataFlowStartMessage.class));
-                verify(store, times(2)).save(argThat(it -> it.getState() == STARTED.code()));
+                verify(store, times(2)).save(argThat(it -> it.getState() == RECEIVED.code()));
                 var captor = ArgumentCaptor.forClass(Criterion[].class);
                 verify(store, atLeast(1)).nextNotLeased(anyInt(), captor.capture());
                 assertThat(captor.getValue()).contains(new Criterion("transferType.flowType", "=", "PUSH"));
@@ -875,19 +875,33 @@ class DataPlaneManagerImplTest {
     @Nested
     class RestartFlowOwnedByAnotherRuntime {
         @Test
-        void shouldRestartFlow_whenAnotherRuntimeAbandonedIt() {
-            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+        void shouldRestartPushFlow_whenAnotherRuntimeAbandonedIt() {
+            var dataFlow = dataFlowBuilder().state(STARTED.code()).transferType(new TransferType("any", PUSH)).build();
             when(store.nextNotLeased(anyInt(), startedFlowOwnedByAnotherRuntime()))
                     .thenReturn(List.of(dataFlow)).thenReturn(emptyList());
             when(registry.resolveTransferService(any())).thenReturn(transferService);
-            when(transferService.canHandle(any())).thenReturn(true);
-            when(transferService.validate(any())).thenReturn(Result.success());
-            when(transferService.transfer(any())).thenReturn(new CompletableFuture<>());
 
             manager.start();
 
             await().untilAsserted(() -> {
-                verify(transferService).transfer(isA(DataFlowStartMessage.class));
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                var storedDataFlow = captor.getValue();
+                assertThat(storedDataFlow.getState()).isEqualTo(RECEIVED.code());
+                assertThat(storedDataFlow.getRuntimeId()).isEqualTo(runtimeId);
+            });
+        }
+
+        @Test
+        void shouldRestartPullFlow_whenAnotherRuntimeAbandonedIt() {
+            var dataFlow = dataFlowBuilder().state(STARTED.code()).transferType(new TransferType("any", FlowType.PULL)).build();
+            when(store.nextNotLeased(anyInt(), startedFlowOwnedByAnotherRuntime()))
+                    .thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+
+            manager.start();
+
+            await().untilAsserted(() -> {
                 var captor = ArgumentCaptor.forClass(DataFlow.class);
                 verify(store).save(captor.capture());
                 var storedDataFlow = captor.getValue();
@@ -902,7 +916,7 @@ class DataPlaneManagerImplTest {
                 .source(DataAddress.Builder.newInstance().type("source").build())
                 .destination(DataAddress.Builder.newInstance().type("destination").build())
                 .callbackAddress(URI.create("http://any"))
-                .transferType(new TransferType("DestinationType", FlowType.PUSH))
+                .transferType(new TransferType("DestinationType", PUSH))
                 .properties(Map.of("key", "value"));
     }
 

@@ -129,7 +129,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
     @Override
     public Result<DataFlowResponseMessage> start(DataFlowStartMessage startMessage) {
-        var dataFlowBuilder = DataFlow.Builder.newInstance()
+        var dataFlow = DataFlow.Builder.newInstance()
                 .id(startMessage.getProcessId())
                 .source(startMessage.getSourceDataAddress())
                 .destination(startMessage.getDestinationDataAddress())
@@ -137,14 +137,15 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .traceContext(telemetry.getCurrentTraceContext())
                 .properties(startMessage.getProperties())
                 .transferType(startMessage.getTransferType())
-                .runtimeId(runtimeId);
+                .runtimeId(runtimeId)
+                .build();
 
         var response = switch (startMessage.getFlowType()) {
-            case PULL -> handlePull(startMessage, dataFlowBuilder);
-            case PUSH -> handlePush(startMessage, dataFlowBuilder);
+            case PULL -> handlePull(startMessage);
+            case PUSH -> handlePush(startMessage);
         };
 
-        return response.onSuccess(m -> update(dataFlowBuilder.build()));
+        return response.onSuccess(m -> start(dataFlow));
     }
 
     @Override
@@ -218,8 +219,18 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .processor(processDataFlowInState(DEPROVISIONING, this::processDeprovisioning));
     }
 
+    private void start(DataFlow dataFlow) {
+        if (dataFlow.getTransferType().flowType() == PULL) {
+            dataFlow.transitionToStarted(runtimeId);
+        } else if (dataFlow.getTransferType().flowType() == PUSH) {
+            dataFlow.transitToReceived(runtimeId);
+        }
+
+        update(dataFlow);
+    }
+
     private boolean updateFlowLease(DataFlow dataFlow) {
-        dataFlow.transitToReceived();
+        dataFlow.transitToReceived(runtimeId);
         dataFlow.transitionToStarted(runtimeId);
         store.save(dataFlow);
         return true;
@@ -227,8 +238,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
     private boolean restartFlow(DataFlow dataFlow) {
         monitor.debug("Restarting interrupted flow %s, it was owned by runtime %s".formatted(dataFlow.getId(), dataFlow.getRuntimeId()));
-        dataFlow.transitToReceived();
-        processReceived(dataFlow);
+        start(dataFlow);
         return true;
     }
 
@@ -262,18 +272,15 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         return StatusResult.success(dataFlow);
     }
 
-    private Result<DataFlowResponseMessage> handlePull(DataFlowStartMessage startMessage, DataFlow.Builder dataFlowBuilder) {
+    private Result<DataFlowResponseMessage> handlePull(DataFlowStartMessage startMessage) {
         return authorizationService.createEndpointDataReference(startMessage)
-                .onSuccess(dataAddress -> dataFlowBuilder.state(STARTED.code()))
                 .onFailure(f -> monitor.warning("Error obtaining EDR DataAddress: %s".formatted(f.getFailureDetail())))
                 .map(dataAddress -> DataFlowResponseMessage.Builder.newInstance()
                         .dataAddress(dataAddress)
                         .build());
     }
 
-    private Result<DataFlowResponseMessage> handlePush(DataFlowStartMessage startMessage, DataFlow.Builder dataFlowBuilder) {
-        dataFlowBuilder.state(RECEIVED.code());
-
+    private Result<DataFlowResponseMessage> handlePush(DataFlowStartMessage startMessage) {
         var responseChannelType = startMessage.getTransferType().responseChannelType();
         if (responseChannelType != null) {
             monitor.debug("PUSH dataflow with responseChannel '%s' received. Will generate data address".formatted(responseChannelType));
@@ -349,7 +356,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                     update(flow);
                 })
                 .onFailure((f, t) -> {
-                    f.transitToReceived();
+                    f.transitToReceived(runtimeId);
                     update(f);
                 })
                 .onFinalFailure((f, t) -> {
