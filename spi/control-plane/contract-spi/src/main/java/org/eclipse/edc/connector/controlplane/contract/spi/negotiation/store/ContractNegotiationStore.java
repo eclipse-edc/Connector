@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.persistence.StateEntityStore;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +42,7 @@ public interface ContractNegotiationStore extends StateEntityStore<ContractNegot
     /**
      * Removes a contract negotiation for the given id.
      */
-    void delete(String negotiationId);
+    StoreResult<Void> deleteById(String negotiationId);
 
     /**
      * Finds all contract negotiations that are covered by a specific {@link QuerySpec}. If no
