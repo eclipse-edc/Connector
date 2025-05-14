@@ -65,7 +65,6 @@ maven/mavencentral/com.github.stephenc.jcip/jcip-annotations/1.0-1, Apache-2.0, 
 maven/mavencentral/com.google.code.findbugs/jsr305/2.0.1, BSD-3-Clause AND CC-BY-2.5 AND LGPL-2.1+, approved, CQ13390
 maven/mavencentral/com.google.code.findbugs/jsr305/3.0.2, Apache-2.0 and CC-BY-2.5, approved, #15220
 maven/mavencentral/com.google.code.gson/gson/2.10.1, Apache-2.0, approved, #6159
-maven/mavencentral/com.google.code.gson/gson/2.12.1, Apache-2.0, approved, #19234
 maven/mavencentral/com.google.crypto.tink/tink/1.17.0, Apache-2.0, approved, #20387
 maven/mavencentral/com.google.errorprone/error_prone_annotations/2.11.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.google.errorprone/error_prone_annotations/2.22.0, Apache-2.0, approved, #10661
@@ -89,7 +88,7 @@ maven/mavencentral/com.jcraft/jzlib/1.1.3, BSD-2-Clause, approved, CQ6218
 maven/mavencentral/com.lmax/disruptor/3.4.4, Apache-2.0, approved, #19664
 maven/mavencentral/com.networknt/json-schema-validator/1.0.76, Apache-2.0, approved, CQ22638
 maven/mavencentral/com.networknt/json-schema-validator/1.5.6, Apache-2.0 AND Unicode-TOU, approved, #15630
-maven/mavencentral/com.nimbusds/nimbus-jose-jwt/10.2, Apache-2.0, approved, #20668
+maven/mavencentral/com.nimbusds/nimbus-jose-jwt/10.3, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.nimbusds/nimbus-jose-jwt/9.28, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.puppycrawl.tools/checkstyle/10.23.1, LGPL-2.1-or-later, approved, #20565
 maven/mavencentral/com.samskivert/jmustache/1.15, BSD-2-Clause AND BSD-3-Clause, approved, clearlydefined
