@@ -12,11 +12,10 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.contractagreement.v31alpha;
+package org.eclipse.edc.connector.controlplane.api.management.contractagreement.v4alpha;
 
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.connector.controlplane.api.management.contractagreement.BaseContractAgreementApiControllerTest;
-import org.eclipse.edc.connector.controlplane.api.management.contractagreement.v4alpha.ContractAgreementApiV4AlphaController;
 
 import static io.restassured.RestAssured.given;
 
