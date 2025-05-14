@@ -25,7 +25,9 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessEvent;
+import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessRequested;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
+import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessSuspended;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Permission;
@@ -36,6 +38,7 @@ import org.eclipse.edc.tck.dsp.recorder.StepRecorder;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static java.util.stream.Collectors.toSet;
@@ -50,7 +53,13 @@ public class DataAssembly {
             "ACN0301", "ACN0302", "ACN0303", "ACN0304");
 
 
-    private static final Set<String> AGREEMENT_IDS = Set.of("ATP0101", "ATPC0101");
+    private static final Set<String> AGREEMENT_IDS = Set.of(
+            "ATP0101", "ATP0102", "ATP0103", "ATP0104", "ATP0105",
+            "ATP0201", "ATP0202", "ATP0203", "ATP0204", "ATP0205",
+            "ATP0301", "ATP0302", "ATP0303", "ATP0304", "ATP0305", "ATP0306",
+            "ATPC0101", "ATPC0102", "ATPC0103", "ATPC0104", "ATPC0105",
+            "ATPC0201", "ATPC0202", "ATPC0203", "ATPC0204", "ATPC0205",
+            "ATPC0301", "ATPC0302", "ATPC0303", "ATPC0304", "ATPC0305", "ATPC0306");
 
     private static final String POLICY_ID = "P123";
     private static final String CONTRACT_DEFINITION_ID = "CD123";
@@ -169,10 +178,100 @@ public class DataAssembly {
         );
     }
 
+    public static StepRecorder<TransferProcess> createTransferProcessRecorder() {
+        var recorder = new StepRecorder<TransferProcess>();
+
+        recordProvider01TransferSequences(recorder);
+        recordProvider02TransferSequences(recorder);
+        recordProvider03TransferSequences(recorder);
+
+        recordConsumer01TransferSequences(recorder);
+        recordConsumer02TransferSequences(recorder);
+        recordConsumer03TransferSequences(recorder);
+        
+        return recorder.repeat();
+    }
+
+    private static void recordProvider01TransferSequences(StepRecorder<TransferProcess> recorder) {
+        recorder.record("ATP0101", TransferProcess::transitionStarting);
+        recorder.record("ATP0102", TransferProcess::transitionStarting);
+        recorder.record("ATP0103", TransferProcess::transitionStarting);
+        recorder.record("ATP0104", TransferProcess::transitionStarting);
+        recorder.record("ATP0105", TransferProcess::transitionTerminating);
+
+    }
+
+    private static void recordProvider02TransferSequences(StepRecorder<TransferProcess> recorder) {
+        recorder.record("ATP0201", TransferProcess::transitionStarting);
+        recorder.record("ATP0202", TransferProcess::transitionStarting);
+        recorder.record("ATP0203", TransferProcess::transitionStarting);
+        recorder.record("ATP0204", TransferProcess::transitionStarting);
+    }
+
+    private static void recordProvider03TransferSequences(StepRecorder<TransferProcess> recorder) {
+        recorder.record("ATP0301", TransferProcess::transitionStarting);
+        recorder.record("ATP0302", TransferProcess::transitionStarting);
+        recorder.record("ATP0303", TransferProcess::transitionStarting);
+        recorder.record("ATP0304", TransferProcess::transitionStarting);
+        recorder.record("ATP0305", TransferProcess::transitionStarting);
+        recorder.record("ATP0306", TransferProcess::transitionStarting);
+    }
+
+    private static void recordConsumer01TransferSequences(StepRecorder<TransferProcess> recorder) {
+        recorder.record("ATPC0101", TransferProcess::transitionRequesting);
+        recorder.record("ATPC0102", TransferProcess::transitionRequesting);
+        recorder.record("ATPC0103", TransferProcess::transitionRequesting);
+        recorder.record("ATPC0104", TransferProcess::transitionRequesting);
+        recorder.record("ATPC0105", TransferProcess::transitionRequesting);
+    }
+
+    private static void recordConsumer02TransferSequences(StepRecorder<TransferProcess> recorder) {
+        recorder.record("ATPC0201", TransferProcess::transitionRequesting);
+        recorder.record("ATPC0202", TransferProcess::transitionRequesting);
+        recorder.record("ATPC0203", TransferProcess::transitionRequesting);
+        recorder.record("ATPC0204", TransferProcess::transitionRequesting);
+        recorder.record("ATPC0205", TransferProcess::transitionRequesting);
+    }
+
+    private static void recordConsumer03TransferSequences(StepRecorder<TransferProcess> recorder) {
+        recorder.record("ATPC0301", TransferProcess::transitionRequesting);
+        recorder.record("ATPC0302", TransferProcess::transitionRequesting);
+        recorder.record("ATPC0303", TransferProcess::transitionRequesting);
+        recorder.record("ATPC0304", TransferProcess::transitionRequesting);
+        recorder.record("ATPC0305", TransferProcess::transitionRequesting);
+        recorder.record("ATPC0306", TransferProcess::transitionRequesting);
+    }
+
     public static List<Trigger<TransferProcess>> createTransferProcessTriggers() {
         return List.of(
-                createTransferTrigger(TransferProcessStarted.class, "ATP0101", TransferProcess::transitionTerminating)
+                createTransferTrigger(TransferProcessStarted.class, "ATP0101", TransferProcess::transitionTerminating),
+                createTransferTrigger(TransferProcessStarted.class, "ATP0102", TransferProcess::transitionCompleting),
+                createTransferTrigger(TransferProcessStarted.class, "ATP0103", (process) -> process.transitionSuspending("suspending")),
+                createTransferTrigger(TransferProcessSuspended.class, "ATP0103", (process) -> process.transitionTerminating("terminating")),
+                createTransferTrigger(TransferProcessStarted.class, "ATP0104", suspendResumeTrigger()),
+                createTransferTrigger(TransferProcessSuspended.class, "ATP0104", TransferProcess::transitionStarting),
+
+                createTransferTrigger(TransferProcessStarted.class, "ATPC0201", TransferProcess::transitionTerminating),
+                createTransferTrigger(TransferProcessStarted.class, "ATPC0202", TransferProcess::transitionCompleting),
+                createTransferTrigger(TransferProcessStarted.class, "ATPC0203", (process) -> process.transitionSuspending("suspending")),
+                createTransferTrigger(TransferProcessSuspended.class, "ATPC0203", TransferProcess::transitionTerminating),
+                createTransferTrigger(TransferProcessStarted.class, "ATPC0204", suspendResumeTrigger()),
+                createTransferTrigger(TransferProcessSuspended.class, "ATPC0204", TransferProcess::transitionStarting),
+                createTransferTrigger(TransferProcessRequested.class, "ATPC0205", (process) -> process.transitionTerminating("error"))
         );
+    }
+
+    public static Consumer<TransferProcess> suspendResumeTrigger() {
+        var count = new AtomicInteger(0);
+        return (process) -> {
+            if (count.get() == 0) {
+                count.incrementAndGet();
+                process.transitionSuspending("suspending");
+            } else if (count.get() == 1) {
+                count.set(0);
+                process.transitionCompleting();
+            }
+        };
     }
 
 

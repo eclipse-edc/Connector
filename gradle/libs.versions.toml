@@ -38,7 +38,8 @@ titanium = "1.6.0"
 kafkaClients = "4.0.0"
 testcontainers = "1.21.0"
 tink = "1.17.0"
-
+dsp-tck = "0.1.1-SNAPSHOT"
+junit = "1.12.2"
 
 [libraries]
 iron-vc = { module = "com.apicatalog:iron-verifiable-credentials", version.ref = "apicatalog" }
@@ -59,7 +60,7 @@ jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-dat
 jakarta-annotation = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakarta-annotation" }
 jakarta-json-api = { module = "jakarta.json:jakarta.json-api", version.ref = "jakarta-json" }
 jakarta-rsApi = { module = "jakarta.ws.rs:jakarta.ws.rs-api", version.ref = "rsApi" }
-jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "jakarta-servlet"}
+jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api", version.ref = "jakarta-servlet" }
 jakarta-transaction-api = { module = "jakarta.transaction:jakarta.transaction-api", version.ref = "jakarta-transaction" }
 jersey-common = { module = "org.glassfish.jersey.core:jersey-common", version.ref = "jersey" }
 jersey-inject = { module = "org.glassfish.jersey.inject:jersey-hk2", version.ref = "jersey" }
@@ -105,6 +106,14 @@ postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 kafkaClients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafkaClients" }
 jsonschema = { module = "com.networknt:json-schema-validator", version = "1.5.6" }
 
+# DCP-TCK libraries
+dsp-tck-runtime = { module = "org.eclipse.dataspacetck.dsp:tck-runtime", version.ref = "dsp-tck" }
+dsp-tck-core = { module = "org.eclipse.dataspacetck.dsp:core", version.ref = "dsp-tck" }
+dsp-tck-api = { module = "org.eclipse.dataspacetck.dsp:dsp-api", version.ref = "dsp-tck" }
+dsp-tck-system = { module = "org.eclipse.dataspacetck.dsp:dsp-system", version.ref = "dsp-tck" }
+dsp-tck-contractnegotiation = { module = "org.eclipse.dataspacetck.dsp:dsp-contract-negotiation", version.ref = "dsp-tck" }
+dsp-tck-transferprocess = { module = "org.eclipse.dataspacetck.dsp:dsp-transfer-process", version.ref = "dsp-tck" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit" }
 
 [bundles]
 jackson = ["jackson-annotations", "jackson-databind"]
