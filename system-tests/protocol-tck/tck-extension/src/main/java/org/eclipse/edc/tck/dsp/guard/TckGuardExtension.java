@@ -17,6 +17,7 @@ package org.eclipse.edc.tck.dsp.guard;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationEvent;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuard;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessEvent;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -26,6 +27,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 
 import static org.eclipse.edc.tck.dsp.data.DataAssembly.createNegotiationRecorder;
 import static org.eclipse.edc.tck.dsp.data.DataAssembly.createNegotiationTriggers;
+import static org.eclipse.edc.tck.dsp.data.DataAssembly.createTransferProcessRecorder;
 import static org.eclipse.edc.tck.dsp.data.DataAssembly.createTransferProcessTriggers;
 
 /**
@@ -35,6 +37,8 @@ public class TckGuardExtension implements ServiceExtension {
     private static final String NAME = "DSP TCK Guard";
 
     private ContractNegotiationGuard negotiationGuard;
+
+    private TransferProcessGuard transferProcessGuard;
 
     @Inject
     private ContractNegotiationStore store;
@@ -58,12 +62,20 @@ public class TckGuardExtension implements ServiceExtension {
         createNegotiationTriggers().forEach(registry::register);
         router.register(ContractNegotiationEvent.class, registry);
 
+        negotiationGuard = new ContractNegotiationGuard(cn -> recorder.playNext(cn.getContractOffers().get(0).getAssetId(), cn), store);
+        return negotiationGuard;
+    }
+
+    @Provider
+    public TransferProcessPendingGuard transferProcessPendingGuard() {
+        var recorder = createTransferProcessRecorder();
+
         var tpRegistry = new TransferProcessTriggerSubscriber(transferProcessStore);
         createTransferProcessTriggers().forEach(tpRegistry::register);
         router.register(TransferProcessEvent.class, tpRegistry);
 
-        negotiationGuard = new ContractNegotiationGuard(cn -> recorder.playNext(cn.getContractOffers().get(0).getAssetId(), cn), store);
-        return negotiationGuard;
+        transferProcessGuard = new TransferProcessGuard(tp -> recorder.playNext(tp.getContractId(), tp), transferProcessStore);
+        return transferProcessGuard;
     }
 
     @Override
@@ -71,12 +83,18 @@ public class TckGuardExtension implements ServiceExtension {
         if (negotiationGuard != null) {
             negotiationGuard.start();
         }
+        if (transferProcessGuard != null) {
+            transferProcessGuard.start();
+        }
     }
 
     @Override
     public void shutdown() {
         if (negotiationGuard != null) {
             negotiationGuard.stop();
+        }
+        if (transferProcessGuard != null) {
+            transferProcessGuard.stop();
         }
     }
 }

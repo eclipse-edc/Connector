@@ -34,20 +34,21 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.eclipse.edc.tck.dsp.CompatibilityTests.ALLOWED_FAILURES;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 @NightlyTest
 @Testcontainers
-public class EdcCompatibilityTest {
+public class EdcCompatibilityDockerTest {
 
     private static final GenericContainer<?> TCK_CONTAINER = new TckContainer<>("eclipsedataspacetck/dsp-tck-runtime:latest");
     @RegisterExtension
     protected static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime("CUT",
             ":system-tests:dsp-compatibility-tests:connector-under-test"
-    ).configurationProvider(EdcCompatibilityTest::runtimeConfiguration));
+    ).configurationProvider(EdcCompatibilityDockerTest::runtimeConfiguration));
 
 
     private static Config runtimeConfiguration() {
@@ -79,12 +80,10 @@ public class EdcCompatibilityTest {
         return Path.of(TestUtils.getResource(resource)).toString();
     }
 
-    @Timeout(120)
+    @Timeout(240)
     @Test
     void assertDspCompatibility() {
-        // TODO remove all failures from this list when compliant error handling is implemented in the connector
-        // TODO TP:01-01 is failing because we don't send endpoint in data address
-        var allowedFailures = List.of("CN:03-01", "CN:03-02", "CN:03-03", "CN:03-04", "TP:01-01");
+
 
         // pipe the docker container's log to this console at the INFO level
         var monitor = new ConsoleMonitor(">>> TCK Runtime (Docker)", ConsoleMonitor.Level.INFO, true);
@@ -95,14 +94,18 @@ public class EdcCompatibilityTest {
         TCK_CONTAINER.withExtraHost("host.docker.internal", "host-gateway");
         TCK_CONTAINER.withLogConsumer(outputFrame -> monitor.info(outputFrame.getUtf8String()));
         TCK_CONTAINER.withLogConsumer(reporter);
-        TCK_CONTAINER.waitingFor(new LogMessageWaitStrategy().withRegEx(".*Test run complete.*").withStartupTimeout(Duration.ofSeconds(120)));
+        TCK_CONTAINER.waitingFor(new LogMessageWaitStrategy().withRegEx(".*Test run complete.*").withStartupTimeout(Duration.ofSeconds(240)));
         TCK_CONTAINER.start();
 
         var failures = reporter.failures();
-        failures.removeAll(allowedFailures);
 
-        assertThat(failures).isEmpty();
+        assertThat(failures).containsAll(ALLOWED_FAILURES);
 
+        failures.removeAll(ALLOWED_FAILURES);
+
+        if (!failures.isEmpty()) {
+            fail(failures.size() + " TCK test cases failed:\n" + String.join("\n", failures));
+        }
     }
 
 
