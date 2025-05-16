@@ -51,13 +51,13 @@ public class RemoteSecureTokenService implements SecureTokenService {
     }
 
     @Override
-    public Result<TokenRepresentation> createToken(Map<String, String> claims, @Nullable String bearerAccessScope) {
+    public Result<TokenRepresentation> createToken(Map<String, Object> claims, @Nullable String bearerAccessScope) {
         return createRequest(claims, bearerAccessScope)
                 .compose(oauth2Client::requestToken);
     }
 
     @NotNull
-    private Result<Oauth2CredentialsRequest> createRequest(Map<String, String> claims, @Nullable String bearerAccessScope) {
+    private Result<Oauth2CredentialsRequest> createRequest(Map<String, Object> claims, @Nullable String bearerAccessScope) {
 
         var secret = vault.resolveSecret(configuration.clientSecretAlias());
         if (secret != null) {

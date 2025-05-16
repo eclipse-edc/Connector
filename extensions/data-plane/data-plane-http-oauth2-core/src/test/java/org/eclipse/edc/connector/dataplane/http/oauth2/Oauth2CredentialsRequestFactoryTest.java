@@ -116,7 +116,7 @@ class Oauth2CredentialsRequestFactoryTest {
                 })
                 .extracting(PrivateKeyOauth2CredentialsRequest::getClientAssertion)
                 .satisfies(assertion -> {
-                    var assertionToken = SignedJWT.parse(assertion);
+                    var assertionToken = SignedJWT.parse(assertion.toString());
                     var now = clock.instant().truncatedTo(ChronoUnit.SECONDS);
                     assertThat(assertionToken.verify(new RSASSAVerifier(keyPair.toRSAPublicKey()))).isTrue();
                     assertThat(assertionToken.getJWTClaimsSet().getClaims())

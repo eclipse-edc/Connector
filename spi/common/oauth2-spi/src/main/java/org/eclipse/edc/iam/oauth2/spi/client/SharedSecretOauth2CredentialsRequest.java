@@ -15,7 +15,6 @@
 package org.eclipse.edc.iam.oauth2.spi.client;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
@@ -24,13 +23,11 @@ public class SharedSecretOauth2CredentialsRequest extends Oauth2CredentialsReque
     private static final String CLIENT_ID = "client_id";
     private static final String CLIENT_SECRET = "client_secret";
 
-    @NotNull
-    public String getClientId() {
+    public Object getClientId() {
         return params.get(CLIENT_ID);
     }
 
-    @NotNull
-    public String getClientSecret() {
+    public Object getClientSecret() {
         return params.get(CLIENT_SECRET);
     }
 

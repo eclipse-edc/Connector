@@ -19,7 +19,6 @@ import org.eclipse.edc.token.rules.NotBeforeValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Date;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -39,7 +38,7 @@ class NotBeforeValidationRuleTest {
     @Test
     void validNotBefore() {
         var token = ClaimToken.Builder.newInstance()
-                .claim(NOT_BEFORE, Date.from(now.plusSeconds(notBeforeLeeway)))
+                .claim(NOT_BEFORE, now.plusSeconds(notBeforeLeeway).getEpochSecond())
                 .build();
 
         var result = rule.checkRule(token, emptyMap());
@@ -50,7 +49,7 @@ class NotBeforeValidationRuleTest {
     @Test
     void validationKoBecauseNotBeforeTimeNotRespected() {
         var token = ClaimToken.Builder.newInstance()
-                .claim(NOT_BEFORE, Date.from(now.plusSeconds(notBeforeLeeway + 1)))
+                .claim(NOT_BEFORE, now.plusSeconds(notBeforeLeeway + 1).getEpochSecond())
                 .build();
 
         var result = rule.checkRule(token, emptyMap());

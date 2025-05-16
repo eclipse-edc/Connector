@@ -110,7 +110,7 @@ public class IdentityAndTrustService implements IdentityService {
         }
 
         // create claims for the STS
-        var claims = new HashMap<String, String>();
+        var claims = new HashMap<String, Object>();
         parameters.getClaims().forEach((k, v) -> claims.replace(k, v.toString()));
 
         claims.putAll(Map.of(
@@ -134,12 +134,12 @@ public class IdentityAndTrustService implements IdentityService {
         var accessToken = claimToken.getStringClaim(PRESENTATION_TOKEN_CLAIM);
         var issuer = claimToken.getStringClaim(ISSUER);
 
-        var siTokenClaims = Map.of(PRESENTATION_TOKEN_CLAIM, accessToken,
-                ISSUED_AT, Instant.now().toString(),
+        Map<String, Object> siTokenClaims = Map.of(PRESENTATION_TOKEN_CLAIM, accessToken,
+                ISSUED_AT, Instant.now().getEpochSecond(),
                 AUDIENCE, issuer,
                 ISSUER, myOwnDid,
                 SUBJECT, myOwnDid,
-                EXPIRATION_TIME, Instant.now().plus(5, ChronoUnit.MINUTES).toString());
+                EXPIRATION_TIME, Instant.now().plus(5, ChronoUnit.MINUTES).getEpochSecond());
         var siToken = secureTokenService.createToken(siTokenClaims, null);
         if (siToken.failed()) {
             return siToken.mapFailure();

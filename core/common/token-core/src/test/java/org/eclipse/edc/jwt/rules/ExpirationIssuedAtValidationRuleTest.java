@@ -19,7 +19,6 @@ import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Date;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -39,7 +38,7 @@ class ExpirationIssuedAtValidationRuleTest {
     @Test
     void validationOk() {
         var token = ClaimToken.Builder.newInstance()
-                .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(600)))
+                .claim(EXPIRATION_TIME, now.plusSeconds(600).getEpochSecond())
                 .build();
 
         var result = rule.checkRule(token, emptyMap());
@@ -50,7 +49,7 @@ class ExpirationIssuedAtValidationRuleTest {
     @Test
     void validationKoBecauseExpirationTimeNotRespected() {
         var token = ClaimToken.Builder.newInstance()
-                .claim(EXPIRATION_TIME, Date.from(now.minusSeconds(10)))
+                .claim(EXPIRATION_TIME, now.minusSeconds(10).getEpochSecond())
                 .build();
 
         var result = rule.checkRule(token, emptyMap());
@@ -85,8 +84,8 @@ class ExpirationIssuedAtValidationRuleTest {
     @Test
     void validationKoBecauseIssuedAtAfterExpires() {
         var token = ClaimToken.Builder.newInstance()
-                .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(60)))
-                .claim(ISSUED_AT, Date.from(now.plusSeconds(65)))
+                .claim(EXPIRATION_TIME, now.plusSeconds(60).getEpochSecond())
+                .claim(ISSUED_AT, now.plusSeconds(65).getEpochSecond())
                 .build();
 
         var result = rule.checkRule(token, emptyMap());
@@ -98,8 +97,8 @@ class ExpirationIssuedAtValidationRuleTest {
     @Test
     void validationKoBecauseIssuedAtInFuture() {
         var token = ClaimToken.Builder.newInstance()
-                .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(60)))
-                .claim(ISSUED_AT, Date.from(now.plusSeconds(10)))
+                .claim(EXPIRATION_TIME, now.plusSeconds(60).getEpochSecond())
+                .claim(ISSUED_AT, now.plusSeconds(10).getEpochSecond())
                 .build();
 
         var result = rule.checkRule(token, emptyMap());
@@ -113,8 +112,8 @@ class ExpirationIssuedAtValidationRuleTest {
         var rule = new ExpirationIssuedAtValidationRule(clock, 5, false);
 
         var token = ClaimToken.Builder.newInstance()
-                .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(60)))
-                .claim(ISSUED_AT, Date.from(now.plusSeconds(10)))
+                .claim(EXPIRATION_TIME, now.plusSeconds(60).getEpochSecond())
+                .claim(ISSUED_AT, now.plusSeconds(10).getEpochSecond())
                 .build();
 
         var result = rule.checkRule(token, emptyMap());
@@ -128,8 +127,8 @@ class ExpirationIssuedAtValidationRuleTest {
         var rule = new ExpirationIssuedAtValidationRule(clock, 20, false);
 
         var token = ClaimToken.Builder.newInstance()
-                .claim(EXPIRATION_TIME, Date.from(now.plusSeconds(60)))
-                .claim(ISSUED_AT, Date.from(now.plusSeconds(10)))
+                .claim(EXPIRATION_TIME, now.plusSeconds(60).getEpochSecond())
+                .claim(ISSUED_AT, now.plusSeconds(10).getEpochSecond())
                 .build();
 
         var result = rule.checkRule(token, emptyMap());
@@ -155,8 +154,8 @@ class ExpirationIssuedAtValidationRuleTest {
         var rule = new ExpirationIssuedAtValidationRule(clock, 0, false);
 
         var token = ClaimToken.Builder.newInstance()
-                .claim(EXPIRATION_TIME, Date.from(expiresAt))
-                .claim(ISSUED_AT, Date.from(issuedAt))
+                .claim(EXPIRATION_TIME, expiresAt.getEpochSecond())
+                .claim(ISSUED_AT, expiresAt.getEpochSecond())
                 .build();
 
         var result = rule.checkRule(token, emptyMap());
@@ -183,8 +182,8 @@ class ExpirationIssuedAtValidationRuleTest {
         var rule = new ExpirationIssuedAtValidationRule(clock, 2, false);
 
         var token = ClaimToken.Builder.newInstance()
-                .claim(EXPIRATION_TIME, Date.from(expiresAt))
-                .claim(ISSUED_AT, Date.from(issuedAt))
+                .claim(EXPIRATION_TIME, expiresAt.getEpochSecond())
+                .claim(ISSUED_AT, issuedAt.getEpochSecond())
                 .build();
 
         var result = rule.checkRule(token, emptyMap());

@@ -140,7 +140,7 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
                 .claims(JwtRegisteredClaimNames.AUDIENCE, message.getParticipantId())
                 .claims(JwtRegisteredClaimNames.ISSUER, ownParticipantId)
                 .claims(JwtRegisteredClaimNames.SUBJECT, ownParticipantId)
-                .claims(JwtRegisteredClaimNames.ISSUED_AT, clock.instant().toEpochMilli()) // todo: milli or second?
+                .claims(JwtRegisteredClaimNames.ISSUED_AT, clock.instant().getEpochSecond())
                 .build();
     }
 

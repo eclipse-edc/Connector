@@ -22,7 +22,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Clock;
 import java.time.Instant;
-import java.util.Date;
 import java.util.UUID;
 
 import static java.time.ZoneOffset.UTC;
@@ -67,8 +66,8 @@ class Oauth2AssertionDecoratorTest {
                 .hasFieldOrPropertyWithValue(ISSUER, clientId)
                 .hasFieldOrPropertyWithValue(SUBJECT, clientId)
                 .containsKey(JWT_ID)
-                .hasEntrySatisfying(ISSUED_AT, issueDate -> assertThat((Date) issueDate).isEqualTo(now))
-                .hasEntrySatisfying(EXPIRATION_TIME, expiration -> assertThat((Date) expiration).isEqualTo(now.plusSeconds(TOKEN_EXPIRATION)));
+                .hasEntrySatisfying(ISSUED_AT, issueDate -> assertThat((Long) issueDate).isEqualTo(now.getEpochSecond()))
+                .hasEntrySatisfying(EXPIRATION_TIME, expiration -> assertThat((Long) expiration).isEqualTo(now.plusSeconds(TOKEN_EXPIRATION).getEpochSecond()));
     }
 
 }

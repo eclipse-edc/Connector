@@ -71,7 +71,7 @@ public class ClaimToken {
     }
 
     /**
-     * Get the date claim value by name converted to {@link Instant}
+     * Get the NumericDate claim value by name converted to {@link Instant}. The claim must be a long value.
      *
      * @param claimName the name of the claim
      * @return the claim value, null if it does not exist
@@ -79,13 +79,21 @@ public class ClaimToken {
     public Instant getInstantClaim(String claimName) {
         return Optional.of(claims)
                 .map(it -> it.get(claimName))
-                .map(Date.class::cast)
+                .map(o -> {
+                    if (o instanceof Long epoch) {
+                        return epoch;
+                    }
+                    if (o instanceof Date d) {
+                        return d.toInstant().getEpochSecond();
+                    }
+                    return null;
+                })
                 .map(this::convertToUtcTime)
                 .orElse(null);
     }
 
-    private Instant convertToUtcTime(Date date) {
-        return date.toInstant().atOffset(UTC).toInstant();
+    private Instant convertToUtcTime(Long epochSecond) {
+        return Instant.ofEpochSecond(epochSecond).atOffset(UTC).toInstant();
     }
 
     public static class Builder {
