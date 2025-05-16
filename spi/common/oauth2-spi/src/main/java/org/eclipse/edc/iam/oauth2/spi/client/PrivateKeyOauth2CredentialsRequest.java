@@ -18,18 +18,20 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 
 import java.util.Objects;
 
+import static java.util.Optional.ofNullable;
+
 public class PrivateKeyOauth2CredentialsRequest extends Oauth2CredentialsRequest {
 
     private static final String CLIENT_ASSERTION = "client_assertion";
     private static final String CLIENT_ASSERTION_TYPE = "client_assertion_type";
     private static final String TYPE_JWT_BEARER = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
 
-    public Object getClientAssertion() {
-        return params.get(CLIENT_ASSERTION);
+    public String getClientAssertion() {
+        return ofNullable(params.get(CLIENT_ASSERTION)).map(Object::toString).orElse(null);
     }
 
-    public Object getClientAssertionType() {
-        return params.get(CLIENT_ASSERTION_TYPE);
+    public String getClientAssertionType() {
+        return ofNullable(params.get(CLIENT_ASSERTION_TYPE)).map(Object::toString).orElse(null);
     }
 
     public static class Builder<B extends PrivateKeyOauth2CredentialsRequest.Builder<B>> extends Oauth2CredentialsRequest.Builder<PrivateKeyOauth2CredentialsRequest, PrivateKeyOauth2CredentialsRequest.Builder<B>> {

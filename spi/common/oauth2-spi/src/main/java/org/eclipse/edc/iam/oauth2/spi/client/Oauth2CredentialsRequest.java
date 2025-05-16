@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static java.util.Optional.ofNullable;
+
 public abstract class Oauth2CredentialsRequest {
 
     private static final String GRANT_TYPE = "grant_type";
@@ -34,12 +36,12 @@ public abstract class Oauth2CredentialsRequest {
         return url;
     }
 
-    public Object getScope() {
-        return params.get(SCOPE);
+    public String getScope() {
+        return ofNullable(params.get(SCOPE)).map(Object::toString).orElse(null);
     }
 
-    public Object getGrantType() {
-        return params.get(GRANT_TYPE);
+    public String getGrantType() {
+        return ofNullable(params.get(GRANT_TYPE)).map(Object::toString).orElse(null);
     }
 
     /**
@@ -47,8 +49,8 @@ public abstract class Oauth2CredentialsRequest {
      *
      * @return The value of the resource form parameter.
      */
-    public Object getResource() {
-        return this.params.get(RESOURCE);
+    public String getResource() {
+        return ofNullable(params.get(RESOURCE)).map(Object::toString).orElse(null);
     }
 
     public Map<String, Object> getParams() {
