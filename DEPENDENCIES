@@ -6,6 +6,7 @@ maven/mavencentral/com.apicatalog/iron-verifiable-credentials/0.14.0, Apache-2.0
 maven/mavencentral/com.apicatalog/titanium-jcs/1.0.0, Apache-2.0, approved, #20244
 maven/mavencentral/com.apicatalog/titanium-json-ld/1.0.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.apicatalog/titanium-json-ld/1.4.0, Apache-2.0, approved, #15200
+maven/mavencentral/com.apicatalog/titanium-json-ld/1.4.1, Apache-2.0, approved, #15200
 maven/mavencentral/com.apicatalog/titanium-json-ld/1.6.0, Apache-2.0, approved, #20246
 maven/mavencentral/com.apicatalog/titanium-rdf-api/1.0.0, Apache-2.0, approved, #20245
 maven/mavencentral/com.apicatalog/titanium-rdf-n-quads/1.0.0, Apache-2.0, approved, #20243
@@ -80,7 +81,7 @@ maven/mavencentral/com.google.guava/listenablefuture/9999.0-empty-to-avoid-confl
 maven/mavencentral/com.google.j2objc/j2objc-annotations/1.3, Apache-2.0, approved, CQ21195
 maven/mavencentral/com.google.j2objc/j2objc-annotations/3.0.0, Apache-2.0, approved, #13676
 maven/mavencentral/com.google.protobuf/protobuf-java/4.28.2, BSD-3-Clause, approved, #17196
-maven/mavencentral/com.google.protobuf/protobuf-java/4.30.2, BSD-3-Clause, approved, clearlydefined
+maven/mavencentral/com.google.protobuf/protobuf-java/4.31.0, , restricted, clearlydefined
 maven/mavencentral/com.googlecode.libphonenumber/libphonenumber/8.11.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.h2database/h2/2.3.232, (MPL-2.0 AND EPL-1.0) AND (MPL-2.0 AND EPL-1.0 AND LGPL-3.0-or-later) AND BSD-3-Clause, approved, #15708
 maven/mavencentral/com.jayway.jsonpath/json-path/2.7.0, Apache-2.0, approved, clearlydefined
@@ -242,6 +243,7 @@ maven/mavencentral/org.apache.velocity/velocity-engine-scripting/2.3, Apache-2.0
 maven/mavencentral/org.apache.xbean/xbean-reflect/3.7, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apiguardian/apiguardian-api/1.1.2, Apache-2.0, approved, #17641
 maven/mavencentral/org.assertj/assertj-core/3.27.3, Apache-2.0, approved, #17980
+maven/mavencentral/org.awaitility/awaitility/4.2.0, Apache-2.0, approved, #14178
 maven/mavencentral/org.awaitility/awaitility/4.2.2, Apache-2.0, approved, #14178
 maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.72, MIT, approved, #3789
 maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.80, MIT, approved, #18697
@@ -258,6 +260,14 @@ maven/mavencentral/org.codehaus.plexus/plexus-container-default/2.1.0, Apache-2.
 maven/mavencentral/org.codehaus.plexus/plexus-utils/3.1.1, , approved, CQ16492
 maven/mavencentral/org.codehaus.plexus/plexus-utils/3.3.0, , approved, CQ21066
 maven/mavencentral/org.eclipse.angus/angus-activation/1.0.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.angus
+maven/mavencentral/org.eclipse.dataspacetck.common/core-api/0.1.0, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dsp/boot/0.1.1-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dsp/core/0.1.1-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-api/0.1.1-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-contract-negotiation/0.1.1-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-system/0.1.1-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-transfer-process/0.1.1-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dsp/tck-runtime/0.1.1-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.edc/autodoc-processor/0.13.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.edc/runtime-metamodel/0.13.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.jetty.ee10/jetty-ee10-servlet/12.0.20, EPL-2.0 OR Apache-2.0, approved, rt.jetty
@@ -283,6 +293,7 @@ maven/mavencentral/org.glassfish.jersey.ext/jersey-entity-filtering/3.1.10, EPL-
 maven/mavencentral/org.glassfish.jersey.inject/jersey-hk2/3.1.10, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
 maven/mavencentral/org.glassfish.jersey.media/jersey-media-json-jackson/3.1.10, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
 maven/mavencentral/org.glassfish.jersey.media/jersey-media-multipart/3.1.10, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish/jakarta.json/2.0.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jsonp
 maven/mavencentral/org.glassfish/jakarta.json/2.0.1, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jsonp
 maven/mavencentral/org.hamcrest/hamcrest-core/1.3, BSD-2-Clause, approved, CQ11429
 maven/mavencentral/org.hamcrest/hamcrest-core/2.2, BSD-3-Clause, approved, clearlydefined
@@ -304,9 +315,18 @@ maven/mavencentral/org.junit-pioneer/junit-pioneer/2.3.0, EPL-2.0, approved, #16
 maven/mavencentral/org.junit.jupiter/junit-jupiter-api/5.12.2, EPL-2.0, approved, #19509
 maven/mavencentral/org.junit.jupiter/junit-jupiter-engine/5.12.2, EPL-2.0, approved, #19514
 maven/mavencentral/org.junit.jupiter/junit-jupiter-params/5.12.2, EPL-2.0, approved, #19517
+maven/mavencentral/org.junit.jupiter/junit-jupiter/5.10.3, EPL-2.0, approved, #15197
+maven/mavencentral/org.junit.jupiter/junit-jupiter/5.11.3, EPL-2.0, approved, #17540
+maven/mavencentral/org.junit.jupiter/junit-jupiter/5.12.2, EPL-2.0, approved, #20903
 maven/mavencentral/org.junit.platform/junit-platform-commons/1.12.2, EPL-2.0, approved, #19511
 maven/mavencentral/org.junit.platform/junit-platform-engine/1.12.2, EPL-2.0, approved, #19519
+maven/mavencentral/org.junit.platform/junit-platform-launcher/1.10.3, EPL-2.0, approved, #15216
 maven/mavencentral/org.junit.platform/junit-platform-launcher/1.12.2, EPL-2.0, approved, #19510
+maven/mavencentral/org.junit.platform/junit-platform-suite-api/1.12.2, EPL-2.0, approved, #19516
+maven/mavencentral/org.junit.platform/junit-platform-suite-commons/1.12.2, EPL-2.0, approved, #19512
+maven/mavencentral/org.junit.platform/junit-platform-suite-engine/1.10.3, EPL-2.0, approved, #15258
+maven/mavencentral/org.junit.platform/junit-platform-suite-engine/1.11.3, EPL-2.0, approved, #15933
+maven/mavencentral/org.junit.platform/junit-platform-suite-engine/1.12.2, EPL-2.0, approved, #19508
 maven/mavencentral/org.junit/junit-bom/5.11.2, EPL-2.0, approved, #16062
 maven/mavencentral/org.junit/junit-bom/5.12.2, EPL-2.0, approved, #19546
 maven/mavencentral/org.jvnet.mimepull/mimepull/1.9.15, CDDL-1.1 OR GPL-2.0-only WITH Classpath-exception-2.0, approved, CQ21484
@@ -315,6 +335,7 @@ maven/mavencentral/org.lz4/lz4-java/1.8.0, Apache-2.0, approved, #20005
 maven/mavencentral/org.mock-server/mockserver-client-java/5.15.0, Apache-2.0 AND LGPL-3.0-only, approved, #9324
 maven/mavencentral/org.mock-server/mockserver-core/5.15.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.mock-server/mockserver-netty/5.15.0, Apache-2.0, approved, #9276
+maven/mavencentral/org.mockito/mockito-core/5.13.0, MIT, approved, clearlydefined
 maven/mavencentral/org.mockito/mockito-core/5.17.0, MIT AND (Apache-2.0 AND MIT) AND Apache-2.0, approved, #20444
 maven/mavencentral/org.mockito/mockito-core/5.2.0, MIT AND (Apache-2.0 AND MIT) AND Apache-2.0, approved, #7401
 maven/mavencentral/org.mockito/mockito-inline/5.2.0, MIT, approved, clearlydefined
