@@ -15,7 +15,6 @@
 package org.eclipse.edc.iam.oauth2.spi.client;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
@@ -25,13 +24,11 @@ public class PrivateKeyOauth2CredentialsRequest extends Oauth2CredentialsRequest
     private static final String CLIENT_ASSERTION_TYPE = "client_assertion_type";
     private static final String TYPE_JWT_BEARER = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
 
-    @NotNull
-    public String getClientAssertion() {
+    public Object getClientAssertion() {
         return params.get(CLIENT_ASSERTION);
     }
 
-    @NotNull
-    public String getClientAssertionType() {
+    public Object getClientAssertionType() {
         return params.get(CLIENT_ASSERTION_TYPE);
     }
 

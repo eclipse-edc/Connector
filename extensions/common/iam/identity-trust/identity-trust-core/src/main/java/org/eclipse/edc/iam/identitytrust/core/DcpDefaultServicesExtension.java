@@ -36,7 +36,6 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 
 import java.time.Clock;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import static org.eclipse.edc.spi.result.Result.success;
 
@@ -97,12 +96,6 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
                     .claims(Map.of(CLAIMTOKEN_VC_KEY, credentials));
             return success(b.build());
         };
-    }
-
-    private void checkProperty(String key, String value, Consumer<String> onMissing) {
-        if (value == null) {
-            onMissing.accept("No setting found for key '%s'.".formatted(key));
-        }
     }
 
 }

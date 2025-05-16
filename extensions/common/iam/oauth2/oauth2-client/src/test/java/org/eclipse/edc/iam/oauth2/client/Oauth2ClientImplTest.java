@@ -55,7 +55,7 @@ class Oauth2ClientImplTest {
 
         var formParameters = new Parameters(
                 request.getParams().entrySet().stream()
-                        .map(entry -> Parameter.param(entry.getKey(), entry.getValue()))
+                        .map(entry -> Parameter.param(entry.getKey(), entry.getValue().toString()))
                         .collect(Collectors.toList())
         );
 
@@ -75,7 +75,7 @@ class Oauth2ClientImplTest {
 
         var formParameters = new Parameters(
                 request.getParams().entrySet().stream()
-                        .map(entry -> Parameter.param(entry.getKey(), entry.getValue()))
+                        .map(entry -> Parameter.param(entry.getKey(), entry.getValue().toString()))
                         .collect(Collectors.toList())
         );
 
@@ -97,7 +97,7 @@ class Oauth2ClientImplTest {
 
         var formParameters = new Parameters(
                 request.getParams().entrySet().stream()
-                        .map(entry -> Parameter.param(entry.getKey(), entry.getValue()))
+                        .map(entry -> Parameter.param(entry.getKey(), entry.getValue().toString()))
                         .collect(Collectors.toList())
         );
 
@@ -118,7 +118,7 @@ class Oauth2ClientImplTest {
 
         var formParameters = new Parameters(
                 request.getParams().entrySet().stream()
-                        .map(entry -> Parameter.param(entry.getKey(), entry.getValue()))
+                        .map(entry -> Parameter.param(entry.getKey(), entry.getValue().toString()))
                         .collect(Collectors.toList())
         );
 

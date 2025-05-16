@@ -15,7 +15,6 @@
 package org.eclipse.edc.iam.oauth2.spi.client;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,20 +27,18 @@ public abstract class Oauth2CredentialsRequest {
     private static final String RESOURCE = "resource";
 
     protected String url;
-    protected final Map<String, String> params = new HashMap<>();
+    protected final Map<String, Object> params = new HashMap<>();
 
     @NotNull
     public String getUrl() {
         return url;
     }
 
-    @Nullable
-    public String getScope() {
+    public Object getScope() {
         return params.get(SCOPE);
     }
 
-    @NotNull
-    public String getGrantType() {
+    public Object getGrantType() {
         return params.get(GRANT_TYPE);
     }
 
@@ -50,12 +47,11 @@ public abstract class Oauth2CredentialsRequest {
      *
      * @return The value of the resource form parameter.
      */
-    @Nullable
-    public String getResource() {
+    public Object getResource() {
         return this.params.get(RESOURCE);
     }
 
-    public Map<String, String> getParams() {
+    public Map<String, Object> getParams() {
         return params;
     }
 
@@ -81,12 +77,12 @@ public abstract class Oauth2CredentialsRequest {
             return self();
         }
 
-        public B param(String key, String value) {
+        public B param(String key, Object value) {
             request.params.put(key, value);
             return self();
         }
 
-        public B params(Map<String, String> params) {
+        public B params(Map<String, Object> params) {
             request.params.putAll(params);
             return self();
         }
@@ -95,8 +91,8 @@ public abstract class Oauth2CredentialsRequest {
          * Adds the resource form parameter to the request.
          *
          * @param targetedAudience The audience for which an access token will be requested.
-         * @see <a href="https://www.rfc-editor.org/rfc/rfc8707.html">RFC-8707</a>
          * @return this builder
+         * @see <a href="https://www.rfc-editor.org/rfc/rfc8707.html">RFC-8707</a>
          */
         public B resource(String targetedAudience) {
             return param(RESOURCE, targetedAudience);
