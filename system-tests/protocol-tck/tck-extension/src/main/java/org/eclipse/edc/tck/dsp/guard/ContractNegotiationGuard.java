@@ -46,7 +46,8 @@ public class ContractNegotiationGuard extends DelayedActionGuard<ContractNegotia
             INITIAL.code(),
             REQUESTING.code(),
             ACCEPTING.code(),
-            VERIFYING.code()
+            VERIFYING.code(),
+            TERMINATING.code()
     );
 
     public ContractNegotiationGuard(Consumer<ContractNegotiation> action, StateEntityStore<ContractNegotiation> store) {

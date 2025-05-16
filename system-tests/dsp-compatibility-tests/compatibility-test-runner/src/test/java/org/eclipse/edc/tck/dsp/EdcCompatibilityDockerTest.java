@@ -80,7 +80,7 @@ public class EdcCompatibilityDockerTest {
         return Path.of(TestUtils.getResource(resource)).toString();
     }
 
-    @Timeout(240)
+    @Timeout(300)
     @Test
     void assertDspCompatibility() {
 
@@ -94,7 +94,7 @@ public class EdcCompatibilityDockerTest {
         TCK_CONTAINER.withExtraHost("host.docker.internal", "host-gateway");
         TCK_CONTAINER.withLogConsumer(outputFrame -> monitor.info(outputFrame.getUtf8String()));
         TCK_CONTAINER.withLogConsumer(reporter);
-        TCK_CONTAINER.waitingFor(new LogMessageWaitStrategy().withRegEx(".*Test run complete.*").withStartupTimeout(Duration.ofSeconds(240)));
+        TCK_CONTAINER.waitingFor(new LogMessageWaitStrategy().withRegEx(".*Test run complete.*").withStartupTimeout(Duration.ofSeconds(300)));
         TCK_CONTAINER.start();
 
         var failures = reporter.failures();
