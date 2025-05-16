@@ -18,7 +18,7 @@ import okhttp3.Request;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.provision.DeprovisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.Deprovisioner;
-import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceDefinition;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.Provisioner;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionerManager;
@@ -138,45 +138,10 @@ public class ProvisioningTransferEndToEndTest {
 
         @Override
         public void initialize(ServiceExtensionContext context) {
-            resourceDefinitionGeneratorManager.registerConsumerGenerator(new ResourceDefinitionGenerator() {
-
-                @Override
-                public String supportedType() {
-                    return "HttpData";
-                }
-
-                @Override
-                public ProvisionResourceDefinition generate(DataFlow dataFlow) {
-                    return ProvisionResourceDefinition.Builder
-                            .newInstance()
-                            .dataAddress(dataFlow.getDestination())
-                            .type("AddHeader")
-                            .property("deprovisionEndpoint", "http://localhost:%d/deprovision".formatted(DESTINATION_BACKEND_PORT))
-                            .build();
-                }
-            });
+            resourceDefinitionGeneratorManager.registerConsumerGenerator(new AddHeaderResourceGenerator());
 
             provisionerManager.register(new AddHeaderProvisioner());
             provisionerManager.register(new CallEndpointDeprovisioner(httpClient));
-        }
-
-        private static class AddHeaderProvisioner implements Provisioner {
-            @Override
-            public String supportedType() {
-                return "AddHeader";
-            }
-
-            @Override
-            public CompletableFuture<StatusResult<ProvisionedResource>> provision(ProvisionResourceDefinition provisionResourceDefinition) {
-                var provisionedResource = ProvisionedResource.Builder.from(provisionResourceDefinition)
-                        .dataAddress(DataAddress.Builder.newInstance()
-                                .properties(provisionResourceDefinition.getDataAddress().getProperties())
-                                .property("header:provisionHeader", "value")
-                                .build())
-                        .build();
-                return CompletableFuture.completedFuture(StatusResult.success(provisionedResource));
-            }
-
         }
 
         private static class CallEndpointDeprovisioner implements Deprovisioner {
@@ -193,7 +158,7 @@ public class ProvisioningTransferEndToEndTest {
             }
 
             @Override
-            public CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionResourceDefinition definition) {
+            public CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionResource definition) {
                 var deprovisionEndpoint = definition.getProperty("deprovisionEndpoint");
                 return httpClient.executeAsync(new Request.Builder().url((String) deprovisionEndpoint).build(), emptyList())
                         .thenCompose(response -> {
@@ -203,6 +168,44 @@ public class ProvisioningTransferEndToEndTest {
                                 return CompletableFuture.failedFuture(new EdcException("Deprovision failed"));
                             }
                         });
+            }
+        }
+
+        private static class AddHeaderProvisioner implements Provisioner {
+
+            @Override
+            public String supportedType() {
+                return "AddHeader";
+            }
+
+            @Override
+            public CompletableFuture<StatusResult<ProvisionedResource>> provision(ProvisionResource provisionResource) {
+                var provisionedResource = ProvisionedResource.Builder.from(provisionResource)
+                        .dataAddress(DataAddress.Builder.newInstance()
+                                .properties(provisionResource.getDataAddress().getProperties())
+                                .property("header:provisionHeader", "value")
+                                .build())
+                        .build();
+                return CompletableFuture.completedFuture(StatusResult.success(provisionedResource));
+            }
+
+        }
+
+        private static class AddHeaderResourceGenerator implements ResourceDefinitionGenerator {
+
+            @Override
+            public String supportedType() {
+                return "HttpData";
+            }
+
+            @Override
+            public ProvisionResource generate(DataFlow dataFlow) {
+                return ProvisionResource.Builder
+                        .newInstance()
+                        .dataAddress(dataFlow.getDestination())
+                        .type("AddHeader")
+                        .property("deprovisionEndpoint", "http://localhost:%d/deprovision".formatted(DESTINATION_BACKEND_PORT))
+                        .build();
             }
         }
     }

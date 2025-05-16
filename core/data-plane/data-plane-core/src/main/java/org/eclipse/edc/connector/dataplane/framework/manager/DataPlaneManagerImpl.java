@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.port.TransferProcessApiClient;
-import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionerManager;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
@@ -30,7 +29,6 @@ import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
@@ -53,6 +51,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.joining;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
@@ -297,14 +296,20 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
     private boolean processProvisioning(DataFlow dataFlow) {
         return entityRetryProcessFactory.retryProcessor(dataFlow)
-                .doProcess(future("provisioning", (flow, e) -> provisionerManager.provision(flow.getResourceDefinitions())))
+                .doProcess(future("provisioning", (flow, e) -> provisionerManager.provision(flow.resourcesToBeProvisioned())))
                 .onSuccess((flow, results) -> {
-                    var newAddress = results.stream().map(AbstractResult::getContent)
-                            .map(ProvisionedResource::getDataAddress)
-                            .filter(Objects::nonNull)
-                            .findFirst().orElse(null);
-                    transferProcessClient.provisioned(dataFlow.getId(), newAddress);
-                    dataFlow.transitionToProvisioned();
+                    results.stream().filter(StatusResult::succeeded).map(StatusResult::getContent)
+                            .forEach(flow::resourceProvisioned);
+
+                    if (flow.resourcesToBeProvisioned().isEmpty()) {
+                        transferProcessClient.provisioned(dataFlow.getId(), flow.provisionedDataAddress());
+                        dataFlow.transitionToProvisioned();
+                    } else {
+                        var failureDetail = results.stream().filter(StatusResult::failed).map(StatusResult::getFailureDetail).collect(joining(","));
+                        flow.setErrorDetail(failureDetail);
+                        flow.transitionToProvisioning();
+                    }
+
                     update(dataFlow);
                 })
                 .onFailure((flow, t) -> {
@@ -320,9 +325,19 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
     private boolean processDeprovisioning(DataFlow dataFlow) {
         return entityRetryProcessFactory.retryProcessor(dataFlow)
-                .doProcess(future("deprovisioning", (flow, e) -> provisionerManager.deprovision(flow.getResourceDefinitions())))
+                .doProcess(future("deprovisioning", (flow, e) -> provisionerManager.deprovision(flow.resourcesToBeDeprovisioned())))
                 .onSuccess((flow, results) -> {
-                    flow.transitionToDeprovisioned();
+                    results.stream().filter(StatusResult::succeeded).map(StatusResult::getContent)
+                            .forEach(flow::resourceDeprovisioned);
+
+                    if (flow.resourcesToBeDeprovisioned().isEmpty()) {
+                        flow.transitionToDeprovisioned();
+                    } else {
+                        var failureDetail = results.stream().filter(StatusResult::failed).map(StatusResult::getFailureDetail).collect(joining(","));
+                        flow.setErrorDetail(failureDetail);
+                        flow.transitionToDeprovisioning();
+                    }
+
                     update(flow);
                 })
                 .onFailure((flow, t) -> {

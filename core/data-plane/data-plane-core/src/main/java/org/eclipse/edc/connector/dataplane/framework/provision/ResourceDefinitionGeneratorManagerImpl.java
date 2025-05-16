@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.dataplane.framework.provision;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
-import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceDefinition;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGenerator;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
 
@@ -42,7 +42,7 @@ public class ResourceDefinitionGeneratorManagerImpl implements ResourceDefinitio
     }
 
     @Override
-    public List<ProvisionResourceDefinition> generateConsumerResourceDefinition(DataFlow dataFlow) {
+    public List<ProvisionResource> generateConsumerResourceDefinition(DataFlow dataFlow) {
         return consumerGenerators.stream()
                 .filter(g -> g.supportedType().equals(dataFlow.getDestination().getType()))
                 .map(g -> g.generate(dataFlow))
@@ -51,7 +51,7 @@ public class ResourceDefinitionGeneratorManagerImpl implements ResourceDefinitio
     }
 
     @Override
-    public List<ProvisionResourceDefinition> generateProviderResourceDefinition(DataFlow dataFlow) {
+    public List<ProvisionResource> generateProviderResourceDefinition(DataFlow dataFlow) {
         return Collections.emptyList();
     }
 
