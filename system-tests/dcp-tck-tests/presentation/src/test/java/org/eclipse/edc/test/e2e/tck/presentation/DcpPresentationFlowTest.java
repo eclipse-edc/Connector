@@ -1,0 +1,147 @@
+/*
+ *  Copyright (c) 2025 Metaform Systems Inc.
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Metaform Systems Inc. - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.test.e2e.tck.presentation;
+
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.dataspacetck.core.system.ConsoleMonitor;
+import org.eclipse.dataspacetck.runtime.TckRuntime;
+import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
+import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
+import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
+import org.eclipse.edc.spi.iam.TokenRepresentation;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static org.eclipse.edc.spi.result.Result.success;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+/**
+ * Asserts the correct functionality of the presentation flow according to the Technology Compatibility Kit (TCK).
+ * <p>
+ * IdentityHub is started in an in-mem runtime, the TCK is started in another runtime, and executes its test cases against
+ * IdentityHubs Presentation API.
+ *
+ * @see <a href="https://github.com/eclipse-dataspacetck/dcp-tck">Eclipse Dataspace TCK - DCP</a>
+ */
+@EndToEndTest
+public class DcpPresentationFlowTest {
+    public static final String ISSUANCE_CORRELATION_ID = "issuance-correlation-id";
+    private static final String TEST_PARTICIPANT_CONTEXT_ID = "holder";
+    private static final int CALLBACK_PORT = getFreePort();
+
+    private static final String PROTOCOL_API_PATH = "/api/protocol";
+    private static final String PROTOCOL_API_PORT = String.valueOf(getFreePort());
+    private static final SecureTokenService STS_MOCK = mock();
+    private static final String VERIFIER_DID = "did:web:verifier";
+    @RegisterExtension
+    static final RuntimePerClassExtension EDC_RUNTIME_EXTENSIONS = new RuntimePerClassExtension(
+            new EmbeddedRuntime("Connector-under-test", ":dist:bom:controlplane-dcp-bom")
+                    .registerServiceMock(SecureTokenService.class, STS_MOCK)
+                    .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
+                            "edc.iam.did.web.use.https", "false",
+                            "web.http.port", String.valueOf(getFreePort()),
+                            // use DSP endpoints as trigger endpoint
+                            "web.http.protocol.path", PROTOCOL_API_PATH,
+                            "web.http.protocol.port", PROTOCOL_API_PORT,
+                            "edc.iam.issuer.id", VERIFIER_DID,
+                            "edc.iam.sts.oauth.token.url", "https://example.com/token",
+                            "edc.iam.sts.oauth.client.id", "test-client-id",
+                            "edc.iam.sts.oauth.client.secret.alias", "test-secret-alias"
+                    )))
+    );
+    private static final String ISSUER_DID = "did:web:issuer";
+    public String holderDid;
+    private ECKey verifierKey;
+
+    @BeforeEach
+    void setup() throws JOSEException {
+        verifierKey = new ECKeyGenerator(Curve.P_256).keyID(VERIFIER_DID + "#verifier-key1").generate();
+        when(STS_MOCK.createToken(anyMap(), isNull()))
+                .thenAnswer(i -> {
+                    Map<String, Object> claims = i.getArgument(0);
+
+                    var hdr = new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(verifierKey.getKeyID()).build();
+                    var claimsSet = new JWTClaimsSet.Builder(JWTClaimsSet.parse(claims)).jwtID(UUID.randomUUID().toString()).build();
+                    var jwt = new SignedJWT(hdr, claimsSet);
+                    jwt.sign(new ECDSASigner(verifierKey));
+                    var tr = TokenRepresentation.Builder.newInstance().token(jwt.serialize()).build();
+                    return success(tr);
+                }); // fixme: generate token for verifier
+    }
+
+    @DisplayName("Run TCK Presentation Flow tests")
+    @Test
+    void runPresentationFlowTests(EmbeddedRuntime edcRuntime) {
+        var monitor = new ConsoleMonitor(true, true);
+
+        var triggerPath = PROTOCOL_API_PATH + "/2024/1/catalog/request"; // todo: update to 2025 as soon as that is the default
+
+//        var credentialsPort = IDENTITY_HUB_EXTENSION.getCredentialsEndpoint().getUrl().getPort();
+//        var credentialsPath = IDENTITY_HUB_EXTENSION.getCredentialsEndpoint().getUrl().getPath();
+//
+//        var stsPort = IDENTITY_HUB_EXTENSION.getStsEndpoint().getUrl().getPort();
+//        var stsPath = IDENTITY_HUB_EXTENSION.getStsEndpoint().getUrl().getPath();
+//
+        var baseCallbackUrl = "http://localhost:%s".formatted(CALLBACK_PORT);
+//        var baseCredentialServiceUrl = "http://localhost:%s%s/v1/participants/%s".formatted(credentialsPort, credentialsPath, Base64.encode(TEST_PARTICIPANT_CONTEXT_ID));
+//
+        var result = TckRuntime.Builder.newInstance()
+                .properties(Map.of(
+                        "dataspacetck.callback.address", baseCallbackUrl,
+                        "dataspacetck.launcher", "org.eclipse.dataspacetck.dcp.system.DcpSystemLauncher",
+                        "dataspacetck.did.verifier", VERIFIER_DID,
+                        "dataspacetck.vpp.trigger.endpoint", "http://localhost:%s%s".formatted(PROTOCOL_API_PORT, triggerPath),
+                        "dataspacetck.credentials.correlation.id", ISSUANCE_CORRELATION_ID
+                ))
+                .addPackage("org.eclipse.dataspacetck.dcp.verification.presentation.verifier")
+                .monitor(monitor)
+                .build()
+                .execute();
+
+        monitor.enableBold().message("DCP Tests done: %s succeeded, %s failed".formatted(
+                result.getTestsSucceededCount(), result.getTotalFailureCount()
+        )).resetMode();
+
+        if (!result.getFailures().isEmpty()) {
+            var failures = result.getFailures().stream()
+                    .map(f -> "- " + f.getTestIdentifier().getDisplayName() + " (" + f.getException() + ")")
+                    .collect(Collectors.joining("\n"));
+            Assertions.fail(result.getTotalFailureCount() + " TCK test cases failed:\n" + failures);
+        }
+    }
+
+
+}

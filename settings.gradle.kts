@@ -340,6 +340,7 @@ include(":system-tests:bom-tests")
 include(":system-tests:dsp-compatibility-tests:connector-under-test")
 include(":system-tests:dsp-compatibility-tests:compatibility-test-runner")
 include(":system-tests:protocol-tck:tck-extension")
+include(":system-tests:dcp-tck-tests:presentation")
 
 // BOM modules ----------------------------------------------------------------
 include(":dist:bom:controlplane-base-bom")
