@@ -39,7 +39,6 @@ kafkaClients = "4.0.0"
 testcontainers = "1.21.0"
 tink = "1.17.0"
 dsp-tck = "0.1.1-SNAPSHOT"
-dcp-tck = "0.1.1-SNAPSHOT"
 junit = "1.12.2"
 
 [libraries]
@@ -115,12 +114,6 @@ dsp-tck-system = { module = "org.eclipse.dataspacetck.dsp:dsp-system", version.r
 dsp-tck-contractnegotiation = { module = "org.eclipse.dataspacetck.dsp:dsp-contract-negotiation", version.ref = "dsp-tck" }
 dsp-tck-transferprocess = { module = "org.eclipse.dataspacetck.dsp:dsp-transfer-process", version.ref = "dsp-tck" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit" }
-
-# DCP-TCK libraries
-dcp-testcases = { module = "org.eclipse.dataspacetck.dcp:dcp-testcases", version.ref = "dcp-tck" }
-dcp-tck-runtime = { module = "org.eclipse.dataspacetck.dsp:tck-runtime", version.ref = "dcp-tck" }
-dcp-system = { module = "org.eclipse.dataspacetck.dcp:dcp-system", version.ref = "dcp-tck" }
-dsp-core = { module = "org.eclipse.dataspacetck.dsp:core", version.ref = "dcp-tck" }
 
 [bundles]
 jackson = ["jackson-annotations", "jackson-databind"]
