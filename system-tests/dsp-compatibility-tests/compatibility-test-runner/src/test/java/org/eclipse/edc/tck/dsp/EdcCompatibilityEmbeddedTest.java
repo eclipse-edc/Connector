@@ -105,7 +105,7 @@ public class EdcCompatibilityEmbeddedTest {
                 .collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue().toString()));
     }
 
-    @Timeout(240)
+    @Timeout(300)
     @Test
     void assertDspCompatibility() throws IOException {
         var monitor = new ConsoleMonitor(true, true);

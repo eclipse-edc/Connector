@@ -19,12 +19,14 @@ import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotia
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationAgreed;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationEvent;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationOffered;
+import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationRequested;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessEvent;
+import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessInitiated;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessRequested;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessSuspended;
@@ -166,12 +168,43 @@ public class DataAssembly {
         return List.of(
                 createTrigger(ContractNegotiationOffered.class, "ACN0205", ContractNegotiation::transitionTerminating),
                 createTrigger(ContractNegotiationAccepted.class, "ACN0206", ContractNegotiation::transitionTerminating),
-                createTrigger(ContractNegotiationOffered.class, "C0101", contractNegotiation -> {
+                createTrigger(ContractNegotiationOffered.class, "ACNC0101", contractNegotiation -> {
                     contractNegotiation.transitionAccepting();
                     contractNegotiation.setPending(false);
                 }),
-                createTrigger(ContractNegotiationAgreed.class, "C0101", contractNegotiation -> {
+                createTrigger(ContractNegotiationAgreed.class, "ACNC0101", contractNegotiation -> {
                     contractNegotiation.transitionVerifying();
+                    contractNegotiation.setPending(false);
+                }),
+                createTrigger(ContractNegotiationOffered.class, "ACNC0102", contractNegotiation -> {
+                    contractNegotiation.transitionRequesting();
+                    contractNegotiation.setPending(false);
+                }),
+                createTrigger(ContractNegotiationOffered.class, "ACNC0103", ContractNegotiation::transitionTerminating),
+                createTrigger(ContractNegotiationAgreed.class, "ACNC0104", contractNegotiation -> {
+                    contractNegotiation.transitionVerifying();
+                    contractNegotiation.setPending(false);
+                }),
+                createTrigger(ContractNegotiationRequested.class, "ACNC0202", ContractNegotiation::transitionTerminating),
+                createTrigger(ContractNegotiationAgreed.class, "ACNC0203", ContractNegotiation::transitionTerminating),
+                createTrigger(ContractNegotiationOffered.class, "ACNC0205", contractNegotiation -> {
+                    contractNegotiation.transitionAccepting();
+                    contractNegotiation.setPending(false);
+                }),
+                createTrigger(ContractNegotiationAgreed.class, "ACNC0206", contractNegotiation -> {
+                    contractNegotiation.transitionVerifying();
+                    contractNegotiation.setPending(false);
+                }),
+                createTrigger(ContractNegotiationOffered.class, "ACNC0304", contractNegotiation -> {
+                    contractNegotiation.transitionAccepting();
+                    contractNegotiation.setPending(false);
+                }),
+                createTrigger(ContractNegotiationOffered.class, "ACNC0305", contractNegotiation -> {
+                    contractNegotiation.transitionAccepting();
+                    contractNegotiation.setPending(false);
+                }),
+                createTrigger(ContractNegotiationOffered.class, "ACNC0306", contractNegotiation -> {
+                    contractNegotiation.transitionAccepting();
                     contractNegotiation.setPending(false);
                 })
 
@@ -188,7 +221,7 @@ public class DataAssembly {
         recordConsumer01TransferSequences(recorder);
         recordConsumer02TransferSequences(recorder);
         recordConsumer03TransferSequences(recorder);
-        
+
         return recorder.repeat();
     }
 
@@ -250,7 +283,7 @@ public class DataAssembly {
                 createTransferTrigger(TransferProcessSuspended.class, "ATP0103", (process) -> process.transitionTerminating("terminating")),
                 createTransferTrigger(TransferProcessStarted.class, "ATP0104", suspendResumeTrigger()),
                 createTransferTrigger(TransferProcessSuspended.class, "ATP0104", TransferProcess::transitionStarting),
-
+                createTransferTrigger(TransferProcessInitiated.class, "ATP0205", (process) -> process.setPending(true)),
                 createTransferTrigger(TransferProcessStarted.class, "ATPC0201", TransferProcess::transitionTerminating),
                 createTransferTrigger(TransferProcessStarted.class, "ATPC0202", TransferProcess::transitionCompleting),
                 createTransferTrigger(TransferProcessStarted.class, "ATPC0203", (process) -> process.transitionSuspending("suspending")),

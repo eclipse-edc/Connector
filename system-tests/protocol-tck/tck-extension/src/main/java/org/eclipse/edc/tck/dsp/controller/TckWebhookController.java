@@ -32,6 +32,9 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 
@@ -48,6 +51,12 @@ public class TckWebhookController {
     private final TransferProcessService transferProcessService;
 
 
+    private final Map<String, Function<ContractNegotiationRequest, Policy>> policyMap = Map.of(
+            "ACNC0104", this::permissionPolicy,
+            "ACNC0203", this::permissionPolicy,
+            "ACNC0206", this::permissionPolicy
+    );
+
     public TckWebhookController(Monitor monitor, ContractNegotiationService negotiationService, TransferProcessService transferProcessService) {
         this.monitor = monitor;
         this.negotiationService = negotiationService;
@@ -58,13 +67,12 @@ public class TckWebhookController {
     @Path("/negotiations/requests")
     public void startNegotiation(ContractNegotiationRequest request) {
 
+        var assetId = request.offerId().replace("offer", "");
+        var policy = policyMap.getOrDefault(assetId, (r) -> defaultPolicy(r.providerId()));
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id(request.offerId())
-                .assetId(request.offerId())
-                .policy(Policy.Builder.newInstance().assigner(request.providerId())
-                        .type(PolicyType.OFFER)
-                        .permission(Permission.Builder.newInstance().action(Action.Builder.newInstance().type("http://www.w3.org/ns/odrl/2/use").build()).build())
-                        .build())
+                .assetId(assetId)
+                .policy(policy.apply(request))
                 .build();
         var contractRequest = ContractRequest.Builder.newInstance()
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri(request.connectorAddress()).build()))
@@ -73,9 +81,22 @@ public class TckWebhookController {
                 .protocol("dataspace-protocol-http:2025/1")
                 .build();
 
-        monitor.debug("Starting contract negotiation for [provider, address, offer, asset]: [%s, %s, %s, %s]".formatted(request.providerId(), request.connectorAddress(), request.offerId(), request.offerId()));
+        monitor.debug("Starting contract negotiation for [provider, address, offer]: [%s, %s, %s]".formatted(request.providerId(), request.connectorAddress(), request.offerId()));
 
         negotiationService.initiateNegotiation(contractRequest);
+    }
+
+    private Policy defaultPolicy(String providerId) {
+        return Policy.Builder.newInstance().assigner(providerId)
+                .type(PolicyType.OFFER)
+                .build();
+    }
+
+    private Policy permissionPolicy(ContractNegotiationRequest request) {
+        return Policy.Builder.newInstance().assigner(request.providerId())
+                .type(PolicyType.OFFER)
+                .permission(Permission.Builder.newInstance().action(Action.Builder.newInstance().type("http://www.w3.org/ns/odrl/2/use").build()).build())
+                .build();
     }
 
     @POST
@@ -83,6 +104,7 @@ public class TckWebhookController {
     public void startTransfer(TransferProcessRequest request) {
 
         var transferRequest = TransferRequest.Builder.newInstance()
+                .id(request.agreementId() + "_" + UUID.randomUUID())
                 .transferType(request.format())
                 .counterPartyAddress(request.connectorAddress())
                 .protocol("dataspace-protocol-http:2025/1")
