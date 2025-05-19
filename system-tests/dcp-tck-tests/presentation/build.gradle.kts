@@ -17,9 +17,18 @@ plugins {
 }
 
 dependencies {
+
+    constraints {
+        // netty's mockserver depends on an older version of the json schema validator, but TCK needs this:
+        implementation("com.networknt:json-schema-validator:1.5.6") {
+            because("This version is required by the TCK")
+        }
+    }
+
     testRuntimeOnly(libs.dcp.testcases)
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":spi:common:identity-trust-spi"))
+    testImplementation(project(":spi:common:identity-did-spi")) //DidDocument
     testImplementation(libs.nimbus.jwt)
     testImplementation(libs.restAssured)
     testImplementation(libs.assertj)
@@ -28,7 +37,7 @@ dependencies {
     testImplementation(libs.dcp.tck.runtime)
     testImplementation(libs.dcp.system)
     testImplementation(libs.dsp.core)
-//    testImplementation(testFixtures(project(":e2e-tests:identityhub-test-fixtures")))
+    testImplementation(libs.mockserver.netty)
     testImplementation(libs.junit.platform.launcher)
 }
 
