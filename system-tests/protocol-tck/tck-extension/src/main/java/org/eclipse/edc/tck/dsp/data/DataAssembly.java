@@ -52,8 +52,8 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 public class DataAssembly {
     private static final Set<String> ASSET_IDS = Set.of("ACN0101", "ACN0102", "ACN0103", "ACN0104",
             "ACN0201", "ACN0202", "ACN0203", "ACN0204", "ACN0205", "ACN0206", "ACN0207",
-            "ACN0301", "ACN0302", "ACN0303", "ACN0304");
-
+            "ACN0301", "ACN0302", "ACN0303", "ACN0304",
+            "CAT0101", "CAT0102");
 
     private static final Set<String> AGREEMENT_IDS = Set.of(
             "ATP0101", "ATP0102", "ATP0103", "ATP0104", "ATP0105",
@@ -333,7 +333,7 @@ public class DataAssembly {
     private static Asset createAsset(String id) {
         return Asset.Builder.newInstance()
                 .id(id)
-                .dataAddress(DataAddress.Builder.newInstance().type("HTTP").build())
+                .dataAddress(DataAddress.Builder.newInstance().type("HttpData").build())
                 .build();
     }
 

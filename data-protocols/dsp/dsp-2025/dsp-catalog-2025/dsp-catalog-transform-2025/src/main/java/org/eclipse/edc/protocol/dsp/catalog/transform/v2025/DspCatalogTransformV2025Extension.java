@@ -22,7 +22,7 @@ import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDataSer
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDatasetTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDistributionTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToCatalogRequestMessageTransformer;
-import org.eclipse.edc.protocol.dsp.catalog.transform.v2024.from.JsonObjectFromCatalogV2024Transformer;
+import org.eclipse.edc.protocol.dsp.catalog.transform.v2025.from.JsonObjectFromCatalogV2025Transformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -70,7 +70,7 @@ public class DspCatalogTransformV2025Extension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonObjectFromCatalogRequestMessageTransformer(jsonFactory, DSP_NAMESPACE_V_2025_1));
         dspApiTransformerRegistry.register(new JsonObjectToCatalogRequestMessageTransformer(DSP_NAMESPACE_V_2025_1));
 
-        dspApiTransformerRegistry.register(new JsonObjectFromCatalogV2024Transformer(jsonFactory, typeManager, JSON_LD, participantIdMapper, DSP_NAMESPACE_V_2025_1));
+        dspApiTransformerRegistry.register(new JsonObjectFromCatalogV2025Transformer(jsonFactory, typeManager, JSON_LD, participantIdMapper, DSP_NAMESPACE_V_2025_1));
         dspApiTransformerRegistry.register(new JsonObjectFromDatasetTransformer(jsonFactory, typeManager, JSON_LD));
         dspApiTransformerRegistry.register(new JsonObjectFromDistributionTransformer(jsonFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromDataServiceTransformer(jsonFactory));
