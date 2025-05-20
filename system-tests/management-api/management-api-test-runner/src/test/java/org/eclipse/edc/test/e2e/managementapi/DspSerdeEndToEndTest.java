@@ -189,7 +189,7 @@ public class DspSerdeEndToEndTest {
         assertThat(result.getString(TYPE)).isEqualTo("Catalog");
 
         assertThat(result.getString("participantId")).isEqualTo(catalog.getParticipantId());
-        assertThat(result.getJsonArray("distribution")).isEmpty();
+        assertThat(result.get("distribution")).isNull();
 
         assertThat(result.getJsonArray("service")).hasSize(1)
                 .first().satisfies(s -> {
