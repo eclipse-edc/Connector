@@ -210,7 +210,7 @@ public class ContractNegotiationApiEndToEndTest {
                     .contentType(JSON)
                     .delete("/v3/contractnegotiations/cn1")
                     .then()
-                    .statusCode(403);
+                    .statusCode(409);
 
             Assertions.assertNotNull(store.findById("cn1"));
         }
@@ -276,7 +276,8 @@ public class ContractNegotiationApiEndToEndTest {
     @Nested
     @EndToEndTest
     @ExtendWith(ManagementEndToEndExtension.InMemory.class)
-    class InMemory extends Tests { }
+    class InMemory extends Tests {
+    }
 
     @Nested
     @PostgresqlIntegrationTest
