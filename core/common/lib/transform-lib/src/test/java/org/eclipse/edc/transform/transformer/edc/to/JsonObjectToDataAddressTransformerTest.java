@@ -28,6 +28,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
@@ -35,11 +36,9 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class JsonObjectToDataAddressTransformerTest {
@@ -90,30 +89,31 @@ class JsonObjectToDataAddressTransformerTest {
     }
 
     @Test
-    void transform_withComplexCustomProps_shouldReportProblem() {
+    void transform_withComplexCustomProps() {
         when(transformerContext.transform(isA(JsonValue.class), eq(Payload.class))).thenReturn(new Payload(CUSTOM_PAYLOAD_NAME, CUSTOM_PAYLOAD_AGE));
         var json = createDataAddress()
                 .add(EDC_NAMESPACE + "properties", createObjectBuilder()
                         .add("payload", createPayloadBuilder().build())
+                        .add("array", createArrayBuilder().add("string1").add("string2").build())
                         .build())
                 .build();
 
         var dataAddress = transformer.transform(expand(json), transformerContext);
 
         assertThat(dataAddress).isNotNull();
-        assertThat(dataAddress.getType()).isEqualTo(TEST_TYPE);
-        assertThat(dataAddress.getKeyName()).isEqualTo(TEST_KEY_NAME);
-        assertThat(dataAddress.getProperties()).hasSize(2);
+        assertThat(dataAddress.getProperty(EDC_NAMESPACE + "payload")).isNotNull();
+        assertThat(dataAddress.getProperty(EDC_NAMESPACE + "array")).isNotNull();
+        assertThat(dataAddress.getProperties()).hasSize(4);
 
-        verify(transformerContext).reportProblem(any());
+        assertThat(transformerContext.hasProblems()).isFalse();
     }
 
     private JsonObjectBuilder createDataAddress() {
         return createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
                 .add(TYPE, EDC_NAMESPACE + "DataAddress")
-                .add(EDC_NAMESPACE + DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY, TEST_TYPE)
-                .add(EDC_NAMESPACE + DataAddress.EDC_DATA_ADDRESS_KEY_NAME, TEST_KEY_NAME);
+                .add(DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY, TEST_TYPE)
+                .add(DataAddress.EDC_DATA_ADDRESS_KEY_NAME, TEST_KEY_NAME);
     }
 
     private JsonObjectBuilder createContextBuilder() {

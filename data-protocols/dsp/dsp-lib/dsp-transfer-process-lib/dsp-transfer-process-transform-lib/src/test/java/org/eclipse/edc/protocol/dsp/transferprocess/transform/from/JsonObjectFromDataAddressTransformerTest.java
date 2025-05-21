@@ -16,15 +16,18 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transform.from;
 
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromDataAddressTransformer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -43,7 +46,7 @@ class JsonObjectFromDataAddressTransformerTest {
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromDataAddressTransformer(jsonFactory);
+        transformer = new JsonObjectFromDataAddressTransformer(jsonFactory, JacksonJsonLd.createObjectMapper());
     }
 
     @Test
@@ -62,6 +65,24 @@ class JsonObjectFromDataAddressTransformerTest {
         assertThat(result.getJsonString(DataAddress.EDC_DATA_ADDRESS_KEY_NAME).getString()).isEqualTo(key);
 
         verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void transform_withCustomComplexProperty() {
+        var message = DataAddress.Builder.newInstance()
+                .type(type)
+                .keyName(key)
+                .property("complexJsonObject", DataAddress.Builder.newInstance().property(EDC_DATA_ADDRESS_TYPE_PROPERTY, "AmazonS3").build())
+                .property("complexJsonArray", List.of("string1", "string2"))
+                .build();
+
+        var result = transformer.transform(message, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result).extracting("complexJsonObject").isNotNull();
+        assertThat(result).extracting("complexJsonArray").isNotNull();
+
+
     }
 
     @Test

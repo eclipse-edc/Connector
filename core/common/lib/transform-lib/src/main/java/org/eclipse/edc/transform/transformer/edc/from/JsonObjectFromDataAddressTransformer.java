@@ -14,8 +14,10 @@
 
 package org.eclipse.edc.transform.transformer.edc.from;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -28,10 +30,12 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransformer<DataAddress, JsonObject> {
 
     private final JsonBuilderFactory jsonBuilderFactory;
+    private final ObjectMapper mapper;
 
-    public JsonObjectFromDataAddressTransformer(JsonBuilderFactory jsonBuilderFactory) {
+    public JsonObjectFromDataAddressTransformer(JsonBuilderFactory jsonBuilderFactory, ObjectMapper mapper) {
         super(DataAddress.class, JsonObject.class);
         this.jsonBuilderFactory = jsonBuilderFactory;
+        this.mapper = mapper;
     }
 
     @Override
@@ -40,7 +44,24 @@ public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransfor
 
         builder.add(TYPE, EDC_NAMESPACE + "DataAddress");
 
-        dataAddress.getProperties().forEach((key, value) -> builder.add(key, (String) value)); // TODO: handle different types
+        dataAddress.getProperties().forEach((key, value) -> {
+            if (value instanceof String valueString) {
+                builder.add(key, valueString);
+            } else {
+                var transformedValue = mapper.convertValue(value, JsonValue.class);
+                if (transformedValue != null) {
+                    builder.add(key, transformedValue);
+                } else {
+                    context.problem()
+                            .unexpectedType()
+                            .type("property")
+                            .property(key)
+                            .actual(value.getClass().getName())
+                            .expected("Property could not be converted to json object or array.")
+                            .report();
+                }
+            }
+        });
 
         return builder.build();
     }
