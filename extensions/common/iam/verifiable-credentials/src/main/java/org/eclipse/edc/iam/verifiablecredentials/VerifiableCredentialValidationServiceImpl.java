@@ -79,12 +79,13 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
                 new HasValidSubjectSchema(mapper)));
 
         filters.addAll(additionalRules);
-        
+
+
         return credentials
                 .stream()
                 .map(c -> filters.stream().reduce(t -> success(), CredentialValidationRule::and).apply(c))
                 .reduce(Result::merge)
-                .orElseGet(() -> failure("Could not determine the status of the VC validation"));
+                .orElseGet(Result::success);
     }
 
 }

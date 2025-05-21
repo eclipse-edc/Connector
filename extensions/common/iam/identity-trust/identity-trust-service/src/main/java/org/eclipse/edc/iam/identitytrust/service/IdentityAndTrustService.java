@@ -35,6 +35,7 @@ import org.eclipse.edc.util.string.StringUtils;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -165,13 +166,36 @@ public class IdentityAndTrustService implements IdentityService {
 
         var presentations = vpResponse.getContent();
 
-        var result = verifiableCredentialValidationService.validate(presentations, getAdditionalValidations(requestedScopes));
+        // check all requested credentials are present
+
+        var result = validateRequestedCredentials(presentations, requestedScopes)
+                .compose(unused -> verifiableCredentialValidationService.validate(presentations, getAdditionalValidations()));
+
 
         return result
                 .compose(u -> verifyPresentationIssuer(issuer, presentations))
                 .compose(u -> claimTokenCreatorFunction.apply(presentations.stream().map(p -> p.presentation().getCredentials().stream())
                         .reduce(Stream.empty(), Stream::concat)
                         .toList()));
+    }
+
+    private Result<Void> validateRequestedCredentials(List<VerifiablePresentationContainer> presentations, List<String> requestedScopes) {
+        var allCreds = presentations.stream()
+                .flatMap(p -> p.presentation().getCredentials().stream())
+                .toList();
+        if (requestedScopes.size() > allCreds.size()) {
+            return Result.failure("Number of requested credentials does not match the number of returned credentials");
+        }
+
+        var types = allCreds.stream().map(VerifiableCredential::getType)
+                .flatMap(Collection::stream)
+                .distinct()
+                .toList();
+
+
+        return requestedScopes.stream().allMatch(scope -> types.stream().anyMatch(scope::contains)) ?
+                Result.success() :
+                Result.failure("Not all requested credentials are present in the presentation response");
     }
 
     /**
@@ -191,19 +215,8 @@ public class IdentityAndTrustService implements IdentityService {
     }
 
 
-    private Collection<? extends CredentialValidationRule> getAdditionalValidations(List<String> requestedScopes) {
-        var hasRequiredScopeRule = new CredentialValidationRule() {
-
-            @Override
-            public Result<Void> apply(VerifiableCredential verifiableCredential) {
-                if (requestedScopes.isEmpty()) {
-                    return success();
-                }
-                var containsAll = requestedScopes.stream().allMatch(requestedScope -> verifiableCredential.getType().stream().anyMatch(requestedScope::contains));
-                return containsAll ? success() : failure("Not all of the requested scopes where satisfied: %s".formatted(requestedScopes));
-            }
-        };
-        return List.of(hasRequiredScopeRule);
+    private Collection<? extends CredentialValidationRule> getAdditionalValidations() {
+        return Collections.emptyList();
     }
 
 

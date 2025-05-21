@@ -101,7 +101,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Setting(description = "If set enable the dcp v0.8 namespace will be used", key = "edc.dcp.v08.forced", required = false, defaultValue = "false")
     private boolean enableDcpV08;
 
-    @Setting(description = "Activate or deactivate JTI validation", key = "edc.iam.accesstoken.jti.validation", defaultValue = "false")
+    @Setting(description = "Activate or deactivate JTI validation", key = "edc.iam.accesstoken.jti.validation", defaultValue = "true")
     private boolean activateJtiValidation;
 
     @Inject

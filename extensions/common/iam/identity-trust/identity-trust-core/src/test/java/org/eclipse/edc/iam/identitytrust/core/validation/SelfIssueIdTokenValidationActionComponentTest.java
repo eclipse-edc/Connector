@@ -50,7 +50,7 @@ import java.util.Date;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.iam.identitytrust.spi.TestFunctions.createJwt;
+import static org.eclipse.edc.iam.identitytrust.spi.TestFunctions.createToken;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -58,7 +58,7 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 @ExtendWith(DependencyInjectionExtension.class)
 public class SelfIssueIdTokenValidationActionComponentTest {
-    
+
     public static final String CONSUMER_DID = "did:web:consumer";
     public static final String CONSUMER_DID_KEY = "did:web:consumer#key";
     public static final String EXPECTED_AUDIENCE = "did:web:test";
@@ -119,7 +119,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
                 .build();
 
         when(publicKeyResolver.resolveKey(CONSUMER_DID_KEY)).thenReturn(Result.success(key.toPublicKey()));
-        var token = createJwt(claims, key);
+        var token = createToken(claims, key);
         assertThat(verifier.apply(token)).isSucceeded();
     }
 
@@ -138,7 +138,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
                 .build();
 
         when(publicKeyResolver.resolveKey(CONSUMER_DID_KEY)).thenReturn(Result.success(key.toPublicKey()));
-        var token = createJwt(claims, key);
+        var token = createToken(claims, key);
         assertThat(verifier.apply(token)).isFailed().detail()
                 .isEqualTo("kid header 'did:web:consumer#key' expected to correlate to 'iss' claim ('wrongIssuer'), but it did not.");
     }
@@ -157,7 +157,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
                 .build();
 
         when(publicKeyResolver.resolveKey("did:web:issuer#key")).thenReturn(Result.success(key.toPublicKey()));
-        var token = createJwt(claims, key);
+        var token = createToken(claims, key);
         assertThat(verifier.apply(token)).isFailed().detail()
                 .isEqualTo("The 'iss' and 'sub' claims must be non-null and identical.");
     }
@@ -176,7 +176,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
                 .build();
 
         when(publicKeyResolver.resolveKey(CONSUMER_DID_KEY)).thenReturn(Result.success(key.toPublicKey()));
-        var token = createJwt(claims, key);
+        var token = createToken(claims, key);
         assertThat(verifier.apply(token)).isFailed().detail()
                 .isEqualTo("Token audience claim (aud -> [unexpectedAudience]) did not contain expected audience: did:web:test");
     }
@@ -194,7 +194,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
                 .build();
 
         when(publicKeyResolver.resolveKey(CONSUMER_DID_KEY)).thenReturn(Result.success(key.toPublicKey()));
-        var token = createJwt(claims, key);
+        var token = createToken(claims, key);
         assertThat(verifier.apply(token)).isFailed().detail()
                 .isEqualTo("The 'token' claim is mandatory and must not be null.");
     }
@@ -211,7 +211,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
                 .build();
 
         when(publicKeyResolver.resolveKey(CONSUMER_DID_KEY)).thenReturn(Result.success(key.toPublicKey()));
-        var token = createJwt(claims, key);
+        var token = createToken(claims, key);
         assertThat(verifier.apply(token)).isFailed().detail()
                 .isEqualTo("Required expiration time (exp) claim is missing in token, The 'token' claim is mandatory and must not be null.");
     }
@@ -231,7 +231,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
                 .build();
 
         when(publicKeyResolver.resolveKey(CONSUMER_DID_KEY)).thenReturn(Result.success(key.toPublicKey()));
-        var token = createJwt(claims, key);
+        var token = createToken(claims, key);
         assertThat(verifier.apply(token)).isFailed().detail()
                 .isEqualTo("The 'sub_jwk' claim must not be present.");
     }

@@ -168,7 +168,7 @@ public class DcpPresentationFlowTest {
 
     @DisplayName("Run TCK Presentation Flow tests")
     @Test
-    void runPresentationFlowTests(EmbeddedRuntime edcRuntime) {
+    void runPresentationFlowTests() {
         var monitor = new ConsoleMonitor(true, true);
 
         var triggerPath = PROTOCOL_API_PATH + "/2024/1/catalog/request"; // todo: update to 2025 as soon as that is the default

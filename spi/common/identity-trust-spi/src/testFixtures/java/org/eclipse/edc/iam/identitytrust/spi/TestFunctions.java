@@ -35,23 +35,23 @@ public class TestFunctions {
 
     public static final Issuer TRUSTED_ISSUER = new Issuer("http://test.issuer", Map.of());
 
-    public static TokenRepresentation createJwt() {
-        return createJwt("did:web:test", "test-audience");
+    public static TokenRepresentation createToken() {
+        return createToken("did:web:test", "test-audience");
     }
 
-    public static TokenRepresentation createJwt(String issuer, String subject) {
+    public static TokenRepresentation createToken(String issuer, String subject) {
 
         var claimsSet = new JWTClaimsSet.Builder()
                 .subject(subject)
                 .issuer(issuer)
-                .claim(PRESENTATION_TOKEN_CLAIM, createJwt(new JWTClaimsSet.Builder().claim("scope", "fooscope").build()).getToken())
+                .claim(PRESENTATION_TOKEN_CLAIM, createToken(new JWTClaimsSet.Builder().claim("scope", "fooscope").build()).getToken())
                 .expirationTime(new Date(new Date().getTime() + 60 * 1000))
                 .build();
-        return createJwt(claimsSet);
+        return createToken(claimsSet);
 
     }
 
-    public static TokenRepresentation createJwt(JWTClaimsSet claimsSet, ECKey key) {
+    public static TokenRepresentation createToken(JWTClaimsSet claimsSet, ECKey key) {
         // Generate an EC key pair
         try {
 
@@ -71,7 +71,7 @@ public class TestFunctions {
         }
     }
 
-    public static TokenRepresentation createJwt(JWTClaimsSet claimsSet) {
+    public static TokenRepresentation createToken(JWTClaimsSet claimsSet) {
         // Generate an EC key pair
         ECKey ecJwk;
         try {
@@ -88,7 +88,7 @@ public class TestFunctions {
             signedJwt.sign(signer);
 
             return TokenRepresentation.Builder.newInstance()
-                    .token(signedJwt.serialize())
+                    .token("Bearer " + signedJwt.serialize())
                     .build();
         } catch (JOSEException e) {
             throw new RuntimeException(e);
