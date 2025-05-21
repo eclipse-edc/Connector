@@ -23,7 +23,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static jakarta.json.JsonValue.ValueType.STRING;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 
@@ -52,17 +51,7 @@ public class JsonObjectToDataAddressTransformer extends AbstractJsonLdTransforme
             visitProperties(props, (k, val) -> transformProperties(k, val, builder, context));
         } else {
             var object = transformGenericProperty(jsonValue, context);
-            if (object instanceof String) {
-                builder.property(key, object.toString());
-            } else {
-                context.problem()
-                        .unexpectedType()
-                        .type("property")
-                        .property(key)
-                        .actual(object == null ? "null" : object.toString())
-                        .expected(STRING)
-                        .report();
-            }
+            builder.property(key, object);
         }
 
     }
