@@ -39,6 +39,7 @@ dependencies {
     testImplementation(libs.dsp.core)
     testImplementation(libs.mockserver.netty)
     testImplementation(libs.junit.platform.launcher)
+    testImplementation(libs.testcontainers.junit)
 }
 
 edcBuild {

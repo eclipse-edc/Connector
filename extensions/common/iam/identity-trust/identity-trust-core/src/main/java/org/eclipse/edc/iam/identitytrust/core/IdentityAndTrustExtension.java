@@ -54,12 +54,14 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.token.rules.AudienceValidationRule;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
+import org.eclipse.edc.token.rules.NotBeforeValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.HasSubjectRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerEqualsSubjectRule;
+import org.eclipse.edc.verifiablecredentials.jwt.rules.JtiValidationRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.SubJwkIsNullRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.TokenNotNullRule;
 import org.eclipse.edc.verifiablecredentials.linkeddata.DidMethodResolver;
@@ -98,6 +100,9 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     @Setting(description = "If set enable the dcp v0.8 namespace will be used", key = "edc.dcp.v08.forced", required = false, defaultValue = "false")
     private boolean enableDcpV08;
+
+    @Setting(description = "Activate or deactivate JTI validation", key = "edc.iam.accesstoken.jti.validation", defaultValue = "false")
+    private boolean activateJtiValidation;
 
     @Inject
     private SecureTokenService secureTokenService;
@@ -162,10 +167,14 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new AudienceValidationRule(issuerId));
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, 5, false));
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new TokenNotNullRule());
+        rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new NotBeforeValidationRule(clock, 4, true));
 
         // add all rules for validating VerifiableCredential JWTs
         rulesRegistry.addRule(JWT_VC_TOKEN_CONTEXT, new HasSubjectRule());
 
+        if (activateJtiValidation) {
+            rulesRegistry.addRule(JWT_VC_TOKEN_CONTEXT, new JtiValidationRule(jtiValidationStore, context.getMonitor()));
+        }
 
         try {
             jsonLd.registerCachedDocument(STATUSLIST_2021_URL, getClass().getClassLoader().getResource("statuslist2021.json").toURI());
@@ -182,13 +191,17 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     @Override
     public void start() {
-        jtiEntryReaperThread = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), "JTI Validation Entry Reaper Thread")
-                .scheduleAtFixedRate(jtiValidationStore::deleteExpired, reaperCleanupPeriod, reaperCleanupPeriod, TimeUnit.SECONDS);
+        if (activateJtiValidation) {
+            jtiEntryReaperThread = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), "JTI Validation Entry Reaper Thread")
+                    .scheduleAtFixedRate(jtiValidationStore::deleteExpired, reaperCleanupPeriod, reaperCleanupPeriod, TimeUnit.SECONDS);
+        }
     }
 
     @Override
     public void shutdown() {
-        jtiEntryReaperThread.cancel(true);
+        if (jtiEntryReaperThread != null && !jtiEntryReaperThread.isCancelled()) {
+            jtiEntryReaperThread.cancel(true);
+        }
     }
 
     @Override

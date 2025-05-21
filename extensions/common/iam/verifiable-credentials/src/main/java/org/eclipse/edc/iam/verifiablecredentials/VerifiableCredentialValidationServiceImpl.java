@@ -55,6 +55,9 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
 
     @Override
     public Result<Void> validate(List<VerifiablePresentationContainer> presentations, Collection<? extends CredentialValidationRule> additionalRules) {
+        if (presentations.isEmpty()) {
+            return failure("No presentations to validate");
+        }
         return presentations.stream().map(verifiablePresentation -> {
             var credentials = verifiablePresentation.presentation().getCredentials();
             // verify, that the VP and all VPs are cryptographically OK
@@ -76,11 +79,7 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
                 new HasValidSubjectSchema(mapper)));
 
         filters.addAll(additionalRules);
-
-        if (credentials.isEmpty()) {
-            return success();
-        }
-
+        
         return credentials
                 .stream()
                 .map(c -> filters.stream().reduce(t -> success(), CredentialValidationRule::and).apply(c))

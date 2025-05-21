@@ -20,6 +20,7 @@ import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceUrlResolver;
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.iam.identitytrust.spi.validation.TokenValidationAction;
 import org.eclipse.edc.iam.verifiablecredentials.spi.VerifiableCredentialValidationService;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentation;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
@@ -123,6 +124,13 @@ public class IdentityAndTrustService implements IdentityService {
 
     @Override
     public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, VerificationContext context) {
+        // strip out the "Bearer " prefix
+        var token = tokenRepresentation.getToken();
+        if (!token.startsWith("Bearer ")) {
+            return failure("Token is not a Bearer token");
+        }
+        token = token.replace("Bearer ", "").trim();
+        tokenRepresentation = tokenRepresentation.toBuilder().token(token).build();
         var claimTokenResult = tokenValidationAction.apply(tokenRepresentation);
 
         if (claimTokenResult.failed()) {
@@ -147,8 +155,9 @@ public class IdentityAndTrustService implements IdentityService {
         var siTokenString = siToken.getContent().getToken();
 
         // get CS Url, execute VP request
+        var requestedScopes = context.getScopes().stream().toList();
         var vpResponse = credentialServiceUrlResolver.resolve(issuer)
-                .compose(url -> credentialServiceClient.requestPresentation(url, siTokenString, context.getScopes().stream().toList()));
+                .compose(url -> credentialServiceClient.requestPresentation(url, siTokenString, requestedScopes));
 
         if (vpResponse.failed()) {
             return vpResponse.mapEmpty();
@@ -156,7 +165,7 @@ public class IdentityAndTrustService implements IdentityService {
 
         var presentations = vpResponse.getContent();
 
-        var result = verifiableCredentialValidationService.validate(presentations, getAdditionalValidations());
+        var result = verifiableCredentialValidationService.validate(presentations, getAdditionalValidations(requestedScopes));
 
         return result
                 .compose(u -> verifyPresentationIssuer(issuer, presentations))
@@ -182,8 +191,19 @@ public class IdentityAndTrustService implements IdentityService {
     }
 
 
-    private Collection<? extends CredentialValidationRule> getAdditionalValidations() {
-        return List.of();
+    private Collection<? extends CredentialValidationRule> getAdditionalValidations(List<String> requestedScopes) {
+        var hasRequiredScopeRule = new CredentialValidationRule() {
+
+            @Override
+            public Result<Void> apply(VerifiableCredential verifiableCredential) {
+                if (requestedScopes.isEmpty()) {
+                    return success();
+                }
+                var containsAll = requestedScopes.stream().allMatch(requestedScope -> verifiableCredential.getType().stream().anyMatch(requestedScope::contains));
+                return containsAll ? success() : failure("Not all of the requested scopes where satisfied: %s".formatted(requestedScopes));
+            }
+        };
+        return List.of(hasRequiredScopeRule);
     }
 
 

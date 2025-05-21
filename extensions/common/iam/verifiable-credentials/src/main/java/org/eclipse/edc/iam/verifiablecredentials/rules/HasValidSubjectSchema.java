@@ -45,7 +45,7 @@ public class HasValidSubjectSchema implements CredentialValidationRule {
         }
         return verifiableCredential.getCredentialSchema().stream().filter(Objects::nonNull).map(schema -> {
             var schemaUrl = schema.id();
-            // returns the schema using the JsonSchemaFactory. The factory does some caching internally, so there is no need to cache again
+            // Returns the schema using the JsonSchemaFactory. The factory does some caching internally, so there is no need to cache again
             var jsonSchema = factory.getSchema(URI.create(schemaUrl));
 
             // validate all subjects against the current schema
@@ -55,7 +55,7 @@ public class HasValidSubjectSchema implements CredentialValidationRule {
                     .toList();
             return validationMessages.isEmpty()
                     ? Result.success()
-                    : Result.<Void>failure("Error validating CredentialSubject against schema: " + validationMessages); //ValidationMessage overwrites toString()
+                    : Result.<Void>failure("Error validating CredentialSubject against schema: " + validationMessages); // ValidationMessage overwrites toString()
 
         }).reduce(Result::merge).orElseGet(Result::success);
     }
