@@ -15,6 +15,8 @@
 package org.eclipse.edc.connector.dataplane.spi.manager;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
+import org.eclipse.edc.connector.dataplane.spi.provision.DeprovisionedResource;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionedResource;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.entity.StateEntityManager;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -92,4 +94,20 @@ public interface DataPlaneManager extends StateEntityManager {
      * @return success if succeeded, failure otherwise.
      */
     StatusResult<Void> restartFlows();
+
+    /**
+     * Report asynchronously provisioned resource.
+     *
+     * @param provisionedResource the provisioned resource.
+     * @return result.
+     */
+    StatusResult<Void> resourceProvisioned(ProvisionedResource provisionedResource);
+
+    /**
+     * Report asynchronously deprovisioned resource.
+     *
+     * @param deprovisionedResource the deprovisioned resource.
+     * @return result.
+     */
+    StatusResult<Void> resourceDeprovisioned(DeprovisionedResource deprovisionedResource);
 }

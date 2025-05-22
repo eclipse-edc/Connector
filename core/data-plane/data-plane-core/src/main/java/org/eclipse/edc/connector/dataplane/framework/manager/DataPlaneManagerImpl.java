@@ -22,6 +22,8 @@ import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.port.TransferProcessApiClient;
+import org.eclipse.edc.connector.dataplane.spi.provision.DeprovisionedResource;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionerManager;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
 import org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry;
@@ -202,6 +204,33 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     @Override
+    public StatusResult<Void> resourceProvisioned(ProvisionedResource provisionedResource) {
+        return store.findByIdAndLease(provisionedResource.getFlowId())
+                .flatMap(StatusResult::from)
+                .onSuccess(flow -> {
+                    flow.resourceProvisioned(List.of(provisionedResource));
+
+                    if (flow.isProvisionCompleted()) {
+                        transferProcessClient.provisioned(flow.getId(), flow.provisionedDataAddress());
+                    }
+
+                    update(flow);
+                })
+                .mapEmpty();
+    }
+
+    @Override
+    public StatusResult<Void> resourceDeprovisioned(DeprovisionedResource deprovisionedResource) {
+        return store.findByIdAndLease(deprovisionedResource.getFlowId())
+                .flatMap(StatusResult::from)
+                .onSuccess(flow -> {
+                    flow.resourceDeprovisioned(List.of(deprovisionedResource));
+                    update(flow);
+                })
+                .mapEmpty();
+    }
+
+    @Override
     protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
         Supplier<Criterion> ownedByThisRuntime = () -> new Criterion("runtimeId", "=", runtimeId);
         Supplier<Criterion> ownedByAnotherRuntime = () -> new Criterion("runtimeId", "!=", runtimeId);
@@ -298,27 +327,29 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         return entityRetryProcessFactory.retryProcessor(dataFlow)
                 .doProcess(future("provisioning", (flow, e) -> provisionerManager.provision(flow.resourcesToBeProvisioned())))
                 .onSuccess((flow, results) -> {
-                    results.stream().filter(StatusResult::succeeded).map(StatusResult::getContent)
-                            .forEach(flow::resourceProvisioned);
+                    var provisionedResources = results.stream().filter(StatusResult::succeeded).map(StatusResult::getContent).toList();
 
-                    if (flow.resourcesToBeProvisioned().isEmpty()) {
-                        transferProcessClient.provisioned(dataFlow.getId(), flow.provisionedDataAddress());
-                        dataFlow.transitionToProvisioned();
-                    } else {
+                    flow.resourceProvisioned(provisionedResources);
+
+                    if (flow.isProvisionCompleted()) {
+                        transferProcessClient.provisioned(flow.getId(), flow.provisionedDataAddress());
+                    }
+
+                    if (provisionedResources.size() != results.size()) {
                         var failureDetail = results.stream().filter(StatusResult::failed).map(StatusResult::getFailureDetail).collect(joining(","));
                         flow.setErrorDetail(failureDetail);
                         flow.transitionToProvisioning();
                     }
 
-                    update(dataFlow);
+                    update(flow);
                 })
                 .onFailure((flow, t) -> {
                     flow.transitionToProvisioning();
-                    update(dataFlow);
+                    update(flow);
                 })
                 .onFinalFailure((flow, e) -> {
                     flow.transitToFailed("Cannot provision: " + e.getMessage());
-                    update(dataFlow);
+                    update(flow);
                 })
                 .execute();
     }
@@ -327,12 +358,11 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         return entityRetryProcessFactory.retryProcessor(dataFlow)
                 .doProcess(future("deprovisioning", (flow, e) -> provisionerManager.deprovision(flow.resourcesToBeDeprovisioned())))
                 .onSuccess((flow, results) -> {
-                    results.stream().filter(StatusResult::succeeded).map(StatusResult::getContent)
-                            .forEach(flow::resourceDeprovisioned);
+                    var deprovisionedResources = results.stream().filter(StatusResult::succeeded).map(StatusResult::getContent).toList();
 
-                    if (flow.resourcesToBeDeprovisioned().isEmpty()) {
-                        flow.transitionToDeprovisioned();
-                    } else {
+                    flow.resourceDeprovisioned(deprovisionedResources);
+
+                    if (deprovisionedResources.size() != results.size()) {
                         var failureDetail = results.stream().filter(StatusResult::failed).map(StatusResult::getFailureDetail).collect(joining(","));
                         flow.setErrorDetail(failureDetail);
                         flow.transitionToDeprovisioning();

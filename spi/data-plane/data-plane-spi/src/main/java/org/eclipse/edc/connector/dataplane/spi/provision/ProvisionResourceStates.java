@@ -22,7 +22,9 @@ import java.util.Arrays;
 public enum ProvisionResourceStates {
 
     CREATED(100),
+    PROVISION_REQUESTED(150),
     PROVISIONED(200),
+    DEPROVISION_REQUESTED(400),
     DEPROVISIONED(500);
 
     private final int code;

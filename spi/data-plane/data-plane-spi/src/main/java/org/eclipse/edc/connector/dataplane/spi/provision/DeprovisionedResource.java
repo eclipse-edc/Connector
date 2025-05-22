@@ -23,6 +23,7 @@ public class DeprovisionedResource {
 
     private String id;
     private String flowId;
+    private boolean pending = false;
 
     public String getId() {
         return id;
@@ -30,6 +31,10 @@ public class DeprovisionedResource {
 
     public String getFlowId() {
         return flowId;
+    }
+
+    public boolean isPending() {
+        return pending;
     }
 
     public static class Builder {
@@ -60,6 +65,11 @@ public class DeprovisionedResource {
 
         public Builder flowId(String flowId) {
             resource.flowId = flowId;
+            return this;
+        }
+
+        public Builder pending(boolean pending) {
+            resource.pending = pending;
             return this;
         }
     }
