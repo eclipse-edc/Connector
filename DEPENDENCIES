@@ -245,6 +245,7 @@ maven/mavencentral/org.apiguardian/apiguardian-api/1.1.2, Apache-2.0, approved, 
 maven/mavencentral/org.assertj/assertj-core/3.27.3, Apache-2.0, approved, #17980
 maven/mavencentral/org.awaitility/awaitility/4.2.0, Apache-2.0, approved, #14178
 maven/mavencentral/org.awaitility/awaitility/4.2.2, Apache-2.0, approved, #14178
+maven/mavencentral/org.awaitility/awaitility/4.3.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.72, MIT, approved, #3789
 maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.80, MIT, approved, #18697
 maven/mavencentral/org.bouncycastle/bcprov-jdk18on/1.72, MIT AND CC0-1.0, approved, #3538
@@ -261,6 +262,9 @@ maven/mavencentral/org.codehaus.plexus/plexus-utils/3.1.1, , approved, CQ16492
 maven/mavencentral/org.codehaus.plexus/plexus-utils/3.3.0, , approved, CQ21066
 maven/mavencentral/org.eclipse.angus/angus-activation/1.0.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.angus
 maven/mavencentral/org.eclipse.dataspacetck.common/core-api/0.1.0, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-api/0.1.1-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-system/0.1.1-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-testcases/0.1.1-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/boot/0.1.1-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/core/0.1.1-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-api/0.1.1-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
@@ -268,8 +272,8 @@ maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-contract-negotiation/0.1.1-S
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-system/0.1.1-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-transfer-process/0.1.1-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/tck-runtime/0.1.1-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.edc/autodoc-processor/0.13.0-SNAPSHOT, Apache-2.0, approved, technology.edc
-maven/mavencentral/org.eclipse.edc/runtime-metamodel/0.13.0-SNAPSHOT, Apache-2.0, approved, technology.edc
+maven/mavencentral/org.eclipse.edc/autodoc-processor/0.14.0-SNAPSHOT, Apache-2.0, approved, technology.edc
+maven/mavencentral/org.eclipse.edc/runtime-metamodel/0.14.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.jetty.ee10/jetty-ee10-servlet/12.0.21, EPL-2.0 OR Apache-2.0, approved, rt.jetty
 maven/mavencentral/org.eclipse.jetty.websocket/jetty-websocket/12.0.21, EPL-2.0 OR Apache-2.0, approved, rt.jetty
 maven/mavencentral/org.eclipse.jetty/jetty-http/12.0.21, EPL-2.0 OR Apache-2.0, approved, rt.jetty
@@ -356,6 +360,7 @@ maven/mavencentral/org.slf4j/slf4j-api/2.0.16, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.17, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.6, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.9, MIT, approved, #5915
+maven/mavencentral/org.slf4j/slf4j-nop/2.0.17, MIT, approved, #10370
 maven/mavencentral/org.testcontainers/database-commons/1.21.0, Apache-2.0, approved, #20875
 maven/mavencentral/org.testcontainers/jdbc/1.21.0, Apache-2.0, approved, #20877
 maven/mavencentral/org.testcontainers/junit-jupiter/1.21.0, MIT, approved, clearlydefined
