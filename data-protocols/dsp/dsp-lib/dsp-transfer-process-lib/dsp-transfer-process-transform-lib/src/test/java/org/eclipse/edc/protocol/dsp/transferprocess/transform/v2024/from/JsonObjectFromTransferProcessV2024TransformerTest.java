@@ -35,6 +35,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONING_REQUESTED;
@@ -175,6 +176,7 @@ class JsonObjectFromTransferProcessV2024TransformerTest {
                     arguments(RESUMING, toIri(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM)),
                     arguments(RESUMED, toIri(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM)),
                     arguments(COMPLETING, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM)),
+                    arguments(COMPLETING_REQUESTED, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM)),
                     arguments(COMPLETED, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM)),
                     arguments(DEPROVISIONING, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM)),
                     arguments(DEPROVISIONING_REQUESTED, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM)),
