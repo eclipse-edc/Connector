@@ -74,4 +74,5 @@ public class EmbeddedDataPlaneClient implements DataPlaneClient {
     public StatusResult<Void> checkAvailability() {
         return StatusResult.success();
     }
+
 }

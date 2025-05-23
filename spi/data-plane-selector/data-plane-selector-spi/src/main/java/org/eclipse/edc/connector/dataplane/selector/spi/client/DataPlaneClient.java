@@ -61,4 +61,5 @@ public interface DataPlaneClient {
      * @return success if available, failure if not available.
      */
     StatusResult<Void> checkAvailability();
+
 }

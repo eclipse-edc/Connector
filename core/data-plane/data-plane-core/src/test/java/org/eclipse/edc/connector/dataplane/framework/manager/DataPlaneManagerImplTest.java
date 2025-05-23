@@ -64,10 +64,12 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISION_FAILED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISION_REQUESTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONING;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISION_REQUESTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.SUSPENDED;
@@ -221,7 +223,7 @@ class DataPlaneManagerImplTest {
                     .processId("1")
                     .destination(newDestination)
                     .build();
-            var definition = ProvisionResource.Builder.newInstance().build();
+            var definition = ProvisionResource.Builder.newInstance().flowId("any").build();
             when(resourceDefinitionGeneratorManager.generateConsumerResourceDefinition(any())).thenReturn(List.of(definition));
 
             var result = manager.provision(request);
@@ -259,8 +261,8 @@ class DataPlaneManagerImplTest {
 
         @Test
         void shouldProvisionResourcesToBeProvisioned() {
-            var resourceToBeProvisioned = ProvisionResource.Builder.newInstance().state(ProvisionResourceStates.CREATED.code()).build();
-            var resourceAlreadyProvisioned = ProvisionResource.Builder.newInstance().state(ProvisionResourceStates.PROVISIONED.code()).build();
+            var resourceToBeProvisioned = ProvisionResource.Builder.newInstance().state(ProvisionResourceStates.CREATED.code()).flowId("any").build();
+            var resourceAlreadyProvisioned = ProvisionResource.Builder.newInstance().state(ProvisionResourceStates.PROVISIONED.code()).flowId("any").build();
             var newDataAddress = DataAddress.Builder.newInstance().type("any").build();
             var provisionedResource = ProvisionedResource.Builder.from(resourceToBeProvisioned).dataAddress(newDataAddress).build();
             var dataFlow = dataFlowBuilder().state(PROVISIONING.code()).resourceDefinitions(List.of(resourceToBeProvisioned, resourceAlreadyProvisioned)).build();
@@ -281,9 +283,29 @@ class DataPlaneManagerImplTest {
         }
 
         @Test
+        void shouldTransitionToProvisioningRequested_whenPendingResourcesAreWaitingForProvisioning() {
+            var resourceToBeProvisioned = ProvisionResource.Builder.newInstance().state(ProvisionResourceStates.CREATED.code()).flowId("any").build();
+            var provisionedResource = ProvisionedResource.Builder.from(resourceToBeProvisioned).pending(true).build();
+            var dataFlow = dataFlowBuilder().state(PROVISIONING.code()).resourceDefinitions(List.of(resourceToBeProvisioned)).build();
+            when(store.nextNotLeased(anyInt(), stateIs(PROVISIONING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(provisionerManager.provision(any())).thenReturn(completedFuture(List.of(StatusResult.success(provisionedResource))));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(provisionerManager).provision(List.of(resourceToBeProvisioned));
+                verifyNoInteractions(transferProcessApiClient);
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                var storedDataFlow = captor.getValue();
+                assertThat(storedDataFlow.stateAsString()).isEqualTo(PROVISION_REQUESTED.name());
+                assertThat(storedDataFlow.getResourceDefinitions()).allMatch(it -> it.getState() == ProvisionResourceStates.PROVISION_REQUESTED.code());
+            });
+        }
+
+        @Test
         void shouldTransitionToProvisioning_whenThereAreStillResourcesToBeProvisioned() {
-            var resourceDefinition = ProvisionResource.Builder.newInstance().build();
-            var newDataAddress = DataAddress.Builder.newInstance().type("any").build();
+            var resourceDefinition = ProvisionResource.Builder.newInstance().flowId("any").build();
             var dataFlow = dataFlowBuilder().state(PROVISIONING.code()).resourceDefinitions(List.of(resourceDefinition)).build();
             when(store.nextNotLeased(anyInt(), stateIs(PROVISIONING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
             when(provisionerManager.provision(any())).thenReturn(completedFuture(List.of(StatusResult.failure(ERROR_RETRY, "error in provisioning"))));
@@ -333,6 +355,55 @@ class DataPlaneManagerImplTest {
             });
         }
 
+    }
+
+    @Nested
+    class ResourceProvisioned {
+        @Test
+        void shouldTransitionToProvisioned_whenProvisionIsComplete() {
+            var provisionResource = ProvisionResource.Builder.newInstance().flowId("any").build();
+            var dataFlow = dataFlowBuilder().resourceDefinitions(List.of(provisionResource)).build();
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(dataFlow));
+
+            var result = manager.resourceProvisioned(ProvisionedResource.Builder.from(provisionResource).build());
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(saved -> saved.getState() == PROVISIONED.code()));
+            verify(transferProcessApiClient).provisioned(dataFlow.getId(), null);
+        }
+
+        @Test
+        void shouldFail_whenFindByFails() {
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.alreadyLeased("already leased"));
+
+            var result = manager.resourceProvisioned(ProvisionedResource.Builder.newInstance().flowId("any").build());
+
+            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(ERROR_RETRY);
+        }
+    }
+
+    @Nested
+    class ResourceDeprovisioned {
+        @Test
+        void shouldTransitionToDeprovision_whenDeprovisionIsComplete() {
+            var provisionResource = ProvisionResource.Builder.newInstance().flowId("any").build();
+            var dataFlow = dataFlowBuilder().resourceDefinitions(List.of(provisionResource)).build();
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(dataFlow));
+
+            var result = manager.resourceDeprovisioned(DeprovisionedResource.Builder.from(provisionResource).build());
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(saved -> saved.getState() == DEPROVISIONED.code()));
+        }
+
+        @Test
+        void shouldFail_whenFindByFails() {
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.alreadyLeased("already leased"));
+
+            var result = manager.resourceDeprovisioned(DeprovisionedResource.Builder.newInstance().flowId("any").build());
+
+            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(ERROR_RETRY);
+        }
     }
 
     @Nested
@@ -600,7 +671,7 @@ class DataPlaneManagerImplTest {
 
             transferFuture.complete(StreamResult.success());
 
-            await().untilAsserted(() -> {
+            await().untilAsserted(() ->         {
                 verify(store).save(argThat(it -> it.getState() == COMPLETED.code()));
             });
         }
@@ -708,8 +779,8 @@ class DataPlaneManagerImplTest {
 
         @Test
         void shouldDeprovisionResourcesToBeProvisioned() {
-            var toBeDeprovisionedResource = ProvisionResource.Builder.newInstance().state(ProvisionResourceStates.PROVISIONED.code()).build();
-            var alreadyDeprovisionedResource = ProvisionResource.Builder.newInstance().state(ProvisionResourceStates.DEPROVISIONED.code()).build();
+            var toBeDeprovisionedResource = ProvisionResource.Builder.newInstance().state(ProvisionResourceStates.PROVISIONED.code()).flowId("any").build();
+            var alreadyDeprovisionedResource = ProvisionResource.Builder.newInstance().state(ProvisionResourceStates.DEPROVISIONED.code()).flowId("any").build();
             var deprovisionedResource = DeprovisionedResource.Builder.from(toBeDeprovisionedResource).build();
             var dataFlow = dataFlowBuilder().state(DEPROVISIONING.code()).resourceDefinitions(List.of(toBeDeprovisionedResource, alreadyDeprovisionedResource)).build();
             when(store.nextNotLeased(anyInt(), stateIs(DEPROVISIONING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
@@ -728,8 +799,28 @@ class DataPlaneManagerImplTest {
         }
 
         @Test
+        void shouldTransitionToDeprovisioningRequested_whenPendingResourcesAreWaitingForDeprovisioning() {
+            var resourceToBeDeprovisioned = ProvisionResource.Builder.newInstance().state(ProvisionResourceStates.PROVISIONED.code()).flowId("any").build();
+            var deprovisionedResource = DeprovisionedResource.Builder.from(resourceToBeDeprovisioned).pending(true).build();
+            var dataFlow = dataFlowBuilder().state(DEPROVISIONING.code()).resourceDefinitions(List.of(resourceToBeDeprovisioned)).build();
+            when(store.nextNotLeased(anyInt(), stateIs(DEPROVISIONING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(provisionerManager.deprovision(any())).thenReturn(completedFuture(List.of(StatusResult.success(deprovisionedResource))));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(provisionerManager).deprovision(List.of(resourceToBeDeprovisioned));
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                var storedDataFlow = captor.getValue();
+                assertThat(storedDataFlow.stateAsString()).isEqualTo(DEPROVISION_REQUESTED.name());
+                assertThat(storedDataFlow.getResourceDefinitions()).allMatch(it -> it.getState() == ProvisionResourceStates.DEPROVISION_REQUESTED.code());
+            });
+        }
+
+        @Test
         void shouldTransitionToDeprovisioning_whenThereAreStillResourcesToBeDeprovisioned() {
-            var resourceDefinition = ProvisionResource.Builder.newInstance().state(ProvisionResourceStates.PROVISIONED.code()).build();
+            var resourceDefinition = ProvisionResource.Builder.newInstance().state(ProvisionResourceStates.PROVISIONED.code()).flowId("any").build();
             var dataFlow = dataFlowBuilder().state(DEPROVISIONING.code()).resourceDefinitions(List.of(resourceDefinition)).build();
             when(store.nextNotLeased(anyInt(), stateIs(DEPROVISIONING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
             when(provisionerManager.deprovision(any())).thenReturn(completedFuture(List.of(

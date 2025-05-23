@@ -16,6 +16,8 @@ package org.eclipse.edc.test.e2e;
 
 import okhttp3.Request;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
+import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
+import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.provision.DeprovisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.Deprovisioner;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResource;
@@ -24,11 +26,13 @@ import org.eclipse.edc.connector.dataplane.spi.provision.Provisioner;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionerManager;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGenerator;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
+import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -41,9 +45,12 @@ import org.mockserver.integration.ClientAndServer;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 
 import static jakarta.json.Json.createObjectBuilder;
 import static java.util.Collections.emptyList;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
@@ -70,7 +77,7 @@ public class ProvisioningTransferEndToEndTest {
     private final RuntimeExtension consumerControlPlane = new RuntimePerMethodExtension(
             Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("consumer-control-plane")
                     .configurationProvider(CONSUMER::controlPlaneEmbeddedDataPlaneConfig)
-                    .registerSystemExtension(ServiceExtension.class, new RegisterConsumerResourceDefinitionGenerator())
+                    .registerSystemExtension(ServiceExtension.class, new TestProvisionerExtension())
     );
 
     @RegisterExtension
@@ -111,21 +118,23 @@ public class ProvisioningTransferEndToEndTest {
 
         destination.verify(request().withHeader("provisionHeader", "value"));
 
+        await().untilAsserted(() -> destination.verify(request("/deprovision")));
         await().untilAsserted(() -> {
-            destination.verify(request("/deprovision"));
+            var dataFlow = consumerControlPlane.getService(DataPlaneStore.class).findById(consumerTransferProcessId);
+            assertThat(dataFlow).isNotNull().extracting(StatefulEntity::getState).isEqualTo(DataFlowStates.DEPROVISIONED.code());
         });
 
         source.stop();
         destination.stop();
     }
 
-    protected void createResourcesOnProvider(String assetId, Map<String, Object> dataAddressProperties) {
+    private void createResourcesOnProvider(String assetId, Map<String, Object> dataAddressProperties) {
         PROVIDER.createAsset(assetId, Map.of("description", "description"), dataAddressProperties);
         var noConstraintPolicyId = PROVIDER.createPolicyDefinition(noConstraintPolicy());
         PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, noConstraintPolicyId);
     }
 
-    private static class RegisterConsumerResourceDefinitionGenerator implements ServiceExtension {
+    private static class TestProvisionerExtension implements ServiceExtension {
 
         @Inject
         private ResourceDefinitionGeneratorManager resourceDefinitionGeneratorManager;
@@ -136,12 +145,18 @@ public class ProvisioningTransferEndToEndTest {
         @Inject
         private EdcHttpClient httpClient;
 
+        @Inject
+        private DataPlaneManager dataPlaneManager;
+
         @Override
         public void initialize(ServiceExtensionContext context) {
             resourceDefinitionGeneratorManager.registerConsumerGenerator(new AddHeaderResourceGenerator());
+            resourceDefinitionGeneratorManager.registerConsumerGenerator(new AsyncResourceGenerator());
 
             provisionerManager.register(new AddHeaderProvisioner());
             provisionerManager.register(new CallEndpointDeprovisioner(httpClient));
+            provisionerManager.register(new AsyncProvisioner(dataPlaneManager));
+            provisionerManager.register(new AsyncDeprovisioner());
         }
 
         private static class CallEndpointDeprovisioner implements Deprovisioner {
@@ -202,10 +217,73 @@ public class ProvisioningTransferEndToEndTest {
             public ProvisionResource generate(DataFlow dataFlow) {
                 return ProvisionResource.Builder
                         .newInstance()
+                        .flowId(dataFlow.getId())
                         .dataAddress(dataFlow.getDestination())
                         .type("AddHeader")
                         .property("deprovisionEndpoint", "http://localhost:%d/deprovision".formatted(DESTINATION_BACKEND_PORT))
                         .build();
+            }
+        }
+
+        private static class AsyncResourceGenerator implements ResourceDefinitionGenerator {
+
+            @Override
+            public String supportedType() {
+                return "HttpData";
+            }
+
+            @Override
+            public ProvisionResource generate(DataFlow dataFlow) {
+                return ProvisionResource.Builder
+                        .newInstance()
+                        .flowId(dataFlow.getId())
+                        .type("AsyncResource")
+                        .build();
+            }
+        }
+
+        /**
+         * Fake Async provisioner that schedules the response delivery after 2 seconds
+         */
+        private static class AsyncProvisioner implements Provisioner {
+
+            private final DataPlaneManager dataPlaneManager;
+
+            AsyncProvisioner(DataPlaneManager dataPlaneManager) {
+                this.dataPlaneManager = dataPlaneManager;
+            }
+
+            @Override
+            public String supportedType() {
+                return "AsyncResource";
+            }
+
+            @Override
+            public CompletableFuture<StatusResult<ProvisionedResource>> provision(ProvisionResource provisionResource) {
+                Executors.newScheduledThreadPool(1).schedule(() -> {
+                    var actualProvisionedResource = ProvisionedResource.Builder.from(provisionResource).build();
+                    return dataPlaneManager.resourceProvisioned(actualProvisionedResource);
+                }, 2, SECONDS);
+                var asyncProvisionedResource = ProvisionedResource.Builder.from(provisionResource).pending(true).build();
+                return CompletableFuture.completedFuture(StatusResult.success(asyncProvisionedResource));
+            }
+        }
+
+        private class AsyncDeprovisioner implements Deprovisioner {
+
+            @Override
+            public String supportedType() {
+                return "AsyncResource";
+            }
+
+            @Override
+            public CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionResource provisionResource) {
+                Executors.newScheduledThreadPool(1).schedule(() -> {
+                    var actualProvisionedResource = DeprovisionedResource.Builder.from(provisionResource).build();
+                    return dataPlaneManager.resourceDeprovisioned(actualProvisionedResource);
+                }, 2, SECONDS);
+                var resource = DeprovisionedResource.Builder.from(provisionResource).pending(true).build();
+                return CompletableFuture.completedFuture(StatusResult.success(resource));
             }
         }
     }

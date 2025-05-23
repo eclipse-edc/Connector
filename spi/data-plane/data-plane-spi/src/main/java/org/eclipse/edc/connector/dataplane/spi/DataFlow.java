@@ -38,10 +38,12 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISION_FAILED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISION_REQUESTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONING;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISION_REQUESTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.SUSPENDED;
@@ -164,20 +166,28 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         return resourceDefinitions;
     }
 
-    public void transitionToProvisioned() {
-        transitionTo(PROVISIONED.code());
-    }
-
-    public void transitionToDeprovisioned() {
-        transitionTo(DEPROVISIONED.code());
-    }
-
     public void transitionToDeprovisionFailed() {
         transitionTo(DEPROVISION_FAILED.code());
     }
 
     public void addResourceDefinitions(List<ProvisionResource> definitions) {
         resourceDefinitions.addAll(definitions);
+    }
+
+    public boolean isProvisionCompleted() {
+        return resourceDefinitions.stream().allMatch(ProvisionResource::isProvisioned);
+    }
+
+    public boolean isProvisionRequested() {
+        return resourceDefinitions.stream().anyMatch(ProvisionResource::isProvisionRequested);
+    }
+
+    public boolean isDeprovisionCompleted() {
+        return resourceDefinitions.stream().allMatch(ProvisionResource::isDeprovisioned);
+    }
+
+    public boolean isDeprovisionRequested() {
+        return resourceDefinitions.stream().allMatch(ProvisionResource::isDeprovisionRequested);
     }
 
     public List<ProvisionResource> resourcesToBeProvisioned() {
@@ -188,18 +198,35 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         return resourceDefinitions.stream().filter(ProvisionResource::hasToBeDeprovisioned).toList();
     }
 
-    public void resourceProvisioned(ProvisionedResource provisionedResource) {
-        resourceDefinitions.stream()
-                .filter(resource -> resource.getId().equals(provisionedResource.getId()))
-                .findAny()
-                .ifPresent(resource -> resource.transitionProvisioned(provisionedResource));
+    public void resourceProvisioned(List<ProvisionedResource> provisionedResources) {
+        provisionedResources.forEach(provisionedResource -> {
+            resourceDefinitions.stream()
+                    .filter(resource -> resource.getId().equals(provisionedResource.getId()))
+                    .findAny()
+                    .ifPresent(resource -> resource.transitionProvisioned(provisionedResource));
+        });
+
+        if (isProvisionCompleted()) {
+            transitionTo(PROVISIONED.code());
+        } else if (isProvisionRequested()) {
+            transitionTo(PROVISION_REQUESTED.code());
+        }
+
     }
 
-    public void resourceDeprovisioned(DeprovisionedResource deprovisionedResource) {
-        resourceDefinitions.stream()
-                .filter(resource -> resource.getId().equals(deprovisionedResource.getId()))
-                .findAny()
-                .ifPresent(resource -> resource.transitionDeprovisioned(deprovisionedResource));
+    public void resourceDeprovisioned(List<DeprovisionedResource> deprovisionedResources) {
+        deprovisionedResources.forEach(deprovisionedResource -> {
+            resourceDefinitions.stream()
+                    .filter(resource -> resource.getId().equals(deprovisionedResource.getId()))
+                    .findAny()
+                    .ifPresent(resource -> resource.transitionDeprovisioned(deprovisionedResource));
+        });
+
+        if (isDeprovisionCompleted()) {
+            transitionTo(DEPROVISIONED.code());
+        } else if (isDeprovisionRequested()) {
+            transitionTo(DEPROVISION_REQUESTED.code());
+        }
     }
 
     public DataAddress provisionedDataAddress() {

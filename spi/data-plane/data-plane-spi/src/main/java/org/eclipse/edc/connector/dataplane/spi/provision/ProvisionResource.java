@@ -19,11 +19,14 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceStates.CREATED;
 import static org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceStates.DEPROVISIONED;
+import static org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceStates.DEPROVISION_REQUESTED;
 import static org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceStates.PROVISIONED;
+import static org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceStates.PROVISION_REQUESTED;
 
 /**
  * Resource that needs to be provisioned to support a data flow.
@@ -71,7 +74,11 @@ public class ProvisionResource extends StatefulEntity<ProvisionResource> {
 
     public void transitionProvisioned(ProvisionedResource provisionedResource) {
         this.provisionedResource = provisionedResource;
-        transitionTo(PROVISIONED.code());
+        if (provisionedResource.isPending()) {
+            transitionTo(PROVISION_REQUESTED.code());
+        } else {
+            transitionTo(PROVISIONED.code());
+        }
     }
 
     public ProvisionedResource getProvisionedResource() {
@@ -80,7 +87,11 @@ public class ProvisionResource extends StatefulEntity<ProvisionResource> {
 
     public void transitionDeprovisioned(DeprovisionedResource deprovisionedResource) {
         this.deprovisionedResource = deprovisionedResource;
-        transitionTo(DEPROVISIONED.code());
+        if (deprovisionedResource.isPending()) {
+            transitionTo(DEPROVISION_REQUESTED.code());
+        } else {
+            transitionTo(DEPROVISIONED.code());
+        }
     }
 
     public boolean hasToBeProvisioned() {
@@ -89,6 +100,22 @@ public class ProvisionResource extends StatefulEntity<ProvisionResource> {
 
     public boolean hasToBeDeprovisioned() {
         return state == PROVISIONED.code();
+    }
+
+    public boolean isProvisionRequested() {
+        return state == PROVISION_REQUESTED.code();
+    }
+
+    public boolean isProvisioned() {
+        return state == PROVISIONED.code();
+    }
+
+    public boolean isDeprovisionRequested() {
+        return state == DEPROVISION_REQUESTED.code();
+    }
+
+    public boolean isDeprovisioned() {
+        return state == DEPROVISIONED.code();
     }
 
     public static class Builder extends StatefulEntity.Builder<ProvisionResource, Builder> {
@@ -108,6 +135,7 @@ public class ProvisionResource extends StatefulEntity<ProvisionResource> {
 
         public ProvisionResource build() {
             super.build();
+            Objects.requireNonNull(entity.flowId);
 
             if (entity.id == null) {
                 entity.id = UUID.randomUUID().toString();
