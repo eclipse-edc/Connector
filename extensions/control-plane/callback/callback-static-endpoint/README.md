@@ -1,7 +1,7 @@
 # Static Callbacks Extension
 
-This extension priovides an implementation and configuration for static callbacks outlined in this [DecisionRecord](https://github.com/eclipse-edc/Connector/tree/main/docs/developer/decision-records/2023-02-28-processing-callbacks#static-endpoints) 
-The callacks are built on top of the EDC event system. When an event is fired in EDC all registered callacks will be invoked.
+This extension provides an implementation and configuration for static callbacks outlined in this [DecisionRecord](https://github.com/eclipse-edc/Connector/tree/main/docs/developer/decision-records/2023-02-28-processing-callbacks#static-endpoints) 
+The callbacks are built on top of the EDC event system. When an event is fired in EDC all registered callbacks will be invoked.
 
 ## Configuration
 
@@ -30,4 +30,4 @@ edc.callback.endpoint2.auth-code-id=mysecret
 
 The first one `endpoint1` will be invoked transactionally in all events emitted from the `ContractNegotiation` and `TransferProcess` state machines.
 
-The second one will only be invoked asynchronously only when a `ContractNegotiatin` is finalized and a `TransferProcess` is completed.
+The second one will only be invoked asynchronously only when a `ContractNegotiation` is finalized and a `TransferProcess` is completed.
