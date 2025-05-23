@@ -84,9 +84,10 @@ public class JsonObjectFromTransferProcessV2024Transformer extends AbstractNames
             case STARTING, STARTED -> forNamespace(DSPACE_VALUE_TRANSFER_STATE_STARTED_TERM);
             case SUSPENDING, SUSPENDED, SUSPENDING_REQUESTED, RESUMING, RESUMED ->
                     forNamespace(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM);
-            case COMPLETING, COMPLETED, DEPROVISIONING, DEPROVISIONING_REQUESTED, DEPROVISIONED ->
+            case COMPLETING, COMPLETING_REQUESTED, COMPLETED, DEPROVISIONING, DEPROVISIONING_REQUESTED, DEPROVISIONED ->
                     forNamespace(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM);
-            case TERMINATING, TERMINATING_REQUESTED, TERMINATED -> forNamespace(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM);
+            case TERMINATING, TERMINATING_REQUESTED, TERMINATED ->
+                    forNamespace(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM);
             default -> {
                 context.problem()
                         .unexpectedType()

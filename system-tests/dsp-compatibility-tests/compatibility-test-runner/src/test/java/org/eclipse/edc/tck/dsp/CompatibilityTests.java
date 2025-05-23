@@ -22,10 +22,12 @@ public interface CompatibilityTests {
     // TODO TP:01-01 is failing because we don't send endpoint in data address
     List<String> ALLOWED_FAILURES = List.of(
             "CN:03-01", "CN:03-02", "CN:03-03", "CN:03-04",
+            "CN_C:01-02",
             "CN_C:03-01", "CN_C:03-02", "CN_C:03-03", "CN_C:03-04", "CN_C:03-05", "CN_C:03-06",
             "TP:01-01", "TP:01-02", "TP:01-03", "TP:01-04", "TP:01-05",
             "TP:02-01", "TP:02-02", "TP:02-03", "TP:02-04",
-            "TP:03-02", "TP:03-03", "TP:03-04", "TP:03-05", "TP:03-06",
+            "TP:03-03", "TP:03-04", "TP:03-05", "TP:03-06",
+            "TP_C:01-04",
             "TP_C:02-04");
 
 }

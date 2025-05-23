@@ -242,8 +242,6 @@ public class DataAssembly {
     }
 
     private static void recordProvider03TransferSequences(StepRecorder<TransferProcess> recorder) {
-        recorder.record("ATP0301", TransferProcess::transitionStarting);
-        recorder.record("ATP0302", TransferProcess::transitionStarting);
         recorder.record("ATP0303", TransferProcess::transitionStarting);
         recorder.record("ATP0304", TransferProcess::transitionStarting);
         recorder.record("ATP0305", TransferProcess::transitionStarting);
@@ -284,6 +282,8 @@ public class DataAssembly {
                 createTransferTrigger(TransferProcessStarted.class, "ATP0104", suspendResumeTrigger()),
                 createTransferTrigger(TransferProcessSuspended.class, "ATP0104", TransferProcess::transitionStarting),
                 createTransferTrigger(TransferProcessInitiated.class, "ATP0205", (process) -> process.setPending(true)),
+                createTransferTrigger(TransferProcessInitiated.class, "ATP0301", (process) -> process.setPending(true)),
+                createTransferTrigger(TransferProcessInitiated.class, "ATP0302", (process) -> process.setPending(true)),
                 createTransferTrigger(TransferProcessStarted.class, "ATPC0201", TransferProcess::transitionTerminating),
                 createTransferTrigger(TransferProcessStarted.class, "ATPC0202", TransferProcess::transitionCompleting),
                 createTransferTrigger(TransferProcessStarted.class, "ATPC0203", (process) -> process.transitionSuspending("suspending")),
