@@ -16,9 +16,15 @@ package org.eclipse.edc.protocol.dsp.http.message;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.controlplane.services.spi.context.ProtocolRequestContext;
+import org.eclipse.edc.connector.controlplane.services.spi.context.ProtocolRequestContextProvider;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
+import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
+import org.eclipse.edc.protocol.dsp.http.spi.message.ServiceProtocolCall;
 import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -29,10 +35,12 @@ import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
@@ -59,8 +67,9 @@ class DspRequestHandlerImplTest {
     private final JsonObjectValidatorRegistry validatorRegistry = mock();
     private final DspProtocolTypeTransformerRegistry dspTransformerRegistry = mock();
     private final TypeTransformerRegistry transformerRegistry = mock();
+    private final ProtocolTokenValidator protocolTokenValidator = mock();
 
-    private final DspRequestHandlerImpl handler = new DspRequestHandlerImpl(mock(), validatorRegistry, dspTransformerRegistry);
+    private final DspRequestHandlerImpl handler = new DspRequestHandlerImpl(mock(), validatorRegistry, dspTransformerRegistry, protocolTokenValidator);
     private final String protocol = DATASPACE_PROTOCOL_HTTP;
 
     private static JsonObject error(String code, String reason, String processId) {
@@ -81,44 +90,6 @@ class DspRequestHandlerImplTest {
     @BeforeEach
     void beforeEach() {
         when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
-    }
-
-    private static class TestProcessRemoteMessage extends ProcessRemoteMessage {
-
-        @Override
-        public Policy getPolicy() {
-            return null;
-        }
-
-        public static class Builder extends ProcessRemoteMessage.Builder<TestProcessRemoteMessage, Builder> {
-
-            protected Builder() {
-                super(new TestProcessRemoteMessage());
-            }
-
-            public static Builder newInstance() {
-                return new Builder();
-            }
-        }
-    }
-
-    private static class TestError extends ErrorMessage {
-
-
-        public static final class Builder extends ErrorMessage.Builder<TestError, Builder> {
-            private Builder() {
-                super(new TestError());
-            }
-
-            public static Builder newInstance() {
-                return new Builder();
-            }
-
-            @Override
-            protected Builder self() {
-                return this;
-            }
-        }
     }
 
     @Nested
@@ -222,7 +193,7 @@ class DspRequestHandlerImplTest {
 
         }
 
-        private GetDspRequest.Builder<Object, TestError> getDspRequestBuilder() {
+        private GetDspRequest.Builder<Object, TestError, Object> getDspRequestBuilder() {
             return GetDspRequest.Builder.newInstance(Object.class, TestError.class)
                     .token("token")
                     .id("id")
@@ -234,24 +205,26 @@ class DspRequestHandlerImplTest {
 
     @Nested
     class CreateResource {
+
+        private final ProtocolRequestContextProvider<TestProcessRemoteMessage, TestProtocolContext> contextProvider = mock();
+
         @Test
         void shouldSucceed() {
             var jsonMessage = Json.createObjectBuilder().build();
             var message = mock(TestProcessRemoteMessage.class);
             var content = new Object();
             var responseJson = Json.createObjectBuilder().build();
-            BiFunction<TestProcessRemoteMessage, TokenRepresentation, ServiceResult<Object>> serviceCall = (m, t) -> ServiceResult.success(content);
+            ServiceProtocolCall<TestProcessRemoteMessage, Object, TestProtocolContext> serviceCall = (m, p, c) -> ServiceResult.success(content);
+            when(protocolTokenValidator.verify(any(), any(), any(), any())).thenReturn(ServiceResult.success(participantAgent()));
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), eq(TestProcessRemoteMessage.class))).thenReturn(Result.success(message));
             when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseJson));
-            var request = PostDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class, TestError.class)
-                    .token("token")
+            when(contextProvider.provide(any())).thenReturn(ServiceResult.success(new TestProtocolContext()));
+            var request = postDspRequestBuilder()
                     .expectedMessageType("expected-message-type")
                     .message(jsonMessage)
                     .serviceCall(serviceCall)
-                    .protocol(protocol)
-                    .errorProvider(TestError.Builder::newInstance)
                     .build();
 
             var result = handler.createResource(request);
@@ -271,28 +244,6 @@ class DspRequestHandlerImplTest {
             var jsonError = error("401", "unauthorized", request.getProcessId());
 
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
-            when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(jsonError));
-
-            var result = handler.createResource(request);
-
-            assertThat(result.getStatus()).isEqualTo(401);
-            assertThat(result.getEntity()).asInstanceOf(type(JsonObject.class)).satisfies(error -> {
-                assertThat(error.getString(TYPE)).isEqualTo("TestError");
-                assertThat(error.getString(DSPACE_PROPERTY_CODE_IRI)).isEqualTo("401");
-                assertThat(error.get(DSPACE_PROPERTY_REASON_IRI)).isNotNull();
-            });
-        }
-
-        @Test
-        void shouldFail_whenTokenIsNotValid() {
-            var request = postDspRequestBuilder().serviceCall((m, t) -> ServiceResult.unauthorized("unauthorized")).build();
-            var message = mock(TestProcessRemoteMessage.class);
-            var jsonError = error("401", "Failure", request.getProcessId());
-
-
-            when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
-            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-            when(transformerRegistry.transform(any(), eq(TestProcessRemoteMessage.class))).thenReturn(Result.success(message));
             when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(jsonError));
 
             var result = handler.createResource(request);
@@ -343,7 +294,43 @@ class DspRequestHandlerImplTest {
             var request = postDspRequestBuilder().protocol(faultyProtocol).build();
 
             assertThatThrownBy(() -> handler.createResource(request)).isInstanceOf(EdcException.class);
+        }
 
+        @Test
+        void shouldFail_whenContextProvisionFails() {
+            var message = mock(TestProcessRemoteMessage.class);
+            var jsonError = error("400", "Failure", "processId");
+
+            ServiceProtocolCall<TestProcessRemoteMessage, Object, TestProtocolContext> serviceCall = (m, a, c) -> ServiceResult.conflict("error");
+            when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
+            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+            when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
+            when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(jsonError));
+            when(contextProvider.provide(any())).thenReturn(ServiceResult.unexpected("error"));
+            var request = postDspRequestBuilder().serviceCall(serviceCall).build();
+
+            var result = handler.createResource(request);
+
+            assertThat(result.getStatus()).isEqualTo(400);
+        }
+
+        @Test
+        void shouldFail_whenTokenValidationFails() {
+            var message = mock(TestProcessRemoteMessage.class);
+            var jsonError = error("401", "Failure", "processId");
+
+            ServiceProtocolCall<TestProcessRemoteMessage, Object, TestProtocolContext> serviceCall = (m, a, c) -> ServiceResult.conflict("error");
+            when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
+            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+            when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
+            when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(jsonError));
+            when(contextProvider.provide(any())).thenReturn(ServiceResult.success(new TestProtocolContext()));
+            when(protocolTokenValidator.verify(any(), any(), any(), any())).thenReturn(ServiceResult.unauthorized("not authorized"));
+            var request = postDspRequestBuilder().serviceCall(serviceCall).build();
+
+            var result = handler.createResource(request);
+
+            assertThat(result.getStatus()).isEqualTo(401);
         }
 
         @Test
@@ -351,11 +338,13 @@ class DspRequestHandlerImplTest {
             var message = mock(TestProcessRemoteMessage.class);
             var jsonError = error("409", "Failure", "processId");
 
-            BiFunction<TestProcessRemoteMessage, TokenRepresentation, ServiceResult<Object>> serviceCall = (m, t) -> ServiceResult.conflict("error");
+            ServiceProtocolCall<TestProcessRemoteMessage, Object, TestProtocolContext> serviceCall = (m, a, c) -> ServiceResult.conflict("error");
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
             when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(jsonError));
+            when(contextProvider.provide(any())).thenReturn(ServiceResult.success(new TestProtocolContext()));
+            when(protocolTokenValidator.verify(any(), any(), any(), any())).thenReturn(ServiceResult.success(participantAgent()));
             var request = postDspRequestBuilder().serviceCall(serviceCall).build();
 
             var result = handler.createResource(request);
@@ -374,6 +363,8 @@ class DspRequestHandlerImplTest {
             when(transformerRegistry.transform(any(), eq(TestProcessRemoteMessage.class))).thenReturn(Result.success(message));
             when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.failure("error"));
             when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(jsonError));
+            when(contextProvider.provide(any())).thenReturn(ServiceResult.success(new TestProtocolContext()));
+            when(protocolTokenValidator.verify(any(), any(), any(), any())).thenReturn(ServiceResult.success(participantAgent()));
 
             var result = handler.createResource(request);
 
@@ -384,19 +375,16 @@ class DspRequestHandlerImplTest {
         void shouldDecorateResponse_whenDecoratorSpecified() {
             var jsonMessage = Json.createObjectBuilder().build();
             var message = mock(TestProcessRemoteMessage.class);
-            var content = new Object();
             var responseJson = Json.createObjectBuilder().build();
-            BiFunction<TestProcessRemoteMessage, TokenRepresentation, ServiceResult<Object>> serviceCall = (m, t) -> ServiceResult.success(content);
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), eq(TestProcessRemoteMessage.class))).thenReturn(Result.success(message));
             when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseJson));
-            var request = PostDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class, TestError.class)
-                    .token("token")
+            when(contextProvider.provide(any())).thenReturn(ServiceResult.success(new TestProtocolContext()));
+            when(protocolTokenValidator.verify(any(), any(), any(), any())).thenReturn(ServiceResult.success(participantAgent()));
+            var request = postDspRequestBuilder()
                     .expectedMessageType("expected-message-type")
                     .message(jsonMessage)
-                    .serviceCall(serviceCall)
-                    .protocol(protocol)
                     .errorProvider(TestError.Builder::newInstance)
                     .build();
 
@@ -405,19 +393,20 @@ class DspRequestHandlerImplTest {
             assertThat(result.getHeaderString("test")).isEqualTo("test");
         }
 
-        private PostDspRequest.Builder<TestProcessRemoteMessage, Object, TestError> postDspRequestBuilder() {
+        private PostDspRequest.Builder<TestProcessRemoteMessage, Object, TestError, TestProtocolContext> postDspRequestBuilder() {
             return PostDspRequest.Builder
-                    .newInstance(TestProcessRemoteMessage.class, Object.class, TestError.class)
+                    .newInstance(TestProcessRemoteMessage.class, Object.class, TestError.class, contextProvider)
                     .token("token")
                     .protocol(protocol)
                     .errorProvider(TestError.Builder::newInstance)
-                    .serviceCall((i, c) -> ServiceResult.success());
+                    .serviceCall((i, a, c) -> ServiceResult.success());
         }
 
     }
 
     @Nested
     class UpdateResource {
+
         @Test
         void shouldSucceed() {
             var jsonMessage = Json.createObjectBuilder().build();
@@ -600,7 +589,7 @@ class DspRequestHandlerImplTest {
             });
         }
 
-        private PostDspRequest.Builder<TestProcessRemoteMessage, Object, TestError> postDspRequestBuilder() {
+        private PostDspRequest.Builder<TestProcessRemoteMessage, Object, TestError, ?> postDspRequestBuilder() {
             return PostDspRequest.Builder
                     .newInstance(TestProcessRemoteMessage.class, Object.class, TestError.class)
                     .token("token")
@@ -609,6 +598,65 @@ class DspRequestHandlerImplTest {
                     .serviceCall((i, c) -> ServiceResult.success());
         }
 
+    }
+
+    private @NotNull ParticipantAgent participantAgent() {
+        return new ParticipantAgent(Collections.emptyMap(), Collections.emptyMap());
+    }
+
+    private static class TestProcessRemoteMessage extends ProcessRemoteMessage {
+
+        @Override
+        public Policy getPolicy() {
+            return null;
+        }
+
+        public static class Builder extends ProcessRemoteMessage.Builder<TestProcessRemoteMessage, Builder> {
+
+            protected Builder() {
+                super(new TestProcessRemoteMessage());
+            }
+
+            public static Builder newInstance() {
+                return new Builder();
+            }
+        }
+    }
+
+    private static class TestError extends ErrorMessage {
+
+        public static final class Builder extends ErrorMessage.Builder<TestError, Builder> {
+            private Builder() {
+                super(new TestError());
+            }
+
+            public static Builder newInstance() {
+                return new Builder();
+            }
+
+            @Override
+            protected Builder self() {
+                return this;
+            }
+        }
+    }
+
+    private static class TestProtocolContext implements ProtocolRequestContext {
+
+        @Override
+        public RequestPolicyContext.Provider requestPolicyContextProvider() {
+            return (rc, sb) -> new RequestPolicyContext(rc, sb) {
+                @Override
+                public String scope() {
+                    return "test";
+                }
+            };
+        }
+
+        @Override
+        public Policy policy() {
+            return Policy.Builder.newInstance().build();
+        }
     }
 
 }

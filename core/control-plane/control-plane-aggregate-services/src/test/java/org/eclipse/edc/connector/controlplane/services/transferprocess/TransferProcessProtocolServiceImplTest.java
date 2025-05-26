@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
+import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.RequestTransferContext;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
@@ -113,111 +114,97 @@ class TransferProcessProtocolServiceImplTest {
         observable.registerListener(listener);
         service = new TransferProcessProtocolServiceImpl(store, transactionContext, negotiationStore, validationService,
                 protocolTokenValidator, dataAddressValidator, observable, mock(), mock(), mock());
-
     }
 
-    @Test
-    void notifyRequested_validAgreement_shouldInitiateTransfer() {
-        var participantAgent = participantAgent();
-        var tokenRepresentation = tokenRepresentation();
-        var message = TransferRequestMessage.Builder.newInstance()
-                .consumerPid("consumerPid")
-                .processId("consumerPid")
-                .contractId("agreementId")
-                .protocol("protocol")
-                .callbackAddress("http://any")
-                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
-                .build();
+    @Nested
+    class NotifyRequested {
+        @Test
+        void notifyRequested_validAgreement_shouldInitiateTransfer() {
+            var message = TransferRequestMessage.Builder.newInstance()
+                    .consumerPid("consumerPid")
+                    .processId("consumerPid")
+                    .contractId("agreementId")
+                    .protocol("protocol")
+                    .callbackAddress("http://any")
+                    .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                    .build();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-        when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
-        when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
+            when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
+            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
 
-        var result = service.notifyRequested(message, tokenRepresentation);
+            var result = service.notifyRequested(message, participantAgent(), new RequestTransferContext(contractAgreement()));
 
-        assertThat(result).isSucceeded().satisfies(tp -> {
-            assertThat(tp.getCorrelationId()).isEqualTo("consumerPid");
-            assertThat(tp.getCounterPartyAddress()).isEqualTo("http://any");
-            assertThat(tp.getAssetId()).isEqualTo("assetId");
-        });
-        verify(listener).preCreated(any());
-        verify(store).save(argThat(t -> t.getState() == INITIAL.code()));
-        verify(listener).initiated(any());
-        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
-    }
+            assertThat(result).isSucceeded().satisfies(tp -> {
+                assertThat(tp.getCorrelationId()).isEqualTo("consumerPid");
+                assertThat(tp.getCounterPartyAddress()).isEqualTo("http://any");
+                assertThat(tp.getAssetId()).isEqualTo("assetId");
+            });
+            verify(listener).preCreated(any());
+            verify(store).save(argThat(t -> t.getState() == INITIAL.code()));
+            verify(listener).initiated(any());
+            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+        }
 
-    @Test
-    void notifyRequested_doNothingIfProcessAlreadyExist() {
-        var message = TransferRequestMessage.Builder.newInstance()
-                .processId("correlationId")
-                .consumerPid("consumerPid")
-                .contractId("agreementId")
-                .protocol("protocol")
-                .callbackAddress("http://any")
-                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
-                .build();
-        var participantAgent = participantAgent();
-        var tokenRepresentation = tokenRepresentation();
+        @Test
+        void notifyRequested_doNothingIfProcessAlreadyExist() {
+            var message = TransferRequestMessage.Builder.newInstance()
+                    .processId("correlationId")
+                    .consumerPid("consumerPid")
+                    .contractId("agreementId")
+                    .protocol("protocol")
+                    .callbackAddress("http://any")
+                    .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                    .build();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-        when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
-        when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
-        when(store.findForCorrelationId(any())).thenReturn(transferProcess(REQUESTED, "transferProcessId"));
+            when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
+            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
+            when(store.findForCorrelationId(any())).thenReturn(transferProcess(REQUESTED, "transferProcessId"));
 
-        var result = service.notifyRequested(message, tokenRepresentation);
+            var result = service.notifyRequested(message, participantAgent(), new RequestTransferContext(contractAgreement()));
 
-        assertThat(result).isSucceeded().extracting(TransferProcess::getId).isEqualTo("transferProcessId");
-        verify(store, never()).save(any());
-        verifyNoInteractions(listener);
-    }
+            assertThat(result).isSucceeded().extracting(TransferProcess::getId).isEqualTo("transferProcessId");
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
+        }
 
-    @Test
-    void notifyRequested_invalidAgreement_shouldNotInitiateTransfer() {
-        var message = TransferRequestMessage.Builder.newInstance()
-                .consumerPid("consumerPid")
-                .protocol("protocol")
-                .callbackAddress("http://any")
-                .contractId("agreementId")
-                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
-                .build();
-        var participantAgent = participantAgent();
-        var tokenRepresentation = tokenRepresentation();
+        @Test
+        void notifyRequested_invalidAgreement_shouldNotInitiateTransfer() {
+            var message = TransferRequestMessage.Builder.newInstance()
+                    .consumerPid("consumerPid")
+                    .protocol("protocol")
+                    .callbackAddress("http://any")
+                    .contractId("agreementId")
+                    .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                    .build();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-        when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.failure("error"));
-        when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
+            when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.failure("error"));
+            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
 
-        var result = service.notifyRequested(message, tokenRepresentation);
+            var result = service.notifyRequested(message, participantAgent(), new RequestTransferContext(contractAgreement()));
 
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-        verify(store, never()).save(any());
-        verifyNoInteractions(listener);
-    }
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
+        }
 
-    @Test
-    void notifyRequested_invalidDestination_shouldNotInitiateTransfer() {
-        var participantAgent = participantAgent();
-        var tokenRepresentation = tokenRepresentation();
-        var message = TransferRequestMessage.Builder.newInstance()
-                .consumerPid("consumerPid")
-                .protocol("protocol")
-                .contractId("agreementId")
-                .callbackAddress("http://any")
-                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
-                .build();
+        @Test
+        void notifyRequested_invalidDestination_shouldNotInitiateTransfer() {
+            var message = TransferRequestMessage.Builder.newInstance()
+                    .consumerPid("consumerPid")
+                    .protocol("protocol")
+                    .contractId("agreementId")
+                    .callbackAddress("http://any")
+                    .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                    .build();
 
-        when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-        when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
+            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
 
-        var result = service.notifyRequested(message, tokenRepresentation);
+            var result = service.notifyRequested(message, participantAgent(), new RequestTransferContext(contractAgreement()));
 
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
-        verify(store, never()).save(any());
-        verifyNoInteractions(listener);
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
+        }
     }
 
     @Nested
@@ -813,6 +800,44 @@ class TransferProcessProtocolServiceImplTest {
                 .isFailed()
                 .extracting(ServiceFailure::getReason)
                 .isEqualTo(BAD_REQUEST);
+    }
+
+    @Nested
+    class ProvideRequestContext {
+        @Test
+        void shouldProvideRequestContext() {
+            var message = TransferRequestMessage.Builder.newInstance()
+                    .consumerPid("consumerPid")
+                    .processId("consumerPid")
+                    .contractId("agreementId")
+                    .protocol("protocol")
+                    .callbackAddress("http://any")
+                    .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                    .build();
+            var contractAgreement = contractAgreement();
+            when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement);
+
+            var result = service.provideRequestContext(message);
+
+            assertThat(result).isSucceeded().extracting(RequestTransferContext::contractAgreement).isEqualTo(contractAgreement);
+        }
+
+        @Test
+        void shouldFail_whenAgreementNotFound() {
+            var message = TransferRequestMessage.Builder.newInstance()
+                    .consumerPid("consumerPid")
+                    .processId("consumerPid")
+                    .contractId("agreementId")
+                    .protocol("protocol")
+                    .callbackAddress("http://any")
+                    .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                    .build();
+            when(negotiationStore.findContractAgreement(any())).thenReturn(null);
+
+            var result = service.provideRequestContext(message);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+        }
     }
 
     @ParameterizedTest
