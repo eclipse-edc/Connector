@@ -310,7 +310,8 @@ class ContractNegotiationIntegrationTest {
         return i -> {
             ContractRequestMessage request = i.getArgument(1);
             consumerNegotiationId = request.getProcessId();
-            var result = providerService.notifyRequested(request, tokenRepresentation);
+            var context = providerService.provideRequestContext(request);
+            var result = providerService.notifyRequested(request, participantAgent,  context.getContent());
             return toFuture(result, ContractNegotiationAck.Builder.newInstance().providerPid(request.getProviderPid()).build());
         };
     }

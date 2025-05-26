@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.jetbrains.annotations.NotNull;
@@ -34,23 +35,25 @@ public interface ContractNegotiationProtocolService {
      * Notifies the ContractNegotiation that it has been requested by the consumer.
      * Only callable on provider ContractNegotiation.
      *
-     * @param message             the incoming message
-     * @param tokenRepresentation the counter-party claim token
+     * @param message          the incoming message
+     * @param participantAgent the counter-party participant agent
+     * @param context          the context
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
     @NotNull
-    ServiceResult<ContractNegotiation> notifyRequested(ContractRequestMessage message, TokenRepresentation tokenRepresentation);
+    ServiceResult<ContractNegotiation> notifyRequested(ContractRequestMessage message, ParticipantAgent participantAgent, RequestNegotiationContext context);
 
     /**
      * Notifies the ContractNegotiation that it has been offered by the provider.
      * Only callable on consumer ContractNegotiation.
      *
-     * @param message             the incoming message
-     * @param tokenRepresentation the counter-party claim token
+     * @param message          the incoming message
+     * @param participantAgent the counter-party participant agent
+     * @param context          the context
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
     @NotNull
-    ServiceResult<ContractNegotiation> notifyOffered(ContractOfferMessage message, TokenRepresentation tokenRepresentation);
+    ServiceResult<ContractNegotiation> notifyOffered(ContractOfferMessage message, ParticipantAgent participantAgent, OfferNegotiationContext context);
 
     /**
      * Notifies the ContractNegotiation that it has been agreed by the accepted.
@@ -116,4 +119,10 @@ public interface ContractNegotiationProtocolService {
      */
     @NotNull
     ServiceResult<ContractNegotiation> findById(String id, TokenRepresentation tokenRepresentation);
+
+    // TODO: document
+    ServiceResult<RequestNegotiationContext> provideRequestContext(ContractRequestMessage message);
+
+    // TODO: document
+    ServiceResult<OfferNegotiationContext> provideOfferContext(ContractOfferMessage message);
 }

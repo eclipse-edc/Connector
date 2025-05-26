@@ -56,7 +56,7 @@ public abstract class BaseDspTransferProcessApiController {
     private final DspRequestHandler dspRequestHandler;
     private final String protocol;
     private final JsonLdNamespace namespace;
-    
+
     public BaseDspTransferProcessApiController(TransferProcessProtocolService protocolService, DspRequestHandler dspRequestHandler, String protocol, JsonLdNamespace namespace) {
         this.protocolService = protocolService;
         this.dspRequestHandler = dspRequestHandler;
@@ -94,7 +94,7 @@ public abstract class BaseDspTransferProcessApiController {
     @POST
     @Path(TRANSFER_INITIAL_REQUEST)
     public Response initiateTransferProcess(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        var request = PostDspRequest.Builder.newInstance(TransferRequestMessage.class, TransferProcess.class, TransferError.class)
+        var request = PostDspRequest.Builder.newInstance(TransferRequestMessage.class, TransferProcess.class, TransferError.class, protocolService::provideRequestContext)
                 .message(jsonObject)
                 .token(token)
                 .expectedMessageType(namespace.toIri(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_TERM))

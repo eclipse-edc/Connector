@@ -51,7 +51,8 @@ public abstract class BaseDspCatalogApiController {
     private final JsonLdNamespace namespace;
 
 
-    public BaseDspCatalogApiController(CatalogProtocolService service, DspRequestHandler dspRequestHandler, ContinuationTokenManager continuationTokenManager, String protocol, JsonLdNamespace namespace) {
+    public BaseDspCatalogApiController(CatalogProtocolService service, DspRequestHandler dspRequestHandler,
+                                       ContinuationTokenManager continuationTokenManager, String protocol, JsonLdNamespace namespace) {
         this.service = service;
         this.dspRequestHandler = dspRequestHandler;
         this.continuationTokenManager = continuationTokenManager;
@@ -71,7 +72,7 @@ public abstract class BaseDspCatalogApiController {
                     .orElseThrow(f -> new BadRequestException(f.getFailureDetail()));
         }
 
-        var request = PostDspRequest.Builder.newInstance(CatalogRequestMessage.class, Catalog.class, CatalogError.class)
+        var request = PostDspRequest.Builder.newInstance(CatalogRequestMessage.class, Catalog.class, CatalogError.class, service::provideRequestContext)
                 .token(token)
                 .expectedMessageType(namespace.toIri(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM))
                 .message(messageJson)

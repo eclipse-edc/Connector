@@ -28,11 +28,15 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ValidatableConsumerOffer;
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ValidatedConsumerOffer;
+import org.eclipse.edc.connector.controlplane.services.spi.context.ProtocolRequestContext;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.OfferNegotiationContext;
+import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.RequestNegotiationContext;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.policy.model.Policy;
@@ -332,45 +336,87 @@ class ContractNegotiationProtocolServiceImplTest {
                 .isEqualTo(BAD_REQUEST);
     }
 
-    @ParameterizedTest
-    @ArgumentsSource(NotifyArguments.class)
-    <M extends RemoteMessage> void notify_shouldReturnNotFound_whenNotFound(MethodCall<M> methodCall, M message) {
-        var tokenRepresentation = tokenRepresentation();
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message)))
-                .thenReturn(ServiceResult.success(participantAgent()));
-        when(store.findByIdAndLease(any())).thenReturn(StoreResult.notFound("not found"));
+    @Nested
+    class NotFoundFailure {
 
-        // currently ContractRequestMessage cannot happen on an already existing negotiation
-        if (!(message instanceof ContractRequestMessage)) {
-            var result = methodCall.call(service, message, tokenRepresentation);
+        @ParameterizedTest
+        @ArgumentsSource(NotifyArguments.class)
+        <M extends RemoteMessage> void notify_shouldReturnNotFound_whenNotFound(MethodCall<M> methodCall, M message) {
+            var tokenRepresentation = tokenRepresentation();
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message)))
+                    .thenReturn(ServiceResult.success(participantAgent()));
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.notFound("not found"));
 
-            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
-            verify(store, never()).save(any());
-            verifyNoInteractions(listener);
+            // currently ContractRequestMessage cannot happen on an already existing negotiation
+            if (!(message instanceof ContractRequestMessage)) {
+                var result = methodCall.call(service, message, tokenRepresentation);
+
+                assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+                verify(store, never()).save(any());
+                verifyNoInteractions(listener);
+            }
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(ServiceNotifyArguments.class)
+        <M extends RemoteMessage, C extends ProtocolRequestContext> void notify_shouldReturnNotFound_whenNotFound(ServiceMethodCall<M, C> methodCall, C context, M message) {
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.notFound("not found"));
+
+            // currently ContractRequestMessage cannot happen on an already existing negotiation
+            if (!(message instanceof ContractRequestMessage)) {
+                var result = methodCall.call(service, message, participantAgent(), context);
+
+                assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+                verify(store, never()).save(any());
+                verifyNoInteractions(listener);
+            }
         }
     }
 
-    @ParameterizedTest
-    @ArgumentsSource(NotifyArguments.class)
-    <M extends RemoteMessage> void notify_shouldReturnBadRequest_whenValidationFails(MethodCall<M> methodCall, M message) {
-        var tokenRepresentation = tokenRepresentation();
-        var validatableOffer = mock(ValidatableConsumerOffer.class);
+    @Nested
+    class ValidationFailure {
+        @ParameterizedTest
+        @ArgumentsSource(NotifyArguments.class)
+        <M extends RemoteMessage> void notify_shouldReturnBadRequest_whenValidationFails(MethodCall<M> methodCall, M message) {
+            var tokenRepresentation = tokenRepresentation();
+            var validatableOffer = mock(ValidatableConsumerOffer.class);
 
-        when(validatableOffer.getContractPolicy()).thenReturn(createPolicy());
-        when(consumerOfferResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message)))
-                .thenReturn(ServiceResult.success(participantAgent()));
-        when(store.findById(any())).thenReturn(createContractNegotiationOffered());
-        when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(createContractNegotiationOffered()));
-        when(validationService.validateRequest(any(ParticipantAgent.class), any(ContractNegotiation.class))).thenReturn(Result.failure("validation error"));
-        when(validationService.validateInitialOffer(any(ParticipantAgent.class), isA(ValidatableConsumerOffer.class))).thenReturn(Result.failure("error"));
-        when(validationService.validateConfirmed(any(ParticipantAgent.class), any(), any(ContractOffer.class))).thenReturn(Result.failure("failure"));
+            when(validatableOffer.getContractPolicy()).thenReturn(createPolicy());
+            when(consumerOfferResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message)))
+                    .thenReturn(ServiceResult.success(participantAgent()));
+            when(store.findById(any())).thenReturn(createContractNegotiationOffered());
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(createContractNegotiationOffered()));
+            when(validationService.validateRequest(any(ParticipantAgent.class), any(ContractNegotiation.class))).thenReturn(Result.failure("validation error"));
+            when(validationService.validateInitialOffer(any(ParticipantAgent.class), isA(ValidatableConsumerOffer.class))).thenReturn(Result.failure("error"));
+            when(validationService.validateConfirmed(any(ParticipantAgent.class), any(), any(ContractOffer.class))).thenReturn(Result.failure("failure"));
 
-        var result = methodCall.call(service, message, tokenRepresentation);
+            var result = methodCall.call(service, message, tokenRepresentation);
 
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
-        verify(store, never()).save(any());
-        verifyNoInteractions(listener);
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(ServiceNotifyArguments.class)
+        <M extends RemoteMessage, C extends ProtocolRequestContext> void notify_shouldReturnBadRequest_whenValidationFails(ServiceMethodCall<M, C> methodCall, C context, M message) {
+            var validatableOffer = mock(ValidatableConsumerOffer.class);
+
+            when(validatableOffer.getContractPolicy()).thenReturn(createPolicy());
+            when(consumerOfferResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
+            when(store.findById(any())).thenReturn(createContractNegotiationOffered());
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(createContractNegotiationOffered()));
+            when(validationService.validateRequest(any(ParticipantAgent.class), any(ContractNegotiation.class))).thenReturn(Result.failure("validation error"));
+            when(validationService.validateInitialOffer(any(ParticipantAgent.class), isA(ValidatableConsumerOffer.class))).thenReturn(Result.failure("error"));
+            when(validationService.validateConfirmed(any(ParticipantAgent.class), any(), any(ContractOffer.class))).thenReturn(Result.failure("failure"));
+
+            var result = methodCall.call(service, message, participantAgent(), context);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
+        }
     }
 
     @ParameterizedTest
@@ -434,6 +480,11 @@ class ContractNegotiationProtocolServiceImplTest {
         ServiceResult<?> call(ContractNegotiationProtocolService service, M message, TokenRepresentation token);
     }
 
+    @FunctionalInterface
+    private interface ServiceMethodCall<M extends RemoteMessage, C extends ProtocolRequestContext> {
+        ServiceResult<?> call(ContractNegotiationProtocolService service, M message, ParticipantAgent agent, C context);
+    }
+
     interface TestFunctions {
         static ContractOffer contractOffer() {
             return ContractOffer.Builder.newInstance()
@@ -452,29 +503,12 @@ class ContractNegotiationProtocolServiceImplTest {
 
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
-            MethodCall<ContractRequestMessage> requested = ContractNegotiationProtocolService::notifyRequested;
-            MethodCall<ContractOfferMessage> offered = ContractNegotiationProtocolService::notifyOffered;
             MethodCall<ContractAgreementMessage> agreed = ContractNegotiationProtocolService::notifyAgreed;
             MethodCall<ContractNegotiationEventMessage> accepted = ContractNegotiationProtocolService::notifyAccepted;
             MethodCall<ContractAgreementVerificationMessage> verified = ContractNegotiationProtocolService::notifyVerified;
             MethodCall<ContractNegotiationEventMessage> finalized = ContractNegotiationProtocolService::notifyFinalized;
             MethodCall<ContractNegotiationTerminationMessage> terminated = ContractNegotiationProtocolService::notifyTerminated;
             return Stream.of(
-                    Arguments.of(requested, ContractRequestMessage.Builder.newInstance()
-                            .callbackAddress("callbackAddress")
-                            .counterPartyAddress("counterPartyAddress")
-                            .protocol("protocol")
-                            .contractOffer(contractOffer())
-                            .consumerPid("consumerPid")
-                            .providerPid("providerPid")
-                            .build(), PROVIDER, INITIAL),
-                    Arguments.of(offered, ContractOfferMessage.Builder.newInstance()
-                            .callbackAddress("callbackAddress")
-                            .protocol("protocol")
-                            .contractOffer(contractOffer())
-                            .consumerPid("consumerPid")
-                            .providerPid("providerPid")
-                            .build(), CONSUMER, REQUESTED),
                     Arguments.of(agreed, ContractAgreementMessage.Builder.newInstance()
                             .protocol("protocol")
                             .counterPartyAddress("http://any")
@@ -515,12 +549,46 @@ class ContractNegotiationProtocolServiceImplTest {
 
     }
 
+    private static class ServiceNotifyArguments implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+            ServiceMethodCall<ContractRequestMessage, RequestNegotiationContext> requested = ContractNegotiationProtocolService::notifyRequested;
+            ServiceMethodCall<ContractOfferMessage, OfferNegotiationContext> offered = ContractNegotiationProtocolService::notifyOffered;
+            var validatableConsumerOffer = ValidatableConsumerOffer.Builder.newInstance()
+                    .offerId(ContractOfferId.create("any", "any"))
+                    .contractDefinition(ContractDefinition.Builder.newInstance().accessPolicyId("any").contractPolicyId("any").build())
+                    .contractPolicy(createPolicy())
+                    .accessPolicy(createPolicy())
+                    .build();
+            return Stream.of(
+                    Arguments.of(requested, new RequestNegotiationContext(validatableConsumerOffer),
+                            ContractRequestMessage.Builder.newInstance()
+                                    .callbackAddress("callbackAddress")
+                                    .counterPartyAddress("counterPartyAddress")
+                                    .protocol("protocol")
+                                    .contractOffer(contractOffer())
+                                    .consumerPid("consumerPid")
+                                    .providerPid("providerPid")
+                                    .build(), PROVIDER, INITIAL),
+                    Arguments.of(offered, new OfferNegotiationContext(contractOffer()),
+                            ContractOfferMessage.Builder.newInstance()
+                                    .callbackAddress("callbackAddress")
+                                    .protocol("protocol")
+                                    .contractOffer(contractOffer())
+                                    .consumerPid("consumerPid")
+                                    .providerPid("providerPid")
+                                    .build(), CONSUMER, REQUESTED)
+            );
+        }
+
+    }
+
     @Nested
     class NotifyRequested {
         @Test
         void shouldInitiateNegotiation_whenNegotiationDoesNotExist() {
             var participantAgent = participantAgent();
-            var tokenRepresentation = tokenRepresentation();
             var contractOffer = contractOffer();
             var validatedOffer = new ValidatedConsumerOffer(CONSUMER_ID, contractOffer);
             var message = ContractRequestMessage.Builder.newInstance()
@@ -533,11 +601,10 @@ class ContractNegotiationProtocolServiceImplTest {
 
             when(validatableOffer.getContractPolicy()).thenReturn(createPolicy());
             when(consumerOfferResolver.resolveOffer(contractOffer.getId())).thenReturn(ServiceResult.success(validatableOffer));
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.notFound("not found"));
             when(validationService.validateInitialOffer(participantAgent, validatableOffer)).thenReturn(Result.success(validatedOffer));
 
-            var result = service.notifyRequested(message, tokenRepresentation);
+            var result = service.notifyRequested(message, participantAgent, new RequestNegotiationContext(validatableOffer));
 
             assertThat(result).isSucceeded();
             var calls = ArgumentCaptor.forClass(ContractNegotiation.class);
@@ -559,7 +626,6 @@ class ContractNegotiationProtocolServiceImplTest {
         @Test
         void shouldTransitionToRequested_whenNegotiationFound() {
             var participantAgent = participantAgent();
-            var tokenRepresentation = tokenRepresentation();
             var contractOffer = contractOffer();
             var validatedOffer = new ValidatedConsumerOffer(CONSUMER_ID, contractOffer);
             var negotiation = createContractNegotiationOffered();
@@ -575,14 +641,12 @@ class ContractNegotiationProtocolServiceImplTest {
             var validatableOffer = mock(ValidatableConsumerOffer.class);
 
             when(validatableOffer.getContractPolicy()).thenReturn(createPolicy());
-            when(consumerOfferResolver.resolveOffer(contractOffer.getId())).thenReturn(ServiceResult.success(validatableOffer));
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById(any())).thenReturn(negotiation);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
-            when(validationService.validateInitialOffer(participantAgent, validatableOffer)).thenReturn(Result.success(validatedOffer));
+            when(validationService.validateInitialOffer(any(), any())).thenReturn(Result.success(validatedOffer));
 
 
-            var result = service.notifyRequested(message, tokenRepresentation);
+            var result = service.notifyRequested(message, participantAgent, new RequestNegotiationContext(validatableOffer));
 
             assertThat(result).isSucceeded();
             verify(store).findByIdAndLease("providerPid");
@@ -600,28 +664,6 @@ class ContractNegotiationProtocolServiceImplTest {
             verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
         }
 
-        @Test
-        void shouldReturnNotFound_whenOfferNotFound() {
-            var tokenRepresentation = tokenRepresentation();
-            var contractOffer = contractOffer();
-            var message = ContractRequestMessage.Builder.newInstance()
-                    .callbackAddress("callbackAddress")
-                    .protocol("protocol")
-                    .contractOffer(contractOffer)
-                    .consumerPid("consumerPid")
-                    .build();
-            var validatableOffer = mock(ValidatableConsumerOffer.class);
-
-            when(validatableOffer.getContractPolicy()).thenReturn(createPolicy());
-            when(consumerOfferResolver.resolveOffer(contractOffer.getId())).thenReturn(ServiceResult.notFound(""));
-
-            var result = service.notifyRequested(message, tokenRepresentation);
-
-            assertThat(result)
-                    .isFailed()
-                    .extracting(ServiceFailure::getReason)
-                    .isEqualTo(NOT_FOUND);
-        }
     }
 
     @Nested
@@ -629,7 +671,6 @@ class ContractNegotiationProtocolServiceImplTest {
 
         @Test
         void shouldInitiateNegotiation_whenNegotiationDoesNotExist() {
-            var tokenRepresentation = tokenRepresentation();
             var contractOffer = contractOffer();
             var message = ContractOfferMessage.Builder.newInstance()
                     .callbackAddress("callbackAddress")
@@ -637,10 +678,8 @@ class ContractNegotiationProtocolServiceImplTest {
                     .contractOffer(contractOffer)
                     .providerPid("providerPid")
                     .build();
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message)))
-                    .thenReturn(ServiceResult.success(participantAgent()));
 
-            var result = service.notifyOffered(message, tokenRepresentation);
+            var result = service.notifyOffered(message, participantAgent(), new OfferNegotiationContext(contractOffer));
 
             assertThat(result).isSucceeded();
             var calls = ArgumentCaptor.forClass(ContractNegotiation.class);
@@ -665,7 +704,6 @@ class ContractNegotiationProtocolServiceImplTest {
         void shouldTransitionToOffered_whenNegotiationAlreadyExist() {
             var processId = "processId";
             var participantAgent = participantAgent();
-            var tokenRepresentation = tokenRepresentation();
             var contractOffer = contractOffer();
             var message = ContractOfferMessage.Builder.newInstance()
                     .callbackAddress("callbackAddress")
@@ -677,13 +715,11 @@ class ContractNegotiationProtocolServiceImplTest {
                     .build();
             var negotiation = createContractNegotiationRequested();
 
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message)))
-                    .thenReturn(ServiceResult.success(participantAgent));
             when(store.findById(processId)).thenReturn(negotiation);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
             when(validationService.validateRequest(participantAgent, negotiation)).thenReturn(Result.success());
 
-            var result = service.notifyOffered(message, tokenRepresentation);
+            var result = service.notifyOffered(message, participantAgent, new OfferNegotiationContext(contractOffer));
 
             assertThat(result).isSucceeded();
             var updatedNegotiation = result.getContent();
@@ -696,7 +732,6 @@ class ContractNegotiationProtocolServiceImplTest {
 
         @Test
         void shouldReturnNotFound_whenOfferNotFound() {
-            var tokenRepresentation = tokenRepresentation();
             var contractOffer = contractOffer();
             var message = ContractOfferMessage.Builder.newInstance()
                     .callbackAddress("callbackAddress")
@@ -705,11 +740,9 @@ class ContractNegotiationProtocolServiceImplTest {
                     .consumerPid("consumerPid")
                     .providerPid("providerPid")
                     .build();
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), eq(message)))
-                    .thenReturn(ServiceResult.success(participantAgent()));
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.notFound("not found"));
 
-            var result = service.notifyOffered(message, tokenRepresentation);
+            var result = service.notifyOffered(message, participantAgent(), new OfferNegotiationContext(contractOffer));
 
             assertThat(result)
                     .isFailed()
@@ -719,7 +752,64 @@ class ContractNegotiationProtocolServiceImplTest {
     }
 
     @Nested
-    class IdempotencyProcessStateReplication {
+    class ProvideRequestContext {
+        @Test
+        void shouldProvideRequestContext() {
+            var message = ContractRequestMessage.Builder.newInstance()
+                    .callbackAddress("callbackAddress")
+                    .protocol("protocol")
+                    .processId("processId")
+                    .contractOffer(contractOffer())
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .build();
+            when(consumerOfferResolver.resolveOffer(any())).thenReturn(ServiceResult.success(mock()));
+
+            var result = service.provideRequestContext(message);
+
+            assertThat(result).isSucceeded().extracting(RequestNegotiationContext::validatableConsumerOffer).isNotNull();
+        }
+
+        @Test
+        void shouldFail_whenResolutionFails() {
+            var message = ContractRequestMessage.Builder.newInstance()
+                    .callbackAddress("callbackAddress")
+                    .protocol("protocol")
+                    .processId("processId")
+                    .contractOffer(contractOffer())
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .build();
+            when(consumerOfferResolver.resolveOffer(any())).thenReturn(ServiceResult.notFound("not found"));
+
+            var result = service.provideRequestContext(message);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+        }
+    }
+
+    @Nested
+    class ProvideOfferContext {
+        @Test
+        void shouldProvideOfferContext() {
+            var contractOffer = contractOffer();
+            var message = ContractOfferMessage.Builder.newInstance()
+                    .callbackAddress("callbackAddress")
+                    .protocol("protocol")
+                    .processId("processId")
+                    .contractOffer(contractOffer)
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .build();
+
+            var result = service.provideOfferContext(message);
+
+            assertThat(result).isSucceeded().extracting(OfferNegotiationContext::contractOffer).isSameAs(contractOffer);
+        }
+    }
+
+    @Nested
+    class IdempotencyProcessStateReplicationOld { // will be replaced by IdempotencyProcessStateReplication once the token validation will be extracted from the service
 
         @ParameterizedTest
         @ArgumentsSource(NotifyArguments.class)
@@ -830,6 +920,94 @@ class ContractNegotiationProtocolServiceImplTest {
             assertThat(result).isFailed().satisfies(failure -> {
                 assertThat(failure.getReason()).isEqualTo(CONFLICT);
             });
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
+        }
+    }
+
+    @Nested
+    class IdempotencyProcessStateReplication {
+
+        @ParameterizedTest
+        @ArgumentsSource(ServiceNotifyArguments.class)
+        <M extends ProcessRemoteMessage, C extends ProtocolRequestContext> void notify_shouldStoreReceivedMessageId(
+                ServiceMethodCall<M, C> methodCall, C context, M message,
+                ContractNegotiation.Type type,
+                ContractNegotiationStates currentState
+        ) {
+            var offer = contractOffer();
+            var negotiation = contractNegotiationBuilder().state(currentState.code()).type(type).contractOffer(offer).build();
+
+            when(store.findById(any())).thenReturn(negotiation);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
+            when(validationService.validateRequest(any(ParticipantAgent.class), any(ContractNegotiation.class))).thenReturn(Result.success());
+            when(validationService.validateInitialOffer(any(ParticipantAgent.class), isA(ValidatableConsumerOffer.class)))
+                    .thenAnswer(i -> Result.success(new ValidatedConsumerOffer("any", offer)));
+            when(validationService.validateConfirmed(any(ParticipantAgent.class), any(), any())).thenAnswer(i -> Result.success(negotiation));
+
+            var result = methodCall.call(service, message, participantAgent(), context);
+
+            assertThat(result).isSucceeded();
+            var captor = ArgumentCaptor.forClass(ContractNegotiation.class);
+            verify(store).save(captor.capture());
+            var storedNegotiation = captor.getValue();
+            assertThat(storedNegotiation.getProtocolMessages().isAlreadyReceived(message.getId())).isTrue();
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(ServiceNotifyArguments.class)
+        <M extends ProcessRemoteMessage, C extends ProtocolRequestContext> void notify_shouldIgnoreMessage_whenAlreadyReceived(
+                ServiceMethodCall<M, C> methodCall, C context, M message,
+                ContractNegotiation.Type type,
+                ContractNegotiationStates currentState
+        ) {
+            var offer = contractOffer();
+            var negotiation = contractNegotiationBuilder().state(currentState.code()).type(type).contractOffer(offer).build();
+            negotiation.protocolMessageReceived(message.getId());
+            var validatableOffer = mock(ValidatableConsumerOffer.class);
+
+            when(validatableOffer.getContractPolicy()).thenReturn(createPolicy());
+            when(consumerOfferResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
+            when(protocolTokenValidator.verify(any(), any(), any(), eq(message)))
+                    .thenReturn(ServiceResult.success(participantAgent()));
+            when(store.findById(any())).thenReturn(negotiation);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
+            when(validationService.validateRequest(any(ParticipantAgent.class), any(ContractNegotiation.class))).thenReturn(Result.success());
+            when(validationService.validateInitialOffer(any(ParticipantAgent.class), any(ValidatableConsumerOffer.class)))
+                    .thenAnswer(i -> Result.success(new ValidatedConsumerOffer("any", offer)));
+            when(validationService.validateConfirmed(any(ParticipantAgent.class), any(), any())).thenAnswer(i -> Result.success(negotiation));
+
+            var result = methodCall.call(service, message, participantAgent(), context);
+
+            assertThat(result).isSucceeded();
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(ServiceNotifyArguments.class)
+        <M extends ProcessRemoteMessage, C extends ProtocolRequestContext> void notify_shouldIgnoreMessage_whenFinalState(
+                ServiceMethodCall<M, C> methodCall, C context, M message,
+                ContractNegotiation.Type type
+        ) {
+            var offer = contractOffer();
+            var negotiation = contractNegotiationBuilder().state(FINALIZED.code()).type(type).contractOffer(offer).build();
+            var validatableOffer = mock(ValidatableConsumerOffer.class);
+
+            when(validatableOffer.getContractPolicy()).thenReturn(createPolicy());
+            when(consumerOfferResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
+            when(protocolTokenValidator.verify(any(), any(), any(), eq(message)))
+                    .thenReturn(ServiceResult.success(participantAgent()));
+            when(store.findById(any())).thenReturn(negotiation);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
+            when(validationService.validateRequest(any(ParticipantAgent.class), any(ContractNegotiation.class))).thenReturn(Result.success());
+            when(validationService.validateInitialOffer(any(ParticipantAgent.class), any(ValidatableConsumerOffer.class)))
+                    .thenAnswer(i -> Result.success(new ValidatedConsumerOffer("any", offer)));
+            when(validationService.validateConfirmed(any(ParticipantAgent.class), any(), any())).thenAnswer(i -> Result.success(negotiation));
+
+            var result = methodCall.call(service, message, participantAgent(), context);
+
+            assertThat(result).isSucceeded();
             verify(store, never()).save(any());
             verifyNoInteractions(listener);
         }

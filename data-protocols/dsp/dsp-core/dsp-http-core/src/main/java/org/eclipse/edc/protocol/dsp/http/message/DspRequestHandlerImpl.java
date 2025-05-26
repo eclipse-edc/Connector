@@ -18,6 +18,8 @@ package org.eclipse.edc.protocol.dsp.http.message;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.connector.controlplane.services.spi.context.ProtocolRequestContext;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
@@ -40,21 +42,25 @@ import java.util.UUID;
 
 public class DspRequestHandlerImpl implements DspRequestHandler {
 
-    public static final String UNAUTHORIZED = "Unauthorized.";
+    public static final String UNAUTHORIZED = "Unauthorized";
     public static final String BAD_REQUEST = "Bad request.";
     public static final String INTERNAL_ERROR = "Error code %s";
     private final Monitor monitor;
     private final JsonObjectValidatorRegistry validatorRegistry;
     private final DspProtocolTypeTransformerRegistry dspTransformerRegistry;
+    private final ProtocolTokenValidator protocolTokenValidator;
 
-    public DspRequestHandlerImpl(Monitor monitor, JsonObjectValidatorRegistry validatorRegistry, DspProtocolTypeTransformerRegistry dspTransformerRegistry) {
+    public DspRequestHandlerImpl(Monitor monitor, JsonObjectValidatorRegistry validatorRegistry,
+                                 DspProtocolTypeTransformerRegistry dspTransformerRegistry,
+                                 ProtocolTokenValidator protocolTokenValidator) {
         this.monitor = monitor;
         this.validatorRegistry = validatorRegistry;
         this.dspTransformerRegistry = dspTransformerRegistry;
+        this.protocolTokenValidator = protocolTokenValidator;
     }
 
     @Override
-    public <R, E extends ErrorMessage> Response getResource(GetDspRequest<R, E> request) {
+    public <R, E extends ErrorMessage, C> Response getResource(GetDspRequest<R, E, C> request) {
         monitor.debug(() -> "DSP: Incoming resource request for %s id %s".formatted(request.getResultClass(), request.getId()));
 
         var token = request.getToken();
@@ -88,7 +94,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
     }
 
     @Override
-    public <I extends RemoteMessage, R, E extends ErrorMessage> Response createResource(PostDspRequest<I, R, E> request, ResponseDecorator<I, R> responseDecorator) {
+    public <I extends RemoteMessage, R, E extends ErrorMessage, C extends ProtocolRequestContext> Response createResource(PostDspRequest<I, R, E, C> request, ResponseDecorator<I, R> responseDecorator) {
         monitor.debug(() -> "DSP: Incoming %s for %s process%s".formatted(
                 request.getInputClass().getSimpleName(),
                 request.getResultClass(),
@@ -129,7 +135,24 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).build();
 
         var input = inputTransformation.getContent();
-        var serviceResult = request.getServiceCall().apply(input, tokenRepresentation);
+
+        var contextProvision = request.getContextProvider().provide(input);
+        if (contextProvision.failed()) {
+            monitor.debug(() -> "DSP: Cannot provide context: %s".formatted(contextProvision.getFailureDetail()));
+            return badRequest(request);
+        }
+
+        var context = contextProvision.getContent();
+
+        var tokenValidation = protocolTokenValidator.verify(tokenRepresentation, context.requestPolicyContextProvider(), context.policy(), input);
+        if (tokenValidation.failed()) {
+            monitor.debug(() -> "DSP: Unauthorized: %s".formatted(tokenValidation.getFailureDetail()));
+            return unauthorized(request);
+        }
+
+        var serviceResult = request.getServiceProtocolCall().call(input, tokenValidation.getContent(), context);
+
+
         if (serviceResult.failed()) {
             monitor.debug(() -> "DSP: Service call failed: %s".formatted(serviceResult.getFailureDetail()));
             return forFailure(serviceResult.getFailure(), request);
@@ -151,7 +174,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
     }
 
     @Override
-    public <I extends RemoteMessage, R, E extends ErrorMessage> Response updateResource(PostDspRequest<I, R, E> request) {
+    public <I extends RemoteMessage, R, E extends ErrorMessage, C extends ProtocolRequestContext> Response updateResource(PostDspRequest<I, R, E, C> request) {
         monitor.debug(() -> "DSP: Incoming %s for %s process%s".formatted(
                 request.getInputClass().getSimpleName(),
                 request.getResultClass(),
@@ -209,11 +232,11 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
                 });
     }
 
-    private <I extends RemoteMessage, R, E extends ErrorMessage> Response forFailure(ServiceFailure failure, PostDspRequest<I, R, E> request) {
+    private <I extends RemoteMessage, R, E extends ErrorMessage, C extends ProtocolRequestContext> Response forFailure(ServiceFailure failure, PostDspRequest<I, R, E, C> request) {
         return forFailure(failure, request.getProtocol(), request.getErrorProvider().get().processId(request.getProcessId()));
     }
 
-    private <R, E extends ErrorMessage> Response forFailure(ServiceFailure failure, GetDspRequest<R, E> request) {
+    private <R, E extends ErrorMessage, C> Response forFailure(ServiceFailure failure, GetDspRequest<R, E, C> request) {
         return forFailure(failure, request.getProtocol(), request.getErrorProvider().get().processId(request.getId()));
     }
 
@@ -222,35 +245,35 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
         return forStatus(code, protocol, failure.getMessages(), builder);
     }
 
-    private <R, E extends ErrorMessage> Response unauthorized(GetDspRequest<R, E> request) {
+    private <R, E extends ErrorMessage, C> Response unauthorized(GetDspRequest<R, E, C> request) {
         return forStatus(Response.Status.UNAUTHORIZED, List.of(UNAUTHORIZED), request);
     }
 
-    private <I extends RemoteMessage, R, E extends ErrorMessage> Response unauthorized(PostDspRequest<I, R, E> request) {
+    private <I extends RemoteMessage, R, E extends ErrorMessage, C extends ProtocolRequestContext> Response unauthorized(PostDspRequest<I, R, E, C> request) {
         return forStatus(Response.Status.UNAUTHORIZED, List.of(UNAUTHORIZED), request);
     }
 
-    private <R, E extends ErrorMessage> Response badRequest(GetDspRequest<R, E> request) {
+    private <R, E extends ErrorMessage, C> Response badRequest(GetDspRequest<R, E, C> request) {
         return forStatus(Response.Status.BAD_REQUEST, List.of(BAD_REQUEST), request);
     }
 
-    private <I extends RemoteMessage, R, E extends ErrorMessage> Response badRequest(PostDspRequest<I, R, E> request) {
+    private <I extends RemoteMessage, R, E extends ErrorMessage, C extends ProtocolRequestContext> Response badRequest(PostDspRequest<I, R, E, C> request) {
         return forStatus(Response.Status.BAD_REQUEST, List.of(BAD_REQUEST), request);
     }
 
-    private <R, E extends ErrorMessage> Response internalServerError(GetDspRequest<R, E> request, String errorCode) {
+    private <R, E extends ErrorMessage, C> Response internalServerError(GetDspRequest<R, E, C> request, String errorCode) {
         return forStatus(Response.Status.INTERNAL_SERVER_ERROR, List.of(INTERNAL_ERROR.formatted(errorCode)), request);
     }
 
-    private <I extends RemoteMessage, R, E extends ErrorMessage> Response internalServerError(PostDspRequest<I, R, E> request, String errorCode) {
+    private <I extends RemoteMessage, R, E extends ErrorMessage, C extends ProtocolRequestContext> Response internalServerError(PostDspRequest<I, R, E, C> request, String errorCode) {
         return forStatus(Response.Status.INTERNAL_SERVER_ERROR, List.of(INTERNAL_ERROR.formatted(errorCode)), request);
     }
 
-    private <I extends RemoteMessage, R, E extends ErrorMessage> Response forStatus(Response.Status status, List<String> messages, PostDspRequest<I, R, E> request) {
+    private <I extends RemoteMessage, R, E extends ErrorMessage, C extends ProtocolRequestContext> Response forStatus(Response.Status status, List<String> messages, PostDspRequest<I, R, E, C> request) {
         return forStatus(status, request.getProtocol(), messages, request.getErrorProvider().get().processId(request.getProcessId()));
     }
 
-    private <R, E extends ErrorMessage> Response forStatus(Response.Status status, List<String> messages, GetDspRequest<R, E> request) {
+    private <R, E extends ErrorMessage, C> Response forStatus(Response.Status status, List<String> messages, GetDspRequest<R, E, C> request) {
         return forStatus(status, request.getProtocol(), messages, request.getErrorProvider().get().processId(request.getId()));
     }
 

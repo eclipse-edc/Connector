@@ -195,7 +195,7 @@ public class DspCatalogApiEndToEndTest {
                 .contentType(JSON)
                 .body("'@type'", equalTo("dspace:CatalogError"))
                 .body("'dspace:code'", equalTo("401"))
-                .body("'dspace:reason'", equalTo("Unauthorized."))
+                .body("'dspace:reason'", equalTo("Unauthorized"))
                 .body("'@context'.dspace", equalTo(namespace.namespace()));
 
     }

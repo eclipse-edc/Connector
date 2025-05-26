@@ -160,7 +160,7 @@ public class DspNegotiationApi2025EndToEndTest {
                 .contentType(JSON)
                 .body("'@type'", equalTo(DSPACE_TYPE_CONTRACT_NEGOTIATION_ERROR_TERM))
                 .body("code", equalTo("401"))
-                .body("reason[0]", equalTo("Unauthorized."))
+                .body("reason[0]", equalTo("Unauthorized"))
                 .body("'@context'", equalTo(context));
     }
 

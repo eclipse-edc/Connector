@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
+import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.jetbrains.annotations.NotNull;
@@ -32,12 +33,13 @@ public interface TransferProcessProtocolService {
     /**
      * Notifies the TransferProcess that it has been requested by the counter-part.
      *
-     * @param message             the incoming message
-     * @param tokenRepresentation the counter-party claim token
+     * @param message          the incoming message
+     * @param participantAgent the participant agent
+     * @param context          the context
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
     @NotNull
-    ServiceResult<TransferProcess> notifyRequested(TransferRequestMessage message, TokenRepresentation tokenRepresentation);
+    ServiceResult<TransferProcess> notifyRequested(TransferRequestMessage message, ParticipantAgent participantAgent, RequestTransferContext context);
 
     /**
      * Notifies the TransferProcess that it has been started by the counter-part.
@@ -89,4 +91,7 @@ public interface TransferProcessProtocolService {
      */
     @NotNull
     ServiceResult<TransferProcess> findById(String id, TokenRepresentation tokenRepresentation);
+
+    // TODO: document
+    ServiceResult<RequestTransferContext> provideRequestContext(TransferRequestMessage message);
 }

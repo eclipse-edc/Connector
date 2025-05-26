@@ -17,7 +17,7 @@ package org.eclipse.edc.protocol.dsp.http.spi.message;
 
 import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
 
-public class GetDspRequest<R, E extends ErrorMessage> extends DspRequest<String, R, E> {
+public class GetDspRequest<R, E extends ErrorMessage, C> extends DspRequest<String, R, E, C> {
 
     private String id;
     private boolean authRequired = true;
@@ -34,28 +34,28 @@ public class GetDspRequest<R, E extends ErrorMessage> extends DspRequest<String,
         return authRequired;
     }
 
-    public static class Builder<R, E extends ErrorMessage> extends DspRequest.Builder<String, R, GetDspRequest<R, E>, E, Builder<R, E>> {
+    public static class Builder<R, E extends ErrorMessage, C> extends DspRequest.Builder<String, R, GetDspRequest<R, E, C>, E, C, Builder<R, E, C>> {
 
         private Builder(Class<R> resultClass, Class<E> errorClass) {
             super(new GetDspRequest<>(resultClass, errorClass));
         }
 
-        public static <R, E extends ErrorMessage> Builder<R, E> newInstance(Class<R> resultClass, Class<E> errorClass) {
+        public static <R, E extends ErrorMessage, C> Builder<R, E, C> newInstance(Class<R> resultClass, Class<E> errorClass) {
             return new Builder<>(resultClass, errorClass);
         }
 
-        public Builder<R, E> id(String id) {
+        public Builder<R, E, C> id(String id) {
             super.message.id = id;
             return this;
         }
         
-        public Builder<R, E> authRequired(boolean authRequired) {
+        public Builder<R, E, C> authRequired(boolean authRequired) {
             super.message.authRequired = authRequired;
             return this;
         }
 
         @Override
-        protected Builder<R, E> self() {
+        protected Builder<R, E, C> self() {
             return this;
         }
     }
