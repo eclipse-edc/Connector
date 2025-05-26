@@ -20,7 +20,9 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
+import org.eclipse.edc.connector.controlplane.services.spi.catalog.RequestCatalogContext;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
+import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -52,20 +54,19 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
 
     @Override
     @NotNull
-    public ServiceResult<Catalog> getCatalog(CatalogRequestMessage message, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> protocolTokenValidator.verify(tokenRepresentation, RequestCatalogPolicyContext::new, message)
-                .map(agent -> {
-                    try (var datasets = datasetResolver.query(agent, message.getQuerySpec(), message.getProtocol())) {
-                        var dataServices = dataServiceRegistry.getDataServices(message.getProtocol());
+    public ServiceResult<Catalog> getCatalog(CatalogRequestMessage message, ParticipantAgent participantAgent, RequestCatalogContext context) {
+        return transactionContext.execute(() -> {
+            try (var datasets = datasetResolver.query(participantAgent, message.getQuerySpec(), message.getProtocol())) {
+                var dataServices = dataServiceRegistry.getDataServices(message.getProtocol());
 
-                        return Catalog.Builder.newInstance()
-                                .dataServices(dataServices)
-                                .datasets(datasets.toList())
-                                .participantId(participantId)
-                                .build();
-                    }
-                })
-        );
+                var catalog = Catalog.Builder.newInstance()
+                        .dataServices(dataServices)
+                        .datasets(datasets.toList())
+                        .participantId(participantId)
+                        .build();
+                return ServiceResult.success(catalog);
+            }
+        });
     }
 
     @Override
@@ -79,6 +80,11 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
 
                     return ServiceResult.success(dataset);
                 }));
+    }
+
+    @Override
+    public ServiceResult<RequestCatalogContext> provideRequestContext(CatalogRequestMessage message) {
+        return ServiceResult.success(new RequestCatalogContext());
     }
 
 }
