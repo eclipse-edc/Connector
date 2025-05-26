@@ -33,6 +33,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceS
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
+import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
@@ -56,6 +57,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.junit.matchers.EventEnvelopeMatcher.isEnvelopeOf;
@@ -119,8 +121,10 @@ class ContractNegotiationEventDispatchTest {
         contractDefinitionStore.save(contractDefinition);
         policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).build());
         assetIndex.create(Asset.Builder.newInstance().id("assetId").dataAddress(DataAddress.Builder.newInstance().type("any").build()).build());
+        var message = createContractOfferRequest(policy, "assetId");
+        var contextProvision = service.provideRequestContext(message);
 
-        service.notifyRequested(createContractOfferRequest(policy, "assetId"), tokenRepresentation);
+        service.notifyRequested(message, new ParticipantAgent(emptyMap(), Map.of(ParticipantAgent.PARTICIPANT_IDENTITY, "any")), contextProvision.getContent());
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationRequested.class)));

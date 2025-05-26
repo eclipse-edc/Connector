@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
+import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.RequestTransferContext;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
@@ -88,12 +89,10 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<TransferProcess> notifyRequested(TransferRequestMessage message, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> fetchNotifyRequestContext(message)
-                .compose(context -> verifyRequest(tokenRepresentation, context, message))
-                .compose(context -> validateDestination(message, context))
-                .compose(context -> validateAgreement(message, context))
-                .compose(context -> requestedAction(message, context.agreement().getAssetId())));
+    public ServiceResult<TransferProcess> notifyRequested(TransferRequestMessage message, ParticipantAgent participantAgent, RequestTransferContext context) {
+        return transactionContext.execute(() -> validateDestination(message))
+                .compose(empty -> validateAgreement(message, participantAgent, context.contractAgreement()))
+                .compose(empty -> requestedAction(message, context.contractAgreement().getAssetId()));
     }
 
     @Override
@@ -141,6 +140,14 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         return transactionContext.execute(() -> fetchRequestContext(id, this::findTransferProcessById)
                 .compose(context -> verifyRequest(tokenRepresentation, context, null))
                 .compose(context -> validateCounterParty(context.participantAgent(), context.agreement(), context.transferProcess())));
+    }
+
+    @Override
+    public ServiceResult<RequestTransferContext> provideRequestContext(TransferRequestMessage message) {
+        return Optional.ofNullable(negotiationStore.findContractAgreement(message.getContractId()))
+                .map(RequestTransferContext::new)
+                .map(ServiceResult::success)
+                .orElseGet(() -> ServiceResult.notFound(format("Cannot process %s because %s", message.getClass().getSimpleName(), "agreement not found or not valid")));
     }
 
     @NotNull
@@ -232,7 +239,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         }
     }
 
-    private ServiceResult<ClaimTokenContext> validateDestination(TransferRequestMessage message, ClaimTokenContext context) {
+    private ServiceResult<Void> validateDestination(TransferRequestMessage message) {
         var destination = message.getDataDestination();
         if (destination != null) {
             var validDestination = dataAddressValidator.validateDestination(destination);
@@ -240,22 +247,15 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                 return ServiceResult.badRequest(validDestination.getFailureMessages());
             }
         }
-        return ServiceResult.success(context);
+        return ServiceResult.success();
     }
 
-    private ServiceResult<ClaimTokenContext> validateAgreement(TransferRemoteMessage message, ClaimTokenContext context) {
-        var validationResult = contractValidationService.validateAgreement(context.participantAgent(), context.agreement());
+    private ServiceResult<Void> validateAgreement(TransferRemoteMessage message, ParticipantAgent agent, ContractAgreement agreement) {
+        var validationResult = contractValidationService.validateAgreement(agent, agreement);
         if (validationResult.failed()) {
             return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "agreement not found or not valid"));
         }
-        return ServiceResult.success(context);
-    }
-
-    private ServiceResult<TransferRequestMessageContext> fetchNotifyRequestContext(TransferRequestMessage message) {
-        return Optional.ofNullable(negotiationStore.findContractAgreement(message.getContractId()))
-                .map(contractAgreement -> new TransferRequestMessageContext(contractAgreement, null))
-                .map(ServiceResult::success)
-                .orElseGet(() -> ServiceResult.notFound(format("Cannot process %s because %s", message.getClass().getSimpleName(), "agreement not found or not valid")));
+        return ServiceResult.success();
     }
 
     private <T> ServiceResult<TransferRequestMessageContext> fetchRequestContext(T input, Function<T, ServiceResult<TransferProcess>> tpProvider) {

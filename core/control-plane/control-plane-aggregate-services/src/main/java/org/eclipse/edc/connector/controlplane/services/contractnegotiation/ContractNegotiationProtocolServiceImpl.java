@@ -31,6 +31,8 @@ import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractVa
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ValidatableConsumerOffer;
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ValidatedConsumerOffer;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.OfferNegotiationContext;
+import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.RequestNegotiationContext;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext;
@@ -83,63 +85,60 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<ContractNegotiation> notifyRequested(ContractRequestMessage message, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> fetchValidatableOffer(message)
-                .compose(validatableOffer -> verifyRequest(tokenRepresentation, validatableOffer.getContractPolicy(), message)
-                        .compose(agent -> validateOffer(agent, validatableOffer))
-                        .compose(validatedOffer -> {
-                            var result = message.getProviderPid() == null
-                                    ? createNegotiation(message, validatedOffer.getConsumerIdentity(), PROVIDER, message.getCallbackAddress())
-                                    : getAndLeaseNegotiation(message.getProviderPid());
+    public ServiceResult<ContractNegotiation> notifyRequested(ContractRequestMessage message, ParticipantAgent participantAgent, RequestNegotiationContext context) {
+        return transactionContext.execute(() -> validateOffer(participantAgent, context.validatableConsumerOffer())
+                .compose(validatedOffer -> {
+                    var result = message.getProviderPid() == null
+                            ? createNegotiation(message, validatedOffer.getConsumerIdentity(), PROVIDER, message.getCallbackAddress())
+                            : getAndLeaseNegotiation(message.getProviderPid());
 
-                            return result.compose(negotiation -> {
-                                if (negotiation.shouldIgnoreIncomingMessage(message.getId())) {
-                                    return ServiceResult.success(negotiation);
-                                }
-                                if (negotiation.getType().equals(PROVIDER) && negotiation.canBeRequestedProvider()) {
-                                    negotiation.protocolMessageReceived(message.getId());
-                                    negotiation.addContractOffer(validatedOffer.getOffer());
-                                    negotiation.transitionRequested();
-                                    update(negotiation);
-                                    observable.invokeForEach(l -> l.requested(negotiation));
-                                    return ServiceResult.success(negotiation);
-                                } else {
-                                    return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be requested"));
-                                }
+                    return result.compose(negotiation -> {
+                        if (negotiation.shouldIgnoreIncomingMessage(message.getId()) || isFinal(negotiation.getState())) {
+                            return ServiceResult.success(negotiation);
+                        }
+                        if (negotiation.getType().equals(PROVIDER) && negotiation.canBeRequestedProvider()) {
+                            negotiation.protocolMessageReceived(message.getId());
+                            negotiation.addContractOffer(validatedOffer.getOffer());
+                            negotiation.transitionRequested();
+                            update(negotiation);
+                            observable.invokeForEach(l -> l.requested(negotiation));
+                            return ServiceResult.success(negotiation);
+                        } else {
+                            return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be requested"));
+                        }
 
-                            });
-                        })
-                ));
+                    });
+                })
+        );
     }
 
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<ContractNegotiation> notifyOffered(ContractOfferMessage message, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> verifyRequest(tokenRepresentation, message.getContractOffer().getPolicy(), message)
-                .compose(agent -> {
-                    ServiceResult<ContractNegotiation> result = message.getConsumerPid() == null
-                            ? createNegotiation(message, agent.getIdentity(), CONSUMER, message.getCallbackAddress())
-                            : getAndLeaseNegotiation(message.getConsumerPid())
-                            .compose(negotiation -> validateRequest(agent, negotiation).map(it -> negotiation));
+    public ServiceResult<ContractNegotiation> notifyOffered(ContractOfferMessage message, ParticipantAgent participantAgent, OfferNegotiationContext context) {
+        return transactionContext.execute(() -> {
+            ServiceResult<ContractNegotiation> result = message.getConsumerPid() == null
+                    ? createNegotiation(message, participantAgent.getIdentity(), CONSUMER, message.getCallbackAddress())
+                    : getAndLeaseNegotiation(message.getConsumerPid())
+                    .compose(negotiation -> validateRequest(participantAgent, negotiation).map(it -> negotiation));
 
-                    return result.compose(negotiation -> {
-                        if (negotiation.shouldIgnoreIncomingMessage(message.getId())) {
-                            return ServiceResult.success(negotiation);
-                        }
-                        if (negotiation.getType().equals(CONSUMER) && negotiation.canBeOfferedConsumer()) {
-                            negotiation.protocolMessageReceived(message.getId());
-                            negotiation.addContractOffer(message.getContractOffer());
-                            negotiation.transitionOffered();
-                            update(negotiation);
-                            observable.invokeForEach(l -> l.offered(negotiation));
+            return result.compose(negotiation -> {
+                if (negotiation.shouldIgnoreIncomingMessage(message.getId()) || isFinal(negotiation.getState())) {
+                    return ServiceResult.success(negotiation);
+                }
+                if (negotiation.getType().equals(CONSUMER) && negotiation.canBeOfferedConsumer()) {
+                    negotiation.protocolMessageReceived(message.getId());
+                    negotiation.addContractOffer(message.getContractOffer());
+                    negotiation.transitionOffered();
+                    update(negotiation);
+                    observable.invokeForEach(l -> l.offered(negotiation));
 
-                            return ServiceResult.success(negotiation);
-                        } else {
-                            return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be offered"));
-                        }
-                    });
-                }));
+                    return ServiceResult.success(negotiation);
+                } else {
+                    return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be offered"));
+                }
+            });
+        });
     }
 
     @Override
@@ -203,6 +202,24 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                                 .map(it -> contractNegotiation))));
     }
 
+    @Override
+    public ServiceResult<RequestNegotiationContext> provideRequestContext(ContractRequestMessage message) {
+        var offerId = message.getContractOffer().getId();
+
+        var result = consumerOfferResolver.resolveOffer(offerId);
+        if (result.failed()) {
+            monitor.debug(() -> "Failed to resolve offer: %s".formatted(result.getFailureDetail()));
+            return ServiceResult.notFound("Not found");
+        } else {
+            return ServiceResult.success(new RequestNegotiationContext(result.getContent()));
+        }
+    }
+
+    @Override
+    public ServiceResult<OfferNegotiationContext> provideOfferContext(ContractOfferMessage message) {
+        return ServiceResult.success(new OfferNegotiationContext(message.getContractOffer()));
+    }
+
     @NotNull
     private ServiceResult<ContractNegotiation> onMessageDo(ContractRemoteMessage message, Function<ContractNegotiation, ServiceResult<ContractNegotiation>> action) {
         return getAndLeaseNegotiation(message.getProcessId())
@@ -238,19 +255,6 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
             return ServiceResult.badRequest("Contract offer is not valid: " + result.getFailureDetail());
         } else {
             return ServiceResult.success(result.getContent());
-        }
-    }
-
-    @NotNull
-    private ServiceResult<ValidatableConsumerOffer> fetchValidatableOffer(ContractRequestMessage message) {
-        var offerId = message.getContractOffer().getId();
-
-        var result = consumerOfferResolver.resolveOffer(offerId);
-        if (result.failed()) {
-            monitor.debug(() -> "Failed to resolve offer: %s".formatted(result.getFailureDetail()));
-            return ServiceResult.notFound("Not found");
-        } else {
-            return result;
         }
     }
 

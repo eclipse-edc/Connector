@@ -140,7 +140,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
 
     @Provider
     public DspRequestHandler dspRequestHandler() {
-        return new DspRequestHandlerImpl(monitor, validatorRegistry, dspTransformerRegistry());
+        return new DspRequestHandlerImpl(monitor, validatorRegistry, dspTransformerRegistry(), dataspaceProfileContextRegistry);
     }
 
     @Provider
