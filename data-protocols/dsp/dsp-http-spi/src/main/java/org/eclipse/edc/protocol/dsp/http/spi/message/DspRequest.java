@@ -23,7 +23,7 @@ import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
 
-public class DspRequest<I, R, E extends ErrorMessage> {
+public class DspRequest<I, R, E extends ErrorMessage, C> {
 
     protected final Class<R> resultClass;
     protected final Class<I> inputClass;
@@ -32,6 +32,7 @@ public class DspRequest<I, R, E extends ErrorMessage> {
     protected String token;
     protected String protocol;
     protected BiFunction<I, TokenRepresentation, ServiceResult<R>> serviceCall;
+    protected ServiceProtocolCall<I, R, C> serviceProtocolCall;
     protected Supplier<? extends ErrorMessage.Builder<E, ?>> errorProvider;
 
     public DspRequest(Class<I> inputClass, Class<R> resultClass, Class<E> errorClass) {
@@ -60,11 +61,15 @@ public class DspRequest<I, R, E extends ErrorMessage> {
         return serviceCall;
     }
 
+    public ServiceProtocolCall<I, R, C> getServiceProtocolCall() {
+        return serviceProtocolCall;
+    }
+
     public Supplier<? extends ErrorMessage.Builder<E, ?>> getErrorProvider() {
         return errorProvider;
     }
 
-    public abstract static class Builder<I, R, M extends DspRequest<I, R, E>, E extends ErrorMessage, B extends Builder<I, R, M, E, B>> {
+    public abstract static class Builder<I, R, M extends DspRequest<I, R, E, C>, E extends ErrorMessage, C, B extends Builder<I, R, M, E, C, B>> {
 
         protected final M message;
 
@@ -87,13 +92,20 @@ public class DspRequest<I, R, E extends ErrorMessage> {
             return self();
         }
 
+        public B serviceCall(ServiceProtocolCall<I, R, C> serviceProtocolCall) {
+            message.serviceProtocolCall = serviceProtocolCall;
+            return self();
+        }
+
         public B errorProvider(Supplier<? extends ErrorMessage.Builder<E, ?>> errorProvider) {
             message.errorProvider = errorProvider;
             return self();
         }
 
         public M build() {
-            requireNonNull(message.serviceCall);
+            if (message.serviceCall == null && message.serviceProtocolCall == null) {
+                throw new NullPointerException("serviceCall and serviceProtocolCall cannot be both null");
+            }
             requireNonNull(message.protocol);
             requireNonNull(message.errorProvider);
             return message;
