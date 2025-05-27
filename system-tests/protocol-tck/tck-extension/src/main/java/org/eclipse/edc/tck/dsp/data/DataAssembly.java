@@ -156,18 +156,21 @@ public class DataAssembly {
                 .record("ACN0301", ContractNegotiation::transitionFinalizing);
 
         recorder.record("ACN0302", ContractNegotiation::transitionOffering);
-        recorder.record("ACN0303", ContractNegotiation::transitionOffering)
-                // TODO hack for making the process sleep once 03 tests are supported this can be removed
-                .record("ACN0303", ContractNegotiation::transitionTerminating);
-
+        recorder.record("ACN0303", ContractNegotiation::transitionOffering);
 
         recorder.record("ACN0304", ContractNegotiation::transitionOffering);
+
     }
 
     public static List<Trigger<ContractNegotiation>> createNegotiationTriggers() {
         return List.of(
                 createTrigger(ContractNegotiationOffered.class, "ACN0205", ContractNegotiation::transitionTerminating),
                 createTrigger(ContractNegotiationAccepted.class, "ACN0206", ContractNegotiation::transitionTerminating),
+
+                createTrigger(ContractNegotiationAccepted.class, "ACN0303", cn -> {
+                    cn.setPending(true);
+                }),
+
                 createTrigger(ContractNegotiationOffered.class, "ACNC0101", contractNegotiation -> {
                     contractNegotiation.transitionAccepting();
                     contractNegotiation.setPending(false);
@@ -195,6 +198,7 @@ public class DataAssembly {
                     contractNegotiation.transitionVerifying();
                     contractNegotiation.setPending(false);
                 }),
+
                 createTrigger(ContractNegotiationOffered.class, "ACNC0304", contractNegotiation -> {
                     contractNegotiation.transitionAccepting();
                     contractNegotiation.setPending(false);
@@ -206,6 +210,9 @@ public class DataAssembly {
                 createTrigger(ContractNegotiationOffered.class, "ACNC0306", contractNegotiation -> {
                     contractNegotiation.transitionAccepting();
                     contractNegotiation.setPending(false);
+                }),
+                createTrigger(ContractNegotiationAgreed.class, "ACNC0306", contractNegotiation -> {
+                    contractNegotiation.setPending(true);
                 })
 
         );
