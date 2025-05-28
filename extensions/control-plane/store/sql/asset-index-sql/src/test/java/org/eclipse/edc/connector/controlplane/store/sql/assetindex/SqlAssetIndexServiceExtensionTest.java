@@ -53,4 +53,6 @@ public class SqlAssetIndexServiceExtensionTest {
         assertThat(dataAddressResolver).isInstanceOf(SqlAssetIndex.class);
 
     }
+
+
 }

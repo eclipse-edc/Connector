@@ -29,11 +29,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.util.Map;
 import java.util.UUID;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -74,6 +76,8 @@ public class AssetApiEndToEndTest {
                     .containsEntry("version", "0.4.2");
             assertThat(body.getMap("'dataAddress'"))
                     .containsEntry("type", "addressType");
+            assertThat(body.getMap("'dataAddress'.'complex'"))
+                    .containsEntry("nested", "value");
         }
 
         @Test
@@ -90,6 +94,9 @@ public class AssetApiEndToEndTest {
                     .add("dataAddress", createObjectBuilder()
                             .add(TYPE, "DataAddress")
                             .add("type", "test-type")
+                            .add("complex", createObjectBuilder()
+                                    .add("nested", "value")
+                                    .build())
                             .build())
                     .build();
 
@@ -106,6 +113,9 @@ public class AssetApiEndToEndTest {
             assertThat(asset).isNotNull();
             assertThat(asset.isCatalog()).isTrue();
             assertThat(asset.getPrivateProperty(EDC_NAMESPACE + "anotherProp")).isEqualTo("anotherVal");
+            assertThat(asset.getDataAddress().getProperty("complex"))
+                    .asInstanceOf(MAP)
+                    .containsEntry(EDC_NAMESPACE + "nested", "value");
         }
 
         @Test
@@ -365,7 +375,8 @@ public class AssetApiEndToEndTest {
                     .add("properties", createPropertiesBuilder()
                             .add("some-new-property", "some-new-value").build())
                     .add("dataAddress", createObjectBuilder()
-                            .add("type", "addressType"))
+                            .add("type", "addressType")
+                            .add("complex", createObjectBuilder().add("nested", "value").build()))
                     .build();
 
             context.baseRequest()
@@ -381,10 +392,14 @@ public class AssetApiEndToEndTest {
             assertThat(dbAsset).isNotNull();
             assertThat(dbAsset.getProperties()).containsEntry(EDC_NAMESPACE + "some-new-property", "some-new-value");
             assertThat(dbAsset.getDataAddress().getType()).isEqualTo("addressType");
+            assertThat(dbAsset.getDataAddress().getProperty(EDC_NAMESPACE + "complex"))
+                    .asInstanceOf(MAP)
+                    .containsEntry(EDC_NAMESPACE + "nested", "value");
         }
 
         private DataAddress.Builder createDataAddress() {
-            return DataAddress.Builder.newInstance().type("test-type");
+            return DataAddress.Builder.newInstance().type("test-type")
+                    .property(EDC_NAMESPACE + "complex", Map.of(EDC_NAMESPACE + "nested", "value"));
         }
 
         private Asset.Builder createAsset() {

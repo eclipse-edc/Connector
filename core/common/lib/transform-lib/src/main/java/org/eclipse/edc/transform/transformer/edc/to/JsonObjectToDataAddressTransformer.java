@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.transform.transformer.edc.to;
 
-import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
@@ -22,6 +21,8 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.LinkedHashMap;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
@@ -46,9 +47,15 @@ public class JsonObjectToDataAddressTransformer extends AbstractJsonLdTransforme
     }
 
     private void transformProperties(String key, JsonValue jsonValue, DataAddress.Builder builder, TransformerContext context) {
-        if ((PROPERTIES_KEY).equals(key) && jsonValue instanceof JsonArray) {
+        if (key.equals(PROPERTIES_KEY)) {
             var props = jsonValue.asJsonArray().getJsonObject(0);
             visitProperties(props, (k, val) -> transformProperties(k, val, builder, context));
+        } else if (!jsonValue.asJsonArray().getJsonObject(0).containsKey("@value")) {
+            var props = jsonValue.asJsonArray().getJsonObject(0);
+            LinkedHashMap<String, Object> complex = new LinkedHashMap<>();
+            visitProperties(props, (k, v) -> complex.put(k, transformGenericProperty(v, context)));
+            builder.property(key, complex);
+
         } else {
             var object = transformGenericProperty(jsonValue, context);
             builder.property(key, object);

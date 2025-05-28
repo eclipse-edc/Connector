@@ -72,8 +72,6 @@ class DataAddressTest {
         assertThat(jsonArray)
                 .isNotNull()
                 .usingRecursiveComparison().isEqualTo(dataAddress.getProperty("complexJsonArray"));
-
-
     }
 
     @Test
