@@ -16,7 +16,6 @@ package org.eclipse.edc.transform.transformer.edc.from;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -46,24 +45,7 @@ public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransfor
 
         builder.add(TYPE, EDC_NAMESPACE + "DataAddress");
 
-        dataAddress.getProperties().forEach((key, value) -> {
-            if (value instanceof String valueString) {
-                builder.add(key, valueString);
-            } else {
-                var transformedValue = typeManager.getMapper(typeContext).convertValue(value, JsonValue.class);
-                if (transformedValue != null) {
-                    builder.add(key, transformedValue);
-                } else {
-                    context.problem()
-                            .unexpectedType()
-                            .type("property")
-                            .property(key)
-                            .actual(value.getClass().getName())
-                            .expected("Property could not be converted to json object or array.")
-                            .report();
-                }
-            }
-        });
+        transformProperties(dataAddress.getProperties(), builder, typeManager.getMapper(typeContext), context);
 
         return builder.build();
     }

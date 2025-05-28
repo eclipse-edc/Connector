@@ -94,9 +94,7 @@ public class AssetApiEndToEndTest {
                     .add("dataAddress", createObjectBuilder()
                             .add(TYPE, "DataAddress")
                             .add("type", "test-type")
-                            .add("complex", createObjectBuilder()
-                                    .add("nested", "value")
-                                    .build())
+                            .add("complex", createObjectBuilder().add("nested", "value").build())
                             .build())
                     .build();
 
