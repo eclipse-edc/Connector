@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.transform.transformer.edc.from;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -30,12 +30,14 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransformer<DataAddress, JsonObject> {
 
     private final JsonBuilderFactory jsonBuilderFactory;
-    private final ObjectMapper mapper;
+    private final TypeManager typeManager;
+    private final String typeContext;
 
-    public JsonObjectFromDataAddressTransformer(JsonBuilderFactory jsonBuilderFactory, ObjectMapper mapper) {
+    public JsonObjectFromDataAddressTransformer(JsonBuilderFactory jsonBuilderFactory, TypeManager mapper, String typeContext) {
         super(DataAddress.class, JsonObject.class);
         this.jsonBuilderFactory = jsonBuilderFactory;
-        this.mapper = mapper;
+        this.typeManager = mapper;
+        this.typeContext = typeContext;
     }
 
     @Override
@@ -48,7 +50,7 @@ public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransfor
             if (value instanceof String valueString) {
                 builder.add(key, valueString);
             } else {
-                var transformedValue = mapper.convertValue(value, JsonValue.class);
+                var transformedValue = typeManager.getMapper(typeContext).convertValue(value, JsonValue.class);
                 if (transformedValue != null) {
                     builder.add(key, transformedValue);
                 } else {
