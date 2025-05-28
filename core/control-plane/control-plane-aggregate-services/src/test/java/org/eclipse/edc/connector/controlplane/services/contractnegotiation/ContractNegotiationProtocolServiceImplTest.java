@@ -214,7 +214,7 @@ class ContractNegotiationProtocolServiceImplTest {
     @Test
     void notifyFinalized_shouldTransitionToFinalized() {
         var contractOffer = contractOffer();
-        var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).contractOffer(contractOffer).state(VERIFIED.code()).build();
+        var negotiation = contractNegotiationBuilder().id("negotiationId").type(CONSUMER).contractOffer(contractOffer).state(VERIFIED.code()).build();
 
         var message = ContractNegotiationEventMessage.Builder.newInstance()
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
