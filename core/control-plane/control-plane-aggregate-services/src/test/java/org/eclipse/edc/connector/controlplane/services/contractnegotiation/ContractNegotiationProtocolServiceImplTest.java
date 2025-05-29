@@ -77,6 +77,7 @@ import static org.eclipse.edc.connector.controlplane.services.contractnegotiatio
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.participant.spi.ParticipantAgent.PARTICIPANT_IDENTITY;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
 import static org.mockito.ArgumentMatchers.any;
@@ -779,8 +780,8 @@ class ContractNegotiationProtocolServiceImplTest {
 
         @ParameterizedTest
         @ArgumentsSource(NotifyArguments.class)
-        <M extends ProcessRemoteMessage> void notify_shouldIgnoreMessage_whenFinalState(MethodCall<M> methodCall, M message,
-                                                                                        ContractNegotiation.Type type) {
+        <M extends ProcessRemoteMessage> void notify_shouldReturnConflict_whenFinalizedState(MethodCall<M> methodCall, M message,
+                                                                                             ContractNegotiation.Type type) {
             var offer = contractOffer();
             var negotiation = contractNegotiationBuilder().state(FINALIZED.code()).type(type).contractOffer(offer).build();
             var validatableOffer = mock(ValidatableConsumerOffer.class);
@@ -798,7 +799,37 @@ class ContractNegotiationProtocolServiceImplTest {
 
             var result = methodCall.call(service, message, tokenRepresentation());
 
-            assertThat(result).isSucceeded();
+            assertThat(result).isFailed().satisfies(failure -> {
+                assertThat(failure.getReason()).isEqualTo(CONFLICT);
+            });
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
+        }
+
+        @ParameterizedTest
+        @ArgumentsSource(NotifyArguments.class)
+        <M extends ProcessRemoteMessage> void notify_shouldReturnConflict_whenTerminatedState(MethodCall<M> methodCall, M message,
+                                                                                              ContractNegotiation.Type type) {
+            var offer = contractOffer();
+            var negotiation = contractNegotiationBuilder().state(TERMINATED.code()).type(type).contractOffer(offer).build();
+            var validatableOffer = mock(ValidatableConsumerOffer.class);
+
+            when(validatableOffer.getContractPolicy()).thenReturn(createPolicy());
+            when(consumerOfferResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
+            when(protocolTokenValidator.verify(any(), any(), any(), eq(message)))
+                    .thenReturn(ServiceResult.success(participantAgent()));
+            when(store.findById(any())).thenReturn(negotiation);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
+            when(validationService.validateRequest(any(ParticipantAgent.class), any(ContractNegotiation.class))).thenReturn(Result.success());
+            when(validationService.validateInitialOffer(any(ParticipantAgent.class), any(ValidatableConsumerOffer.class)))
+                    .thenAnswer(i -> Result.success(new ValidatedConsumerOffer("any", offer)));
+            when(validationService.validateConfirmed(any(ParticipantAgent.class), any(), any())).thenAnswer(i -> Result.success(negotiation));
+
+            var result = methodCall.call(service, message, tokenRepresentation());
+
+            assertThat(result).isFailed().satisfies(failure -> {
+                assertThat(failure.getReason()).isEqualTo(CONFLICT);
+            });
             verify(store, never()).save(any());
             verifyNoInteractions(listener);
         }

@@ -50,6 +50,7 @@ import java.util.function.Function;
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.isFinal;
 
 public class ContractNegotiationProtocolServiceImpl implements ContractNegotiationProtocolService {
 
@@ -278,11 +279,15 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
 
     @NotNull
     private ServiceResult<ContractNegotiation> acceptedAction(ContractNegotiationEventMessage message, ContractNegotiation negotiation) {
-        negotiation.protocolMessageReceived(message.getId());
-        negotiation.transitionAccepted();
-        update(negotiation);
-        observable.invokeForEach(l -> l.accepted(negotiation));
-        return ServiceResult.success(negotiation);
+        if (negotiation.canBeAccepted()) {
+            negotiation.protocolMessageReceived(message.getId());
+            negotiation.transitionAccepted();
+            update(negotiation);
+            observable.invokeForEach(l -> l.accepted(negotiation));
+            return ServiceResult.success(negotiation);
+        } else {
+            return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be accepted"));
+        }
     }
 
     @NotNull
@@ -314,25 +319,29 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
 
     @NotNull
     private ServiceResult<ContractNegotiation> finalizedAction(ContractNegotiationEventMessage message, ContractNegotiation negotiation) {
-        if (negotiation.getType().equals(CONSUMER) && negotiation.canBeFinalized()) {
+        if (negotiation.getType().equals(CONSUMER) && negotiation.canBeFinalized() && !isFinal(negotiation.getState())) {
             negotiation.protocolMessageReceived(message.getId());
             negotiation.transitionFinalized();
             update(negotiation);
             observable.invokeForEach(l -> l.finalized(negotiation));
             return ServiceResult.success(negotiation);
         } else {
-            return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be finialized"));
+            return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be finalized"));
         }
 
     }
 
     @NotNull
     private ServiceResult<ContractNegotiation> terminatedAction(ContractNegotiationTerminationMessage message, ContractNegotiation negotiation) {
-        negotiation.protocolMessageReceived(message.getId());
-        negotiation.transitionTerminated();
-        update(negotiation);
-        observable.invokeForEach(l -> l.terminated(negotiation));
-        return ServiceResult.success(negotiation);
+        if (negotiation.canBeTerminated() && !isFinal(negotiation.getState())) {
+            negotiation.protocolMessageReceived(message.getId());
+            negotiation.transitionTerminated();
+            update(negotiation);
+            observable.invokeForEach(l -> l.terminated(negotiation));
+            return ServiceResult.success(negotiation);
+        } else {
+            return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "negotiation cannot be terminated"));
+        }
     }
 
     private ServiceResult<ContractNegotiation> getAndLeaseNegotiation(String negotiationId) {
