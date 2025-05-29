@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -46,6 +47,7 @@ public class DataAddress {
     public static final String EDC_DATA_ADDRESS_TYPE_PROPERTY = EDC_NAMESPACE + SIMPLE_TYPE;
     public static final String EDC_DATA_ADDRESS_KEY_NAME = EDC_NAMESPACE + SIMPLE_KEY_NAME;
     public static final String EDC_DATA_ADDRESS_SECRET = EDC_NAMESPACE + "secret";
+    public static final String EDC_DATA_ADDRESS_RESPONSE_CHANNEL = EDC_NAMESPACE + "responseChannel";
 
     protected final Map<String, Object> properties = new HashMap<>();
 
@@ -61,6 +63,14 @@ public class DataAddress {
     public void setType(String type) {
         Objects.requireNonNull(type);
         properties.put(EDC_DATA_ADDRESS_TYPE_PROPERTY, type);
+    }
+
+    @Nullable
+    public DataAddress getResponseChannel() {
+        return Optional.ofNullable(getProperty(EDC_DATA_ADDRESS_RESPONSE_CHANNEL))
+                .filter(o -> o instanceof Map<?, ?>)
+                .map(p -> DataAddress.Builder.newInstance().properties((LinkedHashMap<String, Object>) p).build())
+                .orElse(null);
     }
 
     @Nullable

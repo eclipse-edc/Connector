@@ -40,13 +40,16 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.net.URI;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -340,7 +343,8 @@ public class DataPlaneSignalingFlowControllerTest {
             assertThat(result).isFailed().detail().contains("Failed to select the data plane for terminating the transfer process");
         }
 
-        @Test // a null dataPlaneId means that the flow has not been started so it can be considered as already terminated
+        @Test
+            // a null dataPlaneId means that the flow has not been started so it can be considered as already terminated
         void shouldReturnSuccess_whenDataPlaneIdIsNull() {
             var transferProcess = transferProcessBuilder()
                     .id("transferProcessId")
@@ -415,7 +419,7 @@ public class DataPlaneSignalingFlowControllerTest {
         void transferTypes_shouldReturnTypesForSpecifiedAsset() {
             when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(
                     dataPlaneInstanceBuilder().allowedTransferType("Custom-PUSH").allowedSourceType("TargetSrc").allowedDestType("TargetDest").build(),
-                    dataPlaneInstanceBuilder().allowedTransferType("Custom-PULL").allowedSourceType("TargetSrc").allowedDestType("AnotherTargetDest").build(),
+                    dataPlaneInstanceBuilder().allowedTransferType(Set.of("Custom-PULL", "Custom-PULL-Response")).allowedSourceType("TargetSrc").allowedDestType("AnotherTargetDest").build(),
                     dataPlaneInstanceBuilder().allowedSourceType("AnotherSrc").allowedDestType("ThisWontBeListed").build()
             )));
             var asset = Asset.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build()).build();
@@ -423,6 +427,24 @@ public class DataPlaneSignalingFlowControllerTest {
             var transferTypes = flowController.transferTypesFor(asset);
 
             assertThat(transferTypes).containsExactly("Custom-PUSH", "Custom-PULL");
+        }
+
+        @Test
+        void transferTypes_shouldFilterTypesForSpecifiedAssetWithResponseChannel() {
+            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(
+                    dataPlaneInstanceBuilder().allowedTransferType("Custom-PUSH").allowedSourceType("TargetSrc").build(),
+                    dataPlaneInstanceBuilder().allowedTransferType(Set.of("Custom-PULL", "Custom-PULL-Response")).allowedSourceType("TargetSrc").build(),
+                    dataPlaneInstanceBuilder().allowedTransferType("Custom-PUSH-Response").allowedSourceType("AnotherSrc").build(),
+                    dataPlaneInstanceBuilder().allowedSourceType("AnotherSrc").build()
+            )));
+            var asset = Asset.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance()
+                    .type("TargetSrc")
+                    .property(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, buildResponseChannel())
+                    .build()).build();
+
+            var transferTypes = flowController.transferTypesFor(asset);
+
+            assertThat(transferTypes).containsExactly("Custom-PULL-Response");
         }
 
         @Test
@@ -447,6 +469,12 @@ public class DataPlaneSignalingFlowControllerTest {
 
     private DataAddress testDataAddress() {
         return DataAddress.Builder.newInstance().type("test-type").build();
+    }
+
+    private LinkedHashMap<String, Object> buildResponseChannel() {
+        return new LinkedHashMap<String, Object>(Map.of(
+                "type", "Response"
+        ));
     }
 
     private TransferProcess.Builder transferProcessBuilder() {
