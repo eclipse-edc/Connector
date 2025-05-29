@@ -99,7 +99,10 @@ class JsonObjectToDataAddressTransformerTest {
     void transform_withComplexCustomProps() {
         var json = createDataAddress()
                 .add(EDC_NAMESPACE + "properties", createObjectBuilder()
-                        .add("payload", createPayloadBuilder().build())
+                        .add("payload", createPayloadBuilder()
+                                .add("sabesxopaulovem", createPayloadBuilder()
+                                        .build())
+                                .build())
                         .add("array", createArrayBuilder().add("string1").add("string2").build())
                         .build())
                 .build();
@@ -112,9 +115,10 @@ class JsonObjectToDataAddressTransformerTest {
         assertThat(dataAddress.getProperty(EDC_NAMESPACE + "payload"))
                 .isNotNull()
                 .asInstanceOf(MAP)
-                .hasSize(2)
+                .hasSize(3)
                 .containsKeys(EDC_NAMESPACE + "name", EDC_NAMESPACE + "age")
-                .containsValues(CUSTOM_PAYLOAD_NAME, (double) CUSTOM_PAYLOAD_AGE);
+                .containsValues(CUSTOM_PAYLOAD_NAME, (double) CUSTOM_PAYLOAD_AGE)
+                .containsKey(EDC_NAMESPACE + "sabesxopaulovem");
 
         assertThat(dataAddress.getProperty(EDC_NAMESPACE + "array"))
                 .isNotNull()

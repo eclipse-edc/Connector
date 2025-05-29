@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 
@@ -47,19 +48,32 @@ public class JsonObjectToDataAddressTransformer extends AbstractJsonLdTransforme
     }
 
     private void transformProperties(String key, JsonValue jsonValue, DataAddress.Builder builder, TransformerContext context) {
-        if (key.equals(PROPERTIES_KEY)) {
-            var props = jsonValue.asJsonArray().getJsonObject(0);
-            visitProperties(props, (k, val) -> transformProperties(k, val, builder, context));
-        } else if (!jsonValue.asJsonArray().getJsonObject(0).containsKey("@value")) {
-            var props = jsonValue.asJsonArray().getJsonObject(0);
-            LinkedHashMap<String, Object> complex = new LinkedHashMap<>();
-            visitProperties(props, (k, v) -> complex.put(k, transformGenericProperty(v, context)));
-            builder.property(key, complex);
+        var firstValue = returnJsonObject(jsonValue, context, key, true);
 
+        if (firstValue != null && key.equals(PROPERTIES_KEY)) {
+            visitProperties(firstValue, (k, val) -> transformProperties(k, val, builder, context));
+        } else if (firstValue != null && !firstValue.containsKey(VALUE)) {
+            // If the value is a complex object, we need to transform it recursively
+            builder.property(key, transformInnerMap(firstValue, context));
         } else {
-            var object = transformGenericProperty(jsonValue, context);
-            builder.property(key, object);
+            builder.property(key, transformGenericProperty(jsonValue, context));
         }
 
     }
+
+    private LinkedHashMap<String, Object> transformInnerMap(JsonObject json, TransformerContext context) {
+        LinkedHashMap<String, Object> complex = new LinkedHashMap<>();
+
+        visitProperties(json, (k, v) -> {
+            var innerValue = returnJsonObject(v, context, k, true);
+            if (innerValue != null && !innerValue.containsKey(VALUE)) {
+                complex.put(k, transformInnerMap(innerValue, context));
+            } else {
+                complex.put(k, transformGenericProperty(v, context));
+            }
+        });
+
+        return complex;
+    }
+
 }
