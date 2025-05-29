@@ -79,4 +79,4 @@
 - [2025-03-14 Prioritized Transfer Services](./2025-03-14-prioritized-transfer-services)
 - [2025-04-15 Contract Agreement policy scope](./2025-04-25-agreement-policy-scope)
 - [2025-04-30 Finalize phase](./2025-04-30-finalize-phase)
-- [2024-05-21 Participant identity DSP version](./2025-05-21-participant-identity-dsp-version)
+- [2024-05-28 Dataspace Context](2025-05-28-dataspace-context)
