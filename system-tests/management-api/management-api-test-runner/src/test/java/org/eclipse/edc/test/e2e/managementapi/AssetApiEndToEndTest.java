@@ -77,7 +77,10 @@ public class AssetApiEndToEndTest {
             assertThat(body.getMap("'dataAddress'"))
                     .containsEntry("type", "addressType");
             assertThat(body.getMap("'dataAddress'.'complex'"))
-                    .containsEntry("nested", "value");
+                    .containsEntry("simple", "value")
+                    .containsKey("nested");
+            assertThat(body.getMap("'dataAddress'.'complex'.'nested'"))
+                    .containsEntry("innerValue", "value");
         }
 
         @Test
@@ -94,7 +97,11 @@ public class AssetApiEndToEndTest {
                     .add("dataAddress", createObjectBuilder()
                             .add(TYPE, "DataAddress")
                             .add("type", "test-type")
-                            .add("complex", createObjectBuilder().add("nested", "value").build())
+                            .add("complex", createObjectBuilder()
+                                    .add("simple", "value")
+                                    .add("nested", createObjectBuilder()
+                                            .add("innerValue", "value"))
+                                    .build())
                             .build())
                     .build();
 
@@ -113,7 +120,8 @@ public class AssetApiEndToEndTest {
             assertThat(asset.getPrivateProperty(EDC_NAMESPACE + "anotherProp")).isEqualTo("anotherVal");
             assertThat(asset.getDataAddress().getProperty("complex"))
                     .asInstanceOf(MAP)
-                    .containsEntry(EDC_NAMESPACE + "nested", "value");
+                    .containsEntry(EDC_NAMESPACE + "simple", "value")
+                    .containsEntry(EDC_NAMESPACE + "nested", Map.of(EDC_NAMESPACE + "innerValue", "value"));
         }
 
         @Test
@@ -397,7 +405,10 @@ public class AssetApiEndToEndTest {
 
         private DataAddress.Builder createDataAddress() {
             return DataAddress.Builder.newInstance().type("test-type")
-                    .property(EDC_NAMESPACE + "complex", Map.of(EDC_NAMESPACE + "nested", "value"));
+                    .property(EDC_NAMESPACE + "complex", Map.of(
+                            EDC_NAMESPACE + "simple", "value",
+                            EDC_NAMESPACE + "nested", Map.of(EDC_NAMESPACE + "innerValue", "value")
+                    ));
         }
 
         private Asset.Builder createAsset() {
