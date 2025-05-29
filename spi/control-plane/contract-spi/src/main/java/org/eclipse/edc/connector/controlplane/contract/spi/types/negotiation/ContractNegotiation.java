@@ -169,7 +169,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     }
 
     public boolean shouldIgnoreIncomingMessage(@NotNull String messageId) {
-        return protocolMessages.isAlreadyReceived(messageId) || ContractNegotiationStates.isFinal(state);
+        return protocolMessages.isAlreadyReceived(messageId);
     }
 
     public ProtocolMessages getProtocolMessages() {
@@ -265,7 +265,11 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      * Transition to state ACCEPTED.
      */
     public void transitionAccepted() {
-        transition(ContractNegotiationStates.ACCEPTED, ContractNegotiationStates.ACCEPTED, ContractNegotiationStates.ACCEPTING, ContractNegotiationStates.OFFERED);
+        transition(ContractNegotiationStates.ACCEPTED, state -> canBeAccepted());
+    }
+
+    public boolean canBeAccepted() {
+        return currentStateIsOneOf(ContractNegotiationStates.ACCEPTED, ContractNegotiationStates.ACCEPTED, ContractNegotiationStates.ACCEPTING, ContractNegotiationStates.OFFERED);
     }
 
     /**

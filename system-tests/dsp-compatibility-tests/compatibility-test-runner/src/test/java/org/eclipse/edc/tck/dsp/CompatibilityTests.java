@@ -18,11 +18,8 @@ import java.util.List;
 
 public interface CompatibilityTests {
 
-    // TODO remove all failures from this list when compliant error handling is implemented in the connector
     // TODO TP:01-01 is failing because we don't send endpoint in data address
     List<String> ALLOWED_FAILURES = List.of(
-            "CN:03-01",
-            "CN_C:01-02",
             "TP:01-01", "TP:01-02", "TP:01-03", "TP:01-04", "TP:01-05",
             "TP:02-01", "TP:02-02", "TP:02-03", "TP:02-04",
             "TP:03-03", "TP:03-04", "TP:03-05", "TP:03-06",

@@ -116,10 +116,15 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
         var callbackAddress = protocolWebhookRegistry.resolve(negotiation.getProtocol());
 
         if (callbackAddress != null) {
+            var type = ContractRequestMessage.Type.INITIAL;
+            // if there are multiple offers, it's a counter-offer
+            if (negotiation.getContractOffers().size() > 1) {
+                type = ContractRequestMessage.Type.COUNTER_OFFER;
+            }
             var messageBuilder = ContractRequestMessage.Builder.newInstance()
                     .contractOffer(negotiation.getLastContractOffer())
                     .callbackAddress(callbackAddress.url())
-                    .type(ContractRequestMessage.Type.INITIAL);
+                    .type(type);
 
             return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class, "[Consumer] send request")
                     .onSuccess(this::transitionToRequested)
