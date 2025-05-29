@@ -117,7 +117,6 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
 
         if (callbackAddress != null) {
             var type = ContractRequestMessage.Type.INITIAL;
-            // if there are multiple offers, it's a counter-offer
             if (negotiation.getContractOffers().size() > 1) {
                 type = ContractRequestMessage.Type.COUNTER_OFFER;
             }
