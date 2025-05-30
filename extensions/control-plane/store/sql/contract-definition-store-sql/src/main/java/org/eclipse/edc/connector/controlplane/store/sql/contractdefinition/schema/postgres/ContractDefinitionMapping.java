@@ -26,6 +26,7 @@ import org.eclipse.edc.sql.translation.TranslationMapping;
 public class ContractDefinitionMapping extends TranslationMapping {
     public ContractDefinitionMapping(ContractDefinitionStatements statements) {
         add("id", statements.getIdColumn());
+        add("createdAt", statements.getCreatedAtColumn());
         add("accessPolicyId", statements.getAccessPolicyIdColumn());
         add("accessPolicy", statements.getAccessPolicyIdColumn());
         add("contractPolicyId", statements.getContractPolicyIdColumn());
