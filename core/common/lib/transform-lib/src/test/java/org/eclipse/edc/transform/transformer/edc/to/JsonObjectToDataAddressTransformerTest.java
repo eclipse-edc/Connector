@@ -28,13 +28,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
 import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
@@ -115,10 +118,14 @@ class JsonObjectToDataAddressTransformerTest {
         assertThat(dataAddress.getProperty(EDC_NAMESPACE + "payload"))
                 .isNotNull()
                 .asInstanceOf(MAP)
-                .hasSize(3)
+                .hasSize(4)
                 .containsKeys(EDC_NAMESPACE + "name", EDC_NAMESPACE + "age")
-                .containsValues(CUSTOM_PAYLOAD_NAME, (double) CUSTOM_PAYLOAD_AGE)
-                .containsKey(EDC_NAMESPACE + "sabesxopaulovem");
+                .containsValues(List.of(Map.of(VALUE, CUSTOM_PAYLOAD_NAME)), List.of(Map.of(VALUE, CUSTOM_PAYLOAD_AGE)))
+                .hasEntrySatisfying(EDC_NAMESPACE + "sabesxopaulovem",
+                        v -> assertThat(v).asInstanceOf(LIST).first().asInstanceOf(MAP)
+                                .hasSize(3)
+                                .containsEntry(EDC_NAMESPACE + "name", List.of(Map.of(VALUE, CUSTOM_PAYLOAD_NAME)))
+                                .containsEntry(EDC_NAMESPACE + "age", List.of(Map.of(VALUE, CUSTOM_PAYLOAD_AGE))));
 
         assertThat(dataAddress.getProperty(EDC_NAMESPACE + "array"))
                 .isNotNull()

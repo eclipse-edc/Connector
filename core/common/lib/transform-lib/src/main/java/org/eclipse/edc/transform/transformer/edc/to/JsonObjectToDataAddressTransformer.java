@@ -22,9 +22,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedHashMap;
-
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 
@@ -52,28 +49,11 @@ public class JsonObjectToDataAddressTransformer extends AbstractJsonLdTransforme
 
         if (firstValue != null && key.equals(PROPERTIES_KEY)) {
             visitProperties(firstValue, (k, val) -> transformProperties(k, val, builder, context));
-        } else if (firstValue != null && !firstValue.containsKey(VALUE)) {
-            // If the value is a complex object, we need to transform it recursively
-            builder.property(key, transformInnerMap(firstValue, context));
         } else {
             builder.property(key, transformGenericProperty(jsonValue, context));
         }
 
     }
 
-    private LinkedHashMap<String, Object> transformInnerMap(JsonObject json, TransformerContext context) {
-        LinkedHashMap<String, Object> complex = new LinkedHashMap<>();
-
-        visitProperties(json, (k, v) -> {
-            var innerValue = returnJsonObject(v, context, k, true);
-            if (innerValue != null && !innerValue.containsKey(VALUE)) {
-                complex.put(k, transformInnerMap(innerValue, context));
-            } else {
-                complex.put(k, transformGenericProperty(v, context));
-            }
-        });
-
-        return complex;
-    }
 
 }

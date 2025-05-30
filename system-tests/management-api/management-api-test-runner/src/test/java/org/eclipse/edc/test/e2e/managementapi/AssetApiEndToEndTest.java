@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -39,6 +40,7 @@ import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
@@ -120,8 +122,8 @@ public class AssetApiEndToEndTest {
             assertThat(asset.getPrivateProperty(EDC_NAMESPACE + "anotherProp")).isEqualTo("anotherVal");
             assertThat(asset.getDataAddress().getProperty("complex"))
                     .asInstanceOf(MAP)
-                    .containsEntry(EDC_NAMESPACE + "simple", "value")
-                    .containsEntry(EDC_NAMESPACE + "nested", Map.of(EDC_NAMESPACE + "innerValue", "value"));
+                    .containsEntry(EDC_NAMESPACE + "simple", List.of(Map.of(VALUE, "value")))
+                    .containsEntry(EDC_NAMESPACE + "nested", List.of(Map.of(EDC_NAMESPACE + "innerValue", List.of(Map.of(VALUE, "value")))));
         }
 
         @Test
@@ -400,7 +402,7 @@ public class AssetApiEndToEndTest {
             assertThat(dbAsset.getDataAddress().getType()).isEqualTo("addressType");
             assertThat(dbAsset.getDataAddress().getProperty(EDC_NAMESPACE + "complex"))
                     .asInstanceOf(MAP)
-                    .containsEntry(EDC_NAMESPACE + "nested", "value");
+                    .containsEntry(EDC_NAMESPACE + "nested", List.of(Map.of(VALUE, "value")));
         }
 
         private DataAddress.Builder createDataAddress() {
