@@ -431,9 +431,15 @@ public class DataPlaneSignalingFlowControllerTest {
 
         @Test
         void transferTypes_shouldFilterTypesForSpecifiedAssetWithResponseChannel() {
+            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("any", FlowType.PUSH)))
+                    .thenReturn(Result.success(new TransferType("any", FlowType.PUSH)))
+                    .thenReturn(Result.success(new TransferType("any", FlowType.PULL, "Response")))
+                    .thenReturn(Result.success(new TransferType("any", FlowType.PULL)))
+                    .thenReturn(Result.success(new TransferType("any", FlowType.PUSH, "Response")));
             when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(
                     dataPlaneInstanceBuilder().allowedTransferType("Custom-PUSH").allowedSourceType("TargetSrc").build(),
-                    dataPlaneInstanceBuilder().allowedTransferType(Set.of("Custom-PULL", "Custom-PULL-Response")).allowedSourceType("TargetSrc").build(),
+                    dataPlaneInstanceBuilder().allowedTransferType("Response-PUSH").allowedSourceType("TargetSrc").build(),
+                    dataPlaneInstanceBuilder().allowedTransferType("Custom-PULL-Response").allowedTransferType("Custom-PULL").allowedSourceType("TargetSrc").build(),
                     dataPlaneInstanceBuilder().allowedTransferType("Custom-PUSH-Response").allowedSourceType("AnotherSrc").build(),
                     dataPlaneInstanceBuilder().allowedSourceType("AnotherSrc").build()
             )));

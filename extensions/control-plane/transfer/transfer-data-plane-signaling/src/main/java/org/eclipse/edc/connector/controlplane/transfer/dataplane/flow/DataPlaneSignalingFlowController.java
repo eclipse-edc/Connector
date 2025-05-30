@@ -195,10 +195,11 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .collect(toSet());
     }
 
-    private boolean shouldBeIncluded(String allowedTransferType, @Nullable String responseChannelType) {
-        return responseChannelType == null
-                ? allowedTransferType.split("-").length != 3
-                : allowedTransferType.contains(responseChannelType);
+    private boolean shouldBeIncluded(String allowedTransferType, @Nullable String expectedResponseChannelType) {
+        var transferType = transferTypeParser.parse(allowedTransferType).getContent();
+        return expectedResponseChannelType == null
+                ? transferType.responseChannelType() == null
+                : transferType.responseChannelType() != null && transferType.responseChannelType().contains(expectedResponseChannelType);
     }
 
     private DataFlowResponse toResponse(DataFlowResponseMessage it, DataPlaneInstance dataPlaneInstance) {

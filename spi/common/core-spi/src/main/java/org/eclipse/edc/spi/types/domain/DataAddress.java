@@ -65,6 +65,7 @@ public class DataAddress {
         properties.put(EDC_DATA_ADDRESS_TYPE_PROPERTY, type);
     }
 
+    @JsonIgnore
     @Nullable
     public DataAddress getResponseChannel() {
         return Optional.ofNullable(getProperty(EDC_DATA_ADDRESS_RESPONSE_CHANNEL))
