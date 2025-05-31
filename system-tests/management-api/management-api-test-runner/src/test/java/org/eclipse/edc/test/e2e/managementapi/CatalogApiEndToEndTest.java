@@ -36,6 +36,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static io.restassured.http.ContentType.JSON;
@@ -46,6 +47,8 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -213,10 +216,69 @@ public class CatalogApiEndToEndTest {
                     .body("'dcat:distribution'.'dcat:accessService'.@id", notNullValue());
         }
 
+        @Test
+        void getDatasetWithResponseChannel_shouldReturnDataset(ManagementEndToEndTestContext context, AssetIndex assetIndex,
+                                                               DataPlaneInstanceStore dataPlaneInstanceStore,
+                                                               PolicyDefinitionStore policyDefinitionStore,
+                                                               ContractDefinitionStore contractDefinitionStore) {
+
+            var policyId = UUID.randomUUID().toString();
+
+            var cd = ContractDefinition.Builder.newInstance()
+                    .id(UUID.randomUUID().toString())
+                    .contractPolicyId(policyId)
+                    .accessPolicyId(policyId)
+                    .build();
+
+            var policy = Policy.Builder.newInstance()
+                    .build();
+
+            policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id(policyId).policy(policy).build());
+            contractDefinitionStore.save(cd);
+
+
+            var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
+                    .allowedDestType("any").allowedSourceType("test-type")
+                    .allowedTransferType("any-PULL").allowedTransferType("any-PULL-response").build();
+            dataPlaneInstanceStore.save(dataPlaneInstance);
+
+            var dataAddressWithResponseChannel = DataAddress.Builder.newInstance()
+                    .type("test-type")
+                    .property(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, Map.of(TYPE, "DataAddress", EDC_DATA_ADDRESS_TYPE_PROPERTY, "response"))
+                    .build();
+            assetIndex.create(createAsset("asset-id", dataAddressWithResponseChannel).build());
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                    .add(TYPE, "DatasetRequest")
+                    .add(ID, "asset-id")
+                    .add("counterPartyAddress", context.providerProtocolUrl())
+                    .add("protocol", "dataspace-protocol-http")
+                    .build();
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .body(requestBody)
+                    .post("/v3/catalog/dataset/request")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body(ID, is("asset-id"))
+                    .body(TYPE, is("dcat:Dataset"))
+                    .body("'dcat:distribution'.'dct:format'.@id", is("any-PULL-response"));
+        }
+
 
         private Asset.Builder createAsset(String id, String sourceType) {
+            var address = DataAddress.Builder.newInstance()
+                    .type(sourceType)
+                    .build();
+            return createAsset(id, address);
+        }
+
+        private Asset.Builder createAsset(String id, DataAddress address) {
             return Asset.Builder.newInstance()
-                    .dataAddress(DataAddress.Builder.newInstance().type(sourceType).build())
+                    .dataAddress(address)
                     .id(id);
         }
 

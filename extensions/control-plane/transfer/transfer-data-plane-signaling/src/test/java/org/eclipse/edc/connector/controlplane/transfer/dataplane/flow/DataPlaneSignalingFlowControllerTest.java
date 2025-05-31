@@ -40,7 +40,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.net.URI;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -477,10 +476,8 @@ public class DataPlaneSignalingFlowControllerTest {
         return DataAddress.Builder.newInstance().type("test-type").build();
     }
 
-    private LinkedHashMap<String, Object> buildResponseChannel() {
-        return new LinkedHashMap<String, Object>(Map.of(
-                "type", "Response"
-        ));
+    private DataAddress buildResponseChannel() {
+        return DataAddress.Builder.newInstance().type("Response").build();
     }
 
     private TransferProcess.Builder transferProcessBuilder() {
