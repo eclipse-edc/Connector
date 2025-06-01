@@ -99,25 +99,18 @@ class JsonObjectToDataAddressTransformerTest {
     }
 
     @Test
-    void transform_withComplexCustomProps() {
+    void transform_withNestedJson() {
         var json = createDataAddress()
                 .add(EDC_NAMESPACE + "properties", createObjectBuilder()
                         .add("payload", createObjectBuilder()
                                 .add("sabesxopaulovem", createPayloadBuilder().build())
                                 .add("arrayInPayload", createArrayBuilder().add("innerValue1").add("innerValue2").build()).build())
-                        .add("array", createArrayBuilder().add("string1").add("string2").build())
-                        .add("arrayOfObjects", createArrayBuilder()
-                                .add(createObjectBuilder().add("name", CUSTOM_PAYLOAD_NAME).build())
-                                .add(createObjectBuilder().add("age", CUSTOM_PAYLOAD_AGE).build())
-                                .build())
                         .build())
                 .build();
 
         var dataAddress = transformer.transform(expand(json), transformerContext);
 
         assertThat(dataAddress).isNotNull();
-        assertThat(dataAddress.getProperties()).hasSize(5);
-
         assertThat(dataAddress.getProperty(EDC_NAMESPACE + "payload"))
                 .isNotNull()
                 .asInstanceOf(MAP)
@@ -131,11 +124,40 @@ class JsonObjectToDataAddressTransformerTest {
                         v -> assertThat(v).asInstanceOf(LIST)
                                 .hasSize(2)
                                 .containsExactly(Map.of(VALUE, "innerValue1"), Map.of(VALUE, "innerValue2")));
+        verify(transformerContext, never()).reportProblem(any());
+    }
 
+    @Test
+    void transform_withArrayProperty() {
+        var json = createDataAddress()
+                .add(EDC_NAMESPACE + "properties", createObjectBuilder()
+                        .add("array", createArrayBuilder().add("string1").add("string2").build())
+                        .build())
+                .build();
+
+        var dataAddress = transformer.transform(expand(json), transformerContext);
+
+        assertThat(dataAddress).isNotNull();
         assertThat(dataAddress.getProperty(EDC_NAMESPACE + "array"))
                 .isNotNull()
                 .isEqualTo(List.of("string1", "string2"));
+        verify(transformerContext, never()).reportProblem(any());
+    }
 
+    @Test
+    void transform_withArrayOfObjects() {
+        var json = createDataAddress()
+                .add(EDC_NAMESPACE + "properties", createObjectBuilder()
+                        .add("arrayOfObjects", createArrayBuilder()
+                                .add(createObjectBuilder().add("name", CUSTOM_PAYLOAD_NAME).build())
+                                .add(createObjectBuilder().add("age", CUSTOM_PAYLOAD_AGE).build())
+                                .build())
+                        .build())
+                .build();
+
+        var dataAddress = transformer.transform(expand(json), transformerContext);
+
+        assertThat(dataAddress).isNotNull();
         assertThat(dataAddress.getProperty(EDC_NAMESPACE + "arrayOfObjects"))
                 .isNotNull()
                 .asInstanceOf(LIST)
