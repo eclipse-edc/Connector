@@ -102,35 +102,52 @@ class JsonObjectToDataAddressTransformerTest {
     void transform_withComplexCustomProps() {
         var json = createDataAddress()
                 .add(EDC_NAMESPACE + "properties", createObjectBuilder()
-                        .add("payload", createPayloadBuilder()
-                                .add("sabesxopaulovem", createPayloadBuilder()
-                                        .build())
-                                .build())
+                        .add("payload", createObjectBuilder()
+                                .add("sabesxopaulovem", createPayloadBuilder().build())
+                                .add("arrayInPayload", createArrayBuilder().add("innerValue1").add("innerValue2").build()).build())
                         .add("array", createArrayBuilder().add("string1").add("string2").build())
+                        .add("arrayOfObjects", createArrayBuilder()
+                                .add(createObjectBuilder().add("name", CUSTOM_PAYLOAD_NAME).build())
+                                .add(createObjectBuilder().add("age", CUSTOM_PAYLOAD_AGE).build())
+                                .build())
                         .build())
                 .build();
 
         var dataAddress = transformer.transform(expand(json), transformerContext);
 
         assertThat(dataAddress).isNotNull();
-        assertThat(dataAddress.getProperties()).hasSize(4);
+        assertThat(dataAddress.getProperties()).hasSize(5);
 
         assertThat(dataAddress.getProperty(EDC_NAMESPACE + "payload"))
                 .isNotNull()
                 .asInstanceOf(MAP)
-                .hasSize(4)
-                .containsKeys(EDC_NAMESPACE + "name", EDC_NAMESPACE + "age")
-                .containsValues(List.of(Map.of(VALUE, CUSTOM_PAYLOAD_NAME)), List.of(Map.of(VALUE, CUSTOM_PAYLOAD_AGE)))
+                .hasSize(2)
                 .hasEntrySatisfying(EDC_NAMESPACE + "sabesxopaulovem",
                         v -> assertThat(v).asInstanceOf(LIST).first().asInstanceOf(MAP)
                                 .hasSize(3)
                                 .containsEntry(EDC_NAMESPACE + "name", List.of(Map.of(VALUE, CUSTOM_PAYLOAD_NAME)))
-                                .containsEntry(EDC_NAMESPACE + "age", List.of(Map.of(VALUE, CUSTOM_PAYLOAD_AGE))));
+                                .containsEntry(EDC_NAMESPACE + "age", List.of(Map.of(VALUE, CUSTOM_PAYLOAD_AGE))))
+                .hasEntrySatisfying(EDC_NAMESPACE + "arrayInPayload",
+                        v -> assertThat(v).asInstanceOf(LIST)
+                                .hasSize(2)
+                                .containsExactly(Map.of(VALUE, "innerValue1"), Map.of(VALUE, "innerValue2")));
 
         assertThat(dataAddress.getProperty(EDC_NAMESPACE + "array"))
                 .isNotNull()
                 .isEqualTo(List.of("string1", "string2"));
 
+        assertThat(dataAddress.getProperty(EDC_NAMESPACE + "arrayOfObjects"))
+                .isNotNull()
+                .asInstanceOf(LIST)
+                .hasSize(2)
+                .satisfies(list -> {
+                    assertThat(list.get(0)).asInstanceOf(MAP)
+                            .hasSize(1)
+                            .containsEntry(EDC_NAMESPACE + "name", List.of(Map.of(VALUE, CUSTOM_PAYLOAD_NAME)));
+                    assertThat(list.get(1)).asInstanceOf(MAP)
+                            .hasSize(1)
+                            .containsEntry(EDC_NAMESPACE + "age", List.of(Map.of(VALUE, CUSTOM_PAYLOAD_AGE)));
+                });
         verify(transformerContext, never()).reportProblem(any());
     }
 
