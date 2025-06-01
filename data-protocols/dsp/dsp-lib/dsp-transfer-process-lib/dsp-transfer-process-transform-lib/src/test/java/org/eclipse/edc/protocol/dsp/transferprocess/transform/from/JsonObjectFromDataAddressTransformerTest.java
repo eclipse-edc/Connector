@@ -21,11 +21,13 @@ import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromDataAddressTransformer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +37,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_KEY_NAME;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -110,6 +113,29 @@ class JsonObjectFromDataAddressTransformerTest {
 
         assertThat(result).usingRecursiveAssertion().isEqualTo(expectedJson);
         verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void transform_DataAddressWithCyclicReference() {
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
+        var innerDataAddress = new LinkedHashMap<String, Object>();
+        innerDataAddress.put(EDC_DATA_ADDRESS_TYPE_PROPERTY, "type");
+
+        var rootDataAddress = DataAddress.Builder.newInstance()
+                .type(type)
+                .keyName(key)
+                .property("nestedDataAddress", innerDataAddress)
+                .build();
+
+        innerDataAddress.put("cycle", rootDataAddress);
+
+        var result = transformer.transform(rootDataAddress, context);
+
+        assertThat(result)
+                .isNotNull()
+                .doesNotContainKey("nestedDataAddress");
+
+        verify(context).reportProblem(contains("Infinite recursion (StackOverflowError)"));
     }
 
     @Test
