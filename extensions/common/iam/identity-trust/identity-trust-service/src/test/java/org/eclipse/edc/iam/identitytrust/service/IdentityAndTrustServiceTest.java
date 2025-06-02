@@ -17,7 +17,6 @@ package org.eclipse.edc.iam.identitytrust.service;
 
 
 import com.nimbusds.jwt.JWTClaimsSet;
-import org.assertj.core.api.Assertions;
 import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceClient;
 import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceUrlResolver;
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
@@ -44,6 +43,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.identitytrust.spi.SelfIssuedTokenConstants.PRESENTATION_TOKEN_CLAIM;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions.createCredentialBuilder;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions.createPresentationBuilder;
@@ -102,9 +102,11 @@ class IdentityAndTrustServiceTest {
 
     @Nested
     class ObtainClientCredentials {
-        @ParameterizedTest(name = "{0}")
+        @ParameterizedTest(name = "Invalid Scope: {0}")
         @ValueSource(strings = {"org.eclipse.edc:TestCredential:modify", "org.eclipse.edc:TestCredential:", "org.eclipse.edc:TestCredential: ", "org.eclipse.edc:TestCredential:write*", ":TestCredential:read",
                 "org.eclipse.edc:fooCredential:+"})
+        @EmptySource
+        @NullSource
         void obtainClientCredentials_invalidScopeString(String scope) {
             var tp = TokenParameters.Builder.newInstance()
                     .claims(SCOPE, scope)
@@ -117,19 +119,18 @@ class IdentityAndTrustServiceTest {
         }
 
         @ParameterizedTest(name = "Scope: {0}")
-        @ValueSource(strings = {"org.eclipse.edc:TestCredential:modify", "org.eclipse.edc:TestCredential:", "org.eclipse.edc:TestCredential: ", "org.eclipse.edc:TestCredential:write*", ":TestCredential:read",
-                "org.eclipse.edc:fooCredential:+"})
-        @NullSource
-        @EmptySource
+        @ValueSource(strings = {"org.eclipse.edc:TestCredential:read", "org.eclipse.edc:TestCredential:*", "org.eclipse.edc:TestCredential:write"})
         void obtainClientCredentials_validScopeString(String scope) {
             var tp = TokenParameters.Builder.newInstance()
                     .claims(SCOPE, scope)
                     .claims(AUDIENCE, "test-audience")
                     .build();
-            assertThat(service.obtainClientCredentials(tp))
+            var result = service.obtainClientCredentials(tp);
+            assertThat(result)
                     .isNotNull()
-                    .isFailed()
-                    .detail().contains("Scope string invalid");
+                    .isSucceeded();
+
+            assertThat(result.getContent().getToken()).startsWith("Bearer ");
         }
 
 
@@ -248,8 +249,8 @@ class IdentityAndTrustServiceTest {
             assertThat(result).isSucceeded()
                     .satisfies(ct -> {
                         var vc = (List<VerifiableCredential>) ct.getListClaim("vc");
-                        Assertions.assertThat(vc).hasSize(1);
-                        Assertions.assertThat(vc.get(0).getCredentialSubject().get(0).getClaims()).containsEntry("some-claim", "some-val");
+                        assertThat(vc).hasSize(1);
+                        assertThat(vc.get(0).getCredentialSubject().get(0).getClaims()).containsEntry("some-claim", "some-val");
                     });
         }
 
@@ -279,9 +280,9 @@ class IdentityAndTrustServiceTest {
             assertThat(result).isSucceeded()
                     .satisfies(ct -> {
                         var credentials = (List<VerifiableCredential>) ct.getClaims().get("vc");
-                        Assertions.assertThat(credentials).hasSize(2);
-                        Assertions.assertThat(credentials.get(0).getCredentialSubject().get(0).getClaims()).containsEntry("some-claim", "some-val");
-                        Assertions.assertThat(credentials.get(1).getCredentialSubject().get(0).getClaims()).containsEntry("some-other-claim", "some-other-val");
+                        assertThat(credentials).hasSize(2);
+                        assertThat(credentials.get(0).getCredentialSubject().get(0).getClaims()).containsEntry("some-claim", "some-val");
+                        assertThat(credentials.get(1).getCredentialSubject().get(0).getClaims()).containsEntry("some-other-claim", "some-other-val");
                     });
         }
 
@@ -331,11 +332,11 @@ class IdentityAndTrustServiceTest {
             assertThat(result).isSucceeded()
                     .satisfies(ct -> {
                         var credentials = (List<VerifiableCredential>) ct.getListClaim("vc");
-                        Assertions.assertThat(credentials).hasSize(4);
-                        Assertions.assertThat(credentials).anySatisfy(vc -> Assertions.assertThat(vc.getCredentialSubject().get(0).getClaims()).containsEntry("some-claim", "some-val"));
-                        Assertions.assertThat(credentials).anySatisfy(vc -> Assertions.assertThat(vc.getCredentialSubject().get(0).getClaims()).containsEntry("some-other-claim", "some-other-val"));
-                        Assertions.assertThat(credentials).anySatisfy(vc -> Assertions.assertThat(vc.getCredentialSubject().get(0).getClaims()).containsEntry("some-claim-2", "some-val-2"));
-                        Assertions.assertThat(credentials).anySatisfy(vc -> Assertions.assertThat(vc.getCredentialSubject().get(0).getClaims()).containsEntry("some-other-claim-2", "some-other-val-2"));
+                        assertThat(credentials).hasSize(4);
+                        assertThat(credentials).anySatisfy(vc -> assertThat(vc.getCredentialSubject().get(0).getClaims()).containsEntry("some-claim", "some-val"));
+                        assertThat(credentials).anySatisfy(vc -> assertThat(vc.getCredentialSubject().get(0).getClaims()).containsEntry("some-other-claim", "some-other-val"));
+                        assertThat(credentials).anySatisfy(vc -> assertThat(vc.getCredentialSubject().get(0).getClaims()).containsEntry("some-claim-2", "some-val-2"));
+                        assertThat(credentials).anySatisfy(vc -> assertThat(vc.getCredentialSubject().get(0).getClaims()).containsEntry("some-other-claim-2", "some-other-val-2"));
                     });
         }
 
