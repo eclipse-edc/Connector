@@ -54,6 +54,7 @@ import org.mockserver.model.HttpStatusCode;
 import org.mockserver.model.MediaType;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -91,11 +92,11 @@ class TransferPullEndToEndTest {
         private static final ObjectMapper MAPPER = new ObjectMapper();
 
         private static @NotNull Map<String, Object> httpSourceDataAddress() {
-            return Map.of(
+            return new HashMap<>(Map.of(
                     EDC_NAMESPACE + "name", "transfer-test",
                     EDC_NAMESPACE + "baseUrl", "http://any/source",
                     EDC_NAMESPACE + "type", "HttpData"
-            );
+            ));
         }
 
         @Test
@@ -147,6 +148,30 @@ class TransferPullEndToEndTest {
             var edrEntry = assertConsumerCanAccessData(transferProcessId);
 
             assertConsumerCanNotAccessData(transferProcessId, edrEntry);
+        }
+
+        @Test
+        void httpPull_dataTransfer_withHttpResponseChannel() {
+            var assetId = UUID.randomUUID().toString();
+            var responseChannel = Map.of(
+                    EDC_NAMESPACE + "name", "transfer-test",
+                    EDC_NAMESPACE + "baseUrl", "http://any/response/channel",
+                    EDC_NAMESPACE + "type", "HttpData"
+            );
+            var sourceDataAddress = httpSourceDataAddress();
+            sourceDataAddress.put(EDC_NAMESPACE + "responseChannel", responseChannel);
+            createResourcesOnProvider(assetId, PolicyFixtures.contractExpiresIn("10s"), sourceDataAddress);
+
+            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                    .withTransferType("HttpData-PULL-HttpData")
+                    .execute();
+
+            CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
+
+            var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(transferProcessId), Objects::nonNull);
+
+            assertThat(edr.getStringProperty("responseChannel-endpoint")).isNotNull();
+
         }
 
         @Test

@@ -80,9 +80,10 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
         // "decorate" the data address with response channel properties
         var responseChannelType = dataFlow.getTransferType().responseChannelType();
         if (responseChannelType != null) {
+            var responseChannel = dataFlow.getResponseChannelDataAddress();
             var responseChannelTokenParams = createTokenParams(dataFlow);
             dataAddressBuilder = dataAddressBuilder.compose(builder -> endpointGenerator.generateResponseFor(responseChannelType)
-                    .compose(ep -> createSecureEndpoint(ep, responseChannelTokenParams, additionalProperties, sourceDataAddress))
+                    .compose(ep -> createSecureEndpoint(ep, responseChannelTokenParams, additionalProperties, responseChannel))
                     .compose(endpoint -> addResponseChannel(builder, endpoint.tokenRepresentation(), endpoint.endpoint())));
         }
 

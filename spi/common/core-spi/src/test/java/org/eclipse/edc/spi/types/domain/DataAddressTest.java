@@ -62,8 +62,8 @@ class DataAddressTest {
         var writer = new StringWriter();
         mapper.writeValue(writer, dataAddress);
         var deserialized = mapper.readValue(writer.toString(), DataAddress.class);
-        var jsonObject = mapper.convertValue(dataAddress.getProperty("complexJsonObject"), DataAddress.class);
-        var jsonArray = mapper.convertValue(dataAddress.getProperty("complexJsonArray"), List.class);
+        var jsonObject = mapper.convertValue(deserialized.getProperty("complexJsonObject"), DataAddress.class);
+        var jsonArray = mapper.convertValue(deserialized.getProperty("complexJsonArray"), List.class);
         assertThat(deserialized)
                 .isNotNull();
         assertThat(jsonObject)

@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -66,11 +67,14 @@ public class DataAddress {
 
     @JsonIgnore
     public DataAddress getResponseChannel() {
-        Object value = getProperty(EDC_DATA_ADDRESS_RESPONSE_CHANNEL);
-        if (value instanceof DataAddress da) {
-            return da;
-        }
-        return null;
+        return Optional.ofNullable(getProperty(EDC_DATA_ADDRESS_RESPONSE_CHANNEL))
+                .filter(Map.class::isInstance)
+                .map(LinkedHashMap.class::cast)
+                .map(map -> map.get("properties") != null ? map.get("properties") : map)
+                .filter(Map.class::isInstance)
+                .map(LinkedHashMap.class::cast)
+                .map(map -> DataAddress.Builder.newInstance().properties(map).build())
+                .orElse(null);
     }
 
     @Nullable

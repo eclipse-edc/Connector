@@ -63,6 +63,8 @@ public class HttpProxyDataPlaneExtension implements ServiceExtension {
         var proxyUrl = "http://localhost:%d%s".formatted(portMapping.port(), portMapping.path());
         generatorService.addGeneratorFunction("HttpData", address -> Endpoint.url(proxyUrl));
 
+        generatorService.addGeneratorFunction("HttpData", () -> Endpoint.url(proxyUrl));
+
         webService.registerResource(API_CONTEXT, new Controller(authorizationService));
     }
 

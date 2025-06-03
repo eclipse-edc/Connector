@@ -33,7 +33,8 @@ import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_PROCESS_ID;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_PROPERTIES;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS;
-import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL_DATA_ADDRESS;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL_TYPE;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TYPE;
 
@@ -73,7 +74,8 @@ public class JsonObjectFromDataFlowStartMessageTransformer extends AbstractJsonL
         }
 
         if (message.getTransferType().responseChannelType() != null) {
-            builder.add(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL, message.getTransferType().responseChannelType());
+            builder.add(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL_TYPE, message.getTransferType().responseChannelType());
+            builder.add(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL_DATA_ADDRESS, context.transform(message.getSourceDataAddress().getResponseChannel(), JsonObject.class));
         }
 
         return builder.build();
