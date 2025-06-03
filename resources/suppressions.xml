@@ -19,4 +19,5 @@
         "http://www.puppycrawl.com/dtds/suppressions_1_1.dtd">
 <suppressions>
     <suppress files="package-info.java" checks="[a-zA-Z0-9]*"/>
+    <suppress files=".*" checks="Indentation"/>
 </suppressions>

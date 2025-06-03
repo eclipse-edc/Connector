@@ -50,8 +50,8 @@ public class InjectionContainer<T> {
     @Override
     public String toString() {
         return getClass().getSimpleName() + "{" +
-               "injectionTarget=" + injectionTarget +
-               '}';
+                "injectionTarget=" + injectionTarget +
+                '}';
     }
 
 }

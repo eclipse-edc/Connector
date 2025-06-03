@@ -120,7 +120,10 @@ public class IdentityAndTrustService implements IdentityService {
                 SUBJECT, myOwnDid,
                 AUDIENCE, parameters.getStringClaim(AUDIENCE)));
 
-        return secureTokenService.createToken(claims, scope);
+        return secureTokenService.createToken(claims, scope)
+                .map(originalToken -> originalToken.toBuilder()
+                        .token("Bearer " + originalToken.getToken())
+                        .build());
     }
 
     @Override
