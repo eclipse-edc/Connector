@@ -51,6 +51,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -156,6 +157,20 @@ public abstract class BaseContractDefinitionApiControllerTest extends RestContro
                 .body("size()", greaterThan(0));
 
         verify(service).findById(eq(entity.getId()));
+    }
+
+    @Test
+    void getContractDefById_createdAt_in_body_exists() {
+        var entity = createContractDefinition().id("test-id").createdAt(1234).build();
+        when(service.findById(any())).thenReturn(entity);
+        when(transformerRegistry.transform(any(ContractDefinition.class), eq(JsonObject.class))).thenReturn(Result.success(createExpandedJsonObject()));
+
+        baseRequest()
+                .get("/test-id")
+                .then()
+                .statusCode(200)
+                .contentType(JSON)
+                .body("createdAt", is(1234));
     }
 
     @Test
@@ -379,12 +394,14 @@ public abstract class BaseContractDefinitionApiControllerTest extends RestContro
                 .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, "ap1")
                 .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, "cp1")
                 .add(CONTRACT_DEFINITION_ASSETS_SELECTOR, createCriterionBuilder().build())
+                .add("createdAt", 1234)
                 .build();
     }
 
     private ContractDefinition.Builder createContractDefinition() {
         return ContractDefinition.Builder.newInstance()
                 .id("1")
+                .createdAt(1234)
                 .accessPolicyId("ap-id")
                 .contractPolicyId("cp-id");
     }

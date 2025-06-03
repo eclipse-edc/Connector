@@ -37,6 +37,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.Co
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CREATED_AT;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -67,6 +68,7 @@ class JsonObjectFromContractDefinitionTransformerTest {
                 .id("id")
                 .accessPolicyId("accessPolicyId")
                 .contractPolicyId("contractPolicyId")
+                .createdAt(1234)
                 .assetsSelector(List.of(criterion))
                 .build();
 
@@ -78,6 +80,7 @@ class JsonObjectFromContractDefinitionTransformerTest {
         assertThat(result.getString(CONTRACT_DEFINITION_ACCESSPOLICY_ID)).isEqualTo("accessPolicyId");
         assertThat(result.getString(CONTRACT_DEFINITION_CONTRACTPOLICY_ID)).isEqualTo("contractPolicyId");
         assertThat(result.getJsonArray(CONTRACT_DEFINITION_ASSETS_SELECTOR)).containsExactly(criterionJson);
+        assertThat(result.getJsonNumber(EDC_CREATED_AT).longValue()).isEqualTo(1234);
         verify(context).transform(criterion, JsonObject.class);
         verify(context, never()).reportProblem(anyString());
     }
@@ -92,6 +95,7 @@ class JsonObjectFromContractDefinitionTransformerTest {
                 .id("id")
                 .accessPolicyId("accessPolicyId")
                 .contractPolicyId("contractPolicyId")
+                .createdAt(1234)
                 .assetsSelector(List.of(criterion))
                 .privateProperty("some-key", "some-value")
                 .build();
