@@ -52,7 +52,6 @@ import static org.mockito.Mockito.when;
 
 class ContractDefinitionServiceImplTest {
 
-    private static final long CREATED_AT = 1234;
     private final ContractDefinitionStore store = mock();
     private final TransactionContext transactionContext = new NoopTransactionContext();
     private final ContractDefinitionObservable observable = new ContractDefinitionObservableImpl();
@@ -74,7 +73,6 @@ class ContractDefinitionServiceImplTest {
         var result = service.findById(definition.getId());
 
         assertThat(result).matches(hasId(definition.getId()));
-        assertThat(result.getCreatedAt()).isEqualTo(CREATED_AT);
     }
 
     @Test
@@ -204,7 +202,6 @@ class ContractDefinitionServiceImplTest {
     private ContractDefinition createContractDefinition() {
         return ContractDefinition.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .createdAt(CREATED_AT)
                 .accessPolicyId(UUID.randomUUID().toString())
                 .contractPolicyId(UUID.randomUUID().toString())
                 .build();

@@ -14,11 +14,14 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
@@ -39,6 +42,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CREATED_AT;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.hamcrest.Matchers.equalTo;
@@ -118,6 +122,45 @@ public class ContractDefinitionApiEndToEndTest {
         }
 
         @Test
+        void queryContractDefinitions_sortByCreatedDate(ManagementEndToEndTestContext context, ContractDefinitionStore store) throws JsonProcessingException {
+            var id1 = UUID.randomUUID().toString();
+            store.save(createContractDefinition(id1).build());
+            var id2 = UUID.randomUUID().toString();
+            store.save(createContractDefinition(id2).build());
+
+            var content = """
+                    {
+                        "@context": {
+                            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+                        },
+                        "@type": "QuerySpec",
+                        "sortField": "createdAt",
+                        "sortOrder": "DESC",
+                        "limit": 100,
+                        "offset": 0
+                    }
+                    """;
+            var query = JacksonJsonLd.createObjectMapper()
+                    .readValue(content, JsonObject.class);
+
+            var result = context.baseRequest()
+                    .contentType(JSON)
+                    .body(query)
+                    .post("/v3/contractdefinitions/request")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .extract().body().as(JsonArray.class);
+
+            assertThat(result).isNotEmpty().hasSizeGreaterThanOrEqualTo(2);
+            assertThat(result).isSortedAccordingTo((o1, o2) -> {
+                var l1 = o1.asJsonObject().getJsonNumber("createdAt").longValue();
+                var l2 = o2.asJsonObject().getJsonNumber("createdAt").longValue();
+                return Long.compare(l1, l2);
+            });
+        }
+
+        @Test
         void shouldCreateAndRetrieve(ManagementEndToEndTestContext context, ContractDefinitionStore store) {
             var id = UUID.randomUUID().toString();
             var requestJson = createDefinitionBuilder(id)
@@ -134,6 +177,7 @@ public class ContractDefinitionApiEndToEndTest {
             var actual = store.findById(id);
 
             assertThat(actual.getId()).matches(id);
+            assertThat(actual.getCreatedAt()).isEqualTo(1234);
         }
 
         @Test
@@ -193,8 +237,10 @@ public class ContractDefinitionApiEndToEndTest {
                     .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                     .add(TYPE, EDC_NAMESPACE + "ContractDefinition")
                     .add(ID, id)
+                    .add(EDC_CREATED_AT, 1234)
                     .add("accessPolicyId", UUID.randomUUID().toString())
                     .add("contractPolicyId", UUID.randomUUID().toString())
+                    .add("createdAt", 1234)
                     .add("assetsSelector", createArrayBuilder()
                             .add(createCriterionBuilder("foo", "=", "bar"))
                             .add(createCriterionBuilder("bar", "=", "baz")).build());
@@ -213,6 +259,7 @@ public class ContractDefinitionApiEndToEndTest {
                     .id(id)
                     .accessPolicyId(UUID.randomUUID().toString())
                     .contractPolicyId(UUID.randomUUID().toString())
+                    .createdAt(1234)
                     .assetsSelectorCriterion(criterion("foo", "=", "bar"))
                     .assetsSelectorCriterion(criterion("bar", "=", "baz"));
         }

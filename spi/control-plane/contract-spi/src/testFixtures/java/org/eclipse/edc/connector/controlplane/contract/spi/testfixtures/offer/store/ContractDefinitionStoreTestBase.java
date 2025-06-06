@@ -394,6 +394,14 @@ public abstract class ContractDefinitionStoreTestBase {
         }
 
         @Test
+        void verifySortingCreatedAt() {
+            IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
+
+            assertThat(getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().sortField("createdAt").sortOrder(SortOrder.ASC).build())).hasSize(10).isSortedAccordingTo(Comparator.comparing(ContractDefinition::getCreatedAt));
+            assertThat(getContractDefinitionStore().findAll(QuerySpec.Builder.newInstance().sortField("createdAt").sortOrder(SortOrder.DESC).build())).hasSize(10).isSortedAccordingTo((c1, c2) -> Long.compare(c2.getCreatedAt(), c1.getCreatedAt()));
+        }
+
+        @Test
         void verifySorting_invalidProperty() {
             IntStream.range(0, 10).mapToObj(i -> createContractDefinition("id" + i)).forEach(getContractDefinitionStore()::save);
             var query = QuerySpec.Builder.newInstance().sortField("not-exist").sortOrder(SortOrder.DESC).build();
