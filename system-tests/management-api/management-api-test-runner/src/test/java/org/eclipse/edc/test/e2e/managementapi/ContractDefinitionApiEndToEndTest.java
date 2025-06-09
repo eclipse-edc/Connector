@@ -129,7 +129,7 @@ public class ContractDefinitionApiEndToEndTest {
             var id3 = UUID.randomUUID().toString();
             var ids = List.of(id1, id2, id3);
             for (String id : ids) {
-                store.save(createContractDefinition(id).build());
+                store.save(createContractDefinition(id).createdAt(System.currentTimeMillis()).build());
             }
 
             var content = """
@@ -160,7 +160,7 @@ public class ContractDefinitionApiEndToEndTest {
 
             assertThat(result)
                     .extracting(cd -> ((LinkedHashMap<?, ?>) cd).get(ID))
-                    .contains(id1, id2, id3);
+                    .containsExactlyElementsOf(List.of(id3, id2, id1));
         }
 
         @Test
@@ -259,7 +259,6 @@ public class ContractDefinitionApiEndToEndTest {
                     .id(id)
                     .accessPolicyId(UUID.randomUUID().toString())
                     .contractPolicyId(UUID.randomUUID().toString())
-                    .createdAt(1234)
                     .assetsSelectorCriterion(criterion("foo", "=", "bar"))
                     .assetsSelectorCriterion(criterion("bar", "=", "baz"));
         }
