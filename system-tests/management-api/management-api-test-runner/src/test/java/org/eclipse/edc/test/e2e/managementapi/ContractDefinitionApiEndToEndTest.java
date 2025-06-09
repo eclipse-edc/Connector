@@ -125,14 +125,12 @@ public class ContractDefinitionApiEndToEndTest {
         @Test
         void queryContractDefinitions_sortByCreatedDate(ManagementEndToEndTestContext context, ContractDefinitionStore store) throws JsonProcessingException {
             var id1 = UUID.randomUUID().toString();
-            var cd1 = createContractDefinition(id1);
-            store.save(cd1.build());
             var id2 = UUID.randomUUID().toString();
-            var cd2 = createContractDefinition(id2);
-            store.save(cd2.build());
             var id3 = UUID.randomUUID().toString();
-            var cd3 = createContractDefinition(id3);
-            store.save(cd3.build());
+            var ids = List.of(id1, id2, id3);
+            for (String id : ids) {
+                store.save(createContractDefinition(id).build());
+            }
 
             var content = """
                     {
@@ -159,13 +157,10 @@ public class ContractDefinitionApiEndToEndTest {
                     .body("size()", is(3))
                     .extract()
                     .as(List.class);
-            assertThat(result).isNotNull();
-            var resultCd1 = (LinkedHashMap) result.get(0);
-            var resultCd2 = (LinkedHashMap) result.get(1);
-            var resultCd3 = (LinkedHashMap) result.get(2);
-            assertThat(resultCd1.get(ID)).isEqualTo(id1);
-            assertThat(resultCd2.get(ID)).isEqualTo(id2);
-            assertThat(resultCd3.get(ID)).isEqualTo(id3);
+
+            assertThat(result)
+                    .extracting(cd -> ((LinkedHashMap<?, ?>) cd).get(ID))
+                    .contains(id1, id2, id3);
         }
 
         @Test
