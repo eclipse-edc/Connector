@@ -34,6 +34,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static io.restassured.http.ContentType.JSON;
@@ -128,7 +129,9 @@ public class ContractDefinitionApiEndToEndTest {
             var id1 = UUID.randomUUID().toString();
             var id2 = UUID.randomUUID().toString();
             var id3 = UUID.randomUUID().toString();
-            Stream.of(id1, id2, id3).forEach(id -> store.save(createContractDefinition(id).createdAt(System.nanoTime()).build()));
+            var createdAtTime = 1000L;
+            var increment = new AtomicInteger(0);
+            Stream.of(id1, id2, id3).forEach(id -> store.save(createContractDefinition(id).createdAt(createdAtTime + increment.getAndIncrement()).build()));
 
             var content = """
                     {
