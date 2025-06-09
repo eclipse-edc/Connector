@@ -66,10 +66,7 @@ class IdentityAndTrustExtensionTest {
 
     @Test
     void verifyCorrectService(ServiceExtensionContext context, ObjectFactory objectFactory) {
-
-
         var is = objectFactory.constructInstance(IdentityAndTrustExtension.class).createIdentityService(context);
-
         assertThat(is).isInstanceOf(IdentityAndTrustService.class);
     }
 

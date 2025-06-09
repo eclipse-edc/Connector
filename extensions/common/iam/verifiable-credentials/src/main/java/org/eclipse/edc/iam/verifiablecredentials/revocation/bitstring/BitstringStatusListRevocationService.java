@@ -15,6 +15,7 @@
 package org.eclipse.edc.iam.verifiablecredentials.revocation.bitstring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.verifiablecredentials.revocation.BaseRevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.BitString;
@@ -24,6 +25,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstrings
 import org.eclipse.edc.spi.result.Result;
 
 import java.util.Base64;
+import java.util.Collection;
 
 import static org.eclipse.edc.spi.result.Result.success;
 
@@ -33,8 +35,8 @@ import static org.eclipse.edc.spi.result.Result.success;
  */
 public class BitstringStatusListRevocationService extends BaseRevocationListService<BitstringStatusListCredential, BitstringStatusListStatus> {
 
-    public BitstringStatusListRevocationService(ObjectMapper mapper, long cacheValidity) {
-        super(mapper, cacheValidity, BitstringStatusListCredential.class);
+    public BitstringStatusListRevocationService(ObjectMapper mapper, long cacheValidity, Collection<String> acceptedContentTypes, EdcHttpClient httpClient) {
+        super(mapper, cacheValidity, acceptedContentTypes, httpClient, BitstringStatusListCredential.class);
     }
 
     @Override
@@ -48,7 +50,11 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
 
     @Override
     protected Result<String> getStatusEntryValue(BitstringStatusListStatus credentialStatus) {
-        var bitStringCredential = getCredential(credentialStatus.getStatusListCredential());
+        var bitStringCredentialResult = getCredential(credentialStatus.getStatusListCredential());
+        if (bitStringCredentialResult.failed()) {
+            return bitStringCredentialResult.mapEmpty();
+        }
+        var bitStringCredential = bitStringCredentialResult.getContent();
 
         var bitString = bitStringCredential.encodedList();
         var decoder = Base64.getDecoder();
@@ -92,7 +98,10 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
 
         var credentialUrl = credentialStatus.getStatusListCredential();
         var statusListCredential = getCredential(credentialUrl);
-        var credentialStatusPurpose = statusListCredential.statusPurpose();
+        if (statusListCredential.failed()) {
+            return statusListCredential.mapEmpty();
+        }
+        var credentialStatusPurpose = statusListCredential.getContent().statusPurpose();
 
         if (!statusPurpose.equalsIgnoreCase(credentialStatusPurpose)) {
             return Result.failure("Credential's statusPurpose value must match the statusPurpose of the Bitstring Credential: '%s' != '%s'".formatted(statusPurpose, credentialStatusPurpose));
