@@ -16,6 +16,9 @@ package org.eclipse.edc.iam.verifiablecredentials.revocation.statuslist;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import dev.failsafe.RetryPolicy;
+import okhttp3.OkHttpClient;
+import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.iam.verifiablecredentials.TestData;
 import org.eclipse.edc.iam.verifiablecredentials.revocation.statuslist2021.StatusList2021RevocationService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions;
@@ -36,18 +39,20 @@ import org.mockserver.verify.VerificationTimes;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static java.util.Collections.singleton;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Status.STATUS_LIST_CREDENTIAL;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Status.STATUS_LIST_INDEX;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Status.STATUS_LIST_PURPOSE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static org.mockito.Mockito.mock;
 import static org.mockserver.model.HttpRequest.request;
 
 class StatusList2021RevocationServiceTest {
     private static final int NOT_REVOKED_INDEX = 1;
     private static final int REVOKED_INDEX = 2;
     private final StatusList2021RevocationService revocationService = new StatusList2021RevocationService(new ObjectMapper().registerModule(new JavaTimeModule()),
-            5 * 60 * 1000);
+            5 * 60 * 1000, singleton("application/vc+jwt"), new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), mock()));
     private ClientAndServer clientAndServer;
 
     @BeforeEach
@@ -115,6 +120,21 @@ class StatusList2021RevocationServiceTest {
         clientAndServer.verify(request(), VerificationTimes.exactly(1));
     }
 
+    @Test
+    void checkValidity_wrongContentType_expect415() {
+        clientAndServer.reset()
+                .when(request().withMethod("GET").withPath("/credentials/status/3"))
+                .respond(HttpResponse.response().withStatusCode(415));
+        var credential = new CredentialStatus("test-id", "StatusList2021Entry",
+                Map.of(STATUS_LIST_PURPOSE, "revocation",
+                        STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                        STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort())));
+        assertThat(revocationService.checkValidity(credential)).isFailed()
+                .detail()
+                .matches("Failed to download status list credential .* 415 Unsupported Media Type");
+    }
+
+
     @ParameterizedTest
     @ArgumentsSource(SingleSubjectProvider.class)
     void getStatusPurposes_whenSingleCredentialStatusRevoked(String testData) {
@@ -125,7 +145,7 @@ class StatusList2021RevocationServiceTest {
                         Map.of(STATUS_LIST_PURPOSE, "revocation",
                                 STATUS_LIST_INDEX, REVOKED_INDEX,
                                 STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
-                .build();
+                                 .build();
         assertThat(revocationService.getStatusPurpose(credential)).isSucceeded()
                 .isEqualTo("revocation");
     }
@@ -140,7 +160,7 @@ class StatusList2021RevocationServiceTest {
                         Map.of(STATUS_LIST_PURPOSE, "revocation",
                                 STATUS_LIST_INDEX, REVOKED_INDEX,
                                 STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
-                .build();
+                                 .build();
         assertThat(revocationService.getStatusPurpose(credential)).isSucceeded()
                 .isEqualTo("revocation");
     }
@@ -155,7 +175,7 @@ class StatusList2021RevocationServiceTest {
                         Map.of(STATUS_LIST_PURPOSE, "revocation",
                                 STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
                                 STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
-                .build();
+                                 .build();
         assertThat(revocationService.getStatusPurpose(credential)).isSucceeded()
                 .isNull();
     }
