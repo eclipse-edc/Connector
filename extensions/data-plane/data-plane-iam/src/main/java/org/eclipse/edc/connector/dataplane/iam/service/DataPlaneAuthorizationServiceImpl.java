@@ -23,6 +23,7 @@ import org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
@@ -98,7 +99,7 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
     }
 
     @Override
-    public Result<Void> revokeEndpointDataReference(String transferProcessId, String reason) {
+    public ServiceResult<Void> revokeEndpointDataReference(String transferProcessId, String reason) {
         return accessTokenService.revoke(transferProcessId, reason);
     }
 
