@@ -17,11 +17,9 @@ The Dataspace Profile Ccontext is an higher-level concept that defines a set of:
 - vocabulary (jsonld context)
 - scopes
 - identifier resolution
-- ...
 
 ## Approach
 
-The Dataspace profile context will be defined at compile time, so it will up to the adopters to define their profiles.
 A `DataspaceProfileContextRegistry` service will be in place, on which a `DataspaceProfileContext` can be registered.
 
 By default, there will be an hardcoded context that uses a particular combination of DSP, DSP, vocabulary and so on; such
