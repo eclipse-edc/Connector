@@ -82,7 +82,6 @@ import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DSPACE_DCP_NAME
 import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DSPACE_DCP_NAMESPACE_V_1_0;
 import static org.eclipse.edc.iam.identitytrust.spi.DcpConstants.DSPACE_DCP_V_1_0_CONTEXT;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLIST_2021_URL;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry.WILDCARD;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier.JWT_VC_TOKEN_CONTEXT;
 
@@ -160,7 +159,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     private PresentationVerifier presentationVerifier;
     private CredentialServiceClient credentialServiceClient;
     private ScheduledFuture<?> jtiEntryReaperThread;
-    @Setting(key = "edc.iam.credential.revocation.mimetype", description = "A comma-separated list of accepted content types of the revocation list credential.", defaultValue = WILDCARD)
+    @Setting(key = "edc.iam.credential.revocation.mimetype", description = "A comma-separated list of accepted content types of the revocation list credential.", defaultValue = "*/*")
     private String contentTypes;
 
     @Override
@@ -193,10 +192,6 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         var acceptedContentTypes = parseAcceptedContentTypes(contentTypes);
         revocationServiceRegistry.addService(StatusList2021Status.TYPE, new StatusList2021RevocationService(typeManager.getMapper(), revocationCacheValidity, acceptedContentTypes, httpClient));
         revocationServiceRegistry.addService(BitstringStatusListStatus.TYPE, new BitstringStatusListRevocationService(typeManager.getMapper(), revocationCacheValidity, acceptedContentTypes, httpClient));
-    }
-
-    private Collection<String> parseAcceptedContentTypes(String contentTypes) {
-        return List.of(contentTypes.split(","));
     }
 
     @Override
@@ -263,6 +258,10 @@ public class IdentityAndTrustExtension implements ServiceExtension {
             presentationVerifier = new MultiFormatPresentationVerifier(issuerId, jwtVerifier, ldpVerifier);
         }
         return presentationVerifier;
+    }
+
+    private Collection<String> parseAcceptedContentTypes(String contentTypes) {
+        return List.of(contentTypes.split(","));
     }
 
     private JsonLdNamespace dcpNamespace() {
