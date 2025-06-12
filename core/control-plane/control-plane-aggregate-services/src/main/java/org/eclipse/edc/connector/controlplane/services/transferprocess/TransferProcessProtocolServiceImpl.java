@@ -143,6 +143,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     }
 
     @Override
+    @NotNull
     public ServiceResult<RequestTransferContext> provideRequestContext(TransferRequestMessage message) {
         return Optional.ofNullable(negotiationStore.findContractAgreement(message.getContractId()))
                 .map(RequestTransferContext::new)

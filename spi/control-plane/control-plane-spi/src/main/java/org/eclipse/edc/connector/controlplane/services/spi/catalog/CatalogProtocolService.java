@@ -49,6 +49,12 @@ public interface CatalogProtocolService {
     @NotNull
     ServiceResult<Dataset> getDataset(String datasetId, TokenRepresentation tokenRepresentation, String protocol);
 
-    // TODO: document
+    /**
+     * Provides the request context
+     *
+     * @param message the incoming message.
+     * @return the request context.
+     */
+    @NotNull
     ServiceResult<RequestCatalogContext> provideRequestContext(CatalogRequestMessage message);
 }

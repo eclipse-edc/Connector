@@ -120,9 +120,21 @@ public interface ContractNegotiationProtocolService {
     @NotNull
     ServiceResult<ContractNegotiation> findById(String id, TokenRepresentation tokenRepresentation);
 
-    // TODO: document
+    /**
+     * Provides the request context
+     *
+     * @param message the incoming message.
+     * @return the request context.
+     */
+    @NotNull
     ServiceResult<RequestNegotiationContext> provideRequestContext(ContractRequestMessage message);
 
-    // TODO: document
+    /**
+     * Provides the offer context
+     *
+     * @param message the incoming message.
+     * @return the offer context.
+     */
+    @NotNull
     ServiceResult<OfferNegotiationContext> provideOfferContext(ContractOfferMessage message);
 }
