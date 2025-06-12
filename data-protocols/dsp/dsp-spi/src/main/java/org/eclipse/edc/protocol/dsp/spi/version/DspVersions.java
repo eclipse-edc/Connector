@@ -27,7 +27,7 @@ public interface DspVersions {
     ProtocolVersion V_08 = new ProtocolVersion(V_08_VERSION, V_08_PATH);
 
 
-    String V_2025_1_VERSION = "2025/1";
+    String V_2025_1_VERSION = "2025-1";
     String V_2025_1_PATH = "/" + V_2025_1_VERSION;
     ProtocolVersion V_2025_1 = new ProtocolVersion(V_2025_1_VERSION, V_2025_1_PATH);
 
