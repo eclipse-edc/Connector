@@ -203,6 +203,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     }
 
     @Override
+    @NotNull
     public ServiceResult<RequestNegotiationContext> provideRequestContext(ContractRequestMessage message) {
         var offerId = message.getContractOffer().getId();
 
@@ -216,6 +217,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     }
 
     @Override
+    @NotNull
     public ServiceResult<OfferNegotiationContext> provideOfferContext(ContractOfferMessage message) {
         return ServiceResult.success(new OfferNegotiationContext(message.getContractOffer()));
     }
