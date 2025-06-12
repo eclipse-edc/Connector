@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorServic
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
@@ -166,7 +167,7 @@ class DataPlaneAuthorizationServiceImplTest {
 
     @Test
     void revoke() {
-        when(accessTokenService.revoke(eq("id"), eq("reason"))).thenReturn(Result.success());
+        when(accessTokenService.revoke(eq("id"), eq("reason"))).thenReturn(ServiceResult.success());
 
         assertThat(authorizationService.revokeEndpointDataReference("id", "reason")).isSucceeded();
 
@@ -176,7 +177,7 @@ class DataPlaneAuthorizationServiceImplTest {
 
     @Test
     void revoke_error() {
-        when(accessTokenService.revoke(eq("id"), eq("reason"))).thenReturn(Result.failure("failure"));
+        when(accessTokenService.revoke(eq("id"), eq("reason"))).thenReturn(ServiceResult.notFound("failure"));
 
         assertThat(authorizationService.revokeEndpointDataReference("id", "reason")).isFailed()
                 .detail().contains("failure");

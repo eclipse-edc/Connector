@@ -33,6 +33,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.ResponseFailure;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -128,6 +129,126 @@ class DataPlaneManagerImplTest {
                 .runtimeId(runtimeId)
                 .waitStrategy(() -> 10000L)
                 .entityRetryProcessConfiguration(new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)))
+                .build();
+    }
+
+    @Test
+    void completed_shouldNotifyResultToControlPlane() {
+        var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
+        when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+        when(transferProcessApiClient.completed(any())).thenReturn(StatusResult.success());
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessApiClient).completed(any());
+            verify(store).save(argThat(it -> it.getState() == NOTIFIED.code()));
+        });
+    }
+
+    @Test
+    void completed_shouldTransitionToCompleted_whenRetryableError() {
+        var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
+        when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+        when(transferProcessApiClient.completed(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessApiClient).completed(any());
+            verify(store).save(argThat(it -> it.getState() == COMPLETED.code()));
+        });
+    }
+
+    @Test
+    void completed_shouldTransitionToTerminated_whenFatalError() {
+        var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
+        when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+        when(transferProcessApiClient.completed(any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessApiClient).completed(any());
+            verify(store).save(argThat(it -> it.getState() == TERMINATED.code()));
+        });
+    }
+
+    @Test
+    void failed_shouldNotifyResultToControlPlane() {
+        var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
+        when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+        when(store.findById(any())).thenReturn(dataFlow);
+
+        when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(StatusResult.success());
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessApiClient).failed(any(), eq("an error"));
+            verify(store).save(argThat(it -> it.getState() == NOTIFIED.code()));
+        });
+    }
+
+    @Test
+    void failed_shouldTransitionToFailed_whenRetryableError() {
+        var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
+        when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+        when(store.findById(any())).thenReturn(dataFlow);
+
+        when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(StatusResult.failure(ERROR_RETRY));
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessApiClient).failed(any(), eq("an error"));
+            verify(store).save(argThat(it -> it.getState() == FAILED.code()));
+        });
+    }
+
+    @Test
+    void failed_shouldTransitionToTerminated_whenFatalError() {
+        var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
+        when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+        when(store.findById(any())).thenReturn(dataFlow);
+
+        when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(StatusResult.failure(FATAL_ERROR));
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(transferProcessApiClient).failed(any(), eq("an error"));
+            verify(store).save(argThat(it -> it.getState() == TERMINATED.code()));
+        });
+    }
+
+    private DataFlow.Builder dataFlowBuilder() {
+        return DataFlow.Builder.newInstance()
+                .source(DataAddress.Builder.newInstance().type("source").build())
+                .destination(DataAddress.Builder.newInstance().type("destination").build())
+                .callbackAddress(URI.create("http://any"))
+                .transferType(new TransferType("DestinationType", PUSH))
+                .properties(Map.of("key", "value"));
+    }
+
+    private Criterion[] stateIs(int state) {
+        return aryEq(new Criterion[]{hasState(state)});
+    }
+
+    private Criterion[] startedFlowOwnedByThisRuntime() {
+        return arrayContains(new Criterion[]{hasState(STARTED.code()), new Criterion("runtimeId", "=", runtimeId)});
+    }
+
+    private Criterion[] startedFlowOwnedByAnotherRuntime() {
+        return arrayContains(new Criterion[]{hasState(STARTED.code()), new Criterion("runtimeId", "!=", runtimeId)});
+    }
+
+    private DataFlowStartMessage createRequest() {
+        return DataFlowStartMessage.Builder.newInstance()
+                .id("1")
+                .processId("1")
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
                 .build();
     }
 
@@ -427,7 +548,20 @@ class DataPlaneManagerImplTest {
         void shouldTerminatePullDataFlow() {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).id("dataFlowId").transferType(new TransferType("DestinationType", FlowType.PULL)).build();
             when(store.findByIdAndLease(dataFlow.getId())).thenReturn(StoreResult.success(dataFlow));
-            when(authorizationService.revokeEndpointDataReference(dataFlow.getId(), null)).thenReturn(Result.success());
+            when(authorizationService.revokeEndpointDataReference(dataFlow.getId(), null)).thenReturn(ServiceResult.success());
+
+            var result = manager.terminate(dataFlow.getId(), null);
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(d -> d.getState() == TERMINATED.code()));
+            verify(authorizationService).revokeEndpointDataReference(dataFlow.getId(), null);
+        }
+
+        @Test
+        void shouldTerminatePullDataFlow_whenSuspendedAndRevokeNotFound() {
+            var dataFlow = dataFlowBuilder().state(SUSPENDED.code()).id("dataFlowId").transferType(new TransferType("DestinationType", FlowType.PULL)).build();
+            when(store.findByIdAndLease(dataFlow.getId())).thenReturn(StoreResult.success(dataFlow));
+            when(authorizationService.revokeEndpointDataReference(dataFlow.getId(), null)).thenReturn(ServiceResult.notFound("not found"));
 
             var result = manager.terminate(dataFlow.getId(), null);
 
@@ -440,7 +574,7 @@ class DataPlaneManagerImplTest {
         void shouldFailToTerminatePullDataFlow_whenRevocationFails() {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).id("dataFlowId").transferType(new TransferType("DestinationType", FlowType.PULL)).build();
             when(store.findByIdAndLease(dataFlow.getId())).thenReturn(StoreResult.success(dataFlow));
-            when(authorizationService.revokeEndpointDataReference(dataFlow.getId(), null)).thenReturn(Result.failure("failure"));
+            when(authorizationService.revokeEndpointDataReference(dataFlow.getId(), null)).thenReturn(ServiceResult.notFound("failure"));
 
             var result = manager.terminate(dataFlow.getId(), null);
 
@@ -540,96 +674,6 @@ class DataPlaneManagerImplTest {
 
     }
 
-    @Test
-    void completed_shouldNotifyResultToControlPlane() {
-        var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
-        when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-        when(transferProcessApiClient.completed(any())).thenReturn(StatusResult.success());
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(transferProcessApiClient).completed(any());
-            verify(store).save(argThat(it -> it.getState() == NOTIFIED.code()));
-        });
-    }
-
-    @Test
-    void completed_shouldTransitionToCompleted_whenRetryableError() {
-        var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
-        when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-        when(transferProcessApiClient.completed(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(transferProcessApiClient).completed(any());
-            verify(store).save(argThat(it -> it.getState() == COMPLETED.code()));
-        });
-    }
-
-    @Test
-    void completed_shouldTransitionToTerminated_whenFatalError() {
-        var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
-        when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-        when(transferProcessApiClient.completed(any())).thenReturn(StatusResult.failure(FATAL_ERROR));
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(transferProcessApiClient).completed(any());
-            verify(store).save(argThat(it -> it.getState() == TERMINATED.code()));
-        });
-    }
-
-    @Test
-    void failed_shouldNotifyResultToControlPlane() {
-        var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
-        when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-        when(store.findById(any())).thenReturn(dataFlow);
-
-        when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(StatusResult.success());
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(transferProcessApiClient).failed(any(), eq("an error"));
-            verify(store).save(argThat(it -> it.getState() == NOTIFIED.code()));
-        });
-    }
-
-    @Test
-    void failed_shouldTransitionToFailed_whenRetryableError() {
-        var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
-        when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-        when(store.findById(any())).thenReturn(dataFlow);
-
-        when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(StatusResult.failure(ERROR_RETRY));
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(transferProcessApiClient).failed(any(), eq("an error"));
-            verify(store).save(argThat(it -> it.getState() == FAILED.code()));
-        });
-    }
-
-    @Test
-    void failed_shouldTransitionToTerminated_whenFatalError() {
-        var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
-        when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-        when(store.findById(any())).thenReturn(dataFlow);
-
-        when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(StatusResult.failure(FATAL_ERROR));
-
-        manager.start();
-
-        await().untilAsserted(() -> {
-            verify(transferProcessApiClient).failed(any(), eq("an error"));
-            verify(store).save(argThat(it -> it.getState() == TERMINATED.code()));
-        });
-    }
-
     @Nested
     class Received {
 
@@ -671,7 +715,7 @@ class DataPlaneManagerImplTest {
 
             transferFuture.complete(StreamResult.success());
 
-            await().untilAsserted(() ->         {
+            await().untilAsserted(() -> {
                 verify(store).save(argThat(it -> it.getState() == COMPLETED.code()));
             });
         }
@@ -1047,36 +1091,6 @@ class DataPlaneManagerImplTest {
                 assertThat(storedDataFlow.getRuntimeId()).isEqualTo(runtimeId);
             });
         }
-    }
-
-    private DataFlow.Builder dataFlowBuilder() {
-        return DataFlow.Builder.newInstance()
-                .source(DataAddress.Builder.newInstance().type("source").build())
-                .destination(DataAddress.Builder.newInstance().type("destination").build())
-                .callbackAddress(URI.create("http://any"))
-                .transferType(new TransferType("DestinationType", PUSH))
-                .properties(Map.of("key", "value"));
-    }
-
-    private Criterion[] stateIs(int state) {
-        return aryEq(new Criterion[]{hasState(state)});
-    }
-
-    private Criterion[] startedFlowOwnedByThisRuntime() {
-        return arrayContains(new Criterion[] { hasState(STARTED.code()), new Criterion("runtimeId", "=", runtimeId) });
-    }
-
-    private Criterion[] startedFlowOwnedByAnotherRuntime() {
-        return arrayContains(new Criterion[] { hasState(STARTED.code()), new Criterion("runtimeId", "!=", runtimeId) });
-    }
-
-    private DataFlowStartMessage createRequest() {
-        return DataFlowStartMessage.Builder.newInstance()
-                .id("1")
-                .processId("1")
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
-                .build();
     }
 
 }

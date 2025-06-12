@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.dataplane.spi.iam;
 
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
@@ -87,5 +88,5 @@ public interface DataPlaneAuthorizationService {
      * @param reason            The reason of the revocation
      * @return Successful if revoked, fails otherwise
      */
-    Result<Void> revokeEndpointDataReference(String transferProcessId, String reason);
+    ServiceResult<Void> revokeEndpointDataReference(String transferProcessId, String reason);
 }

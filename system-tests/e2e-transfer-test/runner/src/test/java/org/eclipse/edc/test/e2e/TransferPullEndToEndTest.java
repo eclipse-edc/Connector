@@ -550,8 +550,8 @@ class TransferPullEndToEndTest {
         static void beforeAll() {
             jsonLd = CONSUMER.getJsonLd();
             CONSUMER.setJsonLd(CONSUMER_CONTROL_PLANE.getService(JsonLd.class));
-            CONSUMER.setProtocol("dataspace-protocol-http:2025/1", "/2025/1");
-            PROVIDER.setProtocol("dataspace-protocol-http:2025/1", "/2025/1");
+            CONSUMER.setProtocol("dataspace-protocol-http:2025-1", "/2025-1");
+            PROVIDER.setProtocol("dataspace-protocol-http:2025-1", "/2025-1");
         }
 
         @AfterAll

@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.dataplane.spi.iam;
 
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
@@ -40,7 +41,7 @@ public class NoOpDataPlaneAuthorizationService implements DataPlaneAuthorization
     }
 
     @Override
-    public Result<Void> revokeEndpointDataReference(String transferProcessId, String reason) {
-        return FAILURE.mapEmpty();
+    public ServiceResult<Void> revokeEndpointDataReference(String transferProcessId, String reason) {
+        return ServiceResult.unexpected(FAILURE.getFailureDetail());
     }
 }

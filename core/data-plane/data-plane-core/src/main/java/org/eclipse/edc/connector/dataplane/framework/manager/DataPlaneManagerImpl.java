@@ -32,6 +32,7 @@ import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
@@ -61,6 +62,7 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONED
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONING;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.SUSPENDED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.spi.result.Result.success;
@@ -293,7 +295,11 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         } else {
             var revokeResult = authorizationService.revokeEndpointDataReference(dataFlow.getId(), reason);
             if (revokeResult.failed()) {
-                return StatusResult.failure(FATAL_ERROR, "DataFlow %s cannot be terminated: %s".formatted(dataFlow.getId(), revokeResult.getFailureDetail()));
+                if (dataFlow.getState() == SUSPENDED.code() && revokeResult.reason().equals(ServiceFailure.Reason.NOT_FOUND)) {
+                    monitor.warning("Revoking an EDR for DataFlow '%s' in state suspended returned not found error. This may indicate that the EDR was already revoked when it was suspended".formatted(dataFlow.getId()));
+                } else {
+                    return StatusResult.failure(FATAL_ERROR, "DataFlow %s cannot be terminated: %s".formatted(dataFlow.getId(), revokeResult.getFailureDetail()));
+                }
             }
         }
 
@@ -472,7 +478,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     private Processor processDataFlowInState(DataFlowStates state, Function<DataFlow, Boolean> function, Supplier<Criterion>... additionalCriteria) {
         Supplier<Collection<DataFlow>> entitiesSupplier = () -> {
             var additional = Arrays.stream(additionalCriteria).map(Supplier::get);
-            var filter = Stream.concat(Stream.of(new Criterion[]{ hasState(state.code()) }), additional)
+            var filter = Stream.concat(Stream.of(new Criterion[]{hasState(state.code())}), additional)
                     .toArray(Criterion[]::new);
             return store.nextNotLeased(batchSize, filter);
         };
