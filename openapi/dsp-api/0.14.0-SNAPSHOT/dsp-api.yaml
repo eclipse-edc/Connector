@@ -664,7 +664,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/catalog/datasets/{id}:
+  /2025-1/catalog/datasets/{id}:
     get:
       operationId: getDataset
       parameters:
@@ -687,7 +687,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/catalog/request:
+  /2025-1/catalog/request:
     post:
       operationId: requestCatalog
       parameters:
@@ -730,7 +730,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/negotiations/offers:
+  /2025-1/negotiations/offers:
     post:
       operationId: initialContractOffer
       parameters:
@@ -766,7 +766,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/negotiations/request:
+  /2025-1/negotiations/request:
     post:
       operationId: initialContractRequest
       parameters:
@@ -802,7 +802,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/negotiations/{id}:
+  /2025-1/negotiations/{id}:
     get:
       operationId: getNegotiation
       parameters:
@@ -825,7 +825,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/negotiations/{id}/agreement:
+  /2025-1/negotiations/{id}/agreement:
     post:
       operationId: createAgreement
       parameters:
@@ -868,7 +868,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/negotiations/{id}/agreement/verification:
+  /2025-1/negotiations/{id}/agreement/verification:
     post:
       operationId: verifyAgreement
       parameters:
@@ -911,7 +911,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/negotiations/{id}/events:
+  /2025-1/negotiations/{id}/events:
     post:
       operationId: createEvent
       parameters:
@@ -954,7 +954,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/negotiations/{id}/offers:
+  /2025-1/negotiations/{id}/offers:
     post:
       operationId: providerOffer
       parameters:
@@ -997,7 +997,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/negotiations/{id}/request:
+  /2025-1/negotiations/{id}/request:
     post:
       operationId: contractRequest
       parameters:
@@ -1040,7 +1040,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/negotiations/{id}/termination:
+  /2025-1/negotiations/{id}/termination:
     post:
       operationId: terminateNegotiation
       parameters:
@@ -1083,7 +1083,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/transfers/request:
+  /2025-1/transfers/request:
     post:
       operationId: initiateTransferProcess
       parameters:
@@ -1119,7 +1119,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/transfers/{id}:
+  /2025-1/transfers/{id}:
     get:
       operationId: getTransferProcess
       parameters:
@@ -1142,7 +1142,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/transfers/{id}/completion:
+  /2025-1/transfers/{id}/completion:
     post:
       operationId: transferProcessCompletion
       parameters:
@@ -1185,7 +1185,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/transfers/{id}/start:
+  /2025-1/transfers/{id}/start:
     post:
       operationId: transferProcessStart
       parameters:
@@ -1228,7 +1228,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/transfers/{id}/suspension:
+  /2025-1/transfers/{id}/suspension:
     post:
       operationId: transferProcessSuspension
       parameters:
@@ -1271,7 +1271,7 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025/1/transfers/{id}/termination:
+  /2025-1/transfers/{id}/termination:
     post:
       operationId: transferProcessTermination
       parameters:
