@@ -16,9 +16,20 @@ package org.eclipse.edc.connector.controlplane.services.spi.context;
 
 import org.eclipse.edc.spi.result.ServiceResult;
 
-// TODO: document
+/**
+ * Provides a protocol request context provider
+ *
+ * @param <I> the input type.
+ * @param <C> the context type.
+ */
 public interface ProtocolRequestContextProvider<I, C extends ProtocolRequestContext> {
 
+    /**
+     * Returns the protocol request context provider given the input.
+     *
+     * @param input the input.
+     * @return the protocol request context.
+     */
     ServiceResult<C> provide(I input);
 
 }

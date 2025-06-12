@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.controlplane.protocolversion.spi.ProtocolVersionRequestMessage;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
@@ -105,6 +106,8 @@ public class DspHttpCoreExtension implements ServiceExtension {
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
     @Inject
+    private ProtocolTokenValidator protocolTokenValidator;
+    @Inject
     private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
 
     private DspProtocolTypeTransformerRegistry dspTransformerRegistry;
@@ -140,7 +143,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
 
     @Provider
     public DspRequestHandler dspRequestHandler() {
-        return new DspRequestHandlerImpl(monitor, validatorRegistry, dspTransformerRegistry(), dataspaceProfileContextRegistry);
+        return new DspRequestHandlerImpl(monitor, validatorRegistry, dspTransformerRegistry(), protocolTokenValidator);
     }
 
     @Provider

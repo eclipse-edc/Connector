@@ -83,6 +83,7 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
     }
 
     @Override
+    @NotNull
     public ServiceResult<RequestCatalogContext> provideRequestContext(CatalogRequestMessage message) {
         return ServiceResult.success(new RequestCatalogContext());
     }

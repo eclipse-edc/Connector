@@ -17,8 +17,22 @@ package org.eclipse.edc.protocol.dsp.http.spi.message;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.spi.result.ServiceResult;
 
-// TODO: document
+/**
+ * Represent a protocol service call.
+ *
+ * @param <I> input type.
+ * @param <R> result type.
+ * @param <C> context type.
+ */
 public interface ServiceProtocolCall<I, R, C>  {
 
-    ServiceResult<R> call(I input, ParticipantAgent representation, C context);
+    /**
+     * Do the protocol service call.
+     *
+     * @param input the input.
+     * @param participantAgent the participant agent
+     * @param context the context.
+     * @return the service call result.
+     */
+    ServiceResult<R> call(I input, ParticipantAgent participantAgent, C context);
 }

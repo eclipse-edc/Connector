@@ -92,6 +92,12 @@ public interface TransferProcessProtocolService {
     @NotNull
     ServiceResult<TransferProcess> findById(String id, TokenRepresentation tokenRepresentation);
 
-    // TODO: document
+    /**
+     * Provides the request context
+     *
+     * @param message the incoming message.
+     * @return the request context.
+     */
+    @NotNull
     ServiceResult<RequestTransferContext> provideRequestContext(TransferRequestMessage message);
 }
