@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.sc
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.sql.lease.StatefulEntityMapping;
+import org.eclipse.edc.sql.translation.EntityStateFieldTranslator;
 import org.eclipse.edc.sql.translation.JsonFieldTranslator;
 
 /**
@@ -45,6 +46,7 @@ public class TransferProcessMapping extends StatefulEntityMapping {
     private static final String FIELD_ASSET_ID = "assetId";
     private static final String FIELD_CONTRACT_ID = "contractId";
     private static final String FIELD_DATA_DESTINATION = "dataDestination";
+    private static final String FIELD_PREVIOUS_STATE = "previousState";
 
     public TransferProcessMapping(TransferProcessStoreStatements statements) {
         super(statements, state -> TransferProcessStates.valueOf(state).code());
@@ -66,5 +68,7 @@ public class TransferProcessMapping extends StatefulEntityMapping {
         add(FIELD_PENDING, statements.getPendingColumn());
         add(FIELD_TRANSFER_TYPE, statements.getTransferTypeColumn());
         add(FIELD_DATA_PLANE_ID, statements.getDataPlaneIdColumn());
+        add(FIELD_PREVIOUS_STATE, new EntityStateFieldTranslator(statements.getPreviousStateColumn(), state -> TransferProcessStates.valueOf(state).code()));
+
     }
 }

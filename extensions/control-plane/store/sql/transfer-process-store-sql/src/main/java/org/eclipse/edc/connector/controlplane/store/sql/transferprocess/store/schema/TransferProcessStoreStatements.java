@@ -111,5 +111,9 @@ public interface TransferProcessStoreStatements extends StatefulEntityStatements
         return "protocol_messages";
     }
 
+    default String getPreviousStateColumn() {
+        return "previous_state";
+    }
+
     SqlQueryStatement createQuery(QuerySpec querySpec);
 }

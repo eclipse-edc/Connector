@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.DeprovisionedRe
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedResourceSet;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
@@ -29,6 +30,8 @@ import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -43,6 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.testfixtures.store.TestFunctions.createTransferProcess;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
@@ -53,6 +57,7 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_LEASED;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.params.provider.EnumSource.Mode.INCLUDE;
 
 public abstract class TransferProcessStoreTestBase {
 
@@ -433,6 +438,24 @@ public abstract class TransferProcessStoreTestBase {
                     .usingRecursiveFieldByFieldElementComparator()
                     .containsExactly(newTransferProcess);
         }
+
+        @ParameterizedTest
+        @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = {"TERMINATED", "COMPLETED"})
+        void shouldStorePreviousStateWhenDeprovisioning(TransferProcessStates state) {
+            var transferProcess = createTransferProcess("id1", state);
+            getTransferProcessStore().save(transferProcess);
+            //modify
+            transferProcess.transitionDeprovisioning();
+
+            getTransferProcessStore().save(transferProcess);
+
+            assertThat(getTransferProcessStore().findAll(QuerySpec.none()))
+                    .hasSize(1)
+                    .first().satisfies(actual -> {
+                        assertThat(actual.getState()).isEqualTo(DEPROVISIONING.code());
+                        assertThat(actual.getPreviousState()).isEqualTo(state.code());
+                    });
+        }
     }
 
     @Nested
@@ -510,6 +533,19 @@ public abstract class TransferProcessStoreTestBase {
 
             var query = QuerySpec.Builder.newInstance()
                     .filter(List.of(new Criterion("state", "=", 800)))
+                    .build();
+
+            var result = getTransferProcessStore().findAll(query).toList();
+            assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(tp);
+        }
+
+        @Test
+        void queryByPreviousState() {
+            var tp = TestFunctions.createTransferProcessBuilder("testprocess1").state(800).previousState(900).build();
+            getTransferProcessStore().save(tp);
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(List.of(new Criterion("previousState", "=", 900)))
                     .build();
 
             var result = getTransferProcessStore().findAll(query).toList();
