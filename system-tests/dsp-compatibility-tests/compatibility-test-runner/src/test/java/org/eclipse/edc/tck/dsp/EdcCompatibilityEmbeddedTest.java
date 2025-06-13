@@ -98,7 +98,8 @@ public class EdcCompatibilityEmbeddedTest {
             properties.put(TCK_LAUNCHER, DEFAULT_LAUNCHER);
         }
         properties.put("dataspacetck.dsp.jsonld.context.edc.path", resourceConfig("dspace-edc-context-v1.jsonld"));
-        properties.put("dataspacetck.dsp.connector.http.url", PROTOCOL_URL + "/2025/1");
+        properties.put("dataspacetck.dsp.connector.http.url", PROTOCOL_URL + "/2025-1");
+        properties.put("dataspacetck.dsp.connector.http.base.url", PROTOCOL_URL);
         properties.put("dataspacetck.dsp.connector.negotiation.initiate.url", WEBHOOK_URL + "/negotiations/requests");
         properties.put("dataspacetck.dsp.connector.transfer.initiate.url", WEBHOOK_URL + "/transfers/requests");
         return properties.entrySet().stream()
