@@ -224,6 +224,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 process.getAssetId(),
                 process.getContractId(),
                 toJson(process.getDataDestination()),
+                process.getPreviousState(),
                 process.getId());
     }
 
@@ -269,7 +270,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 process.getProtocol(),
                 process.getAssetId(),
                 process.getContractId(),
-                toJson(process.getDataDestination()));
+                toJson(process.getDataDestination()),
+                process.getPreviousState());
     }
 
     private TransferProcess mapTransferProcess(ResultSet resultSet) throws SQLException {
@@ -301,6 +303,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .transferType(resultSet.getString(statements.getTransferTypeColumn()))
                 .protocolMessages(fromJson(resultSet.getString(statements.getProtocolMessagesColumn()), ProtocolMessages.class))
                 .dataPlaneId(resultSet.getString(statements.getDataPlaneIdColumn()))
+                .previousState(resultSet.getObject(statements.getPreviousStateColumn(), Integer.class))
                 .build();
     }
 

@@ -143,6 +143,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     private String transferType;
     private String dataPlaneId;
 
+    private Integer previousState;
+
     private TransferProcess() {
     }
 
@@ -324,6 +326,9 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public void transitionDeprovisioning() {
+        if (currentStateIsOneOf(COMPLETED, TERMINATED)) {
+            previousState = state;
+        }
         transition(DEPROVISIONING, state -> canBeDeprovisioned());
     }
 
@@ -476,6 +481,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
         return dataDestination.getType();
     }
 
+    @JsonIgnore
+    public Integer getPreviousState() {
+        return previousState;
+    }
+
     public String getDataPlaneId() {
         return dataPlaneId;
     }
@@ -502,7 +512,9 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
                 .transferType(transferType)
                 .type(type)
                 .protocolMessages(protocolMessages)
-                .dataPlaneId(dataPlaneId);
+                .dataPlaneId(dataPlaneId)
+                .previousState(previousState);
+
         return copy(builder);
     }
 
@@ -670,6 +682,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
         public Builder contractId(String contractId) {
             entity.contractId = contractId;
+            return this;
+        }
+
+        public Builder previousState(Integer previousState) {
+            entity.previousState = previousState;
             return this;
         }
 

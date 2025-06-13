@@ -31,6 +31,8 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -113,7 +115,7 @@ class TransferProcessTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "STARTING", "SUSPENDED" })
+    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = {"STARTING", "SUSPENDED"})
     void shouldNotSetDataPlaneIdOnStart_whenTransferIsConsumer(TransferProcessStates fromState) {
         var process = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString()).type(CONSUMER)
@@ -124,6 +126,20 @@ class TransferProcessTest {
 
         assertThat(process.stateAsString()).isEqualTo(STARTED.name());
         assertThat(process.getDataPlaneId()).isNull();
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = {"TERMINATED", "COMPLETED"})
+    void verifyDeprovisioningPrevState(TransferProcessStates fromState) {
+        var process = TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString()).type(PROVIDER)
+                .state(fromState.code())
+                .build();
+
+        process.transitionDeprovisioning();
+
+        assertThat(process.stateAsString()).isEqualTo(DEPROVISIONING.name());
+        assertThat(process.getPreviousState()).isEqualTo(fromState.code());
     }
 
     @Test
@@ -153,7 +169,7 @@ class TransferProcessTest {
     @EnumSource(
             value = TransferProcessStates.class,
             mode = EXCLUDE,
-            names = { "COMPLETED", "TERMINATED", "DEPROVISIONING", "DEPROVISIONING_REQUESTED", "DEPROVISIONED", "RESUMED" }
+            names = {"COMPLETED", "TERMINATED", "DEPROVISIONING", "DEPROVISIONING_REQUESTED", "DEPROVISIONED", "RESUMED"}
     )
     void verifyTerminating_validStates(TransferProcessStates state) {
         var transferProcess = TransferProcess.Builder.newInstance()
@@ -167,7 +183,7 @@ class TransferProcessTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "TERMINATED" })
+    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = {"COMPLETED", "TERMINATED"})
     void verifyTerminating_invalidStates(TransferProcessStates state) {
         var process = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString())

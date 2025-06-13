@@ -24,6 +24,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2024_1;
@@ -55,7 +57,7 @@ public class JsonObjectFromTransferProcessV2024Transformer extends AbstractNames
         var builder = jsonBuilderFactory.createObjectBuilder()
                 .add(ID, transferProcess.getId())
                 .add(TYPE, forNamespace(DSPACE_TYPE_TRANSFER_PROCESS_TERM))
-                .add(forNamespace(DSPACE_PROPERTY_STATE_TERM), createId(jsonBuilderFactory, state(transferProcess.getState(), context)));
+                .add(forNamespace(DSPACE_PROPERTY_STATE_TERM), createId(jsonBuilderFactory, state(transferProcess.getState(), transferProcess.getPreviousState(), context)));
 
         if (transferProcess.getType() == TransferProcess.Type.PROVIDER) {
             builder.add(forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), createId(jsonBuilderFactory, transferProcess.getId()));
@@ -68,7 +70,7 @@ public class JsonObjectFromTransferProcessV2024Transformer extends AbstractNames
         return builder.build();
     }
 
-    private String state(Integer state, TransformerContext context) {
+    private String state(Integer state, Integer previousState, TransformerContext context) {
         var transferProcessState = TransferProcessStates.from(state);
         if (transferProcessState == null) {
             context.problem()
@@ -84,10 +86,31 @@ public class JsonObjectFromTransferProcessV2024Transformer extends AbstractNames
             case STARTING, STARTED -> forNamespace(DSPACE_VALUE_TRANSFER_STATE_STARTED_TERM);
             case SUSPENDING, SUSPENDED, SUSPENDING_REQUESTED, RESUMING, RESUMED ->
                     forNamespace(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM);
-            case COMPLETING, COMPLETING_REQUESTED, COMPLETED, DEPROVISIONING, DEPROVISIONING_REQUESTED, DEPROVISIONED ->
+            case COMPLETING, COMPLETING_REQUESTED, COMPLETED ->
                     forNamespace(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM);
             case TERMINATING, TERMINATING_REQUESTED, TERMINATED ->
                     forNamespace(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM);
+
+            case DEPROVISIONING, DEPROVISIONING_REQUESTED, DEPROVISIONED -> {
+                if (previousState != null) {
+                    if (previousState == COMPLETED.code()) {
+                        yield forNamespace(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM);
+                    } else if (previousState == TERMINATED.code()) {
+                        yield forNamespace(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM);
+                    } else {
+                        context.problem()
+                                .unexpectedType()
+                                .type(TransferProcess.class)
+                                .property("state")
+                                .actual(previousState.toString())
+                                .expected(TransferProcessStates.class)
+                                .report();
+                        yield null;
+                    }
+                } else {
+                    yield forNamespace(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM);
+                }
+            }
             default -> {
                 context.problem()
                         .unexpectedType()

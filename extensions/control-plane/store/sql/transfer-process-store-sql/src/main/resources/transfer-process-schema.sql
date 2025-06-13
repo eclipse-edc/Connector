@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS edc_transfer_process
     asset_id                   VARCHAR,
     contract_id                VARCHAR,
     data_destination           JSON,
+    previous_state             INTEGER,
     lease_id                   VARCHAR
             CONSTRAINT transfer_process_lease_lease_id_fk
                 REFERENCES edc_lease
