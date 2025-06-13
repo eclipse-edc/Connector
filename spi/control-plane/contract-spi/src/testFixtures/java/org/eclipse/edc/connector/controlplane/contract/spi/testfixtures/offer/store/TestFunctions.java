@@ -36,6 +36,7 @@ public class TestFunctions {
                 .id(id)
                 .accessPolicyId(accessPolicyId)
                 .contractPolicyId(contractPolicyId)
+                .createdAt(1234)
                 .build();
     }
 
