@@ -399,8 +399,12 @@ public abstract class ContractDefinitionStoreTestBase {
 
             var querySpec = QuerySpec.Builder.newInstance().sortField("createdAt");
 
-            assertThat(getContractDefinitionStore().findAll(querySpec.sortOrder(SortOrder.ASC).build())).isSortedAccordingTo(Comparator.comparing(ContractDefinition::getCreatedAt));
-            assertThat(getContractDefinitionStore().findAll(querySpec.sortOrder(SortOrder.DESC).build())).isSortedAccordingTo((c1, c2) -> Long.compare(c2.getCreatedAt(), c1.getCreatedAt()));
+            assertThat(getContractDefinitionStore()
+                    .findAll(querySpec.sortOrder(SortOrder.ASC).build()))
+                    .isSortedAccordingTo(Comparator.comparing(ContractDefinition::getCreatedAt));
+            assertThat(getContractDefinitionStore()
+                    .findAll(querySpec.sortOrder(SortOrder.DESC).build()))
+                    .isSortedAccordingTo((c1, c2) -> Long.compare(c2.getCreatedAt(), c1.getCreatedAt()));
         }
 
         @Test
