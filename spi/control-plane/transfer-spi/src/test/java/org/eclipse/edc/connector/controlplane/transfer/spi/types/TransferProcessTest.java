@@ -107,13 +107,14 @@ class TransferProcessTest {
 
         process.transitionCompleting();
         process.transitionCompleted();
-
+        assertThat(process.getErrorDetail()).isNull();
+        
         process.transitionDeprovisioning();
         process.transitionDeprovisioned();
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "STARTING", "SUSPENDED" })
+    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = {"STARTING", "SUSPENDED"})
     void shouldNotSetDataPlaneIdOnStart_whenTransferIsConsumer(TransferProcessStates fromState) {
         var process = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString()).type(CONSUMER)
@@ -145,6 +146,7 @@ class TransferProcessTest {
         process.transitionCompleting();
         process.transitionCompleted();
 
+
         process.transitionDeprovisioning();
         process.transitionDeprovisioned();
     }
@@ -153,7 +155,7 @@ class TransferProcessTest {
     @EnumSource(
             value = TransferProcessStates.class,
             mode = EXCLUDE,
-            names = { "COMPLETED", "TERMINATED", "DEPROVISIONING", "DEPROVISIONING_REQUESTED", "DEPROVISIONED", "RESUMED" }
+            names = {"COMPLETED", "TERMINATED", "DEPROVISIONING", "DEPROVISIONING_REQUESTED", "DEPROVISIONED", "RESUMED"}
     )
     void verifyTerminating_validStates(TransferProcessStates state) {
         var transferProcess = TransferProcess.Builder.newInstance()
@@ -167,7 +169,7 @@ class TransferProcessTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "TERMINATED" })
+    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = {"COMPLETED", "TERMINATED"})
     void verifyTerminating_invalidStates(TransferProcessStates state) {
         var process = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString())

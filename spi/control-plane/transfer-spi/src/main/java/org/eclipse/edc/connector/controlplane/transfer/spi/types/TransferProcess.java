@@ -308,14 +308,17 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public void transitionCompleting() {
+        this.errorDetail = null;
         transition(COMPLETING, state -> canBeCompleted());
     }
 
     public void transitionCompletingRequested() {
+        this.errorDetail = null;
         transition(COMPLETING_REQUESTED, state -> canBeCompleted());
     }
 
     public void transitionCompleted() {
+        this.errorDetail = null;
         transition(COMPLETED, COMPLETED, COMPLETING, COMPLETING_REQUESTED, STARTED);
     }
 
