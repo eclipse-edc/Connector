@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.iam.service;
 
+import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.Endpoint;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService;
@@ -25,7 +26,6 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 import java.time.Clock;
 import java.util.HashMap;
@@ -60,32 +60,31 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
     }
 
     @Override
-    public Result<DataAddress> createEndpointDataReference(DataFlowStartMessage message) {
+    public Result<DataAddress> createEndpointDataReference(DataFlow dataFlow) {
 
-        var additionalProperties = new HashMap<String, Object>(message.getProperties());
-        additionalProperties.put(PROPERTY_AGREEMENT_ID, message.getAgreementId());
-        additionalProperties.put(PROPERTY_ASSET_ID, message.getAssetId());
-        additionalProperties.put(PROPERTY_PROCESS_ID, message.getProcessId());
-        additionalProperties.put(PROPERTY_FLOW_TYPE, message.getFlowType().toString());
-        additionalProperties.put(PROPERTY_PARTICIPANT_ID, message.getParticipantId());
-        var tokenParams = createTokenParams(message);
-        var sourceDataAddress = message.getSourceDataAddress();
+        var additionalProperties = new HashMap<String, Object>(dataFlow.getProperties());
+        additionalProperties.put(PROPERTY_AGREEMENT_ID, dataFlow.getAgreementId());
+        additionalProperties.put(PROPERTY_ASSET_ID, dataFlow.getAssetId());
+        additionalProperties.put(PROPERTY_PROCESS_ID, dataFlow.getId());
+        additionalProperties.put(PROPERTY_FLOW_TYPE, dataFlow.getTransferType().flowType().toString());
+        additionalProperties.put(PROPERTY_PARTICIPANT_ID, dataFlow.getParticipantId());
+        var tokenParams = createTokenParams(dataFlow);
+        var sourceDataAddress = dataFlow.getSource();
 
 
         // create the "front-channel" data address
-        var dataAddressBuilder = endpointGenerator.generateFor(message.getTransferType().destinationType(), sourceDataAddress)
+        var dataAddressBuilder = endpointGenerator.generateFor(dataFlow.getTransferType().destinationType(), sourceDataAddress)
                 .compose(ep -> createSecureEndpoint(ep, tokenParams, additionalProperties, sourceDataAddress))
                 .compose(se -> createDataAddress(se.tokenRepresentation(), se.endpoint()));
 
         // "decorate" the data address with response channel properties
-        var responseChannelType = message.getTransferType().responseChannelType();
+        var responseChannelType = dataFlow.getTransferType().responseChannelType();
         if (responseChannelType != null) {
-            var responseChannelTokenParams = createTokenParams(message);
+            var responseChannelTokenParams = createTokenParams(dataFlow);
             dataAddressBuilder = dataAddressBuilder.compose(builder -> endpointGenerator.generateResponseFor(responseChannelType)
                     .compose(ep -> createSecureEndpoint(ep, responseChannelTokenParams, additionalProperties, sourceDataAddress))
                     .compose(endpoint -> addResponseChannel(builder, endpoint.tokenRepresentation(), endpoint.endpoint())));
         }
-
 
         return dataAddressBuilder.map(DataAddress.Builder::build);
     }
@@ -135,10 +134,10 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
 
     }
 
-    private TokenParameters createTokenParams(DataFlowStartMessage message) {
+    private TokenParameters createTokenParams(DataFlow dataFlow) {
         return TokenParameters.Builder.newInstance()
                 .claims(JwtRegisteredClaimNames.JWT_ID, UUID.randomUUID().toString())
-                .claims(JwtRegisteredClaimNames.AUDIENCE, message.getParticipantId())
+                .claims(JwtRegisteredClaimNames.AUDIENCE, dataFlow.getParticipantId())
                 .claims(JwtRegisteredClaimNames.ISSUER, ownParticipantId)
                 .claims(JwtRegisteredClaimNames.SUBJECT, ownParticipantId)
                 .claims(JwtRegisteredClaimNames.ISSUED_AT, clock.instant().getEpochSecond())

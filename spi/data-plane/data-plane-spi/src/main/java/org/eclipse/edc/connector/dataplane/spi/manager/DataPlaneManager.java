@@ -50,11 +50,12 @@ public interface DataPlaneManager extends StateEntityManager {
 
     /**
      * Starts a transfer for the data flow request. This method is non-blocking with respect to processing the request.
+     * The implementation must be idempotent.
      *
      * @param startMessage The {@link DataFlowStartMessage}
      * @return success with the {@link DataFlowResponseMessage} if the request was correctly processed, failure otherwise
      */
-    Result<DataFlowResponseMessage> start(DataFlowStartMessage startMessage);
+    StatusResult<DataFlowResponseMessage> start(DataFlowStartMessage startMessage);
 
     /**
      * Returns the transfer state for the process.

@@ -242,7 +242,9 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
         }
 
         public Builder properties(Map<String, String> value) {
-            request.properties = value == null ? null : Map.copyOf(value);
+            if (value != null) {
+                request.properties.putAll(value);
+            }
             return this;
         }
 

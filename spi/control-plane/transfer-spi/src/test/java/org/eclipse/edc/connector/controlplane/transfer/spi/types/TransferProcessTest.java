@@ -98,12 +98,12 @@ class TransferProcessTest {
         process.transitionRequested();
 
         assertThrows(IllegalStateException.class, process::transitionStarting, "STARTING is not a valid state for consumer");
-        process.transitionStarted("dataPlaneId");
+        process.transitionStarted();
 
         process.transitionSuspending("suspension");
         process.transitionSuspended();
 
-        process.transitionStarted("dataPlaneId");
+        process.transitionStarted();
 
         process.transitionCompleting();
         process.transitionCompleted();
@@ -121,7 +121,7 @@ class TransferProcessTest {
                 .state(fromState.code())
                 .build();
 
-        process.transitionStarted("dataPlaneId");
+        process.transitionStarted();
 
         assertThat(process.stateAsString()).isEqualTo(STARTED.name());
         assertThat(process.getDataPlaneId()).isNull();
@@ -138,10 +138,7 @@ class TransferProcessTest {
         assertThrows(IllegalStateException.class, process::transitionRequested, "REQUESTED is not a valid state for provider");
 
         process.transitionStarting();
-        process.transitionStarted("dataPlaneId");
-        // should set the data plane id
-        assertThat(process.getDataPlaneId()).isEqualTo("dataPlaneId");
-
+        process.transitionStarted();
 
         process.transitionCompleting();
         process.transitionCompleted();

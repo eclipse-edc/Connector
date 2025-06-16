@@ -32,13 +32,13 @@ public interface Deprovisioner {
     String supportedType();
 
     /**
-     * Asynchronously deprovisions a resource used to perform the data transfer.
-     * Implementations must be idempotent.
-     * Implementations should not throw exceptions. If an unexpected exception occurs and the flow should be re-attempted, return
-     * {@link ResponseStatus#ERROR_RETRY}. If an exception occurs and re-tries should not be re-attempted, return
-     * {@link ResponseStatus#FATAL_ERROR}.
+     * Asynchronously deprovisions a resource used to perform the data transfer. Secrets cleanup needs to be done as well.
+     * Implementation must be idempotent and it should not throw exceptions.
+     * If an unexpected exception occurs and the flow should be re-attempted, return {@link ResponseStatus#ERROR_RETRY}.
+     * If an exception occurs and re-tries should not be re-attempted, return {@link ResponseStatus#FATAL_ERROR}.
      *
      * @param provisionResource that contains metadata associated with the provision operation
+     * @return the future containing the result
      */
     CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionResource provisionResource);
 
