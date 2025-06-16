@@ -139,7 +139,7 @@ class JsonObjectFromTransferProcessV2024TransformerTest {
 
     @ParameterizedTest
     @ArgumentsSource(Status.class)
-    void transform_status(TransferProcessStates inputState, String expectedDspState) {
+    void transform_status(TransferProcessStates inputState, String expectedDspState, String errorDetail) {
         var dataAddress = DataAddress.Builder.newInstance()
                 .keyName("dataAddressId")
                 .property("type", "TestValueProperty")
@@ -151,6 +151,7 @@ class JsonObjectFromTransferProcessV2024TransformerTest {
                 .dataDestination(dataAddress)
                 .state(inputState.code())
                 .contentDataAddress(dataAddress)
+                .errorDetail(errorDetail)
                 .build();
 
         var result = transformer.transform(transferProcess, context);
@@ -166,24 +167,27 @@ class JsonObjectFromTransferProcessV2024TransformerTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    arguments(REQUESTING, toIri(DSPACE_VALUE_TRANSFER_STATE_REQUESTED_TERM)),
-                    arguments(REQUESTED, toIri(DSPACE_VALUE_TRANSFER_STATE_REQUESTED_TERM)),
-                    arguments(STARTING, toIri(DSPACE_VALUE_TRANSFER_STATE_STARTED_TERM)),
-                    arguments(STARTED, toIri(DSPACE_VALUE_TRANSFER_STATE_STARTED_TERM)),
-                    arguments(SUSPENDING, toIri(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM)),
-                    arguments(SUSPENDING_REQUESTED, toIri(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM)),
-                    arguments(SUSPENDED, toIri(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM)),
-                    arguments(RESUMING, toIri(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM)),
-                    arguments(RESUMED, toIri(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM)),
-                    arguments(COMPLETING, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM)),
-                    arguments(COMPLETING_REQUESTED, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM)),
-                    arguments(COMPLETED, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM)),
-                    arguments(DEPROVISIONING, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM)),
-                    arguments(DEPROVISIONING_REQUESTED, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM)),
-                    arguments(DEPROVISIONED, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM)),
-                    arguments(TERMINATING, toIri(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM)),
-                    arguments(TERMINATING_REQUESTED, toIri(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM)),
-                    arguments(TERMINATED, toIri(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM))
+                    arguments(REQUESTING, toIri(DSPACE_VALUE_TRANSFER_STATE_REQUESTED_TERM), null),
+                    arguments(REQUESTED, toIri(DSPACE_VALUE_TRANSFER_STATE_REQUESTED_TERM), null),
+                    arguments(STARTING, toIri(DSPACE_VALUE_TRANSFER_STATE_STARTED_TERM), null),
+                    arguments(STARTED, toIri(DSPACE_VALUE_TRANSFER_STATE_STARTED_TERM), null),
+                    arguments(SUSPENDING, toIri(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM), null),
+                    arguments(SUSPENDING_REQUESTED, toIri(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM), null),
+                    arguments(SUSPENDED, toIri(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM), null),
+                    arguments(RESUMING, toIri(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM), null),
+                    arguments(RESUMED, toIri(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM), null),
+                    arguments(COMPLETING, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM), null),
+                    arguments(COMPLETING_REQUESTED, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM), null),
+                    arguments(COMPLETED, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM), null),
+                    arguments(DEPROVISIONING, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM), null),
+                    arguments(DEPROVISIONING_REQUESTED, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM), null),
+                    arguments(DEPROVISIONED, toIri(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM), null),
+                    arguments(DEPROVISIONING, toIri(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM), "error`"),
+                    arguments(DEPROVISIONING_REQUESTED, toIri(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM), "error"),
+                    arguments(DEPROVISIONED, toIri(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM), "error"),
+                    arguments(TERMINATING, toIri(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM), null),
+                    arguments(TERMINATING_REQUESTED, toIri(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM), null),
+                    arguments(TERMINATED, toIri(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM), null)
             );
         }
     }

@@ -237,7 +237,7 @@ public class DataAssembly {
         recorder.record("ATP0102", TransferProcess::transitionStarting);
         recorder.record("ATP0103", TransferProcess::transitionStarting);
         recorder.record("ATP0104", TransferProcess::transitionStarting);
-        recorder.record("ATP0105", TransferProcess::transitionTerminating);
+        recorder.record("ATP0105", tp -> tp.transitionTerminating("error"));
 
     }
 
@@ -282,7 +282,7 @@ public class DataAssembly {
 
     public static List<Trigger<TransferProcess>> createTransferProcessTriggers() {
         return List.of(
-                createTransferTrigger(TransferProcessStarted.class, "ATP0101", TransferProcess::transitionTerminating),
+                createTransferTrigger(TransferProcessStarted.class, "ATP0101", tp -> tp.transitionTerminating("error")),
                 createTransferTrigger(TransferProcessStarted.class, "ATP0102", TransferProcess::transitionCompleting),
                 createTransferTrigger(TransferProcessStarted.class, "ATP0103", (process) -> process.transitionSuspending("suspending")),
                 createTransferTrigger(TransferProcessSuspended.class, "ATP0103", (process) -> process.transitionTerminating("terminating")),

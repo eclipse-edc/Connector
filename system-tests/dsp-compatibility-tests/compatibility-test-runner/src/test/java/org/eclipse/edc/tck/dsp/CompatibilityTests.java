@@ -18,8 +18,6 @@ import java.util.List;
 
 public interface CompatibilityTests {
 
-    // TODO Those remaining failures are due the fact that EDC consider the DEPROVISIONED state completed while the TCK expects terminated.
-    List<String> ALLOWED_FAILURES = List.of(
-            "TP:01-01", "TP:01-03", "TP:01-05");
+    List<String> ALLOWED_FAILURES = List.of();
 
 }
