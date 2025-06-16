@@ -21,5 +21,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public record ContractNegotiationRequest(@JsonProperty("providerId") String providerId,
                                          @JsonProperty("connectorAddress") String connectorAddress,
-                                         @JsonProperty("offerId") String offerId) {
+                                         @JsonProperty("offerId") String offerId,
+                                         @JsonProperty("datasetId") String datasetId) {
 }
