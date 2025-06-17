@@ -21,20 +21,20 @@ import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFa
 import org.eclipse.edc.connector.dataplane.selector.spi.manager.DataPlaneSelectorManager;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
+import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.statemachine.StateMachineConfiguration;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Duration;
 
 import static org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorExtension.NAME;
-import static org.eclipse.edc.statemachine.AbstractStateEntityManager.DEFAULT_BATCH_SIZE;
-import static org.eclipse.edc.statemachine.AbstractStateEntityManager.DEFAULT_ITERATION_WAIT;
 
 @Extension(NAME)
 public class DataPlaneSelectorExtension implements ServiceExtension {
@@ -43,11 +43,9 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
 
     private static final int DEFAULT_CHECK_PERIOD = 60;
 
-    @Setting(description = "the iteration wait time in milliseconds in the data plane selector state machine.", defaultValue = DEFAULT_ITERATION_WAIT + "", key = "edc.data.plane.selector.state-machine.iteration-wait-millis")
-    private long stateMachineIterationWait;
-
-    @Setting(description = "the batch size in the data plane selector state machine.", defaultValue = DEFAULT_BATCH_SIZE + "", key = "edc.data.plane.selector.state-machine.batch-size")
-    private int stateMachineBatchSize;
+    @SettingContext("edc.data.plane.selector")
+    @Configuration
+    private StateMachineConfiguration stateMachineConfiguration;
 
     @Setting(description = "the check period for data plane availability, in seconds", defaultValue = DEFAULT_CHECK_PERIOD + "", key = "edc.data.plane.selector.state-machine.check.period")
     private int selectorCheckPeriod;
@@ -72,8 +70,8 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
 
         var configuration = new DataPlaneSelectorManagerConfiguration(
-                new ExponentialWaitStrategy(stateMachineIterationWait),
-                stateMachineBatchSize,
+                stateMachineConfiguration.iterationWaitExponentialWaitStrategy(),
+                stateMachineConfiguration.batchSize(),
                 Duration.ofSeconds(selectorCheckPeriod)
         );
 
@@ -82,6 +80,7 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
                 .store(instanceStore)
                 .monitor(context.getMonitor())
                 .configuration(configuration)
+                .entityRetryProcessConfiguration(stateMachineConfiguration.entityRetryProcessConfiguration())
                 .build();
     }
 

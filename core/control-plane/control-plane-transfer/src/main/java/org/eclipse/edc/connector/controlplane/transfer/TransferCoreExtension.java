@@ -34,31 +34,25 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.retry.TransferWaitStr
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedContentResource;
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
-import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
+import org.eclipse.edc.statemachine.StateMachineConfiguration;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
-
-import static org.eclipse.edc.statemachine.AbstractStateEntityManager.DEFAULT_BATCH_SIZE;
-import static org.eclipse.edc.statemachine.AbstractStateEntityManager.DEFAULT_ITERATION_WAIT;
-import static org.eclipse.edc.statemachine.AbstractStateEntityManager.DEFAULT_SEND_RETRY_BASE_DELAY;
-import static org.eclipse.edc.statemachine.AbstractStateEntityManager.DEFAULT_SEND_RETRY_LIMIT;
 
 /**
  * Provides core data transfer services to the system.
@@ -69,17 +63,9 @@ public class TransferCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Transfer Core";
 
-    @Setting(description = "the iteration wait time in milliseconds in the transfer process state machine. Default value " + DEFAULT_ITERATION_WAIT, key = "edc.transfer.state-machine.iteration-wait-millis", defaultValue = DEFAULT_ITERATION_WAIT + "")
-    private long stateMachineIterationWaitMillis;
-
-    @Setting(description = "the batch size in the transfer process state machine. Default value " + DEFAULT_BATCH_SIZE, key = "edc.transfer.state-machine.batch-size", defaultValue = DEFAULT_BATCH_SIZE + "")
-    private int stateMachineBatchSize;
-
-    @Setting(description = "how many times a specific operation must be tried before terminating the transfer with error", key = "edc.transfer.send.retry.limit", defaultValue = DEFAULT_SEND_RETRY_LIMIT + "")
-    private int sendRetryLimit;
-
-    @Setting(description = "The base delay for the transfer retry mechanism in millisecond", key = "edc.transfer.send.retry.base-delay.ms", defaultValue = DEFAULT_SEND_RETRY_BASE_DELAY + "")
-    private long sendRetryBaseDelay;
+    @SettingContext("edc.transfer")
+    @Configuration
+    private StateMachineConfiguration stateMachineConfiguration;
 
     @Inject
     private TransferProcessStore transferProcessStore;
@@ -148,13 +134,13 @@ public class TransferCoreExtension implements ServiceExtension {
 
         registerTypes(typeManager);
 
-        var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(stateMachineIterationWaitMillis);
+        var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : stateMachineConfiguration.iterationWaitExponentialWaitStrategy();
 
         typeTransformerRegistry.register(new DataAddressToEndpointDataReferenceTransformer());
 
         observable.registerListener(new TransferProcessEventListener(eventRouter, clock));
 
-        var entityRetryProcessConfiguration = getEntityRetryProcessConfiguration();
+        var entityRetryProcessConfiguration = stateMachineConfiguration.entityRetryProcessConfiguration();
         var provisionResponsesHandler = new ProvisionResponsesHandler(observable, monitor, vault, typeManager);
         var deprovisionResponsesHandler = new DeprovisionResponsesHandler(observable, monitor, vault);
 
@@ -172,7 +158,7 @@ public class TransferCoreExtension implements ServiceExtension {
                 .observable(observable)
                 .store(transferProcessStore)
                 .policyArchive(policyArchive)
-                .batchSize(stateMachineBatchSize)
+                .batchSize(stateMachineConfiguration.batchSize())
                 .addressResolver(addressResolver)
                 .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
                 .protocolWebhookRegistry(protocolWebhookRegistry)
@@ -197,11 +183,6 @@ public class TransferCoreExtension implements ServiceExtension {
         if (processManager != null) {
             processManager.stop();
         }
-    }
-
-    @NotNull
-    private EntityRetryProcessConfiguration getEntityRetryProcessConfiguration() {
-        return new EntityRetryProcessConfiguration(sendRetryLimit, () -> new ExponentialWaitStrategy(sendRetryBaseDelay));
     }
 
     private void registerTypes(TypeManager typeManager) {
