@@ -59,18 +59,16 @@ public class TransferEndToEndParticipant extends Participant {
                 put("web.http.control.port", String.valueOf(controlPlaneControl.get().getPort()));
                 put("web.http.control.path", controlPlaneControl.get().getPath());
                 put("edc.dsp.callback.address", controlPlaneProtocol.get().toString());
-                put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
-                put("edc.keystore.password", "123456");
                 put("edc.transfer.send.retry.limit", "1");
                 put("edc.transfer.send.retry.base-delay.ms", "100");
                 put("edc.negotiation.consumer.send.retry.limit", "1");
                 put("edc.negotiation.provider.send.retry.limit", "1");
                 put("edc.negotiation.consumer.send.retry.base-delay.ms", "100");
                 put("edc.negotiation.provider.send.retry.base-delay.ms", "100");
-
                 put("edc.negotiation.consumer.state-machine.iteration-wait-millis", "50");
                 put("edc.negotiation.provider.state-machine.iteration-wait-millis", "50");
                 put("edc.transfer.state-machine.iteration-wait-millis", "50");
+                put("edc.data.plane.selector.state-machine.iteration-wait-millis", "100");
 
                 put("provisioner.http.entries.default.provisioner.type", "provider");
                 put("provisioner.http.entries.default.endpoint", "http://localhost:%d/provision".formatted(httpProvisionerPort.get()));
@@ -88,8 +86,6 @@ public class TransferEndToEndParticipant extends Participant {
                 put("web.http.path", "/api");
                 put("web.http.control.port", String.valueOf(dataPlaneControl.get().getPort()));
                 put("web.http.control.path", dataPlaneControl.get().getPath());
-                put("edc.keystore", resourceAbsolutePath("certs/cert.pfx"));
-                put("edc.keystore.password", "123456");
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");
                 put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
                 put("edc.dataplane.http.sink.partition.size", "1");

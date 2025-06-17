@@ -16,7 +16,6 @@ package org.eclipse.edc.boot.system.injection;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
-import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -24,7 +23,6 @@ import org.eclipse.edc.spi.system.ValueProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;

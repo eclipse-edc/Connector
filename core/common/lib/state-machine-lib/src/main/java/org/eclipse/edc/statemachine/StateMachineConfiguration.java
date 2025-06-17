@@ -19,7 +19,9 @@ import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 
-// TODO: document
+/**
+ * Defines basic configuration for a {@link StateMachineManager}.
+ */
 @Settings
 public record StateMachineConfiguration(
 
