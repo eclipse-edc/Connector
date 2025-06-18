@@ -19,6 +19,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
@@ -100,9 +101,7 @@ public class SqlExecuteStatement {
             throw new IllegalArgumentException(format("Cannot create INSERT statement on %s because no columns are registered", tableName));
         }
 
-        var columnValues = columnEntries.stream().reduce(ColumnEntry::append).orElseThrow();
-
-        return format("INSERT INTO %s (%s) VALUES (%s);", tableName, columnValues.columnName(), columnValues.value());
+        return insertStatement(tableName) + ";";
     }
 
     /**
@@ -159,5 +158,32 @@ public class SqlExecuteStatement {
                 .collect(joining(" AND "));
 
         return format("DELETE FROM %s WHERE %s;", tableName, where);
+    }
+
+    /**
+     * Gives a SQL upsert statement based on the "ON CONFLICT" semantic
+     *
+     * @param tableName the table name.
+     * @param idColumn the id column.
+     * @return sql upsert statement.
+     */
+    public String upsertInto(String tableName, String idColumn) {
+        if (columnEntries.isEmpty()) {
+            throw new IllegalArgumentException(format("Cannot create UPSERT statement on %s because no columns are registered", tableName));
+        }
+
+        var updateFields = columnEntries.stream()
+                .map(ColumnEntry::columnName)
+                .filter(it -> !Objects.equals(it, idColumn))
+                .map(it -> it + " = EXCLUDED." + it)
+                .collect(joining(", "));
+
+        return insertStatement(tableName) + " ON CONFLICT (" + idColumn + ") DO UPDATE SET " + updateFields + ";";
+    }
+
+    private String insertStatement(String tableName) {
+        var columnValues = columnEntries.stream().reduce(ColumnEntry::append).orElseThrow();
+
+        return "INSERT INTO " + tableName + " (" + columnValues.columnName() + ") VALUES (" + columnValues.value() + ")";
     }
 }

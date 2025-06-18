@@ -102,4 +102,37 @@ class SqlExecuteStatementTest {
             assertThat(statement).isEqualToIgnoringCase("delete from table_name where id = ? and field is null;");
         }
     }
+
+    @Nested
+    class Upsert {
+
+        @Test
+        void shouldThrowException_whenNoColumnSpecified() {
+            assertThatThrownBy(() -> SqlExecuteStatement.newInstance("::json").upsertInto("table_name", "id"))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void shouldReturnStatement_whenThereAreSimpleColumns() {
+            var statement = SqlExecuteStatement.newInstance("::json")
+                    .column("id")
+                    .column("column_name")
+                    .column("another_column_name")
+                    .upsertInto("table_name", "id");
+
+            assertThat(statement).isEqualToIgnoringCase("insert into table_name (id, column_name, another_column_name) values (?, ?, ?)" +
+                    " on conflict (id) do update set column_name = excluded.column_name, another_column_name = excluded.another_column_name;");
+        }
+
+        @Test
+        void shouldReturnStatement_whenJsonColumn() {
+            var statement = SqlExecuteStatement.newInstance("::json")
+                    .column("id")
+                    .jsonColumn("column_name")
+                    .upsertInto("table_name", "id");
+
+            assertThat(statement).isEqualToIgnoringCase("insert into table_name (id, column_name) values (?, ?::json)" +
+                    " on conflict (id) do update set column_name = excluded.column_name;");
+        }
+    }
 }
