@@ -16,6 +16,7 @@ package org.eclipse.edc.boot.system.testextensions;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
@@ -26,6 +27,10 @@ public class ExtensionWithConfigObject implements ServiceExtension {
 
     @Configuration // is optional because all @Settings within are optionsl
     private OptionalConfigurationObject optionalConfigurationObject;
+
+    @SettingContext("custom.context")
+    @Configuration
+    private ConfigurationObject configurationObjectWithContext;
 
     public ConfigurationObject getConfigurationObject() {
         return configurationObject;

@@ -15,6 +15,7 @@
 package org.eclipse.edc.boot.system.injection;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -105,7 +106,7 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
     public Object resolve(ServiceExtensionContext context, DefaultServiceSupplier defaultServiceSupplier) {
 
         // all fields annotated with the @Setting annotation
-        var settingsFields = resolveSettingsFields(context, configurationObject.getType().getDeclaredFields());
+        var settingsFields = resolveSettingsFields(context, configurationObject.getType().getDeclaredFields(), configurationObject.getAnnotation(SettingContext.class));
 
         // records are treated specially, because they only contain final fields, and must be constructed with a non-default CTOR
         // where every constructor arg MUST be named the same as the field value. We can't rely on this with normal classes
@@ -153,7 +154,7 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
 
     @Override
     public Result<List<InjectionContainer<T>>> getProviders(Map<Class<?>, List<InjectionContainer<T>>> dependencyMap, ServiceExtensionContext context) {
-        var violators = injectionPointsFrom(configurationObject.getType().getDeclaredFields())
+        var violators = injectionPointsFrom(configurationObject.getType().getDeclaredFields(), null)
                 .map(ip -> ip.getProviders(dependencyMap, context))
                 .filter(Result::failed)
                 .map(AbstractResult::getFailureDetail)
@@ -179,8 +180,8 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
 
     }
 
-    private @NotNull List<FieldValue> resolveSettingsFields(ServiceExtensionContext context, Field[] fields) {
-        return injectionPointsFrom(fields)
+    private @NotNull List<FieldValue> resolveSettingsFields(ServiceExtensionContext context, Field[] fields, SettingContext settingContext) {
+        return injectionPointsFrom(fields, settingContext)
                 .map(ip -> {
                     var val = ip.resolve(context, new InjectionPointDefaultServiceSupplier());
                     var fieldName = ip.getTargetField().getName();
@@ -189,10 +190,16 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
                 .toList();
     }
 
-    private @NotNull Stream<ValueInjectionPoint<T>> injectionPointsFrom(Field[] fields) {
+    private @NotNull Stream<ValueInjectionPoint<T>> injectionPointsFrom(Field[] fields, SettingContext settingContext) {
         return Arrays.stream(fields)
                 .filter(f -> f.getAnnotation(Setting.class) != null)
-                .map(f -> new ValueInjectionPoint<>(null, f, f.getAnnotation(Setting.class), targetInstance.getClass()));
+                .map(f -> {
+                    if (settingContext == null) {
+                        return new ValueInjectionPoint<>(null, f, f.getAnnotation(Setting.class), targetInstance.getClass());
+                    } else {
+                        return new ValueInjectionPoint<>(null, f, f.getAnnotation(Setting.class), targetInstance.getClass(), settingContext);
+                    }
+                });
     }
 
     private record FieldValue(String fieldName, Object value) {

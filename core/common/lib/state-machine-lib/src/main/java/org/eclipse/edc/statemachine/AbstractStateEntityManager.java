@@ -37,14 +37,9 @@ import java.util.Objects;
  */
 public abstract class AbstractStateEntityManager<E extends StatefulEntity<E>, S extends StateEntityStore<E>> implements StateEntityManager {
 
-    public static final long DEFAULT_ITERATION_WAIT = 1000;
-    public static final int DEFAULT_BATCH_SIZE = 20;
-    public static final int DEFAULT_SEND_RETRY_LIMIT = 7;
-    public static final long DEFAULT_SEND_RETRY_BASE_DELAY = 1000L;
-
     protected Monitor monitor;
-    protected int batchSize = DEFAULT_BATCH_SIZE;
-    protected WaitStrategy waitStrategy = () -> DEFAULT_ITERATION_WAIT;
+    protected int batchSize = StateMachineConfiguration.DEFAULT_BATCH_SIZE;
+    protected WaitStrategy waitStrategy = () -> StateMachineConfiguration.DEFAULT_ITERATION_WAIT;
     protected ExecutorInstrumentation executorInstrumentation = ExecutorInstrumentation.noop();
     protected Telemetry telemetry = new Telemetry();
     protected EntityRetryProcessConfiguration entityRetryProcessConfiguration = defaultEntityRetryProcessConfiguration();
@@ -79,7 +74,10 @@ public abstract class AbstractStateEntityManager<E extends StatefulEntity<E>, S 
 
     @NotNull
     private EntityRetryProcessConfiguration defaultEntityRetryProcessConfiguration() {
-        return new EntityRetryProcessConfiguration(DEFAULT_SEND_RETRY_LIMIT, () -> new ExponentialWaitStrategy(DEFAULT_SEND_RETRY_BASE_DELAY));
+        return new EntityRetryProcessConfiguration(
+                StateMachineConfiguration.DEFAULT_SEND_RETRY_LIMIT,
+                () -> new ExponentialWaitStrategy(StateMachineConfiguration.DEFAULT_SEND_RETRY_BASE_DELAY)
+        );
     }
 
     protected void update(E entity) {
