@@ -49,12 +49,12 @@ public class TestFunctions {
                 .build();
     }
 
-    public static ContractAgreement createContract(ContractOfferId contractOfferId) {
-        return createContractBuilder(contractOfferId.toString())
+    public static ContractAgreement createAgreement(ContractOfferId contractOfferId) {
+        return createAgreementBuilder(contractOfferId.toString())
                 .build();
     }
 
-    public static ContractAgreement.Builder createContractBuilder(String id) {
+    public static ContractAgreement.Builder createAgreementBuilder(String id) {
         return ContractAgreement.Builder.newInstance()
                 .id(id)
                 .providerId("provider")
