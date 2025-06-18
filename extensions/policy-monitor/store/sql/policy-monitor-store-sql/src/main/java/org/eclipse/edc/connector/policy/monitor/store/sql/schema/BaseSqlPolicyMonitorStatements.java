@@ -29,7 +29,7 @@ public class BaseSqlPolicyMonitorStatements implements PolicyMonitorStatements {
     }
 
     @Override
-    public String getInsertTemplate() {
+    public String getUpsertTemplate() {
         return executeStatement()
                 .column(getIdColumn())
                 .column(getStateColumn())
@@ -40,20 +40,7 @@ public class BaseSqlPolicyMonitorStatements implements PolicyMonitorStatements {
                 .jsonColumn(getTraceContextColumn())
                 .column(getErrorDetailColumn())
                 .column(getContractIdColumn())
-                .insertInto(getPolicyMonitorTable());
-    }
-
-    @Override
-    public String getUpdateTemplate() {
-        return executeStatement()
-                .column(getStateColumn())
-                .column(getUpdatedAtColumn())
-                .column(getStateCountColumn())
-                .column(getStateTimestampColumn())
-                .jsonColumn(getTraceContextColumn())
-                .column(getErrorDetailColumn())
-                .column(getContractIdColumn())
-                .update(getPolicyMonitorTable(), getIdColumn());
+                .upsertInto(getPolicyMonitorTable(), getIdColumn());
     }
 
     @Override

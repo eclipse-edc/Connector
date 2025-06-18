@@ -30,7 +30,7 @@ public class BaseSqlDataFlowStatements implements DataFlowStatements {
     }
 
     @Override
-    public String getInsertTemplate() {
+    public String getUpsertTemplate() {
         return executeStatement()
                 .column(getIdColumn())
                 .column(getStateColumn())
@@ -47,26 +47,7 @@ public class BaseSqlDataFlowStatements implements DataFlowStatements {
                 .column(getFlowTypeColumn())
                 .column(getTransferTypeDestinationColumn())
                 .column(getRuntimeIdColumn())
-                .insertInto(getDataPlaneTable());
-    }
-
-    @Override
-    public String getUpdateTemplate() {
-        return executeStatement()
-                .column(getStateColumn())
-                .column(getUpdatedAtColumn())
-                .column(getStateCountColumn())
-                .column(getStateTimestampColumn())
-                .jsonColumn(getTraceContextColumn())
-                .column(getErrorDetailColumn())
-                .column(getCallbackAddressColumn())
-                .jsonColumn(getSourceColumn())
-                .jsonColumn(getDestinationColumn())
-                .jsonColumn(getPropertiesColumn())
-                .column(getFlowTypeColumn())
-                .column(getTransferTypeDestinationColumn())
-                .column(getRuntimeIdColumn())
-                .update(getDataPlaneTable(), getIdColumn());
+                .upsertInto(getDataPlaneTable(), getIdColumn());
     }
 
     @Override

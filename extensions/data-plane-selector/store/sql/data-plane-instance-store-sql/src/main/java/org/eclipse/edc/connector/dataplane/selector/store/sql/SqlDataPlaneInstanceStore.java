@@ -137,13 +137,9 @@ public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataP
     public void save(DataPlaneInstance entity) {
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var existing = findByIdInternal(connection, entity.getId());
-                if (existing != null) {
-                    leaseContext.by(leaseHolderName).withConnection(connection).breakLease(entity.getId());
-                    update(connection, entity);
-                } else {
-                    insert(connection, entity);
-                }
+                var sql = statements.getUpsertTemplate();
+                queryExecutor.execute(connection, sql, entity.getId(), toJson(entity));
+                leaseContext.by(leaseHolderName).withConnection(connection).breakLease(entity.getId());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -165,16 +161,6 @@ public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataP
     private DataPlaneInstance findByIdInternal(Connection connection, String id) {
         var sql = statements.getFindByIdTemplate();
         return queryExecutor.single(connection, false, this::mapResultSet, sql, id);
-    }
-
-    private void insert(Connection connection, DataPlaneInstance instance) {
-        var sql = statements.getInsertTemplate();
-        queryExecutor.execute(connection, sql, instance.getId(), toJson(instance));
-    }
-
-    private void update(Connection connection, DataPlaneInstance instance) {
-        var sql = statements.getUpdateTemplate();
-        queryExecutor.execute(connection, sql, toJson(instance), instance.getId());
     }
 
     private DataPlaneInstance mapResultSet(ResultSet resultSet) throws Exception {

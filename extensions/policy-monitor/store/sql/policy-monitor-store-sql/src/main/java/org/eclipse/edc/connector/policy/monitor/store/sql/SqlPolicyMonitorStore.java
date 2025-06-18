@@ -114,13 +114,21 @@ public class SqlPolicyMonitorStore extends AbstractSqlStore implements PolicyMon
     public void save(PolicyMonitorEntry entity) {
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var existing = findByIdInternal(connection, entity.getId());
-                if (existing != null) {
-                    leaseContext.by(leaseHolderName).withConnection(connection).breakLease(entity.getId());
-                    update(connection, entity);
-                } else {
-                    insert(connection, entity);
-                }
+                var sql = statements.getUpsertTemplate();
+
+                queryExecutor.execute(connection, sql,
+                        entity.getId(),
+                        entity.getState(),
+                        entity.getCreatedAt(),
+                        entity.getUpdatedAt(),
+                        entity.getStateCount(),
+                        entity.getStateTimestamp(),
+                        toJson(entity.getTraceContext()),
+                        entity.getErrorDetail(),
+                        entity.getContractId()
+                );
+
+                leaseContext.by(leaseHolderName).withConnection(connection).breakLease(entity.getId());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -134,34 +142,6 @@ public class SqlPolicyMonitorStore extends AbstractSqlStore implements PolicyMon
             return queryExecutor.query(conn, true, this::mapEntry, statement.getQueryAsString(), statement.getParameters())
                     .findFirst().orElse(null);
         });
-    }
-
-    private void insert(Connection connection, PolicyMonitorEntry entry) {
-        var sql = statements.getInsertTemplate();
-        queryExecutor.execute(connection, sql,
-                entry.getId(),
-                entry.getState(),
-                entry.getCreatedAt(),
-                entry.getUpdatedAt(),
-                entry.getStateCount(),
-                entry.getStateTimestamp(),
-                toJson(entry.getTraceContext()),
-                entry.getErrorDetail(),
-                entry.getContractId()
-        );
-    }
-
-    private void update(Connection connection, PolicyMonitorEntry entry) {
-        var sql = statements.getUpdateTemplate();
-        queryExecutor.execute(connection, sql,
-                entry.getState(),
-                entry.getUpdatedAt(),
-                entry.getStateCount(),
-                entry.getStateTimestamp(),
-                toJson(entry.getTraceContext()),
-                entry.getErrorDetail(),
-                entry.getContractId(),
-                entry.getId());
     }
 
     private PolicyMonitorEntry mapEntry(ResultSet resultSet) throws SQLException {
