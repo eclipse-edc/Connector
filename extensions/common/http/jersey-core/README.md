@@ -13,9 +13,8 @@ This extension provides a `Jersey` implementation for the `WebService` service.
 
 ## Exception handling
 
-The `JerseyService` provide 3 exception mappers:
+The `JerseyRestService` provide 2 exception mappers:
  - `EdcApiExceptionMapper`: catches all the `EdcApiException` exceptions, map them to a 4xx response code with a detailed response body
- - `ValidationExceptionMapper`: catches all the `ConstraintViolationException` exceptions thrown by the `jersey-bean-validation` module, it maps them to a 400 response code with a detailed response body
- - Exception mapper that catches all the exceptions that are not handled by the other mappers, for example:
+ - `UnexpectedExceptionMapper`: catches all the exceptions that are not handled by the other mappers, for example:
    - all the `java.lang` exceptions
-   - jakarta.ws.rs.WebApplicationException and subclasses
+   - `jakarta.ws.rs.WebApplicationException` and subclasses

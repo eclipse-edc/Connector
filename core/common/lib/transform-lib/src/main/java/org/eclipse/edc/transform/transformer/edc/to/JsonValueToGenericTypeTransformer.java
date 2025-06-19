@@ -61,6 +61,12 @@ public class JsonValueToGenericTypeTransformer extends AbstractJsonLdTransformer
             return jsonString.getString();
         } else if (value instanceof JsonNumber jsonNumber) {
             return jsonNumber.doubleValue(); // use to double to avoid loss of precision
+        } else {
+            if (value.getValueType() == JsonValue.ValueType.FALSE) {
+                return Boolean.FALSE;
+            } else if (value.getValueType() == JsonValue.ValueType.TRUE) {
+                return Boolean.TRUE;
+            }
         }
         return null;
     }
