@@ -31,7 +31,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProce
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
@@ -153,7 +152,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .counterPartyAddress(transferRequest.getCounterPartyAddress())
                 .contractId(transferRequest.getContractId())
                 .protocol(transferRequest.getProtocol())
-                .dataDestination(transferRequest.getDataDestination())
                 .type(CONSUMER)
                 .clock(clock)
                 .transferType(transferRequest.getTransferType())
@@ -367,14 +365,28 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
         return entityRetryProcessFactory.retryProcessor(process)
                 .doProcess(result("Start DataFlow", (t, c) -> dataFlowManager.start(process, policy)))
-                .doProcess(futureResult("Dispatch TransferRequestMessage to: " + process.getCounterPartyAddress(),
-                        (t, dataFlowResponse) -> {
-                            var messageBuilder = TransferStartMessage.Builder.newInstance().dataAddress(dataFlowResponse.getDataAddress());
-                            return dispatch(messageBuilder, t, Object.class)
-                                    .<StatusResult<DataFlowResponse>>thenApply(result -> result.map(i -> dataFlowResponse));
-                        })
-                )
-                .onSuccess((t, dataFlowResponse) -> transitionToStarted(t, dataFlowResponse.getDataPlaneId()))
+                .doProcess(futureResult("Dispatch TransferRequestMessage to: " + process.getCounterPartyAddress(), (t, dataFlowResponse) -> {
+                    if (dataFlowResponse.isProvisioning()) {
+                        return completedFuture(StatusResult.success(dataFlowResponse));
+                    }
+                    var messageBuilder = TransferStartMessage.Builder.newInstance().dataAddress(dataFlowResponse.getDataAddress());
+                    return dispatch(messageBuilder, t, Object.class)
+                            .thenApply(result -> result.map(i -> dataFlowResponse));
+                }))
+                .onSuccess((t, dataFlowResponse) -> {
+                    t.setDataPlaneId(dataFlowResponse.getDataPlaneId());
+                    if (dataFlowResponse.isProvisioning()) {
+                        process.transitionStartupRequested();
+                        update(t);
+
+                    } else {
+                        process.transitionStarted();
+                        observable.invokeForEach(l -> l.preStarted(t));
+                        update(t);
+                        observable.invokeForEach(l -> l.started(t, TransferProcessStartedData.Builder.newInstance().build()));
+                    }
+
+                })
                 .onFailure((t, throwable) -> onFailure.accept(t))
                 .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .execute();
@@ -630,13 +642,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     private void transitionToStarting(TransferProcess transferProcess) {
         transferProcess.transitionStarting();
         update(transferProcess);
-    }
-
-    private void transitionToStarted(TransferProcess process, String dataPlaneId) {
-        process.transitionStarted(dataPlaneId);
-        observable.invokeForEach(l -> l.preStarted(process));
-        update(process);
-        observable.invokeForEach(l -> l.started(process, TransferProcessStartedData.Builder.newInstance().build()));
     }
 
     private void transitionToResuming(TransferProcess process) {

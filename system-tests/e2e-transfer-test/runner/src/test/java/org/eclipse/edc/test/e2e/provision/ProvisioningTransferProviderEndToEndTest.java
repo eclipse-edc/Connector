@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.test.e2e;
+package org.eclipse.edc.test.e2e.provision;
 
 import okhttp3.Request;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
@@ -37,6 +37,8 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.test.e2e.Runtimes;
+import org.eclipse.edc.test.e2e.TransferEndToEndParticipant;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -49,6 +51,8 @@ import java.util.concurrent.Executors;
 
 import static jakarta.json.Json.createObjectBuilder;
 import static java.util.Collections.emptyList;
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.failedFuture;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -60,7 +64,7 @@ import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
-public class ProvisioningTransferEndToEndTest {
+public class ProvisioningTransferProviderEndToEndTest {
 
     private static final TransferEndToEndParticipant CONSUMER = TransferEndToEndParticipant.Builder.newInstance()
             .name("consumer")
@@ -70,14 +74,13 @@ public class ProvisioningTransferEndToEndTest {
             .name("provider")
             .id("urn:connector:provider")
             .build();
-    private static final int DESTINATION_BACKEND_PORT = getFreePort();
+    private static final int SOURCE_BACKEND_PORT = getFreePort();
 
     @RegisterExtension
     @Order(0)
     private final RuntimeExtension consumerControlPlane = new RuntimePerMethodExtension(
             Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("consumer-control-plane")
                     .configurationProvider(CONSUMER::controlPlaneEmbeddedDataPlaneConfig)
-                    .registerSystemExtension(ServiceExtension.class, new TestProvisionerExtension())
     );
 
     @RegisterExtension
@@ -85,15 +88,16 @@ public class ProvisioningTransferEndToEndTest {
     private final RuntimeExtension providerControlPlane = new RuntimePerMethodExtension(
             Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("provider-control-plane")
                     .configurationProvider(PROVIDER::controlPlaneEmbeddedDataPlaneConfig)
+                    .registerSystemExtension(ServiceExtension.class, new TestProviderProvisionerExtension())
     );
 
     @Test
     void shouldExecuteConsumerProvisioningAndDeprovisioning() {
-        var source = ClientAndServer.startClientAndServer(getFreePort());
+        var source = ClientAndServer.startClientAndServer(SOURCE_BACKEND_PORT);
         source.when(request("/source")).respond(response("data"));
-        var destination = ClientAndServer.startClientAndServer(DESTINATION_BACKEND_PORT);
+        source.when(request("/deprovision")).respond(response());
+        var destination = ClientAndServer.startClientAndServer(getFreePort());
         destination.when(request()).respond(response());
-        destination.when(request("/deprovision")).respond(response());
 
         var assetId = UUID.randomUUID().toString();
         var sourceDataAddress = Map.<String, Object>of(
@@ -116,11 +120,15 @@ public class ProvisioningTransferEndToEndTest {
 
         CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, COMPLETED);
 
-        destination.verify(request().withHeader("provisionHeader", "value"));
+        source.verify(request().withHeader("provisionHeader", "value"));
 
-        await().untilAsserted(() -> destination.verify(request("/deprovision")));
+        var providerTransferProcessId = PROVIDER.getTransferProcesses().stream()
+                .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
+                .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
+
+        await().untilAsserted(() -> source.verify(request("/deprovision")));
         await().untilAsserted(() -> {
-            var dataFlow = consumerControlPlane.getService(DataPlaneStore.class).findById(consumerTransferProcessId);
+            var dataFlow = providerControlPlane.getService(DataPlaneStore.class).findById(providerTransferProcessId);
             assertThat(dataFlow).isNotNull().extracting(StatefulEntity::getState).isEqualTo(DataFlowStates.DEPROVISIONED.code());
         });
 
@@ -134,7 +142,7 @@ public class ProvisioningTransferEndToEndTest {
         PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, noConstraintPolicyId);
     }
 
-    private static class TestProvisionerExtension implements ServiceExtension {
+    private static class TestProviderProvisionerExtension implements ServiceExtension {
 
         @Inject
         private ResourceDefinitionGeneratorManager resourceDefinitionGeneratorManager;
@@ -150,8 +158,8 @@ public class ProvisioningTransferEndToEndTest {
 
         @Override
         public void initialize(ServiceExtensionContext context) {
-            resourceDefinitionGeneratorManager.registerConsumerGenerator(new AddHeaderResourceGenerator());
-            resourceDefinitionGeneratorManager.registerConsumerGenerator(new AsyncResourceGenerator());
+            resourceDefinitionGeneratorManager.registerProviderGenerator(new AddHeaderResourceGenerator());
+            resourceDefinitionGeneratorManager.registerProviderGenerator(new AsyncResourceGenerator());
 
             provisionerManager.register(new AddHeaderProvisioner());
             provisionerManager.register(new CallEndpointDeprovisioner(httpClient));
@@ -178,9 +186,9 @@ public class ProvisioningTransferEndToEndTest {
                 return httpClient.executeAsync(new Request.Builder().url((String) deprovisionEndpoint).build(), emptyList())
                         .thenCompose(response -> {
                             if (response.isSuccessful()) {
-                                return CompletableFuture.completedFuture(StatusResult.success(DeprovisionedResource.Builder.from(definition).build()));
+                                return completedFuture(StatusResult.success(DeprovisionedResource.Builder.from(definition).build()));
                             } else {
-                                return CompletableFuture.failedFuture(new EdcException("Deprovision failed"));
+                                return failedFuture(new EdcException("Deprovision failed"));
                             }
                         });
             }
@@ -201,7 +209,7 @@ public class ProvisioningTransferEndToEndTest {
                                 .property("header:provisionHeader", "value")
                                 .build())
                         .build();
-                return CompletableFuture.completedFuture(StatusResult.success(provisionedResource));
+                return completedFuture(StatusResult.success(provisionedResource));
             }
 
         }
@@ -218,9 +226,9 @@ public class ProvisioningTransferEndToEndTest {
                 return ProvisionResource.Builder
                         .newInstance()
                         .flowId(dataFlow.getId())
-                        .dataAddress(dataFlow.getDestination())
+                        .dataAddress(dataFlow.getSource())
                         .type("AddHeader")
-                        .property("deprovisionEndpoint", "http://localhost:%d/deprovision".formatted(DESTINATION_BACKEND_PORT))
+                        .property("deprovisionEndpoint", "http://localhost:%d/deprovision".formatted(SOURCE_BACKEND_PORT))
                         .build();
             }
         }
@@ -263,9 +271,9 @@ public class ProvisioningTransferEndToEndTest {
                 Executors.newScheduledThreadPool(1).schedule(() -> {
                     var actualProvisionedResource = ProvisionedResource.Builder.from(provisionResource).build();
                     return dataPlaneManager.resourceProvisioned(actualProvisionedResource);
-                }, 2, SECONDS);
+                }, 1, SECONDS);
                 var asyncProvisionedResource = ProvisionedResource.Builder.from(provisionResource).pending(true).build();
-                return CompletableFuture.completedFuture(StatusResult.success(asyncProvisionedResource));
+                return completedFuture(StatusResult.success(asyncProvisionedResource));
             }
         }
 
@@ -283,8 +291,9 @@ public class ProvisioningTransferEndToEndTest {
                     return dataPlaneManager.resourceDeprovisioned(actualProvisionedResource);
                 }, 2, SECONDS);
                 var resource = DeprovisionedResource.Builder.from(provisionResource).pending(true).build();
-                return CompletableFuture.completedFuture(StatusResult.success(resource));
+                return completedFuture(StatusResult.success(resource));
             }
         }
     }
+
 }

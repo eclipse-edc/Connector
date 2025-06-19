@@ -63,4 +63,29 @@ class ResourceDefinitionGeneratorManagerImplTest {
         }
     }
 
+    @Nested
+    class Provider {
+
+        private final ResourceDefinitionGenerator supportedGenerator = mock();
+
+        @BeforeEach
+        void setUp() {
+            when(supportedGenerator.supportedType()).thenReturn("supportedType");
+            when(supportedGenerator.generate(any())).thenReturn(new ProvisionResource());
+
+            manager.registerProviderGenerator(supportedGenerator);
+        }
+
+        @Test
+        void generate_shouldGenerateResources() {
+            var destination = DataAddress.Builder.newInstance().type("supportedType").build();
+            var dataFlow = DataFlow.Builder.newInstance().destination(destination).build();
+
+            var definitions = manager.generateProviderResourceDefinition(dataFlow);
+
+            assertThat(definitions).hasSize(1);
+        }
+
+    }
+
 }

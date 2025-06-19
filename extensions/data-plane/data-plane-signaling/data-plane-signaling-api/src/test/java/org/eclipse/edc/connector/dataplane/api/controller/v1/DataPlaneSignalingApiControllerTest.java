@@ -43,6 +43,7 @@ import java.net.URI;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 import static org.mockito.ArgumentMatchers.any;
@@ -68,7 +69,7 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
                 .thenReturn(success(flowStartMessage));
         when(dataplaneManager.validate(any())).thenReturn(success());
         when(dataplaneManager.start(any()))
-                .thenReturn(success(flowResponse));
+                .thenReturn(StatusResult.success(flowResponse));
 
         when(transformerRegistry.transform(isA(DataFlowResponseMessage.class), eq(JsonObject.class)))
                 .thenReturn(success(Json.createObjectBuilder().add("foo", "bar").build()));
@@ -135,7 +136,7 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
                 .thenReturn(success(createFlowStartMessage()));
         when(dataplaneManager.validate(any())).thenReturn(success());
         when(dataplaneManager.start(any()))
-                .thenReturn(Result.failure("test-failure"));
+                .thenReturn(StatusResult.failure(ERROR_RETRY, "test-failure"));
 
         var jsonObject = Json.createObjectBuilder().build();
         baseRequest()
@@ -161,7 +162,7 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
                 .thenReturn(success(flowStartMessage));
         when(dataplaneManager.validate(any())).thenReturn(success());
         when(dataplaneManager.start(any()))
-                .thenReturn(success(flowResponse));
+                .thenReturn(StatusResult.success(flowResponse));
 
         when(transformerRegistry.transform(isA(DataAddress.class), eq(JsonObject.class)))
                 .thenReturn(failure("test-failure"));
