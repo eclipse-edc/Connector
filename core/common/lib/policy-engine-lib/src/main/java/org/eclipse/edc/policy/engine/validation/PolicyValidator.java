@@ -14,9 +14,7 @@
 
 package org.eclipse.edc.policy.engine.validation;
 
-import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
-import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintFunction;
 import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.model.AndConstraint;
@@ -46,7 +44,7 @@ import java.util.stream.Stream;
 /**
  * Validate a policy.
  * <p>
- * The policy validator is used to validate policies against a set of configured rule bindings, {@link AtomicConstraintFunction} and {@link DynamicAtomicConstraintFunction}
+ * The policy validator is used to validate policies against a set of configured rule bindings, {@link AtomicConstraintRuleFunction} and {@link DynamicAtomicConstraintRuleFunction}
  * <p>
  * The validation will fail under the following conditions:
  *
