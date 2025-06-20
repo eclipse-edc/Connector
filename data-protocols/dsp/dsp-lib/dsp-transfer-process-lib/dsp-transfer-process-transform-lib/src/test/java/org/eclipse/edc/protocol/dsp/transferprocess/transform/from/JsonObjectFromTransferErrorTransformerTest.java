@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transform.from;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferError;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferErrorTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,13 +28,14 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_ERROR_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_ERROR_TERM;
 import static org.mockito.Mockito.mock;
 
 class JsonObjectFromTransferErrorTransformerTest {
 
+    private static final JsonLdNamespace DSP_NAMESPACE = new JsonLdNamespace("http://www.w3.org/ns/dsp#");
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
 
@@ -41,7 +43,7 @@ class JsonObjectFromTransferErrorTransformerTest {
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromTransferErrorTransformer(jsonFactory);
+        transformer = new JsonObjectFromTransferErrorTransformer(jsonFactory, DSP_NAMESPACE);
     }
 
     @Test
@@ -55,8 +57,8 @@ class JsonObjectFromTransferErrorTransformerTest {
         var result = transformer.transform(error, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_TRANSFER_ERROR_IRI);
-        assertThat(result.getString(DSPACE_PROPERTY_CODE_IRI)).isEqualTo("code");
-        assertThat(result.getJsonArray(DSPACE_PROPERTY_REASON_IRI)).contains(Json.createValue("message"));
+        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSP_NAMESPACE.toIri(DSPACE_TYPE_TRANSFER_ERROR_TERM));
+        assertThat(result.getString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CODE_TERM))).isEqualTo("code");
+        assertThat(result.getJsonArray(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_REASON_TERM))).contains(Json.createValue("message"));
     }
 }

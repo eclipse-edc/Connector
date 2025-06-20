@@ -28,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Set;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA_2024_1;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.DSPACE_DATAADDRESS_TYPE_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY_TERM;
@@ -43,10 +42,6 @@ public class JsonObjectFromDataAddressDspace2024Transformer extends AbstractName
     private final JsonBuilderFactory jsonFactory;
     private final TypeManager typeManager;
     private final String typeContext;
-
-    public JsonObjectFromDataAddressDspace2024Transformer(JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext) {
-        this(jsonFactory, typeManager, typeContext, new JsonLdNamespace(DSPACE_SCHEMA_2024_1));
-    }
 
     public JsonObjectFromDataAddressDspace2024Transformer(JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext, JsonLdNamespace namespace) {
         super(DataAddress.class, JsonObject.class, namespace);

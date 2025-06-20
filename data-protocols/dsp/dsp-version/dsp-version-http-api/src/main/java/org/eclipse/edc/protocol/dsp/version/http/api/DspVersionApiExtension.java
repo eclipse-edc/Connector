@@ -17,7 +17,6 @@ package org.eclipse.edc.protocol.dsp.version.http.api;
 import jakarta.json.Json;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.version.http.api.transformer.JsonObjectFromProtocolVersionsTransformer;
 import org.eclipse.edc.protocol.dsp.version.http.api.transformer.JsonObjectFromVersionsError;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -48,9 +47,6 @@ public class DspVersionApiExtension implements ServiceExtension {
     private TypeTransformerRegistry transformerRegistry;
 
     @Inject
-    private DspRequestHandler requestHandler;
-
-    @Inject
     private VersionProtocolService service;
 
     @Inject
@@ -68,11 +64,11 @@ public class DspVersionApiExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
 
         var jsonFactory = Json.createBuilderFactory(Map.of());
-        
+
         transformerRegistry.register(new JsonObjectFromProtocolVersionsTransformer(jsonFactory));
         transformerRegistry.register(new JsonObjectFromVersionsError(jsonFactory));
 
-        webService.registerResource(ApiContext.PROTOCOL, new DspVersionApiController(requestHandler, service));
+        webService.registerResource(ApiContext.PROTOCOL, new DspVersionApiController(service, transformerRegistry));
     }
 
 }

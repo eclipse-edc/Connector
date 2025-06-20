@@ -18,8 +18,8 @@ import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.protocol.dsp.transferprocess.http.api.controller.DspTransferProcessApiControllerBaseTest;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2025_1;
-import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2025_1_PATH;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.V_2025_1_PATH;
 import static org.eclipse.edc.protocol.dsp.transferprocess.http.api.TransferProcessApiPaths.BASE_PATH;
 
 @ApiTest

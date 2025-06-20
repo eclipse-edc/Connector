@@ -24,8 +24,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp08Constants.DSP_NAMESPACE_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp08Constants.V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -52,13 +53,13 @@ class DspCatalogApiV08ExtensionTest {
     void shouldRegisterMessageValidator(DspCatalogApiV08Extension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(validatorRegistry).register(eq(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI), any());
+        verify(validatorRegistry).register(eq(DSP_NAMESPACE_V_08.toIri(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM)), any());
     }
 
     @Test
     void shouldRegisterDspVersion(DspCatalogApiV08Extension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(versionRegistry).register(V_08);
+        verify(versionRegistry).register(V_08, true);
     }
 }

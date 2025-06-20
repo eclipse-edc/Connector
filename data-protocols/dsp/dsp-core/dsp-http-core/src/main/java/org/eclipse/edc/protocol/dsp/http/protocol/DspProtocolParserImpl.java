@@ -21,7 +21,6 @@ import org.eclipse.edc.spi.result.Result;
 
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP_SEPARATOR;
-import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_08;
 
 public class DspProtocolParserImpl implements DspProtocolParser {
 
@@ -41,7 +40,7 @@ public class DspProtocolParserImpl implements DspProtocolParser {
         }
 
         if (protocolWithVersion.length == 1) {
-            return Result.success(V_08);
+            return Result.success(versionRegistry.getDefaultVersion());
         }
         var protocolVersion = protocolWithVersion[1];
 

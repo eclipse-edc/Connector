@@ -40,11 +40,11 @@ import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp08Constants.DSP_NAMESPACE_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp08Constants.DSP_SCOPE_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp08Constants.DSP_TRANSFORMER_CONTEXT_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp08Constants.V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_08;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_08;
-import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_08;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
@@ -91,8 +91,8 @@ public class DspCatalogApiV08Extension implements ServiceExtension {
 
         webService.registerResource(ApiContext.PROTOCOL, new DspCatalogApiController08(service, dspRequestHandler, continuationTokenManager(monitor)));
         webService.registerDynamicResource(ApiContext.PROTOCOL, DspCatalogApiController08.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, DSP_SCOPE_V_08));
-        
-        versionRegistry.register(V_08);
+
+        versionRegistry.register(V_08, true);
     }
 
     @Override

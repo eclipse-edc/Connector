@@ -19,6 +19,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementMessage;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
@@ -37,11 +38,11 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -58,11 +59,11 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
     private static final String CONSUMER_ID = "consumerId";
     private static final String TIMESTAMP = "1970-01-01T00:00:00Z";
     private static final String DSP = "dsp";
+    private static final JsonLdNamespace DSP_NAMESPACE = new JsonLdNamespace("http://www.w3.org/ns/dsp#");
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock();
-
     private final JsonObjectFromContractAgreementMessageTransformer transformer =
-            new JsonObjectFromContractAgreementMessageTransformer(jsonFactory);
+            new JsonObjectFromContractAgreementMessageTransformer(jsonFactory, DSP_NAMESPACE);
 
     @BeforeEach
     void setUp() {
@@ -94,14 +95,14 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getString(ID)).isNotNull();
         assertThat(result.getString(ID)).isNotEmpty();
-        assertThat(result.getString(TYPE)).isEqualTo(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_IRI);
-        assertThat(result.getString(DSPACE_PROPERTY_PROVIDER_PID_IRI)).isEqualTo("providerPid");
-        assertThat(result.getString(DSPACE_PROPERTY_CONSUMER_PID_IRI)).isEqualTo("consumerPid");
+        assertThat(result.getString(TYPE)).isEqualTo(DSP_NAMESPACE.toIri(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM));
+        assertThat(result.getString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM))).isEqualTo("providerPid");
+        assertThat(result.getString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM))).isEqualTo("consumerPid");
 
-        var jsonAgreement = result.getJsonObject(DSPACE_PROPERTY_AGREEMENT_IRI);
+        var jsonAgreement = result.getJsonObject(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_AGREEMENT_TERM));
         assertThat(jsonAgreement).isNotNull();
         assertThat(jsonAgreement.getString(ID)).isEqualTo(AGREEMENT_ID);
-        assertThat(jsonAgreement.getString(DSPACE_PROPERTY_TIMESTAMP_IRI)).isEqualTo(TIMESTAMP);
+        assertThat(jsonAgreement.getString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_TIMESTAMP_TERM))).isEqualTo(TIMESTAMP);
         assertThat(jsonAgreement.getString(ODRL_ASSIGNEE_ATTRIBUTE)).isEqualTo(CONSUMER_ID);
         assertThat(jsonAgreement.getString(ODRL_ASSIGNER_ATTRIBUTE)).isEqualTo(PROVIDER_ID);
 

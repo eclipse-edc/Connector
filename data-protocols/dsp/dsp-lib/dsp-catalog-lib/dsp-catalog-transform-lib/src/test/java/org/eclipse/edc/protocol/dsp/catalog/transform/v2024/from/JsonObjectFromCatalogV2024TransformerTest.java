@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -42,7 +43,6 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_CATALOG_TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATA_SERVICE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DSPACE_PROPERTY_PARTICIPANT_ID_TERM;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2024_1;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -55,6 +55,7 @@ import static org.mockito.Mockito.when;
 class JsonObjectFromCatalogV2024TransformerTest {
 
     private static final String CATALOG_PROPERTY = "catalog:prop:key";
+    private static final JsonLdNamespace DSP_NAMESPACE = new JsonLdNamespace("http://www.w3.org/ns/dsp#");
 
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final ObjectMapper mapper = mock();
@@ -62,7 +63,7 @@ class JsonObjectFromCatalogV2024TransformerTest {
     private final ParticipantIdMapper participantIdMapper = mock();
     private final TypeManager typeManager = mock();
 
-    private final JsonObjectFromCatalogV2024Transformer transformer = new JsonObjectFromCatalogV2024Transformer(jsonFactory, typeManager, "test", participantIdMapper);
+    private final JsonObjectFromCatalogV2024Transformer transformer = new JsonObjectFromCatalogV2024Transformer(jsonFactory, typeManager, "test", participantIdMapper, DSP_NAMESPACE);
 
     private JsonObject datasetJson;
     private JsonObject catalogJson;
@@ -104,7 +105,7 @@ class JsonObjectFromCatalogV2024TransformerTest {
                 .isInstanceOf(JsonArray.class)
                 .matches(v -> v.asJsonArray().size() == 1)
                 .matches(v -> v.asJsonArray().get(0).equals(dataServiceJson));
-        assertThat(result.getJsonObject(DSP_NAMESPACE_V_2024_1.toIri(DSPACE_PROPERTY_PARTICIPANT_ID_TERM)).getString(ID)).isEqualTo("urn:namespace:participantId");
+        assertThat(result.getJsonObject(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PARTICIPANT_ID_TERM)).getString(ID)).isEqualTo("urn:namespace:participantId");
         assertThat(result.get(CATALOG_PROPERTY)).isNotNull();
 
         verify(context, times(1)).transform(catalog.getDatasets().get(0), JsonObject.class);
@@ -139,7 +140,7 @@ class JsonObjectFromCatalogV2024TransformerTest {
                 .isInstanceOf(JsonArray.class)
                 .matches(v -> v.asJsonArray().size() == 1)
                 .matches(v -> v.asJsonArray().get(0).equals(dataServiceJson));
-        assertThat(result.getJsonObject(DSP_NAMESPACE_V_2024_1.toIri(DSPACE_PROPERTY_PARTICIPANT_ID_TERM)).getString(ID)).isEqualTo("urn:namespace:participantId");
+        assertThat(result.getJsonObject(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PARTICIPANT_ID_TERM)).getString(ID)).isEqualTo("urn:namespace:participantId");
         assertThat(result.get(CATALOG_PROPERTY)).isNotNull();
 
         verify(context, times(1)).transform(catalog.getDatasets().get(0), JsonObject.class);

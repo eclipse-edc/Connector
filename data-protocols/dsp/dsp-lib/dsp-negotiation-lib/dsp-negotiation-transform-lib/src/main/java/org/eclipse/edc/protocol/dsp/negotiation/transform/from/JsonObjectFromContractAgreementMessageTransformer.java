@@ -29,7 +29,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM;
@@ -43,10 +42,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 public class JsonObjectFromContractAgreementMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<ContractAgreementMessage, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
-
-    public JsonObjectFromContractAgreementMessageTransformer(JsonBuilderFactory jsonFactory) {
-        this(jsonFactory, DSP_NAMESPACE_V_08);
-    }
 
     public JsonObjectFromContractAgreementMessageTransformer(JsonBuilderFactory jsonFactory, JsonLdNamespace namespace) {
         super(ContractAgreementMessage.class, JsonObject.class, namespace);

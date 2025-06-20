@@ -21,8 +21,8 @@ import org.eclipse.edc.protocol.dsp.negotiation.http.api.controller.DspNegotiati
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.CONTRACT_OFFERS;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.INITIAL_CONTRACT_OFFERS;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2025_1;
-import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2025_1_PATH;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.V_2025_1_PATH;
 
 @ApiTest
 class DspNegotiationApiControllerV20251Test extends DspNegotiationApiControllerTestBase {

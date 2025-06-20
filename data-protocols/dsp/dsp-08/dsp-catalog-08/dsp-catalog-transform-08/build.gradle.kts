@@ -19,7 +19,8 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    
+    api(project(":data-protocols:dsp:dsp-08:dsp-spi-08"))
+
     implementation(project(":core:common:lib:transform-lib"))
     implementation(project(":data-protocols:dsp:dsp-lib:dsp-catalog-lib:dsp-catalog-transform-lib"))
 }

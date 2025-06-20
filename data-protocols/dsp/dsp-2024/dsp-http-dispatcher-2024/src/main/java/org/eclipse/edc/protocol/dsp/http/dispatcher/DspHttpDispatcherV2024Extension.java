@@ -20,18 +20,18 @@ import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
-import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP_V_2024_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2024Constants.DATASPACE_PROTOCOL_HTTP_V_2024_1;
 
 /**
  * Registers the message dispatcher for DSP v2024/1.
  */
 public class DspHttpDispatcherV2024Extension implements ServiceExtension {
-    
+
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     @Inject
     private DspHttpRemoteMessageDispatcher dispatcher;
-    
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         dispatcherRegistry.register(DATASPACE_PROTOCOL_HTTP_V_2024_1, dispatcher);

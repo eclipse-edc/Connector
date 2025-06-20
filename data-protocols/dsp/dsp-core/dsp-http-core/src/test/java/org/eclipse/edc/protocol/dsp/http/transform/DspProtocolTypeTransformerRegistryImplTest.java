@@ -15,15 +15,15 @@
 package org.eclipse.edc.protocol.dsp.http.transform;
 
 import org.eclipse.edc.protocol.dsp.http.spi.DspProtocolParser;
-import org.eclipse.edc.protocol.dsp.spi.version.DspVersions;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.Test;
 
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.protocol.dsp.http.TestFixtures.DSP_TRANSFORMER_CONTEXT_V_MOCK;
+import static org.eclipse.edc.protocol.dsp.http.TestFixtures.V_MOCK;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_08;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -35,8 +35,8 @@ public class DspProtocolTypeTransformerRegistryImplTest {
 
     @Test
     void forProtocol() {
-        when(protocolParser.parse(DATASPACE_PROTOCOL_HTTP)).thenReturn(Result.success(DspVersions.V_08));
-        when(transformerRegistry.forContext(DSP_TRANSFORMER_CONTEXT_V_08)).thenReturn(transformerRegistry);
+        when(protocolParser.parse(DATASPACE_PROTOCOL_HTTP)).thenReturn(Result.success(V_MOCK));
+        when(transformerRegistry.forContext(DSP_TRANSFORMER_CONTEXT_V_MOCK)).thenReturn(transformerRegistry);
         assertThat(dspTransformerRegistry.forProtocol(DATASPACE_PROTOCOL_HTTP)).isSucceeded()
                 .isEqualTo(transformerRegistry);
     }

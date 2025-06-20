@@ -27,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.ACCEPTED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.TestFunction2024.DSP_NAMESPACE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.TestFunction2024.toIri;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_EVENT_TYPE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_TERM;
@@ -45,7 +46,7 @@ class JsonObjectFromContractNegotiationEventMessageV2024TransformerTest {
     private final TransformerContext context = mock();
 
     private final JsonObjectFromContractNegotiationEventMessageV2024Transformer transformer =
-            new JsonObjectFromContractNegotiationEventMessageV2024Transformer(jsonFactory);
+            new JsonObjectFromContractNegotiationEventMessageV2024Transformer(jsonFactory, DSP_NAMESPACE);
 
     @Test
     void transform() {

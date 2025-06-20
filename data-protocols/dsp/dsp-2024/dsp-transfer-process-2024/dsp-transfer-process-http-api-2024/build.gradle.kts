@@ -22,6 +22,7 @@ dependencies {
     api(project(":spi:control-plane:transfer-spi"))
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":data-protocols:dsp:dsp-spi"))
+    api(project(":data-protocols:dsp:dsp-2024:dsp-spi-2024"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
 
     implementation(project(":spi:common:json-ld-spi"))

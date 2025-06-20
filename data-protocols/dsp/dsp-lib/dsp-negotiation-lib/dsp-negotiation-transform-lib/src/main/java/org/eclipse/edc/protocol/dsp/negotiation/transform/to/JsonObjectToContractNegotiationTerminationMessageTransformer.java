@@ -24,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static jakarta.json.JsonValue.ValueType.ARRAY;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
@@ -35,10 +34,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
  * Creates a {@link ContractNegotiationTerminationMessage} from a {@link JsonObject}.
  */
 public class JsonObjectToContractNegotiationTerminationMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, ContractNegotiationTerminationMessage> {
-
-    public JsonObjectToContractNegotiationTerminationMessageTransformer() {
-        this(DSP_NAMESPACE_V_08);
-    }
 
     public JsonObjectToContractNegotiationTerminationMessageTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, ContractNegotiationTerminationMessage.class, namespace);

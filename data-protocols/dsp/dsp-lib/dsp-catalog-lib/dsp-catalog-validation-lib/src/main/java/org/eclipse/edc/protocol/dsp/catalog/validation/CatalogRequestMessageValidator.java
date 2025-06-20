@@ -24,15 +24,11 @@ import org.eclipse.edc.validator.spi.Validator;
 
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 
 /**
  * Validator for {@link CatalogRequestMessageValidator} Json-LD representation
  */
 public class CatalogRequestMessageValidator {
-    public static Validator<JsonObject> instance(CriterionOperatorRegistry criterionOperatorRegistry) {
-        return instance(criterionOperatorRegistry, DSP_NAMESPACE_V_08);
-    }
 
     public static Validator<JsonObject> instance(CriterionOperatorRegistry criterionOperatorRegistry, JsonLdNamespace namespace) {
         return JsonObjectValidator.newValidator()

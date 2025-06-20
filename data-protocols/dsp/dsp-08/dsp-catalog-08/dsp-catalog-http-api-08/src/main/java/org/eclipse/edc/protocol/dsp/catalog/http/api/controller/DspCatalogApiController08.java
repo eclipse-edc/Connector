@@ -24,16 +24,16 @@ import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp08Constants.DSP_NAMESPACE_V_08;
 
 /**
  * Provides the HTTP endpoint for receiving catalog requests.
  */
-@Consumes({ APPLICATION_JSON })
-@Produces({ APPLICATION_JSON })
+@Consumes({APPLICATION_JSON})
+@Produces({APPLICATION_JSON})
 @Path(BASE_PATH)
 public class DspCatalogApiController08 extends BaseDspCatalogApiController {
-    
+
     public DspCatalogApiController08(CatalogProtocolService service, DspRequestHandler dspRequestHandler, ContinuationTokenManager continuationTokenManager) {
         super(service, dspRequestHandler, continuationTokenManager, DATASPACE_PROTOCOL_HTTP, DSP_NAMESPACE_V_08);
     }

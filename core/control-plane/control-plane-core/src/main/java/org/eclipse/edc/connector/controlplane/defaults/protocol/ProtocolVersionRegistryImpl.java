@@ -25,13 +25,23 @@ public class ProtocolVersionRegistryImpl implements ProtocolVersionRegistry {
 
     private final List<ProtocolVersion> versions = new ArrayList<>();
 
+    private ProtocolVersion defaultVersion;
+    
     @Override
-    public void register(ProtocolVersion protocolVersion) {
+    public void register(ProtocolVersion protocolVersion, boolean isDefault) {
         versions.add(protocolVersion);
+        if (isDefault) {
+            defaultVersion = protocolVersion;
+        }
     }
 
     @Override
     public ProtocolVersions getAll() {
         return new ProtocolVersions(versions.stream().distinct().toList());
+    }
+
+    @Override
+    public ProtocolVersion getDefaultVersion() {
+        return defaultVersion;
     }
 }
