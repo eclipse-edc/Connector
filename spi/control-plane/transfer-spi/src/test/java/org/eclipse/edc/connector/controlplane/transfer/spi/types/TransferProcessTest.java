@@ -98,29 +98,30 @@ class TransferProcessTest {
         process.transitionRequested();
 
         assertThrows(IllegalStateException.class, process::transitionStarting, "STARTING is not a valid state for consumer");
-        process.transitionStarted("dataPlaneId");
+        process.transitionStarted();
 
         process.transitionSuspending("suspension");
         process.transitionSuspended();
 
-        process.transitionStarted("dataPlaneId");
+        process.transitionStarted();
 
         process.transitionCompleting();
         process.transitionCompleted();
-
+        assertThat(process.getErrorDetail()).isNull();
+        
         process.transitionDeprovisioning();
         process.transitionDeprovisioned();
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "STARTING", "SUSPENDED" })
+    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = {"STARTING", "SUSPENDED"})
     void shouldNotSetDataPlaneIdOnStart_whenTransferIsConsumer(TransferProcessStates fromState) {
         var process = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString()).type(CONSUMER)
                 .state(fromState.code())
                 .build();
 
-        process.transitionStarted("dataPlaneId");
+        process.transitionStarted();
 
         assertThat(process.stateAsString()).isEqualTo(STARTED.name());
         assertThat(process.getDataPlaneId()).isNull();
@@ -137,13 +138,11 @@ class TransferProcessTest {
         assertThrows(IllegalStateException.class, process::transitionRequested, "REQUESTED is not a valid state for provider");
 
         process.transitionStarting();
-        process.transitionStarted("dataPlaneId");
-        // should set the data plane id
-        assertThat(process.getDataPlaneId()).isEqualTo("dataPlaneId");
-
+        process.transitionStarted();
 
         process.transitionCompleting();
         process.transitionCompleted();
+
 
         process.transitionDeprovisioning();
         process.transitionDeprovisioned();
@@ -153,7 +152,7 @@ class TransferProcessTest {
     @EnumSource(
             value = TransferProcessStates.class,
             mode = EXCLUDE,
-            names = { "COMPLETED", "TERMINATED", "DEPROVISIONING", "DEPROVISIONING_REQUESTED", "DEPROVISIONED", "RESUMED" }
+            names = {"COMPLETED", "TERMINATED", "DEPROVISIONING", "DEPROVISIONING_REQUESTED", "DEPROVISIONED", "RESUMED"}
     )
     void verifyTerminating_validStates(TransferProcessStates state) {
         var transferProcess = TransferProcess.Builder.newInstance()
@@ -167,7 +166,7 @@ class TransferProcessTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = { "COMPLETED", "TERMINATED" })
+    @EnumSource(value = TransferProcessStates.class, mode = INCLUDE, names = {"COMPLETED", "TERMINATED"})
     void verifyTerminating_invalidStates(TransferProcessStates state) {
         var process = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString())

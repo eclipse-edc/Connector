@@ -20,6 +20,7 @@ import org.eclipse.edc.iam.identitytrust.spi.CredentialServiceUrlResolver;
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.iam.identitytrust.spi.validation.TokenValidationAction;
 import org.eclipse.edc.iam.verifiablecredentials.spi.VerifiableCredentialValidationService;
+import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentation;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
@@ -34,6 +35,7 @@ import org.eclipse.edc.util.string.StringUtils;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,7 +112,7 @@ public class IdentityAndTrustService implements IdentityService {
         }
 
         // create claims for the STS
-        var claims = new HashMap<String, String>();
+        var claims = new HashMap<String, Object>();
         parameters.getClaims().forEach((k, v) -> claims.replace(k, v.toString()));
 
         claims.putAll(Map.of(
@@ -118,11 +120,21 @@ public class IdentityAndTrustService implements IdentityService {
                 SUBJECT, myOwnDid,
                 AUDIENCE, parameters.getStringClaim(AUDIENCE)));
 
-        return secureTokenService.createToken(claims, scope);
+        return secureTokenService.createToken(claims, scope)
+                .map(originalToken -> originalToken.toBuilder()
+                        .token("Bearer " + originalToken.getToken())
+                        .build());
     }
 
     @Override
     public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, VerificationContext context) {
+        // strip out the "Bearer " prefix
+        var token = tokenRepresentation.getToken();
+        if (!token.startsWith("Bearer ")) {
+            return failure("Token is not a Bearer token");
+        }
+        token = token.replace("Bearer ", "").trim();
+        tokenRepresentation = tokenRepresentation.toBuilder().token(token).build();
         var claimTokenResult = tokenValidationAction.apply(tokenRepresentation);
 
         if (claimTokenResult.failed()) {
@@ -134,12 +146,12 @@ public class IdentityAndTrustService implements IdentityService {
         var accessToken = claimToken.getStringClaim(PRESENTATION_TOKEN_CLAIM);
         var issuer = claimToken.getStringClaim(ISSUER);
 
-        var siTokenClaims = Map.of(PRESENTATION_TOKEN_CLAIM, accessToken,
-                ISSUED_AT, Instant.now().toString(),
+        Map<String, Object> siTokenClaims = Map.of(PRESENTATION_TOKEN_CLAIM, accessToken,
+                ISSUED_AT, Instant.now().getEpochSecond(),
                 AUDIENCE, issuer,
                 ISSUER, myOwnDid,
                 SUBJECT, myOwnDid,
-                EXPIRATION_TIME, Instant.now().plus(5, ChronoUnit.MINUTES).toString());
+                EXPIRATION_TIME, Instant.now().plus(5, ChronoUnit.MINUTES).getEpochSecond());
         var siToken = secureTokenService.createToken(siTokenClaims, null);
         if (siToken.failed()) {
             return siToken.mapFailure();
@@ -147,8 +159,9 @@ public class IdentityAndTrustService implements IdentityService {
         var siTokenString = siToken.getContent().getToken();
 
         // get CS Url, execute VP request
+        var requestedScopes = context.getScopes().stream().toList();
         var vpResponse = credentialServiceUrlResolver.resolve(issuer)
-                .compose(url -> credentialServiceClient.requestPresentation(url, siTokenString, context.getScopes().stream().toList()));
+                .compose(url -> credentialServiceClient.requestPresentation(url, siTokenString, requestedScopes));
 
         if (vpResponse.failed()) {
             return vpResponse.mapEmpty();
@@ -156,13 +169,36 @@ public class IdentityAndTrustService implements IdentityService {
 
         var presentations = vpResponse.getContent();
 
-        var result = verifiableCredentialValidationService.validate(presentations, getAdditionalValidations());
+        // check all requested credentials are present
+
+        var result = validateRequestedCredentials(presentations, requestedScopes)
+                .compose(unused -> verifiableCredentialValidationService.validate(presentations, getAdditionalValidations()));
+
 
         return result
                 .compose(u -> verifyPresentationIssuer(issuer, presentations))
                 .compose(u -> claimTokenCreatorFunction.apply(presentations.stream().map(p -> p.presentation().getCredentials().stream())
                         .reduce(Stream.empty(), Stream::concat)
                         .toList()));
+    }
+
+    private Result<Void> validateRequestedCredentials(List<VerifiablePresentationContainer> presentations, List<String> requestedScopes) {
+        var allCreds = presentations.stream()
+                .flatMap(p -> p.presentation().getCredentials().stream())
+                .toList();
+        if (requestedScopes.size() > allCreds.size()) {
+            return Result.failure("Number of requested credentials does not match the number of returned credentials");
+        }
+
+        var types = allCreds.stream().map(VerifiableCredential::getType)
+                .flatMap(Collection::stream)
+                .distinct()
+                .toList();
+
+
+        return requestedScopes.stream().allMatch(scope -> types.stream().anyMatch(scope::contains)) ?
+                Result.success() :
+                Result.failure("Not all requested credentials are present in the presentation response");
     }
 
     /**
@@ -183,7 +219,7 @@ public class IdentityAndTrustService implements IdentityService {
 
 
     private Collection<? extends CredentialValidationRule> getAdditionalValidations() {
-        return List.of();
+        return Collections.emptyList();
     }
 
 

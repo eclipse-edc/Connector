@@ -15,12 +15,11 @@
 package org.eclipse.edc.connector.dataplane.framework.provision;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
-import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceDefinition;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGenerator;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -30,6 +29,7 @@ import static java.util.stream.Collectors.toSet;
 public class ResourceDefinitionGeneratorManagerImpl implements ResourceDefinitionGeneratorManager {
 
     private final List<ResourceDefinitionGenerator> consumerGenerators = new ArrayList<>();
+    private final List<ResourceDefinitionGenerator> providerGenerators = new ArrayList<>();
 
     @Override
     public void registerConsumerGenerator(ResourceDefinitionGenerator generator) {
@@ -38,11 +38,11 @@ public class ResourceDefinitionGeneratorManagerImpl implements ResourceDefinitio
 
     @Override
     public void registerProviderGenerator(ResourceDefinitionGenerator generator) {
-
+        providerGenerators.add(generator);
     }
 
     @Override
-    public List<ProvisionResourceDefinition> generateConsumerResourceDefinition(DataFlow dataFlow) {
+    public List<ProvisionResource> generateConsumerResourceDefinition(DataFlow dataFlow) {
         return consumerGenerators.stream()
                 .filter(g -> g.supportedType().equals(dataFlow.getDestination().getType()))
                 .map(g -> g.generate(dataFlow))
@@ -51,8 +51,12 @@ public class ResourceDefinitionGeneratorManagerImpl implements ResourceDefinitio
     }
 
     @Override
-    public List<ProvisionResourceDefinition> generateProviderResourceDefinition(DataFlow dataFlow) {
-        return Collections.emptyList();
+    public List<ProvisionResource> generateProviderResourceDefinition(DataFlow dataFlow) {
+        return providerGenerators.stream()
+                .filter(g -> g.supportedType().equals(dataFlow.getDestination().getType()))
+                .map(g -> g.generate(dataFlow))
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     @Override

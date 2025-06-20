@@ -14,7 +14,9 @@
 
 package org.eclipse.edc.connector.dataplane.spi.iam;
 
+import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
@@ -56,10 +58,10 @@ public interface DataPlaneAuthorizationService {
      * <p>
      * In order to do so, the {@link DataPlaneAuthorizationService} delegates to the {@link DataPlaneAccessTokenService} to create the token.
      *
-     * @param message The message that was received from the control plane to initiate the transfer.
+     * @param dataFlow the data flow.
      * @return A result containing the {@link DataAddress}, or a failure indicating the cause.
      */
-    Result<DataAddress> createEndpointDataReference(DataFlowStartMessage message);
+    Result<DataAddress> createEndpointDataReference(DataFlow dataFlow);
 
     /**
      * Restores the original resource context (= {@link DataAddress}) for which the token was issued. Note that this correlation
@@ -71,7 +73,7 @@ public interface DataPlaneAuthorizationService {
      * or query params, etc.
      * <p>
      * The result (if successful) of this method is the original {@link DataAddress} that was passed to a previous invocation of
-     * {@link DataPlaneAuthorizationService#createEndpointDataReference(DataFlowStartMessage)}, i.e. {@link DataFlowStartMessage#getSourceDataAddress()}.
+     * {@link DataPlaneAuthorizationService#createEndpointDataReference(DataFlow)}, i.e. {@link DataFlowStartMessage#getSourceDataAddress()}.
      *
      * @param token       The raw, encoded token, e.g. serialized JWT
      * @param requestData Additional information about the request, such as a URL, query params, headers, etc.
@@ -81,11 +83,11 @@ public interface DataPlaneAuthorizationService {
 
 
     /**
-     * Revokes the {@link DataAddress} created with {@link #createEndpointDataReference(DataFlowStartMessage)}
+     * Revokes the {@link DataAddress} created with {@link #createEndpointDataReference(DataFlow)}
      *
      * @param transferProcessId The id of the transfer process associated to the {@link DataAddress}
      * @param reason            The reason of the revocation
      * @return Successful if revoked, fails otherwise
      */
-    Result<Void> revokeEndpointDataReference(String transferProcessId, String reason);
+    ServiceResult<Void> revokeEndpointDataReference(String transferProcessId, String reason);
 }

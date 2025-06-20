@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.dataplane.framework.provision;
 
 import org.eclipse.edc.connector.dataplane.spi.provision.DeprovisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.Deprovisioner;
-import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceDefinition;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.Provisioner;
 import org.eclipse.edc.spi.EdcException;
@@ -51,7 +51,7 @@ class ProvisionerManagerImplTest {
             var secondResource = new ProvisionedResource();
             provisionerManager.register(new TestProvisioner("test-type", completedFuture(StatusResult.success(firstResource))));
             provisionerManager.register(new TestProvisioner("test-type", completedFuture(StatusResult.success(secondResource))));
-            var definition = ProvisionResourceDefinition.Builder.newInstance().type("test-type").build();
+            var definition = ProvisionResource.Builder.newInstance().type("test-type").flowId("any").build();
 
             var result = provisionerManager.provision(List.of(definition));
 
@@ -64,7 +64,7 @@ class ProvisionerManagerImplTest {
         void shouldFail_whenNoProvisionerAvailable() {
             var resource = new ProvisionedResource();
             provisionerManager.register(new TestProvisioner("test-type", completedFuture(StatusResult.success(resource))));
-            var definition = ProvisionResourceDefinition.Builder.newInstance().type("another-type").build();
+            var definition = ProvisionResource.Builder.newInstance().type("another-type").flowId("any").build();
 
             var result = provisionerManager.provision(List.of(definition));
 
@@ -76,7 +76,7 @@ class ProvisionerManagerImplTest {
         void shouldFail_whenAtLeastOneProvisionerFails() {
             provisionerManager.register(new TestProvisioner("test-type", failedFuture(new EdcException("error"))));
             provisionerManager.register(new TestProvisioner("test-type", completedFuture(StatusResult.success(new ProvisionedResource()))));
-            var definition = ProvisionResourceDefinition.Builder.newInstance().type("test-type").build();
+            var definition = ProvisionResource.Builder.newInstance().type("test-type").flowId("any").build();
 
             var result = provisionerManager.provision(List.of(definition));
 
@@ -87,7 +87,7 @@ class ProvisionerManagerImplTest {
                 implements Provisioner {
 
             @Override
-            public CompletableFuture<StatusResult<ProvisionedResource>> provision(ProvisionResourceDefinition provisionResourceDefinition) {
+            public CompletableFuture<StatusResult<ProvisionedResource>> provision(ProvisionResource provisionResource) {
                 return result;
             }
         }
@@ -102,7 +102,7 @@ class ProvisionerManagerImplTest {
             var secondResource = new DeprovisionedResource();
             provisionerManager.register(new TestDeprovisioner("test-type", completedFuture(StatusResult.success(firstResource))));
             provisionerManager.register(new TestDeprovisioner("test-type", completedFuture(StatusResult.success(secondResource))));
-            var definition = ProvisionResourceDefinition.Builder.newInstance().type("test-type").build();
+            var definition = ProvisionResource.Builder.newInstance().type("test-type").flowId("any").build();
 
             var result = provisionerManager.deprovision(List.of(definition));
 
@@ -115,7 +115,7 @@ class ProvisionerManagerImplTest {
         void shouldFail_whenNoDeprovisionerAvailable() {
             var resource = new DeprovisionedResource();
             provisionerManager.register(new TestDeprovisioner("test-type", completedFuture(StatusResult.success(resource))));
-            var definition = ProvisionResourceDefinition.Builder.newInstance().type("another-type").build();
+            var definition = ProvisionResource.Builder.newInstance().type("another-type").flowId("any").build();
 
             var result = provisionerManager.deprovision(List.of(definition));
 
@@ -127,7 +127,7 @@ class ProvisionerManagerImplTest {
         void shouldFail_whenAtLeastOneDeprovisionerFails() {
             provisionerManager.register(new TestDeprovisioner("test-type", failedFuture(new EdcException("error"))));
             provisionerManager.register(new TestDeprovisioner("test-type", completedFuture(StatusResult.success(new DeprovisionedResource()))));
-            var definition = ProvisionResourceDefinition.Builder.newInstance().type("test-type").build();
+            var definition = ProvisionResource.Builder.newInstance().type("test-type").flowId("any").build();
 
             var result = provisionerManager.deprovision(List.of(definition));
 
@@ -138,7 +138,7 @@ class ProvisionerManagerImplTest {
                 implements Deprovisioner {
 
             @Override
-            public CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionResourceDefinition provisionResourceDefinition) {
+            public CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionResource provisionResource) {
                 return result;
             }
         }

@@ -16,7 +16,9 @@ package org.eclipse.edc.connector.dataplane.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceDefinition;
+import org.eclipse.edc.connector.dataplane.spi.provision.DeprovisionedResource;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResource;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionedResource;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
@@ -29,16 +31,19 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISION_FAILED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISION_REQUESTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONING;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISION_REQUESTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.SUSPENDED;
@@ -51,13 +56,16 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
 public class DataFlow extends StatefulEntity<DataFlow> {
 
     public static final String TERMINATION_REASON = "terminationReason";
+    private static final String PARTICIPANT_ID_PROPERTY = "participantId";
+    private static final String ASSET_ID_PROPERTY = "assetId";
+    private static final String AGREEMENT_ID_PROPERTY = "agreementId";
     private DataAddress source;
     private DataAddress destination;
     private URI callbackAddress;
     private Map<String, String> properties = new HashMap<>();
     private TransferType transferType;
     private String runtimeId;
-    private final List<ProvisionResourceDefinition> resourceDefinitions = new ArrayList<>();
+    private final List<ProvisionResource> resourceDefinitions = new ArrayList<>();
 
     @Override
     public DataFlow copy() {
@@ -79,6 +87,11 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     }
 
     public DataAddress getSource() {
+        var provisioned = provisionedDataAddress();
+        if (provisioned != null) {
+            return provisioned;
+        }
+
         return source;
     }
 
@@ -127,7 +140,8 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         transitionTo(COMPLETED.code());
     }
 
-    public void transitToReceived() {
+    public void transitToReceived(String runtimeId) {
+        this.runtimeId = runtimeId;
         transitionTo(RECEIVED.code());
     }
 
@@ -136,7 +150,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         transitionTo(FAILED.code());
     }
 
-    public void transitToNotified() {
+    public void transitionToNotified() {
         transitionTo(NOTIFIED.code());
     }
 
@@ -156,24 +170,95 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         transitionTo(SUSPENDED.code());
     }
 
-    public List<ProvisionResourceDefinition> getResourceDefinitions() {
+    public List<ProvisionResource> getResourceDefinitions() {
         return resourceDefinitions;
-    }
-
-    public void transitionToProvisioned() {
-        transitionTo(PROVISIONED.code());
-    }
-
-    public void transitionToDeprovisioned() {
-        transitionTo(DEPROVISIONED.code());
     }
 
     public void transitionToDeprovisionFailed() {
         transitionTo(DEPROVISION_FAILED.code());
     }
 
-    public void addResourceDefinitions(List<ProvisionResourceDefinition> definitions) {
+    public void addResourceDefinitions(List<ProvisionResource> definitions) {
         resourceDefinitions.addAll(definitions);
+    }
+
+    public boolean isProvisionCompleted() {
+        return resourceDefinitions.isEmpty() || resourceDefinitions.stream().allMatch(ProvisionResource::isProvisioned);
+    }
+
+    public boolean isProvisionRequested() {
+        return resourceDefinitions.stream().filter(it -> !it.isProvisioned()).allMatch(ProvisionResource::isProvisionRequested);
+    }
+
+    public boolean isDeprovisionCompleted() {
+        return resourceDefinitions.stream().allMatch(ProvisionResource::isDeprovisioned);
+    }
+
+    public boolean isDeprovisionRequested() {
+        return resourceDefinitions.stream().filter(it -> !it.isDeprovisioned()).allMatch(ProvisionResource::isDeprovisionRequested);
+    }
+
+    public List<ProvisionResource> resourcesToBeProvisioned() {
+        return resourceDefinitions.stream().filter(ProvisionResource::hasToBeProvisioned).toList();
+    }
+
+    public List<ProvisionResource> resourcesToBeDeprovisioned() {
+        return resourceDefinitions.stream().filter(ProvisionResource::hasToBeDeprovisioned).toList();
+    }
+
+    public void resourceProvisioned(List<ProvisionedResource> provisionedResources) {
+        provisionedResources.forEach(provisionedResource -> {
+            resourceDefinitions.stream()
+                    .filter(resource -> resource.getId().equals(provisionedResource.getId()))
+                    .findAny()
+                    .ifPresent(resource -> resource.transitionProvisioned(provisionedResource));
+        });
+
+        if (isProvisionCompleted()) {
+            transitionTo(PROVISIONED.code());
+        } else if (isProvisionRequested()) {
+            transitionTo(PROVISION_REQUESTED.code());
+        }
+
+    }
+
+    public void resourceDeprovisioned(List<DeprovisionedResource> deprovisionedResources) {
+        deprovisionedResources.forEach(deprovisionedResource -> {
+            resourceDefinitions.stream()
+                    .filter(resource -> resource.getId().equals(deprovisionedResource.getId()))
+                    .findAny()
+                    .ifPresent(resource -> resource.transitionDeprovisioned(deprovisionedResource));
+        });
+
+        if (isDeprovisionCompleted()) {
+            transitionTo(DEPROVISIONED.code());
+        } else if (isDeprovisionRequested()) {
+            transitionTo(DEPROVISION_REQUESTED.code());
+        }
+    }
+
+    public DataAddress provisionedDataAddress() {
+        return resourceDefinitions.stream()
+                .map(ProvisionResource::getProvisionedResource)
+                .map(ProvisionedResource::getDataAddress)
+                .filter(Objects::nonNull)
+                .findFirst().orElse(null);
+    }
+
+    public boolean isConsumer() {
+        return source == null;
+    }
+
+    public String getParticipantId() {
+        return properties.get(PARTICIPANT_ID_PROPERTY);
+    }
+
+    public String getAssetId() {
+        return properties.get(ASSET_ID_PROPERTY);
+    }
+
+    public String getAgreementId() {
+        return properties.get(AGREEMENT_ID_PROPERTY);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -234,8 +319,23 @@ public class DataFlow extends StatefulEntity<DataFlow> {
             return this;
         }
 
-        public Builder resourceDefinitions(List<ProvisionResourceDefinition> resourceDefinitions) {
+        public Builder resourceDefinitions(List<ProvisionResource> resourceDefinitions) {
             entity.resourceDefinitions.addAll(resourceDefinitions);
+            return this;
+        }
+
+        public Builder participantId(String participantId) {
+            entity.properties.put(PARTICIPANT_ID_PROPERTY, participantId);
+            return this;
+        }
+
+        public Builder assetId(String assetId) {
+            entity.properties.put(ASSET_ID_PROPERTY, assetId);
+            return this;
+        }
+
+        public Builder agreementId(String agreementId) {
+            entity.properties.put(AGREEMENT_ID_PROPERTY, agreementId);
             return this;
         }
     }

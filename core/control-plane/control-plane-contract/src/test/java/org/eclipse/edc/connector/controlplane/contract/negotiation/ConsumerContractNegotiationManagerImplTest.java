@@ -177,6 +177,34 @@ class ConsumerContractNegotiationManagerImplTest {
             var message = captor.getValue();
             assertThat(message.getProcessId()).isEqualTo("correlationId");
             assertThat(message.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
+            assertThat(message.getType()).isEqualTo(ContractRequestMessage.Type.INITIAL);
+            verify(listener).requested(any());
+        });
+    }
+
+    @Test
+    void requesting_shouldSendCounterOfferAndTransitionRequested() {
+        var negotiation = contractNegotiationBuilder().correlationId("correlationId").state(REQUESTING.code())
+                .contractOffer(contractOffer())
+                .contractOffer(contractOffer())
+                .build();
+        when(store.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
+        var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").build();
+        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
+        when(store.findById(negotiation.getId())).thenReturn(negotiation);
+        when(protocolWebhookRegistry.resolve(any())).thenReturn(() -> protocolWebhookUrl);
+
+
+        manager.start();
+
+        await().untilAsserted(() -> {
+            verify(store).save(argThat(p -> p.getState() == REQUESTED.code()));
+            var captor = ArgumentCaptor.<ContractRequestMessage>captor();
+            verify(dispatcherRegistry, only()).dispatch(any(), captor.capture());
+            var message = captor.getValue();
+            assertThat(message.getProcessId()).isEqualTo("correlationId");
+            assertThat(message.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
+            assertThat(message.getType()).isEqualTo(ContractRequestMessage.Type.COUNTER_OFFER);
             verify(listener).requested(any());
         });
     }
@@ -332,7 +360,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     private Criterion[] stateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state), isNotPending(), new Criterion("type", "=", "CONSUMER") });
+        return aryEq(new Criterion[]{hasState(state), isNotPending(), new Criterion("type", "=", "CONSUMER")});
     }
 
     private ContractNegotiation.Builder contractNegotiationBuilder() {

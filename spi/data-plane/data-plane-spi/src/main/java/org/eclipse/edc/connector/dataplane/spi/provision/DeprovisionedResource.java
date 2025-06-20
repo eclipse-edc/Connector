@@ -16,10 +16,14 @@ package org.eclipse.edc.connector.dataplane.spi.provision;
 
 import java.util.UUID;
 
+/**
+ * Deprovisioned resource
+ */
 public class DeprovisionedResource {
 
     private String id;
     private String flowId;
+    private boolean pending = false;
 
     public String getId() {
         return id;
@@ -27,6 +31,10 @@ public class DeprovisionedResource {
 
     public String getFlowId() {
         return flowId;
+    }
+
+    public boolean isPending() {
+        return pending;
     }
 
     public static class Builder {
@@ -41,7 +49,7 @@ public class DeprovisionedResource {
             resource = new DeprovisionedResource();
         }
 
-        public static Builder from(ProvisionResourceDefinition definition) {
+        public static Builder from(ProvisionResource definition) {
             var builder = new Builder();
             builder.resource.id = definition.getId();
             builder.resource.flowId = definition.getFlowId();
@@ -57,6 +65,11 @@ public class DeprovisionedResource {
 
         public Builder flowId(String flowId) {
             resource.flowId = flowId;
+            return this;
+        }
+
+        public Builder pending(boolean pending) {
+            resource.pending = pending;
             return this;
         }
     }

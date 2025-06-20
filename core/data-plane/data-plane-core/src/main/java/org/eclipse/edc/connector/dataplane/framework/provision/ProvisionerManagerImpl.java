@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.dataplane.framework.provision;
 
 import org.eclipse.edc.connector.dataplane.spi.provision.DeprovisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.Deprovisioner;
-import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceDefinition;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.Provisioner;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionerManager;
@@ -54,21 +54,21 @@ public class ProvisionerManagerImpl implements ProvisionerManager {
     }
 
     @Override
-    public CompletableFuture<List<StatusResult<ProvisionedResource>>> provision(List<ProvisionResourceDefinition> definitions) {
+    public CompletableFuture<List<StatusResult<ProvisionedResource>>> provision(List<ProvisionResource> definitions) {
         return definitions.stream()
                 .map(definition -> provision(definition).whenComplete(logOnError(definition)))
                 .collect(asyncAllOf());
     }
 
     @Override
-    public CompletableFuture<List<StatusResult<DeprovisionedResource>>> deprovision(List<ProvisionResourceDefinition> definitions) {
+    public CompletableFuture<List<StatusResult<DeprovisionedResource>>> deprovision(List<ProvisionResource> definitions) {
         return definitions.stream()
                 .map(definition -> deprovision(definition).whenComplete(logOnError(definition)))
                 .collect(asyncAllOf());
     }
 
     @NotNull
-    private CompletableFuture<StatusResult<ProvisionedResource>> provision(ProvisionResourceDefinition definition) {
+    private CompletableFuture<StatusResult<ProvisionedResource>> provision(ProvisionResource definition) {
         try {
             return provisioners.stream()
                     .filter(it -> it.supportedType().equals(definition.getType()))
@@ -81,7 +81,7 @@ public class ProvisionerManagerImpl implements ProvisionerManager {
     }
 
     @NotNull
-    private CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionResourceDefinition definition) {
+    private CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionResource definition) {
         try {
             return deprovisioners.stream()
                     .filter(it -> it.supportedType().equals(definition.getType()))
@@ -94,7 +94,7 @@ public class ProvisionerManagerImpl implements ProvisionerManager {
     }
 
     @NotNull
-    private BiConsumer<StatusResult<?>, Throwable> logOnError(ProvisionResourceDefinition definition) {
+    private BiConsumer<StatusResult<?>, Throwable> logOnError(ProvisionResource definition) {
         return (result, throwable) -> {
             if (throwable != null) {
                 monitor.severe("Error provisioning definition %s for flow %s: %s".formatted(definition.getId(), definition.getFlowId(), throwable.getMessage()));

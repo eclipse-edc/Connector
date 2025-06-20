@@ -15,6 +15,8 @@
 package org.eclipse.edc.connector.dataplane.spi.manager;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
+import org.eclipse.edc.connector.dataplane.spi.provision.DeprovisionedResource;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionedResource;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.entity.StateEntityManager;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -36,7 +38,7 @@ public interface DataPlaneManager extends StateEntityManager {
     /**
      * Determines if the data flow request is valid and can be processed by this runtime.
      */
-    Result<Boolean> validate(DataFlowStartMessage dataRequest);
+    Result<Void> validate(DataFlowStartMessage dataRequest);
 
     /**
      * Provision a data flow on the consumer side.
@@ -48,11 +50,12 @@ public interface DataPlaneManager extends StateEntityManager {
 
     /**
      * Starts a transfer for the data flow request. This method is non-blocking with respect to processing the request.
+     * The implementation must be idempotent.
      *
      * @param startMessage The {@link DataFlowStartMessage}
      * @return success with the {@link DataFlowResponseMessage} if the request was correctly processed, failure otherwise
      */
-    Result<DataFlowResponseMessage> start(DataFlowStartMessage startMessage);
+    StatusResult<DataFlowResponseMessage> start(DataFlowStartMessage startMessage);
 
     /**
      * Returns the transfer state for the process.
@@ -92,4 +95,20 @@ public interface DataPlaneManager extends StateEntityManager {
      * @return success if succeeded, failure otherwise.
      */
     StatusResult<Void> restartFlows();
+
+    /**
+     * Report asynchronously provisioned resource.
+     *
+     * @param provisionedResource the provisioned resource.
+     * @return result.
+     */
+    StatusResult<Void> resourceProvisioned(ProvisionedResource provisionedResource);
+
+    /**
+     * Report asynchronously deprovisioned resource.
+     *
+     * @param deprovisionedResource the deprovisioned resource.
+     * @return result.
+     */
+    StatusResult<Void> resourceDeprovisioned(DeprovisionedResource deprovisionedResource);
 }

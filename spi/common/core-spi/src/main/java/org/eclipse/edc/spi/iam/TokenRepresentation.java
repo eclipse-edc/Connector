@@ -49,15 +49,19 @@ public class TokenRepresentation {
         return additional;
     }
 
+    public Builder toBuilder() {
+        return new Builder(this);
+    }
+
     public static class Builder {
         private final TokenRepresentation result;
 
-        private Builder() {
-            result = new TokenRepresentation();
+        private Builder(TokenRepresentation tokenRepresentation) {
+            result = tokenRepresentation;
         }
 
         public static Builder newInstance() {
-            return new Builder();
+            return new Builder(new TokenRepresentation());
         }
 
         public Builder token(String token) {

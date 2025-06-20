@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -123,13 +122,34 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
         var id = negotiation.getId();
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var existing = findInternal(connection, id);
-                if (existing == null) {
-                    insert(connection, negotiation);
-                } else {
-                    leaseContext.withConnection(connection).breakLease(id);
-                    update(connection, id, negotiation);
+
+                if (negotiation.getContractAgreement() != null) {
+                    upsertAgreement(negotiation.getContractAgreement());
                 }
+
+                var stmt = statements.getUpsertNegotiationTemplate();
+
+                queryExecutor.execute(connection, stmt,
+                        negotiation.getId(),
+                        negotiation.getCorrelationId(),
+                        negotiation.getCounterPartyId(),
+                        negotiation.getCounterPartyAddress(),
+                        negotiation.getType().name(),
+                        negotiation.getProtocol(),
+                        negotiation.getState(),
+                        negotiation.getStateCount(),
+                        negotiation.getStateTimestamp(),
+                        negotiation.getErrorDetail(),
+                        negotiation.getContractAgreement() == null ? null : negotiation.getContractAgreement().getId(),
+                        toJson(negotiation.getContractOffers()),
+                        toJson(negotiation.getCallbackAddresses()),
+                        toJson(negotiation.getTraceContext()),
+                        negotiation.getCreatedAt(),
+                        negotiation.getUpdatedAt(),
+                        negotiation.isPending(),
+                        toJson(negotiation.getProtocolMessages()));
+
+                leaseContext.withConnection(connection).breakLease(id);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -214,84 +234,19 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
         return queryExecutor.single(connection, false, contractNegotiationMapper(), sql, id);
     }
 
-    private void update(Connection connection, String negotiationId, ContractNegotiation updatedValues) {
-        var stmt = statements.getUpdateNegotiationTemplate();
-
-        if (updatedValues.getContractAgreement() != null) {
-            upsertAgreement(updatedValues.getContractAgreement());
-        }
-
-        queryExecutor.execute(connection, stmt,
-                updatedValues.getState(),
-                updatedValues.getStateCount(),
-                updatedValues.getStateTimestamp(),
-                updatedValues.getErrorDetail(),
-                toJson(updatedValues.getContractOffers()),
-                toJson(updatedValues.getCallbackAddresses()),
-                toJson(updatedValues.getTraceContext()),
-                ofNullable(updatedValues.getContractAgreement()).map(ContractAgreement::getId).orElse(null),
-                updatedValues.getUpdatedAt(),
-                updatedValues.isPending(),
-                updatedValues.getCorrelationId(),
-                toJson(updatedValues.getProtocolMessages()),
-                negotiationId);
-    }
-
-    private void insert(Connection connection, ContractNegotiation negotiation) {
-        String agrId = null;
-        var agreement = negotiation.getContractAgreement();
-        if (agreement != null) {
-            agrId = agreement.getId();
-            upsertAgreement(agreement);
-        }
-
-        var stmt = statements.getInsertNegotiationTemplate();
-        queryExecutor.execute(connection, stmt,
-                negotiation.getId(),
-                negotiation.getCorrelationId(),
-                negotiation.getCounterPartyId(),
-                negotiation.getCounterPartyAddress(),
-                negotiation.getType().name(),
-                negotiation.getProtocol(),
-                negotiation.getState(),
-                negotiation.getStateCount(),
-                negotiation.getStateTimestamp(),
-                negotiation.getErrorDetail(),
-                agrId,
-                toJson(negotiation.getContractOffers()),
-                toJson(negotiation.getCallbackAddresses()),
-                toJson(negotiation.getTraceContext()),
-                negotiation.getCreatedAt(),
-                negotiation.getUpdatedAt(),
-                negotiation.isPending(),
-                toJson(negotiation.getProtocolMessages()));
-    }
-
     private void upsertAgreement(ContractAgreement contractAgreement) {
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var agrId = contractAgreement.getId();
+                var sql = statements.getUpsertAgreementTemplate();
 
-                if (findContractAgreement(agrId) == null) {
-                    // insert agreement
-                    var sql = statements.getInsertAgreementTemplate();
-                    queryExecutor.execute(connection, sql, contractAgreement.getId(),
-                            contractAgreement.getProviderId(),
-                            contractAgreement.getConsumerId(),
-                            contractAgreement.getContractSigningDate(),
-                            contractAgreement.getAssetId(),
-                            toJson(contractAgreement.getPolicy())
-                    );
-                } else {
-                    // update agreement
-                    var query = statements.getUpdateAgreementTemplate();
-                    queryExecutor.execute(connection, query, contractAgreement.getProviderId(),
-                            contractAgreement.getConsumerId(),
-                            contractAgreement.getContractSigningDate(),
-                            contractAgreement.getAssetId(),
-                            toJson(contractAgreement.getPolicy()),
-                            agrId);
-                }
+                queryExecutor.execute(connection, sql,
+                        contractAgreement.getId(),
+                        contractAgreement.getProviderId(),
+                        contractAgreement.getConsumerId(),
+                        contractAgreement.getContractSigningDate(),
+                        contractAgreement.getAssetId(),
+                        toJson(contractAgreement.getPolicy())
+                );
 
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);

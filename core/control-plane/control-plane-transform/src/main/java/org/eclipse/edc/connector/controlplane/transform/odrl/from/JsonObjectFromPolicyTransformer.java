@@ -77,22 +77,22 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_XONE_CONSTRAI
 public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<Policy, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
     private final ParticipantIdMapper participantIdMapper;
-    private final boolean participantsAsId;
+    private final TransformerConfig config;
 
     public JsonObjectFromPolicyTransformer(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper) {
-        this(jsonFactory, participantIdMapper, false);
+        this(jsonFactory, participantIdMapper, new TransformerConfig());
     }
 
-    public JsonObjectFromPolicyTransformer(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper, boolean participantsAsId) {
+    public JsonObjectFromPolicyTransformer(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper, TransformerConfig config) {
         super(Policy.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
         this.participantIdMapper = participantIdMapper;
-        this.participantsAsId = participantsAsId;
+        this.config = config;
     }
 
     @Override
     public @Nullable JsonObject transform(@NotNull Policy policy, @NotNull TransformerContext context) {
-        return policy.accept(new Visitor(jsonFactory, participantIdMapper, participantsAsId));
+        return policy.accept(new Visitor(jsonFactory, participantIdMapper, config));
     }
 
     /**
@@ -101,12 +101,13 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
     private static class Visitor implements Policy.Visitor<JsonObject>, Rule.Visitor<JsonObject>, Constraint.Visitor<JsonObject>, Expression.Visitor<JsonObject> {
         private final JsonBuilderFactory jsonFactory;
         private final ParticipantIdMapper participantIdMapper;
-        private final boolean participantsAsId;
+        private TransformerConfig config;
 
-        Visitor(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper, boolean participantsAsId) {
+
+        Visitor(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper, TransformerConfig config) {
             this.jsonFactory = jsonFactory;
             this.participantIdMapper = participantIdMapper;
-            this.participantsAsId = participantsAsId;
+            this.config = config;
         }
 
         @Override
@@ -146,21 +147,27 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
 
         @Override
         public JsonObject visitPolicy(Policy policy) {
-            var permissionsBuilder = jsonFactory.createArrayBuilder();
-            policy.getPermissions().forEach(permission -> permissionsBuilder.add(permission.accept(this)));
-
-            var prohibitionsBuilder = jsonFactory.createArrayBuilder();
-            policy.getProhibitions().forEach(prohibition -> prohibitionsBuilder.add(prohibition.accept(this)));
-
-            var obligationsBuilder = jsonFactory.createArrayBuilder();
-            policy.getObligations().forEach(duty -> obligationsBuilder.add(duty.accept(this)));
-
             var builder = jsonFactory.createObjectBuilder()
                     .add(ID, randomUUID().toString())
-                    .add(TYPE, getTypeAsString(policy.getType()))
-                    .add(ODRL_PERMISSION_ATTRIBUTE, permissionsBuilder)
-                    .add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionsBuilder)
-                    .add(ODRL_OBLIGATION_ATTRIBUTE, obligationsBuilder);
+                    .add(TYPE, getTypeAsString(policy.getType()));
+
+            if (!this.config.omitEmptyRules || !policy.getPermissions().isEmpty()) {
+                var permissionsBuilder = jsonFactory.createArrayBuilder();
+                policy.getPermissions().forEach(permission -> permissionsBuilder.add(permission.accept(this)));
+                builder.add(ODRL_PERMISSION_ATTRIBUTE, permissionsBuilder);
+            }
+
+            if (!this.config.omitEmptyRules || !policy.getProhibitions().isEmpty()) {
+                var prohibitionsBuilder = jsonFactory.createArrayBuilder();
+                policy.getProhibitions().forEach(prohibition -> prohibitionsBuilder.add(prohibition.accept(this)));
+                builder.add(ODRL_PROHIBITION_ATTRIBUTE, prohibitionsBuilder);
+            }
+
+            if (!this.config.omitEmptyRules || !policy.getObligations().isEmpty()) {
+                var obligationsBuilder = jsonFactory.createArrayBuilder();
+                policy.getObligations().forEach(duty -> obligationsBuilder.add(duty.accept(this)));
+                builder.add(ODRL_OBLIGATION_ATTRIBUTE, obligationsBuilder);
+            }
 
             Optional.ofNullable(policy.getAssignee()).map(participantIdMapper::toIri).ifPresent(it -> builder.add(ODRL_ASSIGNEE_ATTRIBUTE, visitParticipantId(it)));
             Optional.ofNullable(policy.getAssigner()).map(participantIdMapper::toIri).ifPresent(it -> builder.add(ODRL_ASSIGNER_ATTRIBUTE, visitParticipantId(it)));
@@ -216,7 +223,7 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
         }
 
         private JsonValue visitParticipantId(String participantId) {
-            if (participantsAsId) {
+            if (config.participantsAsId) {
                 return jsonFactory.createObjectBuilder().add(ID, participantId).build();
             } else {
                 return Json.createValue(participantId);
@@ -288,4 +295,10 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
 
     }
 
+    public record TransformerConfig(boolean participantsAsId, boolean omitEmptyRules) {
+
+        public TransformerConfig() {
+            this(false, false);
+        }
+    }
 }

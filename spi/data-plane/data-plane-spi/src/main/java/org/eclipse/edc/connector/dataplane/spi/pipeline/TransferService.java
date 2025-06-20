@@ -32,9 +32,9 @@ public interface TransferService {
     boolean canHandle(DataFlowStartMessage request);
 
     /**
-     * Returns a true result if the request is valid.
+     * Returns success if the request is valid. Failure otherwise
      */
-    Result<Boolean> validate(DataFlowStartMessage request);
+    Result<Void> validate(DataFlowStartMessage request);
 
     /**
      * Transfers data from a source to a destination using the provided data flow request.

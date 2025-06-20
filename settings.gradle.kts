@@ -13,30 +13,19 @@
  *       ZF Friedrichshafen AG - add dependency & reorder entries
  *       Fraunhofer Institute for Software and Systems Engineering - refactoring
  *       Mercedes-Benz Tech Innovation GmbH - publish public api context into dedicated swagger hub page
+ *       Cofinity-X - make DSP versions pluggable
  *
  */
 
 rootProject.name = "connector"
 
-// this is needed to have access to snapshot builds of plugins
 pluginManagement {
     repositories {
-        mavenLocal()
         maven {
-            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+            url = uri("https://central.sonatype.com/repository/maven-snapshots/")
         }
         mavenCentral()
         gradlePluginPortal()
-    }
-}
-
-dependencyResolutionManagement {
-    repositories {
-        mavenLocal()
-        maven {
-            url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
-        }
-        mavenCentral()
     }
 }
 
@@ -83,48 +72,74 @@ include(":core:policy-monitor:policy-monitor-core")
 
 
 // modules that provide implementations for data ingress/egress ------------------------------------
-include(":data-protocols:dsp:dsp-http-api-configuration")
-include(":data-protocols:dsp:dsp-http-api-base-configuration")
-include(":data-protocols:dsp:dsp-catalog")
-include(":data-protocols:dsp:dsp-catalog:dsp-catalog-http-api")
-include(":data-protocols:dsp:dsp-catalog:dsp-catalog-http-dispatcher")
-include(":data-protocols:dsp:dsp-catalog:dsp-catalog-transform")
-include(":data-protocols:dsp:dsp-catalog:lib:dsp-catalog-validation-lib")
-include(":data-protocols:dsp:dsp-catalog:lib:dsp-catalog-transform-lib")
-include(":data-protocols:dsp:dsp-catalog:lib:dsp-catalog-http-api-lib")
 include(":data-protocols:dsp:dsp-spi")
-include(":data-protocols:dsp:dsp-negotiation")
-include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-http-api")
-include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-http-dispatcher")
-include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-transform")
-include(":data-protocols:dsp:dsp-negotiation:lib:dsp-negotiation-validation-lib")
-include(":data-protocols:dsp:dsp-negotiation:lib:dsp-negotiation-transform-lib")
-include(":data-protocols:dsp:dsp-negotiation:lib:dsp-negotiation-http-api-lib")
-include(":data-protocols:dsp:dsp-http-core")
 include(":data-protocols:dsp:dsp-http-spi")
-include(":data-protocols:dsp:dsp-transfer-process")
-include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-api")
-include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-dispatcher")
-include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform")
-include(":data-protocols:dsp:dsp-transfer-process:lib:dsp-transfer-process-validation-lib")
-include(":data-protocols:dsp:dsp-transfer-process:lib:dsp-transfer-process-transform-lib")
-include(":data-protocols:dsp:dsp-transfer-process:lib:dsp-transfer-process-http-api-lib")
 include(":data-protocols:dsp:dsp-version:dsp-version-http-api")
 include(":data-protocols:dsp:dsp-version:dsp-version-http-dispatcher")
 
-// dsp version 2025/1
+// dsp core
+include(":data-protocols:dsp:dsp-core")
+include(":data-protocols:dsp:dsp-core:dsp-http-api-base-configuration")
+include(":data-protocols:dsp:dsp-core:dsp-http-core")
+include(":data-protocols:dsp:dsp-core:dsp-catalog-http-dispatcher")
+include(":data-protocols:dsp:dsp-core:dsp-negotiation-http-dispatcher")
+include(":data-protocols:dsp:dsp-core:dsp-transfer-process-http-dispatcher")
 
+// dsp lib
+include(":data-protocols:dsp:dsp-lib:dsp-catalog-lib")
+include(":data-protocols:dsp:dsp-lib:dsp-catalog-lib:dsp-catalog-validation-lib")
+include(":data-protocols:dsp:dsp-lib:dsp-catalog-lib:dsp-catalog-transform-lib")
+include(":data-protocols:dsp:dsp-lib:dsp-catalog-lib:dsp-catalog-http-api-lib")
+include(":data-protocols:dsp:dsp-lib:dsp-negotiation-lib")
+include(":data-protocols:dsp:dsp-lib:dsp-negotiation-lib:dsp-negotiation-validation-lib")
+include(":data-protocols:dsp:dsp-lib:dsp-negotiation-lib:dsp-negotiation-transform-lib")
+include(":data-protocols:dsp:dsp-lib:dsp-negotiation-lib:dsp-negotiation-http-api-lib")
+include(":data-protocols:dsp:dsp-lib:dsp-transfer-process-lib")
+include(":data-protocols:dsp:dsp-lib:dsp-transfer-process-lib:dsp-transfer-process-validation-lib")
+include(":data-protocols:dsp:dsp-lib:dsp-transfer-process-lib:dsp-transfer-process-transform-lib")
+include(":data-protocols:dsp:dsp-lib:dsp-transfer-process-lib:dsp-transfer-process-http-api-lib")
+
+// dsp version 0.8
+include(":data-protocols:dsp:dsp-08")
+include(":data-protocols:dsp:dsp-08:dsp-http-api-configuration-08")
+include(":data-protocols:dsp:dsp-08:dsp-http-dispatcher-08")
+include(":data-protocols:dsp:dsp-08:dsp-catalog-08")
+include(":data-protocols:dsp:dsp-08:dsp-catalog-08:dsp-catalog-http-api-08")
+include(":data-protocols:dsp:dsp-08:dsp-catalog-08:dsp-catalog-transform-08")
+include(":data-protocols:dsp:dsp-08:dsp-negotiation-08")
+include(":data-protocols:dsp:dsp-08:dsp-negotiation-08:dsp-negotiation-http-api-08")
+include(":data-protocols:dsp:dsp-08:dsp-negotiation-08:dsp-negotiation-transform-08")
+include(":data-protocols:dsp:dsp-08:dsp-transfer-process-08")
+include(":data-protocols:dsp:dsp-08:dsp-transfer-process-08:dsp-transfer-process-http-api-08")
+include(":data-protocols:dsp:dsp-08:dsp-transfer-process-08:dsp-transfer-process-transform-08")
+
+// dsp version 2024/1
+include(":data-protocols:dsp:dsp-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-http-api-configuration-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-http-dispatcher-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-catalog-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-catalog-2024:dsp-catalog-http-api-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-catalog-2024:dsp-catalog-transform-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-negotiation-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-negotiation-2024:dsp-negotiation-http-api-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-negotiation-2024:dsp-negotiation-transform-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-transfer-process-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-transfer-process-2024:dsp-transfer-process-http-api-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-transfer-process-2024:dsp-transfer-process-transform-2024")
+
+// dsp version 2025/1
 include(":data-protocols:dsp:dsp-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-http-api-configuration-2025")
-include(":data-protocols:dsp:dsp-catalog:dsp-catalog-2025")
-include(":data-protocols:dsp:dsp-catalog:dsp-catalog-2025:dsp-catalog-http-api-2025")
-include(":data-protocols:dsp:dsp-catalog:dsp-catalog-2025:dsp-catalog-transform-2025")
-include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-2025")
-include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-2025:dsp-transfer-process-http-api-2025")
-include(":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-2025:dsp-transfer-process-transform-2025")
-include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-2025")
-include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-2025:dsp-negotiation-http-api-2025")
-include(":data-protocols:dsp:dsp-negotiation:dsp-negotiation-2025:dsp-negotiation-transform-2025")
+include(":data-protocols:dsp:dsp-2025:dsp-http-dispatcher-2025")
+include(":data-protocols:dsp:dsp-2025:dsp-catalog-2025")
+include(":data-protocols:dsp:dsp-2025:dsp-catalog-2025:dsp-catalog-http-api-2025")
+include(":data-protocols:dsp:dsp-2025:dsp-catalog-2025:dsp-catalog-transform-2025")
+include(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025")
+include(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025:dsp-transfer-process-http-api-2025")
+include(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025:dsp-transfer-process-transform-2025")
+include(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025")
+include(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025:dsp-negotiation-http-api-2025")
+include(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025:dsp-negotiation-transform-2025")
 
 // modules for technology- or cloud-provider extensions --------------------------------------------
 include(":extensions:common:api:api-core")
@@ -313,6 +328,7 @@ include(":system-tests:bom-tests")
 include(":system-tests:dsp-compatibility-tests:connector-under-test")
 include(":system-tests:dsp-compatibility-tests:compatibility-test-runner")
 include(":system-tests:protocol-tck:tck-extension")
+include(":system-tests:dcp-tck-tests:presentation")
 
 // BOM modules ----------------------------------------------------------------
 include(":dist:bom:controlplane-base-bom")

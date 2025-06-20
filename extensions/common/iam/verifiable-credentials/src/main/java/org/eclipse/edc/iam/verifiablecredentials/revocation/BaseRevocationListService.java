@@ -16,6 +16,8 @@ package org.eclipse.edc.iam.verifiablecredentials.revocation;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import okhttp3.Request;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
@@ -25,8 +27,8 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.collection.Cache;
 
 import java.io.IOException;
-import java.net.URI;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -44,14 +46,18 @@ import static org.eclipse.edc.spi.result.Result.success;
  */
 public abstract class BaseRevocationListService<C extends VerifiableCredential, S> implements RevocationListService {
     private final Cache<String, C> statusListCredentialCache;
+    private final Collection<String> acceptedContentTypes;
+    private final EdcHttpClient httpClient;
     private final Class<C> credentialClass;
     private final ObjectMapper objectMapper;
 
-    protected BaseRevocationListService(ObjectMapper mapper, long cacheValidity, Class<C> credentialClass) {
+    protected BaseRevocationListService(ObjectMapper mapper, long cacheValidity, Collection<String> acceptedContentTypes, EdcHttpClient httpClient, Class<C> credentialClass) {
         this.objectMapper = mapper.copy()
-                .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY) // technically, credential subjects and credential status can be objects AND Arrays
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES); // let's make sure this is disabled, because the "@context" would cause problems
+                                    .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY) // technically, credential subjects and credential status can be objects AND Arrays
+                                    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES); // let's make sure this is disabled, because the "@context" would cause problems
         statusListCredentialCache = new Cache<>(this::downloadStatusListCredential, cacheValidity);
+        this.acceptedContentTypes = acceptedContentTypes;
+        this.httpClient = httpClient;
         this.credentialClass = credentialClass;
     }
 
@@ -60,11 +66,11 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
         var credentialStatus = getCredentialStatus(credential);
         var credentialIndex = getStatusIndex(credentialStatus);
         return preliminaryChecks(credentialStatus)
-                .compose(v -> validateStatusPurpose(credentialStatus))
-                .compose(v -> getStatusEntryValue(credentialStatus))
-                .compose(status -> status != null ?
-                        Result.failure("Credential status is '%s', status at index %d is '1'".formatted(status, credentialIndex)) :
-                        Result.success());
+                       .compose(v -> validateStatusPurpose(credentialStatus))
+                       .compose(v -> getStatusEntryValue(credentialStatus))
+                       .compose(status -> status != null ?
+                                                  Result.failure("Credential status is '%s', status at index %d is '1'".formatted(status, credentialIndex)) :
+                                                  Result.success());
     }
 
     @Override
@@ -74,17 +80,17 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
         }
 
         var res = credential.getCredentialStatus().stream()
-                .map(this::getCredentialStatus)
-                .map(this::getStatusEntryValue)
-                .collect(Collectors.groupingBy(AbstractResult::succeeded));
+                          .map(this::getCredentialStatus)
+                          .map(this::getStatusEntryValue)
+                          .collect(Collectors.groupingBy(AbstractResult::succeeded));
 
         if (res.containsKey(false)) { //if any failed
             return Result.failure(res.get(false).stream().map(AbstractResult::getFailureDetail).toList());
         }
 
         var list = res.get(true).stream()
-                .filter(r -> r.getContent() != null)
-                .map(AbstractResult::getContent).toList();
+                           .filter(r -> r.getContent() != null)
+                           .map(AbstractResult::getContent).toList();
 
         return list.isEmpty() ? success(null) : success(String.join(", ", list));
     }
@@ -107,13 +113,17 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
      * @return the VerifiableCredential
      * @throws EdcException if it could not be downloaded
      */
-    protected C getCredential(String credentialUrl) {
-        var credential = statusListCredentialCache.get(credentialUrl);
-        // credential is cached, but expired -> download again
-        if (credential != null && credential.getExpirationDate() != null && credential.getExpirationDate().isBefore(Instant.now())) {
-            statusListCredentialCache.evict(credentialUrl);
+    protected Result<C> getCredential(String credentialUrl) {
+        try {
+            var credential = statusListCredentialCache.get(credentialUrl);
+            // credential is cached, but expired -> download again
+            if (credential != null && credential.getExpirationDate() != null && credential.getExpirationDate().isBefore(Instant.now())) {
+                statusListCredentialCache.evict(credentialUrl);
+            }
+            return success(statusListCredentialCache.get(credentialUrl));
+        } catch (IllegalArgumentException ex) {
+            return Result.failure(ex.getMessage());
         }
-        return statusListCredentialCache.get(credentialUrl);
     }
 
     /**
@@ -150,8 +160,19 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
     protected abstract S getCredentialStatus(CredentialStatus credentialStatus);
 
     private C downloadStatusListCredential(String credentialUrl) {
-        try {
-            return objectMapper.readValue(URI.create(credentialUrl).toURL(), credentialClass);
+        var request = new Request.Builder()
+                              .url(credentialUrl)
+                              .header("Accept", String.join(",", acceptedContentTypes))
+                              .get()
+                              .build();
+        try (var response = httpClient.execute(request)) {
+            if (response.isSuccessful()) {
+                if (response.body() == null) {
+                    throw new EdcException("Response body is null for URL: " + credentialUrl);
+                }
+                return objectMapper.readValue(response.body().byteStream(), credentialClass);
+            }
+            throw new IllegalArgumentException("Failed to download status list credential from " + credentialUrl + ": " + response.code() + " " + response.message());
         } catch (IOException e) {
             throw new EdcException(e);
         }

@@ -20,6 +20,13 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)
     testImplementation(libs.testcontainers.junit)
+    testImplementation(libs.dsp.tck.core)
+    testImplementation(libs.dsp.tck.runtime)
+    testImplementation(libs.dsp.tck.api)
+    testImplementation(libs.dsp.tck.system)
+    testRuntimeOnly(libs.dsp.tck.transferprocess)
+    testRuntimeOnly(libs.dsp.tck.contractnegotiation)
+    testImplementation(libs.junit.platform.launcher)
     runtimeOnly(libs.parsson)
 }
 

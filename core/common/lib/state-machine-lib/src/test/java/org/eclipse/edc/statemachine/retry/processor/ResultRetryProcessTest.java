@@ -34,7 +34,7 @@ class ResultRetryProcessTest {
     @Test
     void shouldComplete_whenResultSucceeds() {
         var entity = TestEntity.Builder.newInstance().id(UUID.randomUUID().toString()).stateCount(1).build();
-        var retryProcess = new ResultRetryProcess<TestEntity, Object, Object>("description", (e, i) -> StatusResult.success("output"));
+        Process<TestEntity, Object, Object> retryProcess = Process.result("description", (e, i) -> StatusResult.success("output"));
 
         var future = retryProcess.execute(new ProcessContext<>(entity, "input"));
 
@@ -44,7 +44,7 @@ class ResultRetryProcessTest {
     @Test
     void shouldFail_whenResultFails() {
         var entity = TestEntity.Builder.newInstance().id(UUID.randomUUID().toString()).stateCount(1).build();
-        var retryProcess = new ResultRetryProcess<TestEntity, Object, Object>("description", (e, i) -> StatusResult.failure(ERROR_RETRY, "error"));
+        Process<TestEntity, Object, Object> retryProcess = Process.result("description", (e, i) -> StatusResult.failure(ERROR_RETRY, "error"));
 
         var future = retryProcess.execute(new ProcessContext<>(entity, "input"));
 
@@ -59,7 +59,7 @@ class ResultRetryProcessTest {
     @Test
     void shouldFailUnrecoverable_whenResultFatalError() {
         var entity = TestEntity.Builder.newInstance().id(UUID.randomUUID().toString()).stateCount(1).build();
-        var retryProcess = new ResultRetryProcess<TestEntity, Object, Object>("description", (e, i) -> StatusResult.failure(FATAL_ERROR, "error"));
+        Process<TestEntity, Object, Object> retryProcess = Process.result("description", (e, i) -> StatusResult.failure(FATAL_ERROR, "error"));
 
         var future = retryProcess.execute(new ProcessContext<>(entity, "input"));
 
@@ -74,7 +74,7 @@ class ResultRetryProcessTest {
     @Test
     void shouldFailUnrecoverable_whenFunctionThrowsException() {
         var entity = TestEntity.Builder.newInstance().id(UUID.randomUUID().toString()).stateCount(1).build();
-        var retryProcess = new ResultRetryProcess<TestEntity, Object, Object>("description", (testEntity, o) -> {
+        Process<TestEntity, Object, Object> retryProcess = Process.result("description", (testEntity, o) -> {
             throw new RuntimeException("unexpected exception");
         });
 

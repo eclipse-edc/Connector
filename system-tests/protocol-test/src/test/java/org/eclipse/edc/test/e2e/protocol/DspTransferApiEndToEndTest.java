@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - make DSP versions pluggable
  *
  */
 
@@ -57,8 +58,8 @@ public class DspTransferApiEndToEndTest {
     @RegisterExtension
     static RuntimeExtension runtime = new RuntimePerClassExtension(DspRuntime.createRuntimeWith(
             PROTOCOL_PORT,
-            ":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-http-api",
-            ":data-protocols:dsp:dsp-transfer-process:dsp-transfer-process-transform"
+            ":data-protocols:dsp:dsp-08:dsp-transfer-process-08",
+            ":data-protocols:dsp:dsp-2024:dsp-transfer-process-2024"
     ));
 
     private static ContractNegotiation createNegotiationWithAgreement(String contractId) {

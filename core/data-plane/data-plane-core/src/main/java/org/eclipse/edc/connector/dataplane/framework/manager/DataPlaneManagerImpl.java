@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.port.TransferProcessApiClient;
+import org.eclipse.edc.connector.dataplane.spi.provision.DeprovisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionerManager;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
@@ -30,8 +31,10 @@ import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceFailure;
+import org.eclipse.edc.spi.result.StoreFailure;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
@@ -53,6 +56,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.joining;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
@@ -60,12 +64,15 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONED
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONING;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.SUSPENDED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.spi.result.Result.success;
 import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PULL;
 import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
 import static org.eclipse.edc.statemachine.retry.processor.Process.future;
+import static org.eclipse.edc.statemachine.retry.processor.Process.result;
 
 /**
  * Default data manager implementation.
@@ -85,11 +92,11 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     @Override
-    public Result<Boolean> validate(DataFlowStartMessage dataRequest) {
+    public Result<Void> validate(DataFlowStartMessage dataRequest) {
         // TODO for now no validation for pull scenario, since the transfer service registry
         //      is not applicable here. Probably validation only on the source part required.
         if (PULL.equals(dataRequest.getFlowType())) {
-            return success(true);
+            return success();
         } else {
             var transferService = transferServiceRegistry.resolveTransferService(dataRequest);
             return transferService != null ?
@@ -113,7 +120,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
         var resources = resourceDefinitionGeneratorManager.generateConsumerResourceDefinition(dataFlow);
         if (resources.isEmpty()) {
-            dataFlow.transitToNotified();
+            dataFlow.transitionToNotified();
         } else {
             dataFlow.addResourceDefinitions(resources);
             dataFlow.transitionToProvisioning();
@@ -127,23 +134,37 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     @Override
-    public Result<DataFlowResponseMessage> start(DataFlowStartMessage startMessage) {
-        var dataFlowBuilder = DataFlow.Builder.newInstance()
-                .id(startMessage.getProcessId())
-                .source(startMessage.getSourceDataAddress())
-                .destination(startMessage.getDestinationDataAddress())
-                .callbackAddress(startMessage.getCallbackAddress())
-                .traceContext(telemetry.getCurrentTraceContext())
-                .properties(startMessage.getProperties())
-                .transferType(startMessage.getTransferType())
-                .runtimeId(runtimeId);
+    public StatusResult<DataFlowResponseMessage> start(DataFlowStartMessage startMessage) {
+        var existingDataFlow = store.findByIdAndLease(startMessage.getProcessId());
 
-        var response = switch (startMessage.getFlowType()) {
-            case PULL -> handlePull(startMessage, dataFlowBuilder);
-            case PUSH -> handlePush(startMessage, dataFlowBuilder);
-        };
+        if (existingDataFlow.failed()) {
+            if (existingDataFlow.reason() == StoreFailure.Reason.NOT_FOUND) {
+                var dataFlow = createNewDataFlow(startMessage);
 
-        return response.onSuccess(m -> update(dataFlowBuilder.build()));
+                var resources = resourceDefinitionGeneratorManager.generateProviderResourceDefinition(dataFlow);
+                if (!resources.isEmpty()) {
+                    dataFlow.addResourceDefinitions(resources);
+                    dataFlow.transitionToProvisioning();
+                    update(dataFlow);
+                    return StatusResult.success(DataFlowResponseMessage.Builder.newInstance()
+                            .provisioning(true)
+                            .build());
+                } else {
+                    return triggerDataFlow(dataFlow)
+                            .map(edr -> DataFlowResponseMessage.Builder.newInstance().dataAddress(edr).build());
+                }
+            }
+
+            return StatusResult.from(existingDataFlow).mapFailure();
+        }
+
+        var dataFlow = existingDataFlow.getContent();
+        if (!dataFlow.isProvisionCompleted()) {
+            return StatusResult.failure(ERROR_RETRY, "Provisioning has not completed");
+        }
+
+        return triggerDataFlow(dataFlow)
+                .map(edr -> DataFlowResponseMessage.Builder.newInstance().dataAddress(edr).build());
     }
 
     @Override
@@ -199,7 +220,34 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
         return StatusResult.success();
     }
-    
+
+    @Override
+    public StatusResult<Void> resourceProvisioned(ProvisionedResource provisionedResource) {
+        return store.findByIdAndLease(provisionedResource.getFlowId())
+                .flatMap(StatusResult::from)
+                .onSuccess(flow -> {
+                    flow.resourceProvisioned(List.of(provisionedResource));
+
+                    if (flow.isProvisionCompleted()) {
+                        transferProcessClient.provisioned(flow.getId(), flow.provisionedDataAddress());
+                    }
+
+                    update(flow);
+                })
+                .mapEmpty();
+    }
+
+    @Override
+    public StatusResult<Void> resourceDeprovisioned(DeprovisionedResource deprovisionedResource) {
+        return store.findByIdAndLease(deprovisionedResource.getFlowId())
+                .flatMap(StatusResult::from)
+                .onSuccess(flow -> {
+                    flow.resourceDeprovisioned(List.of(deprovisionedResource));
+                    update(flow);
+                })
+                .mapEmpty();
+    }
+
     @Override
     protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
         Supplier<Criterion> ownedByThisRuntime = () -> new Criterion("runtimeId", "=", runtimeId);
@@ -217,8 +265,51 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .processor(processDataFlowInState(DEPROVISIONING, this::processDeprovisioning));
     }
 
+    private DataFlow createNewDataFlow(DataFlowStartMessage startMessage) {
+        return DataFlow.Builder.newInstance()
+                .id(startMessage.getProcessId())
+                .source(startMessage.getSourceDataAddress())
+                .destination(startMessage.getDestinationDataAddress())
+                .callbackAddress(startMessage.getCallbackAddress())
+                .traceContext(telemetry.getCurrentTraceContext())
+                .properties(startMessage.getProperties())
+                .transferType(startMessage.getTransferType())
+                .runtimeId(runtimeId)
+                .participantId(startMessage.getParticipantId())
+                .assetId(startMessage.getAssetId())
+                .agreementId(startMessage.getAgreementId())
+                .build();
+    }
+
+    private StatusResult<DataAddress> triggerDataFlow(DataFlow dataFlow) {
+        var edr = switch (dataFlow.getTransferType().flowType()) {
+            case PULL -> handlePull(dataFlow);
+            case PUSH -> handlePush(dataFlow);
+        };
+
+        return edr
+                .flatMap(result -> {
+                    if (result.succeeded()) {
+                        return StatusResult.success(result.getContent());
+                    } else {
+                        return StatusResult.failure(ERROR_RETRY, result.getFailureDetail());
+                    }
+                })
+                .onSuccess(m -> start(dataFlow));
+    }
+
+    private void start(DataFlow dataFlow) {
+        if (dataFlow.getTransferType().flowType() == PULL) {
+            dataFlow.transitionToStarted(runtimeId);
+        } else if (dataFlow.getTransferType().flowType() == PUSH) {
+            dataFlow.transitToReceived(runtimeId);
+        }
+
+        update(dataFlow);
+    }
+
     private boolean updateFlowLease(DataFlow dataFlow) {
-        dataFlow.transitToReceived();
+        dataFlow.transitToReceived(runtimeId);
         dataFlow.transitionToStarted(runtimeId);
         store.save(dataFlow);
         return true;
@@ -226,8 +317,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
     private boolean restartFlow(DataFlow dataFlow) {
         monitor.debug("Restarting interrupted flow %s, it was owned by runtime %s".formatted(dataFlow.getId(), dataFlow.getRuntimeId()));
-        dataFlow.transitToReceived();
-        processReceived(dataFlow);
+        start(dataFlow);
         return true;
     }
 
@@ -254,67 +344,76 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         } else {
             var revokeResult = authorizationService.revokeEndpointDataReference(dataFlow.getId(), reason);
             if (revokeResult.failed()) {
-                return StatusResult.failure(FATAL_ERROR, "DataFlow %s cannot be terminated: %s".formatted(dataFlow.getId(), revokeResult.getFailureDetail()));
+                if (dataFlow.getState() == SUSPENDED.code() && revokeResult.reason().equals(ServiceFailure.Reason.NOT_FOUND)) {
+                    monitor.warning("Revoking an EDR for DataFlow '%s' in state suspended returned not found error. This may indicate that the EDR was already revoked when it was suspended".formatted(dataFlow.getId()));
+                } else {
+                    return StatusResult.failure(FATAL_ERROR, "DataFlow %s cannot be terminated: %s".formatted(dataFlow.getId(), revokeResult.getFailureDetail()));
+                }
             }
         }
 
         return StatusResult.success(dataFlow);
     }
 
-    private Result<DataFlowResponseMessage> handlePull(DataFlowStartMessage startMessage, DataFlow.Builder dataFlowBuilder) {
-        return authorizationService.createEndpointDataReference(startMessage)
-                .onSuccess(dataAddress -> dataFlowBuilder.state(STARTED.code()))
-                .onFailure(f -> monitor.warning("Error obtaining EDR DataAddress: %s".formatted(f.getFailureDetail())))
-                .map(dataAddress -> DataFlowResponseMessage.Builder.newInstance()
-                        .dataAddress(dataAddress)
-                        .build());
+    private Result<DataAddress> handlePull(DataFlow dataFlow) {
+        return authorizationService.createEndpointDataReference(dataFlow)
+                .onFailure(f -> monitor.warning("Error obtaining EDR DataAddress: %s".formatted(f.getFailureDetail())));
     }
 
-    private Result<DataFlowResponseMessage> handlePush(DataFlowStartMessage startMessage, DataFlow.Builder dataFlowBuilder) {
-        dataFlowBuilder.state(RECEIVED.code());
-
-        var responseChannelType = startMessage.getTransferType().responseChannelType();
+    private Result<DataAddress> handlePush(DataFlow dataFlow) {
+        var responseChannelType = dataFlow.getTransferType().responseChannelType();
         if (responseChannelType != null) {
             monitor.debug("PUSH dataflow with responseChannel '%s' received. Will generate data address".formatted(responseChannelType));
-            var result = authorizationService.createEndpointDataReference(startMessage);
-
-            return result.map(da -> DataFlowResponseMessage.Builder.newInstance()
-                    .dataAddress(da)
-                    .build());
+            return authorizationService.createEndpointDataReference(dataFlow);
         }
-        return success(DataFlowResponseMessage.Builder.newInstance()
-                .dataAddress(null)
-                .build());
+        return success(null);
     }
 
     private boolean processProvisioning(DataFlow dataFlow) {
         return entityRetryProcessFactory.retryProcessor(dataFlow)
-                .doProcess(future("provisioning", (flow, e) -> provisionerManager.provision(flow.getResourceDefinitions())))
+                .doProcess(future("provisioning", (flow, e) -> provisionerManager.provision(flow.resourcesToBeProvisioned())))
                 .onSuccess((flow, results) -> {
-                    var newAddress = results.stream().map(AbstractResult::getContent)
-                            .map(ProvisionedResource::getDataAddress)
-                            .filter(Objects::nonNull)
-                            .findFirst().orElse(null);
-                    transferProcessClient.provisioned(dataFlow.getId(), newAddress);
-                    dataFlow.transitionToProvisioned();
-                    update(dataFlow);
+                    var provisionedResources = results.stream().filter(StatusResult::succeeded).map(StatusResult::getContent).toList();
+
+                    flow.resourceProvisioned(provisionedResources);
+
+                    if (flow.isProvisionCompleted()) {
+                        transferProcessClient.provisioned(flow.getId(), flow.provisionedDataAddress());
+                    }
+
+                    if (provisionedResources.size() != results.size()) {
+                        var failureDetail = results.stream().filter(StatusResult::failed).map(StatusResult::getFailureDetail).collect(joining(","));
+                        flow.setErrorDetail(failureDetail);
+                        flow.transitionToProvisioning();
+                    }
+
+                    update(flow);
                 })
                 .onFailure((flow, t) -> {
                     flow.transitionToProvisioning();
-                    update(dataFlow);
+                    update(flow);
                 })
                 .onFinalFailure((flow, e) -> {
                     flow.transitToFailed("Cannot provision: " + e.getMessage());
-                    update(dataFlow);
+                    update(flow);
                 })
                 .execute();
     }
 
     private boolean processDeprovisioning(DataFlow dataFlow) {
         return entityRetryProcessFactory.retryProcessor(dataFlow)
-                .doProcess(future("deprovisioning", (flow, e) -> provisionerManager.deprovision(flow.getResourceDefinitions())))
+                .doProcess(future("deprovisioning", (flow, e) -> provisionerManager.deprovision(flow.resourcesToBeDeprovisioned())))
                 .onSuccess((flow, results) -> {
-                    flow.transitionToDeprovisioned();
+                    var deprovisionedResources = results.stream().filter(StatusResult::succeeded).map(StatusResult::getContent).toList();
+
+                    flow.resourceDeprovisioned(deprovisionedResources);
+
+                    if (deprovisionedResources.size() != results.size()) {
+                        var failureDetail = results.stream().filter(StatusResult::failed).map(StatusResult::getFailureDetail).collect(joining(","));
+                        flow.setErrorDetail(failureDetail);
+                        flow.transitionToDeprovisioning();
+                    }
+
                     update(flow);
                 })
                 .onFailure((flow, t) -> {
@@ -338,27 +437,17 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
             return true;
         }
 
-        dataFlow.transitionToStarted(runtimeId);
-        update(dataFlow);
-
         return entityRetryProcessFactory.retryProcessor(dataFlow)
-                .doProcess(Process.<DataFlow, Object, StreamResult<Object>>future("Start data flow", (d, v) -> transferService.transfer(request))
-                        .entityReload(store::findByIdAndLease))
-                .onSuccess((f, r) -> {
-                    if (f.getState() != STARTED.code()) {
-                        return;
-                    }
+                .doProcess(result("Validate data flow", (d, v) -> transferService.validate(request)))
+                .onSuccess((flow, v) -> {
+                    transferService.transfer(request)
+                            .whenComplete((result, throwable) -> onTransferCompletion(result, throwable, dataFlow.getId()));
 
-                    if (r.succeeded()) {
-                        f.transitToCompleted();
-                    } else {
-                        f.transitToFailed(r.getFailureDetail());
-                    }
-
-                    update(f);
+                    flow.transitionToStarted(runtimeId);
+                    update(flow);
                 })
                 .onFailure((f, t) -> {
-                    f.transitToReceived();
+                    f.transitToReceived(runtimeId);
                     update(f);
                 })
                 .onFinalFailure((f, t) -> {
@@ -368,11 +457,37 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .execute();
     }
 
+    private void onTransferCompletion(StreamResult<Object> result, Throwable throwable, String id) {
+        store.findByIdAndLease(id)
+                .onSuccess(dataFlow -> {
+                    if (dataFlow.getState() != STARTED.code()) {
+                        breakLease(dataFlow);
+                        return;
+                    }
+
+                    if (throwable != null) {
+                        dataFlow.transitToFailed("Unexpected exception: " + throwable.getMessage());
+                    } else {
+                        if (result.succeeded()) {
+                            dataFlow.transitToCompleted();
+                        } else {
+                            dataFlow.transitToFailed(result.getFailureDetail());
+                        }
+                    }
+
+                    update(dataFlow);
+                });
+    }
+
     private boolean processCompleted(DataFlow dataFlow) {
         return entityRetryProcessFactory.retryProcessor(dataFlow)
                 .doProcess(Process.result("Complete data flow", (d, v) -> transferProcessClient.completed(dataFlow.toRequest())))
                 .onSuccess((d, v) -> {
-                    dataFlow.transitToNotified();
+                    if (dataFlow.resourcesToBeDeprovisioned().isEmpty()) {
+                        dataFlow.transitionToNotified();
+                    } else {
+                        dataFlow.transitionToDeprovisioning();
+                    }
                     update(dataFlow);
                 })
                 .onFailure((d, t) -> {
@@ -390,7 +505,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         return entityRetryProcessFactory.retryProcessor(dataFlow)
                 .doProcess(Process.result("Fail data flow", (d, v) -> transferProcessClient.failed(dataFlow.toRequest(), dataFlow.getErrorDetail())))
                 .onSuccess((d, v) -> {
-                    dataFlow.transitToNotified();
+                    dataFlow.transitionToNotified();
                     update(dataFlow);
                 })
                 .onFailure((d, t) -> {
@@ -408,7 +523,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     private Processor processDataFlowInState(DataFlowStates state, Function<DataFlow, Boolean> function, Supplier<Criterion>... additionalCriteria) {
         Supplier<Collection<DataFlow>> entitiesSupplier = () -> {
             var additional = Arrays.stream(additionalCriteria).map(Supplier::get);
-            var filter = Stream.concat(Stream.of(new Criterion[]{ hasState(state.code()) }), additional)
+            var filter = Stream.concat(Stream.of(new Criterion[]{hasState(state.code())}), additional)
                     .toArray(Criterion[]::new);
             return store.nextNotLeased(batchSize, filter);
         };

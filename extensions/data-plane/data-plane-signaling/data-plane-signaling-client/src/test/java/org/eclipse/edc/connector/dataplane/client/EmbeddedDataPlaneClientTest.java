@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.client;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
+import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -72,8 +73,8 @@ class EmbeddedDataPlaneClientTest {
     void transfer_shouldSucceed_whenTransferInitiatedCorrectly() {
         var response = DataFlowResponseMessage.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("type").build()).build();
         var request = createDataFlowRequest();
-        when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
-        when(dataPlaneManager.start(any())).thenReturn(Result.success(response));
+        when(dataPlaneManager.validate(any())).thenReturn(Result.success());
+        when(dataPlaneManager.start(any())).thenReturn(StatusResult.success(response));
 
         var result = client.start(request);
 
@@ -88,7 +89,7 @@ class EmbeddedDataPlaneClientTest {
         var errorMsg = "error";
         var request = createDataFlowRequest();
         when(dataPlaneManager.validate(any())).thenReturn(Result.failure(errorMsg));
-        when(dataPlaneManager.start(any())).thenReturn(Result.success(DataFlowResponseMessage.Builder.newInstance().build()));
+        when(dataPlaneManager.start(any())).thenReturn(StatusResult.success(DataFlowResponseMessage.Builder.newInstance().build()));
 
         var result = client.start(request);
 
@@ -102,8 +103,8 @@ class EmbeddedDataPlaneClientTest {
     void transfer_shouldReturnFailedResult_whenStartFailure() {
         var errorMsg = "error";
         var request = createDataFlowRequest();
-        when(dataPlaneManager.validate(any())).thenReturn(Result.success(true));
-        when(dataPlaneManager.start(any())).thenReturn(Result.failure(errorMsg));
+        when(dataPlaneManager.validate(any())).thenReturn(Result.success());
+        when(dataPlaneManager.start(any())).thenReturn(StatusResult.failure(ResponseStatus.ERROR_RETRY, errorMsg));
 
         var result = client.start(request);
 

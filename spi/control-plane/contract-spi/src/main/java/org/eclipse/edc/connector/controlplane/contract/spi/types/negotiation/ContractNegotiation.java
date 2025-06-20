@@ -60,6 +60,8 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     public static final String CONTRACT_NEGOTIATION_STATE = EDC_NAMESPACE + "state";
     public static final String CONTRACT_NEGOTIATION_NEG_TYPE = EDC_NAMESPACE + "type";
     public static final String CONTRACT_NEGOTIATION_CALLBACK_ADDR = EDC_NAMESPACE + "callbackAddresses";
+    public static final String CONTRACT_NEGOTIATION_CORRELATION_ID = EDC_NAMESPACE + "correlationId";
+    public static final String CONTRACT_NEGOTIATION_ASSET_ID = EDC_NAMESPACE + "assetId";
     public static final String CONTRACT_NEGOTIATION_CREATED_AT = EDC_NAMESPACE + "createdAt";
 
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
@@ -89,6 +91,16 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public String getCorrelationId() {
         return correlationId;
+    }
+
+    /**
+     * Set the correlationId, operation that's needed on the consumer side when it receives the first message with the
+     * provider process id.
+     *
+     * @param correlationId the correlation id.
+     */
+    public void setCorrelationId(String correlationId) {
+        this.correlationId = correlationId;
     }
 
     /**
@@ -157,7 +169,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     }
 
     public boolean shouldIgnoreIncomingMessage(@NotNull String messageId) {
-        return protocolMessages.isAlreadyReceived(messageId) || ContractNegotiationStates.isFinal(state);
+        return protocolMessages.isAlreadyReceived(messageId);
     }
 
     public ProtocolMessages getProtocolMessages() {
@@ -198,10 +210,14 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public void transitionRequested() {
         if (Type.PROVIDER == type) {
-            transition(ContractNegotiationStates.REQUESTED, ContractNegotiationStates.OFFERED, ContractNegotiationStates.INITIAL);
+            transition(ContractNegotiationStates.REQUESTED, state -> canBeRequestedProvider());
         } else {
             transition(ContractNegotiationStates.REQUESTED, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.REQUESTING);
         }
+    }
+
+    public boolean canBeRequestedProvider() {
+        return currentStateIsOneOf(ContractNegotiationStates.OFFERED, ContractNegotiationStates.INITIAL);
     }
 
     /**
@@ -220,10 +236,19 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public void transitionOffered() {
         if (CONSUMER == type) {
-            transition(ContractNegotiationStates.OFFERED, ContractNegotiationStates.OFFERED, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.INITIAL);
+            transition(ContractNegotiationStates.OFFERED, state -> canBeOfferedConsumer());
         } else {
             transition(ContractNegotiationStates.OFFERED, ContractNegotiationStates.OFFERED, ContractNegotiationStates.OFFERING);
         }
+    }
+
+    /**
+     * Tells if the negotiation can be offered, so if it can be put in the `OFFERED` state
+     *
+     * @return true if the negotiation can be offered, false otherwise
+     */
+    public boolean canBeOfferedConsumer() {
+        return currentStateIsOneOf(ContractNegotiationStates.OFFERED, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.INITIAL);
     }
 
     /**
@@ -240,7 +265,11 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      * Transition to state ACCEPTED.
      */
     public void transitionAccepted() {
-        transition(ContractNegotiationStates.ACCEPTED, ContractNegotiationStates.ACCEPTED, ContractNegotiationStates.ACCEPTING, ContractNegotiationStates.OFFERED);
+        transition(ContractNegotiationStates.ACCEPTED, state -> canBeAccepted());
+    }
+
+    public boolean canBeAccepted() {
+        return currentStateIsOneOf(ContractNegotiationStates.ACCEPTED, ContractNegotiationStates.ACCEPTED, ContractNegotiationStates.ACCEPTING, ContractNegotiationStates.OFFERED);
     }
 
     /**
@@ -258,10 +287,19 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      */
     public void transitionAgreed() {
         if (CONSUMER == type) {
-            transition(ContractNegotiationStates.AGREED, ContractNegotiationStates.AGREEING, ContractNegotiationStates.ACCEPTED, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.AGREED);
+            transition(ContractNegotiationStates.AGREED, state -> canBeAgreedConsumer());
         } else {
             transition(ContractNegotiationStates.AGREED, ContractNegotiationStates.AGREEING);
         }
+    }
+
+    /**
+     * Tells if the negotiation can be agreed, so if it can be put in the `AGREED` state
+     *
+     * @return true if the negotiation can be agreed, false otherwise
+     */
+    public boolean canBeAgreedConsumer() {
+        return currentStateIsOneOf(ContractNegotiationStates.AGREEING, ContractNegotiationStates.ACCEPTED, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.AGREED);
     }
 
     /**
@@ -282,8 +320,17 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
         if (type == CONSUMER) {
             transition(ContractNegotiationStates.VERIFIED, ContractNegotiationStates.VERIFIED, ContractNegotiationStates.VERIFYING);
         } else {
-            transition(ContractNegotiationStates.VERIFIED, ContractNegotiationStates.VERIFIED, ContractNegotiationStates.ACCEPTED, ContractNegotiationStates.AGREED);
+            transition(ContractNegotiationStates.VERIFIED, state -> canBeVerifiedProvider());
         }
+    }
+
+    /**
+     * Tells if the negotiation can be verified, so if it can be put in the `VERIFIED` state
+     *
+     * @return true if the negotiation can be verified, false otherwise
+     */
+    public boolean canBeVerifiedProvider() {
+        return currentStateIsOneOf(ContractNegotiationStates.VERIFIED, ContractNegotiationStates.AGREED);
     }
 
     /**
@@ -301,7 +348,16 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
      * Transition to state FINALIZED.
      */
     public void transitionFinalized() {
-        transition(FINALIZED, FINALIZED, ContractNegotiationStates.FINALIZING, ContractNegotiationStates.AGREED, ContractNegotiationStates.VERIFIED);
+        transition(FINALIZED, state -> canBeFinalized());
+    }
+
+    /**
+     * Tells if the negotiation can be finalized, so if it can be put in the `FINALIZED` state
+     *
+     * @return true if the negotiation can be finalized, false otherwise
+     */
+    public boolean canBeFinalized() {
+        return currentStateIsOneOf(FINALIZED, ContractNegotiationStates.FINALIZING, ContractNegotiationStates.VERIFIED);
     }
 
     /**
@@ -414,14 +470,8 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
         transitionTo(targetState);
     }
 
-    /**
-     * Set the correlationId, operation that's needed on the consumer side when it receives the first message with the
-     * provider process id.
-     *
-     * @param correlationId the correlation id.
-     */
-    public void setCorrelationId(String correlationId) {
-        this.correlationId = correlationId;
+    public boolean currentStateIsOneOf(ContractNegotiationStates... states) {
+        return Arrays.stream(states).map(ContractNegotiationStates::code).anyMatch(code -> code == state);
     }
 
     public enum Type {

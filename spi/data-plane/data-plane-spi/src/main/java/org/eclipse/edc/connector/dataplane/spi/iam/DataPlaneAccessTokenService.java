@@ -19,6 +19,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.Map;
@@ -59,6 +60,6 @@ public interface DataPlaneAccessTokenService {
      * @param reason            The reason for the revocation
      * @return Success if revoked, failure otherwise
      */
-    Result<Void> revoke(String transferProcessId, String reason);
+    ServiceResult<Void> revoke(String transferProcessId, String reason);
 
 }

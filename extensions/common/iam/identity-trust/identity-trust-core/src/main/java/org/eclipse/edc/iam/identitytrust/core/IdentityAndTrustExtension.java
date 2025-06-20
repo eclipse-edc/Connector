@@ -54,12 +54,14 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.token.rules.AudienceValidationRule;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
+import org.eclipse.edc.token.rules.NotBeforeValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.HasSubjectRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerEqualsSubjectRule;
+import org.eclipse.edc.verifiablecredentials.jwt.rules.JtiValidationRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.SubJwkIsNullRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.TokenNotNullRule;
 import org.eclipse.edc.verifiablecredentials.linkeddata.DidMethodResolver;
@@ -68,6 +70,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URISyntaxException;
 import java.time.Clock;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
@@ -98,6 +102,9 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
     @Setting(description = "If set enable the dcp v0.8 namespace will be used", key = "edc.dcp.v08.forced", required = false, defaultValue = "false")
     private boolean enableDcpV08;
+
+    @Setting(description = "Activate or deactivate JTI validation", key = "edc.iam.accesstoken.jti.validation", defaultValue = "true")
+    private boolean activateJtiValidation;
 
     @Inject
     private SecureTokenService secureTokenService;
@@ -152,6 +159,8 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     private PresentationVerifier presentationVerifier;
     private CredentialServiceClient credentialServiceClient;
     private ScheduledFuture<?> jtiEntryReaperThread;
+    @Setting(key = "edc.iam.credential.revocation.mimetype", description = "A comma-separated list of accepted content types of the revocation list credential.", defaultValue = "*/*")
+    private String contentTypes;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -162,10 +171,14 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new AudienceValidationRule(issuerId));
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, 5, false));
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new TokenNotNullRule());
+        rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new NotBeforeValidationRule(clock, 4, true));
 
         // add all rules for validating VerifiableCredential JWTs
         rulesRegistry.addRule(JWT_VC_TOKEN_CONTEXT, new HasSubjectRule());
 
+        if (activateJtiValidation) {
+            rulesRegistry.addRule(JWT_VC_TOKEN_CONTEXT, new JtiValidationRule(jtiValidationStore, context.getMonitor()));
+        }
 
         try {
             jsonLd.registerCachedDocument(STATUSLIST_2021_URL, getClass().getClassLoader().getResource("statuslist2021.json").toURI());
@@ -176,19 +189,24 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         participantAgentService.register(participantAgentServiceExtension);
 
         // register revocation services
-        revocationServiceRegistry.addService(StatusList2021Status.TYPE, new StatusList2021RevocationService(typeManager.getMapper(), revocationCacheValidity));
-        revocationServiceRegistry.addService(BitstringStatusListStatus.TYPE, new BitstringStatusListRevocationService(typeManager.getMapper(), revocationCacheValidity));
+        var acceptedContentTypes = parseAcceptedContentTypes(contentTypes);
+        revocationServiceRegistry.addService(StatusList2021Status.TYPE, new StatusList2021RevocationService(typeManager.getMapper(), revocationCacheValidity, acceptedContentTypes, httpClient));
+        revocationServiceRegistry.addService(BitstringStatusListStatus.TYPE, new BitstringStatusListRevocationService(typeManager.getMapper(), revocationCacheValidity, acceptedContentTypes, httpClient));
     }
 
     @Override
     public void start() {
-        jtiEntryReaperThread = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), "JTI Validation Entry Reaper Thread")
-                .scheduleAtFixedRate(jtiValidationStore::deleteExpired, reaperCleanupPeriod, reaperCleanupPeriod, TimeUnit.SECONDS);
+        if (activateJtiValidation) {
+            jtiEntryReaperThread = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), "JTI Validation Entry Reaper Thread")
+                                           .scheduleAtFixedRate(jtiValidationStore::deleteExpired, reaperCleanupPeriod, reaperCleanupPeriod, TimeUnit.SECONDS);
+        }
     }
 
     @Override
     public void shutdown() {
-        jtiEntryReaperThread.cancel(true);
+        if (jtiEntryReaperThread != null && !jtiEntryReaperThread.isCancelled()) {
+            jtiEntryReaperThread.cancel(true);
+        }
     }
 
     @Override
@@ -230,16 +248,20 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
             var jwtVerifier = new JwtPresentationVerifier(typeManager, JSON_LD, tokenValidationService, rulesRegistry, didPublicKeyResolver);
             var ldpVerifier = LdpVerifier.Builder.newInstance()
-                    .signatureSuites(signatureSuiteRegistry)
-                    .jsonLd(jsonLd)
-                    .typeManager(typeManager)
-                    .typeContext(JSON_LD)
-                    .methodResolver(new DidMethodResolver(didResolverRegistry))
-                    .build();
+                                      .signatureSuites(signatureSuiteRegistry)
+                                      .jsonLd(jsonLd)
+                                      .typeManager(typeManager)
+                                      .typeContext(JSON_LD)
+                                      .methodResolver(new DidMethodResolver(didResolverRegistry))
+                                      .build();
 
             presentationVerifier = new MultiFormatPresentationVerifier(issuerId, jwtVerifier, ldpVerifier);
         }
         return presentationVerifier;
+    }
+
+    private Collection<String> parseAcceptedContentTypes(String contentTypes) {
+        return List.of(contentTypes.split(","));
     }
 
     private JsonLdNamespace dcpNamespace() {

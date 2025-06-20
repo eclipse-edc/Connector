@@ -23,6 +23,7 @@ public enum DataFlowStates {
 
     @Deprecated(since = "0.12.0") NOT_TRACKED(0),
     PROVISIONING(25),
+    PROVISION_REQUESTED(40),
     PROVISIONED(50),
     RECEIVED(100),
     STARTED(150),
@@ -32,6 +33,7 @@ public enum DataFlowStates {
     FAILED(300),
     NOTIFIED(400),
     DEPROVISIONING(500),
+    DEPROVISION_REQUESTED(550),
     DEPROVISIONED(600),
     DEPROVISION_FAILED(700);
 

@@ -176,7 +176,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         if (transferProcess.getType() == CONSUMER && transferProcess.canBeStartedConsumer()) {
             observable.invokeForEach(l -> l.preStarted(transferProcess));
             transferProcess.protocolMessageReceived(message.getId());
-            transferProcess.transitionStarted(transferProcess.getDataPlaneId());
+            transferProcess.transitionStarted();
             update(transferProcess);
             var transferStartedData = TransferProcessStartedData.Builder.newInstance()
                     .dataAddress(message.getDataAddress())

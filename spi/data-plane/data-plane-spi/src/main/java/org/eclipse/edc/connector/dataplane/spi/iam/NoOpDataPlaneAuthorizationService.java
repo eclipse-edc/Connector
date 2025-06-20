@@ -14,9 +14,10 @@
 
 package org.eclipse.edc.connector.dataplane.spi.iam;
 
+import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 import java.util.Map;
 
@@ -30,7 +31,7 @@ public class NoOpDataPlaneAuthorizationService implements DataPlaneAuthorization
             .failure("PULL transfers are not supported unless a proper DataPlaneAuthorizationService is registered");
 
     @Override
-    public Result<DataAddress> createEndpointDataReference(DataFlowStartMessage message) {
+    public Result<DataAddress> createEndpointDataReference(DataFlow dataFlow) {
         return FAILURE;
     }
 
@@ -40,7 +41,7 @@ public class NoOpDataPlaneAuthorizationService implements DataPlaneAuthorization
     }
 
     @Override
-    public Result<Void> revokeEndpointDataReference(String transferProcessId, String reason) {
-        return FAILURE.mapEmpty();
+    public ServiceResult<Void> revokeEndpointDataReference(String transferProcessId, String reason) {
+        return ServiceResult.unexpected(FAILURE.getFailureDetail());
     }
 }

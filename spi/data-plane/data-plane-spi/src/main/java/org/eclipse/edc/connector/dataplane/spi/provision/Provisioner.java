@@ -25,21 +25,22 @@ import java.util.concurrent.CompletableFuture;
 public interface Provisioner {
 
     /**
-     * Return the supported {@link ProvisionResourceDefinition} type.
+     * Return the supported {@link ProvisionResource} type.
      *
      * @return supported type.
      */
     String supportedType();
 
     /**
-     * Asynchronously provisions a resource required to perform the data transfer.
-     * Implementations must be idempotent.
-     * Implementations should not throw exceptions. If an unexpected exception occurs and the flow should be re-attempted, return
-     * {@link ResponseStatus#ERROR_RETRY}. If an exception occurs and re-tries should not be re-attempted, return
-     * {@link ResponseStatus#FATAL_ERROR}.
+     * Asynchronously provisions a resource required to perform the data transfer. It can store secrets as well, that
+     * will need to be cleaned up by the {@link Deprovisioner}.
+     * Implementation must be idempotent and it should not throw exceptions.
+     * If an unexpected exception occurs and the flow should be re-attempted, return {@link ResponseStatus#ERROR_RETRY}.
+     * If an exception occurs and re-tries should not be re-attempted, return {@link ResponseStatus#FATAL_ERROR}.
      *
-     * @param provisionResourceDefinition that contains metadata associated with the provision operation
+     * @param provisionResource that contains metadata associated with the provision operation
+     * @return the future containing the result
      */
-    CompletableFuture<StatusResult<ProvisionedResource>> provision(ProvisionResourceDefinition provisionResourceDefinition);
+    CompletableFuture<StatusResult<ProvisionedResource>> provision(ProvisionResource provisionResource);
 
 }

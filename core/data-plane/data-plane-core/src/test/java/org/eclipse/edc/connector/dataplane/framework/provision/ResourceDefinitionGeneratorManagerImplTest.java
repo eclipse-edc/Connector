@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.dataplane.framework.provision;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
-import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourceDefinition;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGenerator;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -40,7 +40,7 @@ class ResourceDefinitionGeneratorManagerImplTest {
         @BeforeEach
         void setUp() {
             when(supportedGenerator.supportedType()).thenReturn("supportedType");
-            when(supportedGenerator.generate(any())).thenReturn(new ProvisionResourceDefinition());
+            when(supportedGenerator.generate(any())).thenReturn(new ProvisionResource());
 
             manager.registerConsumerGenerator(supportedGenerator);
         }
@@ -61,6 +61,31 @@ class ResourceDefinitionGeneratorManagerImplTest {
 
             assertThat(types).containsOnly("supportedType");
         }
+    }
+
+    @Nested
+    class Provider {
+
+        private final ResourceDefinitionGenerator supportedGenerator = mock();
+
+        @BeforeEach
+        void setUp() {
+            when(supportedGenerator.supportedType()).thenReturn("supportedType");
+            when(supportedGenerator.generate(any())).thenReturn(new ProvisionResource());
+
+            manager.registerProviderGenerator(supportedGenerator);
+        }
+
+        @Test
+        void generate_shouldGenerateResources() {
+            var destination = DataAddress.Builder.newInstance().type("supportedType").build();
+            var dataFlow = DataFlow.Builder.newInstance().destination(destination).build();
+
+            var definitions = manager.generateProviderResourceDefinition(dataFlow);
+
+            assertThat(definitions).hasSize(1);
+        }
+
     }
 
 }

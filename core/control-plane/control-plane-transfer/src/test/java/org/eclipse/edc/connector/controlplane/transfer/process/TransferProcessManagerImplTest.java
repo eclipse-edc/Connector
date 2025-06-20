@@ -96,6 +96,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING_REQUESTED;
@@ -156,7 +157,7 @@ class TransferProcessManagerImplTest {
     @BeforeEach
     void setup() {
         when(protocolWebhookRegistry.resolve(any())).thenReturn(() -> protocolWebhookUrl);
-        when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(createDataFlowResponse()));
+        when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponseBuilder().build()));
         when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().build());
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
@@ -883,7 +884,7 @@ class TransferProcessManagerImplTest {
         @Test
         void shouldStartDataTransferAndSendMessageToConsumer() {
             var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
-            var dataFlowResponse = createDataFlowResponse();
+            var dataFlowResponse = dataFlowResponseBuilder().build();
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
             when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process);
@@ -905,6 +906,28 @@ class TransferProcessManagerImplTest {
                 assertThat(message.getDataAddress()).usingRecursiveComparison().isEqualTo(dataFlowResponse.getDataAddress());
             });
         }
+
+        @Test
+        void shouldNotSendMessageAndTransitionToStartupRequested_whenAsynchronousDataPlaneProvisioning() {
+            var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
+            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+            when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process);
+            when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(
+                    dataFlowResponseBuilder().provisioning(true).dataPlaneId("dataPlaneId").build()));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                var captor = ArgumentCaptor.forClass(TransferProcess.class);
+                verify(transferProcessStore).save(captor.capture());
+                assertThat(captor.getValue()).satisfies(stored -> {
+                    assertThat(stored.stateAsString()).isEqualTo(STARTUP_REQUESTED.name());
+                    assertThat(stored.getDataPlaneId()).isEqualTo("dataPlaneId");
+                });
+                verifyNoInteractions(dispatcherRegistry, listener);
+            });
+        }
     }
 
     @Nested
@@ -913,7 +936,7 @@ class TransferProcessManagerImplTest {
         @Test
         void shouldStartDataTransferAndSendMessageToConsumer() {
             var process = createTransferProcess(RESUMING).toBuilder().type(PROVIDER).build();
-            var dataFlowResponse = createDataFlowResponse();
+            var dataFlowResponse = dataFlowResponseBuilder().build();
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
             when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(RESUMING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process);
@@ -1110,12 +1133,11 @@ class TransferProcessManagerImplTest {
         return aryEq(new Criterion[]{ hasState(state), isNotPending() });
     }
 
-    private DataFlowResponse createDataFlowResponse() {
+    private static DataFlowResponse.Builder dataFlowResponseBuilder() {
         return DataFlowResponse.Builder.newInstance()
                 .dataAddress(DataAddress.Builder.newInstance()
                         .type("type")
-                        .build())
-                .build();
+                        .build());
     }
 
     private TransferProcess createTransferProcess(TransferProcessStates inState) {

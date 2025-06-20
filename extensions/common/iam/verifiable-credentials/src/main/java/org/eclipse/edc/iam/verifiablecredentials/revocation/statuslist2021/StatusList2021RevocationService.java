@@ -15,12 +15,15 @@
 package org.eclipse.edc.iam.verifiablecredentials.revocation.statuslist2021;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.verifiablecredentials.revocation.BaseRevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.BitString;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Credential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Status;
 import org.eclipse.edc.spi.result.Result;
+
+import java.util.Collection;
 
 import static org.eclipse.edc.spi.result.Result.success;
 
@@ -31,8 +34,8 @@ import static org.eclipse.edc.spi.result.Result.success;
  */
 public class StatusList2021RevocationService extends BaseRevocationListService<StatusList2021Credential, StatusList2021Status> {
 
-    public StatusList2021RevocationService(ObjectMapper objectMapper, long cacheValidity) {
-        super(objectMapper, cacheValidity, StatusList2021Credential.class);
+    public StatusList2021RevocationService(ObjectMapper objectMapper, long cacheValidity, Collection<String> acceptedContentTypes, EdcHttpClient httpClient) {
+        super(objectMapper, cacheValidity, acceptedContentTypes, httpClient, StatusList2021Credential.class);
     }
 
     @Override
@@ -45,9 +48,11 @@ public class StatusList2021RevocationService extends BaseRevocationListService<S
         var index = credentialStatus.getStatusListIndex();
         var slCredUrl = credentialStatus.getStatusListCredential();
         var credential = getCredential(slCredUrl);
+        if (credential.failed()) {
+            return credential.mapEmpty();
+        }
 
-
-        var bitStringResult = BitString.Parser.newInstance().parse(credential.encodedList());
+        var bitStringResult = BitString.Parser.newInstance().parse(credential.getContent().encodedList());
 
         if (bitStringResult.failed()) {
             return bitStringResult.mapEmpty();
@@ -64,10 +69,13 @@ public class StatusList2021RevocationService extends BaseRevocationListService<S
     @Override
     protected Result<Void> validateStatusPurpose(StatusList2021Status credentialStatus) {
         var slCred = getCredential(credentialStatus.getStatusListCredential());
+        if (slCred.failed()) {
+            return slCred.mapEmpty();
+        }
 
         // check that the "statusPurpose" values match
         var purpose = credentialStatus.getStatusListPurpose();
-        var slCredPurpose = slCred.statusPurpose();
+        var slCredPurpose = slCred.getContent().statusPurpose();
         if (!purpose.equalsIgnoreCase(slCredPurpose)) {
             return Result.failure("Credential's statusPurpose value must match the status list's purpose: '%s' != '%s'".formatted(purpose, slCredPurpose));
         }

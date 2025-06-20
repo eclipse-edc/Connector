@@ -18,6 +18,10 @@ plugins {
 
 dependencies {
     api(project(":dist:bom:controlplane-base-bom"))
-    runtimeOnly(project(":extensions:tck-extension"))
+    api(project(":dist:bom:dataplane-base-bom")) {
+        exclude(module = "data-plane-selector-client")
+    }
+    api(project(":data-protocols:dsp:dsp-2025"))
+    api(project(":system-tests:protocol-tck:tck-extension"))
     runtimeOnly(libs.parsson)
 }

@@ -18,11 +18,15 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.UUID;
 
+/**
+ * Provisioned resource
+ */
 public class ProvisionedResource {
 
     private String id;
     private String flowId;
     private DataAddress dataAddress;
+    private boolean pending = false;
 
     public DataAddress getDataAddress() {
         return dataAddress;
@@ -36,9 +40,13 @@ public class ProvisionedResource {
         return flowId;
     }
 
+    public boolean isPending() {
+        return pending;
+    }
+
     public static class Builder {
 
-        private ProvisionedResource resource;
+        private final ProvisionedResource resource;
 
         public static Builder newInstance() {
             return new Builder();
@@ -48,7 +56,7 @@ public class ProvisionedResource {
             resource = new ProvisionedResource();
         }
 
-        public static Builder from(ProvisionResourceDefinition definition) {
+        public static Builder from(ProvisionResource definition) {
             var builder = new Builder();
             builder.resource.id = definition.getId();
             builder.resource.flowId = definition.getFlowId();
@@ -69,6 +77,11 @@ public class ProvisionedResource {
 
         public Builder flowId(String flowId) {
             resource.flowId = flowId;
+            return this;
+        }
+
+        public Builder pending(boolean pending) {
+            resource.pending = pending;
             return this;
         }
     }

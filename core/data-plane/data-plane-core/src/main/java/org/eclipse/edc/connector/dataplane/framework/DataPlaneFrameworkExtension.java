@@ -32,24 +32,19 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
-import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
-import org.jetbrains.annotations.NotNull;
+import org.eclipse.edc.statemachine.StateMachineConfiguration;
 
 import java.time.Clock;
 import java.util.concurrent.Executors;
 
 import static org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager.DEFAULT_FLOW_LEASE_FACTOR;
 import static org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager.DEFAULT_FLOW_LEASE_TIME;
-import static org.eclipse.edc.statemachine.AbstractStateEntityManager.DEFAULT_BATCH_SIZE;
-import static org.eclipse.edc.statemachine.AbstractStateEntityManager.DEFAULT_ITERATION_WAIT;
-import static org.eclipse.edc.statemachine.AbstractStateEntityManager.DEFAULT_SEND_RETRY_BASE_DELAY;
-import static org.eclipse.edc.statemachine.AbstractStateEntityManager.DEFAULT_SEND_RETRY_LIMIT;
 
 /**
  * Provides core services for the Data Plane Framework.
@@ -61,32 +56,9 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     public static final String NAME = "Data Plane Framework";
     private static final int DEFAULT_TRANSFER_THREADS = 20;
 
-    @Setting(
-            description = "the iteration wait time in milliseconds in the data plane state machine.",
-            defaultValue = DEFAULT_ITERATION_WAIT + "",
-            key = "edc.dataplane.state-machine.iteration-wait-millis")
-    private long iterationWaitMillis;
-
-    @Setting(
-            description = "the batch size in the data plane state machine.",
-            defaultValue = DEFAULT_BATCH_SIZE + "",
-            key = "edc.dataplane.state-machine.batch-size"
-    )
-    private int batchSize;
-
-    @Setting(
-            description = "how many times a specific operation must be tried before terminating the dataplane with error",
-            defaultValue = DEFAULT_SEND_RETRY_LIMIT + "",
-            key = "edc.dataplane.send.retry.limit"
-    )
-    private int sendRetryLimit;
-
-    @Setting(
-            description = "The base delay for the dataplane retry mechanism in millisecond",
-            defaultValue = DEFAULT_SEND_RETRY_BASE_DELAY + "",
-            key = "edc.dataplane.send.retry.base-delay.ms"
-    )
-    private long sendRetryBaseDelay;
+    @SettingContext("edc.dataplane")
+    @Configuration
+    private StateMachineConfiguration stateMachineConfiguration;
 
     @Setting(
             description = "Size of the transfer thread pool. It is advisable to set it bigger than the state machine batch size",
@@ -134,13 +106,11 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         transferServiceRegistry.registerTransferService(pipelineService);
         context.registerService(TransferServiceRegistry.class, transferServiceRegistry);
 
-        var waitStrategy = new ExponentialWaitStrategy(iterationWaitMillis);
-
         dataPlaneManager = DataPlaneManagerImpl.Builder.newInstance()
-                .waitStrategy(waitStrategy)
-                .batchSize(batchSize)
+                .waitStrategy(stateMachineConfiguration.iterationWaitExponentialWaitStrategy())
+                .batchSize(stateMachineConfiguration.batchSize())
                 .clock(clock)
-                .entityRetryProcessConfiguration(getEntityRetryProcessConfiguration())
+                .entityRetryProcessConfiguration(stateMachineConfiguration.entityRetryProcessConfiguration())
                 .executorInstrumentation(executorInstrumentation)
                 .authorizationService(authorizationService)
                 .transferServiceRegistry(transferServiceRegistry)
@@ -207,8 +177,4 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
 
     }
 
-    @NotNull
-    private EntityRetryProcessConfiguration getEntityRetryProcessConfiguration() {
-        return new EntityRetryProcessConfiguration(sendRetryLimit, () -> new ExponentialWaitStrategy(sendRetryBaseDelay));
-    }
 }

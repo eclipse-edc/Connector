@@ -20,7 +20,6 @@ import org.eclipse.edc.token.spi.KeyIdDecorator;
 import org.eclipse.edc.token.spi.TokenDecorator;
 
 import java.time.Clock;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -51,8 +50,8 @@ public class Oauth2AssertionDecorator implements TokenDecorator {
                 .claims(ISSUER, clientId)
                 .claims(SUBJECT, clientId)
                 .claims(JWT_ID, UUID.randomUUID().toString())
-                .claims(ISSUED_AT, Date.from(clock.instant()))
-                .claims(EXPIRATION_TIME, Date.from(clock.instant().plusSeconds(validity)));
+                .claims(ISSUED_AT, clock.instant().getEpochSecond())
+                .claims(EXPIRATION_TIME, clock.instant().plusSeconds(validity).getEpochSecond());
     }
 
     public static class Builder {

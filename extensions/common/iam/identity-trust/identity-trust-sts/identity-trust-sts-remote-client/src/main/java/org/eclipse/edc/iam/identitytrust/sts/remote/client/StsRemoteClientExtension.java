@@ -30,7 +30,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 @Extension(StsRemoteClientExtension.NAME)
 public class StsRemoteClientExtension implements ServiceExtension {
 
-    protected static final String NAME = "Sts remote client configuration extension";
+    protected static final String NAME = "Sts remote client extension";
 
     @Inject
     private StsRemoteClientConfiguration clientConfiguration;

@@ -1,0 +1,16 @@
+name: Nightly Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  Run-Tests:
+    uses: ./.github/workflows/verify.yaml
+    secrets: inherit
+
+  Publish:
+    if: always()
+    needs: [ Run-Tests ]
+    uses: eclipse-edc/.github/.github/workflows/nightly.yml@main
+    secrets: inherit

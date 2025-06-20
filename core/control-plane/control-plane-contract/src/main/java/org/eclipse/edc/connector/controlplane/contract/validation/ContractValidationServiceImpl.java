@@ -32,6 +32,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.validation.ValidatedC
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
@@ -156,7 +157,8 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
         return Result.success(ContractOffer.Builder.newInstance()
                 .id(contractOfferId.toString())
-                .policy(policy)
+                // we copy the policy and enforce it to be of type OFFER
+                .policy(policy.toBuilder().type(PolicyType.OFFER).build())
                 .assetId(contractOfferId.assetIdPart())
                 .build());
     }

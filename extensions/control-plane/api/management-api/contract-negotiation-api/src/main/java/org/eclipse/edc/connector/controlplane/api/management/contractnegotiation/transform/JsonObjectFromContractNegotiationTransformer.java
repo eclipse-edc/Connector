@@ -27,7 +27,9 @@ import org.jetbrains.annotations.Nullable;
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_AGREEMENT_ID;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_ASSET_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_CALLBACK_ADDR;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_CORRELATION_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_COUNTERPARTY_ADDR;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_COUNTERPARTY_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_CREATED_AT;
@@ -66,7 +68,9 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractJsonLd
                 .add(CONTRACT_NEGOTIATION_CALLBACK_ADDR, callbackAddresses)
                 .add(CONTRACT_NEGOTIATION_CREATED_AT, contractNegotiation.getCreatedAt());
 
+        ofNullable(contractNegotiation.getLastContractOffer()).ifPresent(contractOffer -> builder.add(CONTRACT_NEGOTIATION_ASSET_ID, contractOffer.getAssetId()));
         ofNullable(contractNegotiation.getContractAgreement()).map(ContractAgreement::getId).ifPresent(s -> builder.add(CONTRACT_NEGOTIATION_AGREEMENT_ID, s));
+        ofNullable(contractNegotiation.getCorrelationId()).ifPresent(correlationId -> builder.add(CONTRACT_NEGOTIATION_CORRELATION_ID, correlationId));
         ofNullable(contractNegotiation.getErrorDetail()).ifPresent(s -> builder.add(CONTRACT_NEGOTIATION_ERRORDETAIL, s));
 
         return builder.build();

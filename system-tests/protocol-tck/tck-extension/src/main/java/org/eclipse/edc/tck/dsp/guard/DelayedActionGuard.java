@@ -37,13 +37,12 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
  * a command handler.
  */
 public class DelayedActionGuard<T extends StatefulEntity<T>> implements PendingGuard<T> {
-    private Predicate<T> filter;
-    private Consumer<T> action;
-    private StateEntityStore<T> store;
-    private DelayQueue<GuardDelay> queue;
-    private AtomicBoolean active = new AtomicBoolean();
-
-    private ExecutorService executor = Executors.newFixedThreadPool(1);
+    private final Predicate<T> filter;
+    private final Consumer<T> action;
+    private final DelayQueue<GuardDelay> queue;
+    private final AtomicBoolean active = new AtomicBoolean();
+    private final ExecutorService executor = Executors.newFixedThreadPool(1);
+    private final StateEntityStore<T> store;
 
     public DelayedActionGuard(Predicate<T> filter,
                               Consumer<T> action,
@@ -88,8 +87,8 @@ public class DelayedActionGuard<T extends StatefulEntity<T>> implements PendingG
     }
 
     protected class GuardDelay implements Delayed {
+        private final long start;
         T entity;
-        private long start;
 
         GuardDelay(T entity) {
             this.entity = entity;
