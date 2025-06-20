@@ -23,17 +23,12 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE_TERM;
 
 public class JsonObjectToTransferStartMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, TransferStartMessage> {
-
-    public JsonObjectToTransferStartMessageTransformer() {
-        this(DSP_NAMESPACE_V_08);
-    }
 
     public JsonObjectToTransferStartMessageTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, TransferStartMessage.class, namespace);

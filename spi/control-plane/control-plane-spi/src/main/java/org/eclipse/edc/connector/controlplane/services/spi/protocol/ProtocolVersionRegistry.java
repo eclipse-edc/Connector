@@ -24,7 +24,18 @@ public interface ProtocolVersionRegistry {
      *
      * @param protocolVersion the protocol version.
      */
-    void register(ProtocolVersion protocolVersion);
+    default void register(ProtocolVersion protocolVersion) {
+        register(protocolVersion, false);
+    }
+
+    /**
+     * Register a protocol version.
+     *
+     * @param protocolVersion the protocol version.
+     * @param isDefault       if true, the protocol version will be set as default.
+     */
+    void register(ProtocolVersion protocolVersion, boolean isDefault);
+
 
     /**
      * get all the protocol versions.
@@ -32,4 +43,12 @@ public interface ProtocolVersionRegistry {
      * @return the protocol versions.
      */
     ProtocolVersions getAll();
+
+
+    /**
+     * Get the default protocol version.
+     *
+     * @return the default protocol version.
+     */
+    ProtocolVersion getDefaultVersion();
 }

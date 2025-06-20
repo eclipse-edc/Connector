@@ -19,6 +19,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -30,11 +31,11 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -46,6 +47,7 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectFromContractRequestMessageTransformerTest {
 
+    private static final JsonLdNamespace DSP_NAMESPACE = new JsonLdNamespace("http://www.w3.org/ns/dsp#");
     private static final String CALLBACK_ADDRESS = "https://test.com";
     private static final String CONSUMER_PID = "consumerPid";
     private static final String PROTOCOL = "DSP";
@@ -56,7 +58,7 @@ class JsonObjectFromContractRequestMessageTransformerTest {
     private final TransformerContext context = mock();
 
     private final JsonObjectFromContractRequestMessageTransformer transformer =
-            new JsonObjectFromContractRequestMessageTransformer(jsonFactory);
+            new JsonObjectFromContractRequestMessageTransformer(jsonFactory, DSP_NAMESPACE);
 
     @BeforeEach
     void setUp() {
@@ -77,12 +79,12 @@ class JsonObjectFromContractRequestMessageTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getJsonString(ID).getString()).isNotEmpty();
-        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI).getString()).isEqualTo(CALLBACK_ADDRESS);
-        assertThat(result.getJsonObject(DSPACE_PROPERTY_OFFER_IRI)).isNotNull();
-        assertThat(result.getJsonObject(DSPACE_PROPERTY_OFFER_IRI).getString(ID)).isEqualTo(CONTRACT_OFFER_ID);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_CONSUMER_PID_IRI).getString()).isEqualTo("consumerPid");
-        assertThat(result.getJsonString(DSPACE_PROPERTY_PROVIDER_PID_IRI).getString()).isEqualTo("providerPid");
+        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSP_NAMESPACE.toIri(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM));
+        assertThat(result.getJsonString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM)).getString()).isEqualTo(CALLBACK_ADDRESS);
+        assertThat(result.getJsonObject(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_OFFER_TERM))).isNotNull();
+        assertThat(result.getJsonObject(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_OFFER_TERM)).getString(ID)).isEqualTo(CONTRACT_OFFER_ID);
+        assertThat(result.getJsonString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM)).getString()).isEqualTo("consumerPid");
+        assertThat(result.getJsonString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM)).getString()).isEqualTo("providerPid");
 
         verify(context, never()).reportProblem(anyString());
     }

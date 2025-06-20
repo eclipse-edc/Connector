@@ -26,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 
 /**
  * Transforms a {@link CatalogRequestMessage} to a {@link JsonObject} in JSON-LD expanded form.
@@ -34,10 +33,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V
 public class JsonObjectFromCatalogRequestMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<CatalogRequestMessage, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
-
-    public JsonObjectFromCatalogRequestMessageTransformer(JsonBuilderFactory jsonFactory) {
-        this(jsonFactory, DSP_NAMESPACE_V_08);
-    }
 
     public JsonObjectFromCatalogRequestMessageTransformer(JsonBuilderFactory jsonFactory, JsonLdNamespace namespace) {
         super(CatalogRequestMessage.class, JsonObject.class, namespace);

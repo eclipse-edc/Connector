@@ -25,7 +25,6 @@ import org.eclipse.edc.validator.jsonobject.validators.TypeIs;
 import org.eclipse.edc.validator.spi.Validator;
 
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM;
@@ -34,9 +33,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
  * Validator for {@link ContractRequestMessage} Json-LD representation
  */
 public class ContractRequestMessageValidator {
-    public static Validator<JsonObject> instance() {
-        return instance(DSP_NAMESPACE_V_08);
-    }
 
     public static Validator<JsonObject> instance(JsonLdNamespace namespace) {
         return JsonObjectValidator.newValidator()

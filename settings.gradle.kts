@@ -101,6 +101,7 @@ include(":data-protocols:dsp:dsp-lib:dsp-transfer-process-lib:dsp-transfer-proce
 
 // dsp version 0.8
 include(":data-protocols:dsp:dsp-08")
+include(":data-protocols:dsp:dsp-08:dsp-spi-08")
 include(":data-protocols:dsp:dsp-08:dsp-http-api-configuration-08")
 include(":data-protocols:dsp:dsp-08:dsp-http-dispatcher-08")
 include(":data-protocols:dsp:dsp-08:dsp-catalog-08")

@@ -24,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_ERROR_TERM;
@@ -35,10 +34,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAn
 public class JsonObjectFromTransferErrorTransformer extends AbstractNamespaceAwareJsonLdTransformer<TransferError, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
-
-    public JsonObjectFromTransferErrorTransformer(JsonBuilderFactory jsonFactory) {
-        this(jsonFactory, DSP_NAMESPACE_V_08);
-    }
 
     public JsonObjectFromTransferErrorTransformer(JsonBuilderFactory jsonFactory, JsonLdNamespace namespace) {
         super(TransferError.class, JsonObject.class, namespace);

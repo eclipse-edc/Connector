@@ -18,7 +18,7 @@ plugins {
 
 dependencies {
     api(project(":data-protocols:dsp:dsp-core"))
-
+    api(project(":data-protocols:dsp:dsp-08:dsp-spi-08"))
     api(project(":data-protocols:dsp:dsp-08:dsp-http-api-configuration-08"))
     api(project(":data-protocols:dsp:dsp-08:dsp-http-dispatcher-08"))
     api(project(":data-protocols:dsp:dsp-08:dsp-catalog-08"))

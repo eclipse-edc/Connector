@@ -26,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_ACCEPTED_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_AGREED_TERM;
@@ -46,10 +45,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 public class JsonObjectFromContractNegotiationTransformer extends AbstractNamespaceAwareJsonLdTransformer<ContractNegotiation, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
-
-    public JsonObjectFromContractNegotiationTransformer(JsonBuilderFactory jsonFactory) {
-        this(jsonFactory, DSP_NAMESPACE_V_08);
-    }
 
     public JsonObjectFromContractNegotiationTransformer(JsonBuilderFactory jsonFactory, JsonLdNamespace namespace) {
         super(ContractNegotiation.class, JsonObject.class, namespace);

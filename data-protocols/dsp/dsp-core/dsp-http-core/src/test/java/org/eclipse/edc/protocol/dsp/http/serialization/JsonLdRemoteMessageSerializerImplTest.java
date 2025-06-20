@@ -32,9 +32,9 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.protocol.dsp.http.TestFixtures.DSP_TRANSFORMER_CONTEXT_V_MOCK;
+import static org.eclipse.edc.protocol.dsp.http.TestFixtures.V_MOCK;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_08;
-import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_08;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
@@ -43,6 +43,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class JsonLdRemoteMessageSerializerImplTest {
+
 
     private final TypeTransformerRegistry registry = mock(TypeTransformerRegistry.class);
     private final DspProtocolTypeTransformerRegistry dspTransformerRegistry = mock();
@@ -57,7 +58,7 @@ class JsonLdRemoteMessageSerializerImplTest {
     void setUp() {
         var jsonLdService = new TitaniumJsonLd(mock(Monitor.class));
         jsonLdService.registerNamespace("schema", "http://schema/"); //needed for compaction
-        when(registry.forContext(DSP_TRANSFORMER_CONTEXT_V_08)).thenReturn(registry);
+        when(registry.forContext(DSP_TRANSFORMER_CONTEXT_V_MOCK)).thenReturn(registry);
         serializer = new JsonLdRemoteMessageSerializerImpl(dspTransformerRegistry, typeManager, "test", jsonLdService, protocolParser, "scope");
         when(message.getProtocol()).thenReturn(DATASPACE_PROTOCOL_HTTP);
         when(typeManager.getMapper("test")).thenReturn(mapper);
@@ -71,7 +72,7 @@ class JsonLdRemoteMessageSerializerImplTest {
         when(dspTransformerRegistry.forProtocol(DATASPACE_PROTOCOL_HTTP)).thenReturn(Result.success(registry));
         when(registry.transform(message, JsonObject.class))
                 .thenReturn(Result.success(json));
-        when(protocolParser.parse(DATASPACE_PROTOCOL_HTTP)).thenReturn(Result.success(V_08));
+        when(protocolParser.parse(DATASPACE_PROTOCOL_HTTP)).thenReturn(Result.success(V_MOCK));
         when(mapper.writeValueAsString(any(JsonObject.class))).thenReturn(serialized);
 
         var result = serializer.serialize(message);
@@ -98,7 +99,7 @@ class JsonLdRemoteMessageSerializerImplTest {
         var json = messageJson();
 
         when(dspTransformerRegistry.forProtocol(DATASPACE_PROTOCOL_HTTP)).thenReturn(Result.success(registry));
-        when(protocolParser.parse(DATASPACE_PROTOCOL_HTTP)).thenReturn(Result.success(V_08));
+        when(protocolParser.parse(DATASPACE_PROTOCOL_HTTP)).thenReturn(Result.success(V_MOCK));
         when(registry.transform(message, JsonObject.class))
                 .thenReturn(Result.success(json));
         when(mapper.writeValueAsString(any(JsonObject.class))).thenThrow(JsonProcessingException.class);

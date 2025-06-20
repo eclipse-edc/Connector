@@ -16,6 +16,7 @@ package org.eclipse.edc.protocol.dsp.catalog.transform.to;
 
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,8 +26,8 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -35,6 +36,8 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToCatalogRequestMessageTransformerTest {
 
+    private static final JsonLdNamespace DSP_NAMESPACE = new JsonLdNamespace("http://www.w3.org/ns/dsp#");
+
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock();
 
@@ -42,7 +45,7 @@ class JsonObjectToCatalogRequestMessageTransformerTest {
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectToCatalogRequestMessageTransformer();
+        transformer = new JsonObjectToCatalogRequestMessageTransformer(DSP_NAMESPACE);
     }
 
     @Test
@@ -52,8 +55,8 @@ class JsonObjectToCatalogRequestMessageTransformerTest {
         when(context.transform(querySpecJson, QuerySpec.class)).thenReturn(querySpec);
 
         var message = jsonFactory.createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI)
-                .add(DSPACE_PROPERTY_FILTER_IRI, querySpecJson)
+                .add(TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_FILTER_TERM), querySpecJson)
                 .build();
 
         var result = transformer.transform(message, context);

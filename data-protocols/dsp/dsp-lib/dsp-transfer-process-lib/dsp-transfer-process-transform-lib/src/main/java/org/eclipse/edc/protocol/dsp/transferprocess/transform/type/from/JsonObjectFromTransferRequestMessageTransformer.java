@@ -28,7 +28,6 @@ import java.util.Optional;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID_TERM;
@@ -39,10 +38,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAn
 public class JsonObjectFromTransferRequestMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<TransferRequestMessage, JsonObject> {
 
     private final JsonBuilderFactory jsonBuilderFactory;
-
-    public JsonObjectFromTransferRequestMessageTransformer(JsonBuilderFactory jsonBuilderFactory) {
-        this(jsonBuilderFactory, DSP_NAMESPACE_V_08);
-    }
 
     public JsonObjectFromTransferRequestMessageTransformer(JsonBuilderFactory jsonBuilderFactory, JsonLdNamespace namespace) {
         super(TransferRequestMessage.class, JsonObject.class, namespace);

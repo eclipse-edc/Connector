@@ -24,7 +24,6 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.ACCEPTED;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.FINALIZED;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_EVENT_TYPE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_EVENT_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_EVENT_TYPE_ACCEPTED_TERM;
@@ -36,10 +35,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
  * Creates a {@link ContractNegotiationEventMessage} from a {@link JsonObject}.
  */
 public class JsonObjectToContractNegotiationEventMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, ContractNegotiationEventMessage> {
-
-    public JsonObjectToContractNegotiationEventMessageTransformer() {
-        this(DSP_NAMESPACE_V_08);
-    }
 
     public JsonObjectToContractNegotiationEventMessageTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, ContractNegotiationEventMessage.class, namespace);
