@@ -22,7 +22,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry;
-import org.eclipse.edc.policy.engine.spi.PolicyValidatorFunction;
+import org.eclipse.edc.policy.engine.spi.PolicyValidatorRule;
 import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.engine.spi.plan.step.AndConstraintStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.AtomicConstraintStep;
@@ -271,7 +271,7 @@ public class TestFunctions {
         var duty = DutyStep.Builder.newInstance().constraint(xoneConstraintStep).rule(mock()).build();
         var prohibition = ProhibitionStep.Builder.newInstance().constraint(andConstraintStep).rule(mock()).build();
 
-        var validatorFunction = mock(PolicyValidatorFunction.class);
+        var validatorFunction = mock(PolicyValidatorRule.class);
         when(validatorFunction.name()).thenReturn("FunctionName");
 
         return PolicyEvaluationPlan.Builder.newInstance()

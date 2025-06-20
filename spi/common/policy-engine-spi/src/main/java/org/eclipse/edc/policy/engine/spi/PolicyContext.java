@@ -41,28 +41,6 @@ public interface PolicyContext {
     List<String> getProblems();
 
     /**
-     * Gets additional data from the context by type.
-     *
-     * @param type the type class.
-     * @param <T> the type of data.
-     * @return the object associated with the type, or null.
-     * @deprecated implementations should add specific get methods
-     */
-    @Deprecated(since = "0.10.0")
-    <T> T getContextData(Class<T> type);
-
-    /**
-     * Adds additional data to the context.
-     *
-     * @param type the type class.
-     * @param data the data.
-     * @param <T> the type of data.
-     * @deprecated implementations should add specific set methods
-     */
-    @Deprecated(since = "0.10.0")
-    <T> void putContextData(Class<T> type, T data);
-
-    /**
      * The policy scope
      *
      * @return the policy scope.

@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.policy.engine.spi.plan.step;
 
-import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
+import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Rule;
 
@@ -26,7 +26,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  * An evaluation step for {@link AtomicConstraint}.
  * <p>
  * The {@link AtomicConstraintStep} should be considered filtered when the left expression is not bound to a
- * scope or an evaluation function {@link AtomicConstraintFunction}
+ * scope or an evaluation function {@link AtomicConstraintRuleFunction}
  */
 public record AtomicConstraintStep(AtomicConstraint constraint,
                                    List<String> filteringReasons,

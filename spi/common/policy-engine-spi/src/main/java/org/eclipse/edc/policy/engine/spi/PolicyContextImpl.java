@@ -19,16 +19,13 @@ package org.eclipse.edc.policy.engine.spi;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Default context implementation.
  */
 public abstract class PolicyContextImpl implements PolicyContext {
     private final List<String> problems = new ArrayList<>();
-    private final Map<Class<?>, Object> additional = new HashMap<>();
 
     protected PolicyContextImpl() {
     }
@@ -48,46 +45,5 @@ public abstract class PolicyContextImpl implements PolicyContext {
         return problems;
     }
 
-    @Override
-    @SuppressWarnings("unchecked")
-    public <T> T getContextData(Class<T> type) {
-        return (T) additional.get(type);
-    }
 
-    @Override
-    public <T> void putContextData(Class<T> type, T data) {
-        additional.put(type, data);
-    }
-
-    @Deprecated(since = "0.10.0")
-    public static class Builder {
-
-        private final PolicyContextImpl context = new PolicyContextImpl() {
-
-            @Override
-            public String scope() {
-                return "";
-            }
-        };
-
-        private Builder() {
-
-        }
-
-        @Deprecated(since = "0.10.0")
-        public static Builder newInstance() {
-            return new Builder();
-        }
-
-        @Deprecated(since = "0.10.0")
-        public Builder additional(Class<?> clazz, Object object) {
-            context.additional.put(clazz, object);
-            return this;
-        }
-
-        @Deprecated(since = "0.10.0")
-        public PolicyContext build() {
-            return context;
-        }
-    }
 }

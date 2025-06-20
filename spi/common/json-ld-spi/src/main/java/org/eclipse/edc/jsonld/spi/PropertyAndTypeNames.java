@@ -34,8 +34,6 @@ public interface PropertyAndTypeNames {
     String DCAT_CATALOG_ATTRIBUTE = DCAT_SCHEMA + "catalog";
     String DCAT_DISTRIBUTION_ATTRIBUTE = DCAT_SCHEMA + "distribution";
     String DCAT_ACCESS_SERVICE_ATTRIBUTE = DCAT_SCHEMA + "accessService";
-    @Deprecated(since = "0.10.0")
-    String DCAT_ENDPOINT_URL_OLD_ATTRIBUTE = DCAT_SCHEMA + "endpointUrl";
     String DCAT_ENDPOINT_URL_ATTRIBUTE = DCAT_SCHEMA + "endpointURL";
     String DCAT_ENDPOINT_DESCRIPTION_ATTRIBUTE = DCAT_SCHEMA + "endpointDescription";
 
