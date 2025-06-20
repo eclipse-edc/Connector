@@ -23,9 +23,9 @@ import org.eclipse.edc.sql.translation.SqlQueryStatement;
 import static java.lang.String.format;
 
 /**
- * Postgres-specific variants and implementations of the statements required for the TransferProcessStore
+ * Sql generic variants and implementations of the statements required for the TransferProcessStore
  */
-public abstract class BaseSqlDialectStatements implements TransferProcessStoreStatements {
+public class BaseSqlDialectStatements implements TransferProcessStoreStatements {
 
     protected final SqlOperatorTranslator operatorTranslator;
 
@@ -62,7 +62,7 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
     }
 
     @Override
-    public String getInsertStatement() {
+    public String getUpsertStatement() {
         return executeStatement()
                 .column(getIdColumn())
                 .column(getStateColumn())
@@ -89,39 +89,12 @@ public abstract class BaseSqlDialectStatements implements TransferProcessStoreSt
                 .column(getAssetIdColumn())
                 .column(getContractIdColumn())
                 .jsonColumn(getDataDestinationColumn())
-                .insertInto(getTransferProcessTableName());
+                .upsertInto(getTransferProcessTableName(), getIdColumn());
     }
 
     @Override
     public String getDeleteTransferProcessTemplate() {
         return executeStatement().delete(getTransferProcessTableName(), getIdColumn());
-    }
-
-    @Override
-    public String getUpdateTransferProcessTemplate() {
-        return executeStatement()
-                .column(getStateColumn())
-                .column(getStateCountColumn())
-                .column(getStateTimestampColumn())
-                .column(getUpdatedAtColumn())
-                .jsonColumn(getTraceContextColumn())
-                .column(getErrorDetailColumn())
-                .jsonColumn(getResourceManifestColumn())
-                .jsonColumn(getProvisionedResourceSetColumn())
-                .jsonColumn(getContentDataAddressColumn())
-                .jsonColumn(getDeprovisionedResourcesColumn())
-                .jsonColumn(getCallbackAddressesColumn())
-                .column(getPendingColumn())
-                .column(getTransferTypeColumn())
-                .jsonColumn(getProtocolMessagesColumn())
-                .column(getDataPlaneIdColumn())
-                .column(getCorrelationIdColumn())
-                .column(getCounterPartyAddressColumn())
-                .column(getProtocolColumn())
-                .column(getAssetIdColumn())
-                .column(getContractIdColumn())
-                .jsonColumn(getDataDestinationColumn())
-                .update(getTransferProcessTableName(), getIdColumn());
     }
 
     @Override

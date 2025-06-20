@@ -37,9 +37,7 @@ public interface DataPlaneInstanceStatements extends StatefulEntityStatements, L
 
     String getAllTemplate();
 
-    String getInsertTemplate();
-
-    String getUpdateTemplate();
+    String getUpsertTemplate();
 
     String getSelectTemplate();
 
