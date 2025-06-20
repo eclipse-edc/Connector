@@ -32,6 +32,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transform.v2024.from.TestFunctionV2024.DSP_NAMESPACE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transform.v2024.from.TestFunctionV2024.toIri;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -45,7 +46,7 @@ class JsonObjectFromTransferSuspensionMessageV2024TransformerTest {
     private final TransformerContext context = mock();
 
     private final JsonObjectFromTransferSuspensionMessageV2024Transformer transformer =
-            new JsonObjectFromTransferSuspensionMessageV2024Transformer(jsonFactory);
+            new JsonObjectFromTransferSuspensionMessageV2024Transformer(jsonFactory, DSP_NAMESPACE);
 
     @Test
     void transformTransferSuspensionMessage() {

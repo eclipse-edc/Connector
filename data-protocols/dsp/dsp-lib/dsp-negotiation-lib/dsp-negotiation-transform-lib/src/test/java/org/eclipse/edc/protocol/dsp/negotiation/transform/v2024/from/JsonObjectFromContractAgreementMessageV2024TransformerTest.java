@@ -37,6 +37,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.TestFunction2024.DSP_NAMESPACE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.TestFunction2024.toIri;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP_TERM;
@@ -61,9 +62,8 @@ class JsonObjectFromContractAgreementMessageV2024TransformerTest {
     private static final String DSP = "dsp";
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock();
-
     private final JsonObjectFromContractAgreementMessageV2024Transformer transformer =
-            new JsonObjectFromContractAgreementMessageV2024Transformer(jsonFactory);
+            new JsonObjectFromContractAgreementMessageV2024Transformer(jsonFactory, DSP_NAMESPACE);
 
     @BeforeEach
     void setUp() {

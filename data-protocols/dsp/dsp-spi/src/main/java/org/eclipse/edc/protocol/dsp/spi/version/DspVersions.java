@@ -17,10 +17,6 @@ package org.eclipse.edc.protocol.dsp.spi.version;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersion;
 
 public interface DspVersions {
-
-    String V_2024_1_VERSION = "2024/1";
-    String V_2024_1_PATH = "/" + V_2024_1_VERSION;
-    ProtocolVersion V_2024_1 = new ProtocolVersion(V_2024_1_VERSION, V_2024_1_PATH);
     
     String V_2025_1_VERSION = "2025-1";
     String V_2025_1_PATH = "/" + V_2025_1_VERSION;

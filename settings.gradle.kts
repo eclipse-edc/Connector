@@ -116,6 +116,7 @@ include(":data-protocols:dsp:dsp-08:dsp-transfer-process-08:dsp-transfer-process
 
 // dsp version 2024/1
 include(":data-protocols:dsp:dsp-2024")
+include(":data-protocols:dsp:dsp-2024:dsp-spi-2024")
 include(":data-protocols:dsp:dsp-2024:dsp-http-api-configuration-2024")
 include(":data-protocols:dsp:dsp-2024:dsp-http-dispatcher-2024")
 include(":data-protocols:dsp:dsp-2024:dsp-catalog-2024")

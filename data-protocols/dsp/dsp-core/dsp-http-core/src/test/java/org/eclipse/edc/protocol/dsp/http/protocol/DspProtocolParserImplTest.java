@@ -17,7 +17,6 @@ package org.eclipse.edc.protocol.dsp.http.protocol;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersion;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersions;
-import org.eclipse.edc.protocol.dsp.spi.version.DspVersions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,13 +25,13 @@ import java.util.List;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.protocol.dsp.http.TestFixtures.V_MOCK;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP_V_2024_1;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class DspProtocolParserImplTest {
 
     private static final ProtocolVersion V_MOCK_NEW = new ProtocolVersion("2024/1", "/2024/1");
+    private static final String MOCK_PROTOCOL_HTTP = "dataspace-protocol-http:2024/1";
     private final ProtocolVersionRegistry protocolVersionRegistry = mock();
     private final DspProtocolParserImpl parser = new DspProtocolParserImpl(protocolVersionRegistry);
     private final ProtocolVersions protocolVersions = new ProtocolVersions(List.of(V_MOCK, V_MOCK_NEW));
@@ -51,8 +50,8 @@ public class DspProtocolParserImplTest {
 
     @Test
     void shouldParseProtocolWithVersion() {
-        assertThat(parser.parse(DATASPACE_PROTOCOL_HTTP_V_2024_1)).isSucceeded()
-                .isEqualTo(DspVersions.V_2024_1);
+        assertThat(parser.parse(MOCK_PROTOCOL_HTTP)).isSucceeded()
+                .isEqualTo(V_MOCK_NEW);
     }
 
     @Test

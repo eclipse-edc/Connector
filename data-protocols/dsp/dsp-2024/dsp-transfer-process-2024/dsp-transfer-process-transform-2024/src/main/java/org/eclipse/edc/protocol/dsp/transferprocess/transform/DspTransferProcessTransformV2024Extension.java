@@ -37,8 +37,8 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.util.Map;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2024_1;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_2024_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2024Constants.DSP_NAMESPACE_V_2024_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2024Constants.DSP_TRANSFORMER_CONTEXT_V_2024_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
@@ -78,12 +78,12 @@ public class DspTransferProcessTransformV2024Extension implements ServiceExtensi
         dspRegistry.register(new JsonObjectToTransferTerminationMessageTransformer(DSP_NAMESPACE_V_2024_1));
         dspRegistry.register(new JsonObjectToTransferProcessAckTransformer(DSP_NAMESPACE_V_2024_1));
         dspRegistry.register(new JsonObjectToTransferSuspensionMessageTransformer(typeManager, JSON_LD, DSP_NAMESPACE_V_2024_1));
-        
-        dspRegistry.register(new JsonObjectFromTransferProcessV2024Transformer(builderFactory));
-        dspRegistry.register(new JsonObjectFromTransferRequestMessageV2024Transformer(builderFactory));
-        dspRegistry.register(new JsonObjectFromTransferStartMessageV2024Transformer(builderFactory));
-        dspRegistry.register(new JsonObjectFromTransferCompletionMessageV2024Transformer(builderFactory));
-        dspRegistry.register(new JsonObjectFromTransferTerminationMessageV2024Transformer(builderFactory));
-        dspRegistry.register(new JsonObjectFromTransferSuspensionMessageV2024Transformer(builderFactory));
+
+        dspRegistry.register(new JsonObjectFromTransferProcessV2024Transformer(builderFactory, DSP_NAMESPACE_V_2024_1));
+        dspRegistry.register(new JsonObjectFromTransferRequestMessageV2024Transformer(builderFactory, DSP_NAMESPACE_V_2024_1));
+        dspRegistry.register(new JsonObjectFromTransferStartMessageV2024Transformer(builderFactory, DSP_NAMESPACE_V_2024_1));
+        dspRegistry.register(new JsonObjectFromTransferCompletionMessageV2024Transformer(builderFactory, DSP_NAMESPACE_V_2024_1));
+        dspRegistry.register(new JsonObjectFromTransferTerminationMessageV2024Transformer(builderFactory, DSP_NAMESPACE_V_2024_1));
+        dspRegistry.register(new JsonObjectFromTransferSuspensionMessageV2024Transformer(builderFactory, DSP_NAMESPACE_V_2024_1));
     }
 }

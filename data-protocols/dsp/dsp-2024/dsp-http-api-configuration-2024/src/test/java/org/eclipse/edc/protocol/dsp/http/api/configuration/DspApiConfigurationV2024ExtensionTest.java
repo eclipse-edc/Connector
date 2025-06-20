@@ -36,9 +36,9 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
-import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP_V_2024_1;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_2024_1;
-import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1_PATH;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2024Constants.DATASPACE_PROTOCOL_HTTP_V_2024_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2024Constants.DSP_SCOPE_V_2024_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2024Constants.V_2024_1_PATH;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
@@ -50,9 +50,9 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class DspApiConfigurationV2024ExtensionTest {
-    
+
     private final String webhookUrl = "http://webhook";
-    
+
     private final TypeManager typeManager = mock();
     private final JsonLd jsonLd = mock();
     private final ProtocolWebhookRegistry protocolWebhookRegistry = mock();
@@ -75,7 +75,7 @@ class DspApiConfigurationV2024ExtensionTest {
         when(context.getConfig()).thenReturn(ConfigFactory.empty());
 
         extension.initialize(context);
-        
+
         verify(protocolWebhookRegistry).registerWebhook(eq(DATASPACE_PROTOCOL_HTTP_V_2024_1), argThat(webhook -> webhook.url().equals(webhookUrl + V_2024_1_PATH)));
     }
 
@@ -87,10 +87,10 @@ class DspApiConfigurationV2024ExtensionTest {
         var extension = factory.constructInstance(DspApiConfigurationV2024Extension.class);
 
         extension.initialize(context);
-        
+
         verify(protocolWebhookRegistry).registerWebhook(eq(DATASPACE_PROTOCOL_HTTP_V_2024_1), argThat(webhook -> webhook.url().equals(webhookUrl)));
     }
-    
+
     @Test
     void initialize_shouldRegisterNamespaces(DspApiConfigurationV2024Extension extension, ServiceExtensionContext context) {
         extension.initialize(context);

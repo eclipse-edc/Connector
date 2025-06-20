@@ -30,6 +30,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.TestFunction2024.DSP_NAMESPACE;
 import static org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.TestFunction2024.toIri;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM;
@@ -59,7 +60,7 @@ class JsonObjectFromContractOfferMessageV2024TransformerTest {
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromContractOfferMessageV2024Transformer(jsonFactory);
+        transformer = new JsonObjectFromContractOfferMessageV2024Transformer(jsonFactory, DSP_NAMESPACE);
     }
 
     @Test

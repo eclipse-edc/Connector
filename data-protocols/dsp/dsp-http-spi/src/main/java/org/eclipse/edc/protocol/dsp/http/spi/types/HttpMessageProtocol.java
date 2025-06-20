@@ -24,7 +24,6 @@ public class HttpMessageProtocol {
     // When not explicit the default will be v0.8 for backward compatibility
     public static final String DATASPACE_PROTOCOL_HTTP = "dataspace-protocol-http";
     public static final String DATASPACE_PROTOCOL_HTTP_SEPARATOR = ":";
-    public static final String DATASPACE_PROTOCOL_HTTP_V_2024_1 = DATASPACE_PROTOCOL_HTTP + DATASPACE_PROTOCOL_HTTP_SEPARATOR + DspVersions.V_2024_1_VERSION;
     public static final String DATASPACE_PROTOCOL_HTTP_V_2025_1 = DATASPACE_PROTOCOL_HTTP + DATASPACE_PROTOCOL_HTTP_SEPARATOR + DspVersions.V_2025_1_VERSION;
 
 }

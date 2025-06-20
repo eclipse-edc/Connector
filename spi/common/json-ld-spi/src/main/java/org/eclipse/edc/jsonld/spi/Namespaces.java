@@ -30,7 +30,6 @@ public interface Namespaces {
     String DSPACE_PREFIX = "dspace";
     @Deprecated(since = "0.14.0")
     String DSPACE_SCHEMA = "https://w3id.org/dspace/v0.8/";
-    String DSPACE_SCHEMA_2024_1 = "https://w3id.org/dspace/2024/1/";
 
     String DSPACE_SCHEMA_2025_1 = "https://w3id.org/dspace/2025/1/";
     String DSPACE_CONTEXT_2025_1 = "https://w3id.org/dspace/2025/1/context.jsonld";
