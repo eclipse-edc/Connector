@@ -56,4 +56,14 @@ public interface DataspaceProfileContextRegistry {
      */
     @Nullable
     ProtocolWebhook getWebhook(String protocol);
+
+
+    /**
+     * Get the protocol version for a given protocol.
+     *
+     * @param protocol The protocol name
+     * @return The protocol version, or null if no version is registered for the protocol
+     */
+    @Nullable
+    ProtocolVersion getProtocolVersion(String protocol);
 }

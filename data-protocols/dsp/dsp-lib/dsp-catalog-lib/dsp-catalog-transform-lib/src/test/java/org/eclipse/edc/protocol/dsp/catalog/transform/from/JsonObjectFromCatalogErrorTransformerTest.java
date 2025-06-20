@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.catalog.transform.from;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogError;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,21 +27,21 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_ERROR_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_ERROR_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_TERM;
 import static org.mockito.Mockito.mock;
 
 class JsonObjectFromCatalogErrorTransformerTest {
 
+    private static final JsonLdNamespace DSP_NAMESPACE = new JsonLdNamespace("http://www.w3.org/ns/dsp#");
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
-
     private JsonObjectFromCatalogErrorTransformer transformer;
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromCatalogErrorTransformer(jsonFactory);
+        transformer = new JsonObjectFromCatalogErrorTransformer(jsonFactory, DSP_NAMESPACE);
     }
 
     @Test
@@ -54,8 +55,8 @@ class JsonObjectFromCatalogErrorTransformerTest {
         var result = transformer.transform(error, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CATALOG_ERROR_IRI);
-        assertThat(result.getString(DSPACE_PROPERTY_CODE_IRI)).isEqualTo("code");
-        assertThat(result.getJsonArray(DSPACE_PROPERTY_REASON_IRI)).contains(Json.createValue("message"));
+        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSP_NAMESPACE.toIri(DSPACE_TYPE_CATALOG_ERROR_TERM));
+        assertThat(result.getString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CODE_TERM))).isEqualTo("code");
+        assertThat(result.getJsonArray(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_REASON_TERM))).contains(Json.createValue("message"));
     }
 }

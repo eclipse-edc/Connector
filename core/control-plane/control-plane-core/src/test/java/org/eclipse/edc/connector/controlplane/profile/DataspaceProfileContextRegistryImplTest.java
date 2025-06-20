@@ -71,4 +71,25 @@ class DataspaceProfileContextRegistryImplTest {
             assertThat(result.url()).isEqualTo("url");
         }
     }
+
+    @Nested
+    class GetVersion {
+
+        @Test
+        void shouldReturnNull_whenNoVersionFound() {
+            var result = registry.getProtocolVersion("unexistent");
+
+            assertThat(result).isNull();
+        }
+
+        @Test
+        void shouldReturnVersionForName() {
+            var version = new ProtocolVersion("version name", "/path");
+            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url"));
+
+            var result = registry.getProtocolVersion("profile");
+
+            assertThat(result).isEqualTo(version);
+        }
+    }
 }

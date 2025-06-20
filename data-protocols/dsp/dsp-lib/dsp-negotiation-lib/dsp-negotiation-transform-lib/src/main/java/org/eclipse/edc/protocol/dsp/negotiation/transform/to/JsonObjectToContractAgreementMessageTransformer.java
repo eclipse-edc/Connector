@@ -30,7 +30,6 @@ import java.time.format.DateTimeParseException;
 import java.util.Set;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_ID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_ID_TERM;
@@ -45,10 +44,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
  */
 public class JsonObjectToContractAgreementMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, ContractAgreementMessage> {
     private final Set<String> excludedPolicyKeywords;
-
-    public JsonObjectToContractAgreementMessageTransformer() {
-        this(DSP_NAMESPACE_V_08);
-    }
 
     public JsonObjectToContractAgreementMessageTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, ContractAgreementMessage.class, namespace);
@@ -102,7 +97,7 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractNam
 
         var callbackAddress = transformString(jsonAgreement.get(forNamespace(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM)), context);
         messageBuilder.callbackAddress(callbackAddress);
-        
+
         messageBuilder.contractAgreement(agreement);
 
         return messageBuilder.build();

@@ -27,7 +27,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA_2024_1;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_TERM;
@@ -38,14 +37,11 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectFromDataAddressDspace2024TransformerTest {
 
+    private static final JsonLdNamespace DSP_NAMESPACE = new JsonLdNamespace("http://www.w3.org/ns/dsp#");
     private final TypeManager typeManager = mock();
-
     private final JsonObjectFromDataAddressDspace2024Transformer transformer = new JsonObjectFromDataAddressDspace2024Transformer(
-            Json.createBuilderFactory(Map.of()), typeManager, "test");
+            Json.createBuilderFactory(Map.of()), typeManager, "test", DSP_NAMESPACE);
     private final TransformerContext context = mock();
-
-
-    private final JsonLdNamespace namespace = new JsonLdNamespace(DSPACE_SCHEMA_2024_1);
 
     @BeforeEach
     void setup() {
@@ -64,19 +60,19 @@ class JsonObjectFromDataAddressDspace2024TransformerTest {
         var jsonObject = transformer.transform(dataAddress, context);
 
         assertThat(jsonObject).isNotNull();
-        assertThat(jsonObject.getJsonObject(namespace.toIri(ENDPOINT_TYPE_PROPERTY_TERM)).getString(ID)).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
-        assertThat(jsonObject.get(namespace.toIri(ENDPOINT_PROPERTY_TERM))).isEqualTo(null);
-        assertThat(jsonObject.getJsonArray(namespace.toIri(ENDPOINT_PROPERTIES_PROPERTY_TERM))).hasSize(3)
+        assertThat(jsonObject.getJsonObject(DSP_NAMESPACE.toIri(ENDPOINT_TYPE_PROPERTY_TERM)).getString(ID)).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
+        assertThat(jsonObject.get(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTY_TERM))).isEqualTo(null);
+        assertThat(jsonObject.getJsonArray(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTIES_PROPERTY_TERM))).hasSize(3)
                 .anySatisfy(jv -> {
-                    assertThat(jv.asJsonObject().getString(namespace.toIri(ENDPOINT_PROPERTY_NAME_PROPERTY_TERM))).isEqualTo("authorization");
-                    assertThat(jv.asJsonObject().getString(namespace.toIri(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM))).isEqualTo("secret-token");
+                    assertThat(jv.asJsonObject().getString(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTY_NAME_PROPERTY_TERM))).isEqualTo("authorization");
+                    assertThat(jv.asJsonObject().getString(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM))).isEqualTo("secret-token");
                 }).anySatisfy(jv -> {
-                    assertThat(jv.asJsonObject().getString(namespace.toIri(ENDPOINT_PROPERTY_NAME_PROPERTY_TERM))).isEqualTo("foo");
-                    assertThat(jv.asJsonObject().getString(namespace.toIri(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM))).isEqualTo("bar");
+                    assertThat(jv.asJsonObject().getString(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTY_NAME_PROPERTY_TERM))).isEqualTo("foo");
+                    assertThat(jv.asJsonObject().getString(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM))).isEqualTo("bar");
                 })
                 .anySatisfy(jv -> {
-                    assertThat(jv.asJsonObject().getString(namespace.toIri(ENDPOINT_PROPERTY_NAME_PROPERTY_TERM))).isEqualTo("endpoint");
-                    assertThat(jv.asJsonObject().getString(namespace.toIri(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM))).isEqualTo("https://example.com");
+                    assertThat(jv.asJsonObject().getString(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTY_NAME_PROPERTY_TERM))).isEqualTo("endpoint");
+                    assertThat(jv.asJsonObject().getString(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM))).isEqualTo("https://example.com");
                 });
     }
 
@@ -92,10 +88,10 @@ class JsonObjectFromDataAddressDspace2024TransformerTest {
         var jsonObject = transformer.transform(dataAddress, context);
 
         assertThat(jsonObject).isNotNull();
-        assertThat(jsonObject.getJsonArray(namespace.toIri(ENDPOINT_PROPERTIES_PROPERTY_TERM)))
+        assertThat(jsonObject.getJsonArray(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTIES_PROPERTY_TERM)))
                 .anySatisfy(jv -> {
-                    assertThat(jv.asJsonObject().getString(namespace.toIri(ENDPOINT_PROPERTY_NAME_PROPERTY_TERM))).isEqualTo("foo");
-                    assertThat(jv.asJsonObject().getJsonObject(namespace.toIri(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM)))
+                    assertThat(jv.asJsonObject().getString(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTY_NAME_PROPERTY_TERM))).isEqualTo("foo");
+                    assertThat(jv.asJsonObject().getJsonObject(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM)))
                             .containsKey("complexObj");
                 });
     }

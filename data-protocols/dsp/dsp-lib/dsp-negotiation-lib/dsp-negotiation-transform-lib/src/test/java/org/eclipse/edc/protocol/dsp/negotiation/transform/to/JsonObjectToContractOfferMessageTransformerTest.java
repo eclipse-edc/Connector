@@ -18,6 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
@@ -30,11 +31,11 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -46,6 +47,7 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToContractOfferMessageTransformerTest {
 
+    private static final JsonLdNamespace DSP_NAMESPACE = new JsonLdNamespace("http://www.w3.org/ns/dsp#");
     private static final String CALLBACK_ADDRESS = "https://test.com";
     private static final String MESSAGE_ID = "messageId";
     private static final String ASSET_ID = "assetId";
@@ -54,7 +56,7 @@ class JsonObjectToContractOfferMessageTransformerTest {
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock();
 
-    private final JsonObjectToContractOfferMessageTransformer transformer = new JsonObjectToContractOfferMessageTransformer();
+    private final JsonObjectToContractOfferMessageTransformer transformer = new JsonObjectToContractOfferMessageTransformer(DSP_NAMESPACE);
 
     @BeforeEach
     void setUp() {
@@ -65,11 +67,11 @@ class JsonObjectToContractOfferMessageTransformerTest {
     void transform_shouldReturnMessage_whenValidJsonObject() {
         var message = jsonFactory.createObjectBuilder()
                 .add(ID, MESSAGE_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI)
-                .add(DSPACE_PROPERTY_CONSUMER_PID_IRI, "consumerPid")
-                .add(DSPACE_PROPERTY_PROVIDER_PID_IRI, "providerPid")
-                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI, CALLBACK_ADDRESS)
-                .add(DSPACE_PROPERTY_OFFER_IRI, jsonFactory.createObjectBuilder()
+                .add(JsonLdKeywords.TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM), "consumerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM), "providerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM), CALLBACK_ADDRESS)
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_OFFER_TERM), jsonFactory.createObjectBuilder()
                         .add(ID, CONTRACT_OFFER_ID)
                         .build())
                 .build();
@@ -99,9 +101,9 @@ class JsonObjectToContractOfferMessageTransformerTest {
     void transform_shouldReportProblem_whenMissingProcessId() {
         var message = jsonFactory.createObjectBuilder()
                 .add(ID, MESSAGE_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI)
-                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI, CALLBACK_ADDRESS)
-                .add(DSPACE_PROPERTY_OFFER_IRI, jsonFactory.createObjectBuilder()
+                .add(JsonLdKeywords.TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM), CALLBACK_ADDRESS)
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_OFFER_TERM), jsonFactory.createObjectBuilder()
                         .add(ID, CONTRACT_OFFER_ID)
                         .build())
                 .build();
@@ -116,10 +118,10 @@ class JsonObjectToContractOfferMessageTransformerTest {
     void transform_shouldReportProblem_whenMissingContractOffer() {
         var message = jsonFactory.createObjectBuilder()
                 .add(ID, MESSAGE_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI)
-                .add(DSPACE_PROPERTY_CONSUMER_PID_IRI, "consumerPid")
-                .add(DSPACE_PROPERTY_PROVIDER_PID_IRI, "providerPid")
-                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI, CALLBACK_ADDRESS)
+                .add(JsonLdKeywords.TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM), "consumerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM), "providerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM), CALLBACK_ADDRESS)
                 .build();
 
         var result = transformer.transform(message, context);
@@ -132,11 +134,11 @@ class JsonObjectToContractOfferMessageTransformerTest {
     void transform_shouldReportProblem_whenMissingContractOfferId() {
         var message = jsonFactory.createObjectBuilder()
                 .add(ID, MESSAGE_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI)
-                .add(DSPACE_PROPERTY_CONSUMER_PID_IRI, "consumerPid")
-                .add(DSPACE_PROPERTY_PROVIDER_PID_IRI, "providerPid")
-                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI, CALLBACK_ADDRESS)
-                .add(DSPACE_PROPERTY_OFFER_IRI, jsonFactory.createObjectBuilder().build())
+                .add(JsonLdKeywords.TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM), "consumerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM), "providerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM), CALLBACK_ADDRESS)
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_OFFER_TERM), jsonFactory.createObjectBuilder().build())
                 .build();
         var policy = policy();
 
@@ -152,11 +154,11 @@ class JsonObjectToContractOfferMessageTransformerTest {
     void transform_shouldReportProblem_whenPolicyTransformationFails() {
         var message = jsonFactory.createObjectBuilder()
                 .add(ID, MESSAGE_ID)
-                .add(JsonLdKeywords.TYPE, DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_IRI)
-                .add(DSPACE_PROPERTY_CONSUMER_PID_IRI, "consumerPid")
-                .add(DSPACE_PROPERTY_PROVIDER_PID_IRI, "providerPid")
-                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI, CALLBACK_ADDRESS)
-                .add(DSPACE_PROPERTY_OFFER_IRI, jsonFactory.createObjectBuilder()
+                .add(JsonLdKeywords.TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM), "consumerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM), "providerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM), CALLBACK_ADDRESS)
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_OFFER_TERM), jsonFactory.createObjectBuilder()
                         .add(ID, CONTRACT_OFFER_ID)
                         .build())
                 .build();
