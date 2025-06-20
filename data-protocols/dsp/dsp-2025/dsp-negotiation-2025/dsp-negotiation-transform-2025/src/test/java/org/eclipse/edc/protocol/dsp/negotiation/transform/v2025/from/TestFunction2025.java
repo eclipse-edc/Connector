@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.protocol.dsp.negotiation.transform.v2025.from;
 
-import org.eclipse.edc.protocol.dsp.spi.type.DspConstants;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
 
 public class TestFunction2025 {
 
     public static String toIri(String term) {
-        return DspConstants.DSP_NAMESPACE_V_2025_1.toIri(term);
+        return DSP_NAMESPACE_V_2025_1.toIri(term);
     }
 }

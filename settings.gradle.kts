@@ -131,6 +131,7 @@ include(":data-protocols:dsp:dsp-2024:dsp-transfer-process-2024:dsp-transfer-pro
 
 // dsp version 2025/1
 include(":data-protocols:dsp:dsp-2025")
+include(":data-protocols:dsp:dsp-2025:dsp-spi-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-http-api-configuration-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-http-dispatcher-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-catalog-2025")

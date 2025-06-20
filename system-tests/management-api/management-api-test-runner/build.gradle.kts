@@ -21,6 +21,7 @@ dependencies {
     // gives access to the Json LD models, etc.
     testImplementation(project(":spi:common:json-ld-spi"))
     testImplementation(project(":data-protocols:dsp:dsp-spi"))
+    testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
     testImplementation(project(":spi:control-plane:asset-spi"))
     testImplementation(project(":spi:control-plane:contract-spi"))
     testImplementation(project(":spi:data-plane-selector:data-plane-selector-spi"))

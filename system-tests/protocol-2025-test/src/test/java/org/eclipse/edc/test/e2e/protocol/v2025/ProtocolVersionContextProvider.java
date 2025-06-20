@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_CONTEXT_2025_1;
 import static org.eclipse.edc.jsonld.spi.Namespaces.EDC_DSPACE_CONTEXT;
-import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2025_1_PATH;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.V_2025_1_PATH;
 
 public class ProtocolVersionContextProvider implements ArgumentsProvider {
     @Override

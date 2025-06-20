@@ -26,21 +26,21 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.negotiation.http.api.controller.BaseDspNegotiationApiController;
-import org.eclipse.edc.protocol.dsp.spi.version.DspVersions;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
-import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.CONTRACT_OFFERS;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.INITIAL_CONTRACT_OFFERS;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2025_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.V_2025_1_PATH;
 
 /**
  * Versioned Negotiation endpoint for 2024/1 protocol version
  */
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
-@Path(DspVersions.V_2025_1_PATH + BASE_PATH)
+@Path(V_2025_1_PATH + BASE_PATH)
 public class DspNegotiationApiController20251 extends BaseDspNegotiationApiController {
 
     public DspNegotiationApiController20251(ContractNegotiationProtocolService protocolService, DspRequestHandler dspRequestHandler) {

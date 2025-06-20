@@ -31,7 +31,6 @@ public interface Namespaces {
     @Deprecated(since = "0.14.0")
     String DSPACE_SCHEMA = "https://w3id.org/dspace/v0.8/";
 
-    String DSPACE_SCHEMA_2025_1 = "https://w3id.org/dspace/2025/1/";
     String DSPACE_CONTEXT_2025_1 = "https://w3id.org/dspace/2025/1/context.jsonld";
     String DSPACE_ODRL_PROFILE_2025_1 = "https://w3id.org/dspace/2025/1/odrl-profile.jsonld";
 
