@@ -14,8 +14,7 @@
 
 package org.eclipse.edc.policy.engine;
 
-import org.eclipse.edc.policy.engine.spi.AtomicConstraintFunction;
-import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintFunction;
+import org.eclipse.edc.policy.engine.spi.AtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
@@ -151,7 +150,7 @@ class PolicyEngineImplValidationTest {
     @ArgumentsSource(PolicyProvider.class)
     void validate_withDynamicFunction(Policy policy, Class<Rule> ruleClass, String key) {
 
-        DynamicAtomicConstraintFunction<Rule> function = mock();
+        DynamicAtomicConstraintRuleFunction<Rule, PolicyContext> function = mock();
 
         when(function.canHandle(key)).thenReturn(true);
 
@@ -170,7 +169,7 @@ class PolicyEngineImplValidationTest {
     @ArgumentsSource(PolicyProvider.class)
     void validate_shouldFail_whenSkippingDynamicFunction(Policy policy, Class<Rule> ruleClass, String key) {
 
-        DynamicAtomicConstraintFunction<Rule> function = mock();
+        DynamicAtomicConstraintRuleFunction<Rule, PolicyContext> function = mock();
 
         when(function.canHandle(key)).thenReturn(false);
 
@@ -189,7 +188,7 @@ class PolicyEngineImplValidationTest {
     @ArgumentsSource(PolicyProvider.class)
     void validate_shouldFails_withDynamicFunction(Policy policy, Class<Rule> ruleClass, String key) {
 
-        DynamicAtomicConstraintFunction<Rule> function = mock();
+        DynamicAtomicConstraintRuleFunction<Rule, PolicyContext> function = mock();
 
         when(function.canHandle(key)).thenReturn(true);
 
@@ -209,7 +208,7 @@ class PolicyEngineImplValidationTest {
     @ArgumentsSource(PolicyProvider.class)
     void validate_shouldFail_whenFunctionValidationFails(Policy policy, Class<Rule> ruleClass, String key) {
 
-        AtomicConstraintFunction<Rule> function = mock();
+        AtomicConstraintRuleFunction<Rule, PolicyContext> function = mock();
 
         when(function.validate(any(), any(), any())).thenReturn(Result.failure("Function validation failure"));
 
@@ -232,7 +231,7 @@ class PolicyEngineImplValidationTest {
         var permission = Permission.Builder.newInstance().constraint(constraint).action(Action.Builder.newInstance().type("use").build()).build();
 
         var policy = Policy.Builder.newInstance().permission(permission).build();
-        AtomicConstraintFunction<Permission> function = mock();
+        AtomicConstraintRuleFunction<Permission, PolicyContext> function = mock();
 
         when(function.validate(any(), any(), any())).thenReturn(Result.success());
 

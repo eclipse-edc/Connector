@@ -174,7 +174,7 @@ public interface CatalogApiV3 {
                         "@id": "5e839777-d93e-4785-8972-1005f51cf367",
                         "@type": "dcat:DataService",
                         "dct:terms": "connector",
-                        "dct:endpointUrl": "http://localhost:16806/protocol"
+                        "dcat:endpointURL": "http://localhost:16806/protocol"
                     },
                     "dspace:participantId": "urn:connector:provider",
                     "@context": {
