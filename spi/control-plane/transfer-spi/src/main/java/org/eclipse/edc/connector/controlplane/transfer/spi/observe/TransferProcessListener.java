@@ -32,7 +32,9 @@ public interface TransferProcessListener {
      * {@link TransferProcessStates#INITIAL INITIAL}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
+     * @deprecated will be removed soon.
      */
+    @Deprecated(since = "0.14.0")
     default void preCreated(TransferProcess process) {
     }
 
@@ -41,7 +43,9 @@ public interface TransferProcessListener {
      * {@link TransferProcessStates#PROVISIONING PROVISIONING}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
+     * @deprecated will be removed soon.
      */
+    @Deprecated(since = "0.14.0")
     default void preProvisioning(TransferProcess process) {
     }
 
@@ -50,7 +54,9 @@ public interface TransferProcessListener {
      * {@link TransferProcessStates#PROVISIONED PROVISIONED}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
+     * @deprecated will be removed soon.
      */
+    @Deprecated(since = "0.14.0")
     default void preProvisioned(TransferProcess process) {
     }
 
@@ -59,7 +65,9 @@ public interface TransferProcessListener {
      * {@link TransferProcessStates#REQUESTING REQUESTING}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
+     * @deprecated will be removed soon.
      */
+    @Deprecated(since = "0.14.0")
     default void preRequesting(TransferProcess process) {
     }
 
@@ -68,7 +76,9 @@ public interface TransferProcessListener {
      * {@link TransferProcessStates#REQUESTED REQUESTED}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
+     * @deprecated will be removed soon.
      */
+    @Deprecated(since = "0.14.0")
     default void preRequested(TransferProcess process) {
     }
 
@@ -77,7 +87,9 @@ public interface TransferProcessListener {
      * {@link TransferProcessStates#STARTED}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
+     * @deprecated will be removed soon.
      */
+    @Deprecated(since = "0.14.0")
     default void preStarted(TransferProcess process) {
     }
 
@@ -86,7 +98,9 @@ public interface TransferProcessListener {
      * {@link TransferProcessStates#COMPLETED COMPLETED}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
+     * @deprecated will be removed soon.
      */
+    @Deprecated(since = "0.14.0")
     default void preCompleted(TransferProcess process) {
     }
 
@@ -95,7 +109,9 @@ public interface TransferProcessListener {
      * {@link TransferProcessStates#DEPROVISIONING DEPROVISIONING}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
+     * @deprecated will be removed soon.
      */
+    @Deprecated(since = "0.14.0")
     default void preDeprovisioning(TransferProcess process) {
     }
 
@@ -104,7 +120,9 @@ public interface TransferProcessListener {
      * {@link TransferProcessStates#DEPROVISIONED DEPROVISIONED}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
+     * @deprecated will be removed soon.
      */
+    @Deprecated(since = "0.14.0")
     default void preDeprovisioned(TransferProcess process) {
     }
 
@@ -113,7 +131,9 @@ public interface TransferProcessListener {
      * {@link TransferProcessStates#TERMINATED}, but before the change is persisted.
      *
      * @param process the transfer process whose state has changed.
+     * @deprecated will be removed soon.
      */
+    @Deprecated(since = "0.14.0")
     default void preTerminated(TransferProcess process) {
     }
 
