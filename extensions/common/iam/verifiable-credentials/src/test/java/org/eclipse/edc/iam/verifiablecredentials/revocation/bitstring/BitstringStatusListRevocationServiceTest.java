@@ -82,7 +82,7 @@ class BitstringStatusListRevocationServiceTest {
         var bitstring = BitString.Builder.newInstance().size(1024 * 16).build();
         bitstring.set(index, value != 0);
 
-        return "u" + BitString.Writer.newInstance().encoder(Base64.getUrlEncoder().withoutPadding()).write(bitstring).getContent();
+        return BitString.Writer.newInstance().encoder(Base64.getUrlEncoder().withoutPadding()).writeMultibase(bitstring).getContent();
     }
 
     @Nested
