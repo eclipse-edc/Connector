@@ -18,11 +18,12 @@ package org.eclipse.edc.test.e2e.protocol;
 import io.restassured.http.ContentType;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersion;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.eclipse.edc.util.io.Ports;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -46,8 +47,8 @@ class DspVersionApiEndToEndTest {
 
     @Test
     void shouldReturnValidJson() {
-        runtime.getService(ProtocolVersionRegistry.class)
-                .register(new ProtocolVersion("1.0", "/v1/path"));
+        runtime.getService(DataspaceProfileContextRegistry.class)
+                .register(new DataspaceProfileContext("profile", new ProtocolVersion("1.0", "/v1/path"), () -> "url"));
 
         var response = given()
                 .port(PROTOCOL_PORT)

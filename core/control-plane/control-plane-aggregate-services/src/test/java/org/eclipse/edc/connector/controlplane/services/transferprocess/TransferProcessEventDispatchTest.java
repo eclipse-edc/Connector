@@ -41,6 +41,7 @@ import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
@@ -50,7 +51,6 @@ import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -83,7 +83,7 @@ import static org.mockito.Mockito.when;
 public class TransferProcessEventDispatchTest {
 
     public static final Duration TIMEOUT = Duration.ofSeconds(30);
-    private static final ProtocolWebhookRegistry PROTOCOL_WEBHOOK_REGISTRY = mock(ProtocolWebhookRegistry.class);
+    private static final DataspaceProfileContextRegistry DATASPACE_PROFILE_CONTEXT_REGISTRY = mock(DataspaceProfileContextRegistry.class);
 
     @RegisterExtension
     static final RuntimeExtension RUNTIME = new RuntimePerClassExtension()
@@ -93,7 +93,7 @@ public class TransferProcessEventDispatchTest {
             ))
             .registerServiceMock(TransferWaitStrategy.class, () -> 1)
             .registerServiceMock(IdentityService.class, mock())
-            .registerServiceMock(ProtocolWebhookRegistry.class, PROTOCOL_WEBHOOK_REGISTRY)
+            .registerServiceMock(DataspaceProfileContextRegistry.class, DATASPACE_PROFILE_CONTEXT_REGISTRY)
             .registerServiceMock(PolicyArchive.class, mock())
             .registerServiceMock(ContractNegotiationStore.class, mock())
             .registerServiceMock(ParticipantAgentService.class, mock())
@@ -103,7 +103,7 @@ public class TransferProcessEventDispatchTest {
 
     @BeforeEach
     void setup() {
-        when(PROTOCOL_WEBHOOK_REGISTRY.resolve(any())).thenReturn(() -> "http://dummy");
+        when(DATASPACE_PROFILE_CONTEXT_REGISTRY.getWebhook(any())).thenReturn(() -> "http://dummy");
     }
 
     @Test

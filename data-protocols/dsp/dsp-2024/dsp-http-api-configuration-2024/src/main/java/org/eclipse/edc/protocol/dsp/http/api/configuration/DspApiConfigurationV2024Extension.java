@@ -23,10 +23,11 @@ import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFrom
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.protocol.dsp.http.spi.api.DspBaseWebhookAddress;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -53,6 +54,7 @@ import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DA
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_2024_1;
+import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1;
 import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1_PATH;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
@@ -82,7 +84,7 @@ public class DspApiConfigurationV2024Extension implements ServiceExtension {
     @Inject
     private DspBaseWebhookAddress dspWebhookAddress;
     @Inject
-    private ProtocolWebhookRegistry protocolWebhookRegistry;
+    private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
 
     @Override
     public String name() {
@@ -93,7 +95,7 @@ public class DspApiConfigurationV2024Extension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var v2024Path = dspWebhookAddress.get() + (wellKnownPathEnabled ? "" : V_2024_1_PATH);
 
-        protocolWebhookRegistry.registerWebhook(DATASPACE_PROTOCOL_HTTP_V_2024_1, () -> v2024Path);
+        dataspaceProfileContextRegistry.registerDefault(new DataspaceProfileContext(DATASPACE_PROTOCOL_HTTP_V_2024_1, V_2024_1, () -> v2024Path));
 
         // registers ns for DSP scope
         registerNamespaces();

@@ -24,8 +24,8 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.statemachine.AbstractStateEntityManager;
@@ -48,7 +48,7 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
     protected RemoteMessageDispatcherRegistry dispatcherRegistry;
     protected ContractNegotiationObservable observable;
     protected PolicyDefinitionStore policyStore;
-    protected ProtocolWebhookRegistry protocolWebhookRegistry;
+    protected DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
     protected ContractNegotiationPendingGuard pendingGuard = it -> false;
 
     abstract ContractNegotiation.Type type();
@@ -252,8 +252,8 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
             return this;
         }
 
-        public Builder<T> protocolWebhookRegistry(ProtocolWebhookRegistry protocolWebhookRegistry) {
-            manager.protocolWebhookRegistry = protocolWebhookRegistry;
+        public Builder<T> dataspaceProfileContextRegistry(DataspaceProfileContextRegistry dataspaceProfileContextRegistry) {
+            manager.dataspaceProfileContextRegistry = dataspaceProfileContextRegistry;
             return this;
         }
 

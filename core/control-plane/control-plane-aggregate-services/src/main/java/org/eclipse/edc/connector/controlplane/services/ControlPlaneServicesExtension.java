@@ -55,7 +55,6 @@ import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.C
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
@@ -74,6 +73,7 @@ import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPoli
 import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestVersionPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -182,7 +182,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     private ProtocolTokenValidator protocolTokenValidator;
 
     @Inject
-    private ProtocolVersionRegistry protocolVersionRegistry;
+    private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
 
     @Inject
     private TransferTypeParser transferTypeParser;
@@ -283,7 +283,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Provider
     public VersionProtocolService versionProtocolService() {
-        return new VersionProtocolServiceImpl(protocolVersionRegistry);
+        return new VersionProtocolServiceImpl(dataspaceProfileContextRegistry);
     }
 
     @Provider

@@ -34,6 +34,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.retry.TransferWaitStr
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedContentResource;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -42,7 +43,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -113,7 +113,7 @@ public class TransferCoreExtension implements ServiceExtension {
     private TypeTransformerRegistry typeTransformerRegistry;
 
     @Inject
-    private ProtocolWebhookRegistry protocolWebhookRegistry;
+    private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
 
     @Inject
     private TransferProcessPendingGuard pendingGuard;
@@ -161,7 +161,7 @@ public class TransferCoreExtension implements ServiceExtension {
                 .batchSize(stateMachineConfiguration.batchSize())
                 .addressResolver(addressResolver)
                 .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
-                .protocolWebhookRegistry(protocolWebhookRegistry)
+                .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
                 .provisionResponsesHandler(provisionResponsesHandler)
                 .deprovisionResponsesHandler(deprovisionResponsesHandler)
                 .pendingGuard(pendingGuard)

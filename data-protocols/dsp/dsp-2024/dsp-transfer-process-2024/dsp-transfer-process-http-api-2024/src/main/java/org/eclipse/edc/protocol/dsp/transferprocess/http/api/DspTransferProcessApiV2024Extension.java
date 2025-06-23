@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.protocol.dsp.transferprocess.http.api;
 
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
@@ -24,6 +23,7 @@ import org.eclipse.edc.protocol.dsp.transferprocess.validation.TransferCompletio
 import org.eclipse.edc.protocol.dsp.transferprocess.validation.TransferRequestMessageValidator;
 import org.eclipse.edc.protocol.dsp.transferprocess.validation.TransferStartMessageValidator;
 import org.eclipse.edc.protocol.dsp.transferprocess.validation.TransferTerminationMessageValidator;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -40,7 +40,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAn
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_TERM;
-import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
@@ -59,7 +58,7 @@ public class DspTransferProcessApiV2024Extension implements ServiceExtension {
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
     @Inject
-    private ProtocolVersionRegistry versionRegistry;
+    private DataspaceProfileContextRegistry versionRegistry;
     @Inject
     private JsonLd jsonLd;
     @Inject
@@ -71,8 +70,6 @@ public class DspTransferProcessApiV2024Extension implements ServiceExtension {
         
         webService.registerResource(ApiContext.PROTOCOL, new DspTransferProcessApiController20241(transferProcessProtocolService, dspRequestHandler));
         webService.registerDynamicResource(ApiContext.PROTOCOL, DspTransferProcessApiController20241.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, DSP_SCOPE_V_2024_1));
-
-        versionRegistry.register(V_2024_1);
     }
 
     private void registerValidators() {

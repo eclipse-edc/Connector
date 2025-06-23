@@ -46,9 +46,9 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
@@ -145,7 +145,7 @@ class TransferProcessManagerImplTest {
     private final Vault vault = mock();
     private final Clock clock = Clock.systemUTC();
     private final TransferProcessListener listener = mock();
-    private final ProtocolWebhookRegistry protocolWebhookRegistry = mock();
+    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
     private final DataAddressResolver addressResolver = mock();
     private final ProvisionResponsesHandler provisionResponsesHandler = mock();
     private final DeprovisionResponsesHandler deprovisionResponsesHandler = mock();
@@ -156,7 +156,7 @@ class TransferProcessManagerImplTest {
 
     @BeforeEach
     void setup() {
-        when(protocolWebhookRegistry.resolve(any())).thenReturn(() -> protocolWebhookUrl);
+        when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> protocolWebhookUrl);
         when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponseBuilder().build()));
         when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().build());
         var observable = new TransferProcessObservableImpl();
@@ -177,7 +177,7 @@ class TransferProcessManagerImplTest {
                 .vault(vault)
                 .addressResolver(addressResolver)
                 .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
-                .protocolWebhookRegistry(protocolWebhookRegistry)
+                .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
                 .provisionResponsesHandler(provisionResponsesHandler)
                 .deprovisionResponsesHandler(deprovisionResponsesHandler)
                 .pendingGuard(pendingGuard)

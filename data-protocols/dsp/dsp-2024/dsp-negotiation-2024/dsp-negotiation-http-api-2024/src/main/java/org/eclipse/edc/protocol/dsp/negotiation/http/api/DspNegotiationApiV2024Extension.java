@@ -16,7 +16,6 @@
 package org.eclipse.edc.protocol.dsp.negotiation.http.api;
 
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.negotiation.http.api.controller.DspNegotiationApiController20241;
@@ -26,6 +25,7 @@ import org.eclipse.edc.protocol.dsp.negotiation.validation.ContractNegotiationEv
 import org.eclipse.edc.protocol.dsp.negotiation.validation.ContractNegotiationTerminationMessageValidator;
 import org.eclipse.edc.protocol.dsp.negotiation.validation.ContractOfferMessageValidator;
 import org.eclipse.edc.protocol.dsp.negotiation.validation.ContractRequestMessageValidator;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -44,7 +44,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTyp
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM;
-import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
@@ -64,7 +63,7 @@ public class DspNegotiationApiV2024Extension implements ServiceExtension {
     @Inject
     private DspRequestHandler dspRequestHandler;
     @Inject
-    private ProtocolVersionRegistry versionRegistry;
+    private DataspaceProfileContextRegistry versionRegistry;
 
     @Inject
     private JsonLd jsonLd;
@@ -83,8 +82,6 @@ public class DspNegotiationApiV2024Extension implements ServiceExtension {
         
         webService.registerResource(ApiContext.PROTOCOL, new DspNegotiationApiController20241(protocolService, dspRequestHandler));
         webService.registerDynamicResource(ApiContext.PROTOCOL, DspNegotiationApiController20241.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, DSP_SCOPE_V_2024_1));
-
-        versionRegistry.register(V_2024_1);
     }
 
 

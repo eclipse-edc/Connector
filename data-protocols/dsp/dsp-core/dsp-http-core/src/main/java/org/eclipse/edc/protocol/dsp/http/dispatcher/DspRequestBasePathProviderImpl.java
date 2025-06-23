@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.protocol.dsp.http.dispatcher;
 
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersion;
 import org.eclipse.edc.protocol.dsp.http.spi.DspProtocolParser;
 import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspRequestBasePathProvider;
+import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 

@@ -19,11 +19,11 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersions;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionsError;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
+import org.eclipse.edc.protocol.spi.ProtocolVersions;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;

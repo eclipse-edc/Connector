@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.protocol.dsp.http.protocol;
 
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersions;
 import org.eclipse.edc.protocol.dsp.spi.version.DspVersions;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolVersions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -30,13 +30,13 @@ import static org.mockito.Mockito.when;
 
 public class DspProtocolParserImplTest {
 
-    private final ProtocolVersionRegistry protocolVersionRegistry = mock();
-    private final DspProtocolParserImpl parser = new DspProtocolParserImpl(protocolVersionRegistry);
+    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
+    private final DspProtocolParserImpl parser = new DspProtocolParserImpl(dataspaceProfileContextRegistry);
     private final ProtocolVersions protocolVersions = new ProtocolVersions(List.of(DspVersions.V_08, DspVersions.V_2024_1));
 
     @BeforeEach
     void beforeEach() {
-        when(protocolVersionRegistry.getAll()).thenReturn(protocolVersions);
+        when(dataspaceProfileContextRegistry.getProtocolVersions()).thenReturn(protocolVersions);
     }
 
     @Test

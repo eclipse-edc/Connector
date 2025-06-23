@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.http.spi;
 
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersion;
+import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.eclipse.edc.spi.result.Result;
 
 /**

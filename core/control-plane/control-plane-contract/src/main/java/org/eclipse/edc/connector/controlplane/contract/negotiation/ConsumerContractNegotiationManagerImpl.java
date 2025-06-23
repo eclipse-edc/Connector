@@ -113,7 +113,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     @WithSpan
     private boolean processRequesting(ContractNegotiation negotiation) {
 
-        var callbackAddress = protocolWebhookRegistry.resolve(negotiation.getProtocol());
+        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol());
 
         if (callbackAddress != null) {
             var type = ContractRequestMessage.Type.INITIAL;

@@ -18,7 +18,7 @@ import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.protocol.dsp.http.spi.api.DspBaseWebhookAddress;
-import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -43,7 +43,6 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -55,14 +54,14 @@ class DspApiConfigurationV2024ExtensionTest {
     
     private final TypeManager typeManager = mock();
     private final JsonLd jsonLd = mock();
-    private final ProtocolWebhookRegistry protocolWebhookRegistry = mock();
+    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
         context.registerService(TypeManager.class, typeManager);
         context.registerService(JsonLd.class, jsonLd);
         context.registerService(DspBaseWebhookAddress.class, () -> webhookUrl);
-        context.registerService(ProtocolWebhookRegistry.class, protocolWebhookRegistry);
+        context.registerService(DataspaceProfileContextRegistry.class, dataspaceProfileContextRegistry);
         TypeTransformerRegistry typeTransformerRegistry = mock();
         when(typeTransformerRegistry.forContext(any())).thenReturn(mock());
         context.registerService(TypeTransformerRegistry.class, typeTransformerRegistry);
@@ -76,7 +75,8 @@ class DspApiConfigurationV2024ExtensionTest {
 
         extension.initialize(context);
         
-        verify(protocolWebhookRegistry).registerWebhook(eq(DATASPACE_PROTOCOL_HTTP_V_2024_1), argThat(webhook -> webhook.url().equals(webhookUrl + V_2024_1_PATH)));
+        verify(dataspaceProfileContextRegistry).registerDefault(argThat(it ->
+                it.name().equals(DATASPACE_PROTOCOL_HTTP_V_2024_1) && it.webhook().url().equals(webhookUrl + V_2024_1_PATH)));
     }
 
     @Test
@@ -87,8 +87,9 @@ class DspApiConfigurationV2024ExtensionTest {
         var extension = factory.constructInstance(DspApiConfigurationV2024Extension.class);
 
         extension.initialize(context);
-        
-        verify(protocolWebhookRegistry).registerWebhook(eq(DATASPACE_PROTOCOL_HTTP_V_2024_1), argThat(webhook -> webhook.url().equals(webhookUrl)));
+
+        verify(dataspaceProfileContextRegistry).registerDefault(argThat(it ->
+                it.name().equals(DATASPACE_PROTOCOL_HTTP_V_2024_1) && it.webhook().url().equals(webhookUrl)));
     }
     
     @Test
