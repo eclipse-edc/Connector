@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.services.spi.protocol;
+package org.eclipse.edc.protocol.spi;
 
 /**
  * Supported dataspace protocol version

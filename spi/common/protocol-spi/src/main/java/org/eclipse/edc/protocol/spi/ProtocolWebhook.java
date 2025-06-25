@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,12 +12,15 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.services.spi.protocol;
+package org.eclipse.edc.protocol.spi;
 
-import java.util.List;
+@FunctionalInterface
+public interface ProtocolWebhook {
 
-/**
- * Wrapper class that represent a {@link List} of {@link ProtocolVersion}
- */
-public record ProtocolVersions(List<ProtocolVersion> protocolVersions) {
+    /**
+     * Provides the protocol webhook url, where the counterparties can send protocol messages.
+     *
+     * @return the protocol webhook url
+     */
+    String url();
 }

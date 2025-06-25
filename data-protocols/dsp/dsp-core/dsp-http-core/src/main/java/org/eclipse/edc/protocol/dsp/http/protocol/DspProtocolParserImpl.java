@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.protocol.dsp.http.protocol;
 
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersion;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.protocol.dsp.http.spi.DspProtocolParser;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.eclipse.edc.spi.result.Result;
 
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
@@ -25,10 +25,10 @@ import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_08;
 
 public class DspProtocolParserImpl implements DspProtocolParser {
 
-    private final ProtocolVersionRegistry versionRegistry;
+    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
 
-    public DspProtocolParserImpl(ProtocolVersionRegistry versionRegistry) {
-        this.versionRegistry = versionRegistry;
+    public DspProtocolParserImpl(DataspaceProfileContextRegistry dataspaceProfileContextRegistry) {
+        this.dataspaceProfileContextRegistry = dataspaceProfileContextRegistry;
     }
 
     @Override
@@ -45,7 +45,7 @@ public class DspProtocolParserImpl implements DspProtocolParser {
         }
         var protocolVersion = protocolWithVersion[1];
 
-        return versionRegistry.getAll().protocolVersions()
+        return dataspaceProfileContextRegistry.getProtocolVersions().protocolVersions()
                 .stream().filter(protoVersion -> protoVersion.version().equals(protocolVersion))
                 .findFirst()
                 .map(Result::success)

@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.core;
 
 import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.connector.core.agent.ParticipantAgentServiceImpl;
-import org.eclipse.edc.connector.core.protocol.ProtocolWebhookRegistryImpl;
 import org.eclipse.edc.connector.core.validator.DataAddressValidatorRegistryImpl;
 import org.eclipse.edc.http.client.ControlApiHttpClientImpl;
 import org.eclipse.edc.http.spi.ControlApiHttpClient;
@@ -33,7 +32,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -101,11 +99,6 @@ public class CoreServicesExtension implements ServiceExtension {
     @Provider
     public ControlApiHttpClient controlApiHttpClient() {
         return new ControlApiHttpClientImpl(edcHttpClient, controlClientAuthenticationProvider);
-    }
-    
-    @Provider
-    public ProtocolWebhookRegistry protocolWebhookRegistry() {
-        return new ProtocolWebhookRegistryImpl();
     }
 
 }

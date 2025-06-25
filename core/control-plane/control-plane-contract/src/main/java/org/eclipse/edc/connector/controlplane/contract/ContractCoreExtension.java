@@ -39,6 +39,7 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionS
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.Permission;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -48,7 +49,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.retry.WaitStrategy;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -129,7 +129,7 @@ public class ContractCoreExtension implements ServiceExtension {
     private RuleBindingRegistry ruleBindingRegistry;
 
     @Inject
-    private ProtocolWebhookRegistry protocolWebhookRegistry;
+    private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
 
     @Inject
     private ContractNegotiationObservable observable;
@@ -213,7 +213,7 @@ public class ContractCoreExtension implements ServiceExtension {
                 .policyStore(policyStore)
                 .batchSize(consumerStateMachineConfiguration.batchSize())
                 .entityRetryProcessConfiguration(consumerStateMachineConfiguration.entityRetryProcessConfiguration())
-                .protocolWebhookRegistry(protocolWebhookRegistry)
+                .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
                 .pendingGuard(pendingGuard)
                 .build();
 
@@ -230,7 +230,7 @@ public class ContractCoreExtension implements ServiceExtension {
                 .policyStore(policyStore)
                 .batchSize(providerStateMachineConfiguration.batchSize())
                 .entityRetryProcessConfiguration(providerStateMachineConfiguration.entityRetryProcessConfiguration())
-                .protocolWebhookRegistry(protocolWebhookRegistry)
+                .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
                 .pendingGuard(pendingGuard)
                 .build();
 

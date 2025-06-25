@@ -23,7 +23,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.controlplane.protocolversion.spi.ProtocolVersionRequestMessage;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
@@ -49,6 +48,7 @@ import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.protocol.dsp.http.transform.DspProtocolTypeTransformerRegistryImpl;
 import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -100,17 +100,14 @@ public class DspHttpCoreExtension implements ServiceExtension {
     private TokenDecorator decorator;
     @Inject
     private PolicyEngine policyEngine;
-
     @Inject
     private AudienceResolver audienceResolver;
     @Inject
     private Monitor monitor;
-
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
-
     @Inject
-    private ProtocolVersionRegistry versionRegistry;
+    private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
 
     private DspProtocolTypeTransformerRegistry dspTransformerRegistry;
     private DspProtocolParser dspProtocolParser;
@@ -166,7 +163,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
     @Provider
     public DspProtocolParser dspProtocolParser() {
         if (dspProtocolParser == null) {
-            dspProtocolParser = new DspProtocolParserImpl(versionRegistry);
+            dspProtocolParser = new DspProtocolParserImpl(dataspaceProfileContextRegistry);
         }
         return dspProtocolParser;
     }

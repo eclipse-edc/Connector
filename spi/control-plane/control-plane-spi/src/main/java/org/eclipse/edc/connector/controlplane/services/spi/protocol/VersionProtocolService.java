@@ -15,6 +15,8 @@
 
 package org.eclipse.edc.connector.controlplane.services.spi.protocol;
 
+import org.eclipse.edc.protocol.spi.ProtocolVersion;
+import org.eclipse.edc.protocol.spi.ProtocolVersions;
 import org.eclipse.edc.spi.result.ServiceResult;
 
 /**
