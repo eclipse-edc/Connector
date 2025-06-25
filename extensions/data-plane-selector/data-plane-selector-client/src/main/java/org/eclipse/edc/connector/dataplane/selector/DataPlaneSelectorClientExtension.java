@@ -67,7 +67,7 @@ public class DataPlaneSelectorClientExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var builderFactory = Json.createBuilderFactory(emptyMap());
         typeTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(builderFactory, typeManager, JSON_LD));
-        typeTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(builderFactory));
+        typeTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(builderFactory, typeManager, JSON_LD));
         typeTransformerRegistry.register(new JsonObjectToDataPlaneInstanceTransformer());
         typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
         typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, JSON_LD));

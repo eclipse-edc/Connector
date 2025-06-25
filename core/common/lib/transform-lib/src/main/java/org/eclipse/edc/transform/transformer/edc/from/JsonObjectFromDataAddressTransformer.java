@@ -17,6 +17,7 @@ package org.eclipse.edc.transform.transformer.edc.from;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -28,10 +29,14 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransformer<DataAddress, JsonObject> {
 
     private final JsonBuilderFactory jsonBuilderFactory;
+    private final TypeManager typeManager;
+    private final String typeContext;
 
-    public JsonObjectFromDataAddressTransformer(JsonBuilderFactory jsonBuilderFactory) {
+    public JsonObjectFromDataAddressTransformer(JsonBuilderFactory jsonBuilderFactory, TypeManager mapper, String typeContext) {
         super(DataAddress.class, JsonObject.class);
         this.jsonBuilderFactory = jsonBuilderFactory;
+        this.typeManager = mapper;
+        this.typeContext = typeContext;
     }
 
     @Override
@@ -40,7 +45,7 @@ public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransfor
 
         builder.add(TYPE, EDC_NAMESPACE + "DataAddress");
 
-        dataAddress.getProperties().forEach((key, value) -> builder.add(key, (String) value)); // TODO: handle different types
+        transformProperties(dataAddress.getProperties(), builder, typeManager.getMapper(typeContext), context);
 
         return builder.build();
     }
