@@ -21,10 +21,25 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+
 /**
  * Message that the consumer control plane uses to trigger data flow preparation on the data plane
  */
 public class DataFlowProvisionMessage {
+
+    public static final String EDC_DATA_FLOW_PROVISION_MESSAGE_SIMPLE_TYPE = "DataFlowProvisionMessage";
+    public static final String EDC_DATA_FLOW_PROVISION_MESSAGE_TYPE = EDC_NAMESPACE + EDC_DATA_FLOW_PROVISION_MESSAGE_SIMPLE_TYPE;
+    public static final String EDC_DATA_FLOW_PROVISION_MESSAGE_PROCESS_ID = EDC_NAMESPACE + "processId";
+    public static final String EDC_DATA_FLOW_PROVISION_MESSAGE_DATASET_ID = EDC_NAMESPACE + "datasetId";
+    public static final String EDC_DATA_FLOW_PROVISION_MESSAGE_PARTICIPANT_ID = EDC_NAMESPACE + "participantId";
+    public static final String EDC_DATA_FLOW_PROVISION_MESSAGE_AGREEMENT_ID = EDC_NAMESPACE + "agreementId";
+    public static final String EDC_DATA_FLOW_PROVISION_MESSAGE_DESTINATION = EDC_NAMESPACE + "destination";
+    public static final String EDC_DATA_FLOW_PROVISION_MESSAGE_CALLBACK_ADDRESS = EDC_NAMESPACE + "callbackAddress";
+    public static final String EDC_DATA_FLOW_PROVISION_MESSAGE_PROPERTIES = EDC_NAMESPACE + "properties";
+    public static final String EDC_DATA_FLOW_PROVISION_MESSAGE_FLOW_TYPE = EDC_NAMESPACE + "flowType";
+    public static final String EDC_DATA_FLOW_PROVISION_MESSAGE_TRANSFER_TYPE_DESTINATION = EDC_NAMESPACE + "transferTypeDestination";
+    public static final String EDC_DATA_FLOW_PROVISION_MESSAGE_TRANSFER_RESPONSE_CHANNEL = EDC_NAMESPACE + "responseChannel";
 
     private String id;
     private String processId;

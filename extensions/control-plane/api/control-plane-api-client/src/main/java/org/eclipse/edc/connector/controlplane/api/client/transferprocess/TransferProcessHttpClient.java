@@ -20,16 +20,13 @@ import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.edc.connector.controlplane.api.client.transferprocess.model.TransferProcessFailRequest;
+import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.port.TransferProcessApiClient;
 import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
-
-import java.net.URI;
 
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 
@@ -52,47 +49,41 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
 
     @Override
     public StatusResult<Void> completed(DataFlowStartMessage dataFlowStartMessage) {
-        return sendRequest(dataFlowStartMessage, "complete", null);
+        var url = dataFlowStartMessage.getCallbackAddress() + "/transferprocess/" + dataFlowStartMessage.getProcessId() + "/complete";
+        return sendRequest(url, null);
     }
 
     @Override
     public StatusResult<Void> failed(DataFlowStartMessage dataFlowStartMessage, String reason) {
-        return sendRequest(dataFlowStartMessage, "fail", TransferProcessFailRequest.Builder.newInstance().errorMessage(reason).build());
+        var url = dataFlowStartMessage.getCallbackAddress() + "/transferprocess/" + dataFlowStartMessage.getProcessId() + "/fail";
+        var body = TransferProcessFailRequest.Builder.newInstance().errorMessage(reason).build();
+        return sendRequest(url, body);
     }
 
     @Override
-    public Result<Void> provisioned(String id, DataAddress newAddress) {
-        return Result.failure("to be implemented");
+    public StatusResult<Void> provisioned(DataFlow dataFlow) {
+        var url = dataFlow.getCallbackAddress() + "/transferprocess/" + dataFlow.getId() + "/provisioned";
+        return sendRequest(url, dataFlow.provisionedDataAddress());
     }
 
-    private StatusResult<Void> sendRequest(DataFlowStartMessage dataFlowStartMessage, String action, Object body) {
-        if (dataFlowStartMessage.getCallbackAddress() != null) {
-            try {
-                var builder = new Request.Builder()
-                        .url(buildUrl(dataFlowStartMessage, action))
-                        .post(createRequestBody(body));
+    private StatusResult<Void> sendRequest(String url, Object body) {
+        try {
+            var builder = new Request.Builder()
+                    .url(url)
+                    .post(createRequestBody(body));
 
-                var result = httpClient.execute(builder);
-                if (result.failed()) {
-                    var message = "Failed to send callback request: %s".formatted(result.getFailureDetail());
-                    monitor.severe(message);
-                    return StatusResult.failure(ERROR_RETRY, message);
-                }
-            } catch (Exception e) {
-                monitor.severe("Failed to send callback request", e);
-                return StatusResult.failure(ERROR_RETRY, "Failed to send callback request: " + e.getMessage());
+            var result = httpClient.execute(builder);
+            if (result.failed()) {
+                var message = "Failed to send callback request: %s".formatted(result.getFailureDetail());
+                monitor.severe(message);
+                return StatusResult.failure(ERROR_RETRY, message);
             }
-        } else {
-            monitor.warning(String.format("Missing callback address in DataFlowRequest %s", dataFlowStartMessage.getId()));
+        } catch (Exception e) {
+            monitor.severe("Failed to send callback request", e);
+            return StatusResult.failure(ERROR_RETRY, "Failed to send callback request: " + e.getMessage());
         }
-        return StatusResult.success();
-    }
 
-    @NotNull
-    private String buildUrl(DataFlowStartMessage dataFlowStartMessage, String action) {
-        var callbackAddress = dataFlowStartMessage.getCallbackAddress();
-        var url = URI.create(callbackAddress + "/").resolve(String.format("./transferprocess/%s/%s", dataFlowStartMessage.getProcessId(), action)).normalize();
-        return url.toString();
+        return StatusResult.success();
     }
 
     private @NotNull RequestBody createRequestBody(Object body) throws JsonProcessingException {

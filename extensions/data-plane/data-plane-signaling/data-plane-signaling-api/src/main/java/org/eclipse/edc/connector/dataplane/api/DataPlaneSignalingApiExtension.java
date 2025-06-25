@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.api;
 
 import jakarta.json.Json;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowResponseMessageTransformer;
+import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowProvisionMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowStartMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowSuspendMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowTerminateMessageTransformer;
@@ -62,6 +63,7 @@ public class DataPlaneSignalingApiExtension implements ServiceExtension {
 
         var signalingApiTypeTransformerRegistry = transformerRegistry.forContext("signaling-api");
         signalingApiTypeTransformerRegistry.register(new JsonObjectToDataFlowStartMessageTransformer());
+        signalingApiTypeTransformerRegistry.register(new JsonObjectToDataFlowProvisionMessageTransformer());
         signalingApiTypeTransformerRegistry.register(new JsonObjectToDataFlowSuspendMessageTransformer());
         signalingApiTypeTransformerRegistry.register(new JsonObjectToDataFlowTerminateMessageTransformer());
         signalingApiTypeTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer());

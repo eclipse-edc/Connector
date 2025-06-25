@@ -636,8 +636,27 @@ class TransferProcessManagerImplTest {
 
     @Nested
     class InitialConsumer {
+
         @Test
-        void initial_consumer_shouldTransitionToProvisioning() {
+        void shouldTransitionToTerminated_whenNoPolicyFound() {
+            var transferProcess = createTransferProcess(INITIAL);
+            when(dataFlowManager.provision(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
+                    .thenReturn(List.of(transferProcess))
+                    .thenReturn(emptyList());
+            when(policyArchive.findPolicyForContract(anyString())).thenReturn(null);
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+                verifyNoInteractions(provisionManager);
+                verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATED.code()));
+            });
+        }
+
+        @Test
+        void shouldTransitionToProvisioning_whenLegacyControlPaneProvisioning() {
             var transferProcess = createTransferProcess(INITIAL);
             when(dataFlowManager.provision(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
@@ -654,11 +673,12 @@ class TransferProcessManagerImplTest {
                 verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
                 verifyNoInteractions(provisionManager);
                 verify(transferProcessStore).save(argThat(p -> p.getState() == PROVISIONING.code()));
+                verify(dataFlowManager, never()).provision(any(), any());
             });
         }
 
         @Test
-        void initial_consumer_manifestEvaluationFailed_shouldTransitionToTerminated() {
+        void shouldTransitionToTerminated_whenLegacyManifestEvaluationFailed() {
             var transferProcess = createTransferProcess(INITIAL);
             when(dataFlowManager.provision(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
@@ -667,24 +687,6 @@ class TransferProcessManagerImplTest {
                     .thenReturn(emptyList());
             when(manifestGenerator.generateConsumerResourceManifest(any(TransferProcess.class), any(Policy.class)))
                     .thenReturn(Result.failure("error"));
-
-            manager.start();
-
-            await().untilAsserted(() -> {
-                verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-                verifyNoInteractions(provisionManager);
-                verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATED.code()));
-            });
-        }
-
-        @Test
-        void initial_consumer_shouldTransitionToTerminated_whenNoPolicyFound() {
-            var transferProcess = createTransferProcess(INITIAL);
-            when(dataFlowManager.provision(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
-            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
-                    .thenReturn(List.of(transferProcess))
-                    .thenReturn(emptyList());
-            when(policyArchive.findPolicyForContract(anyString())).thenReturn(null);
 
             manager.start();
 
@@ -706,13 +708,15 @@ class TransferProcessManagerImplTest {
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
                     .thenReturn(List.of(transferProcess))
                     .thenReturn(emptyList());
+            when(manifestGenerator.generateConsumerResourceManifest(any(TransferProcess.class), any(Policy.class)))
+                    .thenReturn(Result.success(ResourceManifest.Builder.newInstance().build()));
             when(dataFlowManager.provision(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
 
             manager.start();
 
             await().untilAsserted(() -> {
                 verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-                verifyNoInteractions(provisionManager, manifestGenerator);
+                verifyNoInteractions(provisionManager);
                 var captor = ArgumentCaptor.forClass(TransferProcess.class);
                 verify(transferProcessStore).save(captor.capture());
                 var storedTransferProcess = captor.getValue();
@@ -732,13 +736,15 @@ class TransferProcessManagerImplTest {
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
                     .thenReturn(List.of(transferProcess))
                     .thenReturn(emptyList());
+            when(manifestGenerator.generateConsumerResourceManifest(any(TransferProcess.class), any(Policy.class)))
+                    .thenReturn(Result.success(ResourceManifest.Builder.newInstance().build()));
             when(dataFlowManager.provision(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
 
             manager.start();
 
             await().untilAsserted(() -> {
                 verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-                verifyNoInteractions(provisionManager, manifestGenerator);
+                verifyNoInteractions(provisionManager);
                 var captor = ArgumentCaptor.forClass(TransferProcess.class);
                 verify(transferProcessStore).save(captor.capture());
                 var storedTransferProcess = captor.getValue();

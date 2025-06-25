@@ -46,7 +46,7 @@ public interface DataPlaneManager extends StateEntityManager {
      * @param request the request.
      * @return success if the provisioning went through, failed otherwise.
      */
-    Result<DataFlowResponseMessage> provision(DataFlowProvisionMessage request);
+    StatusResult<DataFlowResponseMessage> provision(DataFlowProvisionMessage request);
 
     /**
      * Starts a transfer for the data flow request. This method is non-blocking with respect to processing the request.

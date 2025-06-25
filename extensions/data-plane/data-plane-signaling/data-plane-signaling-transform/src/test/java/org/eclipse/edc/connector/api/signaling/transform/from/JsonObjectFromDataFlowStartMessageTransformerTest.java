@@ -30,13 +30,13 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.DC_DATA_FLOW_START_MESSAGE_PROCESS_ID;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_AGREEMENT_ID;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_CALLBACK_ADDRESS;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_DATASET_ID;
-import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_DESTINATION_CALLBACK_ADDRESS;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_DESTINATION_DATA_ADDRESS;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_FLOW_TYPE;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_PARTICIPANT_ID;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_PROCESS_ID;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION;
@@ -76,11 +76,11 @@ class JsonObjectFromDataFlowStartMessageTransformerTest {
 
         assertThat(jsonObject).isNotNull();
         assertThat(jsonObject.getJsonString(TYPE).getString()).isEqualTo(EDC_DATA_FLOW_START_MESSAGE_TYPE);
-        assertThat(jsonObject.getJsonString(DC_DATA_FLOW_START_MESSAGE_PROCESS_ID).getString()).isEqualTo(message.getProcessId());
+        assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_PROCESS_ID).getString()).isEqualTo(message.getProcessId());
         assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_DATASET_ID).getString()).isEqualTo(message.getAssetId());
         assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_AGREEMENT_ID).getString()).isEqualTo(message.getAgreementId());
         assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_PARTICIPANT_ID).getString()).isEqualTo(message.getParticipantId());
-        assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_DESTINATION_CALLBACK_ADDRESS).getString()).isEqualTo(message.getCallbackAddress().toString());
+        assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_CALLBACK_ADDRESS).getString()).isEqualTo(message.getCallbackAddress().toString());
         assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION).getString()).isEqualTo("HttpData");
         assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_FLOW_TYPE).getString()).isEqualTo(message.getFlowType().toString());
         assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL).getString()).isEqualTo("Websocket");

@@ -39,6 +39,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.test.e2e.Runtimes;
 import org.eclipse.edc.test.e2e.TransferEndToEndParticipant;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -72,62 +73,113 @@ public class ProvisioningTransferConsumerEndToEndTest {
             .name("provider")
             .id("urn:connector:provider")
             .build();
+
     private static final int DESTINATION_BACKEND_PORT = getFreePort();
 
-    @RegisterExtension
-    @Order(0)
-    private final RuntimeExtension consumerControlPlane = new RuntimePerMethodExtension(
-            Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("consumer-control-plane")
-                    .configurationProvider(CONSUMER::controlPlaneEmbeddedDataPlaneConfig)
-                    .registerSystemExtension(ServiceExtension.class, new TestConsumerProvisionerExtension())
-    );
+    @Nested
+    class EmbeddedDataPlaneInMemory extends Tests {
 
-    @RegisterExtension
-    @Order(0)
-    private final RuntimeExtension providerControlPlane = new RuntimePerMethodExtension(
-            Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("provider-control-plane")
-                    .configurationProvider(PROVIDER::controlPlaneEmbeddedDataPlaneConfig)
-    );
-
-    @Test
-    void shouldExecuteConsumerProvisioningAndDeprovisioning() {
-        var source = ClientAndServer.startClientAndServer(getFreePort());
-        source.when(request("/source")).respond(response("data"));
-        var destination = ClientAndServer.startClientAndServer(DESTINATION_BACKEND_PORT);
-        destination.when(request()).respond(response());
-        destination.when(request("/deprovision")).respond(response());
-
-        var assetId = UUID.randomUUID().toString();
-        var sourceDataAddress = Map.<String, Object>of(
-                EDC_NAMESPACE + "name", "transfer-test",
-                EDC_NAMESPACE + "baseUrl", "http://localhost:%d/source".formatted(source.getPort()),
-                EDC_NAMESPACE + "type", "HttpData"
+        @RegisterExtension
+        private final RuntimeExtension consumerControlPlane = new RuntimePerMethodExtension(
+                Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("consumer-control-plane")
+                        .configurationProvider(CONSUMER::controlPlaneEmbeddedDataPlaneConfig)
+                        .registerSystemExtension(ServiceExtension.class, new TestConsumerProvisionerExtension())
         );
 
-        createResourcesOnProvider(assetId, sourceDataAddress);
+        @RegisterExtension
+        private final RuntimeExtension providerControlPlane = new RuntimePerMethodExtension(
+                Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("provider-control-plane")
+                        .configurationProvider(PROVIDER::controlPlaneEmbeddedDataPlaneConfig)
+        );
 
-        var consumerTransferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
-                .withTransferType("HttpData-PUSH")
-                .withDestination(createObjectBuilder()
-                        .add(TYPE, EDC_NAMESPACE + "DataAddress")
-                        .add(EDC_NAMESPACE + "type", "HttpData")
-                        .add(EDC_NAMESPACE + "baseUrl", "http://localhost:%d/destination".formatted(destination.getPort()))
-                        .build()
-                )
-                .execute();
+        @Override
+        protected DataPlaneStore consumerDataPlaneStore() {
+            return consumerControlPlane.getService(DataPlaneStore.class);
+        }
+    }
 
-        CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, COMPLETED);
+    @Nested
+    class InMemory extends Tests {
 
-        destination.verify(request().withHeader("provisionHeader", "value"));
+        @RegisterExtension
+        @Order(0)
+        private final RuntimeExtension consumerControlPlane = new RuntimePerMethodExtension(
+                Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane")
+                        .configurationProvider(CONSUMER::controlPlaneConfig)
+        );
 
-        await().untilAsserted(() -> destination.verify(request("/deprovision")));
-        await().untilAsserted(() -> {
-            var dataFlow = consumerControlPlane.getService(DataPlaneStore.class).findById(consumerTransferProcessId);
-            assertThat(dataFlow).isNotNull().extracting(StatefulEntity::getState).isEqualTo(DataFlowStates.DEPROVISIONED.code());
-        });
+        @RegisterExtension
+        @Order(1)
+        private final RuntimeExtension consumerDataPlane = new RuntimePerMethodExtension(
+                Runtimes.IN_MEMORY_DATA_PLANE.create("consumer-data-plane")
+                        .configurationProvider(CONSUMER::dataPlaneConfig)
+                        .registerSystemExtension(ServiceExtension.class, new TestConsumerProvisionerExtension())
+        );
 
-        source.stop();
-        destination.stop();
+        @RegisterExtension
+        @Order(0)
+        private final RuntimeExtension providerControlPlane = new RuntimePerMethodExtension(
+                Runtimes.IN_MEMORY_CONTROL_PLANE.create("provider-control-plane")
+                        .configurationProvider(PROVIDER::controlPlaneConfig)
+        );
+
+        @RegisterExtension
+        @Order(1)
+        private final RuntimeExtension providerDataPlane = new RuntimePerMethodExtension(
+                Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane")
+                        .configurationProvider(PROVIDER::dataPlaneConfig)
+        );
+
+        @Override
+        protected DataPlaneStore consumerDataPlaneStore() {
+            return consumerDataPlane.getService(DataPlaneStore.class);
+        }
+    }
+
+    abstract class Tests {
+        @Test
+        void shouldExecuteConsumerProvisioningAndDeprovisioning() {
+            var source = ClientAndServer.startClientAndServer(getFreePort());
+            source.when(request("/source")).respond(response("data"));
+            var destination = ClientAndServer.startClientAndServer(DESTINATION_BACKEND_PORT);
+            destination.when(request()).respond(response());
+            destination.when(request("/deprovision")).respond(response());
+
+            var assetId = UUID.randomUUID().toString();
+            var sourceDataAddress = Map.<String, Object>of(
+                    EDC_NAMESPACE + "name", "transfer-test",
+                    EDC_NAMESPACE + "baseUrl", "http://localhost:%d/source".formatted(source.getPort()),
+                    EDC_NAMESPACE + "type", "HttpData"
+            );
+
+            createResourcesOnProvider(assetId, sourceDataAddress);
+
+            var consumerTransferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                    .withTransferType("HttpData-PUSH")
+                    .withDestination(createObjectBuilder()
+                            .add(TYPE, EDC_NAMESPACE + "DataAddress")
+                            .add(EDC_NAMESPACE + "type", "HttpData")
+                            .add(EDC_NAMESPACE + "baseUrl", "http://localhost:%d/destination".formatted(destination.getPort()))
+                            .build()
+                    )
+                    .execute();
+
+            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, COMPLETED);
+
+            destination.verify(request().withHeader("provisionHeader", "value"));
+
+            await().untilAsserted(() -> destination.verify(request("/deprovision")));
+            await().untilAsserted(() -> {
+                var dataFlow = consumerDataPlaneStore().findById(consumerTransferProcessId);
+                assertThat(dataFlow).isNotNull().extracting(StatefulEntity::getState).isEqualTo(DataFlowStates.DEPROVISIONED.code());
+            });
+
+            source.stop();
+            destination.stop();
+        }
+
+        protected abstract DataPlaneStore consumerDataPlaneStore();
+
     }
 
     private void createResourcesOnProvider(String assetId, Map<String, Object> dataAddressProperties) {

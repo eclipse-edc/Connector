@@ -52,23 +52,22 @@ class JsonObjectToDataFlowResponseMessageTransformerTest {
 
     @Test
     void transform() {
-
         var jsonObj = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
                 .add(TYPE, DATA_FLOW_RESPONSE_MESSAGE_SIMPLE_TYPE)
+                .add("provisioning", true)
                 .add("dataAddress", jsonFactory.createObjectBuilder().build())
                 .build();
 
         var message = transformer.transform(getExpanded(jsonObj), context);
 
         assertThat(message).isNotNull();
-
         assertThat(message.getDataAddress()).isNotNull();
+        assertThat(message.isProvisioning()).isTrue();
     }
 
     @Test
     void transform_withoutDataAddress() {
-
         var jsonObj = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
                 .add(TYPE, DATA_FLOW_RESPONSE_MESSAGE_SIMPLE_TYPE)
@@ -77,7 +76,6 @@ class JsonObjectToDataFlowResponseMessageTransformerTest {
         var message = transformer.transform(getExpanded(jsonObj), context);
 
         assertThat(message).isNotNull();
-
         assertThat(message.getDataAddress()).isNull();
     }
 
