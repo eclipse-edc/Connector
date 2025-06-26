@@ -16,6 +16,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transform.to;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to.JsonObjectToTransferStartMessageTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
@@ -24,10 +25,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transform.to.TestInput.getExpanded;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -40,17 +41,18 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToTransferStartMessageTransformerTest {
 
+    private static final JsonLdNamespace DSP_NAMESPACE = new JsonLdNamespace("http://www.w3.org/ns/dsp#");
     private final TransformerContext context = mock();
 
     private final JsonObjectToTransferStartMessageTransformer transformer =
-            new JsonObjectToTransferStartMessageTransformer();
+            new JsonObjectToTransferStartMessageTransformer(DSP_NAMESPACE);
 
     @Test
     void jsonObjectToTransferStartMessage() {
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI)
-                .add(DSPACE_PROPERTY_CONSUMER_PID_IRI, "consumerPid")
-                .add(DSPACE_PROPERTY_PROVIDER_PID_IRI, "providerPid")
+                .add(TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_TRANSFER_START_MESSAGE_TERM))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM), "consumerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM), "providerPid")
                 .build();
 
         var result = transformer.transform(getExpanded(json), context);
@@ -66,7 +68,7 @@ class JsonObjectToTransferStartMessageTransformerTest {
     void shouldReturnNullAndReportError_whenConsumerAndProviderPidNotValid() {
         when(context.problem()).thenReturn(new ProblemBuilder(context));
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI)
+                .add(TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_TRANSFER_START_MESSAGE_TERM))
                 .build();
 
         var result = transformer.transform(getExpanded(json), context);
@@ -79,10 +81,10 @@ class JsonObjectToTransferStartMessageTransformerTest {
     void jsonObjectToTransferStartMessageWithDataAddress() {
         var dataAddressObject = Json.createObjectBuilder().add(EDC_NAMESPACE + "type", "AWS").build();
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI)
-                .add(DSPACE_PROPERTY_CONSUMER_PID_IRI, "consumerPid")
-                .add(DSPACE_PROPERTY_PROVIDER_PID_IRI, "providerPid")
-                .add(DSPACE_PROPERTY_DATA_ADDRESS_IRI, dataAddressObject)
+                .add(TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_TRANSFER_START_MESSAGE_TERM))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM), "consumerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM), "providerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_DATA_ADDRESS_TERM), dataAddressObject)
                 .build();
 
         var dataAddress = DataAddress.Builder.newInstance().type("AWS").build();
@@ -100,10 +102,10 @@ class JsonObjectToTransferStartMessageTransformerTest {
     @Test
     void jsonObjectToTransferStartMessageWithEmptyDataAddress() {
         var json = Json.createObjectBuilder()
-                .add(TYPE, DSPACE_TYPE_TRANSFER_START_MESSAGE_IRI)
-                .add(DSPACE_PROPERTY_CONSUMER_PID_IRI, "consumerPid")
-                .add(DSPACE_PROPERTY_PROVIDER_PID_IRI, "providerPid")
-                .add(DSPACE_PROPERTY_DATA_ADDRESS_IRI, Json.createObjectBuilder().build())
+                .add(TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_TRANSFER_START_MESSAGE_TERM))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM), "consumerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM), "providerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_DATA_ADDRESS_TERM), Json.createObjectBuilder().build())
                 .build();
 
         var result = transformer.transform(getExpanded(json), context);

@@ -22,7 +22,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_STATE_TERM;
@@ -31,10 +30,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
  * Create a {@link ContractNegotiationAck} from {@link JsonObject}
  */
 public class JsonObjectToContractNegotiationAckTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, ContractNegotiationAck> {
-
-    public JsonObjectToContractNegotiationAckTransformer() {
-        this(DSP_NAMESPACE_V_08);
-    }
 
     public JsonObjectToContractNegotiationAckTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, ContractNegotiationAck.class, namespace);

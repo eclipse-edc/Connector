@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.profile;
 
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.eclipse.edc.protocol.spi.ProtocolVersions;
 import org.eclipse.edc.protocol.spi.ProtocolWebhook;
 import org.jetbrains.annotations.Nullable;
@@ -49,6 +50,12 @@ public class DataspaceProfileContextRegistryImpl implements DataspaceProfileCont
     public @Nullable ProtocolWebhook getWebhook(String protocol) {
         return profiles().stream().filter(it -> it.name().equals(protocol))
                 .map(DataspaceProfileContext::webhook).findAny().orElse(null);
+    }
+
+    @Override
+    public @Nullable ProtocolVersion getProtocolVersion(String protocol) {
+        return profiles().stream().filter(it -> it.name().equals(protocol))
+                .map(DataspaceProfileContext::protocolVersion).findAny().orElse(null);
     }
 
     private List<DataspaceProfileContext> profiles() {

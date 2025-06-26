@@ -19,6 +19,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferRequestMessageTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -29,11 +30,11 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_TERM;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -45,6 +46,7 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectFromTransferRequestMessageTransformerTest {
 
+    private static final JsonLdNamespace DSP_NAMESPACE = new JsonLdNamespace("http://www.w3.org/ns/dsp#");
     private final String dataAddressKey = "testDataAddressKey";
     private final String dataAddressType = "testDataAddressType";
     private final String protocol = "testProtocol";
@@ -55,7 +57,7 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
     private final TransformerContext context = mock();
 
     private final JsonObjectFromTransferRequestMessageTransformer transformer =
-            new JsonObjectFromTransferRequestMessageTransformer(jsonFactory);
+            new JsonObjectFromTransferRequestMessageTransformer(jsonFactory, DSP_NAMESPACE);
 
     @BeforeEach
     void setUp() {
@@ -81,12 +83,12 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
         var result = transformer.transform(message, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID_IRI).getString()).isEqualTo(contractId);
+        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSP_NAMESPACE.toIri(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_TERM));
+        assertThat(result.getJsonString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID_TERM)).getString()).isEqualTo(contractId);
         assertThat(result.getJsonString(DCT_FORMAT_ATTRIBUTE).getString()).isEqualTo(dataAddressType);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI).getString()).isEqualTo(callbackAddress);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_CONSUMER_PID_IRI).getString()).isEqualTo("consumerPid");
-        assertThat(result.getJsonObject(DSPACE_PROPERTY_DATA_ADDRESS_IRI).getString("keyName")).isEqualTo(dataAddressKey);
+        assertThat(result.getJsonString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM)).getString()).isEqualTo(callbackAddress);
+        assertThat(result.getJsonString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM)).getString()).isEqualTo("consumerPid");
+        assertThat(result.getJsonObject(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_DATA_ADDRESS_TERM)).getString("keyName")).isEqualTo(dataAddressKey);
 
         verify(context, never()).reportProblem(anyString());
     }
@@ -105,11 +107,11 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
         var result = transformer.transform(message, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID_IRI).getString()).isEqualTo(contractId);
+        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSP_NAMESPACE.toIri(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_TERM));
+        assertThat(result.getJsonString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID_TERM)).getString()).isEqualTo(contractId);
         assertThat(result.getJsonString(DCT_FORMAT_ATTRIBUTE).getString()).isEqualTo(dataAddressType);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI).getString()).isEqualTo(callbackAddress);
-        assertThat(result.getJsonObject(DSPACE_PROPERTY_DATA_ADDRESS_IRI)).isEqualTo(null);
+        assertThat(result.getJsonString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM)).getString()).isEqualTo(callbackAddress);
+        assertThat(result.getJsonObject(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_DATA_ADDRESS_TERM))).isEqualTo(null);
 
         verify(context, never()).reportProblem(anyString());
     }
@@ -129,11 +131,11 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
         var result = transformer.transform(message, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_IRI);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID_IRI).getString()).isEqualTo(contractId);
+        assertThat(result.getJsonString(JsonLdKeywords.TYPE).getString()).isEqualTo(DSP_NAMESPACE.toIri(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_TERM));
+        assertThat(result.getJsonString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID_TERM)).getString()).isEqualTo(contractId);
         assertThat(result.getJsonString(DCT_FORMAT_ATTRIBUTE).getString()).isEqualTo(transferType);
-        assertThat(result.getJsonString(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI).getString()).isEqualTo(callbackAddress);
-        assertThat(result.getJsonObject(DSPACE_PROPERTY_DATA_ADDRESS_IRI)).isEqualTo(null);
+        assertThat(result.getJsonString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM)).getString()).isEqualTo(callbackAddress);
+        assertThat(result.getJsonObject(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_DATA_ADDRESS_TERM))).isEqualTo(null);
 
         verify(context, never()).reportProblem(anyString());
     }

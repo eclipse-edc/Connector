@@ -75,5 +75,6 @@ public interface PropertyAndTypeNames {
     String ODRL_USE_ACTION_ATTRIBUTE = ODRL_SCHEMA + "use";
     String ODRL_PROFILE_ATTRIBUTE = ODRL_SCHEMA + "profile";
     String DSPACE_PROPERTY_PARTICIPANT_ID_TERM = "participantId";
+    @Deprecated(since = "0.14.0")
     String DSPACE_PROPERTY_PARTICIPANT_ID_IRI = DSPACE_SCHEMA + DSPACE_PROPERTY_PARTICIPANT_ID_TERM;
 }

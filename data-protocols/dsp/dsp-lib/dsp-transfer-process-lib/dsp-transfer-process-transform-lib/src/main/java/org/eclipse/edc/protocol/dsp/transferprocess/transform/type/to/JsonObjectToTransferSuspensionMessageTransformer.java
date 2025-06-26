@@ -30,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 
 import static jakarta.json.JsonValue.ValueType.ARRAY;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
@@ -42,10 +41,6 @@ public class JsonObjectToTransferSuspensionMessageTransformer extends AbstractNa
 
     private final TypeManager typeManager;
     private final String typeContext;
-
-    public JsonObjectToTransferSuspensionMessageTransformer(TypeManager typeManager, String typeContext) {
-        this(typeManager, typeContext, DSP_NAMESPACE_V_08);
-    }
 
     public JsonObjectToTransferSuspensionMessageTransformer(TypeManager typeManager, String typeContext, JsonLdNamespace namespace) {
         super(JsonObject.class, TransferSuspensionMessage.class, namespace);

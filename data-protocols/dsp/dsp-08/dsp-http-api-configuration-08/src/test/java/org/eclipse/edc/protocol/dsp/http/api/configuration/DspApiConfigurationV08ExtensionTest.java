@@ -38,7 +38,7 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp08Constants.DSP_SCOPE_V_08;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
@@ -49,9 +49,9 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class DspApiConfigurationV08ExtensionTest {
-    
+
     private final String webhookUrl = "http://webhook";
-    
+
     private final TypeManager typeManager = mock();
     private final JsonLd jsonLd = mock();
     private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();

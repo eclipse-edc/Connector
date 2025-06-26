@@ -25,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
@@ -35,10 +34,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAn
 public class JsonObjectFromTransferSuspensionMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<TransferSuspensionMessage, JsonObject> {
 
     private final JsonBuilderFactory jsonBuilderFactory;
-
-    public JsonObjectFromTransferSuspensionMessageTransformer(JsonBuilderFactory jsonBuilderFactory) {
-        this(jsonBuilderFactory, DSP_NAMESPACE_V_08);
-    }
 
     public JsonObjectFromTransferSuspensionMessageTransformer(JsonBuilderFactory jsonBuilderFactory, JsonLdNamespace namespace) {
         super(TransferSuspensionMessage.class, JsonObject.class, namespace);

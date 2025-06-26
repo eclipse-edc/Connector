@@ -21,16 +21,12 @@ import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.TypeIs;
 import org.eclipse.edc.validator.spi.Validator;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_TERM;
 
 /**
  * Validator for {@link ContractNegotiationTerminationMessage} Json-LD representation
  */
 public class ContractNegotiationTerminationMessageValidator {
-    public static Validator<JsonObject> instance() {
-        return instance(DSP_NAMESPACE_V_08);
-    }
 
     public static Validator<JsonObject> instance(JsonLdNamespace namespace) {
         return JsonObjectValidator.newValidator()

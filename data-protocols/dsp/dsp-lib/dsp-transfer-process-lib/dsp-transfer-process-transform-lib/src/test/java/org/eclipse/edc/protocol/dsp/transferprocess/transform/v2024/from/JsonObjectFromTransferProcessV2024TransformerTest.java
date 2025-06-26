@@ -62,6 +62,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAn
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_VALUE_TRANSFER_STATE_STARTED_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transform.v2024.from.TestFunctionV2024.DSP_NAMESPACE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transform.v2024.from.TestFunctionV2024.toIri;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -76,7 +77,7 @@ class JsonObjectFromTransferProcessV2024TransformerTest {
     private final TransformerContext context = mock();
 
     private final JsonObjectFromTransferProcessV2024Transformer transformer =
-            new JsonObjectFromTransferProcessV2024Transformer(jsonFactory);
+            new JsonObjectFromTransferProcessV2024Transformer(jsonFactory, DSP_NAMESPACE);
 
 
     @Test
