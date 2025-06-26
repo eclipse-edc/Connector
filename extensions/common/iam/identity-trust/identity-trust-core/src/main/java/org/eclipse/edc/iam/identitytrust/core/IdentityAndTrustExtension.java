@@ -177,7 +177,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         rulesRegistry.addRule(JWT_VC_TOKEN_CONTEXT, new HasSubjectRule());
 
         if (activateJtiValidation) {
-            rulesRegistry.addRule(JWT_VC_TOKEN_CONTEXT, new JtiValidationRule(jtiValidationStore, context.getMonitor()));
+            rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new JtiValidationRule(jtiValidationStore, context.getMonitor()));
         }
 
         try {
