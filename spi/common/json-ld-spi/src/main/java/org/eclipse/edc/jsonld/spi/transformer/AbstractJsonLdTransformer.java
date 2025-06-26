@@ -45,6 +45,7 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 
 /**
  * Base JSON-LD transformer implementation.
@@ -172,7 +173,9 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     }
 
     protected void visitProperties(JsonObject object, BiConsumer<String, JsonValue> consumer) {
-        object.entrySet().stream().filter(entry -> !JsonLdKeywords.KEYWORDS.contains(entry.getKey())).forEach(entry -> consumer.accept(entry.getKey(), entry.getValue()));
+        object.entrySet().stream()
+                .filter(entry -> !JsonLdKeywords.KEYWORDS.contains(entry.getKey()))
+                .forEach(entry -> consumer.accept(entry.getKey(), entry.getValue()));
     }
 
     protected void visitProperties(JsonObject object, Function<String, Consumer<JsonValue>> consumer) {
@@ -256,9 +259,15 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      */
     @Nullable
     protected String transformString(JsonValue value, TransformerContext context) {
-        if (value instanceof JsonString) {
-            return ((JsonString) value).getString();
-        } else if (value instanceof JsonObject) {
+        if (value == null) {
+            return null;
+        }
+
+        if (value instanceof JsonString jsonString) {
+            return jsonString.getString();
+        }
+
+        if (value instanceof JsonObject) {
             var object = value.asJsonObject();
             return Stream.of(JsonLdKeywords.VALUE, ID).map(object::get)
                     .filter(Objects::nonNull)
@@ -267,19 +276,19 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
                         // no need to report problem as it will have been done above with call to transformString()
                         return null;
                     });
-        } else if (value instanceof JsonArray) {
-            return transformString(((JsonArray) value).get(0), context);
-        } else if (value == null) {
-            return null;
-        } else {
-            context.problem()
-                    .unexpectedType()
-                    .actual(value.getValueType())
-                    .expected(OBJECT)
-                    .expected(ARRAY)
-                    .report();
-            return null;
         }
+
+        if (value instanceof JsonArray) {
+            return transformString(((JsonArray) value).get(0), context);
+        }
+
+        context.problem()
+                .unexpectedType()
+                .actual(value.getValueType())
+                .expected(OBJECT)
+                .expected(ARRAY)
+                .report();
+        return null;
     }
 
     /**
@@ -290,6 +299,9 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      * @return the int value
      */
     protected int transformInt(JsonValue value, TransformerContext context) {
+        if (value == null) {
+            return 0;
+        }
         if (value instanceof JsonNumber) {
             return ((JsonNumber) value).intValue();
         } else if (value instanceof JsonObject) {
@@ -299,9 +311,7 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
             return transformInt(value.asJsonArray().get(0), context);
         } else {
             var problem = context.problem().unexpectedType().expected(OBJECT).expected(ARRAY).expected(NUMBER);
-            if (value != null) {
-                problem.actual(value.getValueType());
-            }
+            problem.actual(value.getValueType());
             problem.report();
             return 0;
         }
@@ -316,25 +326,31 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      */
     protected boolean transformBoolean(JsonValue value, TransformerContext context) {
         if (value == null) {
-            context.problem().unexpectedType().expected(OBJECT).expected(ARRAY).actual("null").report();
             return false;
         }
-        if (value instanceof JsonObject) {
-            return value.asJsonObject().getBoolean(JsonLdKeywords.VALUE);
-        } else if (value instanceof JsonArray) {
-            return transformBoolean(value.asJsonArray().get(0), context);
-        } else if (TRUE == value.getValueType()) {
+
+        if (TRUE == value.getValueType()) {
             return true;
-        } else if (FALSE == value.getValueType()) {
-            return false;
-        } else {
-            context.problem().unexpectedType()
-                    .expected(OBJECT)
-                    .expected(ARRAY)
-                    .actual(value.getValueType())
-                    .report();
+        }
+
+        if (FALSE == value.getValueType()) {
             return false;
         }
+
+        if (value instanceof JsonObject jsonObject) {
+            return transformBoolean(jsonObject.get(VALUE), context);
+        }
+
+        if (value instanceof JsonArray jsonArray) {
+            return transformBoolean(jsonArray.get(0), context);
+        }
+
+        context.problem().unexpectedType()
+                .expected(OBJECT)
+                .expected(ARRAY)
+                .actual(value.getValueType())
+                .report();
+        return false;
     }
 
     /**

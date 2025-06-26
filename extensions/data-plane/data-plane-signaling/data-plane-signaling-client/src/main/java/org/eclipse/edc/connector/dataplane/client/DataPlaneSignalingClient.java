@@ -69,13 +69,13 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
         this.dataPlane = dataPlane;
     }
 
-    private static <T> @NotNull StatusResult<T> failedResult(String processId, ServiceFailure failure) {
-        return StatusResult.failure(FATAL_ERROR, format("Transfer request for process %s failed: %s", processId, failure.getFailureDetail()));
-    }
-
     @Override
     public StatusResult<DataFlowResponseMessage> provision(DataFlowProvisionMessage message) {
-        return StatusResult.failure(FATAL_ERROR, "remote data flow preparation not implemented yet.");
+        var url = dataPlane.getUrl().toString();
+        return createRequestBuilder(message, url)
+                .compose(builder -> httpClient.request(builder)
+                        .flatMap(result -> result.map(this::handleResponse)
+                                .orElse(failure -> failedResult(message.getProcessId(), failure))));
     }
 
     @WithSpan
@@ -84,7 +84,7 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
         var url = dataPlane.getUrl().toString();
         return createRequestBuilder(message, url)
                 .compose(builder -> httpClient.request(builder)
-                        .flatMap(result -> result.map(this::handleStartResponse)
+                        .flatMap(result -> result.map(this::handleResponse)
                                 .orElse(failure -> failedResult(message.getProcessId(), failure))));
     }
 
@@ -131,7 +131,7 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
                 });
     }
 
-    private StatusResult<DataFlowResponseMessage> handleStartResponse(String responseBody) {
+    private StatusResult<DataFlowResponseMessage> handleResponse(String responseBody) {
         return Optional.ofNullable(responseBody)
                 .map(this::deserializeStartMessage)
                 .orElseGet(() -> StatusResult.failure(FATAL_ERROR, "Body missing"));
@@ -149,8 +149,11 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
             }
         } catch (IOException e) {
             return StatusResult.failure(FATAL_ERROR, e.getMessage());
-
         }
+    }
+
+    private <T> @NotNull StatusResult<T> failedResult(String processId, ServiceFailure failure) {
+        return StatusResult.failure(FATAL_ERROR, format("Transfer request for process %s failed: %s", processId, failure.getFailureDetail()));
     }
 
     private Result<JsonObject> compact(JsonObject object) {

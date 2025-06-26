@@ -23,7 +23,9 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.controlplane.api.transferprocess.model.TransferProcessFailStateDto;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.CompleteProvisionCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.validator.spi.Violation;
@@ -49,7 +51,8 @@ public class TransferProcessControlApiController implements TransferProcessContr
     @Path("/{processId}/complete")
     @Override
     public void complete(@PathParam("processId") String processId) {
-        transferProcessService.complete(processId).orElseThrow(exceptionMapper(TransferProcess.class, processId));
+        transferProcessService.complete(processId)
+                .orElseThrow(exceptionMapper(TransferProcess.class, processId));
     }
 
     @POST
@@ -58,7 +61,18 @@ public class TransferProcessControlApiController implements TransferProcessContr
     public void fail(@PathParam("processId") String processId, TransferProcessFailStateDto request) {
         validator.validate(request).orElseThrow(ValidationFailureException::new);
 
-        transferProcessService.terminate(new TerminateTransferCommand(processId, request.getErrorMessage())).orElseThrow(exceptionMapper(TransferProcess.class, processId));
+        transferProcessService.terminate(new TerminateTransferCommand(processId, request.getErrorMessage()))
+                .orElseThrow(exceptionMapper(TransferProcess.class, processId));
+    }
+
+    @POST
+    @Path("/{processId}/provisioned")
+    @Override
+    public void provisioned(@PathParam("processId") String processId, DataAddress newDataAddress) {
+        var command = new CompleteProvisionCommand(processId, newDataAddress);
+
+        transferProcessService.completeProvision(command)
+                .orElseThrow(exceptionMapper(TransferProcess.class, processId));
     }
 
     private static class TransferProcessFailStateDtoValidator implements Validator<TransferProcessFailStateDto> {

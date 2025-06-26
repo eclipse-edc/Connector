@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.controlplane.api.client.transferprocess;
 
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
@@ -71,7 +72,7 @@ class EmbeddedTransferProcessHttpClientTest {
             var serviceResult = ServiceResult.<Void>success();
             when(service.completeProvision(any())).thenReturn(serviceResult);
 
-            var result = client.provisioned("anyId", DataAddress.Builder.newInstance().type("any").build());
+            var result = client.provisioned(DataFlow.Builder.newInstance().id("anyId").build());
 
             assertThat(result).isSucceeded();
             verify(service).completeProvision(any());

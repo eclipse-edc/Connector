@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.eclipse.edc.connector.controlplane.api.transferprocess.model.TransferProcessFailStateDto;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 
 
@@ -46,6 +47,14 @@ public interface TransferProcessControlApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
             })
     void fail(String processId, TransferProcessFailStateDto request);
+
+    @Operation(description = "Notify provisioning completion.",
+            responses = {
+                    @ApiResponse(responseCode = "204"),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiErrorDetail.class))))
+            })
+    void provisioned(String processId, DataAddress newDataAddress);
 
 
 }

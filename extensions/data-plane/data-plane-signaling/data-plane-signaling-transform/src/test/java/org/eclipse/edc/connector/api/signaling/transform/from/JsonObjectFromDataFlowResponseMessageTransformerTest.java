@@ -27,6 +27,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage.DATA_FLOW_RESPONSE_MESSAGE_DATA_ADDRESS;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage.DATA_FLOW_RESPONSE_MESSAGE_PROVISIONING;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage.DATA_FLOW_RESPONSE_MESSAGE_TYPE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -34,7 +35,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class JsonObjectFromDataFlowResponseMessageTransformerTest {
-
 
     private final TransformerContext context = mock(TransformerContext.class);
     private JsonObjectFromDataFlowResponseMessageTransformer transformer;
@@ -47,21 +47,21 @@ class JsonObjectFromDataFlowResponseMessageTransformerTest {
 
     @Test
     void transform() {
-
-        var message = DataFlowResponseMessage.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("type").build()).build();
+        var message = DataFlowResponseMessage.Builder.newInstance()
+                .dataAddress(DataAddress.Builder.newInstance().type("type").build())
+                .provisioning(true)
+                .build();
 
         var jsonObject = transformer.transform(message, context);
 
         assertThat(jsonObject).isNotNull();
-
         assertThat(jsonObject.getJsonString(TYPE).getString()).isEqualTo(DATA_FLOW_RESPONSE_MESSAGE_TYPE);
         assertThat(jsonObject.get(DATA_FLOW_RESPONSE_MESSAGE_DATA_ADDRESS)).isNotNull();
-
+        assertThat(jsonObject.getBoolean(DATA_FLOW_RESPONSE_MESSAGE_PROVISIONING)).isTrue();
     }
 
     @Test
     void transform_withoutDataAddress() {
-
         var message = DataFlowResponseMessage.Builder.newInstance().build();
 
         var jsonObject = transformer.transform(message, context);
@@ -70,7 +70,6 @@ class JsonObjectFromDataFlowResponseMessageTransformerTest {
 
         assertThat(jsonObject.getJsonString(TYPE).getString()).isEqualTo(DATA_FLOW_RESPONSE_MESSAGE_TYPE);
         assertThat(jsonObject.containsKey(DATA_FLOW_RESPONSE_MESSAGE_DATA_ADDRESS)).isFalse();
-
     }
 
 }

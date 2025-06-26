@@ -26,6 +26,7 @@ import java.util.Optional;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage.DATA_FLOW_RESPONSE_MESSAGE_DATA_ADDRESS;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage.DATA_FLOW_RESPONSE_MESSAGE_PROVISIONING;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage.DATA_FLOW_RESPONSE_MESSAGE_TYPE;
 
 /**
@@ -42,7 +43,8 @@ public class JsonObjectFromDataFlowResponseMessageTransformer extends AbstractJs
     @Override
     public @Nullable JsonObject transform(@NotNull DataFlowResponseMessage message, @NotNull TransformerContext context) {
         var builder = jsonFactory.createObjectBuilder()
-                .add(TYPE, DATA_FLOW_RESPONSE_MESSAGE_TYPE);
+                .add(TYPE, DATA_FLOW_RESPONSE_MESSAGE_TYPE)
+                .add(DATA_FLOW_RESPONSE_MESSAGE_PROVISIONING, message.isProvisioning());
 
         Optional.ofNullable(message.getDataAddress())
                 .ifPresent(dataAddress -> builder.add(DATA_FLOW_RESPONSE_MESSAGE_DATA_ADDRESS, context.transform(message.getDataAddress(), JsonObject.class)));

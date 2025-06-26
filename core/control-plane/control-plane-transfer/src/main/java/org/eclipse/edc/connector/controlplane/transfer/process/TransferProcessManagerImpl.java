@@ -31,7 +31,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProce
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
@@ -202,29 +201,33 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             return true;
         }
 
-        ResourceManifest manifest;
         if (process.getType() == CONSUMER) {
-            var provisioning = dataFlowManager.provision(process, policy);
-            if (provisioning.succeeded()) {
-                var response = provisioning.getContent();
-                if (response.isProvisioning()) {
-                    process.setDataPlaneId(response.getDataPlaneId());
-                    process.transitionProvisioningRequested();
-                } else {
-                    process.setDataPlaneId(null);
-                    process.transitionRequesting();
-                }
-
-                update(process);
-                return true;
-            }
-
             var manifestResult = manifestGenerator.generateConsumerResourceManifest(process, policy);
             if (manifestResult.failed()) {
                 transitionToTerminated(process, format("Resource manifest for process %s cannot be modified to fulfil policy. %s", process.getId(), manifestResult.getFailureMessages()));
                 return true;
             }
-            manifest = manifestResult.getContent();
+            var manifest = manifestResult.getContent();
+
+            if (manifest.empty()) {
+                var provisioning = dataFlowManager.provision(process, policy);
+                if (provisioning.succeeded()) {
+                    var response = provisioning.getContent();
+                    if (response.isProvisioning()) {
+                        process.setDataPlaneId(response.getDataPlaneId());
+                        process.transitionProvisioningRequested();
+                    } else {
+                        process.setDataPlaneId(null);
+                        process.transitionRequesting();
+                    }
+
+                    update(process);
+                    return true;
+                }
+            }
+
+            process.transitionProvisioning(manifest);
+
         } else {
             var assetId = process.getAssetId();
             var dataAddress = addressResolver.resolveForAsset(assetId);
@@ -243,11 +246,10 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 }
             }
 
-            manifest = manifestGenerator.generateProviderResourceManifest(process, dataAddress, policy);
+            var manifest = manifestGenerator.generateProviderResourceManifest(process, dataAddress, policy);
+            process.transitionProvisioning(manifest);
         }
 
-        process.transitionProvisioning(manifest);
-        observable.invokeForEach(l -> l.preProvisioning(process));
         update(process);
         return true;
     }

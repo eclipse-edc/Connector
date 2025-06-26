@@ -31,6 +31,7 @@ import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlan
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_TRANSFER_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_STATE;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_STATE_TIMESTAMP;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DESTINATION_PROVISION_TYPES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.LAST_ACTIVE;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.PROPERTIES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.TURN_COUNT;
@@ -57,7 +58,12 @@ public class JsonObjectFromDataPlaneInstanceV3Transformer extends AbstractJsonLd
                 .add(TYPE, DataPlaneInstance.DATAPLANE_INSTANCE_TYPE)
                 .add(URL, dataPlaneInstance.getUrl().toString())
                 .add(LAST_ACTIVE, dataPlaneInstance.getLastActive())
-                .add(TURN_COUNT, dataPlaneInstance.getTurnCount());
+                .add(TURN_COUNT, dataPlaneInstance.getTurnCount())
+                .add(DATAPLANE_INSTANCE_STATE_TIMESTAMP, dataPlaneInstance.getStateTimestamp())
+                .add(ALLOWED_SOURCE_TYPES, jsonFactory.createArrayBuilder(dataPlaneInstance.getAllowedSourceTypes()))
+                .add(ALLOWED_DEST_TYPES, jsonFactory.createArrayBuilder(dataPlaneInstance.getAllowedDestTypes()))
+                .add(ALLOWED_TRANSFER_TYPES, jsonFactory.createArrayBuilder(dataPlaneInstance.getAllowedTransferTypes()))
+                .add(DESTINATION_PROVISION_TYPES, jsonFactory.createArrayBuilder(dataPlaneInstance.getDestinationProvisionTypes()));
 
         if (dataPlaneInstance.getProperties() != null && !dataPlaneInstance.getProperties().isEmpty()) {
             var propBuilder = jsonFactory.createObjectBuilder();
@@ -65,22 +71,11 @@ public class JsonObjectFromDataPlaneInstanceV3Transformer extends AbstractJsonLd
             builder.add(PROPERTIES, propBuilder);
         }
 
-        var srcBldr = jsonFactory.createArrayBuilder(dataPlaneInstance.getAllowedSourceTypes());
-        builder.add(ALLOWED_SOURCE_TYPES, srcBldr);
-
-        var dstBldr = jsonFactory.createArrayBuilder(dataPlaneInstance.getAllowedDestTypes());
-        builder.add(ALLOWED_DEST_TYPES, dstBldr);
-
-        var transferTypesBldr = jsonFactory.createArrayBuilder(dataPlaneInstance.getAllowedTransferTypes());
-        builder.add(ALLOWED_TRANSFER_TYPES, transferTypesBldr);
-
         var state = Optional.ofNullable(DataPlaneInstanceStates.from(dataPlaneInstance.getState()))
                 .map(Enum::name)
                 .orElse(null);
 
         addIfNotNull(state, DATAPLANE_INSTANCE_STATE, builder);
-
-        builder.add(DATAPLANE_INSTANCE_STATE_TIMESTAMP, dataPlaneInstance.getStateTimestamp());
 
         return builder.build();
     }

@@ -25,6 +25,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage.DATA_FLOW_RESPONSE_MESSAGE_DATA_ADDRESS;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage.DATA_FLOW_RESPONSE_MESSAGE_PROVISIONING;
 
 /**
  * Converts from a {@link JsonObject} in JSON-LD expanded form to a {@link DataFlowResponseMessage}.
@@ -37,7 +38,8 @@ public class JsonObjectToDataFlowResponseMessageTransformer extends AbstractJson
 
     @Override
     public @Nullable DataFlowResponseMessage transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
-        var builder = DataFlowResponseMessage.Builder.newInstance();
+        var builder = DataFlowResponseMessage.Builder.newInstance()
+                .provisioning(transformBoolean(object.get(DATA_FLOW_RESPONSE_MESSAGE_PROVISIONING), context));
 
         Optional.ofNullable(object.get(DATA_FLOW_RESPONSE_MESSAGE_DATA_ADDRESS))
                 .ifPresent(jsonValue -> builder.dataAddress(transformObject(jsonValue, DataAddress.class, context)));

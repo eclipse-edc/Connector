@@ -107,7 +107,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     @Override
-    public Result<DataFlowResponseMessage> provision(DataFlowProvisionMessage message) {
+    public StatusResult<DataFlowResponseMessage> provision(DataFlowProvisionMessage message) {
         var dataFlow = DataFlow.Builder.newInstance()
                 .id(message.getProcessId())
                 .destination(message.getDestination())
@@ -128,7 +128,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
         update(dataFlow);
 
-        return Result.success(DataFlowResponseMessage.Builder.newInstance()
+        return StatusResult.success(DataFlowResponseMessage.Builder.newInstance()
                 .provisioning(!resources.isEmpty())
                 .build());
     }
@@ -229,7 +229,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                     flow.resourceProvisioned(List.of(provisionedResource));
 
                     if (flow.isProvisionCompleted()) {
-                        transferProcessClient.provisioned(flow.getId(), flow.provisionedDataAddress());
+                        transferProcessClient.provisioned(flow);
                     }
 
                     update(flow);
@@ -378,7 +378,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                     flow.resourceProvisioned(provisionedResources);
 
                     if (flow.isProvisionCompleted()) {
-                        transferProcessClient.provisioned(flow.getId(), flow.provisionedDataAddress());
+                        transferProcessClient.provisioned(flow);
                     }
 
                     if (provisionedResources.size() != results.size()) {

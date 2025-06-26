@@ -26,6 +26,7 @@ public class DataFlowResponseMessage {
     public static final String DATA_FLOW_RESPONSE_MESSAGE_SIMPLE_TYPE = "DataFlowResponseMessage";
     public static final String DATA_FLOW_RESPONSE_MESSAGE_TYPE = EDC_NAMESPACE + DATA_FLOW_RESPONSE_MESSAGE_SIMPLE_TYPE;
     public static final String DATA_FLOW_RESPONSE_MESSAGE_DATA_ADDRESS = EDC_NAMESPACE + "dataAddress";
+    public static final String DATA_FLOW_RESPONSE_MESSAGE_PROVISIONING = EDC_NAMESPACE + "provisioning";
 
     private DataAddress dataAddress;
     private boolean provisioning;

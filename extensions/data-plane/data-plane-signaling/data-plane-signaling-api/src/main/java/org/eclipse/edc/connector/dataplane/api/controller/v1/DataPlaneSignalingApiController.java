@@ -26,6 +26,8 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
@@ -52,22 +54,17 @@ public class DataPlaneSignalingApiController implements DataPlaneSignalingApi {
 
     @POST
     @Override
-    public JsonObject start(JsonObject dataFlowStartMessage) {
-        var startMsg = typeTransformerRegistry.transform(dataFlowStartMessage, DataFlowStartMessage.class)
-                .onFailure(f -> monitor.warning("Error transforming %s: %s".formatted(DataFlowStartMessage.class, f.getFailureDetail())))
-                .orElseThrow(InvalidRequestException::new);
+    public JsonObject start(JsonObject message) {
+        var type = message.getJsonArray(TYPE).getString(0);
 
-        dataPlaneManager.validate(startMsg)
-                .onFailure(f -> monitor.warning("Failed to validate request: %s".formatted(f.getFailureDetail())))
-                .orElseThrow(f -> f.getMessages().isEmpty() ?
-                        new InvalidRequestException("Failed to validate request: %s".formatted(startMsg.getId())) :
-                        new InvalidRequestException(f.getMessages()));
-
-        var response = dataPlaneManager.start(startMsg)
-                .orElseThrow(f -> new InvalidRequestException(f.getFailureDetail()));
+        var response = switch (type) {
+            case DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TYPE -> startFlow(message);
+            case DataFlowProvisionMessage.EDC_DATA_FLOW_PROVISION_MESSAGE_TYPE -> provisionFlow(message);
+            default -> throw new InvalidRequestException("Type " + type + " not valid");
+        };
 
         return typeTransformerRegistry.transform(response, JsonObject.class)
-                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
+                    .orElseThrow(f -> new EdcException(f.getFailureDetail()));
     }
 
     @GET
@@ -112,4 +109,29 @@ public class DataPlaneSignalingApiController implements DataPlaneSignalingApi {
     public void checkAvailability() {
 
     }
+
+    private DataFlowResponseMessage provisionFlow(JsonObject message) {
+        var provisionMsg = typeTransformerRegistry.transform(message, DataFlowProvisionMessage.class)
+                .onFailure(f -> monitor.warning("Error transforming %s: %s".formatted(DataFlowProvisionMessage.class, f.getFailureDetail())))
+                .orElseThrow(InvalidRequestException::new);
+
+        return dataPlaneManager.provision(provisionMsg)
+                .orElseThrow(f -> new InvalidRequestException(f.getFailureDetail()));
+    }
+
+    private DataFlowResponseMessage startFlow(JsonObject message) {
+        var startMessage = typeTransformerRegistry.transform(message, DataFlowStartMessage.class)
+                .onFailure(f -> monitor.warning("Error transforming %s: %s".formatted(DataFlowStartMessage.class, f.getFailureDetail())))
+                .orElseThrow(InvalidRequestException::new);
+
+        dataPlaneManager.validate(startMessage)
+                .onFailure(f -> monitor.warning("Failed to validate request: %s".formatted(f.getFailureDetail())))
+                .orElseThrow(f -> f.getMessages().isEmpty() ?
+                        new InvalidRequestException("Failed to validate request: %s".formatted(startMessage.getId())) :
+                        new InvalidRequestException(f.getMessages()));
+
+        return dataPlaneManager.start(startMessage)
+                .orElseThrow(f -> new InvalidRequestException(f.getFailureDetail()));
+    }
+
 }
