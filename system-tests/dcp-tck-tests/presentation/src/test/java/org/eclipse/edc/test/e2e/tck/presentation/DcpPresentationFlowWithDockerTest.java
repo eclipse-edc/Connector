@@ -31,13 +31,13 @@ import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
-import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.test.e2e.tck.TckTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -75,7 +75,7 @@ import static org.mockserver.model.HttpResponse.response;
  *
  * @see <a href="https://github.com/eclipse-dataspacetck/dcp-tck">Eclipse Dataspace TCK - DCP</a>
  */
-@EndToEndTest
+@TckTest
 @Testcontainers
 public class DcpPresentationFlowWithDockerTest {
     private static final int CALLBACK_PORT = getFreePort();
@@ -123,9 +123,9 @@ public class DcpPresentationFlowWithDockerTest {
         var didDocumentJson = createDidDocumentJson();
         server.when(request().withMethod("GET").withPath("/verifier/did.json"))
                 .respond(response()
-                        .withHeader("Content-Type", "application/json")
-                        .withStatusCode(200)
-                        .withBody(didDocumentJson));
+                                 .withHeader("Content-Type", "application/json")
+                                 .withStatusCode(200)
+                                 .withBody(didDocumentJson));
 
         when(STS_MOCK.createToken(anyMap(), isNull()))
                 .thenAnswer(i -> {
@@ -140,8 +140,8 @@ public class DcpPresentationFlowWithDockerTest {
                     claims.put("nbf", Instant.now().getEpochSecond());
 
                     var claimsSet = new JWTClaimsSet.Builder(JWTClaimsSet.parse(claims))
-                            .jwtID(UUID.randomUUID().toString())
-                            .build();
+                                            .jwtID(UUID.randomUUID().toString())
+                                            .build();
                     var jwt = new SignedJWT(hdr, claimsSet);
                     jwt.sign(new ECDSASigner(verifierKey));
                     var tr = TokenRepresentation.Builder.newInstance().token(jwt.serialize()).build();
@@ -151,17 +151,17 @@ public class DcpPresentationFlowWithDockerTest {
 
     private String createDidDocumentJson() {
         var ddoc = DidDocument.Builder.newInstance()
-                .id(VERIFIER_DID)
-                .verificationMethod(List.of(
-                        VerificationMethod.Builder.newInstance()
-                                .type("assertionMethod")
-                                .controller(VERIFIER_DID)
-                                .publicKeyJwk(verifierKey.toJSONObject())
-                                .id(verifierKey.getKeyID())
-                                .build()
-                ))
-                .service(List.of(new Service(UUID.randomUUID().toString(), "CredentialService", "https://example.com/credentialservice")))
-                .build();
+                           .id(VERIFIER_DID)
+                           .verificationMethod(List.of(
+                                   VerificationMethod.Builder.newInstance()
+                                           .type("assertionMethod")
+                                           .controller(VERIFIER_DID)
+                                           .publicKeyJwk(verifierKey.toJSONObject())
+                                           .id(verifierKey.getKeyID())
+                                           .build()
+                           ))
+                           .service(List.of(new Service(UUID.randomUUID().toString(), "CredentialService", "https://example.com/credentialservice")))
+                           .build();
         try {
             return new ObjectMapper().writeValueAsString(ddoc);
         } catch (JsonProcessingException e) {
@@ -179,18 +179,18 @@ public class DcpPresentationFlowWithDockerTest {
         var thirdPartyDid = "did:web:0.0.0.0%3A" + CALLBACK_PORT + ":thirdparty";
         var baseCallbackUrl = "http://0.0.0.0:%s".formatted(CALLBACK_PORT);
 
-        try (var tckContainer = new GenericContainer<>("eclipsedataspacetck/dcp-tck-runtime:latest")
-                .withExtraHost("host.docker.internal", "host-gateway")
-                .withExposedPorts(CALLBACK_PORT)
-                .withEnv(Map.of(
-                        "dataspacetck.callback.address", baseCallbackUrl,
-                        "dataspacetck.launcher", "org.eclipse.dataspacetck.dcp.system.DcpSystemLauncher",
-                        "dataspacetck.did.verifier", VERIFIER_DID,
-                        "dataspacetck.did.holder", holderDid,
-                        "dataspacetck.did.thirdparty", thirdPartyDid,
-                        "dataspacetck.test.package", "org.eclipse.dataspacetck.dcp.verification.presentation.verifier",
-                        "dataspacetck.vpp.trigger.endpoint", "http://host.docker.internal:%s%s".formatted(PROTOCOL_API_PORT, triggerPath)
-                ))
+        try (var tckContainer = new GenericContainer<>("eclipsedataspacetck/dcp-tck-runtime:1.0.0-RC3")
+                                        .withExtraHost("host.docker.internal", "host-gateway")
+                                        .withExposedPorts(CALLBACK_PORT)
+                                        .withEnv(Map.of(
+                                                "dataspacetck.callback.address", baseCallbackUrl,
+                                                "dataspacetck.launcher", "org.eclipse.dataspacetck.dcp.system.DcpSystemLauncher",
+                                                "dataspacetck.did.verifier", VERIFIER_DID,
+                                                "dataspacetck.did.holder", holderDid,
+                                                "dataspacetck.did.thirdparty", thirdPartyDid,
+                                                "dataspacetck.test.package", "org.eclipse.dataspacetck.dcp.verification.presentation.verifier",
+                                                "dataspacetck.vpp.trigger.endpoint", "http://host.docker.internal:%s%s".formatted(PROTOCOL_API_PORT, triggerPath)
+                                        ))
         ) {
             tckContainer.setPortBindings(List.of("%s:%s".formatted(CALLBACK_PORT, CALLBACK_PORT)));
             tckContainer.start();
