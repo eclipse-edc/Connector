@@ -22,15 +22,22 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_CONTEXT_SEP
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT;
 
+@Deprecated(since = "0.14.0")
 public interface Dsp08Constants {
 
+    @Deprecated(since = "0.14.0")
     String V_08_VERSION = "v0.8";
+    @Deprecated(since = "0.14.0")
     String V_08_PATH = "/";
+    @Deprecated(since = "0.14.0")
     ProtocolVersion V_08 = new ProtocolVersion(V_08_VERSION, V_08_PATH);
 
+    @Deprecated(since = "0.14.0")
     String DSP_SCOPE_V_08 = DSP_SCOPE + DSP_CONTEXT_SEPARATOR + V_08_VERSION;
 
+    @Deprecated(since = "0.14.0")
     String DSP_TRANSFORMER_CONTEXT_V_08 = DSP_TRANSFORMER_CONTEXT + DSP_CONTEXT_SEPARATOR + V_08_VERSION;
 
+    @Deprecated(since = "0.14.0")
     JsonLdNamespace DSP_NAMESPACE_V_08 = new JsonLdNamespace(DSPACE_SCHEMA);
 }
