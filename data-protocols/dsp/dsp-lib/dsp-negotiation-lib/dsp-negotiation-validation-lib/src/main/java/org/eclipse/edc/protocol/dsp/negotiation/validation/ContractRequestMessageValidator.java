@@ -35,14 +35,20 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 public class ContractRequestMessageValidator {
 
     public static Validator<JsonObject> instance(JsonLdNamespace namespace) {
-        return JsonObjectValidator.newValidator()
+        return instance(namespace, true);
+    }
+
+    public static Validator<JsonObject> instance(JsonLdNamespace namespace, boolean mandatoryCallbackAddress) {
+        var builder = JsonObjectValidator.newValidator()
                 .verify(path -> new TypeIs(path, namespace.toIri(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM)))
                 .verifyObject(namespace.toIri(DSPACE_PROPERTY_OFFER_TERM), v -> v
                         .verifyId(MandatoryIdNotBlank::new)
                         .verify(ODRL_TARGET_ATTRIBUTE, MandatoryObject::new)
                         .verifyObject(ODRL_TARGET_ATTRIBUTE, b -> b.verifyId(MandatoryIdNotBlank::new))
-                )
-                .verify(namespace.toIri(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM), MandatoryValue::new)
-                .build();
+                );
+        if (mandatoryCallbackAddress) {
+            builder.verify(namespace.toIri(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM), MandatoryValue::new);
+        }
+        return builder.build();
     }
 }

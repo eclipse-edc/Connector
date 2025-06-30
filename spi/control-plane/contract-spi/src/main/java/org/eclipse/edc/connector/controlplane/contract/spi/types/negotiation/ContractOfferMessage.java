@@ -64,7 +64,6 @@ public class ContractOfferMessage extends ContractRemoteMessage {
         }
 
         public ContractOfferMessage build() {
-            requireNonNull(message.callbackAddress, "callbackAddress");
             requireNonNull(message.contractOffer, "contractOffer");
             return super.build();
         }

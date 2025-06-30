@@ -101,7 +101,6 @@
           "@id": "dspace:agreement",
           "@type": "@id"
         },
-        "callbackAddress": "dspace:callbackAddress",
         "timestamp": "dspace:timestamp"
       }
     },
