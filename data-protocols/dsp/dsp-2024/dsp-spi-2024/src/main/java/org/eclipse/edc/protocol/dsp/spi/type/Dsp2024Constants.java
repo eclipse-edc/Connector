@@ -23,19 +23,28 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_CONTEXT_SEP
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT;
 
+@Deprecated(since = "0.14.0")
 public interface Dsp2024Constants {
 
+    @Deprecated(since = "0.14.0")
     String DSPACE_SCHEMA_2024_1 = "https://w3id.org/dspace/2024/1/";
 
+    @Deprecated(since = "0.14.0")
     String V_2024_1_VERSION = "2024/1";
+    @Deprecated(since = "0.14.0")
     String V_2024_1_PATH = "/" + V_2024_1_VERSION;
 
+    @Deprecated(since = "0.14.0")
     ProtocolVersion V_2024_1 = new ProtocolVersion(V_2024_1_VERSION, V_2024_1_PATH);
 
+    @Deprecated(since = "0.14.0")
     String DSP_SCOPE_V_2024_1 = DSP_SCOPE + DSP_CONTEXT_SEPARATOR + V_2024_1_VERSION;
+    @Deprecated(since = "0.14.0")
     String DSP_TRANSFORMER_CONTEXT_V_2024_1 = DSP_TRANSFORMER_CONTEXT + DSP_CONTEXT_SEPARATOR + V_2024_1_VERSION;
+    @Deprecated(since = "0.14.0")
     JsonLdNamespace DSP_NAMESPACE_V_2024_1 = new JsonLdNamespace(DSPACE_SCHEMA_2024_1);
 
+    @Deprecated(since = "0.14.0")
     String DATASPACE_PROTOCOL_HTTP_V_2024_1 = DATASPACE_PROTOCOL_HTTP + DATASPACE_PROTOCOL_HTTP_SEPARATOR + V_2024_1_VERSION;
 
 }
