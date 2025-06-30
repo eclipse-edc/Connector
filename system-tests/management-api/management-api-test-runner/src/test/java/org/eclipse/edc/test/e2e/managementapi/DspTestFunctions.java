@@ -35,8 +35,6 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.embeddedQuery
 
 public class DspTestFunctions {
 
-    public static final String DSP_API_CONTEXT = "dsp-api";
-
     public static JsonArrayBuilder createContextBuilder() {
         return createArrayBuilder()
                 .add(DSPACE_CONTEXT_2025_1)
@@ -110,6 +108,15 @@ public class DspTestFunctions {
                 .add("consumerPid", "consumerPid")
                 .add("callbackAddress", "callbackAddress")
                 .add("offer", inForceDatePolicy())
+                .build();
+    }
+
+    public static JsonObject contractRequestObjectWithProviderPid() {
+        return createObjectBuilder()
+                .add(CONTEXT, createContextBuilder().build())
+                .add(TYPE, "ContractRequestMessage")
+                .add("consumerPid", "consumerPid")
+                .add("offer", inForceDatePolicy())
                 .add("providerPid", "providerPid")
                 .build();
     }
@@ -158,10 +165,19 @@ public class DspTestFunctions {
         return createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
                 .add(TYPE, "ContractOfferMessage")
-                .add("consumerPid", "consumerPid")
                 .add("callbackAddress", "callbackAddress")
                 .add("offer", inForceDatePolicy())
                 .add("providerPid", "providerPid")
+                .build();
+    }
+
+    public static JsonObject contractOfferObjectWithConsumerPid() {
+        return createObjectBuilder()
+                .add(CONTEXT, createContextBuilder().build())
+                .add(TYPE, "ContractOfferMessage")
+                .add("consumerPid", "consumerPid")
+                .add("providerPid", "providerPid")
+                .add("offer", inForceDatePolicy())
                 .build();
     }
 

@@ -77,7 +77,9 @@ import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.contractAg
 import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.contractNegotiationEventObject;
 import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.contractNegotiationTerminationObject;
 import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.contractOfferObject;
+import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.contractOfferObjectWithConsumerPid;
 import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.contractRequestObject;
+import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.contractRequestObjectWithProviderPid;
 import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.errorObject;
 import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.inForceDatePolicy;
 import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.transferCompletionObject;
@@ -332,7 +334,9 @@ public class DspSerdeEndToEndTest {
                     Arguments.of(transferTerminationObject(), TransferTerminationMessage.class, skipForTermination),
                     Arguments.of(transferSuspensionObject(), TransferSuspensionMessage.class, skip),
                     Arguments.of(contractRequestObject(), ContractRequestMessage.class, skip),
+                    Arguments.of(contractRequestObjectWithProviderPid(), ContractRequestMessage.class, skip),
                     Arguments.of(contractOfferObject(), ContractOfferMessage.class, skip),
+                    Arguments.of(contractOfferObjectWithConsumerPid(), ContractOfferMessage.class, skip),
                     Arguments.of(contractAgreementObject(), ContractAgreementMessage.class, skip),
                     Arguments.of(contractAgreementVerificationObject(), ContractAgreementVerificationMessage.class, skip),
                     Arguments.of(contractNegotiationEventObject("ACCEPTED"), ContractNegotiationEventMessage.class, skip),
