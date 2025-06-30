@@ -39,7 +39,7 @@ kafkaClients = "4.0.0"
 testcontainers = "1.21.2"
 tink = "1.18.0"
 dsp-tck = "0.1.1-SNAPSHOT"
-dcp-tck = "0.1.1-SNAPSHOT"
+dcp-tck = "1.0.0-RC3"
 junit = "1.13.1"
 
 [libraries]
