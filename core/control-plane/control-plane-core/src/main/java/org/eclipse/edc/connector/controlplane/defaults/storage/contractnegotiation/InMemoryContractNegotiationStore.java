@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Clock;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -41,6 +42,7 @@ import static java.lang.String.format;
 public class InMemoryContractNegotiationStore extends InMemoryStatefulEntityStore<ContractNegotiation> implements ContractNegotiationStore {
 
     private final QueryResolver<ContractAgreement> agreementQueryResolver;
+    private final ReentrantReadWriteLock lock;
 
     public InMemoryContractNegotiationStore(Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
         this(UUID.randomUUID().toString(), clock, criterionOperatorRegistry);
@@ -49,6 +51,7 @@ public class InMemoryContractNegotiationStore extends InMemoryStatefulEntityStor
     public InMemoryContractNegotiationStore(String leaseHolder, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry) {
         super(ContractNegotiation.class, leaseHolder, clock, criterionOperatorRegistry, state -> ContractNegotiationStates.valueOf(state).code());
         agreementQueryResolver = new ReflectionBasedQueryResolver<>(ContractAgreement.class, criterionOperatorRegistry);
+        lock = new ReentrantReadWriteLock(true);
     }
 
     @Override
@@ -63,12 +66,17 @@ public class InMemoryContractNegotiationStore extends InMemoryStatefulEntityStor
 
     @Override
     public StoreResult<Void> deleteById(String negotiationId) {
-        var existing = findById(negotiationId);
-        if (existing == null) {
-            return StoreResult.notFound(format("ContractNegotiation %s not found", negotiationId));
+        lock.writeLock().lock();
+        try {
+            var existing = findById(negotiationId);
+            if (existing == null) {
+                return StoreResult.notFound(format("ContractNegotiation %s not found", negotiationId));
+            }
+            super.delete(negotiationId);
+            return StoreResult.success();
+        } finally {
+            lock.writeLock().unlock();
         }
-        super.delete(negotiationId);
-        return StoreResult.success();
     }
 
     @Override
