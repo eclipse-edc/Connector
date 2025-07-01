@@ -106,17 +106,17 @@ public class BitStringTest {
             return Stream.of(
                     // Base64 decoder
                     Arguments.of("H4sIAAAAAAAAA+3BMQEAAADCoPVPbQsvoAAAAAAAAAAAAAAAAP4GcwM92tQwAAA=", 100_000, new int[]{}, Format.Base64, true),
-                    Arguments.of("H4sIAAAAAAAAA+3BIQEAAAACIP+vcKozLEADAAAAAAAAAAAAAAAAAAAAvA0cOP65AEAAAA", 131072, new int[]{ 0, 2 }, Format.Base64, true),
-                    Arguments.of("H4sIAAAAAAAAA+3OMQ0AAAgDsElHOh72EJJWQRMAAAAAAIDWXAcAAAAAAIDHFvRitn7UMAAA", 100_000, new int[]{ 50_000 }, Format.Base64, true),
-                    Arguments.of("H4sIAAAAAAAAA+3BIQEAAAACIP1/2hkWoAEAAAAAAAAAAAAAAAAAAADeBjn7xTYAQAAA", 131072, new int[]{ 7 }, Format.Base64, true),
+                    Arguments.of("H4sIAAAAAAAAA+3BIQEAAAACIP+vcKozLEADAAAAAAAAAAAAAAAAAAAAvA0cOP65AEAAAA", 131072, new int[]{0, 2}, Format.Base64, true),
+                    Arguments.of("H4sIAAAAAAAAA+3OMQ0AAAgDsElHOh72EJJWQRMAAAAAAIDWXAcAAAAAAIDHFvRitn7UMAAA", 100_000, new int[]{50_000}, Format.Base64, true),
+                    Arguments.of("H4sIAAAAAAAAA+3BIQEAAAACIP1/2hkWoAEAAAAAAAAAAAAAAAAAAADeBjn7xTYAQAAA", 131072, new int[]{7}, Format.Base64, true),
                     // Base64 URL decoder
                     Arguments.of("H4sIAAAAAAAAA-3BMQEAAADCoPVPbQsvoAAAAAAAAAAAAAAAAP4GcwM92tQwAAA", 100_000, new int[]{}, Format.Base64Url, true),
-                    Arguments.of("H4sIAAAAAAAAA-3BIQEAAAACIP-vcKozLEADAAAAAAAAAAAAAAAAAAAAvA0cOP65AEAAAA", 131072, new int[]{ 0, 2 }, Format.Base64Url, true),
-                    Arguments.of("H4sIAAAAAAAAA-3OMQ0AAAgDsElHOh72EJJWQRMAAAAAAIDWXAcAAAAAAIDHFvRitn7UMAAA", 100_000, new int[]{ 50_000 }, Format.Base64Url, true),
-                    Arguments.of("H4sIAAAAAAAAA-3BIQEAAAACIP1_2hkWoAEAAAAAAAAAAAAAAAAAAADeBjn7xTYAQAAA", 131072, new int[]{ 7 }, Format.Base64Url, true),
+                    Arguments.of("H4sIAAAAAAAAA-3BIQEAAAACIP-vcKozLEADAAAAAAAAAAAAAAAAAAAAvA0cOP65AEAAAA", 131072, new int[]{0, 2}, Format.Base64Url, true),
+                    Arguments.of("H4sIAAAAAAAAA-3OMQ0AAAgDsElHOh72EJJWQRMAAAAAAIDWXAcAAAAAAIDHFvRitn7UMAAA", 100_000, new int[]{50_000}, Format.Base64Url, true),
+                    Arguments.of("H4sIAAAAAAAAA-3BIQEAAAACIP1_2hkWoAEAAAAAAAAAAAAAAAAAAADeBjn7xTYAQAAA", 131072, new int[]{7}, Format.Base64Url, true),
 
                     // Left to right = false
-                    Arguments.of("H4sIAAAAAAAA_-3AIQEAAAACIIv_LzvDAg0AAAAAAAAAAAAAAAAAAADwNgZXEi0AQAAA", 131072, new int[]{ 0, 2 }, Format.Base64Url, false)
+                    Arguments.of("H4sIAAAAAAAA_-3AIQEAAAACIIv_LzvDAg0AAAAAAAAAAAAAAAAAAADwNgZXEi0AQAAA", 131072, new int[]{0, 2}, Format.Base64Url, false)
             );
         }
     }
@@ -152,6 +152,14 @@ public class BitStringTest {
             assertThat(result.failed()).isTrue();
             assertThat(result.getFailureDetail()).contains("Failed to ungzip encoded list: Not in GZIP format");
         }
+
+        @Test
+        void parse_multibaseBtc58() {
+            var base58Btc = "z6M1d3b2c4f5g6h7i8j9k0l1m2n3o4p5q6r7s8t9u0v1w2x3y4z5a6b7c8d9e0f1g2h3i4j5k6l7m8n9o0p1q2r3s4t5u6v7w8x9y0z";
+            var result = BitString.Parser.newInstance().parse(base58Btc);
+            assertThat(result.succeeded()).isFalse();
+            assertThat(result.getFailureDetail()).contains("Base58-BTC alphabet");
+        }
     }
 
     @Nested
@@ -172,6 +180,25 @@ public class BitStringTest {
             var decoder = getDecoder(format);
             assertThat(result.succeeded()).isTrue();
             assertThat(decode(list, decoder)).isEqualTo(decode(result.getContent(), decoder));
+        }
+
+        @Test
+        void writeMultibase() {
+            var writer = BitString.Writer.newInstance().encoder(Base64.getUrlEncoder().withoutPadding());
+            var bitString = BitString.Builder.newInstance().size(1024 * 16).build();
+            bitString.set(10, true);
+            var encoded = writer.writeMultibase(bitString);
+
+            assertThat(encoded.succeeded()).isTrue();
+            assertThat(encoded.getContent()).startsWith("u");
+
+            // verify round-trip
+
+            var decoded = BitString.Parser.newInstance().parse(encoded.getContent());
+            assertThat(decoded.succeeded()).withFailMessage(decoded::getFailureDetail).isTrue();
+            var decodedBitString = decoded.getContent();
+
+            assertThat(decodedBitString.get(10)).isTrue();
         }
 
         private byte[] decode(String list, Base64.Decoder decoder) {

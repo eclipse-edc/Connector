@@ -27,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM;
@@ -38,10 +37,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
  * Creates a {@link ContractOfferMessage} from a {@link JsonObject}.
  */
 public class JsonObjectToContractOfferMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, ContractOfferMessage> {
-
-    public JsonObjectToContractOfferMessageTransformer() {
-        this(DSP_NAMESPACE_V_08);
-    }
 
     public JsonObjectToContractOfferMessageTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, ContractOfferMessage.class, namespace);

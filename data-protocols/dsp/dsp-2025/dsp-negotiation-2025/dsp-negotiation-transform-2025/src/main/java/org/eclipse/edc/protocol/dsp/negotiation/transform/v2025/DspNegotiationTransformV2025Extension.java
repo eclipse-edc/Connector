@@ -27,9 +27,9 @@ import org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.JsonObjectF
 import org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.JsonObjectFromContractNegotiationEventMessageV2024Transformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.JsonObjectFromContractNegotiationTerminationMessageV2024Transformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.JsonObjectFromContractNegotiationV2024Transformer;
-import org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.JsonObjectFromContractOfferMessageV2024Transformer;
-import org.eclipse.edc.protocol.dsp.negotiation.transform.v2024.from.JsonObjectFromContractRequestMessageV2024Transformer;
 import org.eclipse.edc.protocol.dsp.negotiation.transform.v2025.from.JsonObjectFromContractAgreementMessageV2025Transformer;
+import org.eclipse.edc.protocol.dsp.negotiation.transform.v2025.from.JsonObjectFromContractOfferMessageV2025Transformer;
+import org.eclipse.edc.protocol.dsp.negotiation.transform.v2025.from.JsonObjectFromContractRequestMessageV2025Transformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -38,8 +38,8 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.util.Map;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2025_1;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_2025_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_TRANSFORMER_CONTEXT_V_2025_1;
 
 /**
  * Provides the transformers for DSP v2025/1 negotiation message types via the {@link TypeTransformerRegistry}.
@@ -77,8 +77,8 @@ public class DspNegotiationTransformV2025Extension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonObjectToContractNegotiationAckTransformer(DSP_NAMESPACE_V_2025_1));
 
         dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationV2024Transformer(builderFactory, DSP_NAMESPACE_V_2025_1));
-        dspApiTransformerRegistry.register(new JsonObjectFromContractRequestMessageV2024Transformer(builderFactory, DSP_NAMESPACE_V_2025_1));
-        dspApiTransformerRegistry.register(new JsonObjectFromContractOfferMessageV2024Transformer(builderFactory, DSP_NAMESPACE_V_2025_1));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractRequestMessageV2025Transformer(builderFactory, DSP_NAMESPACE_V_2025_1));
+        dspApiTransformerRegistry.register(new JsonObjectFromContractOfferMessageV2025Transformer(builderFactory, DSP_NAMESPACE_V_2025_1));
         dspApiTransformerRegistry.register(new JsonObjectFromContractAgreementMessageV2025Transformer(builderFactory, DSP_NAMESPACE_V_2025_1));
         dspApiTransformerRegistry.register(new JsonObjectFromContractAgreementVerificationMessageV2024Transformer(builderFactory, DSP_NAMESPACE_V_2025_1));
         dspApiTransformerRegistry.register(new JsonObjectFromContractNegotiationEventMessageV2024Transformer(builderFactory, DSP_NAMESPACE_V_2025_1));

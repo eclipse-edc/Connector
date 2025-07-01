@@ -180,7 +180,7 @@ public class CatalogApiEndToEndTest {
                     .body("'dcat:catalog'.'@type'", equalTo("dcat:Catalog"))
                     .body("'dcat:catalog'.isCatalog", equalTo(true))
                     .body("'dcat:catalog'.'@id'", equalTo(catalogAssetId))
-                    .body("'dcat:catalog'.'dcat:service'.'dcat:endpointUrl'", equalTo("http://quizzqua.zz/buzz"))
+                    .body("'dcat:catalog'.'dcat:service'.'dcat:endpointURL'", equalTo("http://quizzqua.zz/buzz"))
                     .body("'dcat:catalog'.'dcat:distribution'.'dcat:accessService'.'@id'", equalTo(Base64.getUrlEncoder().encodeToString(catalogAssetId.getBytes())));
         }
 

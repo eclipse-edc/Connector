@@ -35,6 +35,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.transferprocess.transform.v2024.from.TestFunctionV2024.DSP_NAMESPACE;
 import static org.eclipse.edc.protocol.dsp.transferprocess.transform.v2024.from.TestFunctionV2024.toIri;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -57,7 +58,7 @@ class JsonObjectFromTransferRequestMessageV2024TransformerTest {
     private final TransformerContext context = mock();
 
     private final JsonObjectFromTransferRequestMessageV2024Transformer transformer =
-            new JsonObjectFromTransferRequestMessageV2024Transformer(jsonFactory);
+            new JsonObjectFromTransferRequestMessageV2024Transformer(jsonFactory, DSP_NAMESPACE);
 
 
     @BeforeEach

@@ -33,9 +33,7 @@ public interface PolicyMonitorStatements extends StatefulEntityStatements, Lease
         return "contract_id";
     }
 
-    String getInsertTemplate();
-
-    String getUpdateTemplate();
+    String getUpsertTemplate();
 
     String getSelectTemplate();
 

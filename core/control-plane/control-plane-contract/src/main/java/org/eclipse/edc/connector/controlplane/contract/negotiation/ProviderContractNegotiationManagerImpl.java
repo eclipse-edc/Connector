@@ -75,7 +75,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processOffering(ContractNegotiation negotiation) {
-        var callbackAddress = protocolWebhookRegistry.resolve(negotiation.getProtocol());
+        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol());
         if (callbackAddress == null) {
             transitionToTerminated(negotiation, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
             return true;
@@ -124,7 +124,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processAgreeing(ContractNegotiation negotiation) {
-        var callbackAddress = protocolWebhookRegistry.resolve(negotiation.getProtocol());
+        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol());
         if (callbackAddress == null) {
             transitionToTerminated(negotiation, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
             return true;

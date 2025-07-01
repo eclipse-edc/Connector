@@ -32,9 +32,9 @@ import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
@@ -96,7 +96,7 @@ class ProviderContractNegotiationManagerImplTest {
     private final PolicyDefinitionStore policyStore = mock();
     private final ContractNegotiationListener listener = mock();
     private final ContractNegotiationPendingGuard pendingGuard = mock();
-    private final ProtocolWebhookRegistry protocolWebhookRegistry = mock();
+    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
     private ProviderContractNegotiationManagerImpl manager;
 
     @BeforeEach
@@ -112,7 +112,7 @@ class ProviderContractNegotiationManagerImplTest {
                 .policyStore(policyStore)
                 .entityRetryProcessConfiguration(new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)))
                 .pendingGuard(pendingGuard)
-                .protocolWebhookRegistry(protocolWebhookRegistry)
+                .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
                 .build();
     }
 
@@ -123,7 +123,7 @@ class ProviderContractNegotiationManagerImplTest {
         var ack = ContractNegotiationAck.Builder.newInstance().consumerPid("consumerPid").build();
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
-        when(protocolWebhookRegistry.resolve(negotiation.getProtocol())).thenReturn(() -> "http://callback.address");
+        when(dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol())).thenReturn(() -> "http://callback.address");
 
         manager.start();
 
@@ -149,7 +149,7 @@ class ProviderContractNegotiationManagerImplTest {
         var ack = ContractNegotiationAck.Builder.newInstance().consumerPid("consumerPid").build();
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
-        when(protocolWebhookRegistry.resolve(negotiation.getProtocol())).thenReturn(null);
+        when(dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol())).thenReturn(null);
 
         manager.start();
 
@@ -216,7 +216,7 @@ class ProviderContractNegotiationManagerImplTest {
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id("policyId").build());
-        when(protocolWebhookRegistry.resolve(negotiation.getProtocol())).thenReturn(() -> "http://callback.address");
+        when(dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol())).thenReturn(() -> "http://callback.address");
 
         manager.start();
 
@@ -292,7 +292,7 @@ class ProviderContractNegotiationManagerImplTest {
         when(store.nextNotLeased(anyInt(), stateIs(starting.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(result);
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
-        when(protocolWebhookRegistry.resolve(negotiation.getProtocol())).thenReturn(() -> "http://callback.address");
+        when(dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol())).thenReturn(() -> "http://callback.address");
 
         manager.start();
 

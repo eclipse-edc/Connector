@@ -17,12 +17,12 @@ jakarta-annotation = "3.0.0"
 jakarta-json = "2.1.3"
 jakarta-servlet = "6.1.0"
 jakarta-transaction = "2.0.1"
-jackson = "2.19.0"
+jackson = "2.19.1"
 jersey = "3.1.10"
 jetbrainsAnnotation = "26.0.2"
 jetty = "12.0.22"
 junit-pioneer = "2.3.0"
-jupiter = "5.13.1"
+jupiter = "5.13.2"
 micrometer = "1.15.1"
 mockito = "5.2.0"
 nimbus = "10.3"
@@ -33,14 +33,14 @@ parsson = "1.1.7"
 postgres = "42.7.7"
 restAssured = "5.5.5"
 rsApi = "4.0.0"
-swagger = "2.2.32"
+swagger = "2.2.34"
 titanium = "1.6.0"
 kafkaClients = "4.0.0"
-testcontainers = "1.21.1"
-tink = "1.17.0"
-dsp-tck = "0.1.1-SNAPSHOT"
-dcp-tck = "0.1.1-SNAPSHOT"
-junit = "1.13.1"
+testcontainers = "1.21.3"
+tink = "1.18.0"
+dsp-tck = "1.0.0-RC4"
+dcp-tck = "1.0.0-RC4"
+junit = "1.13.2"
 
 [libraries]
 iron-vc = { module = "com.apicatalog:iron-verifiable-credentials", version.ref = "apicatalog" }
@@ -105,7 +105,7 @@ atomikos-jdbc = { module = "com.atomikos:transactions-jdbc", version.ref = "atom
 cloudEvents = { module = "io.cloudevents:cloudevents-http-basic", version.ref = "cloudEvents" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 kafkaClients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafkaClients" }
-jsonschema = { module = "com.networknt:json-schema-validator", version = "1.5.7" }
+jsonschema = { module = "com.networknt:json-schema-validator", version = "1.5.8" }
 
 # DSP-TCK libraries
 dsp-tck-runtime = { module = "org.eclipse.dataspacetck.dsp:tck-runtime", version.ref = "dsp-tck" }

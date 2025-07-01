@@ -23,15 +23,15 @@ import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.BASE_PATH;
-import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP_V_2024_1;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2024_1;
-import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2024_1_PATH;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2024Constants.DATASPACE_PROTOCOL_HTTP_V_2024_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2024Constants.DSP_NAMESPACE_V_2024_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2024Constants.V_2024_1_PATH;
 
 /**
  * Versioned Catalog endpoint for 2024/1 protocol version
  */
-@Consumes({ APPLICATION_JSON })
-@Produces({ APPLICATION_JSON })
+@Consumes({APPLICATION_JSON})
+@Produces({APPLICATION_JSON})
 @Path(V_2024_1_PATH + BASE_PATH)
 public class DspCatalogApiController20241 extends BaseDspCatalogApiController {
 

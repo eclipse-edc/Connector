@@ -38,8 +38,8 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.util.Map;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp08Constants.DSP_NAMESPACE_V_08;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp08Constants.DSP_TRANSFORMER_CONTEXT_V_08;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
@@ -79,12 +79,12 @@ public class DspTransferProcessTransformV08Extension implements ServiceExtension
         dspRegistry.register(new JsonObjectToTransferTerminationMessageTransformer(DSP_NAMESPACE_V_08));
         dspRegistry.register(new JsonObjectToTransferProcessAckTransformer(DSP_NAMESPACE_V_08));
         dspRegistry.register(new JsonObjectToTransferSuspensionMessageTransformer(typeManager, JSON_LD, DSP_NAMESPACE_V_08));
-        
-        dspRegistry.register(new JsonObjectFromTransferProcessTransformer(builderFactory));
-        dspRegistry.register(new JsonObjectFromTransferRequestMessageTransformer(builderFactory));
-        dspRegistry.register(new JsonObjectFromTransferStartMessageTransformer(builderFactory));
-        dspRegistry.register(new JsonObjectFromTransferCompletionMessageTransformer(builderFactory));
-        dspRegistry.register(new JsonObjectFromTransferTerminationMessageTransformer(builderFactory));
-        dspRegistry.register(new JsonObjectFromTransferSuspensionMessageTransformer(builderFactory));
+
+        dspRegistry.register(new JsonObjectFromTransferProcessTransformer(builderFactory, DSP_NAMESPACE_V_08));
+        dspRegistry.register(new JsonObjectFromTransferRequestMessageTransformer(builderFactory, DSP_NAMESPACE_V_08));
+        dspRegistry.register(new JsonObjectFromTransferStartMessageTransformer(builderFactory, DSP_NAMESPACE_V_08));
+        dspRegistry.register(new JsonObjectFromTransferCompletionMessageTransformer(builderFactory, DSP_NAMESPACE_V_08));
+        dspRegistry.register(new JsonObjectFromTransferTerminationMessageTransformer(builderFactory, DSP_NAMESPACE_V_08));
+        dspRegistry.register(new JsonObjectFromTransferSuspensionMessageTransformer(builderFactory, DSP_NAMESPACE_V_08));
     }
 }

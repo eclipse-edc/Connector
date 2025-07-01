@@ -21,7 +21,7 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
-import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.protocol.spi.ProtocolWebhook;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;

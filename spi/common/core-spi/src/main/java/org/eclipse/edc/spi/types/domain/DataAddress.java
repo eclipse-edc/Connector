@@ -44,7 +44,7 @@ public class DataAddress {
     public static final String SIMPLE_KEY_NAME = "keyName";
     public static final String EDC_DATA_ADDRESS_TYPE = EDC_NAMESPACE + "DataAddress";
     public static final String EDC_DATA_ADDRESS_TYPE_PROPERTY = EDC_NAMESPACE + SIMPLE_TYPE;
-    public static final String EDC_DATA_ADDRESS_KEY_NAME = EDC_NAMESPACE + "keyName";
+    public static final String EDC_DATA_ADDRESS_KEY_NAME = EDC_NAMESPACE + SIMPLE_KEY_NAME;
     public static final String EDC_DATA_ADDRESS_SECRET = EDC_NAMESPACE + "secret";
 
     protected final Map<String, Object> properties = new HashMap<>();
@@ -70,11 +70,16 @@ public class DataAddress {
 
     @Nullable
     public String getStringProperty(String key, String defaultValue) {
-        var value = Optional.ofNullable(properties.get(EDC_NAMESPACE + key)).orElseGet(() -> properties.get(key));
+        var value = getProperty(key);
         if (value != null) {
             return (String) value;
         }
         return defaultValue;
+    }
+
+    @Nullable
+    public Object getProperty(String key) {
+        return Optional.ofNullable(properties.get(EDC_NAMESPACE + key)).orElseGet(() -> properties.get(key));
     }
 
     public Map<String, Object> getProperties() {

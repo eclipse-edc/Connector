@@ -20,6 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:transform-spi"))
+    api(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
 
     implementation(project(":data-protocols:dsp:dsp-lib:dsp-negotiation-lib:dsp-negotiation-transform-lib"))
 }

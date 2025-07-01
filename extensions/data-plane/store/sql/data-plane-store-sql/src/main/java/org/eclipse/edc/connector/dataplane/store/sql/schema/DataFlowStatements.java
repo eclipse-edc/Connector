@@ -60,9 +60,7 @@ public interface DataFlowStatements extends StatefulEntityStatements, LeaseState
         return "runtime_id";
     }
 
-    String getInsertTemplate();
-
-    String getUpdateTemplate();
+    String getUpsertTemplate();
 
     String getSelectTemplate();
 

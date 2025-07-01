@@ -18,6 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,8 +28,8 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -37,14 +38,14 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectFromCatalogRequestMessageTransformerTest {
 
+    private static final JsonLdNamespace DSP_NAMESPACE = new JsonLdNamespace("http://www.w3.org/ns/dsp#");
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
-
     private JsonObjectFromCatalogRequestMessageTransformer transformer;
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromCatalogRequestMessageTransformer(jsonFactory);
+        transformer = new JsonObjectFromCatalogRequestMessageTransformer(jsonFactory, DSP_NAMESPACE);
     }
 
     @Test
@@ -61,8 +62,8 @@ class JsonObjectFromCatalogRequestMessageTransformerTest {
         var result = transformer.transform(message, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI);
-        assertThat(result.get(DSPACE_PROPERTY_FILTER_IRI)).isEqualTo(querySpecJson);
+        assertThat(result.getJsonString(TYPE).getString()).isEqualTo(DSP_NAMESPACE.toIri(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM));
+        assertThat(result.get(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_FILTER_TERM))).isEqualTo(querySpecJson);
         verify(context, never()).reportProblem(anyString());
     }
 }

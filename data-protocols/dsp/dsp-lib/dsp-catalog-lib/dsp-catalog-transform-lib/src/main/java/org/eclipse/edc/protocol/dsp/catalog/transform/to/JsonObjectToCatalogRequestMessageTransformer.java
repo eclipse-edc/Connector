@@ -26,16 +26,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_PROPERTY_FILTER_TERM;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 
 /**
  * Transforms a {@link JsonObject} in JSON-LD expanded form to a {@link CatalogRequestMessage}.
  */
 public class JsonObjectToCatalogRequestMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, CatalogRequestMessage> {
-
-    public JsonObjectToCatalogRequestMessageTransformer() {
-        this(DSP_NAMESPACE_V_08);
-    }
 
     public JsonObjectToCatalogRequestMessageTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, CatalogRequestMessage.class, namespace);

@@ -15,8 +15,8 @@
 
 package org.eclipse.edc.connector.controlplane.services.protocol;
 
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersions;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolVersions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -27,13 +27,13 @@ import static org.mockito.Mockito.when;
 
 class VersionProtocolServiceImplTest {
 
-    private final ProtocolVersionRegistry registry = mock();
+    private final DataspaceProfileContextRegistry registry = mock();
     private final VersionProtocolServiceImpl service = new VersionProtocolServiceImpl(registry);
 
     @Test
     void shouldReturnAllProtocolVersions() {
         var protocolVersions = new ProtocolVersions(Collections.emptyList());
-        when(registry.getAll()).thenReturn(protocolVersions);
+        when(registry.getProtocolVersions()).thenReturn(protocolVersions);
 
         var result = service.getAll();
 

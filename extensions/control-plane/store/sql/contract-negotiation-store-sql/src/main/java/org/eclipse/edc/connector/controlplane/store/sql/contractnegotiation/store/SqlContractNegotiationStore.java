@@ -119,12 +119,21 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
 
     @Override
     public void save(ContractNegotiation negotiation) {
-        var id = negotiation.getId();
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
 
-                if (negotiation.getContractAgreement() != null) {
-                    upsertAgreement(negotiation.getContractAgreement());
+                var contractAgreement = negotiation.getContractAgreement();
+                if (contractAgreement != null) {
+                    var sql = statements.getUpsertAgreementTemplate();
+
+                    queryExecutor.execute(connection, sql,
+                            contractAgreement.getId(),
+                            contractAgreement.getProviderId(),
+                            contractAgreement.getConsumerId(),
+                            contractAgreement.getContractSigningDate(),
+                            contractAgreement.getAssetId(),
+                            toJson(contractAgreement.getPolicy())
+                    );
                 }
 
                 var stmt = statements.getUpsertNegotiationTemplate();
@@ -140,7 +149,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                         negotiation.getStateCount(),
                         negotiation.getStateTimestamp(),
                         negotiation.getErrorDetail(),
-                        negotiation.getContractAgreement() == null ? null : negotiation.getContractAgreement().getId(),
+                        contractAgreement == null ? null : contractAgreement.getId(),
                         toJson(negotiation.getContractOffers()),
                         toJson(negotiation.getCallbackAddresses()),
                         toJson(negotiation.getTraceContext()),
@@ -149,7 +158,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                         negotiation.isPending(),
                         toJson(negotiation.getProtocolMessages()));
 
-                leaseContext.withConnection(connection).breakLease(id);
+                leaseContext.withConnection(connection).breakLease(negotiation.getId());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -232,27 +241,6 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     private @Nullable ContractNegotiation findInternal(Connection connection, String id) {
         var sql = statements.getFindTemplate();
         return queryExecutor.single(connection, false, contractNegotiationMapper(), sql, id);
-    }
-
-    private void upsertAgreement(ContractAgreement contractAgreement) {
-        transactionContext.execute(() -> {
-            try (var connection = getConnection()) {
-                var sql = statements.getUpsertAgreementTemplate();
-
-                queryExecutor.execute(connection, sql,
-                        contractAgreement.getId(),
-                        contractAgreement.getProviderId(),
-                        contractAgreement.getConsumerId(),
-                        contractAgreement.getContractSigningDate(),
-                        contractAgreement.getAssetId(),
-                        toJson(contractAgreement.getPolicy())
-                );
-
-            } catch (SQLException e) {
-                throw new EdcPersistenceException(e);
-            }
-        });
-
     }
 
     private ContractAgreement mapContractAgreement(ResultSet resultSet) throws SQLException {

@@ -24,7 +24,6 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstrings
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.StatusMessage;
 import org.eclipse.edc.spi.result.Result;
 
-import java.util.Base64;
 import java.util.Collection;
 
 import static org.eclipse.edc.spi.result.Result.success;
@@ -57,15 +56,8 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
         var bitStringCredential = bitStringCredentialResult.getContent();
 
         var bitString = bitStringCredential.encodedList();
-        var decoder = Base64.getDecoder();
-        if (bitString.charAt(0) == 'u') { // base64 url
-            decoder = Base64.getUrlDecoder();
-            bitString = bitString.substring(1); //chop off header
-        } else if (bitString.charAt(0) == 'z') { //base58btc
-            return Result.failure("The encoded list is using the Base58-BTC alphabet ('z' multibase header), which is not supported.");
-        }
 
-        var compressedBitstring = BitString.Parser.newInstance().decoder(decoder).parse(bitString);
+        var compressedBitstring = BitString.Parser.newInstance().parse(bitString);
         if (compressedBitstring.failed()) {
             return compressedBitstring.mapEmpty();
         }

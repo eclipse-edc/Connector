@@ -20,7 +20,6 @@ import org.eclipse.edc.policy.engine.spi.DynamicAtomicConstraintRuleFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.PolicyRuleFunction;
-import org.eclipse.edc.policy.engine.spi.PolicyValidatorFunction;
 import org.eclipse.edc.policy.engine.spi.PolicyValidatorRule;
 import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.engine.validation.PolicyValidator;
@@ -40,7 +39,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 import static org.eclipse.edc.spi.result.Result.failure;
@@ -50,8 +48,6 @@ import static org.eclipse.edc.spi.result.Result.success;
  * Default implementation of the policy engine.
  */
 public class PolicyEngineImpl implements PolicyEngine {
-
-    public static final String ALL_SCOPES_DELIMITED = ALL_SCOPES + DELIMITER;
 
     private final Map<String, Class<? extends PolicyContext>> scopes = new HashMap<>();
 
@@ -68,10 +64,6 @@ public class PolicyEngineImpl implements PolicyEngine {
     public PolicyEngineImpl(ScopeFilter scopeFilter, RuleValidator ruleValidator) {
         this.scopeFilter = scopeFilter;
         this.ruleValidator = ruleValidator;
-    }
-
-    public static boolean scopeFilter(String entry, String scope) {
-        return ALL_SCOPES_DELIMITED.equals(entry) || scope.startsWith(entry);
     }
 
     @Override
@@ -207,31 +199,13 @@ public class PolicyEngineImpl implements PolicyEngine {
     }
 
     @Override
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public <R extends Rule, C extends PolicyContext> void registerFunction(String scope, Class<R> type, String key, AtomicConstraintRuleFunction<R, C> function) {
-        constraintFunctions.add(new ConstraintFunctionEntry(contextType(scope), type, key, function));
-    }
-
-    @Override
     public <R extends Rule, C extends PolicyContext> void registerFunction(Class<C> contextType, Class<R> type, DynamicAtomicConstraintRuleFunction<R, C> function) {
         dynamicConstraintFunctions.add(new DynamicConstraintFunctionEntry(contextType, type, function));
     }
 
     @Override
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public <R extends Rule, C extends PolicyContext> void registerFunction(String scope, Class<R> type, DynamicAtomicConstraintRuleFunction<R, C> function) {
-        dynamicConstraintFunctions.add(new DynamicConstraintFunctionEntry(contextType(scope), type, function));
-    }
-
-    @Override
     public <R extends Rule, C extends PolicyContext> void registerFunction(Class<C> contextType, Class<R> type, PolicyRuleFunction<R, C> function) {
         ruleFunctions.add(new RuleFunctionEntry(contextType, type, function));
-    }
-
-    @Override
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    public <R extends Rule, C extends PolicyContext> void registerFunction(String scope, Class<R> type, PolicyRuleFunction<R, C> function) {
-        ruleFunctions.add(new RuleFunctionEntry(contextType(scope), type, function));
     }
 
     @Override
@@ -242,26 +216,6 @@ public class PolicyEngineImpl implements PolicyEngine {
     @Override
     public <C extends PolicyContext> void registerPostValidator(Class<C> contextType, PolicyValidatorRule<C> validator) {
         postValidators.add(new ValidatorRuleEntry(contextType, validator));
-    }
-
-    @Override
-    public void registerPreValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator) {
-        registerPreValidator(PolicyContext.class, new PolicyValidatorFunctionWrapper(validator));
-    }
-
-    @Override
-    public void registerPreValidator(String scope, PolicyValidatorFunction validator) {
-        registerPreValidator(PolicyContext.class, validator);
-    }
-
-    @Override
-    public void registerPostValidator(String scope, BiFunction<Policy, PolicyContext, Boolean> validator) {
-        registerPostValidator(PolicyContext.class, new PolicyValidatorFunctionWrapper(validator));
-    }
-
-    @Override
-    public void registerPostValidator(String scope, PolicyValidatorFunction validator) {
-        registerPostValidator(PolicyContext.class, validator);
     }
 
     @NotNull
@@ -303,20 +257,6 @@ public class PolicyEngineImpl implements PolicyEngine {
             throw new EdcException("Scope %s not registered".formatted(scope));
         }
         return contextType;
-    }
-
-    private record PolicyValidatorFunctionWrapper(
-            BiFunction<Policy, PolicyContext, Boolean> function) implements PolicyValidatorFunction {
-
-        @Override
-        public Boolean apply(Policy policy, PolicyContext policyContext) {
-            return function.apply(policy, policyContext);
-        }
-
-        @Override
-        public String name() {
-            return function.getClass().getSimpleName();
-        }
     }
 
 }

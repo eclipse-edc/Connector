@@ -27,11 +27,9 @@ import org.eclipse.edc.sql.translation.SqlQueryStatement;
 @ExtensionPoint
 public interface TransferProcessStoreStatements extends StatefulEntityStatements, LeaseStatements {
 
-    String getInsertStatement();
+    String getUpsertStatement();
 
     String getDeleteTransferProcessTemplate();
-
-    String getUpdateTransferProcessTemplate();
 
     String getSelectTemplate();
 

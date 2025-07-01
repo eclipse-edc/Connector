@@ -14,19 +14,23 @@
 
 package org.eclipse.edc.protocol.dsp.http.dispatcher;
 
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersion;
-import org.eclipse.edc.protocol.dsp.http.spi.DspProtocolParser;
 import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspRequestBasePathProvider;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
+import java.util.Optional;
+
+import static java.lang.String.format;
+
 public class DspRequestBasePathProviderImpl implements DspRequestBasePathProvider {
 
-    private final DspProtocolParser protocolParser;
+    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
     private final boolean wellKnownPath;
 
-    public DspRequestBasePathProviderImpl(DspProtocolParser protocolParser, boolean wellKnownPath) {
-        this.protocolParser = protocolParser;
+    public DspRequestBasePathProviderImpl(DataspaceProfileContextRegistry dataspaceProfileContextRegistry, boolean wellKnownPath) {
+        this.dataspaceProfileContextRegistry = dataspaceProfileContextRegistry;
         this.wellKnownPath = wellKnownPath;
     }
 
@@ -34,10 +38,10 @@ public class DspRequestBasePathProviderImpl implements DspRequestBasePathProvide
     public String provideBasePath(RemoteMessage message) {
         var protocolPath = "";
         if (wellKnownPath) {
-            protocolPath = protocolParser.parse(message.getProtocol())
+            protocolPath = Optional.ofNullable(dataspaceProfileContextRegistry.getProtocolVersion(message.getProtocol()))
                     .map(ProtocolVersion::path)
                     .map(this::removeTrailingSlash)
-                    .orElseThrow(failure -> new EdcException(failure.getFailureDetail()));
+                    .orElseThrow(() -> new EdcException(format("No protocol version found for protocol: %s", message.getProtocol())));
         }
         return message.getCounterPartyAddress() + protocolPath;
     }

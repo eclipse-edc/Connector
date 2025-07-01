@@ -23,7 +23,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractRemoteMessage;
 import org.eclipse.edc.connector.controlplane.protocolversion.spi.ProtocolVersionRequestMessage;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
@@ -40,15 +39,14 @@ import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.protocol.dsp.http.dispatcher.DspHttpRemoteMessageDispatcherImpl;
 import org.eclipse.edc.protocol.dsp.http.dispatcher.DspRequestBasePathProviderImpl;
 import org.eclipse.edc.protocol.dsp.http.message.DspRequestHandlerImpl;
-import org.eclipse.edc.protocol.dsp.http.protocol.DspProtocolParserImpl;
 import org.eclipse.edc.protocol.dsp.http.serialization.JsonLdRemoteMessageSerializerImpl;
-import org.eclipse.edc.protocol.dsp.http.spi.DspProtocolParser;
 import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher;
 import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspRequestBasePathProvider;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.protocol.dsp.http.transform.DspProtocolTypeTransformerRegistryImpl;
 import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -100,21 +98,16 @@ public class DspHttpCoreExtension implements ServiceExtension {
     private TokenDecorator decorator;
     @Inject
     private PolicyEngine policyEngine;
-
     @Inject
     private AudienceResolver audienceResolver;
     @Inject
     private Monitor monitor;
-
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
-
     @Inject
-    private ProtocolVersionRegistry versionRegistry;
+    private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
 
     private DspProtocolTypeTransformerRegistry dspTransformerRegistry;
-    private DspProtocolParser dspProtocolParser;
-
 
     @Override
     public String name() {
@@ -141,7 +134,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
         registerTransferProcessPolicyScopes(dispatcher);
         registerCatalogPolicyScopes(dispatcher);
         registerVersionPolicyScopes(dispatcher);
-        
+
         return dispatcher;
     }
 
@@ -152,28 +145,20 @@ public class DspHttpCoreExtension implements ServiceExtension {
 
     @Provider
     public JsonLdRemoteMessageSerializer jsonLdRemoteMessageSerializer() {
-        return new JsonLdRemoteMessageSerializerImpl(dspTransformerRegistry(), typeManager, JSON_LD, jsonLdService, dspProtocolParser(), DSP_SCOPE);
+        return new JsonLdRemoteMessageSerializerImpl(dspTransformerRegistry(), typeManager, JSON_LD, jsonLdService, dataspaceProfileContextRegistry, DSP_SCOPE);
     }
 
     @Provider
     public DspProtocolTypeTransformerRegistry dspTransformerRegistry() {
         if (dspTransformerRegistry == null) {
-            dspTransformerRegistry = new DspProtocolTypeTransformerRegistryImpl(transformerRegistry, DSP_TRANSFORMER_CONTEXT, dspProtocolParser());
+            dspTransformerRegistry = new DspProtocolTypeTransformerRegistryImpl(transformerRegistry, DSP_TRANSFORMER_CONTEXT, dataspaceProfileContextRegistry);
         }
         return dspTransformerRegistry;
     }
 
     @Provider
-    public DspProtocolParser dspProtocolParser() {
-        if (dspProtocolParser == null) {
-            dspProtocolParser = new DspProtocolParserImpl(versionRegistry);
-        }
-        return dspProtocolParser;
-    }
-
-    @Provider
     public DspRequestBasePathProvider dspRequestBasePathProvider() {
-        return new DspRequestBasePathProviderImpl(dspProtocolParser(), wellKnownPathEnabled);
+        return new DspRequestBasePathProviderImpl(dataspaceProfileContextRegistry, wellKnownPathEnabled);
     }
 
     private void registerNegotiationPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {

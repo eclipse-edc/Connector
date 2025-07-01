@@ -33,12 +33,12 @@ import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
 import org.eclipse.edc.iam.identitytrust.spi.SecureTokenService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
-import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.test.e2e.tck.TckTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,7 +72,7 @@ import static org.mockserver.model.HttpResponse.response;
  *
  * @see <a href="https://github.com/eclipse-dataspacetck/dcp-tck">Eclipse Dataspace TCK - DCP</a>
  */
-@EndToEndTest
+@TckTest
 public class DcpPresentationFlowTest {
     private static final int CALLBACK_PORT = getFreePort();
 
@@ -120,9 +120,9 @@ public class DcpPresentationFlowTest {
         var didDocumentJson = createDidDocumentJson();
         server.when(request().withMethod("GET").withPath("/verifier/did.json"))
                 .respond(response()
-                        .withHeader("Content-Type", "application/json")
-                        .withStatusCode(200)
-                        .withBody(didDocumentJson));
+                                 .withHeader("Content-Type", "application/json")
+                                 .withStatusCode(200)
+                                 .withBody(didDocumentJson));
 
         when(STS_MOCK.createToken(anyMap(), isNull()))
                 .thenAnswer(i -> {
@@ -137,8 +137,8 @@ public class DcpPresentationFlowTest {
                     claims.put("nbf", Instant.now().getEpochSecond());
 
                     var claimsSet = new JWTClaimsSet.Builder(JWTClaimsSet.parse(claims))
-                            .jwtID(UUID.randomUUID().toString())
-                            .build();
+                                            .jwtID(UUID.randomUUID().toString())
+                                            .build();
                     var jwt = new SignedJWT(hdr, claimsSet);
                     jwt.sign(new ECDSASigner(verifierKey));
                     var tr = TokenRepresentation.Builder.newInstance().token(jwt.serialize()).build();
@@ -148,17 +148,17 @@ public class DcpPresentationFlowTest {
 
     private String createDidDocumentJson() {
         var ddoc = DidDocument.Builder.newInstance()
-                .id(VERIFIER_DID)
-                .verificationMethod(List.of(
-                        VerificationMethod.Builder.newInstance()
-                                .type("assertionMethod")
-                                .controller(VERIFIER_DID)
-                                .publicKeyJwk(verifierKey.toJSONObject())
-                                .id(verifierKey.getKeyID())
-                                .build()
-                ))
-                .service(List.of(new Service(UUID.randomUUID().toString(), "CredentialService", "https://example.com/credentialservice")))
-                .build();
+                           .id(VERIFIER_DID)
+                           .verificationMethod(List.of(
+                                   VerificationMethod.Builder.newInstance()
+                                           .type("assertionMethod")
+                                           .controller(VERIFIER_DID)
+                                           .publicKeyJwk(verifierKey.toJSONObject())
+                                           .id(verifierKey.getKeyID())
+                                           .build()
+                           ))
+                           .service(List.of(new Service(UUID.randomUUID().toString(), "CredentialService", "https://example.com/credentialservice")))
+                           .build();
         try {
             return new ObjectMapper().writeValueAsString(ddoc);
         } catch (JsonProcessingException e) {
@@ -176,18 +176,18 @@ public class DcpPresentationFlowTest {
         var thirdPartyDid = "did:web:localhost%3A" + CALLBACK_PORT + ":thirdparty";
         var baseCallbackUrl = "http://localhost:%s".formatted(CALLBACK_PORT);
         var result = TckRuntime.Builder.newInstance()
-                .properties(Map.of(
-                        "dataspacetck.callback.address", baseCallbackUrl,
-                        "dataspacetck.launcher", "org.eclipse.dataspacetck.dcp.system.DcpSystemLauncher",
-                        "dataspacetck.did.verifier", VERIFIER_DID,
-                        "dataspacetck.did.holder", holderDid,
-                        "dataspacetck.did.thirdparty", thirdPartyDid,
-                        "dataspacetck.vpp.trigger.endpoint", "http://localhost:%s%s".formatted(PROTOCOL_API_PORT, triggerPath)
-                ))
-                .monitor(monitor)
-                .addPackage("org.eclipse.dataspacetck.dcp.verification.presentation.verifier")
-                .build()
-                .execute();
+                             .properties(Map.of(
+                                     "dataspacetck.callback.address", baseCallbackUrl,
+                                     "dataspacetck.launcher", "org.eclipse.dataspacetck.dcp.system.DcpSystemLauncher",
+                                     "dataspacetck.did.verifier", VERIFIER_DID,
+                                     "dataspacetck.did.holder", holderDid,
+                                     "dataspacetck.did.thirdparty", thirdPartyDid,
+                                     "dataspacetck.vpp.trigger.endpoint", "http://localhost:%s%s".formatted(PROTOCOL_API_PORT, triggerPath)
+                             ))
+                             .monitor(monitor)
+                             .addPackage("org.eclipse.dataspacetck.dcp.verification.presentation.verifier")
+                             .build()
+                             .execute();
 
         monitor.enableBold().message("DCP Tests done: %s succeeded, %s failed".formatted(
                 result.getTestsSucceededCount(), result.getTotalFailureCount()
@@ -195,8 +195,8 @@ public class DcpPresentationFlowTest {
 
         if (!result.getFailures().isEmpty()) {
             var failures = result.getFailures().stream()
-                    .map(f -> "- " + f.getTestIdentifier().getDisplayName() + " (" + f.getException() + ")")
-                    .collect(Collectors.joining("\n"));
+                                   .map(f -> "- " + f.getTestIdentifier().getDisplayName() + " (" + f.getException() + ")")
+                                   .collect(Collectors.joining("\n"));
             Assertions.fail(result.getTotalFailureCount() + " TCK test cases failed:\n" + failures);
         }
     }

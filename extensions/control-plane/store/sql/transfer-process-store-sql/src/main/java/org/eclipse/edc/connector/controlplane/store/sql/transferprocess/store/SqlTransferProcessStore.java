@@ -126,13 +126,34 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
         Objects.requireNonNull(entity.getId(), "TransferProcesses must have an ID!");
         transactionContext.execute(() -> {
             try (var conn = getConnection()) {
-                var existing = findByIdInternal(conn, entity.getId());
-                if (existing != null) {
-                    leaseContext.by(leaseHolderName).withConnection(conn).breakLease(entity.getId());
-                    update(conn, entity);
-                } else {
-                    insert(conn, entity);
-                }
+                var sql = statements.getUpsertStatement();
+                queryExecutor.execute(conn, sql, entity.getId(),
+                        entity.getState(),
+                        entity.getStateCount(),
+                        entity.getStateTimestamp(),
+                        entity.getCreatedAt(),
+                        entity.getUpdatedAt(),
+                        toJson(entity.getTraceContext()),
+                        entity.getErrorDetail(),
+                        toJson(entity.getResourceManifest()),
+                        toJson(entity.getProvisionedResourceSet()),
+                        toJson(entity.getContentDataAddress()),
+                        entity.getType().toString(),
+                        toJson(entity.getDeprovisionedResources()),
+                        toJson(entity.getPrivateProperties()),
+                        toJson(entity.getCallbackAddresses()),
+                        entity.isPending(),
+                        entity.getTransferType(),
+                        toJson(entity.getProtocolMessages()),
+                        entity.getDataPlaneId(),
+                        entity.getCorrelationId(),
+                        entity.getCounterPartyAddress(),
+                        entity.getProtocol(),
+                        entity.getAssetId(),
+                        entity.getContractId(),
+                        toJson(entity.getDataDestination()));
+
+                leaseContext.by(leaseHolderName).withConnection(conn).breakLease(entity.getId());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -200,33 +221,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
         return queryExecutor.query(connection, true, this::mapTransferProcess, statement.getQueryAsString(), statement.getParameters());
     }
 
-    private void update(Connection conn, TransferProcess process) {
-        var updateStmt = statements.getUpdateTransferProcessTemplate();
-        queryExecutor.execute(conn, updateStmt,
-                process.getState(),
-                process.getStateCount(),
-                process.getStateTimestamp(),
-                process.getUpdatedAt(),
-                toJson(process.getTraceContext()),
-                process.getErrorDetail(),
-                toJson(process.getResourceManifest()),
-                toJson(process.getProvisionedResourceSet()),
-                toJson(process.getContentDataAddress()),
-                toJson(process.getDeprovisionedResources()),
-                toJson(process.getCallbackAddresses()),
-                process.isPending(),
-                process.getTransferType(),
-                toJson(process.getProtocolMessages()),
-                process.getDataPlaneId(),
-                process.getCorrelationId(),
-                process.getCounterPartyAddress(),
-                process.getProtocol(),
-                process.getAssetId(),
-                process.getContractId(),
-                toJson(process.getDataDestination()),
-                process.getId());
-    }
-
     /**
      * Returns either a single element from the list, or null if empty. Throws an IllegalStateException if the list has
      * more than 1 element
@@ -241,35 +235,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
 
     private String getMultiplicityError(int expectedSize, int actualSize) {
         return format("Expected to find %d items, but found %d", expectedSize, actualSize);
-    }
-
-    private void insert(Connection conn, TransferProcess process) {
-        var insertTpStatement = statements.getInsertStatement();
-        queryExecutor.execute(conn, insertTpStatement, process.getId(),
-                process.getState(),
-                process.getStateCount(),
-                process.getStateTimestamp(),
-                process.getCreatedAt(),
-                process.getUpdatedAt(),
-                toJson(process.getTraceContext()),
-                process.getErrorDetail(),
-                toJson(process.getResourceManifest()),
-                toJson(process.getProvisionedResourceSet()),
-                toJson(process.getContentDataAddress()),
-                process.getType().toString(),
-                toJson(process.getDeprovisionedResources()),
-                toJson(process.getPrivateProperties()),
-                toJson(process.getCallbackAddresses()),
-                process.isPending(),
-                process.getTransferType(),
-                toJson(process.getProtocolMessages()),
-                process.getDataPlaneId(),
-                process.getCorrelationId(),
-                process.getCounterPartyAddress(),
-                process.getProtocol(),
-                process.getAssetId(),
-                process.getContractId(),
-                toJson(process.getDataDestination()));
     }
 
     private TransferProcess mapTransferProcess(ResultSet resultSet) throws SQLException {

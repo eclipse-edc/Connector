@@ -42,8 +42,8 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.protocol.ProtocolWebhookRegistry;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -120,7 +120,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     private TransferProcessObservable observable;
     private DataAddressResolver addressResolver;
     private PolicyArchive policyArchive;
-    private ProtocolWebhookRegistry protocolWebhookRegistry;
+    private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
     private ProvisionResponsesHandler provisionResponsesHandler;
     private DeprovisionResponsesHandler deprovisionResponsesHandler;
     private TransferProcessPendingGuard pendingGuard = tp -> false;
@@ -308,7 +308,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     @WithSpan
     private boolean processRequesting(TransferProcess process) {
         var originalDestination = process.getDataDestination();
-        var callbackAddress = protocolWebhookRegistry.resolve(process.getProtocol());
+        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(process.getProtocol());
 
         if (callbackAddress != null) {
             var dataDestination = Optional.ofNullable(originalDestination)
@@ -797,8 +797,8 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             return this;
         }
 
-        public Builder protocolWebhookRegistry(ProtocolWebhookRegistry protocolWebhookRegistry) {
-            manager.protocolWebhookRegistry = protocolWebhookRegistry;
+        public Builder dataspaceProfileContextRegistry(DataspaceProfileContextRegistry dataspaceProfileContextRegistry) {
+            manager.dataspaceProfileContextRegistry = dataspaceProfileContextRegistry;
             return this;
         }
 
