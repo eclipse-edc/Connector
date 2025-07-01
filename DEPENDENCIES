@@ -326,7 +326,6 @@ maven/mavencentral/org.junit.jupiter/junit-jupiter/5.13.2, EPL-2.0, approved, #2
 maven/mavencentral/org.junit.platform/junit-platform-commons/1.13.1, EPL-2.0, approved, #21576
 maven/mavencentral/org.junit.platform/junit-platform-commons/1.13.2, EPL-2.0, approved, #21576
 maven/mavencentral/org.junit.platform/junit-platform-engine/1.13.2, EPL-2.0, approved, #21701
-maven/mavencentral/org.junit.platform/junit-platform-launcher/1.13.1, EPL-2.0, approved, #21708
 maven/mavencentral/org.junit.platform/junit-platform-launcher/1.13.2, EPL-2.0, approved, #21708
 maven/mavencentral/org.junit.platform/junit-platform-suite-api/1.13.2, EPL-2.0, approved, #21709
 maven/mavencentral/org.junit.platform/junit-platform-suite-commons/1.13.2, EPL-2.0, approved, #21704
