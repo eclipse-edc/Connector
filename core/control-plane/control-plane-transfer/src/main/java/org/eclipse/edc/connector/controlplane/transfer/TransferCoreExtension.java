@@ -138,7 +138,7 @@ public class TransferCoreExtension implements ServiceExtension {
 
         typeTransformerRegistry.register(new DataAddressToEndpointDataReferenceTransformer());
 
-        observable.registerListener(new TransferProcessEventListener(eventRouter, clock));
+        observable.registerListener(new TransferProcessEventListener(eventRouter));
 
         var entityRetryProcessConfiguration = stateMachineConfiguration.entityRetryProcessConfiguration();
         var provisionResponsesHandler = new ProvisionResponsesHandler(observable, monitor, vault, typeManager);

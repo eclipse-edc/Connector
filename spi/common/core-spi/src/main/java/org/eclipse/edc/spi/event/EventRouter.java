@@ -44,5 +44,12 @@ public interface EventRouter {
      *
      * @param event the event to be published
      */
-    <E extends Event> void publish(EventEnvelope<E> event);
+    <E extends Event> void publish(E event);
+
+    /**
+     * Publish an eventEnvelope to all the subscribers
+     *
+     * @param eventEnvelope the eventEnvelope to be published
+     */
+    <E extends Event> void publish(EventEnvelope<E> eventEnvelope);
 }

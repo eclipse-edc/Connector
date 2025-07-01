@@ -198,7 +198,7 @@ public class ContractCoreExtension implements ServiceExtension {
             providerWaitStrategy = getWaitStrategy(context, providerStateMachineConfiguration.iterationWaitExponentialWaitStrategy());
         }
 
-        observable.registerListener(new ContractNegotiationEventListener(eventRouter, clock));
+        observable.registerListener(new ContractNegotiationEventListener(eventRouter));
 
         consumerNegotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .participantId(participantId)

@@ -17,23 +17,17 @@ package org.eclipse.edc.connector.controlplane.services.contractdefinition;
 import org.eclipse.edc.connector.controlplane.contract.spi.definition.observe.ContractDefinitionListener;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionCreated;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionDeleted;
-import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionEvent;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionUpdated;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
-import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
-
-import java.time.Clock;
 
 /**
  * Listener responsible for creating and publishing events regarding ContractDefinition state changes
  */
 public class ContractDefinitionEventListener implements ContractDefinitionListener {
-    private final Clock clock;
     private final EventRouter eventRouter;
 
-    public ContractDefinitionEventListener(Clock clock, EventRouter eventRouter) {
-        this.clock = clock;
+    public ContractDefinitionEventListener(EventRouter eventRouter) {
         this.eventRouter = eventRouter;
     }
 
@@ -43,7 +37,7 @@ public class ContractDefinitionEventListener implements ContractDefinitionListen
                 .contractDefinitionId(contractDefinition.getId())
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
@@ -52,7 +46,7 @@ public class ContractDefinitionEventListener implements ContractDefinitionListen
                 .contractDefinitionId(contractDefinition.getId())
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
@@ -61,15 +55,7 @@ public class ContractDefinitionEventListener implements ContractDefinitionListen
                 .contractDefinitionId(contractDefinition.getId())
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
-    private void publish(ContractDefinitionEvent event) {
-        var envelope = EventEnvelope.Builder.newInstance()
-                .payload(event)
-                .at(clock.millis())
-                .build();
-
-        eventRouter.publish(envelope);
-    }
 }

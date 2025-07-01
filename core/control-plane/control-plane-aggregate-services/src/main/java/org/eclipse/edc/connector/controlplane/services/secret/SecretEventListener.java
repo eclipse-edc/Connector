@@ -16,24 +16,18 @@ package org.eclipse.edc.connector.controlplane.services.secret;
 
 import org.eclipse.edc.connector.secret.spi.event.SecretCreated;
 import org.eclipse.edc.connector.secret.spi.event.SecretDeleted;
-import org.eclipse.edc.connector.secret.spi.event.SecretEvent;
 import org.eclipse.edc.connector.secret.spi.event.SecretUpdated;
 import org.eclipse.edc.connector.secret.spi.observe.SecretListener;
-import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
-
-import java.time.Clock;
 
 /**
  * Listener responsible for creating and publishing events regarding Secret state changes
  */
 public class SecretEventListener implements SecretListener {
-    private final Clock clock;
     private final EventRouter eventRouter;
 
-    public SecretEventListener(Clock clock, EventRouter eventRouter) {
-        this.clock = clock;
+    public SecretEventListener(EventRouter eventRouter) {
         this.eventRouter = eventRouter;
     }
 
@@ -43,7 +37,7 @@ public class SecretEventListener implements SecretListener {
                 .secretId(secret.getId())
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
@@ -52,7 +46,7 @@ public class SecretEventListener implements SecretListener {
                 .secretId(secret.getId())
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
@@ -61,14 +55,7 @@ public class SecretEventListener implements SecretListener {
                 .secretId(secret.getId())
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
-    private void publish(SecretEvent event) {
-        var envelope = EventEnvelope.Builder.newInstance()
-                .payload(event)
-                .at(clock.millis())
-                .build();
-        eventRouter.publish(envelope);
-    }
 }

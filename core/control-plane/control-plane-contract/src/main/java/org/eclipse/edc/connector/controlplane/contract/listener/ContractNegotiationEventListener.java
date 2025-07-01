@@ -25,60 +25,55 @@ import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotia
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation.ContractNegotiationVerified;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationListener;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
-
-import java.time.Clock;
 
 public class ContractNegotiationEventListener implements ContractNegotiationListener {
     private final EventRouter eventRouter;
-    private final Clock clock;
 
-    public ContractNegotiationEventListener(EventRouter eventRouter, Clock clock) {
+    public ContractNegotiationEventListener(EventRouter eventRouter) {
         this.eventRouter = eventRouter;
-        this.clock = clock;
     }
 
     @Override
     public void initiated(ContractNegotiation negotiation) {
         var event = baseBuilder(ContractNegotiationInitiated.Builder.newInstance(), negotiation).build();
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
     public void requested(ContractNegotiation negotiation) {
         var event = baseBuilder(ContractNegotiationRequested.Builder.newInstance(), negotiation).build();
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
     public void offered(ContractNegotiation negotiation) {
         var event = baseBuilder(ContractNegotiationOffered.Builder.newInstance(), negotiation).build();
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
     public void accepted(ContractNegotiation negotiation) {
         var event = baseBuilder(ContractNegotiationAccepted.Builder.newInstance(), negotiation).build();
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
     public void terminated(ContractNegotiation negotiation) {
         var event = baseBuilder(ContractNegotiationTerminated.Builder.newInstance(), negotiation).build();
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
     public void agreed(ContractNegotiation negotiation) {
         var event = baseBuilder(ContractNegotiationAgreed.Builder.newInstance(), negotiation).build();
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
     public void verified(ContractNegotiation negotiation) {
         var event = baseBuilder(ContractNegotiationVerified.Builder.newInstance(), negotiation).build();
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
@@ -86,7 +81,7 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
         var event = baseBuilder(ContractNegotiationFinalized.Builder.newInstance(), negotiation)
                 .contractAgreement(negotiation.getContractAgreement())
                 .build();
-        publish(event);
+        eventRouter.publish(event);
     }
 
     private <T extends ContractNegotiationEvent, B extends ContractNegotiationEvent.Builder<T, B>> B baseBuilder(B builder, ContractNegotiation negotiation) {
@@ -98,11 +93,4 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
                 .protocol(negotiation.getProtocol());
     }
 
-    private void publish(ContractNegotiationEvent event) {
-        var envelope = EventEnvelope.Builder.newInstance()
-                .payload(event)
-                .at(clock.millis())
-                .build();
-        eventRouter.publish(envelope);
-    }
 }
