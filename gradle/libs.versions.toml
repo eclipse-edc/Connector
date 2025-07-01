@@ -40,7 +40,7 @@ testcontainers = "1.21.2"
 tink = "1.18.0"
 dsp-tck = "1.0.0-SNAPSHOT"
 dcp-tck = "1.0.0-SNAPSHOT"
-junit = "1.13.1"
+junit = "1.13.2"
 
 [libraries]
 iron-vc = { module = "com.apicatalog:iron-verifiable-credentials", version.ref = "apicatalog" }
