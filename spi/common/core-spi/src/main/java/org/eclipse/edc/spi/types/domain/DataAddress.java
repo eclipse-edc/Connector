@@ -15,15 +15,16 @@
 
 package org.eclipse.edc.spi.types.domain;
 
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -67,14 +68,7 @@ public class DataAddress {
 
     @JsonIgnore
     public DataAddress getResponseChannel() {
-        return Optional.ofNullable(getProperty(EDC_DATA_ADDRESS_RESPONSE_CHANNEL))
-                .filter(Map.class::isInstance)
-                .map(LinkedHashMap.class::cast)
-                .map(map -> map.get("properties") != null ? map.get("properties") : map)
-                .filter(Map.class::isInstance)
-                .map(LinkedHashMap.class::cast)
-                .map(map -> DataAddress.Builder.newInstance().properties(map).build())
-                .orElse(null);
+        return (DataAddress) getProperty(EDC_DATA_ADDRESS_RESPONSE_CHANNEL);
     }
 
     @Nullable
@@ -139,6 +133,23 @@ public class DataAddress {
             return self();
         }
 
+        @JsonIgnore
+        public B responseChannel(DataAddress rc) {
+            address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, rc);
+            return self();
+        }
+
+        @JsonSetter(EDC_DATA_ADDRESS_RESPONSE_CHANNEL)
+        public B responseChannel(Map<String, Object> rc) {
+            if (rc.get("properties") != null) {
+                address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, DataAddress.Builder.newInstance().properties((Map<String, Object>) rc.get("properties")).build());
+            } else {
+                address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, DataAddress.Builder.newInstance().properties(rc).build());
+            }
+            return self();
+        }
+
+        @JsonAnySetter
         public B property(String key, Object value) {
             Objects.requireNonNull(key, "Property key null.");
             switch (key) {

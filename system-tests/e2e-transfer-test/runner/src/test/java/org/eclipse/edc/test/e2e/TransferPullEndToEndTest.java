@@ -150,6 +150,7 @@ class TransferPullEndToEndTest {
             assertConsumerCanNotAccessData(transferProcessId, edrEntry);
         }
 
+        // TODO: test should assert that the correct responseChannel is retrieved.
         @Test
         void httpPull_dataTransfer_withHttpResponseChannel() {
             var assetId = UUID.randomUUID().toString();

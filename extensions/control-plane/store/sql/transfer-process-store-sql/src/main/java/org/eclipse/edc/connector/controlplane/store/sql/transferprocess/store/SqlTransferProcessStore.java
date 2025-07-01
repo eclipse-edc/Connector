@@ -137,7 +137,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                         entity.getErrorDetail(),
                         toJson(entity.getResourceManifest()),
                         toJson(entity.getProvisionedResourceSet()),
-                        toJson(entity.getContentDataAddress()),
+                        toJson(entity.getContentDataAddress() != null ? entity.getContentDataAddress().getProperties() : null),
                         entity.getType().toString(),
                         toJson(entity.getDeprovisionedResources()),
                         toJson(entity.getPrivateProperties()),

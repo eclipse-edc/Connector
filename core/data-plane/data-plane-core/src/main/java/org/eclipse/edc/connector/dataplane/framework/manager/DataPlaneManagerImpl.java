@@ -270,6 +270,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .id(startMessage.getProcessId())
                 .source(startMessage.getSourceDataAddress())
                 .destination(startMessage.getDestinationDataAddress())
+                .responseChannel(startMessage.getResponseChannelDataAddress())
                 .callbackAddress(startMessage.getCallbackAddress())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .properties(startMessage.getProperties())
@@ -523,7 +524,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     private Processor processDataFlowInState(DataFlowStates state, Function<DataFlow, Boolean> function, Supplier<Criterion>... additionalCriteria) {
         Supplier<Collection<DataFlow>> entitiesSupplier = () -> {
             var additional = Arrays.stream(additionalCriteria).map(Supplier::get);
-            var filter = Stream.concat(Stream.of(new Criterion[]{hasState(state.code())}), additional)
+            var filter = Stream.concat(Stream.of(new Criterion[]{ hasState(state.code()) }), additional)
                     .toArray(Criterion[]::new);
             return store.nextNotLeased(batchSize, filter);
         };
