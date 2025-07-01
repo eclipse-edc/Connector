@@ -38,8 +38,8 @@ titanium = "1.6.0"
 kafkaClients = "4.0.0"
 testcontainers = "1.21.3"
 tink = "1.18.0"
-dsp-tck = "1.0.0-SNAPSHOT"
-dcp-tck = "1.0.0-SNAPSHOT"
+dsp-tck = "1.0.0-RC4"
+dcp-tck = "1.0.0-RC4"
 junit = "1.13.2"
 
 [libraries]
