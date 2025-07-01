@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -29,7 +30,8 @@ import static org.mockito.Mockito.mock;
 public interface Runtimes {
 
     static RuntimeExtension inMemoryRuntime() {
-        var rt = new RuntimePerClassExtension(new EmbeddedRuntime("control-plane", inMemoryConfiguration(), ":system-tests:version-api:version-api-test-runtime"));
+        var rt = new RuntimePerClassExtension(new EmbeddedRuntime("control-plane", ":system-tests:version-api:version-api-test-runtime")
+                .configurationProvider(() -> ConfigFactory.fromMap(inMemoryConfiguration())));
         rt.registerServiceMock(DataPlaneManager.class, mock());
         rt.registerServiceMock(DataPlaneClientFactory.class, mock());
         return rt;

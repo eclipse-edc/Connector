@@ -40,6 +40,7 @@ import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -462,9 +463,8 @@ public class SerdeEndToEndTest {
             var managementPort = getFreePort();
             var protocolPort = getFreePort();
 
-            var runtime = new EmbeddedRuntime(
-                    "control-plane",
-                    new HashMap<>() {
+            var runtime = new EmbeddedRuntime("control-plane", ":system-tests:management-api:management-api-test-runtime")
+                    .configurationProvider(() -> ConfigFactory.fromMap(new HashMap<>() {
                         {
                             put("web.http.path", "/");
                             put("web.http.port", String.valueOf(getFreePort()));
@@ -476,9 +476,7 @@ public class SerdeEndToEndTest {
                             put("web.http.management.port", String.valueOf(managementPort));
                             put("edc.management.context.enabled", "true");
                         }
-                    },
-                    ":system-tests:management-api:management-api-test-runtime"
-            );
+                    }));
 
             return new ManagementEndToEndTestContext(runtime);
         }

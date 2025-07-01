@@ -158,7 +158,7 @@ class MultiFormatPresentationVerifierTest {
             var vpContent = VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"");
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(vpContent)));
 
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.JWT, null))).isSucceeded();
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.VC1_0_JWT, null))).isSucceeded();
         }
 
         @DisplayName("contains only JWT-VCs (multiple)")
@@ -174,7 +174,7 @@ class MultiFormatPresentationVerifierTest {
             var vpContent = "\"%s\", \"%s\"".formatted(vcJwt1, vcJwt2);
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted(vpContent))));
 
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.JWT, null))).isSucceeded();
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.VC1_0_JWT, null))).isSucceeded();
         }
 
         @DisplayName("contains only LDP-VC (single)")
@@ -186,7 +186,7 @@ class MultiFormatPresentationVerifierTest {
             var vpContent = VP_CONTENT_TEMPLATE.formatted(signedNameCredential);
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(vpContent)));
 
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.JWT, null))).isSucceeded();
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.VC1_0_JWT, null))).isSucceeded();
         }
 
         @DisplayName("contains only LDP-VCs (multiple)")
@@ -203,7 +203,7 @@ class MultiFormatPresentationVerifierTest {
             var vpContent = "%s, %s".formatted(signedMemberCredential, signedNameCredential);
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted(vpContent))));
 
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.JWT, null))).isSucceeded();
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.VC1_0_JWT, null))).isSucceeded();
         }
 
         @DisplayName("containing both LDP-VC and JWT-VC")
@@ -220,7 +220,7 @@ class MultiFormatPresentationVerifierTest {
             var vpContent = "%s, %s, \"%s\"".formatted(signedMemberCredential, signedNameCredential, vcJwt1);
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted(vpContent))));
 
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.JWT, null))).isSucceeded();
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.VC1_0_JWT, null))).isSucceeded();
         }
 
         @DisplayName("contains only one forged JWT-VC (single)")
@@ -236,7 +236,7 @@ class MultiFormatPresentationVerifierTest {
             var vpContent = VP_CONTENT_TEMPLATE.formatted("\"" + vcJwt1 + "\"");
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(vpContent)));
 
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.JWT, null)))
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.VC1_0_JWT, null)))
                     .isFailed().detail().contains(INVALID_SIGNATURE);
         }
 
@@ -257,7 +257,7 @@ class MultiFormatPresentationVerifierTest {
             var vpContent = "\"%s\", \"%s\"".formatted(vcJwt1, vcJwt2);
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted(vpContent))));
 
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.JWT, null)))
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.VC1_0_JWT, null)))
                     .isFailed().detail().contains(INVALID_SIGNATURE);
         }
 
@@ -271,7 +271,7 @@ class MultiFormatPresentationVerifierTest {
 
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted(signedNameCredential))));
 
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.JWT, null)))
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.VC1_0_JWT, null)))
                     .isFailed().detail().contains("InvalidSignature");
         }
 
@@ -289,7 +289,7 @@ class MultiFormatPresentationVerifierTest {
             var vpContent = "%s, %s".formatted(signedMemberCredential, signedNameCredential);
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted(vpContent))));
 
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.JWT, null)))
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.VC1_0_JWT, null)))
                     .isFailed().detail().contains("InvalidSignature");
         }
 
@@ -308,7 +308,7 @@ class MultiFormatPresentationVerifierTest {
             var vpContent = "%s, %s, \"%s\"".formatted(signedMemberCredential, signedNameCredential, vcJwt1);
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted(vpContent))));
 
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.JWT, null)))
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.VC1_0_JWT, null)))
                     .isFailed().detail().contains("InvalidSignature");
         }
 
@@ -330,7 +330,7 @@ class MultiFormatPresentationVerifierTest {
             var vpContent = "%s, %s, \"%s\"".formatted(signedMemberCredential, signedNameCredential, vcJwt1);
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", asMap(VP_CONTENT_TEMPLATE.formatted(vpContent))));
 
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.JWT, null)))
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.VC1_0_JWT, null)))
                     .isFailed().detail().contains("Invalid signature");
         }
 
@@ -342,7 +342,7 @@ class MultiFormatPresentationVerifierTest {
             var vpContent = asMap(VP_CONTENT_TEMPLATE.formatted(""));
             var vpJwt = JwtCreationUtils.createJwt(vpSigningKey, VP_HOLDER_ID, "testSub", MY_OWN_DID, Map.of("vp", vpContent));
 
-            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.JWT, null))).isSucceeded();
+            assertThat(multiFormatVerifier.verifyPresentation(new VerifiablePresentationContainer(vpJwt, CredentialFormat.VC1_0_JWT, null))).isSucceeded();
         }
 
     }

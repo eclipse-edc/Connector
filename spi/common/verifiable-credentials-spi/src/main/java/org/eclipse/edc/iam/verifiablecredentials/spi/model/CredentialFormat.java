@@ -16,20 +16,7 @@
 package org.eclipse.edc.iam.verifiablecredentials.spi.model;
 
 public enum CredentialFormat {
-    /**
-     * VerifiableCredentials DataModel 1.1, embedded proof (= LD proofs)
-     *
-     * @deprecated use {@link CredentialFormat#VC1_0_LD} instead
-     */
-    @Deprecated(since = "0.11.0")
-    JSON_LD,
-    /**
-     * VerifiableCredentials DataModel 1.1, external proofs via JWS (= JWT representation)
-     *
-     * @deprecated use {@link CredentialFormat#VC1_0_JWT} instead
-     */
-    @Deprecated(since = "0.11.0")
-    JWT,
+
     /**
      * VerifiableCredentials DataModel 1.1, embedded proof (= LD proofs)
      */
