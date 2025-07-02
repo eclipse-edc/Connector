@@ -59,19 +59,4 @@ class JettyExtensionTest {
         verify(context.getMonitor(), never()).warning(contains("web.http"));
     }
 
-    @Deprecated(since = "0.11.0")
-    @Test
-    void shouldRegisterDeprecatedPortMapping(ServiceExtensionContext context, ObjectFactory objectFactory) {
-        var settings = Map.of("web.http.default.port", "11111", "web.http.default.path", "/path");
-        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(settings));
-
-        var extension = objectFactory.constructInstance(JettyExtension.class);
-
-        extension.initialize(context);
-
-        assertThat(extension).extracting("portMappingRegistry", type(PortMappingRegistry.class)).satisfies(portMappingRegistry -> {
-            assertThat(portMappingRegistry.getAll()).containsOnly(new PortMapping("default", 11111, "/path"));
-        });
-        verify(context.getMonitor()).warning(contains("web.http.default"));
-    }
 }

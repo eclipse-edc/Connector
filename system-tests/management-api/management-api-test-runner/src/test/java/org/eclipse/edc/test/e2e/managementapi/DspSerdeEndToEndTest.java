@@ -44,6 +44,7 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.Test;
@@ -369,9 +370,8 @@ public class DspSerdeEndToEndTest {
             var managementPort = getFreePort();
             var protocolPort = getFreePort();
 
-            var runtime = new EmbeddedRuntime(
-                    "control-plane",
-                    new HashMap<>() {
+            var runtime = new EmbeddedRuntime("control-plane", ":system-tests:management-api:management-api-test-runtime")
+                    .configurationProvider(() -> ConfigFactory.fromMap(new HashMap<>() {
                         {
                             put("web.http.path", "/");
                             put("web.http.port", String.valueOf(getFreePort()));
@@ -384,9 +384,7 @@ public class DspSerdeEndToEndTest {
                             put("edc.dsp.context.enabled", "true");
                             put("edc.dsp.management.enabled", "true");
                         }
-                    },
-                    ":system-tests:management-api:management-api-test-runtime"
-            );
+                    }));
 
             return new ManagementEndToEndTestContext(runtime);
         }

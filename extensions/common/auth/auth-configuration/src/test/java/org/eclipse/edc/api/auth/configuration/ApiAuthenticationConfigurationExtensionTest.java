@@ -33,7 +33,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.web.spi.configuration.WebServiceConfigurer.WEB_HTTP_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -60,7 +59,7 @@ class ApiAuthenticationConfigurationExtensionTest {
         var config = ConfigFactory.fromMap(Map.of("test.auth.type", authType, "test.auth.custom", "custom", "test.auth.context", "test-ctx"));
         var provider = mock(ApiAuthenticationProvider.class);
         var authentication = mock(AuthenticationService.class);
-        when(context.getConfig(WEB_HTTP_PREFIX)).thenReturn(config);
+        when(context.getConfig("web.http")).thenReturn(config);
         when(providerRegistry.resolve(authType)).thenReturn(provider);
         when(provider.provide(any())).thenReturn(Result.success(authentication));
 
@@ -84,7 +83,7 @@ class ApiAuthenticationConfigurationExtensionTest {
         var config = ConfigFactory.fromMap(Map.of());
         var provider = mock(ApiAuthenticationProvider.class);
         var authentication = mock(AuthenticationService.class);
-        when(context.getConfig(WEB_HTTP_PREFIX)).thenReturn(config);
+        when(context.getConfig("web.http")).thenReturn(config);
         when(providerRegistry.resolve(authType)).thenReturn(provider);
         when(provider.provide(any())).thenReturn(Result.success(authentication));
 
@@ -102,7 +101,7 @@ class ApiAuthenticationConfigurationExtensionTest {
         var authType = "testAuth";
         var config = ConfigFactory.fromMap(Map.of("test.auth.type", authType, "test.auth.custom", "custom"));
         var provider = mock(ApiAuthenticationProvider.class);
-        when(context.getConfig(WEB_HTTP_PREFIX)).thenReturn(config);
+        when(context.getConfig("web.http")).thenReturn(config);
         when(providerRegistry.resolve(authType)).thenReturn(null);
 
         extension.initialize(context);
@@ -120,7 +119,7 @@ class ApiAuthenticationConfigurationExtensionTest {
         var authType = "testAuth";
         var config = ConfigFactory.fromMap(Map.of("test.auth.type", authType, "test.auth.custom", "custom"));
         var provider = mock(ApiAuthenticationProvider.class);
-        when(context.getConfig(WEB_HTTP_PREFIX)).thenReturn(config);
+        when(context.getConfig("web.http")).thenReturn(config);
         when(providerRegistry.resolve(authType)).thenReturn(provider);
         when(provider.provide(any())).thenReturn(Result.failure("Auth failure"));
 

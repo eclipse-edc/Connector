@@ -38,7 +38,6 @@ import java.time.Clock;
 
 import static com.nimbusds.jose.jwk.source.JWKSourceBuilder.DEFAULT_CACHE_TIME_TO_LIVE;
 import static org.eclipse.edc.api.auth.delegated.DelegatedAuthenticationService.MANAGEMENT_API_CONTEXT;
-import static org.eclipse.edc.web.spi.configuration.WebServiceConfigurer.WEB_HTTP_PREFIX;
 
 /**
  * Extension that registers an AuthenticationService that delegates authentication and authorization to a third-party IdP
@@ -50,7 +49,7 @@ public class DelegatedAuthenticationExtension implements ServiceExtension {
     public static final String NAME = "Delegating Authentication Service Extension";
     private static final int DEFAULT_VALIDATION_TOLERANCE = 5_000;
     private static final String AUTH_KEY = "auth";
-    private static final String CONFIG_ALIAS = WEB_HTTP_PREFIX + ".<context>." + AUTH_KEY + ".";
+    private static final String CONFIG_ALIAS = "web.http.<context>." + AUTH_KEY + ".";
     private static final String DELEGATED_TYPE = "delegated";
     @Deprecated(since = "0.12.0", forRemoval = true)
     private static final String KEY_URL_PROPERTY = "edc.api.auth.dac.key.url";
@@ -70,7 +69,7 @@ public class DelegatedAuthenticationExtension implements ServiceExtension {
     @Setting(description = "URL where the third-party IdP's public key(s) can be resolved", key = KEY_URL_PROPERTY, required = false)
     private String keyUrl;
     public static final String AUDIENCE_KEY = "dac.audience";
-    @Setting(context = CONFIG_ALIAS, description = "Expected audience in the token received by the api management", key = WEB_HTTP_PREFIX + ".management." + AUTH_KEY + "." + AUDIENCE_KEY, required = false)
+    @Setting(context = CONFIG_ALIAS, description = "Expected audience in the token received by the api management", key = "web.http.management." + AUTH_KEY + "." + AUDIENCE_KEY, required = false)
     private String audience;
 
     @Inject

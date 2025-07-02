@@ -22,7 +22,6 @@ import org.eclipse.edc.spi.system.ConfigurationExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.SystemExtension;
 import org.eclipse.edc.spi.system.configuration.Config;
-import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
@@ -30,7 +29,6 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -63,37 +61,11 @@ public class EmbeddedRuntime extends BaseRuntime {
         this(new MultiSourceServiceLocator(), name, classpathEntries);
     }
 
-    /**
-     * Deprecated, configuration properties should be passed through {@link #configurationProvider(Supplier)} to being evaluated lazily
-     *
-     * @deprecated configuration properties should be passed through {@link #configurationProvider(Supplier)} to being evaluated lazily
-     */
-    @Deprecated(since = "0.11.0")
-    public EmbeddedRuntime(String name, Map<String, String> properties, String... additionalModules) {
-        this(new MultiSourceServiceLocator(), name, properties, ClasspathReader.classpathFor(additionalModules));
-    }
-
-    /**
-     * Deprecated, configuration properties should be passed through {@link #configurationProvider(Supplier)} to being evaluated lazily
-     *
-     * @deprecated configuration properties should be passed through {@link #configurationProvider(Supplier)} to being evaluated lazily
-     */
-    @Deprecated(since = "0.11.0")
-    public EmbeddedRuntime(String name, Map<String, String> properties, URL[] classpathEntries) {
-        this(new MultiSourceServiceLocator(), name, properties, classpathEntries);
-    }
-
     private EmbeddedRuntime(MultiSourceServiceLocator serviceLocator, String name, URL[] classPathEntries) {
         super(serviceLocator);
         this.serviceLocator = serviceLocator;
         this.name = name;
         this.classPathEntries = classPathEntries;
-    }
-
-    @Deprecated(since = "0.11.0")
-    private EmbeddedRuntime(MultiSourceServiceLocator serviceLocator, String name, Map<String, String> properties, URL[] classPathEntries) {
-        this(serviceLocator, name, classPathEntries);
-        this.configurationProviders.add(() -> ConfigFactory.fromMap(properties));
     }
 
     @Override

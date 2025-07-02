@@ -18,15 +18,13 @@ import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-import static java.util.Collections.emptyMap;
-
 /**
  * Spin up a runtime that will be used for a single test
  */
 public class RuntimePerMethodExtension extends RuntimeExtension implements BeforeTestExecutionCallback, AfterTestExecutionCallback {
 
     public RuntimePerMethodExtension() {
-        this(new EmbeddedRuntime("runtime", emptyMap()));
+        this(new EmbeddedRuntime("runtime"));
     }
 
     public RuntimePerMethodExtension(EmbeddedRuntime runtime) {

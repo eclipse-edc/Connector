@@ -31,8 +31,6 @@ import org.eclipse.edc.spi.system.configuration.Config;
 
 import java.util.Optional;
 
-import static org.eclipse.edc.web.spi.configuration.WebServiceConfigurer.WEB_HTTP_PREFIX;
-
 /**
  * Extension that registers an AuthenticationService that uses API Keys and register
  * an {@link ApiAuthenticationProvider} under the type called tokenbased
@@ -42,7 +40,7 @@ public class TokenBasedAuthenticationExtension implements ServiceExtension {
 
     public static final String NAME = "Static token API Authentication";
     private static final String AUTH_KEY = "auth";
-    private static final String CONFIG_ALIAS = WEB_HTTP_PREFIX + ".<context>." + AUTH_KEY + ".";
+    private static final String CONFIG_ALIAS = "web.http.<context>." + AUTH_KEY + ".";
     private static final String TOKENBASED_TYPE = "tokenbased";
     @Deprecated(since = "0.12.0", forRemoval = true)
     private static final String AUTH_SETTING_APIKEY = "edc.api.auth.key";

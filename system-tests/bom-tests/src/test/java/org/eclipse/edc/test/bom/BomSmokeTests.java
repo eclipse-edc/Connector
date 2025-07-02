@@ -18,6 +18,7 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
@@ -59,28 +60,26 @@ public class BomSmokeTests {
     class ControlPlaneDcp extends SmokeTest {
 
         @RegisterExtension
-        protected RuntimeExtension runtime =
-                new RuntimePerMethodExtension(new EmbeddedRuntime("control-plane-dcp-bom",
-                        new HashMap<>() {
-                            {
-                                put("edc.iam.sts.oauth.token.url", "https://sts.com/token");
-                                put("edc.iam.sts.oauth.client.id", "test-client");
-                                put("edc.iam.sts.oauth.client.secret.alias", "test-alias");
-                                put("web.http.port", DEFAULT_PORT);
-                                put("web.http.path", DEFAULT_PATH);
-                                put("web.http.version.port", String.valueOf(getFreePort()));
-                                put("web.http.version.path", "/api/version");
-                                put("web.http.control.port", String.valueOf(getFreePort()));
-                                put("web.http.control.path", "/api/control");
-                                put("web.http.management.port", "8081");
-                                put("web.http.management.path", "/api/management");
-                                put("edc.iam.sts.privatekey.alias", "privatekey");
-                                put("edc.iam.sts.publickey.id", "publickey");
-                                put("edc.iam.issuer.id", "did:web:someone");
-                            }
-                        },
-                        ":dist:bom:controlplane-dcp-bom"
-                ));
+        protected RuntimeExtension runtime = new RuntimePerMethodExtension(
+                new EmbeddedRuntime("control-plane-dcp-bom", ":dist:bom:controlplane-dcp-bom")
+                        .configurationProvider(() -> ConfigFactory.fromMap(new HashMap<>() {{
+                            put("edc.iam.sts.oauth.token.url", "https://sts.com/token");
+                            put("edc.iam.sts.oauth.client.id", "test-client");
+                            put("edc.iam.sts.oauth.client.secret.alias", "test-alias");
+                            put("web.http.port", DEFAULT_PORT);
+                            put("web.http.path", DEFAULT_PATH);
+                            put("web.http.version.port", String.valueOf(getFreePort()));
+                            put("web.http.version.path", "/api/version");
+                            put("web.http.control.port", String.valueOf(getFreePort()));
+                            put("web.http.control.path", "/api/control");
+                            put("web.http.management.port", "8081");
+                            put("web.http.management.path", "/api/management");
+                            put("edc.iam.sts.privatekey.alias", "privatekey");
+                            put("edc.iam.sts.publickey.id", "publickey");
+                            put("edc.iam.issuer.id", "did:web:someone");
+                        }
+                    }))
+        );
     }
 
     @Nested
@@ -90,8 +89,8 @@ public class BomSmokeTests {
         private static ClientAndServer server;
         @RegisterExtension
         protected RuntimeExtension runtime =
-                new RuntimePerMethodExtension(new EmbeddedRuntime("data-plane-base-bom",
-                        Map.of(
+                new RuntimePerMethodExtension(new EmbeddedRuntime("data-plane-base-bom", ":dist:bom:dataplane-base-bom")
+                        .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
                                 "edc.transfer.proxy.token.verifier.publickey.alias", "test-alias",
                                 "edc.transfer.proxy.token.signer.privatekey.alias", "private-alias",
                                 "edc.dpf.selector.url", "http://localhost:%s/selector".formatted(server.getPort()),
@@ -100,9 +99,8 @@ public class BomSmokeTests {
                                 "web.http.version.port", String.valueOf(getFreePort()),
                                 "web.http.version.path", "/api/version",
                                 "web.http.port", DEFAULT_PORT,
-                                "web.http.path", DEFAULT_PATH),
-                        ":dist:bom:dataplane-base-bom"
-                ));
+                                "web.http.path", DEFAULT_PATH)))
+                );
 
         @BeforeAll
         static void setup() {

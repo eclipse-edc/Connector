@@ -17,6 +17,7 @@ package org.eclipse.edc.test.e2e.managementapi;
 import io.restassured.http.ContentType;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -74,7 +75,10 @@ public class AuthConfigurationApiEndToEndTest {
 
             var runtime = new EmbeddedRuntime(
                     "control-plane",
-                    new HashMap<>() {
+                    ":system-tests:management-api:management-api-test-runtime",
+                    ":extensions:common:auth:auth-configuration",
+                    ":extensions:common:auth:auth-tokenbased")
+                    .configurationProvider(() -> ConfigFactory.fromMap(new HashMap<>() {
                         {
                             put("web.http.path", "/");
                             put("web.http.port", String.valueOf(getFreePort()));
@@ -88,11 +92,7 @@ public class AuthConfigurationApiEndToEndTest {
                             put("web.http.management.auth.key", API_KEY);
                             put("web.http.management.auth.context", "management-api");
                         }
-                    },
-                    ":system-tests:management-api:management-api-test-runtime",
-                    ":extensions:common:auth:auth-configuration",
-                    ":extensions:common:auth:auth-tokenbased"
-            );
+                    }));
 
             return new ManagementEndToEndTestContext(runtime);
         }
