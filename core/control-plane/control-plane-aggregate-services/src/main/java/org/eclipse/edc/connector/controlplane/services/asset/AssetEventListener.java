@@ -17,23 +17,17 @@ package org.eclipse.edc.connector.controlplane.services.asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.event.AssetCreated;
 import org.eclipse.edc.connector.controlplane.asset.spi.event.AssetDeleted;
-import org.eclipse.edc.connector.controlplane.asset.spi.event.AssetEvent;
 import org.eclipse.edc.connector.controlplane.asset.spi.event.AssetUpdated;
 import org.eclipse.edc.connector.controlplane.asset.spi.observe.AssetListener;
-import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
-
-import java.time.Clock;
 
 /**
  * Listener responsible for creating and publishing events regarding Asset state changes
  */
 public class AssetEventListener implements AssetListener {
-    private final Clock clock;
     private final EventRouter eventRouter;
 
-    public AssetEventListener(Clock clock, EventRouter eventRouter) {
-        this.clock = clock;
+    public AssetEventListener(EventRouter eventRouter) {
         this.eventRouter = eventRouter;
     }
 
@@ -43,7 +37,7 @@ public class AssetEventListener implements AssetListener {
                 .assetId(asset.getId())
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
@@ -52,7 +46,7 @@ public class AssetEventListener implements AssetListener {
                 .assetId(asset.getId())
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
@@ -61,14 +55,7 @@ public class AssetEventListener implements AssetListener {
                 .assetId(asset.getId())
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
-    private void publish(AssetEvent event) {
-        var envelope = EventEnvelope.Builder.newInstance()
-                .payload(event)
-                .at(clock.millis())
-                .build();
-        eventRouter.publish(envelope);
-    }
 }

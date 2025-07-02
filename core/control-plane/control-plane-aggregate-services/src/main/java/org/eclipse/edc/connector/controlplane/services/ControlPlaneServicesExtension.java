@@ -203,7 +203,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public AssetService assetService() {
         var assetObservable = new AssetObservableImpl();
-        assetObservable.registerListener(new AssetEventListener(clock, eventRouter));
+        assetObservable.registerListener(new AssetEventListener(eventRouter));
         return new AssetServiceImpl(assetIndex, contractNegotiationStore, transactionContext, assetObservable,
                 dataAddressValidator, new AssetQueryValidator());
     }
@@ -211,7 +211,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public SecretService secretService() {
         var secretObservable = new SecretObservableImpl();
-        secretObservable.registerListener(new SecretEventListener(clock, eventRouter));
+        secretObservable.registerListener(new SecretEventListener(eventRouter));
         return new SecretServiceImpl(vault, secretObservable);
     }
 
@@ -234,7 +234,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public ContractDefinitionService contractDefinitionService() {
         var contractDefinitionObservable = new ContractDefinitionObservableImpl();
-        contractDefinitionObservable.registerListener(new ContractDefinitionEventListener(clock, eventRouter));
+        contractDefinitionObservable.registerListener(new ContractDefinitionEventListener(eventRouter));
         return new ContractDefinitionServiceImpl(contractDefinitionStore, transactionContext, contractDefinitionObservable, QueryValidators.contractDefinition());
     }
 
@@ -254,7 +254,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public PolicyDefinitionService policyDefinitionService() {
         var policyDefinitionObservable = new PolicyDefinitionObservableImpl();
-        policyDefinitionObservable.registerListener(new PolicyDefinitionEventListener(clock, eventRouter));
+        policyDefinitionObservable.registerListener(new PolicyDefinitionEventListener(eventRouter));
         return new PolicyDefinitionServiceImpl(transactionContext, policyDefinitionStore, contractDefinitionStore,
                 policyDefinitionObservable, policyEngine, QueryValidators.policyDefinition(), validatePolicy);
     }

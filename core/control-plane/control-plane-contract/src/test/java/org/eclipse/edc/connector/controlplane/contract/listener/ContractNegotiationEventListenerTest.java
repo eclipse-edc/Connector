@@ -26,37 +26,25 @@ import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotia
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.time.Clock;
 import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class ContractNegotiationEventListenerTest {
 
-    private final EventRouter router = mock(EventRouter.class);
-
-    private final Clock clock = mock(Clock.class);
-
-
-    @BeforeEach
-    void setup() {
-        when(clock.millis()).thenAnswer(i -> System.currentTimeMillis());
-    }
+    private final EventRouter router = mock();
+    private final ContractNegotiationEventListener listener = new ContractNegotiationEventListener(router);
 
     @Test
     void initiated_shouldDispatchEvent() {
-        var listener = new ContractNegotiationEventListener(router, clock);
         var negotiation = getNegotiation("id");
 
         listener.initiated(negotiation);
@@ -74,7 +62,6 @@ public class ContractNegotiationEventListenerTest {
 
     @Test
     void requested_shouldDispatchEvent() {
-        var listener = new ContractNegotiationEventListener(router, clock);
         var negotiation = getNegotiation("id");
 
         listener.requested(negotiation);
@@ -93,7 +80,6 @@ public class ContractNegotiationEventListenerTest {
 
     @Test
     void offered_shouldDispatchEvent() {
-        var listener = new ContractNegotiationEventListener(router, clock);
         var negotiation = getNegotiation("id");
 
         listener.offered(negotiation);
@@ -107,12 +93,10 @@ public class ContractNegotiationEventListenerTest {
                 .build();
 
         assertEvent(eventPayload);
-
     }
 
     @Test
     void accepted_shouldDispatchEvent() {
-        var listener = new ContractNegotiationEventListener(router, clock);
         var negotiation = getNegotiation("id");
 
         listener.accepted(negotiation);
@@ -131,7 +115,6 @@ public class ContractNegotiationEventListenerTest {
 
     @Test
     void terminated_shouldDispatchEvent() {
-        var listener = new ContractNegotiationEventListener(router, clock);
         var negotiation = getNegotiation("id");
 
         listener.terminated(negotiation);
@@ -150,7 +133,6 @@ public class ContractNegotiationEventListenerTest {
 
     @Test
     void agreed_shouldDispatchEvent() {
-        var listener = new ContractNegotiationEventListener(router, clock);
         var negotiation = getNegotiation("id");
 
         listener.agreed(negotiation);
@@ -169,7 +151,6 @@ public class ContractNegotiationEventListenerTest {
 
     @Test
     void verified_shouldDispatchEvent() {
-        var listener = new ContractNegotiationEventListener(router, clock);
         var negotiation = getNegotiation("id");
 
         listener.verified(negotiation);
@@ -188,7 +169,6 @@ public class ContractNegotiationEventListenerTest {
 
     @Test
     void finalized_shouldDispatchEvent() {
-        var listener = new ContractNegotiationEventListener(router, clock);
         var agreement = ContractAgreement.Builder.newInstance()
                 .id("id")
                 .policy(Policy.Builder.newInstance().build())
@@ -234,21 +214,8 @@ public class ContractNegotiationEventListenerTest {
     }
 
     private void assertEvent(ContractNegotiationEvent eventPayload) {
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<EventEnvelope<ContractNegotiationEvent>> eventCaptor = ArgumentCaptor.forClass(EventEnvelope.class);
-
+        var eventCaptor = ArgumentCaptor.forClass(ContractNegotiationEvent.class);
         verify(router).publish(eventCaptor.capture());
-
-        var event = eventCaptor.getValue();
-
-        var targetEnvelope = EventEnvelope.Builder.newInstance()
-                .at(event.getAt())
-                .id(event.getId())
-                .payload(eventPayload)
-                .build();
-
-        assertThat(event).usingRecursiveComparison().isEqualTo(targetEnvelope);
-
-        assertThat(event.getPayload().getClass()).isEqualTo(eventPayload.getClass());
+        assertThat(eventCaptor.getValue()).usingRecursiveComparison().isEqualTo(eventPayload);
     }
 }

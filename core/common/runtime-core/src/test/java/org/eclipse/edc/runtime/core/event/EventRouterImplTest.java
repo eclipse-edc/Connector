@@ -19,15 +19,18 @@ import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -35,9 +38,10 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 class EventRouterImplTest {
 
-    private final Clock clock = Clock.systemUTC();
+    private final Instant instant = Instant.now();
+    private final Clock clock = Clock.fixed(instant, ZoneId.systemDefault());
     private final Monitor monitor = mock(Monitor.class);
-    private final EventRouterImpl eventRouter = new EventRouterImpl(monitor, Executors.newSingleThreadExecutor());
+    private final EventRouterImpl eventRouter = new EventRouterImpl(monitor, Executors.newSingleThreadExecutor(), clock);
 
     @Test
     void shouldPublishToAllSubscribers() {
@@ -49,17 +53,19 @@ class EventRouterImplTest {
         eventRouter.register(TestEvent.class, subscriberA);
         eventRouter.register(TestEvent.class, subscriberB);
 
-        var event = EventEnvelope.Builder.newInstance()
-                .at(clock.millis())
-                .payload(TestEvent.Builder.newInstance().build())
-                .build();
+        var event = TestEvent.Builder.newInstance().build();
 
         eventRouter.publish(event);
 
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(syncSubscriber).on(eq(event));
-            verify(subscriberA).on(eq(event));
-            verify(subscriberB).on(eq(event));
+            ArgumentCaptor<EventEnvelope<Event>> captor = ArgumentCaptor.forClass(EventEnvelope.class);
+            verify(syncSubscriber).on(captor.capture());
+            verify(subscriberA).on(captor.capture());
+            verify(subscriberB).on(captor.capture());
+            assertThat(captor.getAllValues()).hasSize(3).allSatisfy(envelope -> {
+                assertThat(envelope.getPayload()).isSameAs(event);
+                assertThat(envelope.getAt()).isEqualTo(instant.toEpochMilli());
+            });
         });
     }
 
@@ -73,16 +79,18 @@ class EventRouterImplTest {
         eventRouter.registerSync(Event.class, syncSubscriberAll);
         eventRouter.registerSync(TestEventBase.class, syncSubscriberBase);
 
-        var event = EventEnvelope.Builder.newInstance()
-                .at(clock.millis())
-                .payload(TestEvent.Builder.newInstance().build())
-                .build();
+        var event = TestEvent.Builder.newInstance().build();
 
         eventRouter.publish(event);
 
-        verify(syncSubscriber).on(eq(event));
-        verify(syncSubscriberAll).on(eq(event));
-        verify(syncSubscriberBase).on(eq(event));
+        ArgumentCaptor<EventEnvelope<Event>> captor = ArgumentCaptor.forClass(EventEnvelope.class);
+        verify(syncSubscriber).on(captor.capture());
+        verify(syncSubscriberAll).on(captor.capture());
+        verify(syncSubscriberBase).on(captor.capture());
+        assertThat(captor.getAllValues()).hasSize(3).allSatisfy(envelope -> {
+            assertThat(envelope.getPayload()).isSameAs(event);
+            assertThat(envelope.getAt()).isEqualTo(instant.toEpochMilli());
+        });
     }
 
     @Test
@@ -95,20 +103,21 @@ class EventRouterImplTest {
         eventRouter.register(Event.class, subscriberAll);
         eventRouter.register(TestEventBase.class, subscriberBase);
 
-        var event = EventEnvelope.Builder.newInstance()
-                .at(clock.millis())
-                .payload(TestEvent.Builder.newInstance().build())
-                .build();
+        var event = TestEvent.Builder.newInstance().build();
 
         eventRouter.publish(event);
 
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(subscriber).on(eq(event));
-            verify(subscriberAll).on(eq(event));
-            verify(subscriberBase).on(eq(event));
+            ArgumentCaptor<EventEnvelope<Event>> captor = ArgumentCaptor.forClass(EventEnvelope.class);
+            verify(subscriber).on(captor.capture());
+            verify(subscriberAll).on(captor.capture());
+            verify(subscriberBase).on(captor.capture());
+            assertThat(captor.getAllValues()).hasSize(3).allSatisfy(envelope -> {
+                assertThat(envelope.getPayload()).isSameAs(event);
+                assertThat(envelope.getAt()).isEqualTo(instant.toEpochMilli());
+            });
         });
     }
-
 
     @Test
     void shouldNotInterruptPublishingWhenSubscriberThrowsException() {
@@ -118,15 +127,18 @@ class EventRouterImplTest {
         eventRouter.register(TestEvent.class, subscriberA);
         eventRouter.register(TestEvent.class, subscriberB);
 
-        var event = EventEnvelope.Builder.newInstance()
-                .at(clock.millis())
-                .payload(TestEvent.Builder.newInstance().build())
-                .build();
+        var event = TestEvent.Builder.newInstance().build();
+
         eventRouter.publish(event);
 
         await().atMost(1, TimeUnit.SECONDS).untilAsserted(() -> {
-            verify(subscriberA).on(eq(event));
-            verify(subscriberB).on(eq(event));
+            ArgumentCaptor<EventEnvelope<Event>> captor = ArgumentCaptor.forClass(EventEnvelope.class);
+            verify(subscriberA).on(captor.capture());
+            verify(subscriberB).on(captor.capture());
+            assertThat(captor.getAllValues()).hasSize(2).allSatisfy(envelope -> {
+                assertThat(envelope.getPayload()).isSameAs(event);
+                assertThat(envelope.getAt()).isEqualTo(instant.toEpochMilli());
+            });
         });
     }
 
@@ -138,10 +150,7 @@ class EventRouterImplTest {
         eventRouter.registerSync(TestEvent.class, subscriberA);
         eventRouter.register(TestEvent.class, subscriberB);
 
-        var event = EventEnvelope.Builder.newInstance()
-                .at(clock.millis())
-                .payload(TestEvent.Builder.newInstance().build())
-                .build();
+        var event = TestEvent.Builder.newInstance().build();
 
         assertThatThrownBy(() -> eventRouter.publish(event))
                 .isInstanceOf(RuntimeException.class)

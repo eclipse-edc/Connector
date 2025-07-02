@@ -41,6 +41,7 @@ import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
+import java.time.Clock;
 import java.util.concurrent.Executors;
 
 import static org.eclipse.edc.runtime.core.RuntimeDefaultCoreServicesExtension.NAME;
@@ -63,6 +64,8 @@ public class RuntimeCoreServicesExtension implements ServiceExtension {
     private OkHttpClient okHttpClient;
     @Inject
     private RetryPolicy<Response> retryPolicy;
+    @Inject
+    private Clock clock;
 
     @Override
     public String name() {
@@ -79,7 +82,6 @@ public class RuntimeCoreServicesExtension implements ServiceExtension {
         return () -> hostname;
     }
 
-
     @Provider
     public EdcHttpClient edcHttpClient(ServiceExtensionContext context) {
         return new EdcHttpClientImpl(okHttpClient, retryPolicy, context.getMonitor());
@@ -92,7 +94,7 @@ public class RuntimeCoreServicesExtension implements ServiceExtension {
 
     @Provider
     public EventRouter eventRouter(ServiceExtensionContext context) {
-        return new EventRouterImpl(context.getMonitor(), Executors.newFixedThreadPool(1));
+        return new EventRouterImpl(context.getMonitor(), Executors.newFixedThreadPool(1), clock);
     }
 
     @Provider
