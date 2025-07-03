@@ -30,8 +30,10 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.provider.Arguments;
@@ -42,14 +44,18 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.AGREED;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -262,5 +268,64 @@ class ContractNegotiationServiceImplTest {
                 .policy(Policy.Builder.newInstance().build())
                 .assetId("test-asset")
                 .build();
+    }
+
+    @Nested
+    class Delete {
+
+        @Test
+        void delete_shouldSucceed() {
+            var negotiation = createContractNegotiationBuilder("negotiationId")
+                    .state(TERMINATED.code())
+                    .build();
+            when(store.findById("negotiationId")).thenReturn(negotiation);
+            when(store.deleteById("negotiationId")).thenReturn(StoreResult.success());
+
+
+            var result = service.delete("negotiationId");
+
+            assertThat(result).isSucceeded();
+            verify(store).deleteById("negotiationId");
+        }
+
+        @Test
+        void delete_shouldFailDueToNegotiationNotFound() {
+            when(store.findById("negotiationId")).thenReturn(null);
+
+            var result = service.delete("negotiationId");
+
+            assertThat(result).isFailed();
+            assertThat(result.reason()).isEqualTo(NOT_FOUND);
+            verify(store, never()).deleteById(any());
+        }
+
+        @Test
+        void delete_shouldFailDueToExistingContractAgreement() {
+            var negotiation = createContractNegotiationBuilder("negotiationId")
+                    .state(AGREED.code())
+                    .contractAgreement(createContractAgreement("agreementId"))
+                    .build();
+            when(store.findById("negotiationId")).thenReturn(negotiation);
+
+            var result = service.delete("negotiationId");
+
+            assertThat(result).isFailed();
+            assertThat(result.reason()).isEqualTo(CONFLICT);
+            verify(store, never()).deleteById(any());
+        }
+
+        @Test
+        void delete_shouldFailDueToWrongState() {
+            var negotiation = createContractNegotiationBuilder("negotiationId")
+                    .state(AGREED.code())
+                    .build();
+            when(store.findById("negotiationId")).thenReturn(negotiation);
+
+            var result = service.delete("negotiationId");
+
+            assertThat(result).isFailed();
+            assertThat(result.reason()).isEqualTo(CONFLICT);
+            verify(store, never()).deleteById(any());
+        }
     }
 }

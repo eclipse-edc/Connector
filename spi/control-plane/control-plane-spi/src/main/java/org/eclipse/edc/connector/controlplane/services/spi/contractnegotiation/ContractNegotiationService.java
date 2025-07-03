@@ -73,4 +73,12 @@ public interface ContractNegotiationService {
      * @return successful result if the contract negotiation is terminated correctly, failure otherwise
      */
     ServiceResult<Void> terminate(TerminateNegotiationCommand command);
+
+    /**
+     * Remove a contract negotiation
+     *
+     * @param negotiationId the id of contract negotiation.
+     * @return successful result if the contract negotiation is removed correctly, failure otherwise
+     */
+    ServiceResult<Void> delete(String negotiationId);
 }
