@@ -57,6 +57,7 @@ include(":core:common:lib:validator-lib")
 
 include(":core:control-plane:control-plane-catalog")
 include(":core:control-plane:control-plane-contract")
+include(":core:control-plane:control-plane-contract-manager")
 include(":core:control-plane:control-plane-core")
 include(":core:control-plane:control-plane-aggregate-services")
 include(":core:control-plane:control-plane-transform")

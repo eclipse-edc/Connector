@@ -24,10 +24,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(DependencyInjectionExtension.class)
-class ContractCoreExtensionTest {
+class ContractManagerExtensionTest {
 
     @Test
-    void shouldProvideManagers(ContractCoreExtension extension, ServiceExtensionContext context) {
+    void shouldProvideManagers(ContractManagerExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
         assertThat(context.hasService(ConsumerContractNegotiationManager.class)).isTrue();

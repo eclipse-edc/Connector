@@ -54,7 +54,7 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
     abstract ContractNegotiation.Type type();
 
     protected Processor processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
-        var filter = new Criterion[]{ hasState(state.code()), isNotPending(), new Criterion("type", "=", type().name()) };
+        var filter = new Criterion[]{hasState(state.code()), isNotPending(), new Criterion("type", "=", type().name())};
         return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter))
                 .process(telemetry.contextPropagationMiddleware(function))
                 .guard(pendingGuard, this::setPending)
