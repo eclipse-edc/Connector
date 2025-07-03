@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.transfer;
+package org.eclipse.edc.connector.controlplane.transfer.provision.fixtures;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.SecretToken;
 

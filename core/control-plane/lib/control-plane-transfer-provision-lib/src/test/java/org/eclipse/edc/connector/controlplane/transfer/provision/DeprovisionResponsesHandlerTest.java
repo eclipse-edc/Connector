@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.provision;
 
-import org.eclipse.edc.connector.controlplane.transfer.TestResourceDefinition;
-import org.eclipse.edc.connector.controlplane.transfer.TokenTestProvisionResource;
 import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
+import org.eclipse.edc.connector.controlplane.transfer.provision.fixtures.TestResourceDefinition;
+import org.eclipse.edc.connector.controlplane.transfer.provision.fixtures.TokenTestProvisionResource;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedResourceSet;

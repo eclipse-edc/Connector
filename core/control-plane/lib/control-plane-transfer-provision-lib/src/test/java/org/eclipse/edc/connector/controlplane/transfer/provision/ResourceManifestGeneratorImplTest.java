@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.provision;
 
-import org.eclipse.edc.connector.controlplane.transfer.TestResourceDefinition;
+import org.eclipse.edc.connector.controlplane.transfer.provision.fixtures.TestResourceDefinition;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ConsumerResourceDefinitionGenerator;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProviderResourceDefinitionGenerator;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;

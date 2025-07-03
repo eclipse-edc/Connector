@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2025 Metaform Systems, Inc.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,24 +8,23 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
+ *       Metaform Systems, Inc. - initial API and implementation
  *
  */
+
 plugins {
     `java-library`
+    `java-test-fixtures`
 }
+
 
 dependencies {
-    api(project(":spi:common:transform-spi"))
-    api(project(":spi:control-plane:asset-spi"))
-    api(project(":spi:control-plane:policy-spi"))
     api(project(":spi:control-plane:transfer-spi"))
 
-    implementation(project(":core:control-plane:lib:control-plane-transfer-provision-lib"))
+    implementation(project(":core:common:lib:util-lib"))
     implementation(libs.opentelemetry.instrumentation.annotations)
 
-    testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:control-plane:control-plane-transfer"))
 }
-
 
 
