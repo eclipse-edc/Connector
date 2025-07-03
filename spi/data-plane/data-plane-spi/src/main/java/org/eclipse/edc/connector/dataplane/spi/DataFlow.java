@@ -61,7 +61,6 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     private static final String AGREEMENT_ID_PROPERTY = "agreementId";
     private DataAddress source;
     private DataAddress destination;
-    private DataAddress responseChannel;
     private URI callbackAddress;
     private Map<String, String> properties = new HashMap<>();
     private TransferType transferType;
@@ -98,10 +97,6 @@ public class DataFlow extends StatefulEntity<DataFlow> {
 
     public DataAddress getDestination() {
         return destination;
-    }
-
-    public DataAddress getResponseChannelDataAddress() {
-        return responseChannel;
     }
 
     public URI getCallbackAddress() {
@@ -301,11 +296,6 @@ public class DataFlow extends StatefulEntity<DataFlow> {
 
         public Builder destination(DataAddress destination) {
             entity.destination = destination;
-            return this;
-        }
-
-        public Builder responseChannel(DataAddress responseChannel) {
-            entity.responseChannel = responseChannel;
             return this;
         }
 

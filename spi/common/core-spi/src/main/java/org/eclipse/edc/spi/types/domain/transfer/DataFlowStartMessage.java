@@ -43,7 +43,6 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
     public static final String EDC_DATA_FLOW_START_MESSAGE_FLOW_TYPE = EDC_NAMESPACE + "flowType";
     public static final String EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION = EDC_NAMESPACE + "transferTypeDestination";
     public static final String EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL_TYPE = EDC_NAMESPACE + "responseChannelType";
-    public static final String EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL_DATA_ADDRESS = EDC_NAMESPACE + "responseChannel";
     public static final String EDC_DATA_FLOW_START_MESSAGE_DATASET_ID = EDC_NAMESPACE + "datasetId";
     public static final String EDC_DATA_FLOW_START_MESSAGE_PARTICIPANT_ID = EDC_NAMESPACE + "participantId";
     public static final String EDC_DATA_FLOW_START_MESSAGE_AGREEMENT_ID = EDC_NAMESPACE + "agreementId";
@@ -61,7 +60,6 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
 
     private DataAddress sourceDataAddress;
     private DataAddress destinationDataAddress;
-    private DataAddress responseChannelDataAddress;
     private URI callbackAddress;
 
     private Map<String, String> properties = new HashMap<>();
@@ -97,13 +95,6 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
      */
     public DataAddress getDestinationDataAddress() {
         return destinationDataAddress;
-    }
-
-    /**
-     * The target address the data is to be sent to.
-     */
-    public DataAddress getResponseChannelDataAddress() {
-        return responseChannelDataAddress;
     }
 
     /**
@@ -217,11 +208,6 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
 
         public Builder destinationDataAddress(DataAddress destination) {
             request.destinationDataAddress = destination;
-            return this;
-        }
-
-        public Builder responseChannelDataAddress(DataAddress address) {
-            request.responseChannelDataAddress = address;
             return this;
         }
 

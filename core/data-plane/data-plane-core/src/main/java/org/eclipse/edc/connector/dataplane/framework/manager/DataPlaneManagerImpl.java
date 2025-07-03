@@ -270,7 +270,6 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .id(startMessage.getProcessId())
                 .source(startMessage.getSourceDataAddress())
                 .destination(startMessage.getDestinationDataAddress())
-                .responseChannel(startMessage.getResponseChannelDataAddress())
                 .callbackAddress(startMessage.getCallbackAddress())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .properties(startMessage.getProperties())

@@ -38,7 +38,6 @@ import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_PROCESS_ID;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_PROPERTIES;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS;
-import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL_DATA_ADDRESS;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL_TYPE;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION;
 
@@ -91,8 +90,6 @@ public class JsonObjectToDataFlowStartMessageTransformer extends AbstractJsonLdT
                     builder.destinationDataAddress(transformObject(jsonValue, DataAddress.class, context));
             case EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS ->
                     builder.sourceDataAddress(transformObject(jsonValue, DataAddress.class, context));
-            case EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL_DATA_ADDRESS ->
-                    builder.responseChannelDataAddress(transformObject(jsonValue, DataAddress.class, context));
             default -> builder.property(key, transformString(jsonValue, context));
         }
     }
