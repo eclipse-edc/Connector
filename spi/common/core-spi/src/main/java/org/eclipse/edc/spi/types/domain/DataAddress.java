@@ -15,10 +15,8 @@
 
 package org.eclipse.edc.spi.types.domain;
 
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -133,28 +131,12 @@ public class DataAddress {
             return self();
         }
 
-        @JsonIgnore
-        public B responseChannel(DataAddress rc) {
-            address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, rc);
-            return self();
-        }
-
-        @JsonSetter(EDC_DATA_ADDRESS_RESPONSE_CHANNEL)
-        public B responseChannel(Map<String, Object> rc) {
-            if (rc.get("properties") != null) {
-                address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, DataAddress.Builder.newInstance().properties((Map<String, Object>) rc.get("properties")).build());
-            } else {
-                address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, DataAddress.Builder.newInstance().properties(rc).build());
-            }
-            return self();
-        }
-
-        @JsonAnySetter
         public B property(String key, Object value) {
             Objects.requireNonNull(key, "Property key null.");
             switch (key) {
                 case SIMPLE_TYPE -> address.properties.put(EDC_DATA_ADDRESS_TYPE_PROPERTY, value);
                 case SIMPLE_KEY_NAME -> address.properties.put(EDC_DATA_ADDRESS_KEY_NAME, value);
+                case EDC_DATA_ADDRESS_RESPONSE_CHANNEL -> responseChannel(value);
                 default -> address.properties.put(key, value);
             }
             return self();
@@ -167,6 +149,30 @@ public class DataAddress {
 
         public B keyName(String keyName) {
             address.getProperties().put(EDC_DATA_ADDRESS_KEY_NAME, Objects.requireNonNull(keyName));
+            return self();
+        }
+
+        @JsonIgnore
+        @SuppressWarnings("unchecked")
+        public B responseChannel(Object rc) {
+            Objects.requireNonNull(rc, "Response channel cannot be null.");
+            if (rc instanceof Map) {
+                var builder = DataAddress.Builder.newInstance();
+                var rcMap = (Map<String, Object>) rc;
+                var props = rcMap.get("properties");
+                if (props != null) {
+                    builder.properties((Map<String, Object>) props);
+                } else {
+                    builder.properties(rcMap);
+                }
+                return responseChannel(builder.build());
+            }
+            return self();
+        }
+
+        @JsonIgnore
+        public B responseChannel(DataAddress rc) {
+            address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, rc);
             return self();
         }
 

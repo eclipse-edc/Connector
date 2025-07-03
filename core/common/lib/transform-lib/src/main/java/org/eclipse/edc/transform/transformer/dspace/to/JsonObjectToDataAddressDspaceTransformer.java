@@ -28,6 +28,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM;
@@ -65,8 +66,12 @@ public class JsonObjectToDataAddressDspaceTransformer extends AbstractNamespaceA
     private void transformEndpointProperties(JsonValue jsonValue, Consumer<DspaceEndpointProperty> consumer, TransformerContext context) {
         Function<JsonObject, DspaceEndpointProperty> converter = (jo) -> {
             var name = transformString(jo.get(forNamespace(ENDPOINT_PROPERTY_NAME_PROPERTY_TERM)), context);
-            var value = transformString(jo.get(forNamespace(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM)), context);
-            return new DspaceEndpointProperty(name, value);
+            var valueObj = jo.get(forNamespace(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM));
+
+            if (name.equals(EDC_DATA_ADDRESS_RESPONSE_CHANNEL)) {
+                return new DspaceEndpointProperty(name, transformObject(valueObj, DataAddress.class, context));
+            }
+            return new DspaceEndpointProperty(name, transformString(valueObj, context));
         };
         if (jsonValue instanceof JsonObject object) {
             consumer.accept(converter.apply(object));
@@ -78,6 +83,6 @@ public class JsonObjectToDataAddressDspaceTransformer extends AbstractNamespaceA
     }
 
     //container to hold endpoint property objects
-    private record DspaceEndpointProperty(String name, String value) {
+    private record DspaceEndpointProperty(String name, Object value) {
     }
 }
