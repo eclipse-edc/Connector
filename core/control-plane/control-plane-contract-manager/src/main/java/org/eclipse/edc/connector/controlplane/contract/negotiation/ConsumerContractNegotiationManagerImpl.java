@@ -193,7 +193,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
             super(new ConsumerContractNegotiationManagerImpl());
         }
 
-        public static ConsumerContractNegotiationManagerImpl.Builder newInstance() {
+        public static Builder newInstance() {
             return new Builder();
         }
 
