@@ -27,7 +27,6 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -193,7 +192,7 @@ public class ContractNegotiationApiEndToEndTest {
         }
 
         @Test
-        void removeNegotiation_shouldSucceed(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
+        void deleteNegotiation_shouldSucceed(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
             store.save(createContractNegotiationBuilder("cn1")
                     .state(TERMINATED.code()).build());
 
@@ -203,11 +202,11 @@ public class ContractNegotiationApiEndToEndTest {
                     .then()
                     .statusCode(204);
 
-            Assertions.assertNull(store.findById("cn1"));
+            assertThat(store.findById("cn1")).isNull();
         }
 
         @Test
-        void removeNegotiation_shouldFailDueToWrongState(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
+        void deleteNegotiation_shouldFailDueToWrongState(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
             store.save(createContractNegotiationBuilder("cn1")
                     .state(AGREED.code()).build());
 
@@ -217,7 +216,7 @@ public class ContractNegotiationApiEndToEndTest {
                     .then()
                     .statusCode(409);
 
-            Assertions.assertNotNull(store.findById("cn1"));
+            assertThat(store.findById("cn1")).isNotNull();
         }
 
         private ContractNegotiation.Builder createContractNegotiationBuilder(String negotiationId) {
