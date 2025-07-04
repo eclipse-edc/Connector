@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.provision;
 
-import org.eclipse.edc.connector.controlplane.transfer.TestProvisionedContentResource;
-import org.eclipse.edc.connector.controlplane.transfer.TestProvisionedDataDestinationResource;
-import org.eclipse.edc.connector.controlplane.transfer.TestResourceDefinition;
-import org.eclipse.edc.connector.controlplane.transfer.TestToken;
 import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
+import org.eclipse.edc.connector.controlplane.transfer.provision.fixtures.TestProvisionedContentResource;
+import org.eclipse.edc.connector.controlplane.transfer.provision.fixtures.TestProvisionedDataDestinationResource;
+import org.eclipse.edc.connector.controlplane.transfer.provision.fixtures.TestResourceDefinition;
+import org.eclipse.edc.connector.controlplane.transfer.provision.fixtures.TestToken;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedDataDestinationResource;

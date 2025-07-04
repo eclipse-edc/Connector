@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.provision;
 
-import org.eclipse.edc.connector.controlplane.transfer.TestProvisionedDataDestinationResource;
-import org.eclipse.edc.connector.controlplane.transfer.TestResourceDefinition;
+import org.eclipse.edc.connector.controlplane.transfer.provision.fixtures.TestProvisionedDataDestinationResource;
+import org.eclipse.edc.connector.controlplane.transfer.provision.fixtures.TestResourceDefinition;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.Provisioner;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionResponse;

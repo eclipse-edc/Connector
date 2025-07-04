@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.transfer;
+package org.eclipse.edc.connector.controlplane.transfer.provision.fixtures;
 
 public class TokenTestProvisionResource extends TestProvisionedDataDestinationResource {
     public TokenTestProvisionResource(String resourceName, String id) {

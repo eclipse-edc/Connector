@@ -16,9 +16,9 @@ package org.eclipse.edc.connector.controlplane.transfer.process;
 
 import org.eclipse.edc.connector.controlplane.defaults.storage.transferprocess.InMemoryTransferProcessStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
-import org.eclipse.edc.connector.controlplane.transfer.TestProvisionedDataDestinationResource;
-import org.eclipse.edc.connector.controlplane.transfer.TestResourceDefinition;
 import org.eclipse.edc.connector.controlplane.transfer.provision.ProvisionResponsesHandler;
+import org.eclipse.edc.connector.controlplane.transfer.provision.fixtures.TestProvisionedDataDestinationResource;
+import org.eclipse.edc.connector.controlplane.transfer.provision.fixtures.TestResourceDefinition;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator;
