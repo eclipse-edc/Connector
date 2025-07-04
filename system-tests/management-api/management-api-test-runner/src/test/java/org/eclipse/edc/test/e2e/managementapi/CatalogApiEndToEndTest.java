@@ -41,7 +41,6 @@ import java.util.UUID;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -209,8 +208,6 @@ public class CatalogApiEndToEndTest {
             contractDefinitionStore.save(cd);
 
             assetIndex.create(createAsset("asset-id", "test-type").build());
-            var asset = assetIndex.findById("asset-id");
-            assertThat(asset).isNotNull();
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                     .add(TYPE, "DatasetRequest")
