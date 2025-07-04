@@ -29,13 +29,13 @@ import java.net.URI;
 import java.util.Optional;
 
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.Builder;
-import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.DC_DATA_FLOW_START_MESSAGE_PROCESS_ID;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_AGREEMENT_ID;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_CALLBACK_ADDRESS;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_DATASET_ID;
-import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_DESTINATION_CALLBACK_ADDRESS;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_DESTINATION_DATA_ADDRESS;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_FLOW_TYPE;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_PARTICIPANT_ID;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_PROCESS_ID;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_PROPERTIES;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL;
@@ -75,10 +75,10 @@ public class JsonObjectToDataFlowStartMessageTransformer extends AbstractJsonLdT
 
     private void transformProperties(String key, JsonValue jsonValue, Builder builder, TransformerContext context) {
         switch (key) {
-            case DC_DATA_FLOW_START_MESSAGE_PROCESS_ID -> builder.processId(transformString(jsonValue, context));
+            case EDC_DATA_FLOW_START_MESSAGE_PROCESS_ID -> builder.processId(transformString(jsonValue, context));
             case EDC_DATA_FLOW_START_MESSAGE_AGREEMENT_ID -> builder.agreementId(transformString(jsonValue, context));
             case EDC_DATA_FLOW_START_MESSAGE_DATASET_ID -> builder.assetId(transformString(jsonValue, context));
-            case EDC_DATA_FLOW_START_MESSAGE_DESTINATION_CALLBACK_ADDRESS ->
+            case EDC_DATA_FLOW_START_MESSAGE_CALLBACK_ADDRESS ->
                     Optional.ofNullable(transformString(jsonValue, context)).map(URI::create).ifPresent(builder::callbackAddress);
             case EDC_DATA_FLOW_START_MESSAGE_PROPERTIES -> {
                 var props = jsonValue.asJsonArray().getJsonObject(0);

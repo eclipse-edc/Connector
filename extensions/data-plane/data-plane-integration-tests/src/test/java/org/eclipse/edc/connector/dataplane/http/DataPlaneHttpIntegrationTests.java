@@ -122,19 +122,23 @@ public class DataPlaneHttpIntegrationTests {
             )));
     private static ClientAndServer httpSourceMockServer;
     private static ClientAndServer httpSinkMockServer;
+    private static ClientAndServer fakeControlPlane;
     private final Duration timeout = Duration.ofSeconds(30);
 
     @BeforeAll
     public static void setUp() {
         httpSourceMockServer = startClientAndServer(HTTP_SOURCE_API_PORT);
         httpSinkMockServer = startClientAndServer(HTTP_SINK_API_PORT);
+        fakeControlPlane = startClientAndServer(getFreePort());
         when(DATA_PLANE_AUTHORIZATION_SERVICE.createEndpointDataReference(any())).thenReturn(Result.success(DataAddress.Builder.newInstance().type("type").build()));
+        fakeControlPlane.when(request()).respond(response());
     }
 
     @AfterAll
     public static void tearDown() {
         stopQuietly(httpSourceMockServer);
         stopQuietly(httpSinkMockServer);
+        stopQuietly(fakeControlPlane);
     }
 
     @AfterEach
@@ -361,6 +365,7 @@ public class DataPlaneHttpIntegrationTests {
                     )
                     .add("flowType", "PUSH")
                     .add("transferTypeDestination", "HttpData-PUSH")
+                    .add("callbackAddress", "http://localhost:" + fakeControlPlane.getPort())
                     .build();
         }
 

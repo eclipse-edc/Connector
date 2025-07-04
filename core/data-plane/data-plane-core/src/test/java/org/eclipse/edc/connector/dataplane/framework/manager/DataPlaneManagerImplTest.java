@@ -415,7 +415,7 @@ class DataPlaneManagerImplTest {
 
             await().untilAsserted(() -> {
                 verify(provisionerManager).provision(List.of(resourceToBeProvisioned));
-                verify(transferProcessApiClient).provisioned(dataFlow.getId(), newDataAddress);
+                verify(transferProcessApiClient).provisioned(dataFlow);
                 var captor = ArgumentCaptor.forClass(DataFlow.class);
                 verify(store).save(captor.capture());
                 var storedDataFlow = captor.getValue();
@@ -511,7 +511,7 @@ class DataPlaneManagerImplTest {
 
             assertThat(result).isSucceeded();
             verify(store).save(argThat(saved -> saved.getState() == PROVISIONED.code()));
-            verify(transferProcessApiClient).provisioned(dataFlow.getId(), null);
+            verify(transferProcessApiClient).provisioned(dataFlow);
         }
 
         @Test

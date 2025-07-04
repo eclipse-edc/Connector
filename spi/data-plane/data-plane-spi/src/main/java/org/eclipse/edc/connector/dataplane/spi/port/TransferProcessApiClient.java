@@ -15,10 +15,9 @@
 package org.eclipse.edc.connector.dataplane.spi.port;
 
 
+import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 /**
@@ -34,6 +33,7 @@ public interface TransferProcessApiClient {
      * Mark the TransferProcess referenced by {@link DataFlowStartMessage#getProcessId()} as completed
      *
      * @param request The completed {@link DataFlowStartMessage}
+     * @return the result.
      */
     StatusResult<Void> completed(DataFlowStartMessage request);
 
@@ -41,16 +41,16 @@ public interface TransferProcessApiClient {
      * Mark the TransferProcess referenced by {@link DataFlowStartMessage#getProcessId()} as failed
      *
      * @param request The failed {@link DataFlowStartMessage}
+     * @return the result.
      */
     StatusResult<Void> failed(DataFlowStartMessage request, String reason);
 
     /**
      * Mark the TransferProcess as provisioned.
      *
-     * @param id transfer process id.
-     * @param newAddress the new address defined by the provisioning.
+     * @param dataFlow the data flow.
      * @return the result.
      */
-    Result<Void> provisioned(String id, DataAddress newAddress);
+    StatusResult<Void> provisioned(DataFlow dataFlow);
 
 }

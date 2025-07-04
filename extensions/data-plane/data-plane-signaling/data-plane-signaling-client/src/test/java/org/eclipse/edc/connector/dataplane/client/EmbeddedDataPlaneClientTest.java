@@ -41,6 +41,7 @@ class EmbeddedDataPlaneClientTest {
 
     @Nested
     class Provision {
+
         @Test
         void shouldSucceed_whenFlowPreparedCorrectly() {
             var response = DataFlowResponseMessage.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("type").build()).build();
@@ -48,7 +49,7 @@ class EmbeddedDataPlaneClientTest {
                     .processId("456")
                     .destination(DataAddress.Builder.newInstance().type("test").build())
                     .build();
-            when(dataPlaneManager.provision(any())).thenReturn(Result.success(response));
+            when(dataPlaneManager.provision(any())).thenReturn(StatusResult.success(response));
 
             var result = client.provision(request);
 
@@ -61,7 +62,7 @@ class EmbeddedDataPlaneClientTest {
                     .processId("456")
                     .destination(DataAddress.Builder.newInstance().type("test").build())
                     .build();
-            when(dataPlaneManager.provision(any())).thenReturn(Result.failure("error"));
+            when(dataPlaneManager.provision(any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, "error"));
 
             var result = client.provision(request);
 

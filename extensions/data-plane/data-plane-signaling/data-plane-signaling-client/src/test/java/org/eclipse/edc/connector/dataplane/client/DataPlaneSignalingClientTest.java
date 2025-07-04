@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowProvisionMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowResponseMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowStartMessageTransformer;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowSuspendMessageTransformer;
@@ -32,10 +33,11 @@ import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.response.ResponseStatus;
+import org.eclipse.edc.spi.response.ResponseFailure;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
@@ -72,6 +74,7 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -114,6 +117,7 @@ class DataPlaneSignalingClientTest {
         TRANSFORMER_REGISTRY.register(new JsonObjectFromDataFlowTerminateMessageTransformer(factory));
         TRANSFORMER_REGISTRY.register(new JsonObjectFromDataFlowSuspendMessageTransformer(factory));
         TRANSFORMER_REGISTRY.register(new JsonObjectFromDataFlowStartMessageTransformer(factory, TYPE_MANAGER, "test"));
+        TRANSFORMER_REGISTRY.register(new JsonObjectFromDataFlowProvisionMessageTransformer(factory, TYPE_MANAGER, "test"));
         TRANSFORMER_REGISTRY.register(new JsonObjectFromDataFlowResponseMessageTransformer(factory));
         TRANSFORMER_REGISTRY.register(new JsonObjectToDataFlowResponseMessageTransformer());
         TRANSFORMER_REGISTRY.register(new JsonObjectFromDataAddressDspaceTransformer(factory, TYPE_MANAGER, "test"));
@@ -154,7 +158,7 @@ class DataPlaneSignalingClientTest {
             dataPlane.verify(httpRequest);
 
             assertThat(result.failed()).isTrue();
-            assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
+            assertThat(result.getFailure().status()).isEqualTo(FATAL_ERROR);
             assertThat(result.getFailureMessages())
                     .anySatisfy(s -> assertThat(s).contains("400").contains(flowRequest.getProcessId()));
         }
@@ -176,7 +180,7 @@ class DataPlaneSignalingClientTest {
             dataPlane.verify(httpRequest);
 
             assertThat(result.failed()).isTrue();
-            assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
+            assertThat(result.getFailure().status()).isEqualTo(FATAL_ERROR);
             assertThat(result.getFailureMessages()).anySatisfy(s -> assertThat(s).contains("400").contains(flowRequest.getProcessId()));
         }
 
@@ -191,7 +195,7 @@ class DataPlaneSignalingClientTest {
             var result = dataPlaneClient.start(flowRequest);
 
             assertThat(result.failed()).isTrue();
-            assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
+            assertThat(result.getFailure().status()).isEqualTo(FATAL_ERROR);
             assertThat(result.getFailureMessages())
                     .anySatisfy(s -> assertThat(s)
                             .isEqualTo("Transform Failure")
@@ -214,7 +218,7 @@ class DataPlaneSignalingClientTest {
             dataPlane.verify(httpRequest, VerificationTimes.once());
 
             assertThat(result.failed()).isTrue();
-            assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
+            assertThat(result.getFailure().status()).isEqualTo(FATAL_ERROR);
             assertThat(result.getFailureMessages())
                     .anySatisfy(s -> assertThat(s)
                             .contains("Error expanding JSON-LD structure")
@@ -291,6 +295,154 @@ class DataPlaneSignalingClientTest {
     }
 
     @Nested
+    class Provision {
+
+        @Test
+        void shouldReturnFatalError_whenReceiveResponseWithNullBody() throws JsonProcessingException {
+            var request = createProvisionRequest();
+
+            var expected = TRANSFORMER_REGISTRY.transform(request, JsonObject.class)
+                    .compose(DataPlaneSignalingClientTest::compact)
+                    .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
+
+            var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
+            dataPlane.when(httpRequest).respond(response().withStatusCode(HttpStatusCode.BAD_REQUEST_400.code()));
+
+            var result = dataPlaneClient.provision(request);
+
+            dataPlane.verify(httpRequest);
+
+            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
+            assertThat(result.getFailureMessages())
+                    .anySatisfy(s -> assertThat(s).contains("400").contains(request.getProcessId()));
+        }
+
+        @Test
+        void verifyReturnFatalErrorIfReceiveErrorInResponse() throws JsonProcessingException {
+            var request = createProvisionRequest();
+
+            var expected = TRANSFORMER_REGISTRY.transform(request, JsonObject.class)
+                    .compose(DataPlaneSignalingClientTest::compact)
+                    .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
+
+            var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
+            var errorMsg = UUID.randomUUID().toString();
+            dataPlane.when(httpRequest).respond(withResponse(errorMsg));
+
+            var result = dataPlaneClient.provision(request);
+
+            dataPlane.verify(httpRequest);
+
+            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
+            assertThat(result.getFailureMessages()).anySatisfy(s -> assertThat(s).contains("400").contains(request.getProcessId()));
+        }
+
+        @Test
+        void verifyReturnFatalErrorIfTransformFails() {
+            var request = createProvisionRequest();
+            TypeTransformerRegistry registry = mock();
+            var dataPlaneClient = new DataPlaneSignalingClient(httpClient, registry, JSON_LD, CONTROL_CLIENT_SCOPE, TYPE_MANAGER, "test", instance);
+
+            when(registry.transform(any(), any())).thenReturn(Result.failure("Transform Failure"));
+
+            var result = dataPlaneClient.provision(request);
+
+            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
+            assertThat(result.getFailureMessages())
+                    .anySatisfy(s -> assertThat(s)
+                            .isEqualTo("Transform Failure")
+                    );
+        }
+
+        @Test
+        void verifyReturnFatalError_whenBadResponse() throws JsonProcessingException {
+            var request = createProvisionRequest();
+            var expected = TRANSFORMER_REGISTRY.transform(request, JsonObject.class)
+                    .compose(DataPlaneSignalingClientTest::compact)
+                    .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
+
+
+            var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
+            dataPlane.when(httpRequest, once()).respond(response().withBody("{}").withStatusCode(HttpStatusCode.OK_200.code()));
+
+            var result = dataPlaneClient.provision(request);
+
+            dataPlane.verify(httpRequest, VerificationTimes.once());
+
+            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
+            assertThat(result.getFailureMessages())
+                    .anySatisfy(s -> assertThat(s)
+                            .contains("Error expanding JSON-LD structure")
+                    );
+        }
+
+        @Test
+        void shouldProvision() throws JsonProcessingException {
+            var request = createProvisionRequest();
+            var expected = TRANSFORMER_REGISTRY.transform(request, JsonObject.class)
+                    .compose(DataPlaneSignalingClientTest::compact)
+                    .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
+
+            var flowResponse = DataFlowResponseMessage.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("type").build()).build();
+            var response = TRANSFORMER_REGISTRY.transform(flowResponse, JsonObject.class)
+                    .compose(JSON_LD::compact)
+                    .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
+
+
+            var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
+            dataPlane.when(httpRequest, once()).respond(response().withBody(MAPPER.writeValueAsString(response)).withStatusCode(HttpStatusCode.OK_200.code()));
+
+            var result = dataPlaneClient.provision(request);
+
+            dataPlane.verify(httpRequest, VerificationTimes.once());
+
+            assertThat(result).isSucceeded().extracting(DataFlowResponseMessage::getDataAddress).isNotNull();
+        }
+
+        @Test
+        void shouldProvision_withoutDataAddress() throws JsonProcessingException {
+            var request = createProvisionRequest();
+            var expected = TRANSFORMER_REGISTRY.transform(request, JsonObject.class)
+                    .compose(DataPlaneSignalingClientTest::compact)
+                    .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
+
+            var flowResponse = DataFlowResponseMessage.Builder.newInstance().build();
+            var response = TRANSFORMER_REGISTRY.transform(flowResponse, JsonObject.class)
+                    .compose(JSON_LD::compact)
+                    .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
+
+
+            var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
+            dataPlane.when(httpRequest, once()).respond(response().withBody(MAPPER.writeValueAsString(response)).withStatusCode(HttpStatusCode.OK_200.code()));
+
+            var result = dataPlaneClient.provision(request);
+
+            dataPlane.verify(httpRequest, VerificationTimes.once());
+
+            assertThat(result.succeeded()).isTrue();
+            assertThat(result.getContent().getDataAddress()).isNull();
+        }
+
+        private HttpResponse withResponse(String errorMsg) throws JsonProcessingException {
+            return response().withStatusCode(HttpStatusCode.BAD_REQUEST_400.code())
+                    .withBody(MAPPER.writeValueAsString(new TransferErrorResponse(List.of(errorMsg))), MediaType.APPLICATION_JSON);
+        }
+
+        private DataFlowProvisionMessage createProvisionRequest() {
+            return DataFlowProvisionMessage.Builder.newInstance()
+                    .processId("456")
+                    .transferType(new TransferType("DestinationType", FlowType.PULL))
+                    .assetId("assetId")
+                    .agreementId("agreementId")
+                    .participantId("participantId")
+                    .callbackAddress(URI.create("http://void"))
+                    .destination(DataAddress.Builder.newInstance().type("test").build())
+                    .build();
+        }
+
+    }
+
+    @Nested
     class Terminate {
 
         @Test
@@ -324,7 +476,7 @@ class DataPlaneSignalingClientTest {
             var result = dataPlaneClient.terminate("processId");
 
             assertThat(result.failed()).isTrue();
-            assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
+            assertThat(result.getFailure().status()).isEqualTo(FATAL_ERROR);
             assertThat(result.getFailureMessages())
                     .anySatisfy(s -> assertThat(s)
                             .isEqualTo("Transform Failure")
@@ -367,7 +519,7 @@ class DataPlaneSignalingClientTest {
             var result = dataPlaneClient.suspend("processId");
 
             assertThat(result.failed()).isTrue();
-            assertThat(result.getFailure().status()).isEqualTo(ResponseStatus.FATAL_ERROR);
+            assertThat(result.getFailure().status()).isEqualTo(FATAL_ERROR);
             assertThat(result.getFailureMessages())
                     .anySatisfy(s -> assertThat(s)
                             .isEqualTo("Transform Failure")
