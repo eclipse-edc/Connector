@@ -16,6 +16,7 @@ package org.eclipse.edc.test.e2e;
 
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ContainerRequestContext;
@@ -34,8 +35,10 @@ import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 
 import static jakarta.ws.rs.core.MediaType.WILDCARD;
 import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
+import static jakarta.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 import static java.util.Collections.emptyMap;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 /**
@@ -62,6 +65,8 @@ public class HttpProxyDataPlaneExtension implements ServiceExtension {
 
         var proxyUrl = "http://localhost:%d%s".formatted(portMapping.port(), portMapping.path());
         generatorService.addGeneratorFunction("HttpData", address -> Endpoint.url(proxyUrl));
+
+        generatorService.addGeneratorFunction("HttpData", () -> Endpoint.url(proxyUrl));
 
         webService.registerResource(API_CONTEXT, new Controller(authorizationService));
     }
@@ -90,6 +95,27 @@ public class HttpProxyDataPlaneExtension implements ServiceExtension {
             }
 
             return Response.ok("data").build();
+        }
+
+        @POST
+        public Response postResponse(@Context ContainerRequestContext requestContext) {
+            var token = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
+            if (token == null) {
+                return Response.status(UNAUTHORIZED).build();
+            }
+
+            var sourceDataAddress = authorizationService.authorize(token, emptyMap());
+            if (sourceDataAddress.failed()) {
+                return Response.status(FORBIDDEN).build();
+            }
+
+            var dataAddressUrl = sourceDataAddress.getContent().getStringProperty(EDC_NAMESPACE + "baseUrl");
+
+            if (dataAddressUrl != null && !dataAddressUrl.equals("http://any/response/channel")) {
+                return Response.status(INTERNAL_SERVER_ERROR).build();
+            }
+
+            return Response.ok("response received").build();
         }
     }
 }
