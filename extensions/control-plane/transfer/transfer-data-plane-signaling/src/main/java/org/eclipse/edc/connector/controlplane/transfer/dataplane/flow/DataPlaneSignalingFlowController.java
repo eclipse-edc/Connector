@@ -184,22 +184,22 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
             return emptySet();
         }
 
-        var responseChannelType = Optional.ofNullable(asset.getDataAddress().getResponseChannel())
+        var expectedResponseChannelType = Optional.ofNullable(asset.getDataAddress().getResponseChannel())
                 .map(DataAddress::getType)
                 .orElse(null);
 
         return result.getContent().stream()
                 .filter(it -> it.getAllowedSourceTypes().contains(asset.getDataAddress().getType()))
                 .flatMap(it -> it.getAllowedTransferTypes().stream())
-                .filter(allowedTransferType -> shouldBeIncluded(allowedTransferType, responseChannelType))
+                .filter(instanceAllowedTransferType -> shouldBeIncludedIf(instanceAllowedTransferType, expectedResponseChannelType))
                 .collect(toSet());
     }
 
-    private boolean shouldBeIncluded(String allowedTransferType, @Nullable String expectedResponseChannelType) {
-        var transferType = transferTypeParser.parse(allowedTransferType).getContent();
-        return expectedResponseChannelType == null
-                ? transferType.responseChannelType() == null
-                : transferType.responseChannelType() != null && transferType.responseChannelType().contains(expectedResponseChannelType);
+    private boolean shouldBeIncludedIf(String allowedTransferType, @Nullable String expectedResponseChannelType) {
+        var dataplaneInstanceAllowedType = transferTypeParser.parse(allowedTransferType).getContent();
+        return expectedResponseChannelType != null
+                ? dataplaneInstanceAllowedType.responseChannelType() != null && dataplaneInstanceAllowedType.responseChannelType().contains(expectedResponseChannelType)
+                : dataplaneInstanceAllowedType.responseChannelType() == null;
     }
 
     private DataFlowResponse toResponse(DataFlowResponseMessage it, DataPlaneInstance dataPlaneInstance) {
