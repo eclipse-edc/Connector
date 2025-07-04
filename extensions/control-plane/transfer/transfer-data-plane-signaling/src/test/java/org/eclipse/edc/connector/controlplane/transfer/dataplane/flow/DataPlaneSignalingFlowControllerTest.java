@@ -42,7 +42,6 @@ import org.mockito.ArgumentCaptor;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Collections.emptyMap;
@@ -414,18 +413,20 @@ public class DataPlaneSignalingFlowControllerTest {
 
         @Test
         void transferTypes_shouldReturnTypesForSpecifiedAsset() {
+
+            var assetNoResponse = Asset.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build()).build();
             when(transferTypeParser.parse(any()))
                     .thenReturn(Result.success(new TransferType("any", FlowType.PUSH)))
-                    .thenReturn(Result.success(new TransferType("any", FlowType.PULL)))
-                    .thenReturn(Result.success(new TransferType("any", FlowType.PULL, "Response")));
+                    .thenReturn(Result.success(new TransferType("any", FlowType.PULL, "Response")))
+                    .thenReturn(Result.success(new TransferType("any", FlowType.PULL)));
+
             when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(
                     dataPlaneInstanceBuilder().allowedTransferType("Custom-PUSH").allowedSourceType("TargetSrc").allowedDestType("TargetDest").build(),
-                    dataPlaneInstanceBuilder().allowedTransferType(Set.of("Custom-PULL", "Custom-PULL-Response")).allowedSourceType("TargetSrc").allowedDestType("AnotherTargetDest").build(),
+                    dataPlaneInstanceBuilder().allowedTransferType("Custom-PULL").allowedTransferType("Custom-PULL-Response").allowedSourceType("TargetSrc").allowedDestType("AnotherTargetDest").build(),
                     dataPlaneInstanceBuilder().allowedSourceType("AnotherSrc").allowedDestType("ThisWontBeListed").build()
             )));
-            var asset = Asset.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build()).build();
 
-            var transferTypes = flowController.transferTypesFor(asset);
+            var transferTypes = flowController.transferTypesFor(assetNoResponse);
 
             assertThat(transferTypes).containsExactly("Custom-PUSH", "Custom-PULL");
         }
