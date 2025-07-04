@@ -42,11 +42,13 @@ import org.mockito.ArgumentCaptor;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -338,7 +340,8 @@ public class DataPlaneSignalingFlowControllerTest {
             assertThat(result).isFailed().detail().contains("Failed to select the data plane for terminating the transfer process");
         }
 
-        @Test // a null dataPlaneId means that the flow has not been started so it can be considered as already terminated
+        @Test
+            // a null dataPlaneId means that the flow has not been started so it can be considered as already terminated
         void shouldReturnSuccess_whenDataPlaneIdIsNull() {
             var transferProcess = transferProcessBuilder()
                     .id("transferProcessId")
@@ -411,9 +414,13 @@ public class DataPlaneSignalingFlowControllerTest {
 
         @Test
         void transferTypes_shouldReturnTypesForSpecifiedAsset() {
+            when(transferTypeParser.parse(any()))
+                    .thenReturn(Result.success(new TransferType("any", FlowType.PUSH)))
+                    .thenReturn(Result.success(new TransferType("any", FlowType.PULL)))
+                    .thenReturn(Result.success(new TransferType("any", FlowType.PULL, "Response")));
             when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(
                     dataPlaneInstanceBuilder().allowedTransferType("Custom-PUSH").allowedSourceType("TargetSrc").allowedDestType("TargetDest").build(),
-                    dataPlaneInstanceBuilder().allowedTransferType("Custom-PULL").allowedSourceType("TargetSrc").allowedDestType("AnotherTargetDest").build(),
+                    dataPlaneInstanceBuilder().allowedTransferType(Set.of("Custom-PULL", "Custom-PULL-Response")).allowedSourceType("TargetSrc").allowedDestType("AnotherTargetDest").build(),
                     dataPlaneInstanceBuilder().allowedSourceType("AnotherSrc").allowedDestType("ThisWontBeListed").build()
             )));
             var asset = Asset.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build()).build();
@@ -421,6 +428,31 @@ public class DataPlaneSignalingFlowControllerTest {
             var transferTypes = flowController.transferTypesFor(asset);
 
             assertThat(transferTypes).containsExactly("Custom-PUSH", "Custom-PULL");
+        }
+
+        @Test
+        void transferTypes_shouldFilterTypesForSpecifiedAssetWithResponseChannel() {
+            when(transferTypeParser.parse(any()))
+                    .thenReturn(Result.success(new TransferType("any", FlowType.PUSH)))
+                    .thenReturn(Result.success(new TransferType("any", FlowType.PUSH)))
+                    .thenReturn(Result.success(new TransferType("any", FlowType.PULL, "Response")))
+                    .thenReturn(Result.success(new TransferType("any", FlowType.PULL)))
+                    .thenReturn(Result.success(new TransferType("any", FlowType.PUSH, "Response")));
+            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(
+                    dataPlaneInstanceBuilder().allowedTransferType("Custom-PUSH").allowedSourceType("TargetSrc").build(),
+                    dataPlaneInstanceBuilder().allowedTransferType("Response-PUSH").allowedSourceType("TargetSrc").build(),
+                    dataPlaneInstanceBuilder().allowedTransferType("Custom-PULL-Response").allowedTransferType("Custom-PULL").allowedSourceType("TargetSrc").build(),
+                    dataPlaneInstanceBuilder().allowedTransferType("Custom-PUSH-Response").allowedSourceType("AnotherSrc").build(),
+                    dataPlaneInstanceBuilder().allowedSourceType("AnotherSrc").build()
+            )));
+            var asset = Asset.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance()
+                    .type("TargetSrc")
+                    .property(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, buildResponseChannel())
+                    .build()).build();
+
+            var transferTypes = flowController.transferTypesFor(asset);
+
+            assertThat(transferTypes).containsExactly("Custom-PULL-Response");
         }
 
         @Test
@@ -460,6 +492,10 @@ public class DataPlaneSignalingFlowControllerTest {
 
     private Policy.Builder policyBuilder() {
         return Policy.Builder.newInstance();
+    }
+
+    private DataAddress buildResponseChannel() {
+        return DataAddress.Builder.newInstance().type("Response").build();
     }
 
 }
