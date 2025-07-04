@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -154,12 +155,18 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      * @param context    the transformer context
      */
     protected void transformProperties(Map<String, ?> properties, JsonObjectBuilder builder, ObjectMapper mapper, TransformerContext context) {
+        BiFunction<String, Object, JsonValue> func = (k, v) -> mapper.convertValue(v, JsonValue.class);
+
+        transformProperties(properties, builder, func, context);
+    }
+
+    protected void transformProperties(Map<String, ?> properties, JsonObjectBuilder builder, BiFunction<String, Object, JsonValue> consumer, TransformerContext context) {
         if (properties == null) {
             return;
         }
         properties.forEach((k, v) -> {
             try {
-                builder.add(k, mapper.convertValue(v, JsonValue.class));
+                builder.add(k, consumer.apply(k, v));
             } catch (IllegalArgumentException e) {
                 context.problem()
                         .invalidProperty()

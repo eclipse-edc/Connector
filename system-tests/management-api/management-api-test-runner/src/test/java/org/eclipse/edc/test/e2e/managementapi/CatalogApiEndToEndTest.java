@@ -186,10 +186,26 @@ public class CatalogApiEndToEndTest {
 
         @Test
         void getDataset_shouldReturnDataset(ManagementEndToEndTestContext context, AssetIndex assetIndex,
+                                            PolicyDefinitionStore policyDefinitionStore,
+                                            ContractDefinitionStore contractDefinitionStore,
                                             DataPlaneInstanceStore dataPlaneInstanceStore) {
             var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
-                    .allowedDestType("any").allowedSourceType("test-type").allowedTransferType("any").build();
+                    .allowedDestType("any").allowedSourceType("test-type").allowedTransferType("any-PULL").build();
             dataPlaneInstanceStore.save(dataPlaneInstance);
+
+            var policyId = UUID.randomUUID().toString();
+
+            var cd = ContractDefinition.Builder.newInstance()
+                    .id(UUID.randomUUID().toString())
+                    .contractPolicyId(policyId)
+                    .accessPolicyId(policyId)
+                    .build();
+
+            var policy = Policy.Builder.newInstance()
+                    .build();
+
+            policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id(policyId).policy(policy).build());
+            contractDefinitionStore.save(cd);
 
             assetIndex.create(createAsset("asset-id", "test-type").build());
             var requestBody = createObjectBuilder()
@@ -213,10 +229,72 @@ public class CatalogApiEndToEndTest {
                     .body("'dcat:distribution'.'dcat:accessService'.@id", notNullValue());
         }
 
+        @Test
+        void getDatasetWithResponseChannel_shouldReturnDataset(ManagementEndToEndTestContext context, AssetIndex assetIndex,
+                                                               DataPlaneInstanceStore dataPlaneInstanceStore,
+                                                               PolicyDefinitionStore policyDefinitionStore,
+                                                               ContractDefinitionStore contractDefinitionStore) {
+
+            var policyId = UUID.randomUUID().toString();
+
+            var cd = ContractDefinition.Builder.newInstance()
+                    .id(UUID.randomUUID().toString())
+                    .contractPolicyId(policyId)
+                    .accessPolicyId(policyId)
+                    .build();
+
+            var policy = Policy.Builder.newInstance()
+                    .build();
+
+            policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id(policyId).policy(policy).build());
+            contractDefinitionStore.save(cd);
+
+
+            var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
+                    .allowedDestType("any").allowedSourceType("test-type")
+                    .allowedTransferType("any-PULL").allowedTransferType("any-PULL-response").build();
+            dataPlaneInstanceStore.save(dataPlaneInstance);
+
+            var responseChannel = DataAddress.Builder.newInstance()
+                    .type("response")
+                    .build();
+
+            var dataAddressWithResponseChannel = DataAddress.Builder.newInstance()
+                    .type("test-type")
+                    .responseChannel(responseChannel)
+                    .build();
+            assetIndex.create(createAsset("asset-response", dataAddressWithResponseChannel).build());
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                    .add(TYPE, "DatasetRequest")
+                    .add(ID, "asset-response")
+                    .add("counterPartyAddress", context.providerProtocolUrl())
+                    .add("protocol", "dataspace-protocol-http")
+                    .build();
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .body(requestBody)
+                    .post("/v3/catalog/dataset/request")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body(ID, is("asset-response"))
+                    .body(TYPE, is("dcat:Dataset"))
+                    .body("'dcat:distribution'.'dct:format'.@id", is("any-PULL-response"));
+        }
 
         private Asset.Builder createAsset(String id, String sourceType) {
+            var address = DataAddress.Builder.newInstance()
+                    .type(sourceType)
+                    .build();
+            return createAsset(id, address);
+        }
+
+        private Asset.Builder createAsset(String id, DataAddress address) {
             return Asset.Builder.newInstance()
-                    .dataAddress(DataAddress.Builder.newInstance().type(sourceType).build())
+                    .dataAddress(address)
                     .id(id);
         }
 
