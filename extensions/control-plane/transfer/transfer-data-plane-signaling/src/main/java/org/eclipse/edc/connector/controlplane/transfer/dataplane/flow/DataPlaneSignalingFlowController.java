@@ -26,13 +26,14 @@ import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFa
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -183,11 +184,22 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
             return emptySet();
         }
 
+        var responseChannelType = Optional.ofNullable(asset.getDataAddress().getResponseChannel())
+                .map(DataAddress::getType)
+                .orElse(null);
+
         return result.getContent().stream()
                 .filter(it -> it.getAllowedSourceTypes().contains(asset.getDataAddress().getType()))
-                .map(DataPlaneInstance::getAllowedTransferTypes)
-                .flatMap(Collection::stream)
+                .flatMap(it -> it.getAllowedTransferTypes().stream())
+                .filter(allowedTransferType -> shouldBeIncluded(allowedTransferType, responseChannelType))
                 .collect(toSet());
+    }
+
+    private boolean shouldBeIncluded(String allowedTransferType, @Nullable String expectedResponseChannelType) {
+        var transferType = transferTypeParser.parse(allowedTransferType).getContent();
+        return expectedResponseChannelType == null
+                ? transferType.responseChannelType() == null
+                : transferType.responseChannelType() != null && transferType.responseChannelType().contains(expectedResponseChannelType);
     }
 
     private DataFlowResponse toResponse(DataFlowResponseMessage it, DataPlaneInstance dataPlaneInstance) {

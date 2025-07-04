@@ -16,6 +16,7 @@ package org.eclipse.edc.transform.transformer.edc.from;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -23,8 +24,11 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.BiFunction;
+
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
 
 public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransformer<DataAddress, JsonObject> {
 
@@ -45,7 +49,14 @@ public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransfor
 
         builder.add(TYPE, EDC_NAMESPACE + "DataAddress");
 
-        transformProperties(dataAddress.getProperties(), builder, typeManager.getMapper(typeContext), context);
+        BiFunction<String, Object, JsonValue> func = (k, v) -> {
+            if (k.equals(EDC_DATA_ADDRESS_RESPONSE_CHANNEL)) {
+                return context.transform(v, JsonObject.class);
+            }
+            return typeManager.getMapper(typeContext).convertValue(v, JsonValue.class);
+        };
+
+        transformProperties(dataAddress.getProperties(), builder, func, context);
 
         return builder.build();
     }

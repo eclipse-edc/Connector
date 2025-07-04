@@ -46,6 +46,7 @@ public class DataAddress {
     public static final String EDC_DATA_ADDRESS_TYPE_PROPERTY = EDC_NAMESPACE + SIMPLE_TYPE;
     public static final String EDC_DATA_ADDRESS_KEY_NAME = EDC_NAMESPACE + SIMPLE_KEY_NAME;
     public static final String EDC_DATA_ADDRESS_SECRET = EDC_NAMESPACE + "secret";
+    public static final String EDC_DATA_ADDRESS_RESPONSE_CHANNEL = EDC_NAMESPACE + "responseChannel";
 
     protected final Map<String, Object> properties = new HashMap<>();
 
@@ -91,6 +92,11 @@ public class DataAddress {
     }
 
     @JsonIgnore
+    public DataAddress getResponseChannel() {
+        return (DataAddress) getProperty(EDC_DATA_ADDRESS_RESPONSE_CHANNEL);
+    }
+
+    @JsonIgnore
     public void setKeyName(String keyName) {
         Objects.requireNonNull(keyName);
         properties.put(EDC_DATA_ADDRESS_KEY_NAME, keyName);
@@ -130,6 +136,7 @@ public class DataAddress {
             switch (key) {
                 case SIMPLE_TYPE -> address.properties.put(EDC_DATA_ADDRESS_TYPE_PROPERTY, value);
                 case SIMPLE_KEY_NAME -> address.properties.put(EDC_DATA_ADDRESS_KEY_NAME, value);
+                case EDC_DATA_ADDRESS_RESPONSE_CHANNEL -> responseChannel(value);
                 default -> address.properties.put(key, value);
             }
             return self();
@@ -142,6 +149,26 @@ public class DataAddress {
 
         public B keyName(String keyName) {
             address.getProperties().put(EDC_DATA_ADDRESS_KEY_NAME, Objects.requireNonNull(keyName));
+            return self();
+        }
+
+        @JsonIgnore
+        @SuppressWarnings("unchecked")
+        public B responseChannel(Object rc) {
+            Objects.requireNonNull(rc, "Response channel cannot be null.");
+            if (rc instanceof DataAddress) {
+                address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, rc);
+            } else if (rc instanceof Map) {
+                var builder = DataAddress.Builder.newInstance();
+                var rcMap = (Map<String, Object>) rc;
+                var props = rcMap.get("properties");
+                if (props != null) {
+                    builder.properties((Map<String, Object>) props);
+                } else {
+                    builder.properties(rcMap);
+                }
+                address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, builder.build());
+            }
             return self();
         }
 
