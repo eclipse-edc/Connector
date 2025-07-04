@@ -38,7 +38,7 @@ import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_PARTICIPANT_ID;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_PROCESS_ID;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS;
-import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL_TYPE;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TYPE;
 import static org.mockito.ArgumentMatchers.any;
@@ -83,7 +83,7 @@ class JsonObjectFromDataFlowStartMessageTransformerTest {
         assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_CALLBACK_ADDRESS).getString()).isEqualTo(message.getCallbackAddress().toString());
         assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION).getString()).isEqualTo("HttpData");
         assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_FLOW_TYPE).getString()).isEqualTo(message.getFlowType().toString());
-        assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL).getString()).isEqualTo("Websocket");
+        assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL_TYPE).getString()).isEqualTo("Websocket");
         assertThat(jsonObject.get(EDC_DATA_FLOW_START_MESSAGE_DESTINATION_DATA_ADDRESS)).isNotNull();
         assertThat(jsonObject.get(EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS)).isNotNull();
     }

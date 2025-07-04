@@ -66,7 +66,7 @@ class JsonObjectToDataFlowStartMessageTransformerTest {
                 .add("participantId", "participantId")
                 .add("transferTypeDestination", "transferTypeDestination")
                 .add("flowType", "PULL")
-                .add("responseChannel", "Websocket")
+                .add("responseChannelType", "Websocket")
                 .add("sourceDataAddress", jsonFactory.createObjectBuilder().add("type", "address-type"))
                 .add("destinationDataAddress", jsonFactory.createObjectBuilder().add("type", "address-type"))
                 .add("properties", jsonFactory.createObjectBuilder().add("foo", "bar"))

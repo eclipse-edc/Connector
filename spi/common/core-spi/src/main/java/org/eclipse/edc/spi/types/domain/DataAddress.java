@@ -156,7 +156,9 @@ public class DataAddress {
         @SuppressWarnings("unchecked")
         public B responseChannel(Object rc) {
             Objects.requireNonNull(rc, "Response channel cannot be null.");
-            if (rc instanceof Map) {
+            if (rc instanceof DataAddress) {
+                address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, rc);
+            } else if (rc instanceof Map) {
                 var builder = DataAddress.Builder.newInstance();
                 var rcMap = (Map<String, Object>) rc;
                 var props = rcMap.get("properties");
@@ -165,14 +167,8 @@ public class DataAddress {
                 } else {
                     builder.properties(rcMap);
                 }
-                return responseChannel(builder.build());
+                address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, builder.build());
             }
-            return self();
-        }
-
-        @JsonIgnore
-        public B responseChannel(DataAddress rc) {
-            address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, rc);
             return self();
         }
 

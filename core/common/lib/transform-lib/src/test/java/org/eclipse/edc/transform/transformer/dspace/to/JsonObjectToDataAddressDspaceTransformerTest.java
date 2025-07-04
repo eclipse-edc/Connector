@@ -48,7 +48,7 @@ class JsonObjectToDataAddressDspaceTransformerTest {
 
     @Test
     void transform() {
-        var nestedResponseChannel = dSpaceAddress();
+        var nestedResponseChannel = responseChannelAddress();
         var jsonObj = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
                 .add(TYPE, DSPACE_DATAADDRESS_TYPE_IRI)
@@ -95,7 +95,7 @@ class JsonObjectToDataAddressDspaceTransformerTest {
                 .add("value", builder);
     }
 
-    private JsonObjectBuilder dSpaceAddress() {
+    private JsonObjectBuilder responseChannelAddress() {
         return jsonFactory.createObjectBuilder()
                 .add(TYPE, DSPACE_DATAADDRESS_TYPE_IRI)
                 .add(ENDPOINT_TYPE_PROPERTY_IRI, "SomeType")
