@@ -20,6 +20,7 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -33,10 +34,14 @@ import org.mockserver.model.BinaryBody;
 import org.mockserver.model.HttpRequest;
 import org.mockserver.model.HttpResponse;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import static jakarta.json.Json.createObjectBuilder;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -70,13 +75,7 @@ class TransferPushEndToEndTest {
         void httpPushDataTransfer() {
             providerDataSource.when(HttpRequest.request()).respond(HttpResponse.response().withBody("data"));
             var assetId = UUID.randomUUID().toString();
-            var dataAddressProperties = Map.<String, Object>of(
-                    "name", "transfer-test",
-                    "baseUrl", "http://localhost:" + providerDataSource.getPort() + "/source",
-                    "type", "HttpData",
-                    "proxyQueryParams", "true"
-            );
-            createResourcesOnProvider(assetId, dataAddressProperties);
+            createResourcesOnProvider(assetId, httpSourceDataAddress());
 
             var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
                     .withDestination(httpDataAddress("http://localhost:" + consumerDataDestination.getPort() + "/destination"))
@@ -86,6 +85,32 @@ class TransferPushEndToEndTest {
 
             providerDataSource.verify(HttpRequest.request("/source").withMethod("GET"));
             consumerDataDestination.verify(HttpRequest.request("/destination").withBody(BinaryBody.binary("data".getBytes())));
+        }
+
+        @Test
+        void responseChannelOnPullTransfer() {
+            providerDataSource.when(HttpRequest.request()).respond(HttpResponse.response().withBody("data"));
+            var assetId = UUID.randomUUID().toString();
+            var dataAddressProperties = httpSourceDataAddress();
+            var responseChannel = Map.of(
+                    EDC_NAMESPACE + "name", "transfer-test",
+                    EDC_NAMESPACE + "baseUrl", "http://any/response/channel",
+                    EDC_NAMESPACE + "type", "HttpData"
+            );
+            dataAddressProperties.put(EDC_NAMESPACE + "responseChannel", responseChannel);
+            createResourcesOnProvider(assetId, dataAddressProperties);
+
+            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                    .withDestination(httpDataAddress("http://localhost:" + consumerDataDestination.getPort() + "/destination"))
+                    .withTransferType("HttpData-PUSH-HttpData").execute();
+
+            CONSUMER.awaitTransferToBeInState(transferProcessId, COMPLETED);
+
+            providerDataSource.verify(HttpRequest.request("/source").withMethod("GET"));
+            consumerDataDestination.verify(HttpRequest.request("/destination").withBody(BinaryBody.binary("data".getBytes())));
+
+            var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(transferProcessId), Objects::nonNull);
+            await().atMost(timeout).untilAsserted(() -> CONSUMER.postResponse(edr, body -> assertThat(body).isEqualTo("response received")));
         }
 
         @Test
@@ -115,6 +140,15 @@ class TransferPushEndToEndTest {
             providerDataSource.verify(HttpRequest.request("/source").withMethod("GET").withHeader("Authorization", "Bearer token"));
             consumerDataDestination.verify(HttpRequest.request("/destination").withBody(BinaryBody.binary("data".getBytes())));
             stopQuietly(oauth2server);
+        }
+
+        private Map<String, Object> httpSourceDataAddress() {
+            return new HashMap<>(Map.of(
+                    TYPE, EDC_NAMESPACE + "DataAddress",
+                    EDC_NAMESPACE + "type", "HttpData",
+                    EDC_NAMESPACE + "baseUrl", "http://localhost:" + providerDataSource.getPort() + "/source",
+                    EDC_NAMESPACE + "proxyQueryParams", "true"
+            ));
         }
 
         private JsonObject httpDataAddress(String baseUrl) {
@@ -210,6 +244,8 @@ class TransferPushEndToEndTest {
                 Runtimes.POSTGRES_DATA_PLANE.create("provider-data-plane")
                         .configurationProvider(PROVIDER::dataPlaneConfig)
                         .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()))
+                        .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension())
+
         );
 
         @Override

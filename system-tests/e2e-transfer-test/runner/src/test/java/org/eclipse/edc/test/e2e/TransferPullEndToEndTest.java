@@ -150,7 +150,6 @@ class TransferPullEndToEndTest {
             assertConsumerCanNotAccessData(transferProcessId, edrEntry);
         }
 
-        // TODO: test should assert that the correct responseChannel is retrieved.
         @Test
         void httpPull_dataTransfer_withHttpResponseChannel() {
             var assetId = UUID.randomUUID().toString();
@@ -168,10 +167,7 @@ class TransferPullEndToEndTest {
                     .execute();
 
             CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
-
-            var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(transferProcessId), Objects::nonNull);
-
-            assertThat(edr.getStringProperty("responseChannel-endpoint")).isNotNull();
+            assertConsumerCanSendResponse(transferProcessId);
 
         }
 
@@ -371,6 +367,11 @@ class TransferPullEndToEndTest {
                                     body -> assertThat(body).isEqualTo("data"))
                     )
             );
+        }
+
+        private void assertConsumerCanSendResponse(String consumerTransferProcessId) {
+            var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(consumerTransferProcessId), Objects::nonNull);
+            await().atMost(timeout).untilAsserted(() -> CONSUMER.postResponse(edr, body -> assertThat(body).isEqualTo("response received")));
         }
 
         private HttpResponse cacheEdr(HttpRequest request, Map<String, TransferProcessStarted> events) {
