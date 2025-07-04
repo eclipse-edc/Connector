@@ -44,6 +44,7 @@ class JsonObjectToDataAddressDspaceTransformerTest {
 
     @Test
     void transform() {
+        var nestedResponseChannel = responseChannelAddress();
         var jsonObj = jsonFactory.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
                 .add(TYPE, DSPACE_DATAADDRESS_TYPE_IRI)
@@ -54,6 +55,7 @@ class JsonObjectToDataAddressDspaceTransformerTest {
                         .add(property("authType", "bearer"))
                         .add(property("foo", "bar"))
                         .add(property("fizz", "buzz"))
+                        .add(propertyWith(nestedResponseChannel))
                 )
                 .build();
 
@@ -72,6 +74,22 @@ class JsonObjectToDataAddressDspaceTransformerTest {
                 .add(TYPE, ENDPOINT_PROPERTY_PROPERTY_TYPE_IRI)
                 .add("name", key)
                 .add("value", value);
+    }
+
+    private JsonObjectBuilder propertyWith(JsonObjectBuilder builder) {
+        return jsonFactory.createObjectBuilder()
+                .add(TYPE, ENDPOINT_PROPERTY_PROPERTY_TYPE_IRI)
+                .add("name", EDC_DATA_ADDRESS_RESPONSE_CHANNEL)
+                .add("value", builder);
+    }
+
+    private JsonObjectBuilder responseChannelAddress() {
+        return jsonFactory.createObjectBuilder()
+                .add(TYPE, DSPACE_DATAADDRESS_TYPE_IRI)
+                .add(ENDPOINT_TYPE_PROPERTY_IRI, "SomeType")
+                .add(ENDPOINT_PROPERTIES_PROPERTY_IRI, jsonFactory.createArrayBuilder()
+                        .add(property("john", "doe"))
+                        .add(property("internal", "prop")));
     }
 
     private JsonArrayBuilder createContextBuilder() {
