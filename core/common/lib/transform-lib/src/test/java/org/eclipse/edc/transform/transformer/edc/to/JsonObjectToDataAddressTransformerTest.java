@@ -173,6 +173,32 @@ class JsonObjectToDataAddressTransformerTest {
         verify(transformerContext, never()).reportProblem(any());
     }
 
+    @Test
+    void transform_withResponseChannel() {
+        var innerDataAddress = createObjectBuilder()
+                .add(TYPE, EDC_NAMESPACE + "DataAddress")
+                .add(DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY, "innerType")
+                .build();
+
+        var json = createDataAddress()
+                .add(EDC_NAMESPACE + "properties", createObjectBuilder()
+                        .add(DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL, innerDataAddress)
+                        .build())
+                .build();
+
+        when(transformerContext.transform(any(), eq(DataAddress.class)))
+                .thenReturn(DataAddress.Builder.newInstance()
+                        .type("innerType")
+                        .build());
+
+        var dataAddress = transformer.transform(expand(json), transformerContext);
+
+        assertThat(dataAddress).isNotNull();
+        assertThat(dataAddress.getResponseChannel()).isNotNull();
+        assertThat(dataAddress.getResponseChannel().getType()).isEqualTo("innerType");
+        verify(transformerContext, never()).reportProblem(any());
+    }
+
     private JsonObjectBuilder createDataAddress() {
         return createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())

@@ -49,6 +49,9 @@ public class JsonObjectToDataAddressTransformer extends AbstractJsonLdTransforme
 
         if (firstValue != null && key.equals(PROPERTIES_KEY)) {
             visitProperties(firstValue, (k, val) -> transformProperties(k, val, builder, context));
+        } else if (firstValue != null && key.equals(DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL)) {
+            builder.responseChannel(transformObject(firstValue, DataAddress.class, context));
+
         } else {
             builder.property(key, transformGenericProperty(jsonValue, context));
         }
