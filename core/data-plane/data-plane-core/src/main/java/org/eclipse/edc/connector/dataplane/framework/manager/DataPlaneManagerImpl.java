@@ -62,6 +62,7 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISION
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONING;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISION_NOTIFYING;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.SUSPENDED;
@@ -227,11 +228,6 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .flatMap(StatusResult::from)
                 .onSuccess(flow -> {
                     flow.resourceProvisioned(List.of(provisionedResource));
-
-                    if (flow.isProvisionCompleted()) {
-                        transferProcessClient.provisioned(flow);
-                    }
-
                     update(flow);
                 })
                 .mapEmpty();
@@ -257,6 +253,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
         return builder
                 .processor(processDataFlowInState(PROVISIONING, this::processProvisioning))
+                .processor(processDataFlowInState(PROVISION_NOTIFYING, this::processProvisionNotifying))
                 .processor(processDataFlowInState(STARTED, this::updateFlowLease, ownedByThisRuntime, flowLeaseNeedsToBeUpdated))
                 .processor(processDataFlowInState(STARTED, this::restartFlow, ownedByAnotherRuntime, danglingTransfer))
                 .processor(processDataFlowInState(RECEIVED, this::processReceived))
@@ -377,10 +374,6 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
                     flow.resourceProvisioned(provisionedResources);
 
-                    if (flow.isProvisionCompleted()) {
-                        transferProcessClient.provisioned(flow);
-                    }
-
                     if (provisionedResources.size() != results.size()) {
                         var failureDetail = results.stream().filter(StatusResult::failed).map(StatusResult::getFailureDetail).collect(joining(","));
                         flow.setErrorDetail(failureDetail);
@@ -395,6 +388,25 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 })
                 .onFinalFailure((flow, e) -> {
                     flow.transitToFailed("Cannot provision: " + e.getMessage());
+                    update(flow);
+                })
+                .execute();
+    }
+
+    private boolean processProvisionNotifying(DataFlow dataFlow) {
+        return entityRetryProcessFactory.retryProcessor(dataFlow)
+                .doProcess(result("provision notifying", (flow, e) -> transferProcessClient.provisioned(flow)))
+                .onSuccess((flow, v) -> {
+                    flow.transitionToProvisioned();
+                    update(flow);
+                })
+                .onFailure((flow, t) -> {
+                    flow.transitionToProvisionNotifying();
+                    flow.setErrorDetail(t.getMessage());
+                    update(flow);
+                })
+                .onFinalFailure((flow, e) -> {
+                    flow.transitToFailed("Cannot notify provision: " + e.getMessage());
                     update(flow);
                 })
                 .execute();

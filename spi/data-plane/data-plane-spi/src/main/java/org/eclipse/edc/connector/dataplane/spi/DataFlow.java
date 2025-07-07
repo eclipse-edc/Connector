@@ -43,6 +43,7 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONING;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISION_NOTIFYING;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISION_REQUESTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
@@ -132,6 +133,14 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         transitionTo(PROVISIONING.code());
     }
 
+    public void transitionToProvisionNotifying() {
+        transitionTo(PROVISION_NOTIFYING.code());
+    }
+
+    public void transitionToProvisioned() {
+        transitionTo(PROVISIONED.code());
+    }
+
     public void transitionToDeprovisioning() {
         transitionTo(DEPROVISIONING.code());
     }
@@ -215,7 +224,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         });
 
         if (isProvisionCompleted()) {
-            transitionTo(PROVISIONED.code());
+            transitionTo(PROVISION_NOTIFYING.code());
         } else if (isProvisionRequested()) {
             transitionTo(PROVISION_REQUESTED.code());
         }
