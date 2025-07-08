@@ -39,7 +39,6 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static jakarta.json.Json.createObjectBuilder;
-import static okhttp3.internal.Util.EMPTY_REQUEST;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
@@ -137,7 +136,7 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
 
     @Override
     public ServiceResult<Void> unregister(String instanceId) {
-        var requestBuilder = new Request.Builder().put(EMPTY_REQUEST).url("%s/%s/unregister".formatted(url, instanceId));
+        var requestBuilder = new Request.Builder().put(RequestBody.create(new byte[0])).url("%s/%s/unregister".formatted(url, instanceId));
 
         return httpClient.request(requestBuilder).mapEmpty();
     }
