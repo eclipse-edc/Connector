@@ -30,12 +30,12 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static java.util.stream.IntStream.range;
@@ -386,7 +386,7 @@ public abstract class AssetIndexTestBase {
         }
 
         @Test
-        void withSorting() {
+        void shouldSortByProperty() {
             var assets = IntStream.range(9, 12)
                     .mapToObj(i -> createAsset("test-asset", "id" + i))
                     .peek(a -> getAssetIndex().create(a))
@@ -402,17 +402,33 @@ public abstract class AssetIndexTestBase {
         }
 
         @Test
-        void withPrivateSorting() {
+        void shouldSortByPrivateProperty() {
             var assets = IntStream.range(0, 10)
                     .mapToObj(i -> createAssetBuilder(String.valueOf(i)).privateProperty("pKey", "pValue").build())
                     .peek(a -> getAssetIndex().create(a))
-                    .collect(Collectors.toList());
+                    .toList();
 
             var spec = QuerySpec.Builder.newInstance().sortField("pKey").sortOrder(SortOrder.ASC).build();
 
             var result = getAssetIndex().queryAssets(spec);
 
             assertThat(result).usingRecursiveFieldByFieldElementComparator().containsAll(assets);
+        }
+
+        @Test
+        void shouldSortByCreatedAt() {
+            var assets = IntStream.range(0, 10)
+                    .mapToObj(i -> createAssetBuilder(String.valueOf(i)).privateProperty("pKey", "pValue").build())
+                    .peek(a -> getAssetIndex().create(a))
+                    .toList();
+
+            var spec = QuerySpec.Builder.newInstance().sortField("createdAt").sortOrder(SortOrder.DESC).build();
+
+            var result = getAssetIndex().queryAssets(spec);
+
+            var reversedAssets = new ArrayList<>(assets);
+            Collections.reverse(reversedAssets);
+            assertThat(result).usingRecursiveFieldByFieldElementComparator().containsAll(reversedAssets);
         }
 
         @Test
