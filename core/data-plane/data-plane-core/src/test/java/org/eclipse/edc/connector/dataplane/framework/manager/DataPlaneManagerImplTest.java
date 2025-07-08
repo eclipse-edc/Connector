@@ -71,6 +71,7 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONING;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISION_NOTIFYING;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISION_REQUESTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
@@ -81,6 +82,7 @@ import static org.eclipse.edc.junit.matchers.ArrayContainsMatcher.arrayContains;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
+import static org.eclipse.edc.spi.response.StatusResult.failure;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.GENERAL_ERROR;
 import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
 import static org.mockito.AdditionalMatchers.aryEq;
@@ -176,7 +178,7 @@ class DataPlaneManagerImplTest {
         void shouldTransitionToCompleted_whenRetriableError() {
             var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
             when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(transferProcessApiClient.completed(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
+            when(transferProcessApiClient.completed(any())).thenReturn(failure(ERROR_RETRY));
 
             manager.start();
 
@@ -190,7 +192,7 @@ class DataPlaneManagerImplTest {
         void shouldTransitionToTerminated_whenFatalError() {
             var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
             when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(transferProcessApiClient.completed(any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+            when(transferProcessApiClient.completed(any())).thenReturn(failure(FATAL_ERROR));
 
             manager.start();
 
@@ -225,7 +227,7 @@ class DataPlaneManagerImplTest {
             when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
             when(store.findById(any())).thenReturn(dataFlow);
 
-            when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(StatusResult.failure(ERROR_RETRY));
+            when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(failure(ERROR_RETRY));
 
             manager.start();
 
@@ -241,7 +243,7 @@ class DataPlaneManagerImplTest {
             when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
             when(store.findById(any())).thenReturn(dataFlow);
 
-            when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(StatusResult.failure(FATAL_ERROR));
+            when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(failure(FATAL_ERROR));
 
             manager.start();
 
@@ -415,11 +417,10 @@ class DataPlaneManagerImplTest {
 
             await().untilAsserted(() -> {
                 verify(provisionerManager).provision(List.of(resourceToBeProvisioned));
-                verify(transferProcessApiClient).provisioned(dataFlow);
                 var captor = ArgumentCaptor.forClass(DataFlow.class);
                 verify(store).save(captor.capture());
                 var storedDataFlow = captor.getValue();
-                assertThat(storedDataFlow.stateAsString()).isEqualTo(PROVISIONED.name());
+                assertThat(storedDataFlow.stateAsString()).isEqualTo(PROVISION_NOTIFYING.name());
                 assertThat(storedDataFlow.getResourceDefinitions()).allMatch(it -> it.getState() == ProvisionResourceStates.PROVISIONED.code());
             });
         }
@@ -450,7 +451,7 @@ class DataPlaneManagerImplTest {
             var resourceDefinition = ProvisionResource.Builder.newInstance().flowId("any").build();
             var dataFlow = dataFlowBuilder().state(PROVISIONING.code()).resourceDefinitions(List.of(resourceDefinition)).build();
             when(store.nextNotLeased(anyInt(), stateIs(PROVISIONING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(provisionerManager.provision(any())).thenReturn(completedFuture(List.of(StatusResult.failure(ERROR_RETRY, "error in provisioning"))));
+            when(provisionerManager.provision(any())).thenReturn(completedFuture(List.of(failure(ERROR_RETRY, "error in provisioning"))));
 
             manager.start();
 
@@ -500,9 +501,60 @@ class DataPlaneManagerImplTest {
     }
 
     @Nested
+    class ProvisionNotifying {
+        @Test
+        void shouldNotifyProvisioningToTransferProcess() {
+            var dataFlow = dataFlowBuilder().state(PROVISION_NOTIFYING.code()).stateCount(RETRY_EXHAUSTED).build();
+            when(store.nextNotLeased(anyInt(), stateIs(PROVISION_NOTIFYING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(transferProcessApiClient.provisioned(any())).thenReturn(StatusResult.success());
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                var storedDataFlow = captor.getValue();
+                assertThat(storedDataFlow.stateAsString()).isEqualTo(PROVISIONED.name());
+            });
+        }
+
+        @Test
+        void shouldTransitionToProvisionNotifying_whenError() {
+            var dataFlow = dataFlowBuilder().state(PROVISION_NOTIFYING.code()).build();
+            when(store.nextNotLeased(anyInt(), stateIs(PROVISION_NOTIFYING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(transferProcessApiClient.provisioned(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                var storedDataFlow = captor.getValue();
+                assertThat(storedDataFlow.stateAsString()).isEqualTo(PROVISION_NOTIFYING.name());
+            });
+        }
+
+        @Test
+        void shouldTransitionToFailed_whenRetryExpired() {
+            var dataFlow = dataFlowBuilder().state(PROVISION_NOTIFYING.code()).stateCount(RETRY_EXHAUSTED).build();
+            when(store.nextNotLeased(anyInt(), stateIs(PROVISION_NOTIFYING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(transferProcessApiClient.provisioned(any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                var storedDataFlow = captor.getValue();
+                assertThat(storedDataFlow.stateAsString()).isEqualTo(FAILED.name());
+            });
+        }
+    }
+
+    @Nested
     class ResourceProvisioned {
         @Test
-        void shouldTransitionToProvisioned_whenProvisionIsComplete() {
+        void shouldTransitionToProvisionNotifying_whenProvisionIsComplete() {
             var provisionResource = ProvisionResource.Builder.newInstance().flowId("any").build();
             var dataFlow = dataFlowBuilder().resourceDefinitions(List.of(provisionResource)).build();
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(dataFlow));
@@ -510,8 +562,7 @@ class DataPlaneManagerImplTest {
             var result = manager.resourceProvisioned(ProvisionedResource.Builder.from(provisionResource).build());
 
             assertThat(result).isSucceeded();
-            verify(store).save(argThat(saved -> saved.getState() == PROVISIONED.code()));
-            verify(transferProcessApiClient).provisioned(dataFlow);
+            verify(store).save(argThat(saved -> saved.getState() == PROVISION_NOTIFYING.code()));
         }
 
         @Test
@@ -522,6 +573,7 @@ class DataPlaneManagerImplTest {
 
             assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(ERROR_RETRY);
         }
+
     }
 
     @Nested
@@ -890,7 +942,7 @@ class DataPlaneManagerImplTest {
             var dataFlow = dataFlowBuilder().state(DEPROVISIONING.code()).resourceDefinitions(List.of(resourceDefinition)).build();
             when(store.nextNotLeased(anyInt(), stateIs(DEPROVISIONING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
             when(provisionerManager.deprovision(any())).thenReturn(completedFuture(List.of(
-                    StatusResult.failure(ERROR_RETRY, "deprovision failure")
+                    failure(ERROR_RETRY, "deprovision failure")
             )));
 
             manager.start();
