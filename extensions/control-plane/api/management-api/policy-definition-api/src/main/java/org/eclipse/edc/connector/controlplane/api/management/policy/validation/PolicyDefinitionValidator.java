@@ -15,6 +15,8 @@
 package org.eclipse.edc.connector.controlplane.api.management.policy.validation;
 
 import jakarta.json.JsonObject;
+import jakarta.json.JsonString;
+import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.validator.jsonobject.JsonLdPath;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
@@ -25,10 +27,13 @@ import org.eclipse.edc.validator.jsonobject.validators.TypeIs;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toSet;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_AND_CONSTRAINT_ATTRIBUTE;
@@ -50,6 +55,9 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_XONE_CONSTRAI
 import static org.eclipse.edc.validator.spi.Violation.violation;
 
 public class PolicyDefinitionValidator {
+
+    private static final Set<String> ALLOWED_OPERATORS = Arrays.stream(Operator.values()).map(Operator::getOdrlRepresentation).collect(toSet());
+
     public static Validator<JsonObject> instance() {
         return JsonObjectValidator.newValidator()
                 .verifyId(OptionalIdNotBlank::new)
@@ -162,12 +170,25 @@ public class PolicyDefinitionValidator {
                     .verify(ODRL_LEFT_OPERAND_ATTRIBUTE, MandatoryObject::new)
                     .verifyObject(ODRL_LEFT_OPERAND_ATTRIBUTE, b -> b.verifyId(OptionalIdNotBlank::new))
                     .verify(ODRL_OPERATOR_ATTRIBUTE, MandatoryObject::new)
-                    .verifyObject(ODRL_OPERATOR_ATTRIBUTE, b -> b.verifyId(OptionalIdNotBlank::new))
+                    .verifyObject(ODRL_OPERATOR_ATTRIBUTE, b -> b
+                            .verifyId(OptionalIdNotBlank::new)
+                            .verifyId(OperatorValidator::new))
                     .verify(ODRL_RIGHT_OPERAND_ATTRIBUTE, MandatoryValue::new)
                     .build()
                     .validate(input);
         }
 
+    }
+
+    private record OperatorValidator(JsonLdPath path) implements Validator<JsonString> {
+
+        @Override
+        public ValidationResult validate(JsonString input) {
+            if (ALLOWED_OPERATORS.contains(input.getString())) {
+                return ValidationResult.success();
+            }
+            return ValidationResult.failure(violation("Operator %s is not valid, should be one of %s".formatted(input, ALLOWED_OPERATORS), path.toString(), input.getString()));
+        }
     }
 
 }
