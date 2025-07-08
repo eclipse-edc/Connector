@@ -48,13 +48,13 @@ import static java.util.stream.Collectors.toList;
  */
 public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements StateEntityStore<T> {
     private static final Duration DEFAULT_LEASE_TIME = Duration.ofSeconds(60);
+    protected final CriterionOperatorRegistry criterionOperatorRegistry;
     private final Map<String, T> entitiesById = new ConcurrentHashMap<>();
     private final QueryResolver<T> queryResolver;
     private final LockManager lockManager = new LockManager(new ReentrantReadWriteLock());
     private final String lockId;
     private final Clock clock;
     private final Map<String, Lease> leases = new HashMap<>();
-    protected final CriterionOperatorRegistry criterionOperatorRegistry;
 
     public InMemoryStatefulEntityStore(Class<T> clazz, String lockId, Clock clock, CriterionOperatorRegistry criterionOperatorRegistry, StateResolver stateResolver) {
         this.queryResolver = new ReflectionBasedQueryResolver<>(clazz, new StatefulEntityCriteriaToPredicate<>(criterionOperatorRegistry, stateResolver));
@@ -97,7 +97,7 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
 
             try {
                 acquireLease(id);
-                return StoreResult.success(entity);
+                return StoreResult.success(entity.copy());
             } catch (IllegalStateException e) {
                 return StoreResult.alreadyLeased(format("Entity %s is already leased: %s", id, e.getMessage()));
             }
