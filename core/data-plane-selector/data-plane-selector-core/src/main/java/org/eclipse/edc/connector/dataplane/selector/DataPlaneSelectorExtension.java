@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.dataplane.selector;
 
 import org.eclipse.edc.connector.dataplane.selector.manager.DataPlaneSelectorManagerImpl;
-import org.eclipse.edc.connector.dataplane.selector.service.EmbeddedDataPlaneSelectorService;
+import org.eclipse.edc.connector.dataplane.selector.service.DataPlaneSelectorServiceImpl;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.manager.DataPlaneSelectorManager;
@@ -98,7 +98,7 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
 
     @Provider
     public DataPlaneSelectorService dataPlaneSelectorService() {
-        return new EmbeddedDataPlaneSelectorService(instanceStore, selectionStrategyRegistry, transactionContext);
+        return new DataPlaneSelectorServiceImpl(instanceStore, selectionStrategyRegistry, transactionContext);
     }
 
 }

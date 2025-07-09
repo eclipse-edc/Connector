@@ -46,11 +46,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class EmbeddedDataPlaneSelectorServiceTest {
+public class DataPlaneSelectorServiceImplTest {
 
     private final DataPlaneInstanceStore store = mock();
     private final SelectionStrategyRegistry selectionStrategyRegistry = mock();
-    private final DataPlaneSelectorService service = new EmbeddedDataPlaneSelectorService(store, selectionStrategyRegistry, new NoopTransactionContext());
+    private final DataPlaneSelectorService service = new DataPlaneSelectorServiceImpl(store, selectionStrategyRegistry, new NoopTransactionContext());
 
     @Nested
     class Select {

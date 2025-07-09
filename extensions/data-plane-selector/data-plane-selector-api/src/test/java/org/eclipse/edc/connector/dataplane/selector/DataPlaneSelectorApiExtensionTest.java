@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.dataplane.selector;
 import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.connector.dataplane.selector.api.v3.DataplaneSelectorApiV3Controller;
-import org.eclipse.edc.connector.dataplane.selector.service.EmbeddedDataPlaneSelectorService;
+import org.eclipse.edc.connector.dataplane.selector.service.DataPlaneSelectorServiceImpl;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
@@ -57,7 +57,7 @@ class DataPlaneSelectorApiExtensionTest {
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(TypeManager.class, new JacksonTypeManager());
         context.registerService(WebService.class, webService);
-        context.registerService(DataPlaneSelectorService.class, new EmbeddedDataPlaneSelectorService(mock(), mock(),
+        context.registerService(DataPlaneSelectorService.class, new DataPlaneSelectorServiceImpl(mock(), mock(),
                 new NoopTransactionContext()));
 
         TypeTransformerRegistry parentTransformerRegistry = mock();

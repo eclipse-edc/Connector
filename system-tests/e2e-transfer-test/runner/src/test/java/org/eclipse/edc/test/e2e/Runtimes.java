@@ -37,8 +37,7 @@ public enum Runtimes {
     ),
 
     IN_MEMORY_DATA_PLANE(
-            ":system-tests:e2e-transfer-test:data-plane",
-            ":extensions:data-plane-selector:data-plane-selector-client"
+            ":system-tests:e2e-transfer-test:data-plane"
     ),
 
     POSTGRES_CONTROL_PLANE(
@@ -48,8 +47,7 @@ public enum Runtimes {
 
     POSTGRES_DATA_PLANE(
             ":system-tests:e2e-transfer-test:data-plane",
-            ":dist:bom:dataplane-feature-sql-bom",
-            ":extensions:data-plane-selector:data-plane-selector-client"
+            ":dist:bom:dataplane-feature-sql-bom"
     );
 
     private URL[] classpathEntries;

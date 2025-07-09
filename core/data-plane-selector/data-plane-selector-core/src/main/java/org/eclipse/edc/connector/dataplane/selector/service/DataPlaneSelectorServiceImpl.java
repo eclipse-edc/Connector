@@ -30,13 +30,13 @@ import java.util.function.Predicate;
 
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.AVAILABLE;
 
-public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorService {
+public class DataPlaneSelectorServiceImpl implements DataPlaneSelectorService {
 
     private final DataPlaneInstanceStore store;
     private final SelectionStrategyRegistry selectionStrategyRegistry;
     private final TransactionContext transactionContext;
 
-    public EmbeddedDataPlaneSelectorService(DataPlaneInstanceStore store, SelectionStrategyRegistry selectionStrategyRegistry, TransactionContext transactionContext) {
+    public DataPlaneSelectorServiceImpl(DataPlaneInstanceStore store, SelectionStrategyRegistry selectionStrategyRegistry, TransactionContext transactionContext) {
         this.store = store;
         this.selectionStrategyRegistry = selectionStrategyRegistry;
         this.transactionContext = transactionContext;

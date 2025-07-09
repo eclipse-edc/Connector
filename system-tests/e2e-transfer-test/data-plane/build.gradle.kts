@@ -17,9 +17,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":dist:bom:dataplane-base-bom")) {
-        exclude(module = "data-plane-selector-client")
-    }
+    implementation(project(":dist:bom:dataplane-base-bom"))
 
     implementation(project(":extensions:data-plane:data-plane-kafka"))
 }

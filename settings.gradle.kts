@@ -250,8 +250,6 @@ include(":extensions:data-plane:store:sql:accesstokendata-store-sql")
 include(":extensions:data-plane:data-plane-kafka")
 
 include(":extensions:data-plane-selector:data-plane-selector-api")
-include(":extensions:data-plane-selector:data-plane-selector-client")
-include(":extensions:data-plane-selector:data-plane-selector-control-api")
 include(":extensions:data-plane-selector:store:sql:data-plane-instance-store-sql")
 
 include(":extensions:policy-monitor:store:sql:policy-monitor-store-sql")
