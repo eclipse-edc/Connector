@@ -81,3 +81,4 @@
 - [2025-04-30 Finalize phase](./2025-04-30-finalize-phase)
 - [2025-06-11 Dataspace Profile Context](2025-05-28-dataspace-profile-context)
 - [2025-06-20 Listeners "pre" methods](./2025-06-20-listeners-pre-methods)
+- [2025-07-09 Embed data-plane-selector in control-plane](2025-07-09-embed-data-plane-selector)
