@@ -102,7 +102,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Control Plane Services";
 
-    @Setting(description = "If true enables the policy validation when creating and updating policy definitions", defaultValue = "false", key = "edc.policy.validation.enabled")
+    @Setting(description = "If true enables the policy validation when creating and updating policy definitions", defaultValue = "true", key = "edc.policy.validation.enabled")
     private Boolean validatePolicy;
 
     @Inject
