@@ -135,7 +135,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .properties(propertiesResult.getContent())
                 .build();
 
-        var selection = selectorClient.select(transferProcess.getContentDataAddress(), transferProcess.getTransferType(), selectionStrategy);
+        var selection = selectorClient.select(selectionStrategy, dataPlane -> dataPlane.canHandle(transferProcess.getContentDataAddress(), transferProcess.getTransferType()));
         if (!selection.succeeded()) {
             return StatusResult.failure(FATAL_ERROR, selection.getFailureDetail());
         }

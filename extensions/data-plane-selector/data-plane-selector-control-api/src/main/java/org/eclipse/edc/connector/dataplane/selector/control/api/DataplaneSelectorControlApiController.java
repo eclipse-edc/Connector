@@ -25,7 +25,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.api.model.IdResponse;
-import org.eclipse.edc.connector.dataplane.selector.control.api.model.SelectionRequest;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.spi.EdcException;
@@ -92,20 +91,6 @@ public class DataplaneSelectorControlApiController implements DataplaneSelectorC
     @Override
     public void deleteDataplane(@PathParam("id") String id) {
         service.delete(id).orElseThrow(exceptionMapper(DataPlaneInstance.class));
-    }
-
-    @POST
-    @Path("/select")
-    @Override
-    public JsonObject selectDataplane(JsonObject request) {
-        var selectionRequest = transformerRegistry.transform(request, SelectionRequest.class)
-                .orElseThrow(InvalidRequestException::new);
-
-        var dataPlaneInstance = service.select(selectionRequest.getSource(), selectionRequest.getTransferType(), selectionRequest.getStrategy())
-                .orElseThrow(exceptionMapper(DataPlaneInstance.class));
-
-        return transformerRegistry.transform(dataPlaneInstance, JsonObject.class)
-                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
     }
 
     @Override

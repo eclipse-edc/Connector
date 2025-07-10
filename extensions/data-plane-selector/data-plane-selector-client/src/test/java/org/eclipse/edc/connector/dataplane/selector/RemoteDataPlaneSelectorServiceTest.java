@@ -23,7 +23,6 @@ import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.junit.jupiter.api.Nested;
@@ -38,7 +37,6 @@ import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -92,17 +90,6 @@ class RemoteDataPlaneSelectorServiceTest {
 
         assertThat(result).isSucceeded();
         verify(serverService).addInstance(any());
-    }
-
-    @Test
-    void select() {
-        var expected = createInstance("some-instance");
-        when(serverService.select(any(), eq("transferType"), eq("random"))).thenReturn(ServiceResult.success(expected));
-
-        var result = service().select(DataAddress.Builder.newInstance().type("test1").build(), "transferType", "random");
-
-        assertThat(result).isSucceeded().usingRecursiveComparison()
-                .ignoringFields(FIELDS_TO_BE_IGNORED).isEqualTo(expected);
     }
 
     @Nested

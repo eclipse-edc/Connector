@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.connector.dataplane.selector.control.api;
 
-import org.eclipse.edc.connector.dataplane.selector.control.api.transformer.JsonObjectToSelectionRequestTransformer;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -72,7 +71,6 @@ public class DataplaneSelectorControlApiExtension implements ServiceExtension {
         validatorRegistry.register(DATAPLANE_INSTANCE_TYPE, DataPlaneInstanceValidator.instance());
 
         typeTransformerRegistry.register(new JsonObjectToDataPlaneInstanceTransformer());
-        typeTransformerRegistry.register(new JsonObjectToSelectionRequestTransformer());
         typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
         typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, JSON_LD));
         typeTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(createBuilderFactory(Map.of()), typeManager, JSON_LD));
