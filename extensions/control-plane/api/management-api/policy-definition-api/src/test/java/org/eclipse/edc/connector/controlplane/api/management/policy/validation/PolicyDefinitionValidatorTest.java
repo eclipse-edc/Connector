@@ -40,6 +40,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_S
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROFILE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_RIGHT_OPERAND_ATTRIBUTE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 
 class PolicyDefinitionValidatorTest {
 
@@ -184,6 +185,27 @@ class PolicyDefinitionValidatorTest {
     }
 
     @Test
+    void shouldFail_whenOperatorIsNotValid() {
+        var constraint = createValidConstraint("left", "unsupported-operator", "right");
+        var permission = createArrayBuilder().add(createObjectBuilder()
+                .add(ODRL_ACTION_ATTRIBUTE, createValidAction())
+                .add(ODRL_CONSTRAINT_ATTRIBUTE, constraint));
+        var policy = createObjectBuilder()
+                .add(TYPE, policySet())
+                .add(ODRL_PERMISSION_ATTRIBUTE, permission);
+        var policyDefinition = createObjectBuilder()
+                .add(EDC_POLICY_DEFINITION_POLICY, createArrayBuilder().add(policy))
+                .build();
+
+        var result = validator.validate(policyDefinition);
+
+        assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
+                .isNotEmpty()
+                .filteredOn(it -> it.path().contains(ODRL_OPERATOR_ATTRIBUTE))
+                .anySatisfy(violation -> assertThat(violation.message()).contains("unsupported-operator"));
+    }
+
+    @Test
     void shouldSucceed_whenLogicalConstraintIsPresent() {
         var permission = createArrayBuilder().add(createObjectBuilder()
                 .add(ODRL_ACTION_ATTRIBUTE, createValidAction())
@@ -317,7 +339,7 @@ class PolicyDefinitionValidatorTest {
     private JsonArrayBuilder createValidPermission() {
         return createArrayBuilder().add(createObjectBuilder()
                 .add(ODRL_ACTION_ATTRIBUTE, createValidAction())
-                .add(ODRL_CONSTRAINT_ATTRIBUTE, createValidConstraint("GroupNumber", "isPartOf", "allowedGroups")));
+                .add(ODRL_CONSTRAINT_ATTRIBUTE, createValidConstraint("GroupNumber", ODRL_SCHEMA + "isPartOf", "allowedGroups")));
     }
 
     private JsonArrayBuilder createValidAction() {
