@@ -48,8 +48,6 @@ import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -187,7 +185,7 @@ public class DataPlaneSignalingFlowControllerTest {
             when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(customProperties));
             when(dataPlaneClient.start(any(DataFlowStartMessage.class))).thenReturn(StatusResult.success(mock(DataFlowResponseMessage.class)));
             var dataPlaneInstance = createDataPlaneInstance();
-            when(selectorService.select(any(), anyString(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(selectorService.select(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
 
             var result = flowController.start(transferProcess, policy);
@@ -221,7 +219,7 @@ public class DataPlaneSignalingFlowControllerTest {
             when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(Map.of()));
             when(dataPlaneClient.start(any(DataFlowStartMessage.class))).thenReturn(StatusResult.success(response));
             var dataPlaneInstance = createDataPlaneInstance();
-            when(selectorService.select(any(), eq(HTTP_DATA_PULL), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(selectorService.select(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
 
             var result = flowController.start(transferProcess, policy);
@@ -242,7 +240,7 @@ public class DataPlaneSignalingFlowControllerTest {
                     .build();
 
             when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(Map.of()));
-            when(selectorService.select(any(), anyString(), any())).thenReturn(ServiceResult.notFound("no dataplane found"));
+            when(selectorService.select(any(), any())).thenReturn(ServiceResult.notFound("no dataplane found"));
 
             var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
 
@@ -290,7 +288,7 @@ public class DataPlaneSignalingFlowControllerTest {
             when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(Map.of()));
             when(dataPlaneClient.start(any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg));
             var dataPlaneInstance = createDataPlaneInstance();
-            when(selectorService.select(any(), anyString(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(selectorService.select(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
 
             var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
