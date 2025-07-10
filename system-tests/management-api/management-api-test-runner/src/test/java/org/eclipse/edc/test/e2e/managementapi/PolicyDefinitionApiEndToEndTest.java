@@ -25,7 +25,6 @@ import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
@@ -70,7 +69,9 @@ public class PolicyDefinitionApiEndToEndTest {
                     .contentType(JSON)
                     .post("/v3/policydefinitions")
                     .then()
+                    .log().ifValidationFails()
                     .contentType(JSON)
+                    .statusCode(200)
                     .extract().jsonPath().getString(ID);
 
             context.baseRequest()
@@ -397,8 +398,12 @@ public class PolicyDefinitionApiEndToEndTest {
 
     @Nested
     @EndToEndTest
-    @ExtendWith(ManagementEndToEndExtension.InMemory.class)
     class InMemory extends Tests {
+
+        @RegisterExtension
+        static ManagementEndToEndExtension runtime = new ManagementEndToEndExtension.InMemory()
+                .withConfig(() -> ConfigFactory.fromMap(Map.of("edc.policy.validation.enabled", "false")));
+
     }
 
     @Nested
@@ -410,7 +415,8 @@ public class PolicyDefinitionApiEndToEndTest {
         static PostgresqlEndToEndExtension postgres = new PostgresqlEndToEndExtension();
 
         @RegisterExtension
-        static ManagementEndToEndExtension runtime = new ManagementEndToEndExtension.Postgres(postgres);
+        static ManagementEndToEndExtension runtime = new ManagementEndToEndExtension.Postgres(postgres)
+                .withConfig(() -> ConfigFactory.fromMap(Map.of("edc.policy.validation.enabled", "false")));
 
     }
 
@@ -487,7 +493,6 @@ public class PolicyDefinitionApiEndToEndTest {
                     .body("size()", is(2))
                     .body("[0].message", startsWith("leftOperand 'https://w3id.org/edc/v0.0.1/ns/left' is not bound to any scopes"))
                     .body("[1].message", startsWith("leftOperand 'https://w3id.org/edc/v0.0.1/ns/left' is not bound to any functions"));
-
         }
 
         private JsonObject emptyOdrlPolicy() {
