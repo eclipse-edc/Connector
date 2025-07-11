@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -155,18 +154,26 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      * @param context    the transformer context
      */
     protected void transformProperties(Map<String, ?> properties, JsonObjectBuilder builder, ObjectMapper mapper, TransformerContext context) {
-        BiFunction<String, Object, JsonValue> func = (k, v) -> mapper.convertValue(v, JsonValue.class);
+        Function<Object, JsonValue> func = v -> mapper.convertValue(v, JsonValue.class);
 
         transformProperties(properties, builder, func, context);
     }
 
-    protected void transformProperties(Map<String, ?> properties, JsonObjectBuilder builder, BiFunction<String, Object, JsonValue> consumer, TransformerContext context) {
+    /**
+     * Transforms properties of a Java type. The properties are mapped to generic JSON values using the provided transformer function.
+     *
+     * @param properties          the properties to map
+     * @param builder             the builder on which to set the properties
+     * @param transformerFunction the function to transform the property value
+     * @param context             the transformer context
+     */
+    protected void transformProperties(Map<String, ?> properties, JsonObjectBuilder builder, Function<Object, JsonValue> transformerFunction, TransformerContext context) {
         if (properties == null) {
             return;
         }
         properties.forEach((k, v) -> {
             try {
-                builder.add(k, consumer.apply(k, v));
+                builder.add(k, transformerFunction.apply(v));
             } catch (IllegalArgumentException e) {
                 context.problem()
                         .invalidProperty()
