@@ -34,6 +34,7 @@ import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -179,27 +180,27 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
 
     @Override
     public Set<String> transferTypesFor(Asset asset) {
-        var result = selectorClient.getAll();
-        if (result.failed()) {
+        var allDataPlanes = selectorClient.getAll();
+        if (allDataPlanes.failed()) {
             return emptySet();
         }
 
-        var expectedResponseChannelType = Optional.ofNullable(asset.getDataAddress().getResponseChannel())
+        var assetDataAddress = asset.getDataAddress();
+        var expectedResponseChannelType = Optional.ofNullable(assetDataAddress.getResponseChannel())
                 .map(DataAddress::getType)
                 .orElse(null);
 
-        return result.getContent().stream()
-                .filter(it -> it.getAllowedSourceTypes().contains(asset.getDataAddress().getType()))
-                .flatMap(it -> it.getAllowedTransferTypes().stream())
-                .filter(instanceAllowedTransferType -> shouldBeIncludedIf(instanceAllowedTransferType, expectedResponseChannelType))
+        return allDataPlanes.getContent().stream()
+                .filter(dataPlane -> dataPlane.getAllowedSourceTypes().contains(assetDataAddress.getType()))
+                .flatMap(dataPlane -> dataPlane.getAllowedTransferTypes().stream())
+                .filter(transferType -> isCompatibleTransferType(transferType, expectedResponseChannelType))
                 .collect(toSet());
     }
 
-    private boolean shouldBeIncludedIf(String allowedTransferType, @Nullable String expectedResponseChannelType) {
-        var dataplaneInstanceAllowedType = transferTypeParser.parse(allowedTransferType).getContent();
-        return expectedResponseChannelType != null
-                ? dataplaneInstanceAllowedType.responseChannelType() != null && dataplaneInstanceAllowedType.responseChannelType().contains(expectedResponseChannelType)
-                : dataplaneInstanceAllowedType.responseChannelType() == null;
+    private boolean isCompatibleTransferType(String transferType, @Nullable String expectedResponseChannelType) {
+        return transferTypeParser.parse(transferType)
+                .map(allowedType -> Objects.equals(allowedType.responseChannelType(), expectedResponseChannelType))
+                .orElse(failure -> false);
     }
 
     private DataFlowResponse toResponse(DataFlowResponseMessage it, DataPlaneInstance dataPlaneInstance) {
