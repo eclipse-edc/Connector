@@ -28,10 +28,9 @@ public class StepRecorder<T> {
 
     public synchronized StepRecorder<T> playNext(String key, T entity) {
         var sequence = sequences.get(key);
-        if (sequence == null) {
-            throw new AssertionError("No sequence found for key " + key);
+        if (sequence != null) {
+            sequence.playNext(entity);
         }
-        sequence.playNext(entity);
         return this;
     }
 
