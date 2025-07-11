@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.provision.http.HttpProvisionerFixtures;
 import org.eclipse.edc.connector.controlplane.provision.http.HttpProvisionerWebhookUrl;
+import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.RequestTransferContext;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.retry.TransferWaitStrategy;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
@@ -43,7 +44,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
-import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -61,6 +61,7 @@ import java.net.URL;
 import java.util.Map;
 import java.util.UUID;
 
+import static java.util.Collections.emptyMap;
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -121,7 +122,16 @@ public class HttpProvisionerExtensionEndToEndTest {
                                      AssetIndex assetIndex,
                                      TransferProcessStore store, PolicyDefinitionStore policyStore) throws Exception {
         when(contractValidationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
-        negotiationStore.save(createContractNegotiation());
+        var policy = Policy.Builder.newInstance().build();
+        var contractAgreement = ContractAgreement.Builder.newInstance()
+                .assetId(ASSET_ID)
+                .id(CONTRACT_ID)
+                .policy(policy)
+                .consumerId("consumer")
+                .providerId("provider")
+                .build();
+
+        negotiationStore.save(createContractNegotiation(contractAgreement, policy));
         policyStore.create(createPolicyDefinition());
         assetIndex.create(createAssetEntry());
 
@@ -131,7 +141,7 @@ public class HttpProvisionerExtensionEndToEndTest {
 
         when(identityService.verifyJwtToken(any(), isA(VerificationContext.class))).thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
 
-        var result = protocolService.notifyRequested(createTransferRequestMessage(), TokenRepresentation.Builder.newInstance().build());
+        var result = protocolService.notifyRequested(createTransferRequestMessage(), new ParticipantAgent(emptyMap(), emptyMap()), new RequestTransferContext(contractAgreement));
 
         assertThat(result).isSucceeded();
         await().untilAsserted(() -> {
@@ -145,16 +155,7 @@ public class HttpProvisionerExtensionEndToEndTest {
         return PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id(POLICY_ID).build();
     }
 
-    private ContractNegotiation createContractNegotiation() {
-        var policy = Policy.Builder.newInstance().build();
-        var contractAgreement = ContractAgreement.Builder.newInstance()
-                .assetId(ASSET_ID)
-                .id(CONTRACT_ID)
-                .policy(policy)
-                .consumerId("consumer")
-                .providerId("provider")
-                .build();
-
+    private ContractNegotiation createContractNegotiation(ContractAgreement contractAgreement, Policy policy) {
         var contractOffer = ContractOffer.Builder.newInstance()
                 .id(randomUUID().toString())
                 .assetId(randomUUID().toString())
