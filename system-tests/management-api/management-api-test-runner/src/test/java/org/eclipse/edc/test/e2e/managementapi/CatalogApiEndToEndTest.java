@@ -190,12 +190,12 @@ public class CatalogApiEndToEndTest {
                                             ContractDefinitionStore contractDefinitionStore,
                                             DataPlaneInstanceStore dataPlaneInstanceStore) {
             var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
-                    .allowedDestType("any").allowedSourceType("test-type").allowedTransferType("any-PULL").build();
+                    .allowedSourceType("test-type").allowedTransferType("any-PULL").build();
             dataPlaneInstanceStore.save(dataPlaneInstance);
 
             var policyId = UUID.randomUUID().toString();
 
-            var cd = ContractDefinition.Builder.newInstance()
+            var contractDefinition = ContractDefinition.Builder.newInstance()
                     .id(UUID.randomUUID().toString())
                     .contractPolicyId(policyId)
                     .accessPolicyId(policyId)
@@ -205,7 +205,7 @@ public class CatalogApiEndToEndTest {
                     .build();
 
             policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id(policyId).policy(policy).build());
-            contractDefinitionStore.save(cd);
+            contractDefinitionStore.save(contractDefinition);
 
             assetIndex.create(createAsset("asset-id", "test-type").build());
             var requestBody = createObjectBuilder()
