@@ -1,0 +1,11 @@
+{
+  "properties": {
+    "https://w3id.org/edc/v0.0.1/ns/contenttype": "application/json",
+    "https://w3id.org/edc/v0.0.1/ns/version": "1.0",
+    "https://w3id.org/edc/v0.0.1/ns/id": "abcd123",
+    "anotherProperty": "some value",
+    "numberVal": 42069
+  },
+  "id": "abcd123",
+  "createdAt": 134798
+}

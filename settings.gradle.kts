@@ -204,6 +204,8 @@ include(":extensions:common:store:sql:sts-client-store-sql")
 include(":extensions:common:api:control-api-configuration")
 include(":extensions:common:api:management-api-configuration")
 
+include(":extensions:common:data-masking")
+
 
 include(":extensions:control-plane:api:control-plane-api")
 include(":extensions:control-plane:api:control-plane-api-client")
