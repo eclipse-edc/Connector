@@ -42,6 +42,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class DataAddress {
     public static final String SIMPLE_TYPE = "type";
     public static final String SIMPLE_KEY_NAME = "keyName";
+    public static final String SIMPLE_PROPERTIES_KEY = "properties";
     public static final String EDC_DATA_ADDRESS_TYPE = EDC_NAMESPACE + "DataAddress";
     public static final String EDC_DATA_ADDRESS_TYPE_PROPERTY = EDC_NAMESPACE + SIMPLE_TYPE;
     public static final String EDC_DATA_ADDRESS_KEY_NAME = EDC_NAMESPACE + SIMPLE_KEY_NAME;
@@ -163,7 +164,7 @@ public class DataAddress {
         @SuppressWarnings("unchecked")
         public B responseChannel(Map<String, Object> rc) {
             var builder = DataAddress.Builder.newInstance();
-            var props = rc.get("properties");
+            var props = rc.get(SIMPLE_PROPERTIES_KEY);
             if (props != null) {
                 builder.properties((Map<String, Object>) props);
             } else {
