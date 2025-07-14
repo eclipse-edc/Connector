@@ -78,22 +78,10 @@ public class CatalogApiEndToEndTest {
         void requestCatalog_shouldReturnCatalog_withQuerySpec(ManagementEndToEndTestContext context, AssetIndex assetIndex,
                                                               PolicyDefinitionStore policyDefinitionStore,
                                                               ContractDefinitionStore contractDefinitionStore) {
-            var policyId = UUID.randomUUID().toString();
-
-            var cd = ContractDefinition.Builder.newInstance()
-                    .id(UUID.randomUUID().toString())
-                    .contractPolicyId(policyId)
-                    .accessPolicyId(policyId)
-                    .build();
-
-            var policy = Policy.Builder.newInstance()
-                    .build();
-
-            policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id(policyId).policy(policy).build());
-            contractDefinitionStore.save(cd);
 
             assetIndex.create(createAsset("id-1", "test-type").build());
             assetIndex.create(createAsset("id-2", "test-type").build());
+            createContractOffer(policyDefinitionStore, contractDefinitionStore, List.of());
 
             var criteria = createArrayBuilder()
                     .add(createObjectBuilder()
@@ -133,10 +121,6 @@ public class CatalogApiEndToEndTest {
         void requestCatalog_whenAssetIsCatalogAsset_shouldReturnCatalogOfCatalogs(ManagementEndToEndTestContext context, AssetIndex assetIndex,
                                                                                   PolicyDefinitionStore policyDefinitionStore,
                                                                                   ContractDefinitionStore contractDefinitionStore) {
-            // create and store policy
-            var policyId = UUID.randomUUID().toString();
-            var policy = Policy.Builder.newInstance().build();
-            policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id(policyId).policy(policy).build());
 
             // create CatalogAsset
             var catalogAssetId = "catalog-asset-" + UUID.randomUUID();
@@ -150,14 +134,10 @@ public class CatalogApiEndToEndTest {
             var normalAssetId = "normal-asset-" + UUID.randomUUID();
             assetIndex.create(createAsset(normalAssetId, "test-type").build());
 
-            // create ContractDefinition
-            var cd = ContractDefinition.Builder.newInstance()
-                    .id(UUID.randomUUID().toString())
-                    .contractPolicyId(policyId)
-                    .accessPolicyId(policyId)
-                    .assetsSelector(List.of(Criterion.criterion("id", "in", List.of(catalogAssetId, normalAssetId))))
-                    .build();
-            contractDefinitionStore.save(cd);
+            var assetSelectorCriteria = List.of(Criterion.criterion("id", "in", List.of(catalogAssetId, normalAssetId)));
+
+            createContractOffer(policyDefinitionStore, contractDefinitionStore, assetSelectorCriteria);
+
 
             // request all assets
             var requestBody = createObjectBuilder()
@@ -193,20 +173,7 @@ public class CatalogApiEndToEndTest {
                     .allowedSourceType("test-type").allowedTransferType("any-PULL").build();
             dataPlaneInstanceStore.save(dataPlaneInstance);
 
-            var policyId = UUID.randomUUID().toString();
-
-            var contractDefinition = ContractDefinition.Builder.newInstance()
-                    .id(UUID.randomUUID().toString())
-                    .contractPolicyId(policyId)
-                    .accessPolicyId(policyId)
-                    .build();
-
-            var policy = Policy.Builder.newInstance()
-                    .build();
-
-            policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id(policyId).policy(policy).build());
-            contractDefinitionStore.save(contractDefinition);
-
+            createContractOffer(policyDefinitionStore, contractDefinitionStore, List.of());
             assetIndex.create(createAsset("asset-id", "test-type").build());
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
@@ -235,20 +202,7 @@ public class CatalogApiEndToEndTest {
                                                                PolicyDefinitionStore policyDefinitionStore,
                                                                ContractDefinitionStore contractDefinitionStore) {
 
-            var policyId = UUID.randomUUID().toString();
-
-            var cd = ContractDefinition.Builder.newInstance()
-                    .id(UUID.randomUUID().toString())
-                    .contractPolicyId(policyId)
-                    .accessPolicyId(policyId)
-                    .build();
-
-            var policy = Policy.Builder.newInstance()
-                    .build();
-
-            policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id(policyId).policy(policy).build());
-            contractDefinitionStore.save(cd);
-
+            createContractOffer(policyDefinitionStore, contractDefinitionStore, List.of());
 
             var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
                     .allowedDestType("any").allowedSourceType("test-type")
@@ -283,6 +237,26 @@ public class CatalogApiEndToEndTest {
                     .body(ID, is("asset-response"))
                     .body(TYPE, is("dcat:Dataset"))
                     .body("'dcat:distribution'.'dct:format'.@id", is("any-PULL-response"));
+        }
+
+        private void createContractOffer(PolicyDefinitionStore policyStore, ContractDefinitionStore contractDefStore, List<Criterion> assetsSelectorCritera) {
+
+            var policyId = UUID.randomUUID().toString();
+
+            var policy = Policy.Builder.newInstance()
+                    .build();
+
+            var contractDefinition = ContractDefinition.Builder.newInstance()
+                    .id(UUID.randomUUID().toString())
+                    .contractPolicyId(policyId)
+                    .accessPolicyId(policyId)
+                    .assetsSelector(assetsSelectorCritera)
+                    .build();
+
+
+            policyStore.create(PolicyDefinition.Builder.newInstance().id(policyId).policy(policy).build());
+            contractDefStore.save(contractDefinition);
+
         }
 
         private Asset.Builder createAsset(String id, String sourceType) {
