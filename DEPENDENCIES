@@ -99,7 +99,7 @@ maven/mavencentral/com.squareup.okhttp3/okhttp-dnsoverhttps/5.0.0, , restricted,
 maven/mavencentral/com.squareup.okhttp3/okhttp-jvm/5.0.0, Apache-2.0, approved, #9263
 maven/mavencentral/com.squareup.okhttp3/okhttp/4.12.0, Apache-2.0, approved, #15227
 maven/mavencentral/com.squareup.okhttp3/okhttp/4.9.3, Apache-2.0 AND MPL-2.0, approved, #3225
-maven/mavencentral/com.squareup.okhttp3/okhttp/5.0.0, , restricted, clearlydefined
+maven/mavencentral/com.squareup.okhttp3/okhttp/5.0.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.squareup.okio/okio-jvm/3.15.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.squareup.okio/okio/3.15.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.sun.activation/jakarta.activation/2.0.1, EPL-2.0 OR BSD-3-Clause OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jaf
@@ -123,9 +123,9 @@ maven/mavencentral/io.cloudevents/cloudevents-core/4.0.1, Apache-2.0, approved, 
 maven/mavencentral/io.cloudevents/cloudevents-http-basic/4.0.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.github.classgraph/classgraph/4.8.154, MIT, approved, CQ22530
 maven/mavencentral/io.github.classgraph/classgraph/4.8.176, MIT, approved, CQ22530
-maven/mavencentral/io.micrometer/micrometer-commons/1.15.1, Apache-2.0, approved, clearlydefined
-maven/mavencentral/io.micrometer/micrometer-core/1.15.1, Apache-2.0, approved, clearlydefined
-maven/mavencentral/io.micrometer/micrometer-observation/1.15.1, Apache-2.0, approved, clearlydefined
+maven/mavencentral/io.micrometer/micrometer-commons/1.15.2, Apache-2.0, approved, clearlydefined
+maven/mavencentral/io.micrometer/micrometer-core/1.15.2, Apache-2.0, approved, clearlydefined
+maven/mavencentral/io.micrometer/micrometer-observation/1.15.2, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.netty/netty-buffer/4.1.86.Final, Apache-2.0, approved, CQ21842
 maven/mavencentral/io.netty/netty-codec-http/4.1.86.Final, Apache-2.0 AND BSD-3-Clause AND MIT, approved, CQ20926
 maven/mavencentral/io.netty/netty-codec-http2/4.1.86.Final, Apache-2.0 AND BSD-3-Clause AND MIT, approved, CQ20926
