@@ -136,7 +136,7 @@ public class DataAddress {
             switch (key) {
                 case SIMPLE_TYPE -> address.properties.put(EDC_DATA_ADDRESS_TYPE_PROPERTY, value);
                 case SIMPLE_KEY_NAME -> address.properties.put(EDC_DATA_ADDRESS_KEY_NAME, value);
-                case EDC_DATA_ADDRESS_RESPONSE_CHANNEL -> responseChannel(value);
+                case EDC_DATA_ADDRESS_RESPONSE_CHANNEL -> checkAndCreateResponseChannel(value);
                 default -> address.properties.put(key, value);
             }
             return self();
@@ -153,28 +153,41 @@ public class DataAddress {
         }
 
         @JsonIgnore
+        public B responseChannel(DataAddress rc) {
+            address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, rc);
+            return self();
+
+        }
+
+        @JsonIgnore
         @SuppressWarnings("unchecked")
-        public B responseChannel(Object rc) {
-            Objects.requireNonNull(rc, "Response channel cannot be null.");
-            if (rc instanceof DataAddress) {
-                address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, rc);
-            } else if (rc instanceof Map) {
-                var builder = DataAddress.Builder.newInstance();
-                var rcMap = (Map<String, Object>) rc;
-                var props = rcMap.get("properties");
-                if (props != null) {
-                    builder.properties((Map<String, Object>) props);
-                } else {
-                    builder.properties(rcMap);
-                }
-                address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, builder.build());
+        public B responseChannel(Map<String, Object> rc) {
+            var builder = DataAddress.Builder.newInstance();
+            var props = rc.get("properties");
+            if (props != null) {
+                builder.properties((Map<String, Object>) props);
+            } else {
+                builder.properties(rc);
             }
+            address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, builder.build());
+
             return self();
         }
 
         public DataAddress build() {
             Objects.requireNonNull(address.getType(), "DataAddress builder missing Type property.");
             return address;
+        }
+
+        @SuppressWarnings("unchecked")
+        private void checkAndCreateResponseChannel(Object object) {
+            if (object instanceof DataAddress da) {
+                responseChannel(da);
+            } else if (object instanceof Map map) {
+                responseChannel(map);
+            } else {
+                throw new IllegalArgumentException("Response channel must be a DataAddress or a Map.");
+            }
         }
 
         @SuppressWarnings("unchecked")
