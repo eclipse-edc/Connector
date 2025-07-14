@@ -59,8 +59,8 @@ class JsonObjectFromDataAddressTransformerTest {
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromDataAddressTransformer(jsonFactory, typeManager, "test");
         when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
+        transformer = new JsonObjectFromDataAddressTransformer(jsonFactory, typeManager, "test");
     }
 
     @Test

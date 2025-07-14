@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.transform.transformer.edc.from;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
@@ -32,14 +33,12 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransformer<DataAddress, JsonObject> {
 
     private final JsonBuilderFactory jsonBuilderFactory;
-    private final TypeManager typeManager;
-    private final String typeContext;
+    private final ObjectMapper mapper;
 
-    public JsonObjectFromDataAddressTransformer(JsonBuilderFactory jsonBuilderFactory, TypeManager mapper, String typeContext) {
+    public JsonObjectFromDataAddressTransformer(JsonBuilderFactory jsonBuilderFactory, TypeManager typeManager, String typeContext) {
         super(DataAddress.class, JsonObject.class);
         this.jsonBuilderFactory = jsonBuilderFactory;
-        this.typeManager = mapper;
-        this.typeContext = typeContext;
+        this.mapper = typeManager.getMapper(typeContext);
     }
 
     @Override
@@ -52,7 +51,7 @@ public class JsonObjectFromDataAddressTransformer extends AbstractJsonLdTransfor
             if (v instanceof DataAddress) {
                 return context.transform(v, JsonObject.class);
             }
-            return typeManager.getMapper(typeContext).convertValue(v, JsonValue.class);
+            return mapper.convertValue(v, JsonValue.class);
         };
 
         transformProperties(dataAddress.getProperties(), builder, func, context);
