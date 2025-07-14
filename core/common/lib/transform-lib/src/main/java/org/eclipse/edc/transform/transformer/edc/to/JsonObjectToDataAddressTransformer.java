@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
 
 
 /**
@@ -47,11 +48,10 @@ public class JsonObjectToDataAddressTransformer extends AbstractJsonLdTransforme
     private void transformProperties(String key, JsonValue jsonValue, DataAddress.Builder builder, TransformerContext context) {
         var firstValue = returnJsonObject(jsonValue, context, key, true);
 
-        if (firstValue != null && key.equals(PROPERTIES_KEY)) {
+        if (firstValue != null && PROPERTIES_KEY.equals(key)) {
             visitProperties(firstValue, (k, val) -> transformProperties(k, val, builder, context));
-        } else if (firstValue != null && key.equals(DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL)) {
+        } else if (firstValue != null && EDC_DATA_ADDRESS_RESPONSE_CHANNEL.equals(key)) {
             builder.responseChannel(transformObject(firstValue, DataAddress.class, context));
-
         } else {
             builder.property(key, transformGenericProperty(jsonValue, context));
         }
