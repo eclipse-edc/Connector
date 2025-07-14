@@ -131,9 +131,7 @@ public class DataAssembly {
 
     private static void record02NegotiationSequences(StepRecorder<ContractNegotiation> recorder) {
         recorder.record("ACN0201", ContractNegotiation::transitionTerminating);
-
-        recorder.record("ACN0202", ContractNegotiation::transitionRequested);
-
+        
         recorder.record("ACN0203", ContractNegotiation::transitionAgreeing);
 
         recorder.record("ACN0204", ContractNegotiation::transitionOffering);
@@ -156,9 +154,11 @@ public class DataAssembly {
                 .record("ACN0301", ContractNegotiation::transitionFinalizing);
 
         recorder.record("ACN0302", ContractNegotiation::transitionOffering);
-        recorder.record("ACN0303", ContractNegotiation::transitionOffering);
+        recorder.record("ACN0303", ContractNegotiation::transitionOffering)
+                .record("ACN0303", DataAssembly::noop);
 
-        recorder.record("ACN0304", ContractNegotiation::transitionOffering);
+        recorder.record("ACN0304", ContractNegotiation::transitionOffering)
+                .record("ACN0304", DataAssembly::noop);
 
     }
 
@@ -361,5 +361,9 @@ public class DataAssembly {
                 .counterPartyAddress("https://test.com")
                 .protocol("test")
                 .build();
+    }
+
+    private static void noop(ContractNegotiation cn) {
+
     }
 }
