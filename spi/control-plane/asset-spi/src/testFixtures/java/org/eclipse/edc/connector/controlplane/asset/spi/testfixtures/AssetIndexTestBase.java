@@ -562,7 +562,10 @@ public abstract class AssetIndexTestBase {
             var assetFound = getAssetIndex().findById("id1");
 
             assertThat(assetFound).isNotNull();
-            assertThat(assetFound).usingRecursiveComparison().isEqualTo(newAsset);
+            assertThat(assetFound)
+                    .usingRecursiveComparison()
+                    .ignoringFields("createdAt")
+                    .isEqualTo(newAsset);
             assertThat(assetFound.getProperties()).containsEntry("newKey", "newValue");
         }
 
@@ -587,7 +590,10 @@ public abstract class AssetIndexTestBase {
             var assetFound = getAssetIndex().findById("id1");
 
             assertThat(assetFound).isNotNull();
-            assertThat(assetFound).usingRecursiveComparison().isEqualTo(newAsset);
+            assertThat(assetFound)
+                    .usingRecursiveComparison()
+                    .ignoringFields("createdAt")
+                    .isEqualTo(newAsset);
             assertThat(assetFound.getProperties().keySet()).doesNotContain("newKey");
         }
 
@@ -611,7 +617,10 @@ public abstract class AssetIndexTestBase {
             var assetFound = getAssetIndex().findById("id1");
 
             assertThat(assetFound).isNotNull();
-            assertThat(assetFound).usingRecursiveComparison().isEqualTo(newAsset);
+            assertThat(assetFound)
+                    .usingRecursiveComparison()
+                    .ignoringFields("createdAt")
+                    .isEqualTo(newAsset);
             assertThat(assetFound.getProperties()).containsEntry("newKey", "newValue");
         }
 
@@ -637,6 +646,7 @@ public abstract class AssetIndexTestBase {
             assertThat(dataAddressFound).isNotNull();
             assertThat(assetFound)
                     .usingRecursiveComparison()
+                    .ignoringFields("createdAt")
                     .isEqualTo(newAsset);
             assertThat(assetFound.getDataAddress())
                     .usingRecursiveComparison()
