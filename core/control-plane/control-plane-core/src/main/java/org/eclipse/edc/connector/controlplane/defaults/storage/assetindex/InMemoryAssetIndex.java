@@ -119,7 +119,7 @@ public class InMemoryAssetIndex implements AssetIndex {
             Objects.requireNonNull(asset, "asset");
             Objects.requireNonNull(id, "assetId");
             if (cache.containsKey(id)) {
-                cache.put(id, asset);
+                add(asset, asset.getDataAddress());
                 return StoreResult.success(asset);
             }
             return StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, id));
