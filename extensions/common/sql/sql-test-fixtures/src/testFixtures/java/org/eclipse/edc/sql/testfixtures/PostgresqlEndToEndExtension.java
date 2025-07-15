@@ -41,7 +41,11 @@ public class PostgresqlEndToEndExtension implements BeforeAllCallback, AfterAllC
     }
 
     public PostgresqlEndToEndExtension(String dockerImageName) {
-        postgres = new PostgreSQLContainer<>(dockerImageName);
+        this(new PostgreSQLContainer<>(dockerImageName));
+    }
+
+    public PostgresqlEndToEndExtension(PostgreSQLContainer<?> container) {
+        postgres = container;
     }
 
     @Override
@@ -80,6 +84,27 @@ public class PostgresqlEndToEndExtension implements BeforeAllCallback, AfterAllC
         );
 
         return ConfigFactory.fromMap(settings);
+    }
+
+    public String getJdbcUrl(String databaseName) {
+        return "jdbc:postgresql://%s:%d/%s".formatted(postgres.getHost(), postgres.getMappedPort(POSTGRESQL_PORT), databaseName);
+    }
+
+    public String getUsername() {
+        return postgres.getUsername();
+    }
+
+    public String getPassword() {
+        return postgres.getPassword();
+    }
+
+    public void execute(String database, String sql) {
+        var jdbcUrl = getJdbcUrl(database);
+        try (var connection = DriverManager.getConnection(jdbcUrl, postgres.getUsername(), postgres.getPassword())) {
+            connection.createStatement().execute(sql);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void createDatabase(String name) {

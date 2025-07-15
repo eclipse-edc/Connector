@@ -18,6 +18,7 @@ plugins {
 
 dependencies {
     implementation(project(":spi:common:core-spi"))
+    implementation(project(":spi:common:transaction-spi"))
     implementation(project(":spi:control-plane:contract-spi"))
     implementation(project(":spi:control-plane:asset-spi"))
     implementation(project(":spi:control-plane:control-plane-spi"))

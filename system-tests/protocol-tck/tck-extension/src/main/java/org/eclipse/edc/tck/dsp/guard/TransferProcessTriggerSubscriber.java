@@ -23,6 +23,7 @@ import org.eclipse.edc.spi.persistence.StateEntityStore;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Fires triggers based on transfer events.
@@ -42,6 +43,11 @@ public class TransferProcessTriggerSubscriber implements EventSubscriber, Transf
 
     @Override
     public <E extends Event> void on(EventEnvelope<E> envelope) {
+        try {
+            TimeUnit.MILLISECONDS.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         triggers.stream()
                 .filter(trigger -> trigger.predicate().test(envelope.getPayload()))
                 .forEach(trigger -> {
