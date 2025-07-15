@@ -20,9 +20,11 @@ import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.persistence.StateEntityStore;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Fires triggers based on negotiation events.
@@ -30,9 +32,11 @@ import java.util.List;
 public class ContractNegotiationTriggerSubscriber implements EventSubscriber, ContractNegotiationTriggerRegistry {
     private final List<Trigger<ContractNegotiation>> triggers = new ArrayList<>();
     private final StateEntityStore<ContractNegotiation> store;
+    private final TransactionContext transactionContext;
 
-    public ContractNegotiationTriggerSubscriber(StateEntityStore<ContractNegotiation> store) {
+    public ContractNegotiationTriggerSubscriber(StateEntityStore<ContractNegotiation> store, TransactionContext transactionContext) {
         this.store = store;
+        this.transactionContext = transactionContext;
     }
 
     @Override
@@ -42,13 +46,23 @@ public class ContractNegotiationTriggerSubscriber implements EventSubscriber, Co
 
     @Override
     public <E extends Event> void on(EventEnvelope<E> envelope) {
+
+        try {
+            TimeUnit.MILLISECONDS.sleep(100);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         triggers.stream()
                 .filter(trigger -> trigger.predicate().test(envelope.getPayload()))
                 .forEach(trigger -> {
+
                     var event = (ContractNegotiationEvent) envelope.getPayload();
-                    var negotiation = store.findByIdAndLease(event.getContractNegotiationId()).getContent();
-                    trigger.action().accept(negotiation);
-                    store.save(negotiation);
+                    transactionContext.execute(() -> {
+                        var negotiation = store.findByIdAndLease(event.getContractNegotiationId()).getContent();
+                        trigger.action().accept(negotiation);
+                        store.save(negotiation);
+                    });
+
                 });
     }
 
