@@ -552,15 +552,21 @@ public abstract class AssetIndexTestBase {
 
             assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
 
-            asset.getProperties().put("newKey", "newValue");
-            var updated = assetIndex.updateAsset(asset);
+            var newAsset = getAsset(id);
+            newAsset.getProperties().put("newKey", "newValue");
+
+            var updated = assetIndex.updateAsset(newAsset);
 
             Assertions.assertThat(updated).isNotNull();
 
             var assetFound = getAssetIndex().findById("id1");
 
             assertThat(assetFound).isNotNull();
-            assertThat(assetFound).usingRecursiveComparison().isEqualTo(asset);
+            assertThat(assetFound)
+                    .usingRecursiveComparison()
+                    .ignoringFields("createdAt")
+                    .isEqualTo(newAsset);
+            assertThat(assetFound.getProperties()).containsEntry("newKey", "newValue");
         }
 
         @Test
@@ -574,15 +580,20 @@ public abstract class AssetIndexTestBase {
 
             assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
 
-            asset.getProperties().remove("newKey");
-            var updated = assetIndex.updateAsset(asset);
+            var newAsset = getAsset(id);
+            newAsset.getProperties().remove("newKey");
+
+            var updated = assetIndex.updateAsset(newAsset);
 
             Assertions.assertThat(updated).isNotNull();
 
             var assetFound = getAssetIndex().findById("id1");
 
             assertThat(assetFound).isNotNull();
-            assertThat(assetFound).usingRecursiveComparison().isEqualTo(asset);
+            assertThat(assetFound)
+                    .usingRecursiveComparison()
+                    .ignoringFields("createdAt")
+                    .isEqualTo(newAsset);
             assertThat(assetFound.getProperties().keySet()).doesNotContain("newKey");
         }
 
@@ -597,15 +608,19 @@ public abstract class AssetIndexTestBase {
 
             assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
 
-            asset.getProperties().put("newKey", "newValue");
-            var updated = assetIndex.updateAsset(asset);
+            var newAsset = getAsset(id);
+            newAsset.getProperties().put("newKey", "newValue");
+            var updated = assetIndex.updateAsset(newAsset);
 
             Assertions.assertThat(updated).isNotNull();
 
             var assetFound = getAssetIndex().findById("id1");
 
             assertThat(assetFound).isNotNull();
-            assertThat(assetFound).usingRecursiveComparison().isEqualTo(asset);
+            assertThat(assetFound)
+                    .usingRecursiveComparison()
+                    .ignoringFields("createdAt")
+                    .isEqualTo(newAsset);
             assertThat(assetFound.getProperties()).containsEntry("newKey", "newValue");
         }
 
@@ -618,15 +633,24 @@ public abstract class AssetIndexTestBase {
 
             assertThat(assetIndex.countAssets(List.of())).isEqualTo(1);
 
-            asset.getDataAddress().getProperties().put("newKey", "newValue");
-            var updated = assetIndex.updateAsset(asset);
+            var newAsset = getAsset(id);
+            newAsset.getDataAddress().getProperties().put("newKey", "newValue");
+            var updated = assetIndex.updateAsset(newAsset);
 
             Assertions.assertThat(updated).isNotNull();
 
-            var assetFound = getAssetIndex().findById("id1");
+            var assetFound = assetIndex.findById("id1");
+            var dataAddressFound = assetIndex.resolveForAsset("id1");
 
             assertThat(assetFound).isNotNull();
-            assertThat(assetFound).usingRecursiveComparison().isEqualTo(asset);
+            assertThat(dataAddressFound).isNotNull();
+            assertThat(assetFound)
+                    .usingRecursiveComparison()
+                    .ignoringFields("createdAt")
+                    .isEqualTo(newAsset);
+            assertThat(assetFound.getDataAddress())
+                    .usingRecursiveComparison()
+                    .isEqualTo(dataAddressFound);
         }
     }
 
