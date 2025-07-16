@@ -493,7 +493,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
     private boolean processCompleted(DataFlow dataFlow) {
         return entityRetryProcessFactory.retryProcessor(dataFlow)
-                .doProcess(Process.result("Complete data flow", (d, v) -> transferProcessClient.completed(dataFlow.toRequest())))
+                .doProcess(Process.result("Complete data flow", (d, v) -> transferProcessClient.completed(dataFlow)))
                 .onSuccess((d, v) -> {
                     if (dataFlow.resourcesToBeDeprovisioned().isEmpty()) {
                         dataFlow.transitionToNotified();
@@ -515,7 +515,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
     private boolean processFailed(DataFlow dataFlow) {
         return entityRetryProcessFactory.retryProcessor(dataFlow)
-                .doProcess(Process.result("Fail data flow", (d, v) -> transferProcessClient.failed(dataFlow.toRequest(), dataFlow.getErrorDetail())))
+                .doProcess(Process.result("Fail data flow", (d, v) -> transferProcessClient.failed(dataFlow, dataFlow.getErrorDetail())))
                 .onSuccess((d, v) -> {
                     dataFlow.transitionToNotified();
                     update(dataFlow);

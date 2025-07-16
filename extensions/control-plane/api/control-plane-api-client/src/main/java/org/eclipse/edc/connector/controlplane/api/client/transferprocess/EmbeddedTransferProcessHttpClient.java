@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.port.TransferProcessApiClient;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 import java.util.function.Function;
 
@@ -37,14 +36,14 @@ public class EmbeddedTransferProcessHttpClient implements TransferProcessApiClie
     }
 
     @Override
-    public StatusResult<Void> completed(DataFlowStartMessage request) {
-        return transferProcessService.complete(request.getProcessId())
+    public StatusResult<Void> completed(DataFlow dataFlow) {
+        return transferProcessService.complete(dataFlow.getId())
                 .flatMap(toStatusResult());
     }
 
     @Override
-    public StatusResult<Void> failed(DataFlowStartMessage request, String reason) {
-        return transferProcessService.terminate(new TerminateTransferCommand(request.getProcessId(), reason))
+    public StatusResult<Void> failed(DataFlow dataFlow, String reason) {
+        return transferProcessService.terminate(new TerminateTransferCommand(dataFlow.getId(), reason))
                 .flatMap(toStatusResult());
     }
 

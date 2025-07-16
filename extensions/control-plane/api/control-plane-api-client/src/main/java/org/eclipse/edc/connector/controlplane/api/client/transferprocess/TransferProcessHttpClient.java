@@ -25,7 +25,6 @@ import org.eclipse.edc.connector.dataplane.spi.port.TransferProcessApiClient;
 import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.jetbrains.annotations.NotNull;
 
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
@@ -48,14 +47,14 @@ public class TransferProcessHttpClient implements TransferProcessApiClient {
     }
 
     @Override
-    public StatusResult<Void> completed(DataFlowStartMessage dataFlowStartMessage) {
-        var url = dataFlowStartMessage.getCallbackAddress() + "/transferprocess/" + dataFlowStartMessage.getProcessId() + "/complete";
+    public StatusResult<Void> completed(DataFlow dataFlow) {
+        var url = dataFlow.getCallbackAddress() + "/transferprocess/" + dataFlow.getId() + "/complete";
         return sendRequest(url, null);
     }
 
     @Override
-    public StatusResult<Void> failed(DataFlowStartMessage dataFlowStartMessage, String reason) {
-        var url = dataFlowStartMessage.getCallbackAddress() + "/transferprocess/" + dataFlowStartMessage.getProcessId() + "/fail";
+    public StatusResult<Void> failed(DataFlow dataFlow, String reason) {
+        var url = dataFlow.getCallbackAddress() + "/transferprocess/" + dataFlow.getId() + "/fail";
         var body = TransferProcessFailRequest.Builder.newInstance().errorMessage(reason).build();
         return sendRequest(url, body);
     }

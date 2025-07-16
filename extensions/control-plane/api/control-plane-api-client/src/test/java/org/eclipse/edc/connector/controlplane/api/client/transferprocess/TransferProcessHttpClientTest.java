@@ -24,7 +24,6 @@ import org.eclipse.edc.http.client.ControlApiHttpClientImpl;
 import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
@@ -53,7 +52,7 @@ public class TransferProcessHttpClientTest {
 
     @Test
     void complete() throws IOException {
-        var req = createRequest().callbackAddress(URI.create("http://localhost:8080/test")).build();
+        var req = createFlow().callbackAddress(URI.create("http://localhost:8080/test")).build();
         when(interceptor.intercept(any()))
                 .thenAnswer(invocation -> createResponse(204, invocation));
 
@@ -65,7 +64,7 @@ public class TransferProcessHttpClientTest {
 
     @Test
     void complete_shouldSucceed_withRetry() throws IOException {
-        var req = createRequest().callbackAddress(URI.create("http://localhost:8080/test")).build();
+        var req = createFlow().callbackAddress(URI.create("http://localhost:8080/test")).build();
         when(interceptor.intercept(any()))
                 .thenAnswer(invocation -> createResponse(400, invocation))
                 .thenAnswer(invocation -> createResponse(204, invocation));
@@ -79,7 +78,7 @@ public class TransferProcessHttpClientTest {
 
     @Test
     void complete_shouldFail_withMaxRetryExceeded() throws IOException {
-        var req = createRequest().callbackAddress(URI.create("http://localhost:8080/test")).build();
+        var req = createFlow().callbackAddress(URI.create("http://localhost:8080/test")).build();
         when(interceptor.intercept(any()))
                 .thenAnswer(invocation -> createResponse(400, invocation))
                 .thenAnswer(invocation -> createResponse(400, invocation))
@@ -94,7 +93,7 @@ public class TransferProcessHttpClientTest {
 
     @Test
     void fail() throws IOException {
-        var req = createRequest().callbackAddress(URI.create("http://localhost:8080/test")).build();
+        var req = createFlow().callbackAddress(URI.create("http://localhost:8080/test")).build();
         when(interceptor.intercept(any()))
                 .thenAnswer(invocation -> createResponse(204, invocation));
 
@@ -154,12 +153,11 @@ public class TransferProcessHttpClientTest {
         }
     }
 
-    private DataFlowStartMessage.Builder createRequest() {
-        return DataFlowStartMessage.Builder.newInstance()
+    private DataFlow.Builder createFlow() {
+        return DataFlow.Builder.newInstance()
                 .id("1")
-                .processId("1")
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build());
+                .source(DataAddress.Builder.newInstance().type("type").build())
+                .destination(DataAddress.Builder.newInstance().type("type").build());
     }
 
     private Response createResponse(int code, InvocationOnMock invocation) {
