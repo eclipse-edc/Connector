@@ -18,7 +18,6 @@ import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.Trans
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -39,8 +38,8 @@ class EmbeddedTransferProcessHttpClientTest {
         void shouldCallService() {
             var serviceResult = ServiceResult.<Void>success();
             when(service.complete(any())).thenReturn(serviceResult);
-            var message = DataFlowStartMessage.Builder.newInstance().processId("any")
-                    .sourceDataAddress(DataAddress.Builder.newInstance().type("any").build()).build();
+            var message = DataFlow.Builder.newInstance().id("any")
+                    .source(DataAddress.Builder.newInstance().type("any").build()).build();
 
             var result = client.completed(message);
 
@@ -55,8 +54,8 @@ class EmbeddedTransferProcessHttpClientTest {
         void shouldCallService() {
             var serviceResult = ServiceResult.<Void>success();
             when(service.terminate(any())).thenReturn(serviceResult);
-            var message = DataFlowStartMessage.Builder.newInstance().processId("any")
-                    .sourceDataAddress(DataAddress.Builder.newInstance().type("any").build()).build();
+            var message = DataFlow.Builder.newInstance().id("any")
+                    .source(DataAddress.Builder.newInstance().type("any").build()).build();
 
             var result = client.failed(message, "any");
 

@@ -18,7 +18,6 @@ package org.eclipse.edc.connector.dataplane.spi.port;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 /**
  * {@link TransferProcessApiClient} is an abstraction for talking with Control Plane, in this case for signaling back
@@ -30,20 +29,20 @@ import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 public interface TransferProcessApiClient {
 
     /**
-     * Mark the TransferProcess referenced by {@link DataFlowStartMessage#getProcessId()} as completed
+     * Mark the TransferProcess referenced by {@link DataFlow#getId()} as completed
      *
-     * @param request The completed {@link DataFlowStartMessage}
+     * @param dataFlow The completed {@link DataFlow}
      * @return the result.
      */
-    StatusResult<Void> completed(DataFlowStartMessage request);
+    StatusResult<Void> completed(DataFlow dataFlow);
 
     /**
-     * Mark the TransferProcess referenced by {@link DataFlowStartMessage#getProcessId()} as failed
+     * Mark the TransferProcess referenced by {@link DataFlow#getId()} as failed
      *
-     * @param request The failed {@link DataFlowStartMessage}
+     * @param dataFlow The failed {@link DataFlow}
      * @return the result.
      */
-    StatusResult<Void> failed(DataFlowStartMessage request, String reason);
+    StatusResult<Void> failed(DataFlow dataFlow, String reason);
 
     /**
      * Mark the TransferProcess as provisioned.
