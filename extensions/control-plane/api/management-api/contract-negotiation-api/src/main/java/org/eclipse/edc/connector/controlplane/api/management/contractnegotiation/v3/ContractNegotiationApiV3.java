@@ -95,7 +95,7 @@ public interface ContractNegotiationApiV3 {
             "only means that the negotiation was initiated. Clients must poll the /{id}/state endpoint to track the state",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ContractRequestSchema.class))),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "The negotiation was successfully initiated. Returns the contract negotiation ID and created timestamp",
+                    @ApiResponse(responseCode = "201", description = "The negotiation was successfully initiated. Returns the contract negotiation ID and created timestamp",
                             content = @Content(schema = @Schema(implementation = ApiCoreSchema.IdResponseSchema.class)),
                             links = @Link(name = "poll-state", operationId = "getNegotiationStateV3", parameters = {
                                     @LinkParameter(name = "id", expression = "$response.body#/id")
@@ -147,22 +147,36 @@ public interface ContractNegotiationApiV3 {
             OfferSchema policy,
             List<ManagementApiSchema.CallbackAddressSchema> callbackAddresses) {
 
-        // policy example took from https://w3c.github.io/odrl/bp/
+        // policy example using full ODRL URLs as in actual usage
         public static final String CONTRACT_REQUEST_EXAMPLE = """
                 {
                     "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
-                    "@type": "https://w3id.org/edc/v0.0.1/ns/ContractRequest",
-                    "counterPartyAddress": "http://provider-address",
+                    "@type": "ContractRequestDto",
+                    "counterPartyAddress": "http://provider-address:8282/api/dsp",
                     "protocol": "dataspace-protocol-http",
                     "policy": {
-                        "@context": "http://www.w3.org/ns/odrl.jsonld",
-                        "@type": "odrl:Offer",
-                        "@id": "offer-id",
-                        "assigner": "providerId",
-                        "permission": [],
-                        "prohibition": [],
-                        "obligation": [],
-                        "target": "assetId"
+                        "@id": "policy-id",
+                        "@type": "http://www.w3.org/ns/odrl/2/Offer",
+                        "http://www.w3.org/ns/odrl/2/obligation": [],
+                        "http://www.w3.org/ns/odrl/2/permission": {
+                            "http://www.w3.org/ns/odrl/2/action": {
+                                "http://www.w3.org/ns/odrl/2/type": "http://www.w3.org/ns/odrl/2/use"
+                            },
+                            "http://www.w3.org/ns/odrl/2/constraint": {
+                                "http://www.w3.org/ns/odrl/2/leftOperand": "https://w3id.org/edc/v0.0.1/ns/MembershipCredential",
+                                "http://www.w3.org/ns/odrl/2/operator": {
+                                    "@id": "http://www.w3.org/ns/odrl/2/eq"
+                                },
+                                "http://www.w3.org/ns/odrl/2/rightOperand": "active"
+                            }
+                        },
+                        "http://www.w3.org/ns/odrl/2/prohibition": [],
+                        "http://www.w3.org/ns/odrl/2/target": {
+                            "@id": "asset-id"
+                        },
+                        "http://www.w3.org/ns/odrl/2/assigner": {
+                            "@id": "provider-participant-id"
+                        }
                     },
                     "callbackAddresses": [{
                         "transactional": false,
@@ -175,27 +189,42 @@ public interface ContractNegotiationApiV3 {
                 """;
     }
 
-    @Schema(name = "Offer", description = "ODRL offer", example = OfferSchema.OFFER_EXAMPLE)
+    @Schema(name = "Offer", description = "ODRL offer - accepts any ODRL properties", example = OfferSchema.OFFER_EXAMPLE, 
+            additionalProperties = Schema.AdditionalPropertiesValue.TRUE)
     record OfferSchema(
             @Schema(name = TYPE, example = ODRL_POLICY_TYPE_OFFER)
             String type,
             @Schema(name = ID, requiredMode = REQUIRED)
             String id,
-            @Schema(requiredMode = REQUIRED)
-            String assigner,
-            @Schema(requiredMode = REQUIRED)
-            String target
+            @Schema(name = "http://www.w3.org/ns/odrl/2/assigner", description = "ODRL assigner - can be a string ID or an object with @id (optional)")
+            Object assigner,
+            @Schema(name = "http://www.w3.org/ns/odrl/2/target", description = "ODRL target - can be a string ID or an object with @id (optional)")
+            Object target,
+            @Schema(name = "http://www.w3.org/ns/odrl/2/permission", description = "ODRL permissions")
+            Object permission,
+            @Schema(name = "http://www.w3.org/ns/odrl/2/prohibition", description = "ODRL prohibitions")
+            Object prohibition,
+            @Schema(name = "http://www.w3.org/ns/odrl/2/obligation", description = "ODRL obligations")
+            Object obligation
     ) {
         public static final String OFFER_EXAMPLE = """
                 {
-                    "@context": "http://www.w3.org/ns/odrl.jsonld",
-                    "@type": "odrl:Offer",
-                    "@id": "offer-id",
-                    "assigner": "providerId",
-                    "target": "assetId",
-                    "permission": [],
-                    "prohibition": [],
-                    "obligation": []
+                    "@id": "policy-id",
+                    "@type": "http://www.w3.org/ns/odrl/2/Offer",
+                    "http://www.w3.org/ns/odrl/2/obligation": [],
+                    "http://www.w3.org/ns/odrl/2/permission": {
+                        "http://www.w3.org/ns/odrl/2/action": {
+                            "http://www.w3.org/ns/odrl/2/type": "http://www.w3.org/ns/odrl/2/use"
+                        },
+                        "http://www.w3.org/ns/odrl/2/constraint": {
+                            "http://www.w3.org/ns/odrl/2/leftOperand": "https://w3id.org/edc/v0.0.1/ns/MembershipCredential",
+                            "http://www.w3.org/ns/odrl/2/operator": {        
+                    "http://www.w3.org/ns/odrl/2/target": {
+                        "@id": "asset-id"
+                    },
+                    "http://www.w3.org/ns/odrl/2/assigner": {
+                        "@id": "provider-participant-id"
+                    }
                 }
                 """;
     }

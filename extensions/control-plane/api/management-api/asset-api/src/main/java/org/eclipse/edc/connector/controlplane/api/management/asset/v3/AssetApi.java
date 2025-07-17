@@ -42,7 +42,7 @@ public interface AssetApi {
     @Operation(description = "Creates a new asset together with a data address",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = AssetInputSchema.class))),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Asset was created successfully. Returns the asset Id and created timestamp",
+                    @ApiResponse(responseCode = "201", description = "Asset was created successfully. Returns the asset Id and created timestamp",
                             content = @Content(schema = @Schema(implementation = ApiCoreSchema.IdResponseSchema.class))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
