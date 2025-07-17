@@ -47,6 +47,7 @@ public class BaseSqlDataFlowStatements implements DataFlowStatements {
                 .column(getFlowTypeColumn())
                 .column(getTransferTypeDestinationColumn())
                 .column(getRuntimeIdColumn())
+                .jsonColumn(getResourceDefinitionsColumn())
                 .upsertInto(getDataPlaneTable(), getIdColumn());
     }
 
