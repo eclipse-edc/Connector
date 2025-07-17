@@ -175,16 +175,19 @@ public interface ContractNegotiationApiV3 {
                 """;
     }
 
-    @Schema(name = "Offer", description = "ODRL offer", example = OfferSchema.OFFER_EXAMPLE,additionalProperties = Schema.AdditionalPropertiesValue.TRUE))
+    @Schema(name = "Offer", description = "ODRL offer. Supports both compact JSON-LD format with @context and expanded format with full URIs", 
+            example = OfferSchema.OFFER_EXAMPLE, additionalProperties = Schema.AdditionalPropertiesValue.TRUE)
     record OfferSchema(
-            @Schema(name = TYPE, example = ODRL_POLICY_TYPE_OFFER)
+            @Schema(name = TYPE, example = ODRL_POLICY_TYPE_OFFER, description = "Policy type - can be compact form 'odrl:Offer' or expanded form 'http://www.w3.org/ns/odrl/2/Offer'")
             String type,
-            @Schema(name = ID, requiredMode = REQUIRED)
+            @Schema(name = ID, requiredMode = REQUIRED, description = "Unique identifier for the offer")
             String id,
-            @Schema(requiredMode = REQUIRED)
-            String assigner,
-            @Schema(requiredMode = REQUIRED)
-            String target
+            @Schema(requiredMode = REQUIRED, description = "Assigner - can be a string ID or an object with @id property for expanded JSON-LD format", 
+                    anyOf = {String.class, Object.class})
+            Object assigner,
+            @Schema(requiredMode = REQUIRED, description = "Target - can be a string ID or an object with @id property for expanded JSON-LD format",
+                    anyOf = {String.class, Object.class})
+            Object target
     ) {
         public static final String OFFER_EXAMPLE = """
                 {
@@ -196,6 +199,21 @@ public interface ContractNegotiationApiV3 {
                     "permission": [],
                     "prohibition": [],
                     "obligation": []
+                }
+                
+                Alternative expanded format:
+                {
+                    "@id": "offer-id",
+                    "@type": "http://www.w3.org/ns/odrl/2/Offer",
+                    "http://www.w3.org/ns/odrl/2/assigner": {
+                        "@id": "providerId"
+                    },
+                    "http://www.w3.org/ns/odrl/2/target": {
+                        "@id": "assetId"
+                    },
+                    "http://www.w3.org/ns/odrl/2/permission": [],
+                    "http://www.w3.org/ns/odrl/2/prohibition": [],
+                    "http://www.w3.org/ns/odrl/2/obligation": []
                 }
                 """;
     }
