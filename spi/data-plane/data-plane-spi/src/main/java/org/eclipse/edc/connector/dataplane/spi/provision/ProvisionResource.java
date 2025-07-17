@@ -14,6 +14,9 @@
 
 package org.eclipse.edc.connector.dataplane.spi.provision;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
@@ -31,6 +34,7 @@ import static org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResourc
 /**
  * Resource that needs to be provisioned to support a data flow.
  */
+@JsonDeserialize(builder = ProvisionResource.Builder.class)
 public class ProvisionResource extends StatefulEntity<ProvisionResource> {
 
     private String flowId;
@@ -54,6 +58,10 @@ public class ProvisionResource extends StatefulEntity<ProvisionResource> {
 
     public Object getProperty(String key) {
         return properties.get(key);
+    }
+
+    public Map<String, Object> getProperties() {
+        return properties;
     }
 
     @Override
@@ -83,6 +91,10 @@ public class ProvisionResource extends StatefulEntity<ProvisionResource> {
 
     public ProvisionedResource getProvisionedResource() {
         return provisionedResource;
+    }
+
+    public DeprovisionedResource getDeprovisionedResource() {
+        return deprovisionedResource;
     }
 
     public void transitionDeprovisioned(DeprovisionedResource deprovisionedResource) {
@@ -118,8 +130,10 @@ public class ProvisionResource extends StatefulEntity<ProvisionResource> {
         return state == DEPROVISIONED.code();
     }
 
+    @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends StatefulEntity.Builder<ProvisionResource, Builder> {
 
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder(new ProvisionResource());
         }
@@ -168,6 +182,16 @@ public class ProvisionResource extends StatefulEntity<ProvisionResource> {
 
         public Builder properties(Map<String, Object> properties) {
             entity.properties.putAll(properties);
+            return this;
+        }
+
+        public Builder provisionedResource(ProvisionedResource provisionedResource) {
+            entity.provisionedResource = provisionedResource;
+            return this;
+        }
+
+        public Builder deprovisionedResource(DeprovisionedResource deprovisionedResource) {
+            entity.deprovisionedResource = deprovisionedResource;
             return this;
         }
     }

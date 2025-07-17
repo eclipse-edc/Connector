@@ -60,6 +60,10 @@ public interface DataFlowStatements extends StatefulEntityStatements, LeaseState
         return "runtime_id";
     }
 
+    default String getResourceDefinitionsColumn() {
+        return "resource_definitions";
+    }
+
     String getUpsertTemplate();
 
     String getSelectTemplate();

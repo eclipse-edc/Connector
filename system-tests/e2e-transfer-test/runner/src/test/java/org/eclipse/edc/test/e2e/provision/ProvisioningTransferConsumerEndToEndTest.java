@@ -37,11 +37,13 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.Runtimes;
 import org.eclipse.edc.test.e2e.TransferEndToEndParticipant;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockserver.integration.ClientAndServer;
 
@@ -128,6 +130,59 @@ public class ProvisioningTransferConsumerEndToEndTest {
         private final RuntimeExtension providerDataPlane = new RuntimePerMethodExtension(
                 Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane")
                         .configurationProvider(PROVIDER::dataPlaneConfig)
+        );
+
+        @Override
+        protected DataPlaneStore consumerDataPlaneStore() {
+            return consumerDataPlane.getService(DataPlaneStore.class);
+        }
+    }
+
+    @Nested
+    class Postgres extends Tests {
+
+        @RegisterExtension
+        @Order(0)
+        static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension();
+
+        @Order(1)
+        @RegisterExtension
+        static final BeforeAllCallback CREATE_DATABASES = context -> {
+            POSTGRESQL_EXTENSION.createDatabase(CONSUMER.getName());
+            POSTGRESQL_EXTENSION.createDatabase(PROVIDER.getName());
+        };
+
+        @RegisterExtension
+        @Order(1)
+        private final RuntimeExtension consumerControlPlane = new RuntimePerMethodExtension(
+                Runtimes.POSTGRES_CONTROL_PLANE.create("consumer-control-plane")
+                        .configurationProvider(CONSUMER::controlPlaneConfig)
+                        .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONSUMER.getName()))
+        );
+
+        @RegisterExtension
+        @Order(2)
+        private final RuntimeExtension consumerDataPlane = new RuntimePerMethodExtension(
+                Runtimes.POSTGRES_DATA_PLANE.create("consumer-data-plane")
+                        .configurationProvider(CONSUMER::dataPlaneConfig)
+                        .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONSUMER.getName()))
+                        .registerSystemExtension(ServiceExtension.class, new TestConsumerProvisionerExtension())
+        );
+
+        @RegisterExtension
+        @Order(1)
+        private final RuntimeExtension providerControlPlane = new RuntimePerMethodExtension(
+                Runtimes.POSTGRES_CONTROL_PLANE.create("provider-control-plane")
+                        .configurationProvider(PROVIDER::controlPlaneConfig)
+                        .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()))
+        );
+
+        @RegisterExtension
+        @Order(2)
+        private final RuntimeExtension providerDataPlane = new RuntimePerMethodExtension(
+                Runtimes.POSTGRES_DATA_PLANE.create("provider-data-plane")
+                        .configurationProvider(PROVIDER::dataPlaneConfig)
+                        .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()))
         );
 
         @Override
@@ -260,7 +315,7 @@ public class ProvisioningTransferConsumerEndToEndTest {
 
         }
 
-        private static class AddHeaderResourceGenerator implements ResourceDefinitionGenerator {
+    private static class AddHeaderResourceGenerator implements ResourceDefinitionGenerator {
 
             @Override
             public String supportedType() {

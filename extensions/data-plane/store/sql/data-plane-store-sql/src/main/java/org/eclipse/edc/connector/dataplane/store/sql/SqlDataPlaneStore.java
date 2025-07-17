@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.store.sql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResource;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.connector.dataplane.store.sql.schema.DataFlowStatements;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
@@ -139,7 +140,8 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
                         toJson(entity.getProperties()),
                         entity.getTransferType().flowType().toString(),
                         entity.getTransferType().destinationType(),
-                        entity.getRuntimeId()
+                        entity.getRuntimeId(),
+                        toJson(entity.getResourceDefinitions())
                 );
 
                 leaseContext.by(leaseHolderName).withConnection(connection).breakLease(entity.getId());
@@ -168,6 +170,7 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
                         FlowType.valueOf(resultSet.getString(statements.getFlowTypeColumn()))
                 ))
                 .runtimeId(resultSet.getString(statements.getRuntimeIdColumn()))
+                .resourceDefinitions(fromJson(resultSet.getString(statements.getResourceDefinitionsColumn()), listOf(ProvisionResource.class)))
                 .build();
     }
 

@@ -33,7 +33,8 @@ CREATE TABLE IF NOT EXISTS edc_data_plane
     properties           JSON,
     flow_type            VARCHAR,
     transfer_type_destination VARCHAR,
-    runtime_id           VARCHAR
+    runtime_id           VARCHAR,
+    resource_definitions JSON DEFAULT '[]'
 );
 
 COMMENT ON COLUMN edc_data_plane.trace_context IS 'Java Map serialized as JSON';

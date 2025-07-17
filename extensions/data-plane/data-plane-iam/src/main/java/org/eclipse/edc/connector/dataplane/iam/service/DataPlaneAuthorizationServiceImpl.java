@@ -69,7 +69,7 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
         additionalProperties.put(PROPERTY_FLOW_TYPE, dataFlow.getTransferType().flowType().toString());
         additionalProperties.put(PROPERTY_PARTICIPANT_ID, dataFlow.getParticipantId());
         var tokenParams = createTokenParams(dataFlow);
-        var sourceDataAddress = dataFlow.getSource();
+        var sourceDataAddress = dataFlow.getActualSource();
 
 
         // create the "front-channel" data address

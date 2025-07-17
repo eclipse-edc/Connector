@@ -16,7 +16,10 @@ package org.eclipse.edc.sql.store;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.CollectionType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
@@ -25,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Objects;
 import javax.sql.DataSource;
 
@@ -72,27 +76,26 @@ public abstract class AbstractSqlStore {
     }
 
     protected <T> T fromJson(String json, TypeReference<T> typeReference) {
-        if (json == null) {
-            return null;
-        }
-        try {
-            return objectMapper.readValue(json, typeReference);
-        } catch (JsonProcessingException e) {
-            throw new EdcPersistenceException(e);
-        }
+        return fromJson(json, objectMapper.constructType(typeReference));
     }
 
     protected <T> T fromJson(String json, Class<T> type) {
+        return fromJson(json, objectMapper.constructType(type));
+    }
 
+    protected <T> T fromJson(String json, JavaType type) {
         if (json == null) {
             return null;
         }
-
         try {
             return objectMapper.readValue(json, type);
         } catch (JsonProcessingException e) {
             throw new EdcPersistenceException(e);
         }
+    }
+
+    protected <T> CollectionType listOf(Class<T> clazz) {
+        return TypeFactory.defaultInstance().constructCollectionType(List.class, clazz);
     }
 
     @NotNull

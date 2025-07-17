@@ -88,6 +88,16 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     }
 
     public DataAddress getSource() {
+        return source;
+    }
+
+    /**
+     * Returns the actual source address that it could have been provisioned and being different from the original sent
+     * by the control-plane
+     *
+     * @return the actual data source.
+     */
+    public DataAddress getActualSource() {
         var provisioned = provisionedDataAddress();
         if (provisioned != null) {
             return provisioned;
@@ -119,7 +129,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     public DataFlowStartMessage toRequest() {
         return DataFlowStartMessage.Builder.newInstance()
                 .id(getId())
-                .sourceDataAddress(getSource())
+                .sourceDataAddress(getActualSource())
                 .destinationDataAddress(getDestination())
                 .processId(getId())
                 .callbackAddress(getCallbackAddress())
@@ -249,6 +259,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     public DataAddress provisionedDataAddress() {
         return resourceDefinitions.stream()
                 .map(ProvisionResource::getProvisionedResource)
+                .filter(Objects::nonNull)
                 .map(ProvisionedResource::getDataAddress)
                 .filter(Objects::nonNull)
                 .findFirst().orElse(null);

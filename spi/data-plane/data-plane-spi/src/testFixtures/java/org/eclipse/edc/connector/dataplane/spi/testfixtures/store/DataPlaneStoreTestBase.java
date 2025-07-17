@@ -16,6 +16,9 @@ package org.eclipse.edc.connector.dataplane.spi.testfixtures.store;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
+import org.eclipse.edc.connector.dataplane.spi.provision.DeprovisionedResource;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResource;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.spi.entity.Entity;
 import org.eclipse.edc.spi.entity.MutableEntity;
@@ -30,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 
 import static java.util.stream.IntStream.range;
@@ -78,8 +82,12 @@ public abstract class DataPlaneStoreTestBase {
 
             var result = getStore().findById(dataFlow.getId());
 
-            assertThat(result).isNotNull().usingRecursiveComparison().isEqualTo(dataFlow);
+            assertThat(result).isNotNull().usingRecursiveComparison().ignoringFields("resourceDefinitions").isEqualTo(dataFlow);
             assertThat(result.getCreatedAt()).isGreaterThan(0);
+            assertThat(result.getResourceDefinitions()).hasSize(1).first().satisfies(actualProvisionResource -> {
+                assertThat(actualProvisionResource).usingRecursiveComparison().ignoringFields("clock")
+                        .isEqualTo(dataFlow.getResourceDefinitions().get(0));
+            });
         }
 
         @Test
@@ -264,6 +272,9 @@ public abstract class DataPlaneStoreTestBase {
     }
 
     private DataFlow.Builder createDataFlowBuilder() {
+        var provisionResource = ProvisionResource.Builder.newInstance().flowId("flowId").build();
+        provisionResource.transitionProvisioned(ProvisionedResource.Builder.from(provisionResource).dataAddress(DataAddress.Builder.newInstance().type("any").build()).build());
+        provisionResource.transitionDeprovisioned(DeprovisionedResource.Builder.from(provisionResource).build());
         return DataFlow.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .callbackAddress(URI.create("http://any"))
@@ -271,7 +282,8 @@ public abstract class DataPlaneStoreTestBase {
                 .destination(DataAddress.Builder.newInstance().type("dest-type").build())
                 .state(STARTED.code())
                 .transferType(new TransferType("transferType", PUSH))
-                .runtimeId("runtimeId");
+                .runtimeId("runtimeId")
+                .resourceDefinitions(List.of(provisionResource));
     }
 
 }
