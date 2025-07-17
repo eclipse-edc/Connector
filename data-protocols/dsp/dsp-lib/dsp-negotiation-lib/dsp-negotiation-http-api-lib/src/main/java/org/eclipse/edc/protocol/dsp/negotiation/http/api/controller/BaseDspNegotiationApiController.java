@@ -101,7 +101,7 @@ public abstract class BaseDspNegotiationApiController {
     @POST
     @Path(INITIAL_CONTRACT_REQUEST)
     public Response initialContractRequest(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        var request = PostDspRequest.Builder.newInstance(ContractRequestMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
+        var request = PostDspRequest.Builder.newInstance(ContractRequestMessage.class, ContractNegotiation.class, ContractNegotiationError.class, protocolService::provideRequestContext)
                 .expectedMessageType(namespace.toIri(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM))
                 .message(jsonObject)
                 .token(token)
@@ -123,7 +123,7 @@ public abstract class BaseDspNegotiationApiController {
     @POST
     @Path(INITIAL_CONTRACT_OFFER)
     public Response initialContractOffer(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
-        var request = PostDspRequest.Builder.newInstance(ContractOfferMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
+        var request = PostDspRequest.Builder.newInstance(ContractOfferMessage.class, ContractNegotiation.class, ContractNegotiationError.class, protocolService::provideOfferContext)
                 .expectedMessageType(namespace.toIri(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM))
                 .message(jsonObject)
                 .token(token)
@@ -148,7 +148,7 @@ public abstract class BaseDspNegotiationApiController {
     public Response contractRequest(@PathParam("id") String id,
                                     JsonObject jsonObject,
                                     @HeaderParam(AUTHORIZATION) String token) {
-        var request = PostDspRequest.Builder.newInstance(ContractRequestMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
+        var request = PostDspRequest.Builder.newInstance(ContractRequestMessage.class, ContractNegotiation.class, ContractNegotiationError.class, protocolService::provideRequestContext)
                 .expectedMessageType(namespace.toIri(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM))
                 .processId(id)
                 .message(jsonObject)
@@ -255,7 +255,7 @@ public abstract class BaseDspNegotiationApiController {
     public Response providerOffer(@PathParam("id") String id,
                                   JsonObject body,
                                   @HeaderParam(AUTHORIZATION) String token) {
-        var request = PostDspRequest.Builder.newInstance(ContractOfferMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
+        var request = PostDspRequest.Builder.newInstance(ContractOfferMessage.class, ContractNegotiation.class, ContractNegotiationError.class, protocolService::provideOfferContext)
                 .expectedMessageType(namespace.toIri(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM))
                 .processId(id)
                 .message(body)
