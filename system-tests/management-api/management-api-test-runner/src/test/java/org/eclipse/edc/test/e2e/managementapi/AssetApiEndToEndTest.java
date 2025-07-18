@@ -113,7 +113,7 @@ public class AssetApiEndToEndTest {
                     .post("/v3/assets")
                     .then()
                     .log().ifError()
-                    .statusCode(200)
+                    .statusCode(201)
                     .body(ID, is(id));
 
             var asset = assetIndex.findById(id);
