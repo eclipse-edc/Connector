@@ -77,7 +77,7 @@ public class SecretsApiEndToEndTest {
                     .post("/v3/secrets")
                     .then()
                     .log().ifError()
-                    .statusCode(200)
+                    .statusCode(201)
                     .body(ID, is(id));
 
             assertThat(vault.resolveSecret(id))

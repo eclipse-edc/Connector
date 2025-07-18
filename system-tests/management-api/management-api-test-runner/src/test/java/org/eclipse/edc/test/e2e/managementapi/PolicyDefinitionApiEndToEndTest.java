@@ -71,7 +71,7 @@ public class PolicyDefinitionApiEndToEndTest {
                     .then()
                     .log().ifValidationFails()
                     .contentType(JSON)
-                    .statusCode(200)
+                    .statusCode(201)
                     .extract().jsonPath().getString(ID);
 
             context.baseRequest()
