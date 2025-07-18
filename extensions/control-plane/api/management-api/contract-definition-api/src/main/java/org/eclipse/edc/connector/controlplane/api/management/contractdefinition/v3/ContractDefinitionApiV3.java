@@ -67,7 +67,7 @@ public interface ContractDefinitionApiV3 {
     @Operation(description = "Creates a new contract definition",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ContractDefinitionInputSchema.class))),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "contract definition was created successfully. Returns the Contract Definition Id and created timestamp",
+                    @ApiResponse(responseCode = "201", description = "contract definition was created successfully. Returns the Contract Definition Id and created timestamp",
                             content = @Content(schema = @Schema(implementation = ApiCoreSchema.IdResponseSchema.class))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
