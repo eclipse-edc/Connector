@@ -153,7 +153,7 @@ public class TransferProcessApiEndToEndTest {
                     .post("/v3/transferprocesses/")
                     .then()
                     .log().ifError()
-                    .statusCode(201)
+                    .statusCode(200)
                     .extract().jsonPath().getString(ID);
 
             assertThat(transferProcessStore.findById(id)).isNotNull();

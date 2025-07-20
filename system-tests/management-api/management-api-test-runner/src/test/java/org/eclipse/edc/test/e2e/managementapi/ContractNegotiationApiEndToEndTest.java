@@ -166,7 +166,7 @@ public class ContractNegotiationApiEndToEndTest {
                     .body(requestJson)
                     .post("/v3/contractnegotiations")
                     .then()
-                    .statusCode(201)
+                    .statusCode(200)
                     .contentType(JSON)
                     .extract().jsonPath().getString(ID);
 

@@ -84,7 +84,7 @@ public class ContractDefinitionApiEndToEndTest {
                     .body(requestJson)
                     .post("/v3/contractdefinitions")
                     .then()
-                    .statusCode(201)
+                    .statusCode(200)
                     .body("@id", equalTo(id));
 
             var matchingQuery = context.query(
@@ -128,7 +128,7 @@ public class ContractDefinitionApiEndToEndTest {
                     .body(requestJson)
                     .post("/v3/contractdefinitions")
                     .then()
-                    .statusCode(201)
+                    .statusCode(200)
                     .body("@id", equalTo(id));
 
             var actual = store.findById(id);
