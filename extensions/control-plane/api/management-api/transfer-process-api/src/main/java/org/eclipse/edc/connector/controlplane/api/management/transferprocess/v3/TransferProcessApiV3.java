@@ -88,7 +88,7 @@ public interface TransferProcessApiV3 {
     @Operation(description = "Initiates a data transfer with the given parameters. " + ASYNC_WARNING,
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = TransferRequestSchema.class))),
             responses = {
-                    @ApiResponse(responseCode = "201", description = "The transfer was successfully initiated. Returns the transfer process ID and created timestamp",
+                    @ApiResponse(responseCode = "200", description = "The transfer was successfully initiated. Returns the transfer process ID and created timestamp",
                             content = @Content(schema = @Schema(implementation = ApiCoreSchema.IdResponseSchema.class)),
                             links = @Link(name = "poll-state", operationId = "getTransferProcessStateV3", parameters = {
                                     @LinkParameter(name = "id", expression = "$response.body#/id")

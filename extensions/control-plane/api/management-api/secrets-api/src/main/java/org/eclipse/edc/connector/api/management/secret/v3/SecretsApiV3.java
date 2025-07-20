@@ -40,7 +40,7 @@ public interface SecretsApiV3 {
     @Operation(description = "Creates a new secret.",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = SecretInputSchema.class))),
             responses = {
-                    @ApiResponse(responseCode = "201", description = "Secret was created successfully. Returns the secret Id and created timestamp",
+                    @ApiResponse(responseCode = "200", description = "Secret was created successfully. Returns the secret Id and created timestamp",
                             content = @Content(schema = @Schema(implementation = ApiCoreSchema.IdResponseSchema.class))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),

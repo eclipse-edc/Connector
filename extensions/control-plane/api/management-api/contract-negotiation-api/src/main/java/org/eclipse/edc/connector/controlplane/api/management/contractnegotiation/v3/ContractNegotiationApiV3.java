@@ -95,7 +95,7 @@ public interface ContractNegotiationApiV3 {
             "only means that the negotiation was initiated. Clients must poll the /{id}/state endpoint to track the state",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ContractRequestSchema.class))),
             responses = {
-                    @ApiResponse(responseCode = "201", description = "The negotiation was successfully initiated. Returns the contract negotiation ID and created timestamp",
+                    @ApiResponse(responseCode = "200", description = "The negotiation was successfully initiated. Returns the contract negotiation ID and created timestamp",
                             content = @Content(schema = @Schema(implementation = ApiCoreSchema.IdResponseSchema.class)),
                             links = @Link(name = "poll-state", operationId = "getNegotiationStateV3", parameters = {
                                     @LinkParameter(name = "id", expression = "$response.body#/id")

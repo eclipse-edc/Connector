@@ -65,7 +65,7 @@ public interface PolicyDefinitionApiV3 {
     @Operation(description = "Creates a new policy definition",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = PolicyDefinitionInputSchema.class))),
             responses = {
-                    @ApiResponse(responseCode = "201", description = "policy definition was created successfully. Returns the Policy Definition Id and created timestamp",
+                    @ApiResponse(responseCode = "200", description = "policy definition was created successfully. Returns the Policy Definition Id and created timestamp",
                             content = @Content(schema = @Schema(implementation = ApiCoreSchema.IdResponseSchema.class))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
