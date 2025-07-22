@@ -157,7 +157,6 @@ public class DataAddress {
         public B responseChannel(DataAddress rc) {
             address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, rc);
             return self();
-
         }
 
         @JsonIgnore
