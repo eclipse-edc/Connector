@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transform.from;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonBuilderFactory;
+import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -35,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_KEY_NAME;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
@@ -57,8 +59,8 @@ class JsonObjectFromDataAddressTransformerTest {
 
     @BeforeEach
     void setUp() {
-        transformer = new JsonObjectFromDataAddressTransformer(jsonFactory, typeManager, "test");
         when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
+        transformer = new JsonObjectFromDataAddressTransformer(jsonFactory, typeManager, "test");
     }
 
     @Test
@@ -72,7 +74,6 @@ class JsonObjectFromDataAddressTransformerTest {
                 .property("string", "test")
                 .property("integer", 123)
                 .property("whatAboutDouble", 123.456)
-                .property("nestedDataAddress", innerDataAddress)
                 .property("nestedJsonObject", Map.of("key", Map.of("testKey", "testValue")))
                 .property("jsonArray", List.of("string1", "string2"))
                 .property("arrayOfObjects", List.of(
@@ -81,7 +82,14 @@ class JsonObjectFromDataAddressTransformerTest {
                 .property("nestedJsonObjectWithArray", Map.of(
                         "key", List.of("value1", "value2"),
                         "anotherKey", List.of("value3", "value4")))
+                .responseChannel(innerDataAddress)
                 .build();
+
+        when(context.transform(innerDataAddress, JsonObject.class))
+                .thenReturn(
+                        jsonObject()
+                                .add(TYPE, EDC_NAMESPACE + "DataAddress")
+                                .add(EDC_DATA_ADDRESS_TYPE_PROPERTY, "type").build());
 
         var expectedJson = jsonObject()
                 .add(TYPE, EDC_NAMESPACE + "DataAddress")
@@ -90,9 +98,10 @@ class JsonObjectFromDataAddressTransformerTest {
                 .add("string", "test")
                 .add("integer", 123)
                 .add("whatAboutDouble", 123.456)
-                .add("nestedDataAddress",
+                .add(EDC_DATA_ADDRESS_RESPONSE_CHANNEL,
                         jsonObject()
-                                .add("properties", jsonObject().add(EDC_DATA_ADDRESS_TYPE_PROPERTY, "type")))
+                                .add(TYPE, EDC_NAMESPACE + "DataAddress")
+                                .add(EDC_DATA_ADDRESS_TYPE_PROPERTY, "type"))
                 .add("nestedJsonObject",
                         jsonObject()
                                 .add("key", jsonObject().add("testKey", "testValue")))
