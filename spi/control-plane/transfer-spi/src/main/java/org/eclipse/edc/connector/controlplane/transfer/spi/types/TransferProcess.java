@@ -244,7 +244,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public boolean shouldIgnoreIncomingMessage(@NotNull String messageId) {
-        return protocolMessages.isAlreadyReceived(messageId) || TransferProcessStates.isFinal(state);
+        return protocolMessages.isAlreadyReceived(messageId);
     }
 
     public ProtocolMessages getProtocolMessages() {

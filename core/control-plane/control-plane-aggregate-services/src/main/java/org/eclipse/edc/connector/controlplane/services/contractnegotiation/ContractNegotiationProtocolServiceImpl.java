@@ -210,7 +210,8 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                     if (contractNegotiation.shouldIgnoreIncomingMessage(message.getId())) {
                         return ServiceResult.success(contractNegotiation);
                     } else {
-                        return action.apply(contractNegotiation);
+                        return action.apply(contractNegotiation)
+                                .onFailure(f -> breakLease(contractNegotiation));
                     }
                 });
     }
@@ -364,6 +365,10 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
         store.save(negotiation);
         monitor.debug(() -> "[%s] ContractNegotiation %s is now in state %s."
                 .formatted(negotiation.getType(), negotiation.getId(), negotiation.stateAsString()));
+    }
+
+    private void breakLease(ContractNegotiation process) {
+        store.save(process);
     }
 
 }
