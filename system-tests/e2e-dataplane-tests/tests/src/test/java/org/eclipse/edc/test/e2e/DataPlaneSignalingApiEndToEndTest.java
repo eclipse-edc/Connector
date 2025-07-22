@@ -305,7 +305,7 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
 
         var resultJson = DATAPLANE.baseControlRequest()
                 .contentType(ContentType.JSON)
-                .get("/v1/dataflows/%s/state" .formatted(dataFlowId))
+                .get("/v1/dataflows/%s/state".formatted(dataFlowId))
                 .then()
                 .body(notNullValue())
                 .statusCode(200)
@@ -339,7 +339,7 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
         DATAPLANE.baseControlRequest()
                 .body(terminateMessage)
                 .contentType(ContentType.JSON)
-                .post("/v1/dataflows/%s/terminate" .formatted(dataFlowId))
+                .post("/v1/dataflows/%s/terminate".formatted(dataFlowId))
                 .then()
                 .log().ifError()
                 .statusCode(anyOf(equalTo(200), equalTo(204)));
