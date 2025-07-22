@@ -28,6 +28,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM;
@@ -67,7 +68,7 @@ public class JsonObjectToDataAddressDspaceTransformer extends AbstractNamespaceA
             var name = transformString(jo.get(forNamespace(ENDPOINT_PROPERTY_NAME_PROPERTY_TERM)), context);
             var valueObj = jo.get(forNamespace(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM));
 
-            if (name.equals(EDC_DATA_ADDRESS_RESPONSE_CHANNEL)) {
+            if (EDC_DATA_ADDRESS_RESPONSE_CHANNEL.equals(name)) {
                 return new DspaceEndpointProperty(name, transformObject(valueObj, DataAddress.class, context));
             }
             return new DspaceEndpointProperty(name, transformString(valueObj, context));
