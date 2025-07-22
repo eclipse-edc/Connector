@@ -29,7 +29,6 @@ import java.util.Set;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
-import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.DSPACE_DATAADDRESS_TYPE_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY_TERM;
@@ -77,11 +76,12 @@ public class JsonObjectFromDataAddressDspaceTransformer extends AbstractNamespac
 
         if (value instanceof String stringVal) {
             builder.add(forNamespace(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM), stringVal);
+        } else if (value instanceof DataAddress dataAddress) {
+            var transformedAddress = context.transform(dataAddress, JsonObject.class);
+            builder.add(forNamespace(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM), transformedAddress);
         } else {
-            var complexValue = EDC_DATA_ADDRESS_RESPONSE_CHANNEL.equals(key) ? context.transform(value, JsonObject.class) :
-                    typeManager.getMapper(typeContext).convertValue(value, JsonObject.class);
-
-            builder.add(forNamespace(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM), complexValue);
+            var convertedValue = typeManager.getMapper(typeContext).convertValue(value, JsonObject.class);
+            builder.add(forNamespace(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM), convertedValue);
         }
 
         return builder.build();
