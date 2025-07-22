@@ -29,6 +29,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
 import static org.eclipse.edc.transform.transformer.TestInput.getExpanded;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.DSPACE_DATAADDRESS_TYPE_IRI;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY_IRI;
