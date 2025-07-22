@@ -18,6 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObjectBuilder;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +37,10 @@ import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSeri
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_IRI;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_PROPERTY_TYPE_IRI;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_TYPE_PROPERTY_IRI;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class JsonObjectToDataAddressDspaceTransformerTest {
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
@@ -60,6 +64,13 @@ class JsonObjectToDataAddressDspaceTransformerTest {
                 )
                 .build();
 
+        when(context.transform(any(), eq(DataAddress.class)))
+                .thenReturn(DataAddress.Builder.newInstance()
+                        .type("SomeType")
+                        .property("john", "doe")
+                        .property("internal", "prop")
+                        .build());
+
         var dataAddress = transformer.transform(getExpanded(jsonObj), context);
 
         assertThat(dataAddress).isNotNull();
@@ -68,6 +79,10 @@ class JsonObjectToDataAddressDspaceTransformerTest {
                 .containsEntry("authorization", "some-token")
                 .containsEntry("authType", "bearer")
                 .containsEntry("fizz", "buzz");
+        assertThat(dataAddress.getResponseChannel()).isNotNull();
+        assertThat(dataAddress.getResponseChannel().getProperties())
+                .containsEntry("john", "doe")
+                .containsEntry("internal", "prop");
     }
 
     private JsonObjectBuilder property(String key, String value) {
