@@ -4,8 +4,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  Release:
-    uses: eclipse-edc/.github/.github/workflows/core-release.yml@main
+
+  Run-Tests:
+    uses: ./.github/workflows/verify.yaml
     secrets: inherit
-    with:
-      publish-autodoc: true
+
+  Release:
+    needs: [ Run-Tests ]
+    uses: eclipse-edc/.github/.github/workflows/release.yml@main
+    secrets: inherit
