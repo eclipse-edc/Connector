@@ -15,9 +15,9 @@
 package org.eclipse.edc.connector.controlplane.api.client.transferprocess;
 
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -38,8 +38,8 @@ class EmbeddedTransferProcessHttpClientTest {
         void shouldCallService() {
             var serviceResult = ServiceResult.<Void>success();
             when(service.complete(any())).thenReturn(serviceResult);
-            var message = DataFlowStartMessage.Builder.newInstance().processId("any")
-                    .sourceDataAddress(DataAddress.Builder.newInstance().type("any").build()).build();
+            var message = DataFlow.Builder.newInstance().id("any")
+                    .source(DataAddress.Builder.newInstance().type("any").build()).build();
 
             var result = client.completed(message);
 
@@ -54,8 +54,8 @@ class EmbeddedTransferProcessHttpClientTest {
         void shouldCallService() {
             var serviceResult = ServiceResult.<Void>success();
             when(service.terminate(any())).thenReturn(serviceResult);
-            var message = DataFlowStartMessage.Builder.newInstance().processId("any")
-                    .sourceDataAddress(DataAddress.Builder.newInstance().type("any").build()).build();
+            var message = DataFlow.Builder.newInstance().id("any")
+                    .source(DataAddress.Builder.newInstance().type("any").build()).build();
 
             var result = client.failed(message, "any");
 
@@ -71,7 +71,7 @@ class EmbeddedTransferProcessHttpClientTest {
             var serviceResult = ServiceResult.<Void>success();
             when(service.completeProvision(any())).thenReturn(serviceResult);
 
-            var result = client.provisioned("anyId", DataAddress.Builder.newInstance().type("any").build());
+            var result = client.provisioned(DataFlow.Builder.newInstance().id("anyId").build());
 
             assertThat(result).isSucceeded();
             verify(service).completeProvision(any());

@@ -42,7 +42,12 @@ public class CompleteProvisionCommandHandler extends EntityCommandHandler<Comple
         if (command.getNewAddress() != null) {
             entity.updateDestination(command.getNewAddress());
         }
-        entity.transitionProvisioned();
+
+        if (entity.getType() == TransferProcess.Type.CONSUMER) {
+            entity.transitionProvisioned();
+        } else {
+            entity.transitionStarting();
+        }
         return true;
     }
 

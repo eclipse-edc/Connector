@@ -29,6 +29,7 @@ public enum TransferProcessStates {
     REQUESTING(400),
     REQUESTED(500),
     STARTING(550),
+    STARTUP_REQUESTED(570),
     STARTED(600),
     SUSPENDING(650),
     SUSPENDING_REQUESTED(675),

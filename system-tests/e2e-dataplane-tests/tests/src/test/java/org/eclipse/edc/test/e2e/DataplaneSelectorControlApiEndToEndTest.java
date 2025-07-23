@@ -15,13 +15,12 @@
 package org.eclipse.edc.test.e2e;
 
 import io.restassured.http.ContentType;
-import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
-import org.eclipse.edc.spi.protocol.ProtocolWebhook;
+import org.eclipse.edc.protocol.spi.ProtocolWebhook;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -32,12 +31,7 @@ import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.Mockito.mock;
 
 @EndToEndTest
@@ -99,27 +93,4 @@ public class DataplaneSelectorControlApiEndToEndTest {
         assertThat(result).hasSize(1);
     }
 
-    @Test
-    void shouldSelectDataPlane() {
-        var requestBody = Json.createObjectBuilder()
-                .add(CONTEXT, Json.createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
-                .add("source", Json.createObjectBuilder()
-                        .add("type", "HttpData"))
-                .add("transferType", "HttpData-PUSH")
-                .build();
-
-        await().untilAsserted(() -> {
-            given()
-                    .basePath("/control")
-                    .port(controlPort)
-                    .when()
-                    .contentType(ContentType.JSON)
-                    .body(requestBody)
-                    .post("/v1/dataplanes/select")
-                    .then()
-                    .statusCode(200)
-                    .contentType(ContentType.JSON)
-                    .body("@id", is(DATA_PLANE_ID));
-        });
-    }
 }

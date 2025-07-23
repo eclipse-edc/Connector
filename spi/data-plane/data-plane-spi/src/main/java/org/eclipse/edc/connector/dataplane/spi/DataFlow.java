@@ -43,6 +43,7 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.FAILED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONING;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISION_NOTIFYING;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISION_REQUESTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
@@ -56,6 +57,9 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
 public class DataFlow extends StatefulEntity<DataFlow> {
 
     public static final String TERMINATION_REASON = "terminationReason";
+    private static final String PARTICIPANT_ID_PROPERTY = "participantId";
+    private static final String ASSET_ID_PROPERTY = "assetId";
+    private static final String AGREEMENT_ID_PROPERTY = "agreementId";
     private DataAddress source;
     private DataAddress destination;
     private URI callbackAddress;
@@ -87,6 +91,21 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         return source;
     }
 
+    /**
+     * Returns the actual source address that it could have been provisioned and being different from the original sent
+     * by the control-plane
+     *
+     * @return the actual data source.
+     */
+    public DataAddress getActualSource() {
+        var provisioned = provisionedDataAddress();
+        if (provisioned != null) {
+            return provisioned;
+        }
+
+        return source;
+    }
+
     public DataAddress getDestination() {
         return destination;
     }
@@ -110,7 +129,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     public DataFlowStartMessage toRequest() {
         return DataFlowStartMessage.Builder.newInstance()
                 .id(getId())
-                .sourceDataAddress(getSource())
+                .sourceDataAddress(getActualSource())
                 .destinationDataAddress(getDestination())
                 .processId(getId())
                 .callbackAddress(getCallbackAddress())
@@ -122,6 +141,14 @@ public class DataFlow extends StatefulEntity<DataFlow> {
 
     public void transitionToProvisioning() {
         transitionTo(PROVISIONING.code());
+    }
+
+    public void transitionToProvisionNotifying() {
+        transitionTo(PROVISION_NOTIFYING.code());
+    }
+
+    public void transitionToProvisioned() {
+        transitionTo(PROVISIONED.code());
     }
 
     public void transitionToDeprovisioning() {
@@ -142,7 +169,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         transitionTo(FAILED.code());
     }
 
-    public void transitToNotified() {
+    public void transitionToNotified() {
         transitionTo(NOTIFIED.code());
     }
 
@@ -175,11 +202,11 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     }
 
     public boolean isProvisionCompleted() {
-        return resourceDefinitions.stream().allMatch(ProvisionResource::isProvisioned);
+        return resourceDefinitions.isEmpty() || resourceDefinitions.stream().allMatch(ProvisionResource::isProvisioned);
     }
 
     public boolean isProvisionRequested() {
-        return resourceDefinitions.stream().anyMatch(ProvisionResource::isProvisionRequested);
+        return resourceDefinitions.stream().filter(it -> !it.isProvisioned()).allMatch(ProvisionResource::isProvisionRequested);
     }
 
     public boolean isDeprovisionCompleted() {
@@ -187,7 +214,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     }
 
     public boolean isDeprovisionRequested() {
-        return resourceDefinitions.stream().allMatch(ProvisionResource::isDeprovisionRequested);
+        return resourceDefinitions.stream().filter(it -> !it.isDeprovisioned()).allMatch(ProvisionResource::isDeprovisionRequested);
     }
 
     public List<ProvisionResource> resourcesToBeProvisioned() {
@@ -207,7 +234,7 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         });
 
         if (isProvisionCompleted()) {
-            transitionTo(PROVISIONED.code());
+            transitionTo(PROVISION_NOTIFYING.code());
         } else if (isProvisionRequested()) {
             transitionTo(PROVISION_REQUESTED.code());
         }
@@ -232,9 +259,26 @@ public class DataFlow extends StatefulEntity<DataFlow> {
     public DataAddress provisionedDataAddress() {
         return resourceDefinitions.stream()
                 .map(ProvisionResource::getProvisionedResource)
+                .filter(Objects::nonNull)
                 .map(ProvisionedResource::getDataAddress)
                 .filter(Objects::nonNull)
                 .findFirst().orElse(null);
+    }
+
+    public boolean isConsumer() {
+        return source == null;
+    }
+
+    public String getParticipantId() {
+        return properties.get(PARTICIPANT_ID_PROPERTY);
+    }
+
+    public String getAssetId() {
+        return properties.get(ASSET_ID_PROPERTY);
+    }
+
+    public String getAgreementId() {
+        return properties.get(AGREEMENT_ID_PROPERTY);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -297,6 +341,21 @@ public class DataFlow extends StatefulEntity<DataFlow> {
 
         public Builder resourceDefinitions(List<ProvisionResource> resourceDefinitions) {
             entity.resourceDefinitions.addAll(resourceDefinitions);
+            return this;
+        }
+
+        public Builder participantId(String participantId) {
+            entity.properties.put(PARTICIPANT_ID_PROPERTY, participantId);
+            return this;
+        }
+
+        public Builder assetId(String assetId) {
+            entity.properties.put(ASSET_ID_PROPERTY, assetId);
+            return this;
+        }
+
+        public Builder agreementId(String agreementId) {
+            entity.properties.put(AGREEMENT_ID_PROPERTY, agreementId);
             return this;
         }
     }

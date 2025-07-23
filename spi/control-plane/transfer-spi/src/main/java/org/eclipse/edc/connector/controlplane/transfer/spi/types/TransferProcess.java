@@ -62,6 +62,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING_REQUESTED;
@@ -287,18 +288,17 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public void transitionStarting() {
-        transition(STARTING, PROVISIONED, STARTING, SUSPENDED);
+        transition(STARTING, PROVISIONED, STARTING, SUSPENDED, STARTUP_REQUESTED);
     }
 
     public boolean canBeStartedConsumer() {
         return currentStateIsOneOf(STARTED, REQUESTED, STARTING, RESUMED, SUSPENDED);
     }
 
-    public void transitionStarted(String dataPlaneId) {
+    public void transitionStarted() {
         if (type == CONSUMER) {
             transition(STARTED, state -> canBeStartedConsumer());
         } else {
-            this.dataPlaneId = dataPlaneId;
             transition(STARTED, STARTED, STARTING, SUSPENDED, RESUMING);
         }
     }
@@ -308,14 +308,17 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public void transitionCompleting() {
+        this.errorDetail = null;
         transition(COMPLETING, state -> canBeCompleted());
     }
 
     public void transitionCompletingRequested() {
+        this.errorDetail = null;
         transition(COMPLETING_REQUESTED, state -> canBeCompleted());
     }
 
     public void transitionCompleted() {
+        this.errorDetail = null;
         transition(COMPLETED, COMPLETED, COMPLETING, COMPLETING_REQUESTED, STARTED);
     }
 
@@ -342,8 +345,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     public boolean canBeTerminated() {
         return currentStateIsOneOf(INITIAL, PROVISIONING, PROVISIONING_REQUESTED, PROVISIONED, REQUESTING, REQUESTED,
-                STARTING, STARTED, COMPLETING, COMPLETING_REQUESTED, SUSPENDING, SUSPENDING_REQUESTED, SUSPENDED,
-                RESUMING, TERMINATING, TERMINATING_REQUESTED);
+                STARTING, STARTUP_REQUESTED, STARTED, COMPLETING, COMPLETING_REQUESTED, SUSPENDING, SUSPENDING_REQUESTED,
+                SUSPENDED, RESUMING, TERMINATING, TERMINATING_REQUESTED);
     }
 
     public void transitionTerminating(@Nullable String errorDetail) {
@@ -406,6 +409,10 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     public void transitionSuspended() {
         transition(SUSPENDED, state -> canBeSuspended());
+    }
+
+    public void transitionStartupRequested() {
+        transition(STARTUP_REQUESTED, STARTING);
     }
 
     public boolean currentStateIsOneOf(TransferProcessStates... states) {

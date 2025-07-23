@@ -34,8 +34,6 @@ public interface PropertyAndTypeNames {
     String DCAT_CATALOG_ATTRIBUTE = DCAT_SCHEMA + "catalog";
     String DCAT_DISTRIBUTION_ATTRIBUTE = DCAT_SCHEMA + "distribution";
     String DCAT_ACCESS_SERVICE_ATTRIBUTE = DCAT_SCHEMA + "accessService";
-    @Deprecated(since = "0.10.0")
-    String DCAT_ENDPOINT_URL_OLD_ATTRIBUTE = DCAT_SCHEMA + "endpointUrl";
     String DCAT_ENDPOINT_URL_ATTRIBUTE = DCAT_SCHEMA + "endpointURL";
     String DCAT_ENDPOINT_DESCRIPTION_ATTRIBUTE = DCAT_SCHEMA + "endpointDescription";
 
@@ -77,5 +75,6 @@ public interface PropertyAndTypeNames {
     String ODRL_USE_ACTION_ATTRIBUTE = ODRL_SCHEMA + "use";
     String ODRL_PROFILE_ATTRIBUTE = ODRL_SCHEMA + "profile";
     String DSPACE_PROPERTY_PARTICIPANT_ID_TERM = "participantId";
+    @Deprecated(since = "0.14.0")
     String DSPACE_PROPERTY_PARTICIPANT_ID_IRI = DSPACE_SCHEMA + DSPACE_PROPERTY_PARTICIPANT_ID_TERM;
 }

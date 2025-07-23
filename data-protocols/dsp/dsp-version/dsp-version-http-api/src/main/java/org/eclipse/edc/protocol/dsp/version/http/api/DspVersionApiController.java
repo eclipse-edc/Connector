@@ -15,42 +15,66 @@
 
 package org.eclipse.edc.protocol.dsp.version.http.api;
 
+import jakarta.json.JsonObject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersions;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionsError;
-import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
-import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+
+import java.util.List;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 
 @Produces(APPLICATION_JSON)
 @Path("/.well-known/dspace-version")
 public class DspVersionApiController {
 
-    private final DspRequestHandler requestHandler;
     private final VersionProtocolService service;
+    private final TypeTransformerRegistry transformerRegistry;
 
-    public DspVersionApiController(DspRequestHandler requestHandler, VersionProtocolService service) {
-        this.requestHandler = requestHandler;
+    public DspVersionApiController(VersionProtocolService service, TypeTransformerRegistry transformerRegistry) {
         this.service = service;
+        this.transformerRegistry = transformerRegistry;
     }
-    
+
     @GET
     public Response getProtocolVersions() {
-        var request = GetDspRequest.Builder.newInstance(ProtocolVersions.class, VersionsError.class)
-                .token(null)
-                .authRequired(false)
-                .serviceCall((id, tokenRepresentation) -> service.getAll())
-                .protocol(DATASPACE_PROTOCOL_HTTP)
-                .errorProvider(VersionsError.Builder::newInstance)
-                .build();
+        var result = service.getAll();
+        if (result.failed()) {
+            return badRequest(result.getFailureMessages());
+        }
+        var protocolVersions = result.getContent();
+        var body = transformerRegistry.transform(protocolVersions, JsonObject.class);
 
-        return requestHandler.getResource(request);
+        if (body.failed()) {
+            return internalServerError(body.getFailureMessages());
+        }
+        return Response.status(Response.Status.OK)
+                .entity(body.getContent())
+                .build();
+    }
+
+    private Response badRequest(List<String> messages) {
+        return errorResponse(Response.Status.BAD_REQUEST, messages);
+    }
+
+    private Response internalServerError(List<String> messages) {
+        return errorResponse(Response.Status.INTERNAL_SERVER_ERROR, messages);
+    }
+
+
+    private Response errorResponse(Response.Status status, List<String> messages) {
+        var error = VersionsError.Builder.newInstance().code(status.toString()).messages(messages).build();
+        var body = transformerRegistry.transform(error, JsonObject.class)
+                .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
+
+        return Response.status(status)
+                .entity(body)
+                .build();
     }
 
 }

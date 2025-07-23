@@ -46,7 +46,7 @@ public class ProvisionedResource {
 
     public static class Builder {
 
-        private ProvisionedResource resource;
+        private final ProvisionedResource resource;
 
         public static Builder newInstance() {
             return new Builder();

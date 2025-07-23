@@ -27,6 +27,7 @@ dependencies {
     testRuntimeOnly(libs.dsp.tck.transferprocess)
     testRuntimeOnly(libs.dsp.tck.contractnegotiation)
     testImplementation(libs.junit.platform.launcher)
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
     runtimeOnly(libs.parsson)
 }
 

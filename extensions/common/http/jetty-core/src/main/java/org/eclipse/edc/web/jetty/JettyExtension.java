@@ -25,7 +25,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
-import org.eclipse.edc.web.spi.configuration.WebServiceConfigurer;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -40,16 +39,11 @@ public class JettyExtension implements ServiceExtension {
     private static final String DEFAULT_PATH = "/api";
     private static final String DEFAULT_CONTEXT_NAME = "default";
     private static final int DEFAULT_PORT = 8181;
-    @Deprecated(since = "0.11.0")
-    private static final String DEPRECATED_SETTING_PATH = "web.http.default";
 
     @Configuration
     private JettyConfiguration jettyConfiguration;
     @Configuration
     private DefaultApiConfiguration apiConfiguration;
-    @Deprecated(since = "0.11.0")
-    @Configuration
-    private DeprecatedDefaultApiConfiguration deprecatedApiConfiguration;
 
     @Setting(key = "edc.web.https.keystore.path", description = "Keystore path", required = false)
     private String keystorePath;
@@ -68,13 +62,7 @@ public class JettyExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
-        var deprecatedConfig = context.getConfig().getConfig(DEPRECATED_SETTING_PATH);
-        if (deprecatedConfig.getRelativeEntries().isEmpty()) {
-            portMappingRegistry.register(new PortMapping(DEFAULT_CONTEXT_NAME, apiConfiguration.port(), apiConfiguration.path()));
-        } else {
-            monitor.warning("Config group %s has been deprecated, please configure the default api context under web.http".formatted(DEPRECATED_SETTING_PATH));
-            portMappingRegistry.register(new PortMapping(DEFAULT_CONTEXT_NAME, deprecatedApiConfiguration.port(), deprecatedApiConfiguration.path()));
-        }
+        portMappingRegistry.register(new PortMapping(DEFAULT_CONTEXT_NAME, apiConfiguration.port(), apiConfiguration.path()));
 
         KeyStore ks = null;
 
@@ -107,12 +95,6 @@ public class JettyExtension implements ServiceExtension {
     }
 
     @Provider
-    @Deprecated(since = "0.11.0")
-    public WebServiceConfigurer webServiceContextConfigurator(ServiceExtensionContext context) {
-        return new WebServiceConfigurerImpl(context.getMonitor(), portMappingRegistry);
-    }
-
-    @Provider
     public PortMappingRegistry portMappings() {
         return portMappingRegistry;
     }
@@ -122,19 +104,6 @@ public class JettyExtension implements ServiceExtension {
             @Setting(key = "web.http.port", description = "Port for default api context", defaultValue = DEFAULT_PORT + "")
             int port,
             @Setting(key = "web.http.path", description = "Path for default api context", defaultValue = DEFAULT_PATH)
-            String path
-    ) {
-
-    }
-
-    @Settings
-    @Deprecated(since = "0.11.0")
-    record DeprecatedDefaultApiConfiguration(
-            @Deprecated(since = "0.11.0")
-            @Setting(key = "web.http.default.port", description = "Port for default api context", defaultValue = DEFAULT_PORT + "")
-            int port,
-            @Deprecated(since = "0.11.0")
-            @Setting(key = "web.http.default.path", description = "Path for default api context", defaultValue = DEFAULT_PATH)
             String path
     ) {
 

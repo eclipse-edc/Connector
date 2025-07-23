@@ -51,6 +51,7 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
     public static final String PROPERTIES = EDC_NAMESPACE + "properties";
     public static final String ALLOWED_TRANSFER_TYPES = EDC_NAMESPACE + "allowedTransferTypes";
     public static final String ALLOWED_SOURCE_TYPES = EDC_NAMESPACE + "allowedSourceTypes";
+    public static final String DESTINATION_PROVISION_TYPES = EDC_NAMESPACE + "destinationProvisionTypes";
     @Deprecated(since = "management-api:v3")
     public static final String ALLOWED_DEST_TYPES = EDC_NAMESPACE + "allowedDestTypes";
 

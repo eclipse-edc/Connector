@@ -39,18 +39,11 @@ public class BaseSqlDataPlaneInstanceStatements implements DataPlaneInstanceStat
     }
 
     @Override
-    public String getInsertTemplate() {
+    public String getUpsertTemplate() {
         return executeStatement()
                 .column(getIdColumn())
                 .jsonColumn(getDataColumn())
-                .insertInto(getDataPlaneInstanceTable());
-    }
-
-    @Override
-    public String getUpdateTemplate() {
-        return executeStatement()
-                .jsonColumn(getDataColumn())
-                .update(getDataPlaneInstanceTable(), getIdColumn());
+                .upsertInto(getDataPlaneInstanceTable(), getIdColumn());
     }
 
     @Override

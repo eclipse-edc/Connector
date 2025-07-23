@@ -44,6 +44,7 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.Test;
@@ -65,9 +66,9 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_ODRL_PROFILE_2025_1;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2025_1;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE_V_2025_1;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT_V_2025_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_SCOPE_V_2025_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_TRANSFORMER_CONTEXT_V_2025_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_STATE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_PROCESS_TERM;
@@ -77,7 +78,9 @@ import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.contractAg
 import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.contractNegotiationEventObject;
 import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.contractNegotiationTerminationObject;
 import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.contractOfferObject;
+import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.contractOfferObjectWithConsumerPid;
 import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.contractRequestObject;
+import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.contractRequestObjectWithProviderPid;
 import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.errorObject;
 import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.inForceDatePolicy;
 import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.transferCompletionObject;
@@ -332,7 +335,9 @@ public class DspSerdeEndToEndTest {
                     Arguments.of(transferTerminationObject(), TransferTerminationMessage.class, skipForTermination),
                     Arguments.of(transferSuspensionObject(), TransferSuspensionMessage.class, skip),
                     Arguments.of(contractRequestObject(), ContractRequestMessage.class, skip),
+                    Arguments.of(contractRequestObjectWithProviderPid(), ContractRequestMessage.class, skip),
                     Arguments.of(contractOfferObject(), ContractOfferMessage.class, skip),
+                    Arguments.of(contractOfferObjectWithConsumerPid(), ContractOfferMessage.class, skip),
                     Arguments.of(contractAgreementObject(), ContractAgreementMessage.class, skip),
                     Arguments.of(contractAgreementVerificationObject(), ContractAgreementVerificationMessage.class, skip),
                     Arguments.of(contractNegotiationEventObject("ACCEPTED"), ContractNegotiationEventMessage.class, skip),
@@ -365,9 +370,8 @@ public class DspSerdeEndToEndTest {
             var managementPort = getFreePort();
             var protocolPort = getFreePort();
 
-            var runtime = new EmbeddedRuntime(
-                    "control-plane",
-                    new HashMap<>() {
+            var runtime = new EmbeddedRuntime("control-plane", ":system-tests:management-api:management-api-test-runtime")
+                    .configurationProvider(() -> ConfigFactory.fromMap(new HashMap<>() {
                         {
                             put("web.http.path", "/");
                             put("web.http.port", String.valueOf(getFreePort()));
@@ -380,9 +384,7 @@ public class DspSerdeEndToEndTest {
                             put("edc.dsp.context.enabled", "true");
                             put("edc.dsp.management.enabled", "true");
                         }
-                    },
-                    ":system-tests:management-api:management-api-test-runtime"
-            );
+                    }));
 
             return new ManagementEndToEndTestContext(runtime);
         }

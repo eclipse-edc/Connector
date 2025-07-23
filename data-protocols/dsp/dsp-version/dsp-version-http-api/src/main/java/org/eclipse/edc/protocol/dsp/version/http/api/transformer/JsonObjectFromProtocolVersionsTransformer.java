@@ -16,7 +16,7 @@ package org.eclipse.edc.protocol.dsp.version.http.api.transformer;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersions;
+import org.eclipse.edc.protocol.spi.ProtocolVersions;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.transform.spi.TypeTransformer;
 import org.jetbrains.annotations.NotNull;

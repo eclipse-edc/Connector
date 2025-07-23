@@ -51,7 +51,7 @@ public interface ContractNegotiationApiV3 {
                     @ApiResponse(responseCode = "200", description = "The contract negotiations that match the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ManagementApiSchema.ContractNegotiationSchema.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))) }
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))}
     )
     JsonArray queryNegotiationsV3(JsonObject querySpecJson);
 
@@ -118,6 +118,20 @@ public interface ContractNegotiationApiV3 {
             }
     )
     void terminateNegotiationV3(String id, JsonObject terminateNegotiation);
+
+    @Operation(description = "Deletes the contract negotiation with the given ID. Only terminated negotiations without agreement will be deleted",
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "ContractNegotiation is deleted",
+                            links = @Link(name = "poll-state", operationId = "getNegotiationStateV3")),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                    @ApiResponse(responseCode = "404", description = "A contract negotiation with the given ID does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                    @ApiResponse(responseCode = "409", description = "The given contract negotiation cannot be deleted due to a wrong state or has existing contract agreement",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+            }
+    )
+    void deleteNegotiationV3(String id);
 
     @Schema(name = "ContractRequest", example = ContractRequestSchema.CONTRACT_REQUEST_EXAMPLE)
     record ContractRequestSchema(

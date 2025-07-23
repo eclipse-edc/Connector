@@ -43,7 +43,9 @@ import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.AGREED;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -189,6 +191,34 @@ public class ContractNegotiationApiEndToEndTest {
                     .statusCode(204);
         }
 
+        @Test
+        void deleteNegotiation_shouldSucceed(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1")
+                    .state(TERMINATED.code()).build());
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .delete("/v3/contractnegotiations/cn1")
+                    .then()
+                    .statusCode(204);
+
+            assertThat(store.findById("cn1")).isNull();
+        }
+
+        @Test
+        void deleteNegotiation_shouldFailDueToWrongState(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
+            store.save(createContractNegotiationBuilder("cn1")
+                    .state(AGREED.code()).build());
+
+            context.baseRequest()
+                    .contentType(JSON)
+                    .delete("/v3/contractnegotiations/cn1")
+                    .then()
+                    .statusCode(409);
+
+            assertThat(store.findById("cn1")).isNotNull();
+        }
+
         private ContractNegotiation.Builder createContractNegotiationBuilder(String negotiationId) {
             return ContractNegotiation.Builder.newInstance()
                     .id(negotiationId)
@@ -250,7 +280,8 @@ public class ContractNegotiationApiEndToEndTest {
     @Nested
     @EndToEndTest
     @ExtendWith(ManagementEndToEndExtension.InMemory.class)
-    class InMemory extends Tests { }
+    class InMemory extends Tests {
+    }
 
     @Nested
     @PostgresqlIntegrationTest

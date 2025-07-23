@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
@@ -40,6 +41,7 @@ import java.util.List;
 
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createObjectBuilder;
+import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.edc.api.model.IdResponse.ID_RESPONSE_TYPE;
 import static org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState.NEGOTIATION_STATE_TYPE;
@@ -445,6 +447,45 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
 
         verify(validatorRegistry).validate(eq(TERMINATE_NEGOTIATION_TYPE), any());
         verifyNoInteractions(transformerRegistry, service);
+    }
+
+    @Test
+    void delete_shouldCallService() {
+        when(service.delete(any())).thenReturn(ServiceResult.success());
+
+        baseRequest()
+                .contentType(JSON)
+                .delete("/cn1")
+                .then()
+                .statusCode(204);
+
+        verify(service).delete("cn1");
+    }
+
+    @Test
+    void delete_shouldFailDueToWrongState() {
+        when(service.delete(any())).thenReturn(ServiceResult.conflict(format("Cannot delete negotiation in state: %s".formatted(ContractNegotiationStates.AGREED.name()))));
+
+        baseRequest()
+                .contentType(JSON)
+                .delete("/cn1")
+                .then()
+                .statusCode(409);
+
+        verify(service).delete("cn1");
+    }
+
+    @Test
+    void delete_shouldFailDueToNegotiationNotFound() {
+        when(service.delete(any())).thenReturn(ServiceResult.notFound("ContractNegotiation negotiationId not found"));
+
+        baseRequest()
+                .contentType(JSON)
+                .delete("/cn1")
+                .then()
+                .statusCode(404);
+
+        verify(service).delete("cn1");
     }
 
     protected abstract RequestSpecification baseRequest();

@@ -19,6 +19,7 @@ plugins {
 
 dependencies {
     api(project(":data-protocols:dsp:dsp-spi"))
+    api(project(":data-protocols:dsp:dsp-2024:dsp-spi-2024"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:web-spi"))

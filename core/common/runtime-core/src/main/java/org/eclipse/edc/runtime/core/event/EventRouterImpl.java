@@ -21,6 +21,7 @@ import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.monitor.Monitor;
 
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,10 +40,12 @@ public class EventRouterImpl implements EventRouter {
 
     private final Monitor monitor;
     private final ExecutorService executor;
+    private final Clock clock;
 
-    public EventRouterImpl(Monitor monitor, ExecutorService executor) {
+    public EventRouterImpl(Monitor monitor, ExecutorService executor, Clock clock) {
         this.monitor = monitor;
         this.executor = executor;
+        this.clock = clock;
     }
 
     @Override
@@ -54,17 +57,27 @@ public class EventRouterImpl implements EventRouter {
     public <E extends Event> void register(Class<E> eventKind, EventSubscriber subscriber) {
         subscribers.computeIfAbsent(eventKind, s -> new ArrayList<>()).add(subscriber);
     }
-    
-    @Override
-    public <E extends Event> void publish(EventEnvelope<E> event) {
-        subscriberFor(event, this::getSyncSubscribers).forEach(subscriber -> subscriber.on(event));
 
-        subscriberFor(event, this::getSubscribers)
-                .map(subscriber -> runAsync(() -> subscriber.on(event), executor).thenApply(v -> subscriber))
+    @Override
+    public <E extends Event> void publish(E event) {
+        var envelope = EventEnvelope.Builder.newInstance()
+                .payload(event)
+                .at(clock.millis())
+                .build();
+
+        publish(envelope);
+    }
+
+    @Override
+    public <E extends Event> void publish(EventEnvelope<E> eventEnvelope) {
+        subscriberFor(eventEnvelope, this::getSyncSubscribers).forEach(subscriber -> subscriber.on(eventEnvelope));
+
+        subscriberFor(eventEnvelope, this::getSubscribers)
+                .map(subscriber -> runAsync(() -> subscriber.on(eventEnvelope), executor).thenApply(v -> subscriber))
                 .forEach(future -> future.whenComplete((subscriber, throwable) -> {
                     if (throwable != null) {
                         var subscriberName = subscriber.getClass().getSimpleName();
-                        var eventName = event.getClass().getSimpleName();
+                        var eventName = eventEnvelope.getClass().getSimpleName();
                         monitor.severe(format("Subscriber %s failed to handle event %s", subscriberName, eventName), throwable);
                     }
                 }));

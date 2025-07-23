@@ -17,9 +17,9 @@ package org.eclipse.edc.protocol.dsp.http.serialization;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.protocol.dsp.http.spi.DspProtocolParser;
 import org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
@@ -39,16 +39,16 @@ public class JsonLdRemoteMessageSerializerImpl implements JsonLdRemoteMessageSer
     private final JsonLd jsonLdService;
     private final String scopePrefix;
     private final DspProtocolTypeTransformerRegistry dspTransformerRegistry;
-    private final DspProtocolParser protocolParser;
+    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
 
     public JsonLdRemoteMessageSerializerImpl(DspProtocolTypeTransformerRegistry dspTransformerRegistry,
-                                             TypeManager typeManager, String typeContext, JsonLd jsonLdService, DspProtocolParser protocolParser, String scopePrefix) {
+                                             TypeManager typeManager, String typeContext, JsonLd jsonLdService, DataspaceProfileContextRegistry dataspaceProfileContextRegistry, String scopePrefix) {
         this.dspTransformerRegistry = dspTransformerRegistry;
         this.typeManager = typeManager;
         this.typeContext = typeContext;
         this.jsonLdService = jsonLdService;
         this.scopePrefix = scopePrefix;
-        this.protocolParser = protocolParser;
+        this.dataspaceProfileContextRegistry = dataspaceProfileContextRegistry;
     }
 
     /**
@@ -72,8 +72,12 @@ public class JsonLdRemoteMessageSerializerImpl implements JsonLdRemoteMessageSer
             var transformResult = transformerRegistry.transform(message, JsonObject.class);
 
             if (transformResult.succeeded()) {
-                var compacted = protocolParser.parse(message.getProtocol())
-                        .compose(protocol -> jsonLdService.compact(transformResult.getContent(), scopePrefix + DSP_CONTEXT_SEPARATOR + protocol.version()));
+
+                var protocolVersion = dataspaceProfileContextRegistry.getProtocolVersion(message.getProtocol());
+                if (protocolVersion == null) {
+                    throw new EdcException(format("No protocol version found for protocol: %s", message.getProtocol()));
+                }
+                var compacted = jsonLdService.compact(transformResult.getContent(), scopePrefix + DSP_CONTEXT_SEPARATOR + protocolVersion.version());
                 if (compacted.succeeded()) {
                     return typeManager.getMapper(typeContext).writeValueAsString(compacted.getContent());
                 }

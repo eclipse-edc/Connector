@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.transform.transformer.edc.to;
 
-import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
@@ -23,8 +22,8 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static jakarta.json.JsonValue.ValueType.STRING;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
 
 
 /**
@@ -47,23 +46,17 @@ public class JsonObjectToDataAddressTransformer extends AbstractJsonLdTransforme
     }
 
     private void transformProperties(String key, JsonValue jsonValue, DataAddress.Builder builder, TransformerContext context) {
-        if ((PROPERTIES_KEY).equals(key) && jsonValue instanceof JsonArray) {
-            var props = jsonValue.asJsonArray().getJsonObject(0);
-            visitProperties(props, (k, val) -> transformProperties(k, val, builder, context));
+        var firstValue = returnJsonObject(jsonValue, context, key, true);
+
+        if (firstValue != null && PROPERTIES_KEY.equals(key)) {
+            visitProperties(firstValue, (k, val) -> transformProperties(k, val, builder, context));
+        } else if (firstValue != null && EDC_DATA_ADDRESS_RESPONSE_CHANNEL.equals(key)) {
+            builder.responseChannel(transformObject(firstValue, DataAddress.class, context));
         } else {
-            var object = transformGenericProperty(jsonValue, context);
-            if (object instanceof String) {
-                builder.property(key, object.toString());
-            } else {
-                context.problem()
-                        .unexpectedType()
-                        .type("property")
-                        .property(key)
-                        .actual(object == null ? "null" : object.toString())
-                        .expected(STRING)
-                        .report();
-            }
+            builder.property(key, transformGenericProperty(jsonValue, context));
         }
 
     }
+
+
 }

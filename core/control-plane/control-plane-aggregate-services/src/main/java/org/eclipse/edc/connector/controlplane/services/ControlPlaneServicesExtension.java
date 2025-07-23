@@ -55,7 +55,6 @@ import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.C
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
@@ -74,6 +73,7 @@ import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPoli
 import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestVersionPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -102,7 +102,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Control Plane Services";
 
-    @Setting(description = "If true enables the policy validation when creating and updating policy definitions", defaultValue = "false", key = "edc.policy.validation.enabled")
+    @Setting(description = "If true enables the policy validation when creating and updating policy definitions", defaultValue = "true", key = "edc.policy.validation.enabled")
     private Boolean validatePolicy;
 
     @Inject
@@ -182,7 +182,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     private ProtocolTokenValidator protocolTokenValidator;
 
     @Inject
-    private ProtocolVersionRegistry protocolVersionRegistry;
+    private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
 
     @Inject
     private TransferTypeParser transferTypeParser;
@@ -203,7 +203,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public AssetService assetService() {
         var assetObservable = new AssetObservableImpl();
-        assetObservable.registerListener(new AssetEventListener(clock, eventRouter));
+        assetObservable.registerListener(new AssetEventListener(eventRouter));
         return new AssetServiceImpl(assetIndex, contractNegotiationStore, transactionContext, assetObservable,
                 dataAddressValidator, new AssetQueryValidator());
     }
@@ -211,7 +211,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public SecretService secretService() {
         var secretObservable = new SecretObservableImpl();
-        secretObservable.registerListener(new SecretEventListener(clock, eventRouter));
+        secretObservable.registerListener(new SecretEventListener(eventRouter));
         return new SecretServiceImpl(vault, secretObservable);
     }
 
@@ -234,7 +234,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public ContractDefinitionService contractDefinitionService() {
         var contractDefinitionObservable = new ContractDefinitionObservableImpl();
-        contractDefinitionObservable.registerListener(new ContractDefinitionEventListener(clock, eventRouter));
+        contractDefinitionObservable.registerListener(new ContractDefinitionEventListener(eventRouter));
         return new ContractDefinitionServiceImpl(contractDefinitionStore, transactionContext, contractDefinitionObservable, QueryValidators.contractDefinition());
     }
 
@@ -254,7 +254,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public PolicyDefinitionService policyDefinitionService() {
         var policyDefinitionObservable = new PolicyDefinitionObservableImpl();
-        policyDefinitionObservable.registerListener(new PolicyDefinitionEventListener(clock, eventRouter));
+        policyDefinitionObservable.registerListener(new PolicyDefinitionEventListener(eventRouter));
         return new PolicyDefinitionServiceImpl(transactionContext, policyDefinitionStore, contractDefinitionStore,
                 policyDefinitionObservable, policyEngine, QueryValidators.policyDefinition(), validatePolicy);
     }
@@ -283,7 +283,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Provider
     public VersionProtocolService versionProtocolService() {
-        return new VersionProtocolServiceImpl(protocolVersionRegistry);
+        return new VersionProtocolServiceImpl(dataspaceProfileContextRegistry);
     }
 
     @Provider

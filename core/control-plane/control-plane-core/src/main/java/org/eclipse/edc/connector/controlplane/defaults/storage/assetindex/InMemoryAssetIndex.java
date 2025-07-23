@@ -19,10 +19,8 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.List;
@@ -55,8 +53,8 @@ public class InMemoryAssetIndex implements AssetIndex {
     public Stream<Asset> queryAssets(QuerySpec querySpec) {
         lock.readLock().lock();
         try {
-            var comparator = querySpec.getSortField() == null
-                    ? (Comparator<Asset>) (o1, o2) -> 0
+            Comparator<Asset> comparator = querySpec.getSortField() == null
+                    ? (o1, o2) -> 0
                     : new AssetComparator(querySpec.getSortField(), querySpec.getSortOrder());
 
             return filterBy(querySpec.getFilterExpression())
@@ -121,7 +119,7 @@ public class InMemoryAssetIndex implements AssetIndex {
             Objects.requireNonNull(asset, "asset");
             Objects.requireNonNull(id, "assetId");
             if (cache.containsKey(id)) {
-                cache.put(id, asset);
+                add(asset, asset.getDataAddress());
                 return StoreResult.success(asset);
             }
             return StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, id));
@@ -166,21 +164,4 @@ public class InMemoryAssetIndex implements AssetIndex {
         dataAddresses.put(id, address);
     }
 
-    private record AssetComparator(String sortField, SortOrder sortOrder) implements Comparator<Asset> {
-
-        @Override
-        public int compare(Asset asset1, Asset asset2) {
-            var f1 = asComparable(asset1.getPropertyOrPrivate(sortField));
-            var f2 = asComparable(asset2.getPropertyOrPrivate(sortField));
-
-            if (f1 == null || f2 == null) {
-                throw new IllegalArgumentException(format("Cannot sort by field %s, it does not exist on one or more Assets", sortField));
-            }
-            return sortOrder == SortOrder.ASC ? f1.compareTo(f2) : f2.compareTo(f1);
-        }
-
-        private @Nullable Comparable<Object> asComparable(Object property) {
-            return property instanceof Comparable ? (Comparable<Object>) property : null;
-        }
-    }
 }

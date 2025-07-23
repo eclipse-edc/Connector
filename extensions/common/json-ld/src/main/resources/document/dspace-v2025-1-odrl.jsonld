@@ -55,7 +55,8 @@
     "Duty": "odrl:Duty",
     "duty": {
       "@type": "@id",
-      "@id": "odrl:duty"
+      "@id": "odrl:duty",
+      "@container": "@set"
     },
     "Constraint": "odrl:Constraint",
     "constraint": {

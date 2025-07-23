@@ -26,13 +26,15 @@ import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFa
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -135,7 +137,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .properties(propertiesResult.getContent())
                 .build();
 
-        var selection = selectorClient.select(transferProcess.getContentDataAddress(), transferProcess.getTransferType(), selectionStrategy);
+        var selection = selectorClient.select(selectionStrategy, dataPlane -> dataPlane.canHandle(transferProcess.getContentDataAddress(), transferProcess.getTransferType()));
         if (!selection.succeeded()) {
             return StatusResult.failure(FATAL_ERROR, selection.getFailureDetail());
         }
@@ -178,16 +180,27 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
 
     @Override
     public Set<String> transferTypesFor(Asset asset) {
-        var result = selectorClient.getAll();
-        if (result.failed()) {
+        var allDataPlanes = selectorClient.getAll();
+        if (allDataPlanes.failed()) {
             return emptySet();
         }
 
-        return result.getContent().stream()
-                .filter(it -> it.getAllowedSourceTypes().contains(asset.getDataAddress().getType()))
-                .map(DataPlaneInstance::getAllowedTransferTypes)
-                .flatMap(Collection::stream)
+        var assetDataAddress = asset.getDataAddress();
+        var expectedResponseChannelType = Optional.ofNullable(assetDataAddress.getResponseChannel())
+                .map(DataAddress::getType)
+                .orElse(null);
+
+        return allDataPlanes.getContent().stream()
+                .filter(dataPlane -> dataPlane.getAllowedSourceTypes().contains(assetDataAddress.getType()))
+                .flatMap(dataPlane -> dataPlane.getAllowedTransferTypes().stream())
+                .filter(transferType -> isCompatibleTransferType(transferType, expectedResponseChannelType))
                 .collect(toSet());
+    }
+
+    private boolean isCompatibleTransferType(String transferType, @Nullable String expectedResponseChannelType) {
+        return transferTypeParser.parse(transferType)
+                .map(allowedType -> Objects.equals(allowedType.responseChannelType(), expectedResponseChannelType))
+                .orElse(failure -> false);
     }
 
     private DataFlowResponse toResponse(DataFlowResponseMessage it, DataPlaneInstance dataPlaneInstance) {

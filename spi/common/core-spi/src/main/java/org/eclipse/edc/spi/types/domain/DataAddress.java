@@ -42,10 +42,12 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class DataAddress {
     public static final String SIMPLE_TYPE = "type";
     public static final String SIMPLE_KEY_NAME = "keyName";
+    public static final String SIMPLE_PROPERTIES_KEY = "properties";
     public static final String EDC_DATA_ADDRESS_TYPE = EDC_NAMESPACE + "DataAddress";
     public static final String EDC_DATA_ADDRESS_TYPE_PROPERTY = EDC_NAMESPACE + SIMPLE_TYPE;
-    public static final String EDC_DATA_ADDRESS_KEY_NAME = EDC_NAMESPACE + "keyName";
+    public static final String EDC_DATA_ADDRESS_KEY_NAME = EDC_NAMESPACE + SIMPLE_KEY_NAME;
     public static final String EDC_DATA_ADDRESS_SECRET = EDC_NAMESPACE + "secret";
+    public static final String EDC_DATA_ADDRESS_RESPONSE_CHANNEL = EDC_NAMESPACE + "responseChannel";
 
     protected final Map<String, Object> properties = new HashMap<>();
 
@@ -70,11 +72,16 @@ public class DataAddress {
 
     @Nullable
     public String getStringProperty(String key, String defaultValue) {
-        var value = Optional.ofNullable(properties.get(EDC_NAMESPACE + key)).orElseGet(() -> properties.get(key));
+        var value = getProperty(key);
         if (value != null) {
             return (String) value;
         }
         return defaultValue;
+    }
+
+    @Nullable
+    public Object getProperty(String key) {
+        return Optional.ofNullable(properties.get(EDC_NAMESPACE + key)).orElseGet(() -> properties.get(key));
     }
 
     public Map<String, Object> getProperties() {
@@ -83,6 +90,11 @@ public class DataAddress {
 
     public String getKeyName() {
         return getStringProperty(EDC_DATA_ADDRESS_KEY_NAME);
+    }
+
+    @JsonIgnore
+    public DataAddress getResponseChannel() {
+        return (DataAddress) getProperty(EDC_DATA_ADDRESS_RESPONSE_CHANNEL);
     }
 
     @JsonIgnore
@@ -125,6 +137,7 @@ public class DataAddress {
             switch (key) {
                 case SIMPLE_TYPE -> address.properties.put(EDC_DATA_ADDRESS_TYPE_PROPERTY, value);
                 case SIMPLE_KEY_NAME -> address.properties.put(EDC_DATA_ADDRESS_KEY_NAME, value);
+                case EDC_DATA_ADDRESS_RESPONSE_CHANNEL -> checkAndCreateResponseChannel(value);
                 default -> address.properties.put(key, value);
             }
             return self();
@@ -140,9 +153,41 @@ public class DataAddress {
             return self();
         }
 
+        @JsonIgnore
+        public B responseChannel(DataAddress rc) {
+            address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, rc);
+            return self();
+        }
+
+        @JsonIgnore
+        @SuppressWarnings("unchecked")
+        public B responseChannel(Map<String, Object> rc) {
+            var builder = DataAddress.Builder.newInstance();
+            var props = rc.get(SIMPLE_PROPERTIES_KEY);
+            if (props != null) {
+                builder.properties((Map<String, Object>) props);
+            } else {
+                builder.properties(rc);
+            }
+            address.properties.put(EDC_DATA_ADDRESS_RESPONSE_CHANNEL, builder.build());
+
+            return self();
+        }
+
         public DataAddress build() {
             Objects.requireNonNull(address.getType(), "DataAddress builder missing Type property.");
             return address;
+        }
+
+        @SuppressWarnings("unchecked")
+        private void checkAndCreateResponseChannel(Object object) {
+            if (object instanceof DataAddress da) {
+                responseChannel(da);
+            } else if (object instanceof Map map) {
+                responseChannel(map);
+            } else {
+                throw new IllegalArgumentException("Response channel must be a DataAddress or a Map.");
+            }
         }
 
         @SuppressWarnings("unchecked")

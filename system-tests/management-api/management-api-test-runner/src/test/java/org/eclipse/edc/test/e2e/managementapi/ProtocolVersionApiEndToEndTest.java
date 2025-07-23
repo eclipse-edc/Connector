@@ -15,9 +15,9 @@
 package org.eclipse.edc.test.e2e.managementapi;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersion;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,9 +38,9 @@ public class ProtocolVersionApiEndToEndTest {
     abstract static class Tests {
 
         @Test
-        void requestProtocolVersions(ManagementEndToEndTestContext context, ProtocolVersionRegistry registry) {
+        void requestProtocolVersions(ManagementEndToEndTestContext context, DataspaceProfileContextRegistry registry) {
 
-            var supportedVersions = registry.getAll().protocolVersions()
+            var supportedVersions = registry.getProtocolVersions().protocolVersions()
                     .stream().collect(Collectors.toMap(ProtocolVersion::version, ProtocolVersion::path));
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))

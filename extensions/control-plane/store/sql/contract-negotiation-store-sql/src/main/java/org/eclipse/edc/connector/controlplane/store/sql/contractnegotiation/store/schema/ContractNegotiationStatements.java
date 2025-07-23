@@ -34,13 +34,13 @@ public interface ContractNegotiationStatements extends StatefulEntityStatements,
 
     String getDeleteTemplate();
 
+    String getUpsertNegotiationTemplate();
+
     String getSelectFromAgreementsTemplate();
 
-    String getInsertAgreementTemplate();
-
-    String getUpdateAgreementTemplate();
-
     String getSelectNegotiationsTemplate();
+
+    String getUpsertAgreementTemplate();
 
     default String getContractNegotiationTable() {
         return "edc_contract_negotiation";

@@ -400,21 +400,6 @@ class DspHttpRemoteMessageDispatcherImplTest {
         }
 
         @Test
-        void shouldReturnFatalError_whenResponseIsClientErrorAndBodyIsNull() {
-            respondWith(dummyResponseBuilder(400).body(null).build(), bodyExtractor);
-
-            var future = dispatcher.dispatch(String.class, new TestMessage());
-
-            assertThat(future).succeedsWithin(timeout).satisfies(result -> {
-                assertThat(result).isFailed().satisfies(failure -> {
-                    assertThat(failure.status()).isEqualTo(FATAL_ERROR);
-                    assertThat(failure.getMessages()).allMatch(it -> it.contains("is null"));
-                });
-            });
-            verify(bodyExtractor, never()).extractBody(any(), any());
-        }
-
-        @Test
         void shouldReturnRetryError_whenResponseIsServerError() {
             respondWith(dummyResponse(500), bodyExtractor);
 

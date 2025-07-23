@@ -28,7 +28,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
 
@@ -42,8 +41,7 @@ public class PostgresDataPlaneStoreTest extends DataPlaneStoreTestBase {
     private SqlDataPlaneStore store;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
-
+    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) {
         var typeManager = new JacksonTypeManager();
 
         var clock = Clock.systemUTC();

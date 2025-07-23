@@ -15,21 +15,21 @@
 
 package org.eclipse.edc.connector.controlplane.services.protocol;
 
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersions;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProtocolService;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolVersions;
 import org.eclipse.edc.spi.result.ServiceResult;
 
 public class VersionProtocolServiceImpl implements VersionProtocolService {
 
-    private final ProtocolVersionRegistry registry;
+    private final DataspaceProfileContextRegistry registry;
 
-    public VersionProtocolServiceImpl(ProtocolVersionRegistry registry) {
+    public VersionProtocolServiceImpl(DataspaceProfileContextRegistry registry) {
         this.registry = registry;
     }
 
     @Override
     public ServiceResult<ProtocolVersions> getAll() {
-        return ServiceResult.success(registry.getAll());
+        return ServiceResult.success(registry.getProtocolVersions());
     }
 }

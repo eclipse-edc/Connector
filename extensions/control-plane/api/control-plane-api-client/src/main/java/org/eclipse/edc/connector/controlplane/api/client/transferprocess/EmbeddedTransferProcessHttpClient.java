@@ -17,12 +17,10 @@ package org.eclipse.edc.connector.controlplane.api.client.transferprocess;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.CompleteProvisionCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
+import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.port.TransferProcessApiClient;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 
 import java.util.function.Function;
 
@@ -38,30 +36,21 @@ public class EmbeddedTransferProcessHttpClient implements TransferProcessApiClie
     }
 
     @Override
-    public StatusResult<Void> completed(DataFlowStartMessage request) {
-        return transferProcessService.complete(request.getProcessId())
+    public StatusResult<Void> completed(DataFlow dataFlow) {
+        return transferProcessService.complete(dataFlow.getId())
                 .flatMap(toStatusResult());
     }
 
     @Override
-    public StatusResult<Void> failed(DataFlowStartMessage request, String reason) {
-        return transferProcessService.terminate(new TerminateTransferCommand(request.getProcessId(), reason))
+    public StatusResult<Void> failed(DataFlow dataFlow, String reason) {
+        return transferProcessService.terminate(new TerminateTransferCommand(dataFlow.getId(), reason))
                 .flatMap(toStatusResult());
     }
 
     @Override
-    public Result<Void> provisioned(String id, DataAddress newAddress) {
-        return transferProcessService.completeProvision(new CompleteProvisionCommand(id, newAddress)).flatMap(toResult());
-    }
-
-    private Function<ServiceResult<Void>, Result<Void>> toResult() {
-        return it -> {
-            if (it.succeeded()) {
-                return Result.success();
-            } else {
-                return Result.failure(it.getFailureDetail());
-            }
-        };
+    public StatusResult<Void> provisioned(DataFlow dataFlow) {
+        return transferProcessService.completeProvision(new CompleteProvisionCommand(dataFlow.getId(), dataFlow.provisionedDataAddress()))
+                .flatMap(toStatusResult());
     }
 
     private Function<ServiceResult<Void>, StatusResult<Void>> toStatusResult() {

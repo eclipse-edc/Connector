@@ -45,7 +45,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.policy.engine.spi.PolicyEngine.ALL_SCOPES;
 import static org.eclipse.edc.policy.model.Operator.EQ;
@@ -86,13 +85,6 @@ class PolicyEngineImplTest {
         var result = policyEngine.evaluate(emptyPolicy, context);
 
         assertThat(result).isSucceeded();
-    }
-
-    @Deprecated(since = "0.10.0")
-    @Test
-    void shouldThrowException_whenRegisterWithScopeNotRegistered() {
-        assertThatThrownBy(() -> policyEngine.registerFunction(ALL_SCOPES, Rule.class, "key", mock()));
-        assertThatThrownBy(() -> policyEngine.registerFunction("unregistered.scope", Rule.class, "key", mock()));
     }
 
     @Test

@@ -48,8 +48,8 @@ import java.util.stream.Collectors;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.negotiation.store.TestFunctions.createContract;
-import static org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.negotiation.store.TestFunctions.createContractBuilder;
+import static org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.negotiation.store.TestFunctions.createAgreement;
+import static org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.negotiation.store.TestFunctions.createAgreementBuilder;
 import static org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.negotiation.store.TestFunctions.createNegotiation;
 import static org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.negotiation.store.TestFunctions.createNegotiationBuilder;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
@@ -127,7 +127,7 @@ public abstract class ContractNegotiationStoreTestBase {
         @Test
         @DisplayName("Find ContractAgreement by contract ID")
         void findContractAgreement() {
-            var agreement = createContract(ContractOfferId.create("test-cd1", "test-as1"));
+            var agreement = createAgreement(ContractOfferId.create("test-cd1", "test-as1"));
             var negotiation = createNegotiation("test-cn1", agreement);
             getContractNegotiationStore().save(negotiation);
 
@@ -181,9 +181,8 @@ public abstract class ContractNegotiationStoreTestBase {
         }
 
         @Test
-        @DisplayName("Verify that entity and related entities are stored")
-        void withContract() {
-            var agreement = createContract(ContractOfferId.create("definition", "asset"));
+        void shouldSave_whenAgreementExists() {
+            var agreement = createAgreement(ContractOfferId.create("definition", "asset"));
             var negotiation = createNegotiation("test-negotiation", agreement);
             getContractNegotiationStore().save(negotiation);
 
@@ -199,8 +198,7 @@ public abstract class ContractNegotiationStoreTestBase {
     @Nested
     class Update {
         @Test
-        @DisplayName("Verify that an existing entity is updated instead")
-        void save_exists_shouldUpdate() {
+        void shouldUpdate_whenEntityExists() {
             var id = "test-id1";
             var negotiation = createNegotiation(id);
             getContractNegotiationStore().save(negotiation);
@@ -248,7 +246,6 @@ public abstract class ContractNegotiationStoreTestBase {
 
             var next = getContractNegotiationStore().nextNotLeased(10, hasState(800));
             assertThat(next).usingRecursiveFieldByFieldElementComparatorIgnoringFields("updatedAt").containsOnly(newNegotiation);
-
         }
 
         @Test
@@ -284,7 +281,7 @@ public abstract class ContractNegotiationStoreTestBase {
             getContractNegotiationStore().save(negotiation);
 
             // now add the agreement
-            var agreement = createContract(ContractOfferId.create("definition", "asset"));
+            var agreement = createAgreement(ContractOfferId.create("definition", "asset"));
             var updatedNegotiation = createNegotiation(negotiationId, agreement);
 
             getContractNegotiationStore().save(updatedNegotiation); //should perform an update + insert
@@ -322,7 +319,7 @@ public abstract class ContractNegotiationStoreTestBase {
             getContractNegotiationStore().save(negotiation);
 
             // now add the agreement
-            var agreement = createContract(ContractOfferId.create("definition", "asset"));
+            var agreement = createAgreement(ContractOfferId.create("definition", "asset"));
             var updatedNegotiation = createNegotiation(negotiationId, agreement);
 
             getContractNegotiationStore().save(updatedNegotiation);
@@ -340,7 +337,7 @@ public abstract class ContractNegotiationStoreTestBase {
         @DisplayName("Should update the agreement when a negotiation is updated")
         void whenAgreementExists_shouldUpdate() {
             var negotiationId = "test-cn1";
-            var agreement = createContract(ContractOfferId.create("definition", "asset"));
+            var agreement = createAgreement(ContractOfferId.create("definition", "asset"));
             var negotiation = createNegotiation(negotiationId, null);
             getContractNegotiationStore().save(negotiation);
             var dbNegotiation = getContractNegotiationStore().findById(negotiationId);
@@ -367,7 +364,7 @@ public abstract class ContractNegotiationStoreTestBase {
 
             assertThat(getContractNegotiationStore().findById(id)).isNotNull().usingRecursiveComparison().isEqualTo(n);
 
-            getContractNegotiationStore().delete(id);
+            getContractNegotiationStore().deleteById(id);
 
             assertThat(getContractNegotiationStore().findById(id)).isNull();
         }
@@ -381,7 +378,7 @@ public abstract class ContractNegotiationStoreTestBase {
 
             leaseEntity(id, CONNECTOR_NAME);
 
-            assertThatThrownBy(() -> getContractNegotiationStore().delete(id)).isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> getContractNegotiationStore().deleteById(id)).isInstanceOf(IllegalStateException.class);
         }
 
         @Test
@@ -393,22 +390,9 @@ public abstract class ContractNegotiationStoreTestBase {
 
             leaseEntity(id, "someone-else");
 
-            assertThatThrownBy(() -> getContractNegotiationStore().delete(id)).isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> getContractNegotiationStore().deleteById(id)).isInstanceOf(IllegalStateException.class);
         }
 
-        @Test
-        @DisplayName("Verify that attempting to delete a negotiation with a contract raises an exception")
-        void contractExists() {
-            var id = UUID.randomUUID().toString();
-            var contract = createContract(ContractOfferId.create("definition", "asset"));
-            var n = createNegotiation(id, contract);
-            getContractNegotiationStore().save(n);
-
-            assertThat(getContractNegotiationStore().findById(id)).isNotNull().usingRecursiveComparison().isEqualTo(n);
-            assertThatThrownBy(() -> getContractNegotiationStore().delete(id)).isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("Cannot delete ContractNegotiation")
-                    .hasMessageContaining("ContractAgreement already created.");
-        }
     }
 
     @Nested
@@ -457,7 +441,7 @@ public abstract class ContractNegotiationStoreTestBase {
 
         @Test
         void withAgreementOnAsset_negotiationWithAgreement() {
-            var agreement = createContract(ContractOfferId.create("definition", "asset"));
+            var agreement = createAgreement(ContractOfferId.create("definition", "asset"));
             var negotiation = createNegotiation("negotiation1", agreement);
             var assetId = agreement.getAssetId();
 
@@ -491,8 +475,8 @@ public abstract class ContractNegotiationStoreTestBase {
         @Test
         void withAgreementOnAsset_multipleNegotiationsSameAsset() {
             var assetId = UUID.randomUUID().toString();
-            var negotiation1 = createNegotiation("negotiation1", createContractBuilder("contract1").assetId(assetId).build());
-            var negotiation2 = createNegotiation("negotiation2", createContractBuilder("contract2").assetId(assetId).build());
+            var negotiation1 = createNegotiation("negotiation1", createAgreementBuilder("contract1").assetId(assetId).build());
+            var negotiation2 = createNegotiation("negotiation2", createAgreementBuilder("contract2").assetId(assetId).build());
 
             getContractNegotiationStore().save(negotiation1);
             getContractNegotiationStore().save(negotiation2);
@@ -514,7 +498,7 @@ public abstract class ContractNegotiationStoreTestBase {
 
             range(0, 100)
                     .mapToObj(i -> {
-                        var agreement = createContract(ContractOfferId.create("definition" + 1, "asset"));
+                        var agreement = createAgreement(ContractOfferId.create("definition" + 1, "asset"));
                         return createNegotiation(String.valueOf(i), agreement);
                     })
                     .forEach(cn -> getContractNegotiationStore().save(cn));
@@ -542,8 +526,8 @@ public abstract class ContractNegotiationStoreTestBase {
         void byAgreementId() {
             var contractId1 = ContractOfferId.create("def1", "asset");
             var contractId2 = ContractOfferId.create("def2", "asset");
-            var negotiation1 = createNegotiation("neg1", createContract(contractId1));
-            var negotiation2 = createNegotiation("neg2", createContract(contractId2));
+            var negotiation1 = createNegotiation("neg1", createAgreement(contractId1));
+            var negotiation2 = createNegotiation("neg2", createAgreement(contractId2));
             getContractNegotiationStore().save(negotiation1);
             getContractNegotiationStore().save(negotiation2);
             var expression = criterion("contractAgreement.id", "=", contractId1.toString());
@@ -571,8 +555,8 @@ public abstract class ContractNegotiationStoreTestBase {
                             .build())
                     .build();
 
-            var agreement1 = createContractBuilder("agr1").policy(policy).build();
-            var agreement2 = createContractBuilder("agr2").policy(policy).build();
+            var agreement1 = createAgreementBuilder("agr1").policy(policy).build();
+            var agreement2 = createAgreementBuilder("agr2").policy(policy).build();
             var negotiation1 = createNegotiation("neg1", agreement1);
             var negotiation2 = createNegotiation("neg2", agreement2);
             getContractNegotiationStore().save(negotiation1);
@@ -588,7 +572,7 @@ public abstract class ContractNegotiationStoreTestBase {
         @Test
         void shouldReturnEmpty_whenCriteriaLeftOperandIsInvalid() {
             var contractId = ContractOfferId.create("definition", "asset");
-            var agreement1 = createContract(contractId);
+            var agreement1 = createAgreement(contractId);
             var negotiation1 = createNegotiation("neg1", agreement1);
             getContractNegotiationStore().save(negotiation1);
 
@@ -614,7 +598,7 @@ public abstract class ContractNegotiationStoreTestBase {
         @Test
         void shouldReturnAllItems_whenQuerySpecHasNoFilter() {
             range(0, 10).forEach(i -> {
-                var contractAgreement = createContract(ContractOfferId.create(UUID.randomUUID().toString(), ASSET_ID));
+                var contractAgreement = createAgreement(ContractOfferId.create(UUID.randomUUID().toString(), ASSET_ID));
                 var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
                 getContractNegotiationStore().save(negotiation);
             });
@@ -628,7 +612,7 @@ public abstract class ContractNegotiationStoreTestBase {
         void withQuerySpec() {
             range(0, 10).mapToObj(i -> "asset-" + i).forEach(assetId -> {
                 var contractId = ContractOfferId.create(UUID.randomUUID().toString(), assetId).toString();
-                var contractAgreement = createContractBuilder(contractId).assetId(assetId).build();
+                var contractAgreement = createAgreementBuilder(contractId).assetId(assetId).build();
                 var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
                 getContractNegotiationStore().save(negotiation);
             });
@@ -642,7 +626,7 @@ public abstract class ContractNegotiationStoreTestBase {
         @Test
         void verifyPaging() {
             range(0, 10).forEach(i -> {
-                var contractAgreement = createContract(ContractOfferId.create(UUID.randomUUID().toString(), ASSET_ID));
+                var contractAgreement = createAgreement(ContractOfferId.create(UUID.randomUUID().toString(), ASSET_ID));
                 var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
                 getContractNegotiationStore().save(negotiation);
             });
@@ -658,7 +642,7 @@ public abstract class ContractNegotiationStoreTestBase {
         void verifySorting() {
             range(0, 9).forEach(i -> {
                 var contractId = ContractOfferId.create(UUID.randomUUID().toString(), UUID.randomUUID().toString()).toString();
-                var contractAgreement = createContractBuilder(contractId).consumerId(String.valueOf(i)).build();
+                var contractAgreement = createAgreementBuilder(contractId).consumerId(String.valueOf(i)).build();
                 var negotiation = createNegotiationBuilder(UUID.randomUUID().toString()).contractAgreement(contractAgreement).build();
                 getContractNegotiationStore().save(negotiation);
             });
@@ -673,7 +657,7 @@ public abstract class ContractNegotiationStoreTestBase {
         @Test
         void shouldReturnEmpty_whenCriterionLeftOperandIsInvalid() {
             range(0, 10).mapToObj(i -> "asset-" + i).forEach(assetId -> {
-                var contractAgreement = createContractBuilder(ContractOfferId.create(UUID.randomUUID().toString(), assetId).toString())
+                var contractAgreement = createAgreementBuilder(ContractOfferId.create(UUID.randomUUID().toString(), assetId).toString())
                         .assetId(assetId)
                         .build();
                 var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
@@ -719,7 +703,7 @@ public abstract class ContractNegotiationStoreTestBase {
                     .state(REQUESTED.code())
                     .type(CONSUMER)
                     .build()).forEach(getContractNegotiationStore()::save);
-            var criteria = new Criterion[]{ hasState(REQUESTED.code()), new Criterion("type", "=", "CONSUMER") };
+            var criteria = new Criterion[] {hasState(REQUESTED.code()), new Criterion("type", "=", "CONSUMER")};
 
             var result = getContractNegotiationStore().nextNotLeased(10, criteria);
 
@@ -771,7 +755,7 @@ public abstract class ContractNegotiationStoreTestBase {
         @Test
         @DisplayName("Verify that nextNotLeased returns the agreement")
         void withAgreement() {
-            var contractAgreement = createContract(ContractOfferId.create(UUID.randomUUID().toString(), ASSET_ID));
+            var contractAgreement = createAgreement(ContractOfferId.create(UUID.randomUUID().toString(), ASSET_ID));
             var negotiation = createNegotiationBuilder(UUID.randomUUID().toString())
                     .contractAgreement(contractAgreement)
                     .state(ContractNegotiationStates.AGREED.code())

@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceS
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,11 +72,6 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
                 return ServiceResult.success(dataPlane);
             }
         });
-    }
-
-    @Override
-    public ServiceResult<DataPlaneInstance> select(DataAddress source, String transferType, @Nullable String selectionStrategy) {
-        return select(selectionStrategy, dataPlane -> dataPlane.canHandle(source, transferType));
     }
 
     @Override

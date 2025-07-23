@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.protocol.dsp.catalog.http.api.v2025;
 
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolVersionRegistry;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
@@ -24,9 +24,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNames.DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_2025_1;
-import static org.eclipse.edc.protocol.dsp.spi.version.DspVersions.V_2025_1;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -37,13 +36,13 @@ import static org.mockito.Mockito.when;
 class DspCatalogApi2025ExtensionTest {
 
     private final JsonObjectValidatorRegistry validatorRegistry = mock();
-    private final ProtocolVersionRegistry versionRegistry = mock();
+    private final DataspaceProfileContextRegistry versionRegistry = mock();
     private final DspProtocolTypeTransformerRegistry dspTransformerRegistry = mock();
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
         context.registerService(JsonObjectValidatorRegistry.class, validatorRegistry);
-        context.registerService(ProtocolVersionRegistry.class, versionRegistry);
+        context.registerService(DataspaceProfileContextRegistry.class, versionRegistry);
         context.registerService(DspProtocolTypeTransformerRegistry.class, dspTransformerRegistry);
 
         when(dspTransformerRegistry.forProtocol(any())).thenReturn(Result.success(mock()));
@@ -54,12 +53,5 @@ class DspCatalogApi2025ExtensionTest {
         extension.initialize(context);
 
         verify(validatorRegistry).register(eq(DSP_NAMESPACE_V_2025_1.toIri(DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM)), any());
-    }
-
-    @Test
-    void shouldRegisterDspVersion(DspCatalogApi2025Extension extension, ServiceExtensionContext context) {
-        extension.initialize(context);
-
-        verify(versionRegistry).register(V_2025_1);
     }
 }

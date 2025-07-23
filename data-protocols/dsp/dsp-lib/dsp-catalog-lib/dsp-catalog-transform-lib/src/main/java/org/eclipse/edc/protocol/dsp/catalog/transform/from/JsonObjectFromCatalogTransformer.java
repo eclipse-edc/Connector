@@ -39,7 +39,6 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRI
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATA_SERVICE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DISTRIBUTION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DSPACE_PROPERTY_PARTICIPANT_ID_TERM;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_NAMESPACE_V_08;
 
 /**
  * Converts from a {@link Catalog} to a DCAT catalog as a {@link JsonObject} in JSON-LD expanded form.
@@ -49,10 +48,6 @@ public class JsonObjectFromCatalogTransformer extends AbstractNamespaceAwareJson
     private final TypeManager typeManager;
     private final String typeContext;
     private final ParticipantIdMapper participantIdMapper;
-
-    public JsonObjectFromCatalogTransformer(JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext, ParticipantIdMapper participantIdMapper) {
-        this(jsonFactory, typeManager, typeContext, participantIdMapper, DSP_NAMESPACE_V_08);
-    }
 
     public JsonObjectFromCatalogTransformer(JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext, ParticipantIdMapper participantIdMapper, JsonLdNamespace namespace) {
         super(Catalog.class, JsonObject.class, namespace);

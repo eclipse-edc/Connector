@@ -24,8 +24,12 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONING_REQUESTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -40,11 +44,11 @@ class CompleteProvisionCommandHandlerTest {
     }
 
     @Test
-    void shouldUpdateDestination() {
+    void shouldTransitionProvisioned_whenConsumer() {
         var newDestination = DataAddress.Builder.newInstance().type("new").build();
         var originalDestination = DataAddress.Builder.newInstance().type("original").build();
         var command = new CompleteProvisionCommand("test-id", newDestination);
-        var entity = TransferProcess.Builder.newInstance().state(PROVISIONING_REQUESTED.code()).dataDestination(originalDestination).build();
+        var entity = TransferProcess.Builder.newInstance().state(PROVISIONING_REQUESTED.code()).type(CONSUMER).dataDestination(originalDestination).build();
 
         var result = handler.modify(entity, command);
 
@@ -64,6 +68,20 @@ class CompleteProvisionCommandHandlerTest {
         assertThat(result).isTrue();
         assertThat(entity.getState()).isEqualTo(PROVISIONED.code());
         assertThat(entity.getDataDestination()).isSameAs(originalDestination);
+    }
+
+    @Test
+    void shouldTransitionToStarting_whenProvider() {
+        var newDestination = DataAddress.Builder.newInstance().type("new").build();
+        var originalDestination = DataAddress.Builder.newInstance().type("original").build();
+        var command = new CompleteProvisionCommand("test-id", newDestination);
+        var entity = TransferProcess.Builder.newInstance().state(STARTUP_REQUESTED.code()).type(PROVIDER).dataDestination(originalDestination).build();
+
+        var result = handler.modify(entity, command);
+
+        assertThat(result).isTrue();
+        assertThat(entity.getState()).isEqualTo(STARTING.code());
+        assertThat(entity.getDataDestination()).isSameAs(newDestination);
     }
 
     @Test

@@ -21,6 +21,7 @@ dependencies {
     // gives access to the Json LD models, etc.
     testImplementation(project(":spi:common:json-ld-spi"))
     testImplementation(project(":data-protocols:dsp:dsp-spi"))
+    testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
     testImplementation(project(":spi:control-plane:asset-spi"))
     testImplementation(project(":spi:control-plane:contract-spi"))
     testImplementation(project(":spi:data-plane-selector:data-plane-selector-spi"))
@@ -47,6 +48,7 @@ dependencies {
     testImplementation(project(":extensions:control-plane:api:management-api:policy-definition-api"))
     testImplementation(project(":extensions:control-plane:api:management-api:transfer-process-api"))
     testImplementation(project(":extensions:control-plane:api:management-api:secrets-api"))
+    testImplementation(project(":extensions:control-plane:transfer:transfer-data-plane-signaling"))
     testImplementation(project(":extensions:control-plane:api:management-api:edr-cache-api"))
     testImplementation(project(":extensions:data-plane-selector:data-plane-selector-api"))
 }

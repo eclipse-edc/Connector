@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.iam;
 
 import org.eclipse.edc.connector.dataplane.iam.service.DataPlaneAuthorizationServiceImpl;
 import org.eclipse.edc.connector.dataplane.spi.AccessTokenData;
+import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.Endpoint;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService;
@@ -25,7 +26,6 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.spi.types.domain.transfer.TransferType;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,8 +68,11 @@ class DataPlaneAuthorizationServiceImplTest {
     @Test
     void createEndpointDataReference() {
         when(accessTokenService.obtainToken(any(), any(), anyMap())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("footoken").build()));
-        var startMsg = createStartMessage()
+        var source = createDataAddress();
+        var startMsg = dataFlowBuilder()
                 .transferType(new TransferType("DestinationType", FlowType.PULL))
+                .participantId("participantId")
+                .source(source)
                 .build();
 
         var result = authorizationService.createEndpointDataReference(startMsg);
@@ -84,7 +87,7 @@ class DataPlaneAuthorizationServiceImplTest {
         var requiredClaims = Set.of(JWT_ID, AUDIENCE, ISSUER, SUBJECT, ISSUED_AT);
         verify(accessTokenService).obtainToken(ArgumentMatchers.assertArg(tp -> {
             assertThat(tp.getClaims().keySet()).containsAll(requiredClaims);
-            assertThat(tp.getStringClaim(AUDIENCE)).isEqualTo(startMsg.getParticipantId());
+            assertThat(tp.getStringClaim(AUDIENCE)).isEqualTo("participantId");
             assertThat(tp.getStringClaim(ISSUER)).isEqualTo(OWN_PARTICIPANT_ID);
             assertThat(tp.getStringClaim(SUBJECT)).isEqualTo(OWN_PARTICIPANT_ID);
             assertThat(tp.getClaims().get(ISSUED_AT)).isNotNull();
@@ -94,7 +97,7 @@ class DataPlaneAuthorizationServiceImplTest {
                         m.containsKey("asset_id") &&
                         m.containsKey("process_id") &&
                         m.containsKey("flow_type")));
-        verify(endpointGenerator).generateFor("DestinationType", startMsg.getSourceDataAddress());
+        verify(endpointGenerator).generateFor("DestinationType", source);
     }
 
     @Test
@@ -103,9 +106,10 @@ class DataPlaneAuthorizationServiceImplTest {
                 .token("footoken")
                 .additional(Map.of("authType", "bearer", "fizz", "buzz"))
                 .build()));
-        var startMsg = createStartMessage().build();
+        var dataFlow = dataFlowBuilder().build();
 
-        var result = authorizationService.createEndpointDataReference(startMsg);
+        var result = authorizationService.createEndpointDataReference(dataFlow);
+
         assertThat(result).isSucceeded()
                 .satisfies(da -> {
                     assertThat(da.getType()).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
@@ -119,8 +123,11 @@ class DataPlaneAuthorizationServiceImplTest {
     @Test
     void createEndpointDataReference_tokenServiceFails() {
         when(accessTokenService.obtainToken(any(), any(), anyMap())).thenReturn(Result.failure("test-failure"));
-        var startMsg = createStartMessage().build();
-        assertThat(authorizationService.createEndpointDataReference(startMsg)).isFailed()
+        var dataFlow = dataFlowBuilder().build();
+
+        var result = authorizationService.createEndpointDataReference(dataFlow);
+
+        assertThat(result).isFailed()
                 .detail().isEqualTo("test-failure");
     }
 
@@ -133,7 +140,9 @@ class DataPlaneAuthorizationServiceImplTest {
                 address)));
         when(accessControlService.checkAccess(eq(claimToken), eq(address), any(), anyMap())).thenReturn(Result.success());
 
-        assertThat(authorizationService.authorize("foo-token", Map.of())).isSucceeded();
+        var result = authorizationService.authorize("foo-token", Map.of());
+
+        assertThat(result).isSucceeded();
         verify(accessTokenService).resolve(eq("foo-token"));
         verify(accessControlService).checkAccess(eq(claimToken), eq(address), any(), anyMap());
         verifyNoMoreInteractions(accessTokenService, accessControlService);
@@ -143,8 +152,9 @@ class DataPlaneAuthorizationServiceImplTest {
     void authorize_tokenNotFound() {
         when(accessTokenService.resolve(eq("foo-token"))).thenReturn(Result.failure("not found"));
 
-        assertThat(authorizationService.authorize("foo-token", Map.of())).isFailed()
-                .detail().isEqualTo("not found");
+        var result = authorizationService.authorize("foo-token", Map.of());
+
+        assertThat(result).isFailed().detail().isEqualTo("not found");
         verify(accessTokenService).resolve(eq("foo-token"));
         verifyNoMoreInteractions(accessTokenService, accessControlService);
     }
@@ -158,8 +168,9 @@ class DataPlaneAuthorizationServiceImplTest {
                 address)));
         when(accessControlService.checkAccess(eq(claimToken), eq(address), any(), anyMap())).thenReturn(Result.failure("not granted"));
 
-        assertThat(authorizationService.authorize("foo-token", Map.of())).isFailed()
-                .detail().isEqualTo("not granted");
+        var result = authorizationService.authorize("foo-token", Map.of());
+
+        assertThat(result).isFailed().detail().isEqualTo("not granted");
         verify(accessTokenService).resolve(eq("foo-token"));
         verify(accessControlService).checkAccess(eq(claimToken), eq(address), any(), anyMap());
         verifyNoMoreInteractions(accessTokenService, accessControlService);
@@ -169,8 +180,9 @@ class DataPlaneAuthorizationServiceImplTest {
     void revoke() {
         when(accessTokenService.revoke(eq("id"), eq("reason"))).thenReturn(ServiceResult.success());
 
-        assertThat(authorizationService.revokeEndpointDataReference("id", "reason")).isSucceeded();
+        var result = authorizationService.revokeEndpointDataReference("id", "reason");
 
+        assertThat(result).isSucceeded();
         verify(accessTokenService).revoke(eq("id"), eq("reason"));
         verifyNoMoreInteractions(accessTokenService, accessControlService);
     }
@@ -179,22 +191,19 @@ class DataPlaneAuthorizationServiceImplTest {
     void revoke_error() {
         when(accessTokenService.revoke(eq("id"), eq("reason"))).thenReturn(ServiceResult.notFound("failure"));
 
-        assertThat(authorizationService.revokeEndpointDataReference("id", "reason")).isFailed()
-                .detail().contains("failure");
+        var result = authorizationService.revokeEndpointDataReference("id", "reason");
+
+        assertThat(result).isFailed().detail().contains("failure");
 
         verify(accessTokenService).revoke(eq("id"), eq("reason"));
         verifyNoMoreInteractions(accessTokenService, accessControlService);
     }
 
-    private DataFlowStartMessage.Builder createStartMessage() {
-        return DataFlowStartMessage.Builder.newInstance()
-                .processId("test-processid")
-                .transferType(new TransferType("DestinationType", FlowType.PULL))
-                .agreementId("test-agreementid")
-                .participantId("test-participantid")
-                .assetId("test-assetid")
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("test-src").build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("test-dest").build())
-                .properties(Map.of("foo", "bar", "fizz", "buzz"));
+    private DataAddress createDataAddress() {
+        return DataAddress.Builder.newInstance().type("test-src").build();
+    }
+
+    private DataFlow.Builder dataFlowBuilder() {
+        return DataFlow.Builder.newInstance().transferType(new TransferType("any", FlowType.PULL));
     }
 }

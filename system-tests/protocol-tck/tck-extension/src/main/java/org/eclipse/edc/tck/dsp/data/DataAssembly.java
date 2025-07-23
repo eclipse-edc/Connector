@@ -131,9 +131,7 @@ public class DataAssembly {
 
     private static void record02NegotiationSequences(StepRecorder<ContractNegotiation> recorder) {
         recorder.record("ACN0201", ContractNegotiation::transitionTerminating);
-
-        recorder.record("ACN0202", ContractNegotiation::transitionRequested);
-
+        
         recorder.record("ACN0203", ContractNegotiation::transitionAgreeing);
 
         recorder.record("ACN0204", ContractNegotiation::transitionOffering);
@@ -156,9 +154,11 @@ public class DataAssembly {
                 .record("ACN0301", ContractNegotiation::transitionFinalizing);
 
         recorder.record("ACN0302", ContractNegotiation::transitionOffering);
-        recorder.record("ACN0303", ContractNegotiation::transitionOffering);
+        recorder.record("ACN0303", ContractNegotiation::transitionOffering)
+                .record("ACN0303", DataAssembly::noop);
 
-        recorder.record("ACN0304", ContractNegotiation::transitionOffering);
+        recorder.record("ACN0304", ContractNegotiation::transitionOffering)
+                .record("ACN0304", DataAssembly::noop);
 
     }
 
@@ -237,7 +237,7 @@ public class DataAssembly {
         recorder.record("ATP0102", TransferProcess::transitionStarting);
         recorder.record("ATP0103", TransferProcess::transitionStarting);
         recorder.record("ATP0104", TransferProcess::transitionStarting);
-        recorder.record("ATP0105", TransferProcess::transitionTerminating);
+        recorder.record("ATP0105", tp -> tp.transitionTerminating("error"));
 
     }
 
@@ -282,7 +282,7 @@ public class DataAssembly {
 
     public static List<Trigger<TransferProcess>> createTransferProcessTriggers() {
         return List.of(
-                createTransferTrigger(TransferProcessStarted.class, "ATP0101", TransferProcess::transitionTerminating),
+                createTransferTrigger(TransferProcessStarted.class, "ATP0101", tp -> tp.transitionTerminating("error")),
                 createTransferTrigger(TransferProcessStarted.class, "ATP0102", TransferProcess::transitionCompleting),
                 createTransferTrigger(TransferProcessStarted.class, "ATP0103", (process) -> process.transitionSuspending("suspending")),
                 createTransferTrigger(TransferProcessSuspended.class, "ATP0103", (process) -> process.transitionTerminating("terminating")),
@@ -361,5 +361,9 @@ public class DataAssembly {
                 .counterPartyAddress("https://test.com")
                 .protocol("test")
                 .build();
+    }
+
+    private static void noop(ContractNegotiation cn) {
+
     }
 }

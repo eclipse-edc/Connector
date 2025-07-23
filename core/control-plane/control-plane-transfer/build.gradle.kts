@@ -16,21 +16,15 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:transform-spi"))
     api(project(":spi:control-plane:asset-spi"))
     api(project(":spi:control-plane:policy-spi"))
     api(project(":spi:control-plane:transfer-spi"))
-    api(project(":spi:common:transform-spi"))
 
-    implementation(project(":core:common:lib:state-machine-lib"))
-    implementation(project(":core:common:lib:util-lib"))
-
+    implementation(project(":core:control-plane:lib:control-plane-transfer-provision-lib"))
     implementation(libs.opentelemetry.instrumentation.annotations)
 
-    testImplementation(project(":core:common:lib:query-lib"))
-    testImplementation(project(":core:common:lib:store-lib"))
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:control-plane:control-plane-core"))
-    testImplementation(libs.awaitility)
 }
 
 

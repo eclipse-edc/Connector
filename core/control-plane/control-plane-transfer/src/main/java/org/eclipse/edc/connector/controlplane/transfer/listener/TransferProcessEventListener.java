@@ -28,21 +28,16 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
-
-import java.time.Clock;
 
 /**
  * Listener responsible for creating and publishing events regarding TransferProcess state changes
  */
 public class TransferProcessEventListener implements TransferProcessListener {
     private final EventRouter eventRouter;
-    private final Clock clock;
 
-    public TransferProcessEventListener(EventRouter eventRouter, Clock clock) {
+    public TransferProcessEventListener(EventRouter eventRouter) {
         this.eventRouter = eventRouter;
-        this.clock = clock;
     }
 
     @Override
@@ -50,7 +45,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
         var event = withBaseProperties(TransferProcessInitiated.Builder.newInstance(), process)
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
@@ -58,7 +53,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
         var event = withBaseProperties(TransferProcessProvisioningRequested.Builder.newInstance(), process)
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
@@ -66,7 +61,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
         var event = withBaseProperties(TransferProcessProvisioned.Builder.newInstance(), process)
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
@@ -74,7 +69,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
         var event = withBaseProperties(TransferProcessRequested.Builder.newInstance(), process)
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
@@ -83,7 +78,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
                 .dataAddress(additionalData.getDataAddress())
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
@@ -91,7 +86,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
         var event = withBaseProperties(TransferProcessCompleted.Builder.newInstance(), process)
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
@@ -100,7 +95,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
                 .reason(process.getErrorDetail())
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
@@ -109,7 +104,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
                 .reason(process.getErrorDetail())
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
@@ -117,7 +112,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
         var event = withBaseProperties(TransferProcessDeprovisioningRequested.Builder.newInstance(), process)
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
@@ -125,7 +120,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
         var event = withBaseProperties(TransferProcessDeprovisioned.Builder.newInstance(), process)
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
     private <T extends TransferProcessEvent, B extends TransferProcessEvent.Builder<T, B>> B withBaseProperties(B builder, TransferProcess process) {
@@ -136,13 +131,4 @@ public class TransferProcessEventListener implements TransferProcessListener {
                 .callbackAddresses(process.getCallbackAddresses());
     }
 
-    @SuppressWarnings("unchecked")
-    private void publish(TransferProcessEvent event) {
-        var envelope = EventEnvelope.Builder.newInstance()
-                .payload(event)
-                .at(clock.millis())
-                .build();
-
-        eventRouter.publish(envelope);
-    }
 }

@@ -24,6 +24,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import static org.eclipse.edc.tck.dsp.data.DataAssembly.createNegotiationRecorder;
 import static org.eclipse.edc.tck.dsp.data.DataAssembly.createNegotiationTriggers;
@@ -47,6 +48,9 @@ public class TckGuardExtension implements ServiceExtension {
     private TransferProcessStore transferProcessStore;
 
     @Inject
+    private TransactionContext transactionContext;
+
+    @Inject
     private EventRouter router;
 
     @Override
@@ -58,7 +62,7 @@ public class TckGuardExtension implements ServiceExtension {
     public ContractNegotiationPendingGuard negotiationGuard() {
         var recorder = createNegotiationRecorder();
 
-        var registry = new ContractNegotiationTriggerSubscriber(store);
+        var registry = new ContractNegotiationTriggerSubscriber(store, transactionContext);
         createNegotiationTriggers().forEach(registry::register);
         router.register(ContractNegotiationEvent.class, registry);
 

@@ -94,13 +94,37 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
     }
 
     @Override
+    public String getUpsertNegotiationTemplate() {
+        return executeStatement()
+                .column(getIdColumn())
+                .column(getCorrelationIdColumn())
+                .column(getCounterPartyIdColumn())
+                .column(getCounterPartyAddressColumn())
+                .column(getTypeColumn())
+                .column(getProtocolColumn())
+                .column(getStateColumn())
+                .column(getStateCountColumn())
+                .column(getStateTimestampColumn())
+                .column(getErrorDetailColumn())
+                .column(getContractAgreementIdFkColumn())
+                .jsonColumn(getContractOffersColumn())
+                .jsonColumn(getCallbackAddressesColumn())
+                .jsonColumn(getTraceContextColumn())
+                .column(getCreatedAtColumn())
+                .column(getUpdatedAtColumn())
+                .column(getPendingColumn())
+                .jsonColumn(getProtocolMessagesColumn())
+                .upsertInto(getContractNegotiationTable(), getIdColumn());
+    }
+
+    @Override
     public String getSelectFromAgreementsTemplate() {
         // todo: add WHERE ... AND ... ORDER BY... statements here
         return format("SELECT * FROM %s", getContractAgreementTable());
     }
 
     @Override
-    public String getInsertAgreementTemplate() {
+    public String getUpsertAgreementTemplate() {
         return executeStatement()
                 .column(getContractAgreementIdColumn())
                 .column(getProviderAgentColumn())
@@ -108,19 +132,7 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
                 .column(getSigningDateColumn())
                 .column(getAssetIdColumn())
                 .jsonColumn(getPolicyColumn())
-                .insertInto(getContractAgreementTable());
-    }
-
-    @Override
-    public String getUpdateAgreementTemplate() {
-        return executeStatement()
-                .column(getProviderAgentColumn())
-                .column(getConsumerAgentColumn())
-                .column(getSigningDateColumn())
-                .column(getAssetIdColumn())
-                .jsonColumn(getPolicyColumn())
-                .update(getContractAgreementTable(), getContractAgreementIdColumn());
-
+                .upsertInto(getContractAgreementTable(), getContractAgreementIdColumn());
     }
 
     @Override

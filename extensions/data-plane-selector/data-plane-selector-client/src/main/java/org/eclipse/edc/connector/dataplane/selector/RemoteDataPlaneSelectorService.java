@@ -26,47 +26,38 @@ import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Predicate;
 
 import static jakarta.json.Json.createObjectBuilder;
-import static okhttp3.internal.Util.EMPTY_REQUEST;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 
 public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService {
 
     public static final MediaType TYPE_JSON = MediaType.parse("application/json");
-    private static final String SELECT_PATH = "/select";
     private final ControlApiHttpClient httpClient;
     private final String url;
     private final TypeManager typeManager;
     private final String typeContext;
     private final TypeTransformerRegistry typeTransformerRegistry;
-    private final String selectionStrategy;
     private final JsonLd jsonLd;
 
-    public RemoteDataPlaneSelectorService(ControlApiHttpClient controlClient, String url, TypeManager typeManager, String typeContext,
-                                          TypeTransformerRegistry typeTransformerRegistry, String selectionStrategy,
+    public RemoteDataPlaneSelectorService(ControlApiHttpClient controlClient, String url, TypeManager typeManager,
+                                          String typeContext, TypeTransformerRegistry typeTransformerRegistry,
                                           JsonLd jsonLd) {
         this.httpClient = controlClient;
         this.url = url;
         this.typeManager = typeManager;
         this.typeContext = typeContext;
         this.typeTransformerRegistry = typeTransformerRegistry;
-        this.selectionStrategy = selectionStrategy;
         this.jsonLd = jsonLd;
     }
 
@@ -87,28 +78,7 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
 
     @Override
     public ServiceResult<DataPlaneInstance> select(@Nullable String selectionStrategy, Predicate<DataPlaneInstance> filter) {
-        return ServiceResult.unexpected("RemoteDataPlaneSelectorService.select for consumer not implemented yet");
-    }
-
-    @Override
-    public ServiceResult<DataPlaneInstance> select(DataAddress source, String transferType, @Nullable String selectionStrategy) {
-        var srcAddress = typeTransformerRegistry.transform(source, JsonObject.class).orElseThrow(f -> new EdcException(f.getFailureDetail()));
-        var jsonObject = Json.createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add(TYPE, EDC_NAMESPACE + "SelectionRequest")
-                .add(EDC_NAMESPACE + "source", srcAddress)
-                .add(EDC_NAMESPACE + "strategy", Optional.ofNullable(selectionStrategy).orElse(this.selectionStrategy))
-                .add(EDC_NAMESPACE + "transferType", transferType)
-                .build();
-
-        var body = RequestBody.create(jsonObject.toString(), TYPE_JSON);
-
-        var requestBuilder = new Request.Builder().post(body).url(url + SELECT_PATH);
-
-        return httpClient.request(requestBuilder).compose(this::toJsonObject)
-                .compose(it -> jsonLd.expand(it).flatMap(ServiceResult::from))
-                .map(it -> typeTransformerRegistry.transform(it, DataPlaneInstance.class))
-                .compose(ServiceResult::from);
+        return ServiceResult.unexpected("DataPlaneSelectorService.select can only be called as embedded in the control-plane");
     }
 
     @Override
@@ -137,7 +107,7 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
 
     @Override
     public ServiceResult<Void> unregister(String instanceId) {
-        var requestBuilder = new Request.Builder().put(EMPTY_REQUEST).url("%s/%s/unregister".formatted(url, instanceId));
+        var requestBuilder = new Request.Builder().put(RequestBody.create(new byte[0])).url("%s/%s/unregister".formatted(url, instanceId));
 
         return httpClient.request(requestBuilder).mapEmpty();
     }

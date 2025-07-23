@@ -19,21 +19,29 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 
 class DataAddressTest {
 
     @Test
     void verifyDeserialization() throws IOException {
         var mapper = new JacksonTypeManager().getMapper();
+        Map<String, Object> responseChannelMap = Map.of(
+                "url", "http://example.com/response",
+                "type", "someothertype"
+        );
 
         var dataAddress = DataAddress.Builder.newInstance()
                 .type("test")
                 .keyName("somekey")
+                .responseChannel(responseChannelMap)
                 .property("foo", "bar").build();
         var writer = new StringWriter();
         mapper.writeValue(writer, dataAddress);
@@ -44,6 +52,36 @@ class DataAddressTest {
 
         assertThat(deserialized.getType()).isEqualTo("test");
         assertThat(deserialized.getStringProperty("foo")).isEqualTo("bar");
+        assertThat(deserialized.getResponseChannel())
+                .isInstanceOf(DataAddress.class)
+                .usingRecursiveComparison()
+                .isEqualTo(DataAddress.Builder.newInstance().properties(responseChannelMap).build());
+    }
+
+    @Test
+    void verifyDeserializationWithComplexAttribute() throws IOException {
+
+        var mapper = new JacksonTypeManager().getMapper();
+        var dataAddress = DataAddress.Builder.newInstance()
+                .type("test")
+                .keyName("somekey")
+                .property("foo", "bar")
+                .property("complexJsonObject", DataAddress.Builder.newInstance().property(EDC_DATA_ADDRESS_TYPE_PROPERTY, "AmazonS3").build())
+                .property("complexJsonArray", List.of("string1", "string2"))
+                .build();
+        var writer = new StringWriter();
+        mapper.writeValue(writer, dataAddress);
+        var deserialized = mapper.readValue(writer.toString(), DataAddress.class);
+        var jsonObject = mapper.convertValue(deserialized.getProperty("complexJsonObject"), DataAddress.class);
+        var jsonArray = mapper.convertValue(deserialized.getProperty("complexJsonArray"), List.class);
+        assertThat(deserialized)
+                .isNotNull();
+        assertThat(jsonObject)
+                .isNotNull()
+                .usingRecursiveComparison().isEqualTo(dataAddress.getProperty("complexJsonObject"));
+        assertThat(jsonArray)
+                .isNotNull()
+                .usingRecursiveComparison().isEqualTo(dataAddress.getProperty("complexJsonArray"));
     }
 
     @Test
@@ -99,5 +137,42 @@ class DataAddressTest {
         assertThat(address.hasProperty("existing")).isTrue();
         assertThat(address.hasProperty("anotherExisting")).isTrue();
         assertThat(address.hasProperty("unknown")).isFalse();
+    }
+
+    @Test
+    void verifyResponseChannelBuilderFromDataAddress() {
+        var responseChannelDataAddress = DataAddress.Builder.newInstance()
+                .type("someothertype")
+                .property("url", "http://example.com/response")
+                .build();
+        var address = DataAddress.Builder.newInstance()
+                .type("sometype")
+                .responseChannel(responseChannelDataAddress)
+                .build();
+
+        assertThat(address.getResponseChannel())
+                .isNotNull()
+                .isInstanceOf(DataAddress.class)
+                .isEqualTo(responseChannelDataAddress);
+    }
+
+    @Test
+    void verifyResponseChannelBuilderFromMap() {
+
+        Map<String, Object> responseChannelMap = Map.of(
+                "url", "http://example.com/response",
+                "type", "someothertype"
+        );
+
+        var address = DataAddress.Builder.newInstance()
+                .type("sometype")
+                .responseChannel(responseChannelMap)
+                .build();
+
+        assertThat(address.getResponseChannel())
+                .isNotNull()
+                .isInstanceOf(DataAddress.class)
+                .usingRecursiveComparison()
+                .isEqualTo(DataAddress.Builder.newInstance().properties(responseChannelMap).build());
     }
 }

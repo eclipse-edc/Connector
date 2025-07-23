@@ -15,6 +15,7 @@
 package org.eclipse.edc.boot.system.injection;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.ValueProvider;
@@ -47,6 +48,7 @@ public class ValueInjectionPoint<T> implements InjectionPoint<T> {
     private final Field targetField;
     private final Setting annotationValue;
     private final Class<?> declaringClass;
+    private final String key;
 
     /**
      * Constructs a new ValueInjectionPoint instance
@@ -57,11 +59,16 @@ public class ValueInjectionPoint<T> implements InjectionPoint<T> {
      * @param declaringClass  The class where the annotated field is declared. Usually, this is {@code objectInstance.getClass()}.
      */
     public ValueInjectionPoint(T objectInstance, Field targetField, Setting annotationValue, Class<?> declaringClass) {
+        this(objectInstance, targetField, annotationValue, declaringClass, null);
+    }
+
+    public ValueInjectionPoint(T objectInstance, Field targetField, Setting annotationValue, Class<?> declaringClass, SettingContext settingContext) {
         this.objectInstance = objectInstance;
         this.targetField = targetField;
         this.declaringClass = declaringClass;
         this.targetField.setAccessible(true);
         this.annotationValue = annotationValue;
+        this.key = settingContext == null ? annotationValue.key() : settingContext.value() + "." + annotationValue.key();
     }
 
     public Field getTargetField() {
@@ -123,7 +130,6 @@ public class ValueInjectionPoint<T> implements InjectionPoint<T> {
     public Object resolve(ServiceExtensionContext context, DefaultServiceSupplier defaultServiceSupplier) {
         var config = context.getConfig();
         var type = getType();
-        var key = annotationValue.key();
 
         // value is found in the config
         if (config.hasKey(key)) {
@@ -175,7 +181,7 @@ public class ValueInjectionPoint<T> implements InjectionPoint<T> {
         }
 
         // no default value, the required value may be found in the config
-        return context.getConfig().hasKey(annotationValue.key())
+        return context.getConfig().hasKey(key)
                 ? Result.success(emptyProviderlist)
                 : Result.failure(toString());
     }
@@ -187,7 +193,7 @@ public class ValueInjectionPoint<T> implements InjectionPoint<T> {
 
     @Override
     public String toString() {
-        return "Configuration value \"%s\" of type [%s] (property '%s')".formatted(targetField.getName(), getType(), annotationValue.key());
+        return "Configuration value \"%s\" of type [%s] (property '%s')".formatted(targetField.getName(), getType(), key);
     }
 
     private Object parseEntry(String string, Class<?> valueType) {
@@ -202,7 +208,7 @@ public class ValueInjectionPoint<T> implements InjectionPoint<T> {
                 return Double.parseDouble(string);
             }
         } catch (NumberFormatException e) {
-            throw new EdcInjectionException("Config field '%s' is of type '%s', but the value resolved from key '%s' is \"%s\" which cannot be interpreted as %s.".formatted(targetField.getName(), valueType, annotationValue.key(), string, valueType));
+            throw new EdcInjectionException("Config field '%s' is of type '%s', but the value resolved from key '%s' is \"%s\" which cannot be interpreted as %s.".formatted(targetField.getName(), valueType, key, string, valueType));
         }
         if (valueType == Boolean.class || valueType == boolean.class) {
             return Boolean.parseBoolean(string);

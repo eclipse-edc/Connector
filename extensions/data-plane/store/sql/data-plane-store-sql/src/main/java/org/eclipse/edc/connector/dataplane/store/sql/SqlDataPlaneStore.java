@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.store.sql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResource;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.connector.dataplane.store.sql.schema.DataFlowStatements;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
@@ -122,57 +123,32 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
     public void save(DataFlow entity) {
         transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var existing = findByIdInternal(connection, entity.getId());
-                if (existing != null) {
-                    leaseContext.by(leaseHolderName).withConnection(connection).breakLease(entity.getId());
-                    update(connection, entity);
-                } else {
-                    insert(connection, entity);
-                }
+                var sql = statements.getUpsertTemplate();
+
+                queryExecutor.execute(connection, sql,
+                        entity.getId(),
+                        entity.getState(),
+                        entity.getCreatedAt(),
+                        entity.getUpdatedAt(),
+                        entity.getStateCount(),
+                        entity.getStateTimestamp(),
+                        toJson(entity.getTraceContext()),
+                        entity.getErrorDetail(),
+                        Optional.ofNullable(entity.getCallbackAddress()).map(URI::toString).orElse(null),
+                        toJson(entity.getSource()),
+                        toJson(entity.getDestination()),
+                        toJson(entity.getProperties()),
+                        entity.getTransferType().flowType().toString(),
+                        entity.getTransferType().destinationType(),
+                        entity.getRuntimeId(),
+                        toJson(entity.getResourceDefinitions())
+                );
+
+                leaseContext.by(leaseHolderName).withConnection(connection).breakLease(entity.getId());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
         });
-    }
-
-    private void insert(Connection connection, DataFlow dataFlow) {
-        var sql = statements.getInsertTemplate();
-        queryExecutor.execute(connection, sql,
-                dataFlow.getId(),
-                dataFlow.getState(),
-                dataFlow.getCreatedAt(),
-                dataFlow.getUpdatedAt(),
-                dataFlow.getStateCount(),
-                dataFlow.getStateTimestamp(),
-                toJson(dataFlow.getTraceContext()),
-                dataFlow.getErrorDetail(),
-                Optional.ofNullable(dataFlow.getCallbackAddress()).map(URI::toString).orElse(null),
-                toJson(dataFlow.getSource()),
-                toJson(dataFlow.getDestination()),
-                toJson(dataFlow.getProperties()),
-                dataFlow.getTransferType().flowType().toString(),
-                dataFlow.getTransferType().destinationType(),
-                dataFlow.getRuntimeId()
-        );
-    }
-
-    private void update(Connection connection, DataFlow dataFlow) {
-        var sql = statements.getUpdateTemplate();
-        queryExecutor.execute(connection, sql,
-                dataFlow.getState(),
-                dataFlow.getUpdatedAt(),
-                dataFlow.getStateCount(),
-                dataFlow.getStateTimestamp(),
-                toJson(dataFlow.getTraceContext()),
-                dataFlow.getErrorDetail(),
-                Optional.ofNullable(dataFlow.getCallbackAddress()).map(URI::toString).orElse(null),
-                toJson(dataFlow.getSource()),
-                toJson(dataFlow.getDestination()),
-                toJson(dataFlow.getProperties()),
-                dataFlow.getTransferType().flowType().toString(),
-                dataFlow.getTransferType().destinationType(),
-                dataFlow.getRuntimeId(),
-                dataFlow.getId());
     }
 
     private DataFlow mapDataFlow(ResultSet resultSet) throws SQLException {
@@ -194,6 +170,7 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
                         FlowType.valueOf(resultSet.getString(statements.getFlowTypeColumn()))
                 ))
                 .runtimeId(resultSet.getString(statements.getRuntimeIdColumn()))
+                .resourceDefinitions(fromJson(resultSet.getString(statements.getResourceDefinitionsColumn()), listOf(ProvisionResource.class)))
                 .build();
     }
 

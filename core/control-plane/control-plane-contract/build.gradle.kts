@@ -24,18 +24,9 @@ dependencies {
     api(project(":spi:control-plane:catalog-spi"))
     api(project(":spi:control-plane:contract-spi"))
 
-    implementation(project(":core:common:lib:state-machine-lib"))
     implementation(project(":core:control-plane:lib:control-plane-policies-lib"))
-    implementation(libs.opentelemetry.instrumentation.annotations)
 
-    testImplementation(project(":spi:common:transaction-spi"))
-    testImplementation(project(":core:control-plane:control-plane-core"))
-    testImplementation(project(":core:control-plane:control-plane-aggregate-services"))
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:lib:query-lib"))
-    testImplementation(project(":core:common:lib:store-lib"))
-    testImplementation(project(":core:common:lib:policy-engine-lib"))
-    testImplementation(libs.awaitility)
 }
 
 

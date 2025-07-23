@@ -35,7 +35,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.eclipse.edc.api.auth.configuration.ApiAuthenticationConfigurationExtension.NAME;
-import static org.eclipse.edc.web.spi.configuration.WebServiceConfigurer.WEB_HTTP_PREFIX;
 
 @Extension(NAME)
 public class ApiAuthenticationConfigurationExtension implements ServiceExtension {
@@ -43,7 +42,7 @@ public class ApiAuthenticationConfigurationExtension implements ServiceExtension
     public static final String NAME = "Api Authentication Configuration Extension";
 
     public static final String AUTH_KEY = "auth";
-    public static final String CONFIG_ALIAS = WEB_HTTP_PREFIX + ".<context>." + AUTH_KEY + ".";
+    public static final String CONFIG_ALIAS = "web.http.<context>." + AUTH_KEY + ".";
 
     @Setting(context = CONFIG_ALIAS, value = "The type of the authentication provider.", required = true)
     public static final String TYPE_KEY = "type";
@@ -73,7 +72,7 @@ public class ApiAuthenticationConfigurationExtension implements ServiceExtension
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        authConfiguration = context.getConfig(WEB_HTTP_PREFIX)
+        authConfiguration = context.getConfig("web.http")
                 .partition().filter(config -> config.getString(AUTH_KEY + "." + TYPE_KEY, null) != null)
                 .map(cfg -> Map.entry(cfg.currentNode(), cfg.getConfig(AUTH_KEY)))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));

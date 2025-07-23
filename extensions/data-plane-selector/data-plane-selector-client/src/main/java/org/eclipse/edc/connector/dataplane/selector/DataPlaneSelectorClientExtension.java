@@ -43,9 +43,6 @@ public class DataPlaneSelectorClientExtension implements ServiceExtension {
     @Setting(description = "DataPlane selector api URL", key = "edc.dpf.selector.url")
     private String selectorApiUrl;
 
-    @Setting(description = "Defines strategy for Data Plane instance selection in case Data Plane is not embedded in current runtime", defaultValue = DataPlaneSelectorService.DEFAULT_STRATEGY, key = "edc.dataplane.client.selector.strategy")
-    private String selectionStrategy;
-
     @Inject
     private ControlApiHttpClient httpClient;
 
@@ -67,7 +64,7 @@ public class DataPlaneSelectorClientExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var builderFactory = Json.createBuilderFactory(emptyMap());
         typeTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(builderFactory, typeManager, JSON_LD));
-        typeTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(builderFactory));
+        typeTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(builderFactory, typeManager, JSON_LD));
         typeTransformerRegistry.register(new JsonObjectToDataPlaneInstanceTransformer());
         typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
         typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, JSON_LD));
@@ -76,6 +73,6 @@ public class DataPlaneSelectorClientExtension implements ServiceExtension {
     @Provider
     public DataPlaneSelectorService dataPlaneSelectorService(ServiceExtensionContext context) {
         return new RemoteDataPlaneSelectorService(httpClient, selectorApiUrl, typeManager, JSON_LD, typeTransformerRegistry,
-                selectionStrategy, jsonLd);
+                jsonLd);
     }
 }

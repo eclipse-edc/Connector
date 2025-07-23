@@ -37,7 +37,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 @JsonDeserialize(builder = DataFlowStartMessage.Builder.class)
 public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
 
-    public static final String DC_DATA_FLOW_START_MESSAGE_PROCESS_ID = EDC_NAMESPACE + "processId";
+    public static final String EDC_DATA_FLOW_START_MESSAGE_PROCESS_ID = EDC_NAMESPACE + "processId";
     public static final String EDC_DATA_FLOW_START_MESSAGE_SIMPLE_TYPE = "DataFlowStartMessage";
     public static final String EDC_DATA_FLOW_START_MESSAGE_TYPE = EDC_NAMESPACE + EDC_DATA_FLOW_START_MESSAGE_SIMPLE_TYPE;
     public static final String EDC_DATA_FLOW_START_MESSAGE_FLOW_TYPE = EDC_NAMESPACE + "flowType";
@@ -48,7 +48,7 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
     public static final String EDC_DATA_FLOW_START_MESSAGE_AGREEMENT_ID = EDC_NAMESPACE + "agreementId";
     public static final String EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS = EDC_NAMESPACE + "sourceDataAddress";
     public static final String EDC_DATA_FLOW_START_MESSAGE_DESTINATION_DATA_ADDRESS = EDC_NAMESPACE + "destinationDataAddress";
-    public static final String EDC_DATA_FLOW_START_MESSAGE_DESTINATION_CALLBACK_ADDRESS = EDC_NAMESPACE + "callbackAddress";
+    public static final String EDC_DATA_FLOW_START_MESSAGE_CALLBACK_ADDRESS = EDC_NAMESPACE + "callbackAddress";
     public static final String EDC_DATA_FLOW_START_MESSAGE_PROPERTIES = EDC_NAMESPACE + "properties";
 
     private String id;
@@ -242,7 +242,9 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
         }
 
         public Builder properties(Map<String, String> value) {
-            request.properties = value == null ? null : Map.copyOf(value);
+            if (value != null) {
+                request.properties.putAll(value);
+            }
             return this;
         }
 

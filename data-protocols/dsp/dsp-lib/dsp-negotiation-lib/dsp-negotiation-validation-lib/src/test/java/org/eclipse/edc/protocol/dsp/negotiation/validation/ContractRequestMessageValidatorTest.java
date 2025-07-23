@@ -16,6 +16,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.validation;
 
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.validator.spi.ValidationFailure;
 import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.validator.spi.Violation;
@@ -33,24 +34,25 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI;
-import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM;
 
 class ContractRequestMessageValidatorTest {
 
-    private final Validator<JsonObject> validator = ContractRequestMessageValidator.instance();
+    private static final JsonLdNamespace DSP_NAMESPACE = new JsonLdNamespace("http://www.w3.org/ns/dsp#");
+    private final Validator<JsonObject> validator = ContractRequestMessageValidator.instance(DSP_NAMESPACE);
 
     @Test
     void shouldSucceed_whenObjectIsValid() {
         var input = createObjectBuilder()
-                .add(TYPE, createArrayBuilder().add(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI))
-                .add(DSPACE_PROPERTY_OFFER_IRI, createArrayBuilder()
+                .add(TYPE, createArrayBuilder().add(DSP_NAMESPACE.toIri(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM)))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_OFFER_TERM), createArrayBuilder()
                         .add(createObjectBuilder()
                                 .add(TYPE, ODRL_POLICY_TYPE_OFFER)
                                 .add(ID, UUID.randomUUID().toString())
                                 .add(ODRL_TARGET_ATTRIBUTE, id("target"))))
-                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI, value("http://any/address"))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM), value("http://any/address"))
                 .build();
 
         var result = validator.validate(input);
@@ -68,22 +70,22 @@ class ContractRequestMessageValidatorTest {
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
                 .hasSize(2)
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(TYPE))
-                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI));
+                .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM)));
     }
 
     @Test
     void shouldFail_whenOfferMissesIdAndTarget() {
         var input = createObjectBuilder()
-                .add(TYPE, createArrayBuilder().add(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_IRI))
-                .add(DSPACE_PROPERTY_OFFER_IRI, createArrayBuilder().add(createObjectBuilder()))
-                .add(DSPACE_PROPERTY_CALLBACK_ADDRESS_IRI, value("http://any/address"))
+                .add(TYPE, createArrayBuilder().add(DSP_NAMESPACE.toIri(DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM)))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_OFFER_TERM), createArrayBuilder().add(createObjectBuilder()))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM), value("http://any/address"))
                 .build();
 
         var result = validator.validate(input);
 
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
                 .hasSize(2)
-                .allSatisfy(violation -> assertThat(violation.path()).startsWith(DSPACE_PROPERTY_OFFER_IRI))
+                .allSatisfy(violation -> assertThat(violation.path()).startsWith(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_OFFER_TERM)))
                 .anySatisfy(violation -> assertThat(violation.path()).endsWith(ID))
                 .anySatisfy(violation -> assertThat(violation.path()).endsWith(ODRL_TARGET_ATTRIBUTE));
     }

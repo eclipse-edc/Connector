@@ -17,23 +17,17 @@ package org.eclipse.edc.connector.controlplane.services.policydefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionCreated;
 import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionDeleted;
-import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionEvent;
 import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionUpdated;
 import org.eclipse.edc.connector.controlplane.policy.spi.observe.PolicyDefinitionListener;
-import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
-
-import java.time.Clock;
 
 /**
  * Listener responsible for creating and publishing events regarding PolicyDefinition state changes
  */
 public class PolicyDefinitionEventListener implements PolicyDefinitionListener {
-    private final Clock clock;
     private final EventRouter eventRouter;
 
-    public PolicyDefinitionEventListener(Clock clock, EventRouter eventRouter) {
-        this.clock = clock;
+    public PolicyDefinitionEventListener(EventRouter eventRouter) {
         this.eventRouter = eventRouter;
     }
 
@@ -43,7 +37,7 @@ public class PolicyDefinitionEventListener implements PolicyDefinitionListener {
                 .policyDefinitionId(policyDefinition.getId())
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
@@ -52,7 +46,7 @@ public class PolicyDefinitionEventListener implements PolicyDefinitionListener {
                 .policyDefinitionId(policyDefinition.getId())
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
     @Override
@@ -61,14 +55,7 @@ public class PolicyDefinitionEventListener implements PolicyDefinitionListener {
                 .policyDefinitionId(policyDefinition.getId())
                 .build();
 
-        publish(event);
+        eventRouter.publish(event);
     }
 
-    private void publish(PolicyDefinitionEvent event) {
-        var envelope = EventEnvelope.Builder.newInstance()
-                .payload(event)
-                .at(clock.millis())
-                .build();
-        eventRouter.publish(envelope);
-    }
 }
