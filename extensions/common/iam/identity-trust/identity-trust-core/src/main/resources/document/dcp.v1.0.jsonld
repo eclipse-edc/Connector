@@ -3,7 +3,7 @@
     "@version": 1.1,
     "@protected": true,
     "dcp": "https://w3id.org/dspace-dcp/v1.0/",
-    "cred": "https://www.w3.org/2018/credentials/",
+    "cred": "https://www.w3.org/2018/credentials#",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "id": "@id",
     "type": "@type",
@@ -21,11 +21,23 @@
       "@context": {
         "credentials": {
           "@id": "dcp:credentials",
-          "@container": "@set"
+          "@container": "@set",
+          "@type": "@json"
         },
-        "requestId": {
-          "@id": "dcp:requestId",
+        "issuerPid": {
+          "@id": "dcp:issuerPid",
           "@type": "@id"
+        },
+        "holderPid": {
+          "@id": "dcp:holderPid",
+          "@type": "@id"
+        },
+        "status": {
+          "@id": "dcp:status",
+          "@type": "@id"
+        },
+        "rejectionReason": {
+          "@id": "dcp:rejectionReason"
         }
       }
     },
@@ -33,8 +45,7 @@
       "@id": "dcp:CredentialObject",
       "@context": {
         "credentialType": {
-          "@id": "dcp:credentialType",
-          "@container": "@set"
+          "@id": "dcp:credentialType"
         },
         "offerReason": {
           "@id": "dcp:offerReason",
@@ -45,10 +56,9 @@
           "@type": "xsd:string",
           "@container": "@set"
         },
-        "profiles": {
-          "@id": "dcp:profiles",
-          "@type": "xsd:string",
-          "@container": "@set"
+        "profile": {
+          "@id": "dcp:profile",
+          "@type": "xsd:string"
         },
         "issuancePolicy": {
           "@id": "dcp:issuancePolicy",
@@ -59,7 +69,10 @@
     "CredentialOfferMessage": {
       "@id": "dcp:CredentialOfferMessage",
       "@context": {
-        "credentialIssuer": "cred:issuer",
+        "issuer": {
+          "@id": "cred:issuer",
+          "@type": "@id"
+        },
         "credentials": {
           "@id": "dcp:credentials",
           "@container": "@set"
@@ -69,11 +82,13 @@
     "CredentialRequestMessage": {
       "@id": "dcp:CredentialRequestMessage",
       "@context": {
-        "format": "dcp:format",
-        "credentialType": {
-          "@id": "dcp:credentialType",
-          "@type": "@vocab",
-          "@container": "@set"
+        "holderPid": {
+          "@id": "dcp:holderPid",
+          "@type": "@id"
+        },
+        "credentials": {
+          "@id": "dcp:credentials",
+          "@type": "@json"
         }
       }
     },
@@ -81,8 +96,12 @@
     "CredentialStatus": {
       "@id": "dcp:CredentialStatus",
       "@context": {
-        "requestId": {
-          "@id": "dcp:requestId",
+        "holderPid": {
+          "@id": "dcp:holderPid",
+          "@type": "@id"
+        },
+        "issuerPid": {
+          "@id": "dcp:issuerPid",
           "@type": "@id"
         },
         "status": {
@@ -97,7 +116,10 @@
     "IssuerMetadata": {
       "@id": "dcp:IssuerMetadata",
       "@context": {
-        "credentialIssuer": "cred:issuer",
+        "issuer": {
+          "@id": "cred:issuer",
+          "@type": "@id"
+        },
         "credentialsSupported": {
           "@id": "dcp:credentialsSupported",
           "@container": "@set"
