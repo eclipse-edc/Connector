@@ -2,6 +2,7 @@ name: Run Tests
 
 on:
   workflow_dispatch:
+  workflow_call:
   push:
     branches: [ main, release/*, bugfix/* ]
   pull_request:
