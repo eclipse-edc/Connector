@@ -315,7 +315,7 @@ public class ProvisioningTransferConsumerEndToEndTest {
 
         }
 
-    private static class AddHeaderResourceGenerator implements ResourceDefinitionGenerator {
+        private static class AddHeaderResourceGenerator implements ResourceDefinitionGenerator {
 
             @Override
             public String supportedType() {

@@ -63,22 +63,22 @@ public class BomSmokeTests {
         protected RuntimeExtension runtime = new RuntimePerMethodExtension(
                 new EmbeddedRuntime("control-plane-dcp-bom", ":dist:bom:controlplane-dcp-bom")
                         .configurationProvider(() -> ConfigFactory.fromMap(new HashMap<>() {{
-                            put("edc.iam.sts.oauth.token.url", "https://sts.com/token");
-                            put("edc.iam.sts.oauth.client.id", "test-client");
-                            put("edc.iam.sts.oauth.client.secret.alias", "test-alias");
-                            put("web.http.port", DEFAULT_PORT);
-                            put("web.http.path", DEFAULT_PATH);
-                            put("web.http.version.port", String.valueOf(getFreePort()));
-                            put("web.http.version.path", "/api/version");
-                            put("web.http.control.port", String.valueOf(getFreePort()));
-                            put("web.http.control.path", "/api/control");
-                            put("web.http.management.port", "8081");
-                            put("web.http.management.path", "/api/management");
-                            put("edc.iam.sts.privatekey.alias", "privatekey");
-                            put("edc.iam.sts.publickey.id", "publickey");
-                            put("edc.iam.issuer.id", "did:web:someone");
-                        }
-                    }))
+                                put("edc.iam.sts.oauth.token.url", "https://sts.com/token");
+                                put("edc.iam.sts.oauth.client.id", "test-client");
+                                put("edc.iam.sts.oauth.client.secret.alias", "test-alias");
+                                put("web.http.port", DEFAULT_PORT);
+                                put("web.http.path", DEFAULT_PATH);
+                                put("web.http.version.port", String.valueOf(getFreePort()));
+                                put("web.http.version.path", "/api/version");
+                                put("web.http.control.port", String.valueOf(getFreePort()));
+                                put("web.http.control.path", "/api/control");
+                                put("web.http.management.port", "8081");
+                                put("web.http.management.path", "/api/management");
+                                put("edc.iam.sts.privatekey.alias", "privatekey");
+                                put("edc.iam.sts.publickey.id", "publickey");
+                                put("edc.iam.issuer.id", "did:web:someone");
+                            }})
+                        )
         );
     }
 
