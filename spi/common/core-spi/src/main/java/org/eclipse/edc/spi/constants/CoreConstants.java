@@ -19,4 +19,5 @@ public interface CoreConstants {
     String EDC_PREFIX = "edc";
     String EDC_NAMESPACE = "https://w3id.org/edc/v0.0.1/ns/";
     String EDC_CONNECTOR_MANAGEMENT_CONTEXT = "https://w3id.org/edc/connector/management/v0.0.1";
+    String EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2 = "https://w3id.org/edc/connector/management/v2";
 }
