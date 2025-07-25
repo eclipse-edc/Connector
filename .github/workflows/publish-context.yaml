@@ -40,6 +40,7 @@ jobs:
         run: |
           mkdir -p public/context
           cp extensions/common/json-ld/src/main/resources/document/management-context-v1.jsonld public/context/
+          cp extensions/common/json-ld/src/main/resources/document/management-context-v2.jsonld public/context/
       - name: deploy to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
