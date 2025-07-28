@@ -81,7 +81,7 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
         runtime.getService(PublicEndpointGeneratorService.class)
                 .addGeneratorFunction("HttpData", address -> Endpoint.url(DATAPLANE_PUBLIC_ENDPOINT_URL));
         runtime.getService(PublicEndpointGeneratorService.class)
-                .addGeneratorFunction("HttpData", () -> Endpoint.url(DATAPLANE_PUBLIC_ENDPOINT_URL + "/responseChannel"));
+                .addResponseGeneratorFunction("HttpData", () -> Endpoint.url(DATAPLANE_PUBLIC_ENDPOINT_URL + "/responseChannel"));
     }
 
     @DisplayName("Verify the POST /v1/dataflows endpoint returns the correct EDR (PULL)")
@@ -130,7 +130,7 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
         assertThat(store).isNotNull();
     }
 
-    @DisplayName("Verify the POST /v1/dataflows endpoint returns the correct EDR (PUSH)")
+    @DisplayName("Verify the POST /v1/dataflows endpoint returns no EDR for PUSH")
     @Test
     void startTransfer_push() throws JsonProcessingException {
         seedVault();
@@ -164,8 +164,6 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
                 .orElseThrow(failTest());
 
         var dataAddress = dataFlowResponseMessage.getDataAddress();
-
-        // should not return an EDR if transfer type is PUSH and no back-channel is provided
         assertThat(dataAddress).isNull();
 
         // verify that the data flow was created
