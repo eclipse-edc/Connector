@@ -28,7 +28,7 @@ dependencies {
     testImplementation(project(":core:data-plane:data-plane-core"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(libs.restAssured)
-    testImplementation(libs.mockserver.netty)
+    testImplementation(libs.wiremock)
 
     testImplementation(testFixtures(project(":core:common:lib:http-lib")))
     testImplementation(testFixtures(project(":spi:data-plane:data-plane-spi")))

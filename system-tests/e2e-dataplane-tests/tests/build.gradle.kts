@@ -29,9 +29,8 @@ dependencies {
 
     testImplementation(libs.restAssured)
     testImplementation(libs.awaitility)
-    testImplementation(libs.mockserver.netty)
-    testImplementation(libs.mockserver.client)
     testImplementation(libs.testcontainers.postgres)
+    testImplementation(libs.wiremock)
 
     testCompileOnly(project(":system-tests:e2e-dataplane-tests:runtimes:data-plane"))
 }

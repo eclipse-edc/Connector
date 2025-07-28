@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.jsonld;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import jakarta.json.Json;
 import jakarta.json.JsonValue;
 import org.assertj.core.api.Assertions;
@@ -21,16 +22,16 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.util.io.Ports;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
-import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.HttpRequest;
-import org.mockserver.model.HttpResponse;
-import org.mockserver.verify.VerificationTimes;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.net.URI;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
@@ -40,14 +41,14 @@ import static org.mockito.Mockito.mock;
 
 class TitaniumJsonLdTest {
 
-    private final int port = Ports.getFreePort();
-    private final ClientAndServer server = ClientAndServer.startClientAndServer(port);
+    @RegisterExtension
+    static WireMockExtension server = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
+
+
     private final Monitor monitor = mock();
 
-    @AfterEach
-    void tearDown() {
-        server.stop();
-    }
 
     @Test
     void expand() {
@@ -294,7 +295,7 @@ class TitaniumJsonLdTest {
 
     @Test
     void documentResolution_shouldNotCallHttpEndpoint_whenFileContextIsRegistered() {
-        var contextUrl = "http://localhost:" + port;
+        var contextUrl = "http://localhost:" + server.getPort();
         var jsonObject = createObjectBuilder()
                 .add(JsonLdKeywords.CONTEXT, contextUrl)
                 .add("test:key", "value")
@@ -304,7 +305,7 @@ class TitaniumJsonLdTest {
 
         var expanded = service.expand(jsonObject);
 
-        server.verifyZeroInteractions();
+        server.verify(0, getRequestedFor(anyUrl()));
         assertThat(expanded).isSucceeded().satisfies(json -> {
             Assertions.assertThat(json.getJsonArray("http://test.org/context/key")).hasSize(1).first()
                     .extracting(JsonValue::asJsonObject)
@@ -315,8 +316,8 @@ class TitaniumJsonLdTest {
 
     @Test
     void documentResolution_shouldFailByDefault_whenContextIsNotRegisteredAndHttpIsNotEnabled() {
-        server.when(HttpRequest.request()).respond(HttpResponse.response(TestUtils.getResourceFileContentAsString("test-context.jsonld")));
-        var contextUrl = "http://localhost:" + port;
+        server.stubFor(get(anyUrl()).willReturn(ok(TestUtils.getResourceFileContentAsString("test-context.jsonld"))));
+        var contextUrl = "http://localhost:" + server.getPort();
         var jsonObject = createObjectBuilder()
                 .add(JsonLdKeywords.CONTEXT, contextUrl)
                 .add("test:key", "value")
@@ -330,14 +331,15 @@ class TitaniumJsonLdTest {
 
     @Test
     void documentResolution_shouldCallHttpEndpoint_whenContextIsNotRegistered_andHttpIsEnabled() {
-        server.when(HttpRequest.request()).respond(HttpResponse.response(TestUtils.getResourceFileContentAsString("test-context.jsonld")));
-        var contextUrl = "http://localhost:" + port;
+        server.stubFor(get(anyUrl()).willReturn(ok(TestUtils.getResourceFileContentAsString("test-context.jsonld"))));
+
+        var contextUrl = "http://localhost:" + server.getPort();
         var jsonObject = createObjectBuilder()
                 .add(JsonLdKeywords.CONTEXT, contextUrl)
                 .add("test:key", "value")
                 .build();
         var service = httpEnabledService();
-        service.registerCachedDocument("http//any.other/url", URI.create("http://localhost:" + server.getLocalPort()));
+        service.registerCachedDocument("http//any.other/url", URI.create("http://localhost:" + server.getPort()));
 
         var expanded = service.expand(jsonObject);
 
@@ -353,19 +355,19 @@ class TitaniumJsonLdTest {
 
     @Test
     void documentResolution_shouldCallHttpEndpointOnlyOnce_whenContextIsNotRegistered_andHttpIsEnabled() {
-        server.when(HttpRequest.request()).respond(HttpResponse.response(TestUtils.getResourceFileContentAsString("test-context.jsonld")));
-        var contextUrl = "http://localhost:" + port;
+        server.stubFor(get(anyUrl()).willReturn(ok(TestUtils.getResourceFileContentAsString("test-context.jsonld"))));
+        var contextUrl = "http://localhost:" + server.getPort();
         var jsonObject = createObjectBuilder()
                 .add(JsonLdKeywords.CONTEXT, contextUrl)
                 .add("test:key", "value")
                 .build();
         var service = httpEnabledService();
-        service.registerCachedDocument("http//any.other/url", URI.create("http://localhost:" + server.getLocalPort()));
+        service.registerCachedDocument("http//any.other/url", URI.create("http://localhost:" + server.getPort()));
 
         assertThat(service.expand(jsonObject)).isSucceeded();
         assertThat(service.expand(jsonObject)).isSucceeded();
 
-        server.verify(HttpRequest.request().withMethod("GET"), VerificationTimes.exactly(1));
+        server.verify(1, getRequestedFor(anyUrl()));
 
     }
 

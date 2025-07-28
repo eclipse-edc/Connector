@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.http.params;
 
-import io.netty.handler.codec.http.HttpMethod;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParams;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataSource;
 import org.junit.jupiter.api.Nested;
@@ -29,7 +28,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
 
-import static io.netty.handler.codec.http.HttpMethod.POST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.http.testfixtures.TestFunctions.formatRequestBodyAsString;
 
@@ -50,7 +48,7 @@ class HttpRequestFactoryTest {
         void verifyPathIgnoredWhenNullOrBlank(String p) {
             var params = HttpRequestParams.Builder.newInstance()
                     .baseUrl(BASE_URL)
-                    .method(HttpMethod.GET.name())
+                    .method("GET")
                     .path(p)
                     .build();
 
@@ -64,7 +62,7 @@ class HttpRequestFactoryTest {
         void verifyQueryParamsIgnoredWhenNullOrBlank(String qp) {
             var params = HttpRequestParams.Builder.newInstance()
                     .baseUrl(BASE_URL)
-                    .method(HttpMethod.GET.name())
+                    .method("GET")
                     .queryParams(qp)
                     .build();
 
@@ -78,7 +76,7 @@ class HttpRequestFactoryTest {
             var headers = Map.of("key1", "value1");
             var params = HttpRequestParams.Builder.newInstance()
                     .baseUrl(BASE_URL)
-                    .method(HttpMethod.GET.name())
+                    .method("GET")
                     .headers(headers)
                     .build();
 
@@ -94,7 +92,7 @@ class HttpRequestFactoryTest {
             var queryParams = "test-queryparams";
             var params = HttpRequestParams.Builder.newInstance()
                     .baseUrl(BASE_URL)
-                    .method(HttpMethod.GET.name())
+                    .method("GET")
                     .path(path)
                     .queryParams(queryParams)
                     .build();
@@ -105,7 +103,7 @@ class HttpRequestFactoryTest {
             assertBaseUrl(url);
             assertThat(url.getPath()).isEqualTo("/" + path);
             assertThat(url.getQuery()).isEqualTo(queryParams);
-            assertThat(httpRequest.method()).isEqualTo(HttpMethod.GET.name());
+            assertThat(httpRequest.method()).isEqualTo("GET");
         }
 
         @Test
@@ -114,7 +112,7 @@ class HttpRequestFactoryTest {
             var contentType = "application/octet-stream";
             var params = HttpRequestParams.Builder.newInstance()
                     .baseUrl(BASE_URL)
-                    .method(POST.name())
+                    .method("POST")
                     .body(body)
                     .build();
 
@@ -131,7 +129,7 @@ class HttpRequestFactoryTest {
             var contentType = "text/plain";
             var params = HttpRequestParams.Builder.newInstance()
                     .baseUrl(BASE_URL)
-                    .method(POST.name())
+                    .method("POST")
                     .contentType(contentType)
                     .body(body)
                     .build();
@@ -149,7 +147,7 @@ class HttpRequestFactoryTest {
             var contentType = "test/content-type";
             var params = HttpRequestParams.Builder.newInstance()
                     .baseUrl(BASE_URL)
-                    .method(HttpMethod.GET.name())
+                    .method("GET")
                     .contentType(contentType)
                     .build();
 
@@ -174,7 +172,7 @@ class HttpRequestFactoryTest {
             var body = "Test body";
             var params = HttpRequestParams.Builder.newInstance()
                     .baseUrl(BASE_URL)
-                    .method(POST.name())
+                    .method("POST")
                     .contentType("application/json")
                     .build();
 
@@ -190,7 +188,7 @@ class HttpRequestFactoryTest {
         void verifyChunkedRequest() throws IOException {
             var params = HttpRequestParams.Builder.newInstance()
                     .baseUrl(BASE_URL)
-                    .method(POST.name())
+                    .method("POST")
                     .nonChunkedTransfer(false)
                     .build();
 
@@ -205,7 +203,7 @@ class HttpRequestFactoryTest {
         void verifyNotChunkedRequest() throws IOException {
             var params = HttpRequestParams.Builder.newInstance()
                     .baseUrl(BASE_URL)
-                    .method(POST.name())
+                    .method("POST")
                     .nonChunkedTransfer(true)
                     .build();
 

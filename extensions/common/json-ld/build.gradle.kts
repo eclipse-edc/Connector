@@ -25,8 +25,5 @@ dependencies {
 
     implementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":core:common:junit"));
-
-    testImplementation(libs.mockserver.netty)
-    testImplementation(libs.mockserver.client)
-
+    
 }

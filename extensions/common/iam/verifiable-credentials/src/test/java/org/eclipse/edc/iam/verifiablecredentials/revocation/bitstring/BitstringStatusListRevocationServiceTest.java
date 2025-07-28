@@ -16,6 +16,7 @@ package org.eclipse.edc.iam.verifiablecredentials.revocation.bitstring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
@@ -25,18 +26,21 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.BitString;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.StatusMessage;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.HttpResponse;
-import org.mockserver.verify.VerificationTimes;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static java.util.Collections.singleton;
 import static org.eclipse.edc.iam.verifiablecredentials.TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_ARRAY_SUBJECT_TEMPLATE;
 import static org.eclipse.edc.iam.verifiablecredentials.TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE;
@@ -47,31 +51,22 @@ import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bit
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_PURPOSE;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_SIZE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.Mockito.mock;
-import static org.mockserver.model.HttpRequest.request;
 
 class BitstringStatusListRevocationServiceTest {
 
     private static final int REVOKED_INDEX = 10;
     private static final int NOT_REVOKED_INDEX = 15;
+    @RegisterExtension
+    static WireMockExtension server = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
 
     private final BitstringStatusListRevocationService revocationService = new BitstringStatusListRevocationService(new ObjectMapper().registerModule(new JavaTimeModule()),
             5 * 60 * 1000, singleton("application/vc+jwt"), new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), mock()));
-    private ClientAndServer clientAndServer;
 
     @BeforeEach
     void setUp() {
-        clientAndServer = ClientAndServer.startClientAndServer("localhost", getFreePort());
-        var bitstring = generateBitstring();
-        var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(bitstring);
-        clientAndServer.when(request().withMethod("GET").withPath("/credentials/status/3"))
-                .respond(HttpResponse.response().withStatusCode(200).withBody(bitstringCredential));
-    }
-
-    @AfterEach
-    void tearDown() {
-        clientAndServer.stop();
     }
 
     private String generateBitstring() {
@@ -91,15 +86,14 @@ class BitstringStatusListRevocationServiceTest {
         void checkValidity_revoked_notCached() {
             var bitstring = generateBitstring(REVOKED_INDEX, (byte) 0x2);
             var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(bitstring);
-            clientAndServer.reset()
-                    .when(request().withMethod("GET").withPath("/credentials/status/3"))
-                    .respond(HttpResponse.response().withStatusCode(200).withBody(bitstringCredential));
+
+            server.stubFor(get("/credentials/status/3").willReturn(ok(bitstringCredential)));
 
             var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
                     Map.of(STATUS_LIST_PURPOSE, "revocation",
                             STATUS_LIST_INDEX, REVOKED_INDEX,
                             STATUS_LIST_SIZE, 1,
-                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort())));
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
             assertThat(revocationService.checkValidity(credential)).isFailed()
                     .detail().isEqualTo("Credential status is 'revocation', status at index 10 is '1'");
         }
@@ -108,48 +102,60 @@ class BitstringStatusListRevocationServiceTest {
         void checkValidity_revoked_whenCached() {
             var bitstring = generateBitstring(REVOKED_INDEX, 1);
             var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(bitstring);
-            clientAndServer.reset()
-                    .when(request().withMethod("GET").withPath("/credentials/status/3"))
-                    .respond(HttpResponse.response().withStatusCode(200).withBody(bitstringCredential));
+
+            server.stubFor(get("/credentials/status/3").willReturn(ok(bitstringCredential)));
+
 
             var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
                     Map.of(STATUS_LIST_PURPOSE, "revocation",
                             STATUS_LIST_INDEX, REVOKED_INDEX,
                             STATUS_LIST_SIZE, 1,
-                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort())));
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
             assertThat(revocationService.checkValidity(credential)).isFailed()
                     .detail().isEqualTo("Credential status is 'revocation', status at index 10 is '1'");
-            clientAndServer.verify(request(), VerificationTimes.exactly(1));
+            server.verify(getRequestedFor(urlEqualTo("/credentials/status/3")));
         }
 
         @Test
         void checkValidity_notRevoked_notCached() {
+            var bitstring = generateBitstring();
+            var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(bitstring);
+            server.stubFor(get("/credentials/status/3").willReturn(ok(bitstringCredential)));
+            
             var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
                     Map.of(STATUS_LIST_PURPOSE, "revocation",
                             STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
                             STATUS_LIST_SIZE, 1,
-                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort())));
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
             assertThat(revocationService.checkValidity(credential)).isSucceeded();
         }
 
         @Test
         void checkValidity_notRevoked_whenCached() {
+            var bitstring = generateBitstring();
+            var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(bitstring);
+            server.stubFor(get("/credentials/status/3").willReturn(ok(bitstringCredential)));
+
             var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
                     Map.of(STATUS_LIST_PURPOSE, "revocation",
                             STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
                             STATUS_LIST_SIZE, 1,
-                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort())));
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
             assertThat(revocationService.checkValidity(credential)).isSucceeded();
-            clientAndServer.verify(request(), VerificationTimes.exactly(1));
+            server.verify(getRequestedFor(urlEqualTo("/credentials/status/3")));
         }
 
         @Test
         void checkValidity_credentialPurposeMismatch_notCached() {
+            var bitstring = generateBitstring();
+            var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(bitstring);
+            server.stubFor(get("/credentials/status/3").willReturn(ok(bitstringCredential)));
+
             var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
                     Map.of(STATUS_LIST_PURPOSE, "suspension",
                             STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
                             STATUS_LIST_SIZE, 1,
-                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort())));
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
             assertThat(revocationService.checkValidity(credential)).isFailed()
                     .detail().startsWith("Credential's statusPurpose value must match the statusPurpose of the Bitstring Credential:");
         }
@@ -158,14 +164,13 @@ class BitstringStatusListRevocationServiceTest {
         void checkValidity_whenSubjectIsArray_notRevoked() {
             var bitstring = generateBitstring();
             var testData = BITSTRING_STATUS_LIST_CREDENTIAL_ARRAY_SUBJECT_TEMPLATE.formatted(bitstring);
-            clientAndServer.reset();
-            clientAndServer.when(request().withMethod("GET").withPath("/credentials/status/3"))
-                    .respond(HttpResponse.response().withStatusCode(200).withBody(testData));
+            server.stubFor(get("/credentials/status/3").willReturn(ok(testData)));
+
 
             var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
                     Map.of(STATUS_LIST_PURPOSE, "revocation",
                             STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
-                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort())));
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
             assertThat(revocationService.checkValidity(credential)).isSucceeded();
         }
 
@@ -173,28 +178,24 @@ class BitstringStatusListRevocationServiceTest {
         void checkValidity_whenSubjectIsArray_revoked() {
             var bitstring = generateBitstring(REVOKED_INDEX, 1);
             var testData = BITSTRING_STATUS_LIST_CREDENTIAL_ARRAY_SUBJECT_TEMPLATE.formatted(bitstring);
-            clientAndServer.reset();
-            clientAndServer.when(request().withMethod("GET").withPath("/credentials/status/3"))
-                    .respond(HttpResponse.response().withStatusCode(200).withBody(testData));
+            server.stubFor(get("/credentials/status/3").willReturn(ok(testData)));
 
             var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
                     Map.of(STATUS_LIST_PURPOSE, "revocation",
                             STATUS_LIST_INDEX, REVOKED_INDEX,
-                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort())));
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
             assertThat(revocationService.checkValidity(credential)).isFailed()
                     .detail().isEqualTo("Credential status is 'revocation', status at index 10 is '1'");
         }
 
         @Test
         void checkValidity_wrongContentType_expect415() {
-            clientAndServer.reset()
-                    .when(request().withMethod("GET").withPath("/credentials/status/3"))
-                    .respond(HttpResponse.response().withStatusCode(415));
+            server.stubFor(get("/credentials/status/3").willReturn(aResponse().withStatus(415)));
             var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
                     Map.of(STATUS_LIST_PURPOSE, "revocation",
                             STATUS_LIST_INDEX, REVOKED_INDEX,
                             STATUS_LIST_SIZE, 1,
-                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort())));
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
             assertThat(revocationService.checkValidity(credential)).isFailed()
                     .detail()
                     .matches("Failed to download status list credential .* 415 Unsupported Media Type");
@@ -206,52 +207,50 @@ class BitstringStatusListRevocationServiceTest {
 
         @Test
         void getStatusPurpose_singleStatusSet() {
-            clientAndServer.reset();
-            clientAndServer
-                    .when(request().withMethod("GET").withPath("/credentials/status/3"))
-                    .respond(HttpResponse.response().withStatusCode(200).withBody(BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("revocation", generateBitstring(REVOKED_INDEX, 1))));
+
+            var body = BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("revocation", generateBitstring(REVOKED_INDEX, 1));
+            server.stubFor(get("/credentials/status/3").willReturn(ok(body)));
+
             var credential = TestFunctions.createCredentialBuilder()
-                                     .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
-                                             Map.of(STATUS_LIST_PURPOSE, "revocation",
-                                                     STATUS_LIST_INDEX, REVOKED_INDEX,
-                                                     STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
-                                     .build();
+                    .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
+                            Map.of(STATUS_LIST_PURPOSE, "revocation",
+                                    STATUS_LIST_INDEX, REVOKED_INDEX,
+                                    STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort()))))
+                    .build();
             assertThat(revocationService.getStatusPurpose(credential)).isSucceeded()
                     .isEqualTo("revocation");
         }
 
         @Test
         void getStatusPurpose_singleStatusSet_message() {
-            clientAndServer.reset();
-            clientAndServer
-                    .when(request().withMethod("GET").withPath("/credentials/status/3"))
-                    .respond(HttpResponse.response().withStatusCode(200).withBody(BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("message", generateBitstring(REVOKED_INDEX, 1))));
+            var body = BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("message", generateBitstring(REVOKED_INDEX, 1));
+            server.stubFor(get("/credentials/status/3").willReturn(ok(body)));
+
             var credential = TestFunctions.createCredentialBuilder()
-                                     .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
-                                             Map.of(STATUS_LIST_PURPOSE, "message",
-                                                     STATUS_LIST_INDEX, REVOKED_INDEX,
-                                                     STATUS_LIST_SIZE, 1,
-                                                     STATUS_LIST_MESSAGES, List.of(new StatusMessage("0x0", "accepted"), new StatusMessage("0x1", "rejected")),
-                                                     STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
-                                     .build();
+                    .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
+                            Map.of(STATUS_LIST_PURPOSE, "message",
+                                    STATUS_LIST_INDEX, REVOKED_INDEX,
+                                    STATUS_LIST_SIZE, 1,
+                                    STATUS_LIST_MESSAGES, List.of(new StatusMessage("0x0", "accepted"), new StatusMessage("0x1", "rejected")),
+                                    STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort()))))
+                    .build();
             assertThat(revocationService.getStatusPurpose(credential)).isSucceeded()
                     .isEqualTo("rejected");
         }
 
         @Test
         void getStatusPurpose_singleStatusNotSet_message() {
-            clientAndServer.reset();
-            clientAndServer
-                    .when(request().withMethod("GET").withPath("/credentials/status/3"))
-                    .respond(HttpResponse.response().withStatusCode(200).withBody(BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("message", generateBitstring())));
+            var body = BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("message", generateBitstring());
+            server.stubFor(get("/credentials/status/3").willReturn(ok(body)));
+
             var credential = TestFunctions.createCredentialBuilder()
-                                     .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
-                                             Map.of(STATUS_LIST_PURPOSE, "message",
-                                                     STATUS_LIST_INDEX, 69,
-                                                     STATUS_LIST_SIZE, 1,
-                                                     STATUS_LIST_MESSAGES, List.of(new StatusMessage("0x0", "accepted"), new StatusMessage("0x1", "rejected")),
-                                                     STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
-                                     .build();
+                    .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
+                            Map.of(STATUS_LIST_PURPOSE, "message",
+                                    STATUS_LIST_INDEX, 69,
+                                    STATUS_LIST_SIZE, 1,
+                                    STATUS_LIST_MESSAGES, List.of(new StatusMessage("0x0", "accepted"), new StatusMessage("0x1", "rejected")),
+                                    STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort()))))
+                    .build();
             assertThat(revocationService.getStatusPurpose(credential)).isSucceeded()
                     .isEqualTo("accepted");
         }
@@ -259,40 +258,38 @@ class BitstringStatusListRevocationServiceTest {
 
         @Test
         void getStatusPurpose_singleStatus_notSet() {
-            clientAndServer.reset();
-            clientAndServer
-                    .when(request().withMethod("GET").withPath("/credentials/status/3"))
-                    .respond(HttpResponse.response().withStatusCode(200).withBody(BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("revocation", generateBitstring(REVOKED_INDEX, 1))));
+            var body = BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("revocation", generateBitstring(REVOKED_INDEX, 1));
+            server.stubFor(get("/credentials/status/3").willReturn(ok(body)));
+
             var credential = TestFunctions.createCredentialBuilder()
-                                     .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
-                                             Map.of(STATUS_LIST_PURPOSE, "revocation",
-                                                     STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
-                                                     STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
-                                     .build();
+                    .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
+                            Map.of(STATUS_LIST_PURPOSE, "revocation",
+                                    STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                                    STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort()))))
+                    .build();
             assertThat(revocationService.getStatusPurpose(credential)).isSucceeded()
                     .isNull();
         }
 
         @Test
         void getStatusPurpose_multipleStatus_onlyOneSet() {
-            clientAndServer.reset();
-            clientAndServer
-                    .when(request().withMethod("GET").withPath("/credentials/status/3"))
-                    .respond(HttpResponse.response().withStatusCode(200).withBody(BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("revocation", generateBitstring(REVOKED_INDEX, 1))));
-            clientAndServer
-                    .when(request().withMethod("GET").withPath("/credentials/status/4"))
-                    .respond(HttpResponse.response().withStatusCode(200).withBody(BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("suspension", generateBitstring())));
+
+            var first = BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("revocation", generateBitstring(REVOKED_INDEX, 1));
+            var second = BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("suspension", generateBitstring());
+
+            server.stubFor(get("/credentials/status/3").willReturn(ok(first)));
+            server.stubFor(get("/credentials/status/4").willReturn(ok(second)));
 
             var credential = TestFunctions.createCredentialBuilder()
-                                     .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
-                                             Map.of(STATUS_LIST_PURPOSE, "revocation",
-                                                     STATUS_LIST_INDEX, REVOKED_INDEX,
-                                                     STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
-                                     .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
-                                             Map.of(STATUS_LIST_PURPOSE, "suspension",
-                                                     STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
-                                                     STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/4".formatted(clientAndServer.getPort()))))
-                                     .build();
+                    .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
+                            Map.of(STATUS_LIST_PURPOSE, "revocation",
+                                    STATUS_LIST_INDEX, REVOKED_INDEX,
+                                    STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort()))))
+                    .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
+                            Map.of(STATUS_LIST_PURPOSE, "suspension",
+                                    STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                                    STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/4".formatted(server.getPort()))))
+                    .build();
             assertThat(revocationService.getStatusPurpose(credential)).isSucceeded()
                     .isEqualTo("revocation");
         }
@@ -300,24 +297,22 @@ class BitstringStatusListRevocationServiceTest {
         @Test
         void getStatusPurpose_multipleCredentialStatus() {
 
-            clientAndServer.reset();
-            clientAndServer
-                    .when(request().withMethod("GET").withPath("/credentials/status/3"))
-                    .respond(HttpResponse.response().withStatusCode(200).withBody(BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("revocation", generateBitstring(42, 1))));
-            clientAndServer
-                    .when(request().withMethod("GET").withPath("/credentials/status/4"))
-                    .respond(HttpResponse.response().withStatusCode(200).withBody(BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("suspension", generateBitstring(69, 1))));
+            var first = BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("revocation", generateBitstring(42, 1));
+            var second = BITSTRING_STATUS_LIST_CREDENTIAL_PURPOSE_TEMPLATE.formatted("suspension", generateBitstring(69, 1));
+
+            server.stubFor(get("/credentials/status/3").willReturn(ok(first)));
+            server.stubFor(get("/credentials/status/4").willReturn(ok(second)));
 
             var credential = TestFunctions.createCredentialBuilder()
-                                     .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
-                                             Map.of(STATUS_LIST_PURPOSE, "revocation",
-                                                     STATUS_LIST_INDEX, 42,
-                                                     STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort()))))
-                                     .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
-                                             Map.of(STATUS_LIST_PURPOSE, "suspension",
-                                                     STATUS_LIST_INDEX, 69,
-                                                     STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/4".formatted(clientAndServer.getPort()))))
-                                     .build();
+                    .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
+                            Map.of(STATUS_LIST_PURPOSE, "revocation",
+                                    STATUS_LIST_INDEX, 42,
+                                    STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort()))))
+                    .credentialStatus(new CredentialStatus("test-id", BitstringStatusListStatus.TYPE,
+                            Map.of(STATUS_LIST_PURPOSE, "suspension",
+                                    STATUS_LIST_INDEX, 69,
+                                    STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/4".formatted(server.getPort()))))
+                    .build();
             assertThat(revocationService.getStatusPurpose(credential)).isSucceeded()
                     .isEqualTo("revocation, suspension");
         }

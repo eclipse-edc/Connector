@@ -14,24 +14,24 @@
 
 package org.eclipse.edc.test.e2e.tracing;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.opentelemetry.proto.collector.trace.v1.ExportTraceServiceRequest;
 import io.opentelemetry.proto.trace.v1.Span;
 import jakarta.json.Json;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.HttpRequest;
-import org.mockserver.model.HttpResponse;
-import org.mockserver.stop.Stop;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.UncheckedIOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.github.tomakehurst.wiremock.matching.UrlPattern.ANY;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -54,23 +54,15 @@ public class TracingEndToEndTest extends BaseTelemetryEndToEndTest {
     // Port of endpoint to export the traces. 4318 is the default port when protocol is http/protobuf.
     // https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/autoconfigure/README.md#otlp-exporter-span-metric-and-log-exporters
     private static final int EXPORTER_ENDPOINT_PORT = 4318;
-    // Server running to collect traces. The opentelemetry java agent is configured to export traces with the
-    // http/protobuf protocol.
-    private static ClientAndServer traceCollectorServer;
 
-    @BeforeAll
-    public static void setUp() {
-        traceCollectorServer = ClientAndServer.startClientAndServer(EXPORTER_ENDPOINT_PORT);
-    }
-
-    @AfterAll
-    public static void tearDown() {
-        Stop.stopQuietly(traceCollectorServer);
-    }
+    @RegisterExtension
+    static WireMockExtension traceCollectorServer = WireMockExtension.newInstance()
+            .options(wireMockConfig().port(EXPORTER_ENDPOINT_PORT))
+            .build();
 
     @Test
     void transferFile_testTraces() {
-        traceCollectorServer.when(HttpRequest.request()).respond(HttpResponse.response().withStatusCode(200));
+        traceCollectorServer.stubFor(any(ANY).willReturn(ok()));
 
         var requestJson = Json.createObjectBuilder()
                 .add(CONTEXT, Json.createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
@@ -100,7 +92,7 @@ public class TracingEndToEndTest extends BaseTelemetryEndToEndTest {
                 .extract().jsonPath().getString(ID);
 
         await().atMost(30, SECONDS).untilAsserted(() -> {
-                    var requests = traceCollectorServer.retrieveRecordedRequests(HttpRequest.request());
+                    var requests = traceCollectorServer.getAllServeEvents();
                     var spans = extractSpansFromRequests(requests);
 
                     assertThat(spans.stream())
@@ -117,11 +109,11 @@ public class TracingEndToEndTest extends BaseTelemetryEndToEndTest {
      * @param requests Request received by an http server trace collector
      * @return spans extracted from the request body
      */
-    private List<Span> extractSpansFromRequests(HttpRequest[] requests) {
-        return Arrays.stream(requests).map(HttpRequest::getBody)
+    private List<Span> extractSpansFromRequests(List<ServeEvent> requests) {
+        return requests.stream().map(r -> r.getRequest().getBody())
                 .map(body -> {
                     try {
-                        return ExportTraceServiceRequest.parseFrom(body.getRawBytes());
+                        return ExportTraceServiceRequest.parseFrom(body);
                     } catch (InvalidProtocolBufferException e) {
                         throw new UncheckedIOException(e);
                     }

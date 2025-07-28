@@ -16,6 +16,8 @@ package org.eclipse.edc.test.e2e.tck.presentation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -38,12 +40,10 @@ import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.test.e2e.tck.TckTest;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockserver.integration.ClientAndServer;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -56,6 +56,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry.WILDCARD;
 import static org.eclipse.edc.spi.result.Result.success;
@@ -64,8 +65,6 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
 
 /**
  * Asserts the correct functionality of the presentation flow according to the Technology Compatibility Kit (TCK).
@@ -102,15 +101,13 @@ public class DcpPresentationFlowWithDockerTest {
                             "edc.iam.sts.oauth.client.secret.alias", "test-secret-alias"
                     )))
     );
-    private ClientAndServer server;
-    private ECKey verifierKey;
+    
+    @RegisterExtension
+    static WireMockExtension server = WireMockExtension.newInstance()
+            .options(wireMockConfig().port(DID_SERVER_PORT))
+            .build();
 
-    @AfterEach
-    void teardown() {
-        if (server.hasStarted()) {
-            server.stop();
-        }
-    }
+    private ECKey verifierKey;
 
     @BeforeEach
     void setup(TrustedIssuerRegistry trustedIssuerRegistry) throws JOSEException {
@@ -118,14 +115,10 @@ public class DcpPresentationFlowWithDockerTest {
 
         trustedIssuerRegistry.register(new Issuer("did:web:0.0.0.0%%3A%s:issuer".formatted(CALLBACK_PORT), Map.of()), WILDCARD);
 
-        // start mocked DID server
-        server = ClientAndServer.startClientAndServer(DID_SERVER_PORT);
         var didDocumentJson = createDidDocumentJson();
-        server.when(request().withMethod("GET").withPath("/verifier/did.json"))
-                .respond(response()
-                        .withHeader("Content-Type", "application/json")
-                        .withStatusCode(200)
-                        .withBody(didDocumentJson));
+
+        server.stubFor(WireMock.get("/verifier/did.json")
+                .willReturn(WireMock.okJson(didDocumentJson)));
 
         when(STS_MOCK.createToken(anyMap(), isNull()))
                 .thenAnswer(i -> {

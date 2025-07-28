@@ -14,8 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.callback.dispatcher.http;
 
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpMethod;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackEventRemoteMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessCompleted;
 import org.eclipse.edc.http.spi.EdcHttpClient;
@@ -26,40 +25,43 @@ import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.HttpResponse;
-import org.mockserver.model.HttpStatusCode;
-import org.mockserver.model.MediaType;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.callback.dispatcher.http.GenericHttpRemoteDispatcherImpl.CALLBACK_EVENT_HTTP;
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
-import static org.mockserver.stop.Stop.stopQuietly;
 
+@SuppressWarnings({"unchecked", "rawtypes", "resource"})
 @ComponentTest
 public class GenericHttpRemoteDispatcherWrapperTest {
 
-    private static final int CALLBACK_PORT = getFreePort();
     private static final String CALLBACK_PATH = "hooks";
-    private static ClientAndServer receiverEndpointServer;
+
+    @RegisterExtension
+    static WireMockExtension server = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
+
     private final TypeManager typeManager = new JacksonTypeManager();
     private final EdcHttpClient httpClient = spy(testHttpClient());
     private final Vault vault = mock();
@@ -67,13 +69,7 @@ public class GenericHttpRemoteDispatcherWrapperTest {
 
     @BeforeEach
     void setup() {
-        receiverEndpointServer = startClientAndServer(CALLBACK_PORT);
         dispatcher.registerDelegate(new CallbackEventRemoteMessageDispatcher(typeManager.getMapper(), vault));
-    }
-
-    @AfterEach
-    void tearDown() {
-        stopQuietly(receiverEndpointServer);
     }
 
     @Test
@@ -87,16 +83,18 @@ public class GenericHttpRemoteDispatcherWrapperTest {
 
         var event = EventEnvelope.Builder.newInstance().id("test").at(10).payload(tpEvent).build();
 
-        var request = request().withPath("/" + CALLBACK_PATH)
-                .withMethod(HttpMethod.POST.name())
-                .withBody(typeManager.writeValueAsString(event));
+        server.stubFor(post("/" + CALLBACK_PATH)
+                .withRequestBody(equalToJson(typeManager.writeValueAsString(event)))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody("{}")));
 
-        receiverEndpointServer.when(request).respond(successfulResponse());
 
         var future = dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP));
 
         assertThat(future).succeedsWithin(5, TimeUnit.SECONDS);
         verify(httpClient, atMostOnce()).execute(any());
+
     }
 
     @Test
@@ -118,17 +116,20 @@ public class GenericHttpRemoteDispatcherWrapperTest {
 
         var event = EventEnvelope.Builder.newInstance().id("test").at(10).payload(tpEvent).build();
 
-        var request = request().withPath("/" + CALLBACK_PATH)
-                .withMethod(HttpMethod.POST.name())
-                .withHeader(authKey, authCodeIdValue)
-                .withBody(typeManager.writeValueAsString(event));
 
-        receiverEndpointServer.when(request).respond(successfulResponse());
+        server.stubFor(post("/" + CALLBACK_PATH)
+                .withRequestBody(equalToJson(typeManager.writeValueAsString(event)))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody("{}")));
 
         var future = dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP));
 
         assertThat(future).succeedsWithin(5, TimeUnit.SECONDS);
         verify(httpClient, atMostOnce()).execute(any());
+
+        server.verify(1, postRequestedFor(urlEqualTo("/" + CALLBACK_PATH))
+                .withHeader(authKey, equalTo(authCodeIdValue)));
     }
 
     @Test
@@ -142,33 +143,19 @@ public class GenericHttpRemoteDispatcherWrapperTest {
 
         var event = EventEnvelope.Builder.newInstance().id("test").at(10).payload(tpEvent).build();
 
-        var request = request().withPath("/" + CALLBACK_PATH)
-                .withMethod(HttpMethod.POST.name())
-                .withBody(typeManager.writeValueAsString(event));
 
-        receiverEndpointServer.when(request).respond(failedResponse());
-
+        server.stubFor(post("/" + CALLBACK_PATH)
+                .withRequestBody(equalToJson(typeManager.writeValueAsString(event)))
+                .willReturn(aResponse()
+                        .withStatus(400)
+                        .withBody("{}")));
         var future = dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP));
 
         assertThat(future).failsWithin(5, TimeUnit.SECONDS).withThrowableThat().havingCause().isInstanceOf(EdcException.class);
         verify(httpClient, atMostOnce()).execute(any());
     }
 
-    private HttpResponse successfulResponse() {
-        return response()
-                .withStatusCode(HttpStatusCode.OK_200.code())
-                .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), MediaType.PLAIN_TEXT_UTF_8.toString())
-                .withBody("{}");
-    }
-
-    private HttpResponse failedResponse() {
-        return response()
-                .withStatusCode(HttpStatusCode.BAD_REQUEST_400.code())
-                .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), MediaType.PLAIN_TEXT_UTF_8.toString())
-                .withBody("{}");
-    }
-
     private String callbackUrl() {
-        return String.format("http://localhost:%d/%s", receiverEndpointServer.getLocalPort(), CALLBACK_PATH);
+        return String.format("http://localhost:%d/%s", server.getPort(), CALLBACK_PATH);
     }
 }

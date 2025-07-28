@@ -19,8 +19,7 @@ plugins {
 dependencies {
     testImplementation(libs.restAssured)
     testImplementation(libs.awaitility)
-    testImplementation(libs.mockserver.netty)
-    testImplementation(libs.mockserver.client)
+    testImplementation(libs.wiremock)
 
     testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:runtime-core"))

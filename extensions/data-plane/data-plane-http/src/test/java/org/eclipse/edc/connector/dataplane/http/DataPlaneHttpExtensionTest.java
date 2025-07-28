@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.http;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.connector.dataplane.http.spi.HttpRequestParamsProvider;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
@@ -23,58 +24,53 @@ import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.HttpResponse;
 
 import java.util.UUID;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.github.tomakehurst.wiremock.matching.UrlPattern.ANY;
 import static java.util.Collections.emptyMap;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.Mockito.mock;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.stop.Stop.stopQuietly;
 
 @ComponentTest
 public class DataPlaneHttpExtensionTest {
 
-    private static ClientAndServer sourceServer;
-    private static ClientAndServer destinationServer;
-    private static final int SOURCE_PORT = getFreePort();
-    private static final int DESTINATION_PORT = getFreePort();
-
     @RegisterExtension
     private static final RuntimeExtension RUNTIME = new RuntimePerClassExtension()
             .registerServiceMock(TransferProcessApiClient.class, mock());
+    @RegisterExtension
+    static WireMockExtension sourceServer = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
 
-    @BeforeAll
-    public static void setUp() {
-        sourceServer = startClientAndServer(SOURCE_PORT);
-        destinationServer = startClientAndServer(DESTINATION_PORT);
-    }
+    @RegisterExtension
+    static WireMockExtension destinationServer = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
 
-    @AfterAll
-    public static void tearDown() {
-        stopQuietly(sourceServer);
-        stopQuietly(destinationServer);
-    }
 
     @Test
     void transferSourceToDestination(PipelineService pipelineService) {
         var source = HttpDataAddress.Builder.newInstance()
-                .baseUrl("http://localhost:" + SOURCE_PORT)
+                .baseUrl("http://localhost:" + sourceServer.getPort())
                 .build();
         var destination = HttpDataAddress.Builder.newInstance()
-                .baseUrl("http://localhost:" + DESTINATION_PORT)
+                .baseUrl("http://localhost:" + destinationServer.getPort())
                 .build();
-        sourceServer.when(request()).respond(HttpResponse.response().withStatusCode(200));
-        destinationServer.when(request()).respond(HttpResponse.response().withStatusCode(200));
+
+        sourceServer.stubFor(get(ANY).willReturn(ok()));
+        destinationServer.stubFor(post(ANY).willReturn(ok()));
 
         var request = DataFlowStartMessage.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
@@ -87,8 +83,8 @@ public class DataPlaneHttpExtensionTest {
 
         assertThat(future).succeedsWithin(10, SECONDS)
                 .matches(StreamResult::succeeded);
-        sourceServer.verify(request().withMethod("GET"));
-        destinationServer.verify(request().withMethod("POST"));
+        sourceServer.verify(getRequestedFor(anyUrl()));
+        destinationServer.verify(postRequestedFor(anyUrl()));
     }
 
     @Test
@@ -96,13 +92,13 @@ public class DataPlaneHttpExtensionTest {
         paramsProvider.registerSourceDecorator((request, address, builder) -> builder.header("customSourceHeader", "customValue"));
         paramsProvider.registerSinkDecorator((request, address, builder) -> builder.header("customSinkHeader", "customValue"));
         var source = HttpDataAddress.Builder.newInstance()
-                .baseUrl("http://localhost:" + SOURCE_PORT)
+                .baseUrl("http://localhost:" + sourceServer.getPort())
                 .build();
         var destination = HttpDataAddress.Builder.newInstance()
-                .baseUrl("http://localhost:" + DESTINATION_PORT)
+                .baseUrl("http://localhost:" + destinationServer.getPort())
                 .build();
-        sourceServer.when(request()).respond(HttpResponse.response().withStatusCode(200));
-        destinationServer.when(request()).respond(HttpResponse.response().withStatusCode(200));
+        sourceServer.stubFor(get(ANY).willReturn(ok()));
+        destinationServer.stubFor(post(ANY).willReturn(ok()));
 
         var request = DataFlowStartMessage.Builder.newInstance()
                 .processId(UUID.randomUUID().toString())
@@ -115,7 +111,9 @@ public class DataPlaneHttpExtensionTest {
 
         assertThat(future).succeedsWithin(10, SECONDS)
                 .matches(StreamResult::succeeded);
-        sourceServer.verify(request().withMethod("GET").withHeader("customSourceHeader", "customValue"));
-        destinationServer.verify(request().withMethod("POST").withHeader("customSinkHeader", "customValue"));
+
+        sourceServer.verify(getRequestedFor(anyUrl()).withHeader("customSourceHeader", equalTo("customValue")));
+        destinationServer.verify(postRequestedFor(anyUrl()).withHeader("customSinkHeader", equalTo("customValue")));
+
     }
 }

@@ -14,25 +14,31 @@
 
 package org.eclipse.edc.http.client;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import okhttp3.Request;
 import org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider;
 import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.result.ServiceFailure;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
-import org.mockserver.integration.ClientAndServer;
 
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
@@ -40,41 +46,29 @@ import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNEXPECTED;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
-import static org.mockserver.stop.Stop.stopQuietly;
 
 class ControlApiHttpClientImplTest {
 
-    private final int port = getFreePort();
+    @RegisterExtension
+    static WireMockExtension server = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
+
     private final EdcHttpClient http = testHttpClient();
     private final ControlClientAuthenticationProvider authenticationProvider = mock();
-    private ClientAndServer server;
-
     private final ControlApiHttpClient client = new ControlApiHttpClientImpl(http, authenticationProvider);
-
-    @BeforeEach
-    public void startServer() {
-        server = ClientAndServer.startClientAndServer(port);
-    }
-
-    @AfterEach
-    public void stopServer() {
-        stopQuietly(server);
-    }
 
     @Nested
     class Execute {
         @Test
         void shouldSucceed_whenServerResponseIsSuccessful() {
-            server.when(request()).respond(response().withStatusCode(204));
+            server.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(204)));
 
             var request = new Request.Builder()
-                    .url("http://localhost:" + port);
+                    .url("http://localhost:" + server.getPort());
 
             var result = client.execute(request);
 
@@ -83,24 +77,24 @@ class ControlApiHttpClientImplTest {
 
         @Test
         void shouldIncludeAuthenticationHeaders() {
-            server.when(request()).respond(response().withStatusCode(204));
+            server.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(204)));
             when(authenticationProvider.authenticationHeaders()).thenReturn(Map.of("Authorization", "authToken"));
 
             var request = new Request.Builder()
-                    .url("http://localhost:" + port);
+                    .url("http://localhost:" + server.getPort());
 
             client.execute(request);
 
-            server.verify(request().withHeader("Authorization", "authToken"));
+            server.verify(getRequestedFor(anyUrl()).withHeader("Authorization", equalTo("authToken")));
         }
 
         @ParameterizedTest
         @ArgumentsSource(FailingResponses.class)
         void shouldFail_whenServerResponseIsNotSuccessful(int statusCode, ServiceFailure.Reason reason) {
-            server.when(request()).respond(response().withStatusCode(statusCode));
+            server.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(statusCode)));
 
             var request = new Request.Builder()
-                    .url("http://localhost:" + port);
+                    .url("http://localhost:" + server.getPort());
 
             var result = client.execute(request);
 
@@ -128,10 +122,10 @@ class ControlApiHttpClientImplTest {
 
         @Test
         void shouldSucceed_whenServerResponseIsSuccessful() {
-            server.when(request()).respond(response().withStatusCode(200).withBody("response body"));
+            server.stubFor(get(anyUrl()).willReturn(ok("response body")));
 
             var request = new Request.Builder()
-                    .url("http://localhost:" + port);
+                    .url("http://localhost:" + server.getPort());
 
             var result = client.request(request);
 
@@ -140,24 +134,24 @@ class ControlApiHttpClientImplTest {
 
         @Test
         void shouldIncludeAuthenticationHeaders() {
-            server.when(request()).respond(response().withStatusCode(204));
+            server.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(204)));
             when(authenticationProvider.authenticationHeaders()).thenReturn(Map.of("Authorization", "authToken"));
 
             var request = new Request.Builder()
-                    .url("http://localhost:" + port);
+                    .url("http://localhost:" + server.getPort());
 
             client.request(request);
 
-            server.verify(request().withHeader("Authorization", "authToken"));
+            server.verify(getRequestedFor(anyUrl()).withHeader("Authorization", equalTo("authToken")));
         }
 
         @ParameterizedTest
         @ArgumentsSource(FailingResponses.class)
         void shouldFail_whenServerResponseIsNotSuccessful(int statusCode, ServiceFailure.Reason reason) {
-            server.when(request()).respond(response().withStatusCode(statusCode));
+            server.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(statusCode)));
 
             var request = new Request.Builder()
-                    .url("http://localhost:" + port);
+                    .url("http://localhost:" + server.getPort());
 
             var result = client.request(request);
 
