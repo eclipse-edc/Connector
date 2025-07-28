@@ -55,7 +55,7 @@ class PublicEndpointGeneratorServiceImpl implements PublicEndpointGeneratorServi
     }
 
     @Override
-    public void addGeneratorFunction(String responseChannelType, Supplier<Endpoint> generatorFunction) {
+    public void addResponseGeneratorFunction(String responseChannelType, Supplier<Endpoint> generatorFunction) {
         responseChannelFunctions.put(responseChannelType, generatorFunction);
     }
 
