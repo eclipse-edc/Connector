@@ -341,6 +341,3 @@ include(":dist:bom:controlplane-feature-sql-bom")
 
 include(":dist:bom:dataplane-base-bom")
 include(":dist:bom:dataplane-feature-sql-bom")
-
-
-include(":version-catalog")
