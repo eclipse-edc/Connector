@@ -20,9 +20,9 @@ to be considered for both the resolution of the own participant ID and the extra
 ### Resolution of own participant ID
 
 Currently, the participant ID is determined through one setting and will be used all throughout the connector. We will
-add a participant ID to the `DataspaceProfileContext`, which allows assigning a specific identifier to a specific
-context. The `DataspaceProfileContextRegistry` will provide a new method for getting the participant ID for a given
-protocol:
+add a new field `participantId` to the `DataspaceProfileContext`, which allows assigning a specific identifier to a
+specific context. The `DataspaceProfileContextRegistry` will provide a new method for getting the participant ID for a
+given protocol:
 
 ```java
 @NotNull
@@ -58,7 +58,8 @@ extraction of any other participant attributes, which will still be handled by t
 The extracted ID will then be passed to the `ParticipantAgentService` as a parameter.
 
 As ID extraction should depend on the `DataspaceProfileContext`, a function for extracting the participant ID from a
-`ClaimToken` will be added to the `DataspaceProfileContext`. For this function, we add a new interface:
+`ClaimToken` needs to be associated with a `DataspaceProfileContext`. For this function, we add a new interface as
+shown below. A new field `idExtractionFunction` will be added to the `DataspaceProfileContext` of this type.
 
 ```java
 @FunctionalInterface
