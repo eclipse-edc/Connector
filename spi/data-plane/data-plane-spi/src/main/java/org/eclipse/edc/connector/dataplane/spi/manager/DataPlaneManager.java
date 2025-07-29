@@ -21,6 +21,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.entity.StateEntityManager;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
@@ -102,7 +103,7 @@ public interface DataPlaneManager extends StateEntityManager {
      * @param provisionedResource the provisioned resource.
      * @return result.
      */
-    StatusResult<Void> resourceProvisioned(ProvisionedResource provisionedResource);
+    ServiceResult<Void> resourceProvisioned(ProvisionedResource provisionedResource);
 
     /**
      * Report asynchronously deprovisioned resource.
@@ -110,5 +111,5 @@ public interface DataPlaneManager extends StateEntityManager {
      * @param deprovisionedResource the deprovisioned resource.
      * @return result.
      */
-    StatusResult<Void> resourceDeprovisioned(DeprovisionedResource deprovisionedResource);
+    ServiceResult<Void> resourceDeprovisioned(DeprovisionedResource deprovisionedResource);
 }

@@ -53,10 +53,15 @@ public class ResourceDefinitionGeneratorManagerImpl implements ResourceDefinitio
     @Override
     public List<ProvisionResource> generateProviderResourceDefinition(DataFlow dataFlow) {
         return providerGenerators.stream()
-                .filter(g -> g.supportedType().equals(dataFlow.getDestination().getType()))
+                .filter(g -> g.supportedType().equals(dataFlow.getSource().getType()))
                 .map(g -> g.generate(dataFlow))
                 .filter(Objects::nonNull)
                 .toList();
+    }
+
+    @Override
+    public Set<String> sourceTypes() {
+        return providerGenerators.stream().map(ResourceDefinitionGenerator::supportedType).collect(toSet());
     }
 
     @Override

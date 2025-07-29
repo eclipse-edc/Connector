@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
  * Generates resource manifests for data transfer requests. Implementations are responsible for enforcing policy constraints associated with transfer requests.
  */
 @ExtensionPoint
+@Deprecated(since = "0.14.0")
 public interface ResourceManifestGenerator {
 
     /**
@@ -47,7 +48,9 @@ public interface ResourceManifestGenerator {
      *
      * @param transferProcess the transfer process
      * @param policy          the contract agreement usage policy for the asset being transferred
+     * @deprecated provision has been moved to data-plane
      */
+    @Deprecated(since = "0.14.0")
     Result<ResourceManifest> generateConsumerResourceManifest(TransferProcess transferProcess, Policy policy);
 
     /**
@@ -56,6 +59,8 @@ public interface ResourceManifestGenerator {
      * @param transferProcess  the transfer process
      * @param assetAddress     the asset data address
      * @param policy           the contract agreement usage policy for the asset being transferred
+     * @deprecated provision has been moved to data-plane
      */
+    @Deprecated(since = "0.14.0")
     ResourceManifest generateProviderResourceManifest(TransferProcess transferProcess, DataAddress assetAddress, Policy policy);
 }

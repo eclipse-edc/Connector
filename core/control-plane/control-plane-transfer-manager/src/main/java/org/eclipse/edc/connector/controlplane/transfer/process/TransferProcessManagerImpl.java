@@ -224,6 +224,8 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                     update(process);
                     return true;
                 }
+            } else {
+                monitor.warning("control-plane provisioning has been deprecated, please convert your provision extensions to the data-plane model and deploy them there.");
             }
 
             process.transitionProvisioning(manifest);
@@ -247,6 +249,9 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             }
 
             var manifest = manifestGenerator.generateProviderResourceManifest(process, dataAddress, policy);
+            if (!manifest.empty()) {
+                monitor.warning("control-plane provisioning has been deprecated, please convert your provision extensions to the data-plane model and deploy them there.");
+            }
             process.transitionProvisioning(manifest);
         }
 

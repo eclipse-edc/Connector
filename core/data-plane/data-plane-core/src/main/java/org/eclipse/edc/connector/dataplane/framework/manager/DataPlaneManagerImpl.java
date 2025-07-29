@@ -33,6 +33,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
@@ -100,10 +101,16 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
             return success();
         } else {
             var transferService = transferServiceRegistry.resolveTransferService(dataRequest);
-            return transferService != null ?
-                    transferService.validate(dataRequest) :
-                    Result.failure(format("Cannot find a transfer Service that can handle %s source and %s destination",
-                            dataRequest.getSourceDataAddress().getType(), dataRequest.getDestinationDataAddress().getType()));
+            if (transferService != null) {
+                return transferService.validate(dataRequest);
+            }
+
+            if (resourceDefinitionGeneratorManager.sourceTypes().contains(dataRequest.getSourceDataAddress().getType())) {
+                return Result.success();
+            }
+
+            return Result.failure(format("Cannot find a transfer Service that can handle %s source and %s destination",
+                    dataRequest.getSourceDataAddress().getType(), dataRequest.getDestinationDataAddress().getType()));
         }
     }
 
@@ -198,7 +205,11 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                     }
                     return stop(dataFlow, reason)
                             .onSuccess(flow -> {
-                                flow.transitToTerminated(reason);
+                                if (flow.resourcesToBeDeprovisioned().isEmpty()) {
+                                    flow.transitToTerminated(reason);
+                                } else {
+                                    flow.transitionToDeprovisioning();
+                                }
                                 update(dataFlow);
                             })
                             .mapEmpty();
@@ -223,9 +234,9 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     @Override
-    public StatusResult<Void> resourceProvisioned(ProvisionedResource provisionedResource) {
+    public ServiceResult<Void> resourceProvisioned(ProvisionedResource provisionedResource) {
         return store.findByIdAndLease(provisionedResource.getFlowId())
-                .flatMap(StatusResult::from)
+                .flatMap(ServiceResult::from)
                 .onSuccess(flow -> {
                     flow.resourceProvisioned(List.of(provisionedResource));
                     update(flow);
@@ -234,9 +245,9 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     @Override
-    public StatusResult<Void> resourceDeprovisioned(DeprovisionedResource deprovisionedResource) {
+    public ServiceResult<Void> resourceDeprovisioned(DeprovisionedResource deprovisionedResource) {
         return store.findByIdAndLease(deprovisionedResource.getFlowId())
-                .flatMap(StatusResult::from)
+                .flatMap(ServiceResult::from)
                 .onSuccess(flow -> {
                     flow.resourceDeprovisioned(List.of(deprovisionedResource));
                     update(flow);
@@ -376,6 +387,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
                     if (provisionedResources.size() != results.size()) {
                         var failureDetail = results.stream().filter(StatusResult::failed).map(StatusResult::getFailureDetail).collect(joining(","));
+                        monitor.warning("Failed to provision flow " + flow.getId() + ": " + failureDetail);
                         flow.setErrorDetail(failureDetail);
                         flow.transitionToProvisioning();
                     }
@@ -383,10 +395,12 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                     update(flow);
                 })
                 .onFailure((flow, t) -> {
+                    monitor.warning("Failed to provision flow " + flow.getId(), t);
                     flow.transitionToProvisioning();
                     update(flow);
                 })
                 .onFinalFailure((flow, e) -> {
+                    monitor.severe("Cannot provision flow " + flow.getId(), e);
                     flow.transitToFailed("Cannot provision: " + e.getMessage());
                     update(flow);
                 })
