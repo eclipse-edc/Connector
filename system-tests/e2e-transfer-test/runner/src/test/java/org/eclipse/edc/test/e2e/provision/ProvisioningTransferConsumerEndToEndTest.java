@@ -29,6 +29,8 @@ import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGener
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -246,6 +248,7 @@ public class ProvisioningTransferConsumerEndToEndTest {
     }
 
     @Nested
+    @EndToEndTest
     class EmbeddedDataPlaneInMemory extends Tests {
 
         @RegisterExtension
@@ -268,6 +271,7 @@ public class ProvisioningTransferConsumerEndToEndTest {
     }
 
     @Nested
+    @EndToEndTest
     class InMemory extends Tests {
 
         @RegisterExtension
@@ -306,6 +310,7 @@ public class ProvisioningTransferConsumerEndToEndTest {
     }
 
     @Nested
+    @PostgresqlIntegrationTest
     class Postgres extends Tests {
 
         @RegisterExtension

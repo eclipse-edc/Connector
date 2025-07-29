@@ -29,6 +29,8 @@ import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGener
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -156,6 +158,7 @@ public class ProvisioningTransferProviderEndToEndTest {
                 var provisionedResource = ProvisionedResource.Builder.from(provisionResource)
                         .dataAddress(DataAddress.Builder.newInstance()
                                 .properties(provisionResource.getDataAddress().getProperties())
+                                .type("HttpData")
                                 .property("header:provisionHeader", "value")
                                 .build())
                         .build();
@@ -168,7 +171,7 @@ public class ProvisioningTransferProviderEndToEndTest {
 
             @Override
             public String supportedType() {
-                return "HttpData";
+                return "CustomProvisionType";
             }
 
             @Override
@@ -187,7 +190,7 @@ public class ProvisioningTransferProviderEndToEndTest {
 
             @Override
             public String supportedType() {
-                return "HttpData";
+                return "CustomProvisionType";
             }
 
             @Override
@@ -247,6 +250,7 @@ public class ProvisioningTransferProviderEndToEndTest {
     }
 
     @Nested
+    @EndToEndTest
     class EmbeddedDataPlaneInMemory extends Tests {
         @RegisterExtension
         @Order(0)
@@ -270,6 +274,7 @@ public class ProvisioningTransferProviderEndToEndTest {
     }
 
     @Nested
+    @EndToEndTest
     class InMemory extends Tests {
 
         @RegisterExtension
@@ -307,6 +312,8 @@ public class ProvisioningTransferProviderEndToEndTest {
         }
     }
 
+    @Nested
+    @PostgresqlIntegrationTest
     class Postgres extends Tests {
 
         @RegisterExtension
@@ -372,7 +379,7 @@ public class ProvisioningTransferProviderEndToEndTest {
                 .build();
 
         @Test
-        void shouldExecuteConsumerProvisioningAndDeprovisioning() {
+        void shouldExecuteProviderProvisioningAndDeprovisioning() {
 
             source.stubFor(get("/source").willReturn(ok("data")));
             source.stubFor(get("/deprovision").willReturn(ok()));
@@ -383,7 +390,7 @@ public class ProvisioningTransferProviderEndToEndTest {
             var sourceDataAddress = Map.<String, Object>of(
                     EDC_NAMESPACE + "name", "transfer-test",
                     EDC_NAMESPACE + "baseUrl", "http://localhost:%d/source".formatted(source.getPort()),
-                    EDC_NAMESPACE + "type", "HttpData"
+                    EDC_NAMESPACE + "type", "CustomProvisionType"
             );
 
             createResourcesOnProvider(assetId, sourceDataAddress);

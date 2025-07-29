@@ -27,7 +27,6 @@ dependencies {
     implementation(project(":extensions:common:api:control-api-configuration"))
     implementation(project(":extensions:common:api:management-api-configuration"))
     implementation(project(":extensions:common:iam:iam-mock"))
-    implementation(project(":extensions:control-plane:provision:provision-http"))
 }
 
 edcBuild {

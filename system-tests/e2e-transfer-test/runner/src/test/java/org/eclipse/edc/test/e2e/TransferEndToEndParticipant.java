@@ -69,10 +69,6 @@ public class TransferEndToEndParticipant extends Participant {
                 put("edc.negotiation.provider.state-machine.iteration-wait-millis", "50");
                 put("edc.transfer.state-machine.iteration-wait-millis", "50");
                 put("edc.data.plane.selector.state-machine.iteration-wait-millis", "100");
-
-                put("provisioner.http.entries.default.provisioner.type", "provider");
-                put("provisioner.http.entries.default.endpoint", "http://localhost:%d/provision".formatted(httpProvisionerPort.get()));
-                put("provisioner.http.entries.default.data.address.type", "HttpProvision");
             }
         };
 
@@ -86,9 +82,12 @@ public class TransferEndToEndParticipant extends Participant {
                 put("web.http.path", "/api");
                 put("web.http.control.port", String.valueOf(dataPlaneControl.get().getPort()));
                 put("web.http.control.path", dataPlaneControl.get().getPath());
+                put("web.http.provision.port", String.valueOf(getFreePort()));
+                put("web.http.provision.path", "/provision-callback");
                 put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");
                 put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
                 put("edc.dataplane.http.sink.partition.size", "1");
+                put("edc.dataplane.send.retry.limit", "1");
                 put("edc.dataplane.state-machine.iteration-wait-millis", "50");
                 put("edc.dpf.selector.url", controlPlaneControl.get() + "/v1/dataplanes");
             }

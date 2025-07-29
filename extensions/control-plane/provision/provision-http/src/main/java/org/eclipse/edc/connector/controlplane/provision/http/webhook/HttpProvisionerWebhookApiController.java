@@ -42,6 +42,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/callback")
+@Deprecated(since = "0.14.0")
 public class HttpProvisionerWebhookApiController implements HttpProvisionerWebhookApi {
     private final TransferProcessService transferProcessService;
     private final Validator<ProvisionerWebhookRequest> provisionerWebhookRequestValidator = new ProvisionerWebhookRequestValidator();

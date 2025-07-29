@@ -56,6 +56,13 @@ public interface ResourceDefinitionGeneratorManager {
     List<ProvisionResource> generateProviderResourceDefinition(DataFlow dataFlow);
 
     /**
+     * Return a set of the supported source types
+     *
+     * @return supported source types.
+     */
+    Set<String> sourceTypes();
+
+    /**
      * Return a set of the supported destination types
      *
      * @return supported destination types.

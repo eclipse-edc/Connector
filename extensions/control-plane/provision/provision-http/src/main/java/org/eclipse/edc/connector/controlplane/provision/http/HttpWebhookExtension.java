@@ -29,6 +29,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 @Provides(HttpProvisionerWebhookUrl.class)
+@Deprecated(since = "0.14.0")
 public class HttpWebhookExtension implements ServiceExtension {
 
     @Inject
@@ -39,6 +40,11 @@ public class HttpWebhookExtension implements ServiceExtension {
 
     @Inject
     private ManagementApiUrl managementApiUrl;
+
+    @Override
+    public String name() {
+        return "DEPRECATED: HttpWebhookExtension";
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

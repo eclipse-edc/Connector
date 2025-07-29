@@ -78,12 +78,19 @@ class ResourceDefinitionGeneratorManagerImplTest {
 
         @Test
         void generate_shouldGenerateResources() {
-            var destination = DataAddress.Builder.newInstance().type("supportedType").build();
-            var dataFlow = DataFlow.Builder.newInstance().destination(destination).build();
+            var source = DataAddress.Builder.newInstance().type("supportedType").build();
+            var dataFlow = DataFlow.Builder.newInstance().source(source).build();
 
             var definitions = manager.generateProviderResourceDefinition(dataFlow);
 
             assertThat(definitions).hasSize(1);
+        }
+
+        @Test
+        void sourceTypes_shouldReturnRegisteredSourceTypes() {
+            var types = manager.sourceTypes();
+
+            assertThat(types).containsOnly("supportedType");
         }
 
     }

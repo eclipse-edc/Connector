@@ -16,14 +16,10 @@ package org.eclipse.edc.test.e2e;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
-import okhttp3.MediaType;
-import okhttp3.Request;
-import okhttp3.RequestBody;
 import org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -31,7 +27,6 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -55,30 +50,23 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static java.time.Duration.ofDays;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.inForceDatePolicy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
-import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
@@ -229,56 +217,6 @@ class TransferPullEndToEndTest {
         }
 
         @Test
-        void pullFromHttp_httpProvision() {
-
-            var provisionServer = new WireMockServer(options().port(PROVIDER.getHttpProvisionerPort()));
-
-            provisionServer.stubFor(post(urlEqualTo("/provision")).willReturn(ok()));
-            provisionServer.start();
-
-            var assetId = UUID.randomUUID().toString();
-            createResourcesOnProvider(assetId, Map.of(
-                    "name", "transfer-test",
-                    "baseUrl", "http://localhost:" + provisionServer.port() + "/provision",
-                    "type", "HttpProvision",
-                    "proxyQueryParams", "true"
-            ));
-
-            var consumerTransferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
-                    .withTransferType("HttpData-PULL")
-                    .execute();
-
-            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, REQUESTED);
-
-            var providerTransferProcessId = new AtomicReference<String>();
-
-            await().untilAsserted(() -> {
-                var ptId = PROVIDER.getTransferProcesses().stream()
-                        .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
-                        .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
-
-                assertThat(ptId).isNotNull();
-                providerTransferProcessId.set(ptId);
-            });
-
-            provision(provisionServer);
-
-            provisionServer.verify(postRequestedFor(urlEqualTo("/provision")));
-            provisionServer.resetRequests();
-
-            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
-
-            assertConsumerCanAccessData(consumerTransferProcessId);
-
-            PROVIDER.terminateTransfer(providerTransferProcessId.get());
-            PROVIDER.awaitTransferToBeInState(providerTransferProcessId.get(), DEPROVISIONED);
-
-            provisionServer.verify(postRequestedFor(urlEqualTo("/provision")));
-
-            provisionServer.stop();
-        }
-
-        @Test
         void shouldTerminateTransfer_whenContractExpires_fixedInForcePeriod() {
             var assetId = UUID.randomUUID().toString();
             var now = Instant.now();
@@ -390,43 +328,6 @@ class TransferPullEndToEndTest {
         private void assertConsumerCanSendResponse(String consumerTransferProcessId) {
             var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(consumerTransferProcessId), Objects::nonNull);
             await().atMost(timeout).untilAsserted(() -> CONSUMER.postResponse(edr, body -> assertThat(body).isEqualTo("response received")));
-        }
-
-        private void provision(WireMockServer provisionServer) {
-            var events = provisionServer.getAllServeEvents();
-            assertThat(events).hasSize(1);
-            var request = events.get(0).getRequest();
-            try {
-                var requestBody = MAPPER.readValue(request.getBody(), Map.class);
-
-                if ("provision".equals(requestBody.get("type"))) {
-                    var callbackRequestBody = Map.of(
-                            "edctype", "dataspaceconnector:provisioner-callback-request",
-                            "resourceDefinitionId", requestBody.get("resourceDefinitionId"),
-                            "assetId", requestBody.get("assetId"),
-                            "resourceName", "aName",
-                            "contentDataAddress", Map.of("properties", httpSourceDataAddress()),
-                            "apiKeyJwt", "unused",
-                            "hasToken", false
-                    );
-
-                    Executors.newScheduledThreadPool(1).schedule(() -> {
-                        try {
-                            var provisionRequest = new Request.Builder()
-                                    .url("%s/%s/provision".formatted(requestBody.get("callbackAddress"), requestBody.get("transferProcessId")))
-                                    .post(RequestBody.create(MAPPER.writeValueAsString(callbackRequestBody), MediaType.get("application/json")))
-                                    .build();
-
-                            testHttpClient().execute(provisionRequest).close();
-                        } catch (Exception e) {
-                            throw new EdcException(e);
-                        }
-                    }, 1, SECONDS);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
         }
 
         private record EdrMessage(DataAddress address, String message) {

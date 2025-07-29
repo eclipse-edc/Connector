@@ -20,9 +20,12 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.DeprovisionedRe
 
 /**
  * Carrier for OpenAPI annotations
+ *
+ * @deprecated provisioning has been moved to data-plane
  */
 @OpenAPIDefinition
 @Tag(name = "HTTP Provisioner Webhook")
+@Deprecated(since = "0.14.0")
 public interface HttpProvisionerWebhookApi {
     void callProvisionWebhook(String transferProcessId, ProvisionerWebhookRequest request);
 
