@@ -20,17 +20,18 @@ to be considered for both the resolution of the own participant ID and the extra
 ### Resolution of own participant ID
 
 Currently, the participant ID is determined through one setting and will be used all throughout the connector. We will
-add a participant ID to the `DataspaceProfileContext` as an optional field, which allows assigning a specific identifier
-to a specific context. The `DataspaceProfileContextRegistry` will provide a new method for getting the participant ID
-for a given protocol:
+add a participant ID to the `DataspaceProfileContext`, which allows assigning a specific identifier to a specific
+context. The `DataspaceProfileContextRegistry` will provide a new method for getting the participant ID for a given
+protocol:
 
 ```java
 @NotNull
 String getParticipantId(String protocol);
 ```
 
-The previously used participant ID will remain the default and will be set in the `DataspaceProfileContextRegistry` as
-such. Thus, if no dedicated participant ID is defined for the given protocol, the method will return the default ID:
+The previously used participant ID will remain the default, i.e. it will be added as the participant ID to all default
+profiles registered at the `DataspaceProfileContextRegistry`. If no dedicated participant ID is defined for a given
+protocol, the method will return `null`:
 
 ```java
 public String getParticipantId(String protocol) {
@@ -38,7 +39,7 @@ public String getParticipantId(String protocol) {
             .filter(it -> it.name().equals(protocol))
             .map(DataspaceProfileContext::participantId)
             .findAny()
-            .orElse(defaultParticipantId);
+            .orElse(null);
 }
 ```
 
@@ -56,43 +57,47 @@ The extraction will be pulled up into the `ProtocolTokenValidatorImpl` to separa
 extraction of any other participant attributes, which will still be handled by the `ParticipantAgentServiceExtensions`.
 The extracted ID will then be passed to the `ParticipantAgentService` as a parameter.
 
-As ID extraction should depend on the `DataspaceProfileContext`, an additional method will be added to the
-`DataspaceProfileContextRegistry` for registering a new profile. In addition to the profile itself, this method will
-also accept a function for extracting the participant ID from a `ClaimToken`, an instance of
-`Function<ClaimToken, String>`:
+As ID extraction should depend on the `DataspaceProfileContext`, a function for extracting the participant ID from a
+`ClaimToken` will be added to the `DataspaceProfileContext`. For this function, we add a new interface:
 
 ```java
-void register(DataspaceProfileContext context, Function<ClaimToken, String> idExtractionFunction);
+@FunctionalInterface
+@ExtensionPoint
+public interface ParticipantIdExtractionFunction extends Function<ClaimToken, String> { }
 ```
 
-Accordingly, another method will be added to obtain the ID extraction function for a given profile context:
+Accordingly, we add another method to the `DataspaceProfileContextRegistry` for obtaining the ID extraction function
+for a given profile context:
 
 ```java
-@NotNull
-Function<ClaimToken, String> getIdExtractionFunction(String protocol);
-```
-
-All registered profiles that were created without passing a function for ID extraction will use the default function.
-This will be supplied during creation of the `DataspaceProfileContextRegistryImpl` and contain the current default
-behaviour of looking for a configurable claim in the `ClaimToken`. As the default logic may be different depending on
-the `iam` extension used (e.g. for DCP the credential subject ID from received VCs is used), the default function must
-be overridable. Therefore, a third method will be added to the `DataspaceProfileContextRegistry`: 
-
-```java
-void setDefaultIdExtractionFunction(Function<ClaimToken, String> extractionFunction);
+ParticipantIdExtractionFunction getIdExtractionFunction(String protocol);
 ```
 
 The `ProtocolTokenValidatorImpl` will obtain the ID extraction function from the `DataspaceProfileContextRegistry`,
 apply it to the `ClaimToken` and pass the resulting ID to the `ParticipantAgentService`.
 
-#### ID extraction for DCP
+#### Default ID extraction function
+
+There will be a default function for ID extraction that will be set for all default profiles. As the default behaviour
+may differ depending on the `iam` extensions used, it will be obtained through the `ServiceExtensionContext` via a
+second new interface:
+
+```java
+@FunctionalInterface
+@ExtensionPoint
+public interface DefaultParticipantIdExtractionFunction extends ParticipantIdExtractionFunction { }
+```
+
+A respective instance of `DefaultParticipantIdExtractionFunction` will be registered by the `iam` extensions, at the
+moment namely `DCP` and `iam-mock`. For `iam-mock`, the default function will provide the current fallback behaviour
+of looking for a configurable claim in the `ClaimToken`.
 
 When using DCP, the logic for extracting the counter-party ID is currently defined in the
-`DefaultDcpParticipantAgentServiceExtension`. This will be replaced with a `DefaultDcpIdentityExtractionFunction`
+`DefaultDcpParticipantAgentServiceExtension`. This will be replaced with a `DefaultDcpIdExtractionFunction`
 containing the same logic:
 
 ```java
-public class DcpIdentityExtractionFunction implements Function<ClaimToken, String> {
+public class DefaultDcpIdExtractionFunction implements DefaultParticipantIdExtractionFunction {
     @Override
     public String apply(ClaimToken claimToken) {
         return ofNullable(claimToken.getListClaim(CLAIMTOKEN_VC_KEY)).orElse(emptyList())
@@ -107,6 +112,3 @@ public class DcpIdentityExtractionFunction implements Function<ClaimToken, Strin
     }
 }
 ```
-
-This function will be set as the default ID extraction function on the `DataspaceProfileContextRegistry` by the
-`IdentityAndTrustExtension`, which previously registered the `ParticipantAgentServiceExtension`.
