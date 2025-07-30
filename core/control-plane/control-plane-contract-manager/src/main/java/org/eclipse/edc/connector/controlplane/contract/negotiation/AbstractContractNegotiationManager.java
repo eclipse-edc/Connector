@@ -44,7 +44,6 @@ import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
 
 public abstract class AbstractContractNegotiationManager extends AbstractStateEntityManager<ContractNegotiation, ContractNegotiationStore> {
 
-    protected String participantId;
     protected RemoteMessageDispatcherRegistry dispatcherRegistry;
     protected ContractNegotiationObservable observable;
     protected PolicyDefinitionStore policyStore;
@@ -224,17 +223,12 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
         @Override
         public T build() {
             super.build();
-            Objects.requireNonNull(manager.participantId, "participantId");
+            Objects.requireNonNull(manager.dataspaceProfileContextRegistry, "dataspaceProfileContextRegistry");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
             Objects.requireNonNull(manager.observable, "observable");
 
             Objects.requireNonNull(manager.policyStore, "policyStore");
             return manager;
-        }
-
-        public Builder<T> participantId(String id) {
-            manager.participantId = id;
-            return this;
         }
 
         public Builder<T> dispatcherRegistry(RemoteMessageDispatcherRegistry dispatcherRegistry) {

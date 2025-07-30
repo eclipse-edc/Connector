@@ -66,4 +66,13 @@ public interface DataspaceProfileContextRegistry {
      */
     @Nullable
     ProtocolVersion getProtocolVersion(String protocol);
+    
+    /**
+     * Get the participant id for a given protocol.
+     *
+     * @param protocol the protocol name
+     * @return the participant id, or null if no participant id is registered for the protocol
+     */
+    @Nullable
+    String getParticipantId(String protocol);
 }

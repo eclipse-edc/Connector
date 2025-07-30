@@ -86,7 +86,6 @@ import static org.mockito.Mockito.when;
 
 class ConsumerContractNegotiationManagerImplTest {
 
-    private static final String PARTICIPANT_ID = "participantId";
     private static final int RETRY_LIMIT = 1;
 
     private final ContractNegotiationStore store = mock();
@@ -105,7 +104,6 @@ class ConsumerContractNegotiationManagerImplTest {
         observable.registerListener(listener);
 
         manager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
-                .participantId(PARTICIPANT_ID)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(mock(Monitor.class))
                 .observable(observable)

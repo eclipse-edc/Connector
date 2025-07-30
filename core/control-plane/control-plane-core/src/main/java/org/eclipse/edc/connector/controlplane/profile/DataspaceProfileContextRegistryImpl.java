@@ -57,7 +57,16 @@ public class DataspaceProfileContextRegistryImpl implements DataspaceProfileCont
         return profiles().stream().filter(it -> it.name().equals(protocol))
                 .map(DataspaceProfileContext::protocolVersion).findAny().orElse(null);
     }
-
+    
+    @Override
+    public @Nullable String getParticipantId(String protocol) {
+        return profiles().stream()
+                .filter(it -> it.name().equals(protocol))
+                .map(DataspaceProfileContext::participantId)
+                .findAny()
+                .orElse(null);
+    }
+    
     private List<DataspaceProfileContext> profiles() {
         return standardProfiles.isEmpty() ? defaultProfiles : standardProfiles;
     }

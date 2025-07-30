@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Cofinity-X - initial API and implementation
+ *       Cofinity-X - add participantId to DataspaceProfileContext
  *
  */
 
@@ -31,7 +32,7 @@ class DataspaceProfileContextRegistryImplTest {
         @Test
         void shouldReturnVersions_whenContextsRegisteredDefault() {
             var version = new ProtocolVersion("version name", "/path");
-            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url"));
+            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", "participantId"));
 
             var result = registry.getProtocolVersions().protocolVersions();
 
@@ -42,8 +43,8 @@ class DataspaceProfileContextRegistryImplTest {
         void shouldIgnoreDefaultContexts_whenStandardAreRegistered() {
             var defaultVersion = new ProtocolVersion("default", "/path");
             var standardVersion = new ProtocolVersion("default", "/path");
-            registry.registerDefault(new DataspaceProfileContext("default", defaultVersion, () -> "url"));
-            registry.register(new DataspaceProfileContext("standard", standardVersion, () -> "url"));
+            registry.registerDefault(new DataspaceProfileContext("default", defaultVersion, () -> "url", "participantId"));
+            registry.register(new DataspaceProfileContext("standard", standardVersion, () -> "url", "participantId"));
 
             var result = registry.getProtocolVersions().protocolVersions();
 
@@ -64,7 +65,7 @@ class DataspaceProfileContextRegistryImplTest {
         @Test
         void shouldReturnWebhookForName() {
             var version = new ProtocolVersion("version name", "/path");
-            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url"));
+            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", "participantId"));
 
             var result = registry.getWebhook("profile");
 
@@ -85,11 +86,31 @@ class DataspaceProfileContextRegistryImplTest {
         @Test
         void shouldReturnVersionForName() {
             var version = new ProtocolVersion("version name", "/path");
-            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url"));
+            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", "participantId"));
 
             var result = registry.getProtocolVersion("profile");
 
             assertThat(result).isEqualTo(version);
+        }
+    }
+    
+    @Nested
+    class GetParticipantId {
+        @Test
+        void shouldReturnNull_whenNoParticipantIdFound() {
+            var result = registry.getParticipantId("unexistent");
+            
+            assertThat(result).isNull();
+        }
+        
+        @Test
+        void shouldReturnParticipantIdForName() {
+            var version = new ProtocolVersion("version name", "/path");
+            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", "participantId"));
+            
+            var result = registry.getParticipantId("profile");
+            
+            assertThat(result).isEqualTo("participantId");
         }
     }
 }

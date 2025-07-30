@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - add participantId to DataspaceProfileContext
  *
  */
 
@@ -22,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -33,7 +35,7 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
 
     private final DatasetResolver datasetResolver;
     private final DataServiceRegistry dataServiceRegistry;
-    private final String participantId;
+    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
     private final TransactionContext transactionContext;
 
     private final ProtocolTokenValidator protocolTokenValidator;
@@ -41,12 +43,12 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
     public CatalogProtocolServiceImpl(DatasetResolver datasetResolver,
                                       DataServiceRegistry dataServiceRegistry,
                                       ProtocolTokenValidator protocolTokenValidator,
-                                      String participantId,
+                                      DataspaceProfileContextRegistry dataspaceProfileContextRegistry,
                                       TransactionContext transactionContext) {
         this.datasetResolver = datasetResolver;
         this.dataServiceRegistry = dataServiceRegistry;
         this.protocolTokenValidator = protocolTokenValidator;
-        this.participantId = participantId;
+        this.dataspaceProfileContextRegistry = dataspaceProfileContextRegistry;
         this.transactionContext = transactionContext;
     }
 
@@ -61,7 +63,7 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
                         return Catalog.Builder.newInstance()
                                 .dataServices(dataServices)
                                 .datasets(datasets.toList())
-                                .participantId(participantId)
+                                .participantId(dataspaceProfileContextRegistry.getParticipantId(message.getProtocol()))
                                 .build();
                     }
                 })
