@@ -29,16 +29,16 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  */
 public class QuerySpec {
 
-    public static final String EDC_QUERY_SPEC_TYPE = EDC_NAMESPACE + "QuerySpec";
+    public static final String EDC_QUERY_SPEC_TYPE_TERM = "QuerySpec";
+    public static final String EDC_QUERY_SPEC_TYPE = EDC_NAMESPACE + EDC_QUERY_SPEC_TYPE_TERM;
     public static final String EDC_QUERY_SPEC_OFFSET = EDC_NAMESPACE + "offset";
     public static final String EDC_QUERY_SPEC_LIMIT = EDC_NAMESPACE + "limit";
     public static final String EDC_QUERY_SPEC_FILTER_EXPRESSION = EDC_NAMESPACE + "filterExpression";
     public static final String EDC_QUERY_SPEC_SORT_ORDER = EDC_NAMESPACE + "sortOrder";
     public static final String EDC_QUERY_SPEC_SORT_FIELD = EDC_NAMESPACE + "sortField";
-
+    private final List<Criterion> filterExpression = new ArrayList<>();
     private int offset = 0;
     private int limit = 50;
-    private final List<Criterion> filterExpression = new ArrayList<>();
     private SortOrder sortOrder = SortOrder.ASC;
     private String sortField;
 

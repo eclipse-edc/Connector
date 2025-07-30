@@ -25,6 +25,8 @@ import org.eclipse.edc.connector.controlplane.api.management.transferprocess.mod
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TerminateTransfer;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TransferState;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest;
+import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
@@ -45,6 +47,7 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -80,6 +83,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.MANAGEMENT_API_CONTEXT;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.MANAGEMENT_API_SCOPE;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.assetObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogRequestObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractDefinitionObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractRequestObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createContractAgreement;
@@ -88,6 +92,7 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createEdrEntr
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createPolicyEvaluationPlan;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createTransferProcess;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dataAddressObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.datasetRequestObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.inForceDatePermission;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.policyDefinitionObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.policyEvaluationPlanRequest;
@@ -100,8 +105,7 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.transferReque
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 public class SerdeEndToEndTest {
-
-
+    
     static class SerdeRuntime extends ManagementEndToEndExtension {
 
         protected SerdeRuntime() {
@@ -112,7 +116,9 @@ public class SerdeEndToEndTest {
             var managementPort = getFreePort();
             var protocolPort = getFreePort();
 
-            var runtime = new EmbeddedRuntime("control-plane", ":system-tests:management-api:management-api-test-runtime")
+            var runtime = new EmbeddedRuntime("control-plane",
+                    ":system-tests:management-api:management-api-test-runtime",
+                    ":extensions:common:api:management-api-schema-validator")
                     .configurationProvider(() -> ConfigFactory.fromMap(new HashMap<>() {
                         {
                             put("web.http.path", "/");
@@ -145,6 +151,14 @@ public class SerdeEndToEndTest {
 
         protected String jsonLdContext() {
             return EDC_CONNECTOR_MANAGEMENT_CONTEXT;
+        }
+
+        protected String schemaVersion() {
+            return "v3";
+        }
+
+        protected boolean strictSchema() {
+            return false;
         }
 
         abstract RuntimeExtension runtime();
@@ -311,8 +325,34 @@ public class SerdeEndToEndTest {
         }
 
         @Test
+        void de_DatasetRequest() {
+            var inputObject = datasetRequestObject(jsonLdContext());
+            var request = deserialize(inputObject, DatasetRequest.class);
+
+            assertThat(request).isNotNull();
+            assertThat(request.getId()).isEqualTo(inputObject.getString(ID));
+            assertThat(request.getProtocol()).isEqualTo(inputObject.getString("protocol"));
+            assertThat(request.getCounterPartyAddress()).isEqualTo(inputObject.getString("counterPartyAddress"));
+            assertThat(request.getCounterPartyId()).isEqualTo(inputObject.getString("counterPartyId"));
+
+        }
+
+        @Test
+        void de_CatalogRequest() {
+            var inputObject = catalogRequestObject(jsonLdContext());
+            var request = deserialize(inputObject, CatalogRequest.class);
+
+            assertThat(request).isNotNull();
+            assertThat(request.getProtocol()).isEqualTo(inputObject.getString("protocol"));
+            assertThat(request.getCounterPartyAddress()).isEqualTo(inputObject.getString("counterPartyAddress"));
+            assertThat(request.getCounterPartyId()).isEqualTo(inputObject.getString("counterPartyId"));
+            assertThat(request.getQuerySpec().getFilterExpression()).hasSize(1);
+
+        }
+
+        @Test
         void de_ContractRequest() {
-            var inputObject = contractRequestObject(jsonLdContext());
+            var inputObject = contractRequestObject(jsonLdContext(), strictSchema());
             var request = deserialize(inputObject, ContractRequest.class);
 
             assertThat(request).isNotNull();
@@ -387,8 +427,6 @@ public class SerdeEndToEndTest {
 
             assertThat(terminateTransfer).isNotNull();
             assertThat(terminateTransfer.reason()).isEqualTo(inputObject.getString("reason"));
-            assertThat(terminateTransfer.reason()).isEqualTo(inputObject.getString("reason"));
-
         }
 
         @Test
@@ -407,7 +445,8 @@ public class SerdeEndToEndTest {
                             .build())
                     .build();
 
-            var inputObject = policyDefinitionObject(jsonLdContext(), inForceDatePermission("gteq", "contractAgreement+0s", "lteq", "contractAgreement+10s"));
+            var permission = inForceDatePermission("gteq", "contractAgreement+0s", "lteq", "contractAgreement+10s", strictSchema());
+            var inputObject = policyDefinitionObject(jsonLdContext(), permission, strictSchema());
 
             var deserialized = deserialize(inputObject, PolicyDefinition.class);
 
@@ -427,10 +466,11 @@ public class SerdeEndToEndTest {
 
         }
 
-
         protected void verifySerde(JsonObject inputObject, Class<?> klass, Function<JsonObject, JsonObject> mapper) {
             var jsonLd = runtime().getService(JsonLd.class);
             var registry = forContext(transformerScope());
+
+            validate(inputObject);
 
             // Expand the input
             var expanded = jsonLd.expand(inputObject).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
@@ -454,16 +494,30 @@ public class SerdeEndToEndTest {
             var registry = forContext(transformerScope());
             var jsonLd = runtime().getService(JsonLd.class);
 
+
             var result = registry.transform(object, JsonObject.class).orElseThrow(failure -> new RuntimeException());
-            return jsonLd.compact(result, jsonLdScope()).orElseThrow(failure -> new RuntimeException(failure.getFailureDetail()));
+            var compacted = jsonLd.compact(result, jsonLdScope()).orElseThrow(failure -> new RuntimeException(failure.getFailureDetail()));
+            validate(compacted);
+            return compacted;
+        }
+
+        private void validate(JsonObject compacted) {
+            var validator = runtime().getService(JsonObjectValidatorRegistry.class);
+            var type = compacted.getJsonString(TYPE) != null ? compacted.getString(TYPE) : null;
+            if (type != null) {
+                var validationResult = validator.validate(schemaVersion() + ":" + type, compacted);
+                if (!validationResult.succeeded()) {
+                    throw new RuntimeException("Validation failed: " + validationResult.getFailureDetail());
+                }
+            }
         }
 
         private <T> T deserialize(JsonObject inputObject, Class<T> klass) {
+            validate(inputObject);
             var registry = forContext(transformerScope());
             var jsonLd = runtime().getService(JsonLd.class);
 
             var expanded = jsonLd.expand(inputObject).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
-
 
             // checks that the type is correctly expanded to the EDC namespace
             assertThat(expanded.getJsonArray(TYPE)).first().satisfies(t -> {
@@ -488,13 +542,13 @@ public class SerdeEndToEndTest {
         protected @interface WithContext {
             String value();
 
-            boolean alwaysArray() default false;
+            boolean strictSchema() default false;
         }
 
         protected static class JsonInputProvider implements ArgumentsProvider, AnnotationConsumer<WithContext> {
 
             private String jsonLdContext;
-            private boolean alwaysArray;
+            private boolean strictSchema;
 
             @Override
             public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
@@ -506,7 +560,7 @@ public class SerdeEndToEndTest {
                         Arguments.of(contractDefinitionObject(jsonLdContext), ContractDefinition.class, null),
                         Arguments.of(secretObject(jsonLdContext), Secret.class, null),
                         Arguments.of(querySpecObject(jsonLdContext), QuerySpec.class, null),
-                        Arguments.of(policyDefinitionObject(jsonLdContext, alwaysArray), PolicyDefinition.class, mapper),
+                        Arguments.of(policyDefinitionObject(jsonLdContext, strictSchema), PolicyDefinition.class, mapper),
                         Arguments.of(dataAddressObject(jsonLdContext), DataAddress.class, null)
                 );
             }
@@ -525,7 +579,7 @@ public class SerdeEndToEndTest {
             @Override
             public void accept(WithContext withContext) {
                 jsonLdContext = withContext.value();
-                alwaysArray = withContext.alwaysArray();
+                strictSchema = withContext.strictSchema();
             }
         }
     }
@@ -551,6 +605,18 @@ public class SerdeEndToEndTest {
         void serde(JsonObject inputObject, Class<?> klass, Function<JsonObject, JsonObject> mapper) {
             verifySerde(inputObject, klass, mapper);
         }
+
+        @Override
+        @Disabled
+        void de_DatasetRequest() {
+            super.de_DatasetRequest();
+        }
+
+        @Override
+        @Disabled
+        void de_CatalogRequest() {
+            super.de_CatalogRequest();
+        }
     }
 
     @Nested
@@ -571,6 +637,11 @@ public class SerdeEndToEndTest {
         }
 
         @Override
+        protected String schemaVersion() {
+            return "v4";
+        }
+
+        @Override
         protected String jsonLdContext() {
             return EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
         }
@@ -580,12 +651,17 @@ public class SerdeEndToEndTest {
             return RUNTIME;
         }
 
+        @Override
+        protected boolean strictSchema() {
+            return true;
+        }
+
         /**
          * Tests for entities that supports transformation from/to JsonObject
          */
         @ParameterizedTest(name = "{1}")
         @ArgumentsSource(JsonInputProvider.class)
-        @WithContext(value = EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, alwaysArray = true)
+        @WithContext(value = EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, strictSchema = true)
         void serde(JsonObject inputObject, Class<?> klass, Function<JsonObject, JsonObject> mapper) {
             verifySerde(inputObject, klass, mapper);
         }

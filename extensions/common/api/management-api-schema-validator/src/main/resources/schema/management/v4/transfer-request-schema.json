@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "TransferRequestSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/TransferRequest"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/transfer-request-schema.json",
+  "definitions": {
+    "TransferRequest": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "TransferRequest"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "counterPartyAddress": {
+          "type": "string"
+        },
+        "protocol": {
+          "type": "string"
+        },
+        "contractId": {
+          "type": "string"
+        },
+        "transferType": {
+          "type": "string"
+        },
+        "privateProperties": {
+          "type": "object"
+        },
+        "dataDestination": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/data-address-schema.json"
+        },
+        "callbackAddresses": {
+          "type": "array",
+          "items": {
+            "$ref": "https://w3id.org/edc/connector/management/schema/v4/callback-address-schema.json"
+          }
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "counterPartyAddress",
+        "protocol",
+        "contractId",
+        "transferType"
+      ]
+    }
+  }
+}

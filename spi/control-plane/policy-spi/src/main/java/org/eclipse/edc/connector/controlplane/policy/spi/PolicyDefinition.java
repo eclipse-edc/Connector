@@ -40,11 +40,12 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  */
 @JsonDeserialize(builder = PolicyDefinition.Builder.class)
 public class PolicyDefinition extends Entity {
-    public static final String EDC_POLICY_DEFINITION_TYPE = EDC_NAMESPACE + "PolicyDefinition";
+    public static final String EDC_POLICY_DEFINITION_TYPE_TERM = "PolicyDefinition";
+    public static final String EDC_POLICY_DEFINITION_TYPE = EDC_NAMESPACE + EDC_POLICY_DEFINITION_TYPE_TERM;
     public static final String EDC_POLICY_DEFINITION_POLICY = EDC_NAMESPACE + "policy";
     public static final String EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
-    private Policy policy;
     private final Map<String, Object> privateProperties = new HashMap<>();
+    private Policy policy;
 
     private PolicyDefinition() {
     }

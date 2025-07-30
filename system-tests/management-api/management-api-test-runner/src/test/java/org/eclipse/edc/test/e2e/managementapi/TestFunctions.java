@@ -33,8 +33,10 @@ import org.eclipse.edc.policy.engine.spi.plan.step.PermissionStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.ProhibitionStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.ValidatorStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.XoneConstraintStep;
+import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -55,9 +57,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.policy.model.Operator.EQ;
-import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
-import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.IS_TRANSACTIONAL;
-import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.URI;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -163,8 +162,9 @@ public class TestFunctions {
                 .build();
     }
 
-    public static JsonObject contractRequestObject(String context) {
-        var policy = policy(atomicConstraint("spatial", "eq", "https://www.wikidata.org/wiki/Q183"), false)
+    public static JsonObject contractRequestObject(String context, boolean alwaysArray) {
+        var permission = inForceDatePermission("gteq", "contractAgreement+0s", "lteq", "contractAgreement+10s", alwaysArray);
+        var policy = policy(permission, "Offer", alwaysArray)
                 .add(ID, "id")
                 .add("assigner", "provider")
                 .build();
@@ -175,6 +175,28 @@ public class TestFunctions {
                 .add("protocol", "test-protocol")
                 .add("callbackAddresses", createCallbackAddress())
                 .add("policy", policy)
+                .build();
+    }
+
+    public static JsonObject datasetRequestObject(String context) {
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "DatasetRequest")
+                .add(ID, "dataset-request-id")
+                .add("counterPartyAddress", "test-address")
+                .add("counterPartyId", "test-counter-party-id")
+                .add("protocol", "test-protocol")
+                .build();
+    }
+
+    public static JsonObject catalogRequestObject(String context) {
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "CatalogRequest")
+                .add("counterPartyAddress", "test-address")
+                .add("counterPartyId", "test-counter-party-id")
+                .add("protocol", "test-protocol")
+                .add("querySpec", embeddedQuerySpec())
                 .build();
     }
 
@@ -212,7 +234,12 @@ public class TestFunctions {
                 .providerId("providerId")
                 .consumerId("consumerId")
                 .assetId("assetId")
-                .policy(Policy.Builder.newInstance().type(PolicyType.CONTRACT).build())
+                .policy(Policy.Builder.newInstance().type(PolicyType.CONTRACT)
+                        .target("assetId")
+                        .assignee("providerId")
+                        .assigner("consumerId")
+                        .permission(Permission.Builder.newInstance().action(Action.Builder.newInstance().type("use").build()).build())
+                        .build())
                 .build();
     }
 
@@ -339,9 +366,10 @@ public class TestFunctions {
     private static JsonArrayBuilder createCallbackAddress() {
         var builder = Json.createArrayBuilder();
         return builder.add(Json.createObjectBuilder()
-                .add(IS_TRANSACTIONAL, true)
-                .add(URI, "http://test.local/")
-                .add(EVENTS, Json.createArrayBuilder().build()));
+                .add("@type", "CallbackAddress")
+                .add("transactional", true)
+                .add("uri", "http://test.local/")
+                .add("events", Json.createArrayBuilder().add("event").build()));
     }
 
     public static JsonObjectBuilder policy(JsonObject permission, boolean alwaysArray) {
@@ -351,12 +379,17 @@ public class TestFunctions {
     public static JsonObjectBuilder policy(JsonObject permission, String type, boolean alwaysArray) {
         var permissionValue = alwaysArray ? createArrayBuilder().add(permission).build() : permission;
 
-        return createObjectBuilder()
+        var builder = createObjectBuilder()
                 .add(TYPE, type)
-                .add("obligation", createArrayBuilder().build())
                 .add("permission", permissionValue)
-                .add("target", "assetId")
-                .add("prohibition", createArrayBuilder().build());
+                .add("target", "assetId");
+
+        if (!alwaysArray) {
+            builder.add("prohibition", createArrayBuilder().build())
+                    .add("obligation", createArrayBuilder().build());
+
+        }
+        return builder;
     }
 
     public static JsonObject querySpecObject(String context) {

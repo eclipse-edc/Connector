@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "CatalogRequestSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/CatalogRequest"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/catalog-request-schema.json",
+  "definitions": {
+    "CatalogRequest": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "CatalogRequest"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "protocol": {
+          "type": "string"
+        },
+        "counterPartyAddress": {
+          "type": "string"
+        },
+        "counterPartyId": {
+          "type": "string"
+        },
+        "additionalScopes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "querySpec": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/query-spec-schema.json#/definitions/QuerySpec"
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "protocol",
+        "counterPartyAddress",
+        "counterPartyId"
+      ]
+    }
+  }
+}

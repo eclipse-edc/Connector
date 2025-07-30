@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "ContractNegotiationSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/ContractNegotiation"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/contract-negotiation-schema.json",
+  "definitions": {
+    "ContractNegotiation": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "ContractNegotiation"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "CONSUMER",
+            "PROVIDER"
+          ]
+        },
+        "state": {
+          "type": "string"
+        },
+        "stateTimestamp": {
+          "type": "integer"
+        },
+        "protocol": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "integer"
+        },
+        "callbackAddresses": {
+          "type": "array",
+          "items": {
+            "$ref": "https://w3id.org/edc/connector/management/schema/v4/callback-address-schema.json"
+          }
+        },
+        "counterPartyAddress": {
+          "type": "string"
+        },
+        "counterPartyId": {
+          "type": "string"
+        },
+        "errorDetail": {
+          "type": "string"
+        },
+        "correlationId": {
+          "type": "string"
+        },
+        "assetId": {
+          "type": "string"
+        },
+        "contractAgreementId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "@id",
+        "type",
+        "state",
+        "protocol",
+        "counterPartyAddress",
+        "counterPartyId",
+        "createdAt"
+      ]
+    },
+    "NegotiationState": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "state": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "state"
+      ]
+    }
+  }
+}

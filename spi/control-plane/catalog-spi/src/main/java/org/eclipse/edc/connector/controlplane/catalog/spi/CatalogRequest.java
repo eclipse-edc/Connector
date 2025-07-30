@@ -25,7 +25,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 public class CatalogRequest {
 
-    public static final String CATALOG_REQUEST_TYPE = EDC_NAMESPACE + "CatalogRequest";
+    public static final String CATALOG_REQUEST_TYPE_TERM = "CatalogRequest";
+    public static final String CATALOG_REQUEST_TYPE = EDC_NAMESPACE + CATALOG_REQUEST_TYPE_TERM;
     public static final String CATALOG_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
     public static final String CATALOG_REQUEST_COUNTER_PARTY_ADDRESS = EDC_NAMESPACE + "counterPartyAddress";
     public static final String CATALOG_REQUEST_COUNTER_PARTY_ID = EDC_NAMESPACE + "counterPartyId";
