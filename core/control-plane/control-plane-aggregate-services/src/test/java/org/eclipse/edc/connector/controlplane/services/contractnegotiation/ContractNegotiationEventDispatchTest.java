@@ -108,6 +108,8 @@ class ContractNegotiationEventDispatchTest {
         dispatcherRegistry.register("test", succeedingDispatcher());
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(token));
+        when(dataspaceProfileContextRegistry.getParticipantId(any())).thenReturn("provider");
+        
         eventRouter.register(ContractNegotiationEvent.class, eventSubscriber);
         var policy = Policy.Builder.newInstance().build();
         var contractDefinition = ContractDefinition.Builder.newInstance()
