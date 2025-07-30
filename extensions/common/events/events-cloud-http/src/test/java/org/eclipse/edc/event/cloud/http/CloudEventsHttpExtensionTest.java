@@ -14,43 +14,42 @@
 
 package org.eclipse.edc.event.cloud.http;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.HttpRequest;
-import org.mockserver.model.JsonBody;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Map;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
 
 @ExtendWith(RuntimePerMethodExtension.class)
 public class CloudEventsHttpExtensionTest {
 
-    private final int port = getFreePort();
-    private final ClientAndServer server = startClientAndServer(port);
+    @RegisterExtension
+    static WireMockExtension server = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
 
     @BeforeEach
     void setUp(RuntimeExtension extension) {
         extension.setConfiguration(Map.of(
-                CloudEventsHttpExtension.EDC_EVENTS_CLOUDEVENTS_ENDPOINT, "http://localhost:" + port
+                CloudEventsHttpExtension.EDC_EVENTS_CLOUDEVENTS_ENDPOINT, "http://localhost:" + server.getPort()
         ));
     }
 
-    @AfterEach
-    void tearDown() {
-        server.stop();
-    }
-
+    @SuppressWarnings("unchecked")
     @Test
     void shouldSendEventAccordingToCloudEventSpec(EventRouter eventRouter, TypeManager typeManager) {
         var event = TestEvent.Builder.newInstance().data("useful information").build();
@@ -64,13 +63,14 @@ public class CloudEventsHttpExtensionTest {
         eventRouter.publish(envelope);
 
         await().untilAsserted(() -> {
-            var expectedRequest = HttpRequest.request()
-                    .withBody(new JsonBody(typeManager.writeValueAsString(event)))
-                    .withHeader("ce-id", "event-id")
-                    .withHeader("ce-source", "localhost")
-                    .withHeader("ce-specversion", "1.0")
-                    .withHeader("ce-type", "org.eclipse.edc.event.cloud.http.TestEvent")
-                    .withHeader("ce-time", "2022-06-22T13:17:33.723Z");
+
+            var expectedRequest = postRequestedFor(anyUrl())
+                    .withRequestBody(equalToJson(typeManager.writeValueAsString(event)))
+                    .withHeader("ce-id", equalTo("event-id"))
+                    .withHeader("ce-source", equalTo("localhost"))
+                    .withHeader("ce-specversion", equalTo("1.0"))
+                    .withHeader("ce-type", equalTo("org.eclipse.edc.event.cloud.http.TestEvent"))
+                    .withHeader("ce-time", equalTo("2022-06-22T13:17:33.723Z"));
             server.verify(expectedRequest);
         });
     }

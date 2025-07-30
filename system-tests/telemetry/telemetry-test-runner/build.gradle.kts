@@ -25,8 +25,7 @@ dependencies {
 
     testImplementation(libs.restAssured)
     testImplementation(libs.awaitility)
-    testImplementation(libs.mockserver.netty)
-    testImplementation(libs.mockserver.client)
+    testImplementation(libs.wiremock)
     testImplementation(libs.opentelemetry.proto)
 
     testCompileOnly(project(":system-tests:telemetry:telemetry-test-runtime"))

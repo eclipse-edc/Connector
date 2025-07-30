@@ -21,8 +21,7 @@ dependencies {
     testImplementation(project(":core:common:lib:boot-lib"))
     testImplementation(libs.restAssured)
     testImplementation(libs.awaitility)
-    testImplementation(libs.mockserver.netty)
-    testImplementation(libs.mockserver.client)
+    testImplementation(libs.wiremock)
 }
 
 edcBuild {

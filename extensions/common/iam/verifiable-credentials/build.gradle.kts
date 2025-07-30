@@ -23,8 +23,8 @@ dependencies {
     implementation(project(":core:common:lib:util-lib"))
     implementation(libs.jsonschema)
 
+    testImplementation(libs.wiremock)
     testImplementation(testFixtures(project(":spi:common:verifiable-credentials-spi")))
-    testImplementation(libs.mockserver.netty)
     testImplementation(project(":tests:junit-base"))
     testImplementation(project(":core:common:lib:http-lib"))
     testImplementation(project(":core:common:lib:util-lib"))

@@ -14,8 +14,11 @@
 
 package org.eclipse.edc.connector.dataplane.http;
 
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpMethod;
+import com.github.tomakehurst.wiremock.client.MappingBuilder;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
+import com.github.tomakehurst.wiremock.matching.StringValuePattern;
+import com.github.tomakehurst.wiremock.matching.UrlPattern;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import jakarta.json.Json;
@@ -33,27 +36,39 @@ import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
+import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.HttpError;
-import org.mockserver.model.HttpRequest;
-import org.mockserver.model.HttpResponse;
-import org.mockserver.model.HttpStatusCode;
-import org.mockserver.model.MediaType;
-import org.mockserver.model.Parameters;
-import org.mockserver.verify.VerificationTimes;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
-import static io.netty.handler.codec.http.HttpHeaderNames.AUTHORIZATION;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.binaryEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.moreThanOrExactly;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.okForContentType;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.put;
+import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.github.tomakehurst.wiremock.http.Fault.CONNECTION_RESET_BY_PEER;
 import static io.restassured.RestAssured.given;
 import static java.lang.Boolean.TRUE;
 import static java.lang.String.format;
@@ -64,24 +79,10 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.NOTIFIED;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TYPE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-import static org.mockserver.matchers.Times.exactly;
-import static org.mockserver.matchers.Times.once;
-import static org.mockserver.model.BinaryBody.binary;
-import static org.mockserver.model.HttpError.error;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
-import static org.mockserver.model.KeyMatchStyle.MATCHING_KEY;
-import static org.mockserver.model.MediaType.APPLICATION_JSON;
-import static org.mockserver.model.MediaType.APPLICATION_OCTET_STREAM;
-import static org.mockserver.model.MediaType.PLAIN_TEXT_UTF_8;
-import static org.mockserver.model.Parameter.param;
-import static org.mockserver.stop.Stop.stopQuietly;
 
 
 @ComponentTest
@@ -96,7 +97,12 @@ public class DataPlaneHttpIntegrationTests {
     private static final String CONTROL_PATH = "/control";
     private static final String PUBLIC_PATH = "/public";
     private static final String PUBLIC_API_HOST = "http://localhost:" + PUBLIC_API_PORT;
-    private static final String AUTH_HEADER_KEY = AUTHORIZATION.toString();
+    private static final String AUTH_HEADER_KEY = "Authorization";
+    private static final String CONTENT_TYPE_HEADER = "Content-Type";
+    private static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
+    private static final String APPLICATION_JSON = "application/json";
+    private static final String TEXT_PLAIN = "text/plain";
+
     private static final String SOURCE_AUTH_VALUE = "source-auth-key";
     private static final String SINK_AUTH_VALUE = "sink-auth-key";
     private static final DataPlaneAuthorizationService DATA_PLANE_AUTHORIZATION_SERVICE = mock();
@@ -120,31 +126,111 @@ public class DataPlaneHttpIntegrationTests {
                     "web.http.control.path", CONTROL_PATH,
                     "edc.core.retry.retries.max", "0"
             )));
-    private static ClientAndServer httpSourceMockServer;
-    private static ClientAndServer httpSinkMockServer;
-    private static ClientAndServer fakeControlPlane;
+    @RegisterExtension
+    static WireMockExtension httpSourceMockServer = WireMockExtension.newInstance()
+            .options(wireMockConfig().port(HTTP_SOURCE_API_PORT))
+            .build();
+    @RegisterExtension
+    static WireMockExtension httpSinkMockServer = WireMockExtension.newInstance()
+            .options(wireMockConfig().port(HTTP_SINK_API_PORT))
+            .build();
+    @RegisterExtension
+    static WireMockExtension fakeControlPlane = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
     private final Duration timeout = Duration.ofSeconds(30);
 
     @BeforeAll
     public static void setUp() {
-        httpSourceMockServer = startClientAndServer(HTTP_SOURCE_API_PORT);
-        httpSinkMockServer = startClientAndServer(HTTP_SINK_API_PORT);
-        fakeControlPlane = startClientAndServer(getFreePort());
         when(DATA_PLANE_AUTHORIZATION_SERVICE.createEndpointDataReference(any())).thenReturn(Result.success(DataAddress.Builder.newInstance().type("type").build()));
-        fakeControlPlane.when(request()).respond(response());
     }
 
-    @AfterAll
-    public static void tearDown() {
-        stopQuietly(httpSourceMockServer);
-        stopQuietly(httpSinkMockServer);
-        stopQuietly(fakeControlPlane);
+    @BeforeEach
+    void beforeEach() {
+        fakeControlPlane.stubFor(any(anyUrl()).willReturn(ok()));
+
     }
 
-    @AfterEach
-    public void resetMockServer() {
-        httpSourceMockServer.reset();
-        httpSinkMockServer.reset();
+    /**
+     * Mock HTTP GET request for source.
+     *
+     * @return see {@link MappingBuilder}
+     */
+    private MappingBuilder getRequest(String path) {
+        return getRequest(emptyMap(), path);
+    }
+
+    /**
+     * Mock HTTP GET request with query params for source.
+     *
+     * @return see {@link MappingBuilder}
+     */
+    private MappingBuilder getRequest(Map<String, String> queryParams, String path) {
+        return getRequest(queryParams, urlEqualTo(path));
+    }
+
+    /**
+     * Mock HTTP GET request with query params for source.
+     *
+     * @return see {@link MappingBuilder}
+     */
+    private MappingBuilder getRequest(Map<String, String> queryParams, UrlPattern pattern) {
+        var request = get(pattern);
+        request.withQueryParams(toQueryParams(queryParams));
+        return request
+                .withHeader(AUTH_HEADER_KEY, equalTo(SOURCE_AUTH_VALUE));
+    }
+
+    /**
+     * Mock HTTP GET request with query params for source.
+     *
+     * @return see {@link RequestPatternBuilder}
+     */
+
+    private RequestPatternBuilder getRequested(String path) {
+        return getRequested(emptyMap(), path);
+    }
+
+    /**
+     * Mock HTTP GET request with query params for source.
+     *
+     * @return see {@link RequestPatternBuilder}
+     */
+    private RequestPatternBuilder getRequested(Map<String, String> queryParams, String path) {
+        return getRequested(queryParams, urlEqualTo(path));
+    }
+
+    /**
+     * Mock HTTP GET request with query params for source.
+     *
+     * @return see {@link RequestPatternBuilder}
+     */
+    private RequestPatternBuilder getRequested(Map<String, String> queryParams, UrlPattern pattern) {
+        var request = getRequestedFor(pattern);
+        var params = toQueryParams(queryParams);
+        params.forEach(request::withQueryParam);
+        return request
+                .withHeader(AUTH_HEADER_KEY, equalTo(SOURCE_AUTH_VALUE));
+    }
+
+    private Map<String, StringValuePattern> toQueryParams(Map<String, String> queryParams) {
+        return queryParams.entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> equalTo(entry.getValue())));
+    }
+
+    private RequestPatternBuilder postRequested(String responseBody, String contentType) {
+        return postRequestedFor(anyUrl())
+                .withHeader(AUTH_HEADER_KEY, equalTo(SINK_AUTH_VALUE))
+                .withHeader("Content-Type", equalTo(contentType))
+                .withRequestBody(binaryEqualTo(responseBody.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    private MappingBuilder postRequest(String responseBody, String contentType) {
+        return post("/")
+                .withHeader(AUTH_HEADER_KEY, equalTo(SINK_AUTH_VALUE))
+                .withHeader("Content-Type", equalTo(contentType))
+                .withRequestBody(binaryEqualTo(responseBody.getBytes(StandardCharsets.UTF_8)));
     }
 
     @Nested
@@ -166,8 +252,8 @@ public class DataPlaneHttpIntegrationTests {
             );
             var sourceDataAddress = sourceDataAddress();
 
-            var sourceRequest = getRequest(queryParams, HTTP_API_PATH);
-            httpSourceMockServer.when(sourceRequest, once()).respond(successfulResponse(responseBody, PLAIN_TEXT_UTF_8));
+            httpSourceMockServer.stubFor(get(anyUrl()).willReturn(okForContentType(TEXT_PLAIN, responseBody)));
+
             when(dataPlaneAuthorizationService.authorize(any(), any())).thenReturn(Result.success(sourceDataAddress));
 
             given()
@@ -175,14 +261,17 @@ public class DataPlaneHttpIntegrationTests {
                     .contentType(ContentType.JSON)
                     .when()
                     .queryParams(queryParams)
-                    .header(AUTHORIZATION.toString(), token)
+                    .header(AUTH_HEADER_KEY, token)
                     .get(format("%s/%s", PUBLIC_PATH, HTTP_API_PATH))
                     .then()
                     .assertThat()
                     .statusCode(HttpStatus.SC_OK)
-                    .body(equalTo(responseBody));
+                    .body(CoreMatchers.equalTo(responseBody));
 
-            httpSourceMockServer.verify(sourceRequest, VerificationTimes.once());
+            httpSourceMockServer.verify(getRequestedFor(urlMatching("/" + HTTP_API_PATH + "?.*"))
+                    .withQueryParam("param1", equalTo("foo"))
+                    .withQueryParam("param2", equalTo("bar"))
+                    .withHeader(AUTH_HEADER_KEY, equalTo(SOURCE_AUTH_VALUE)));
         }
 
         @Test
@@ -193,21 +282,22 @@ public class DataPlaneHttpIntegrationTests {
                     .proxyPath(TRUE.toString())
                     .proxyBody(TRUE.toString())
                     .build();
-            httpSourceMockServer.when(request(), once()).respond(successfulResponse("any", PLAIN_TEXT_UTF_8));
+
+            httpSourceMockServer.stubFor(put(anyUrl()).willReturn(okForContentType(TEXT_PLAIN, "any")));
             when(dataPlaneAuthorizationService.authorize(any(), any())).thenReturn(Result.success(sourceAddress));
 
             given()
                     .baseUri(PUBLIC_API_HOST)
                     .contentType(ContentType.JSON)
                     .when()
-                    .header(AUTHORIZATION.toString(), "any")
+                    .header(AUTH_HEADER_KEY, "any")
                     .body("body")
                     .put(format("%s/%s", PUBLIC_PATH, HTTP_API_PATH))
                     .then()
                     .log().ifError()
                     .statusCode(HttpStatus.SC_OK);
 
-            httpSourceMockServer.verify(request().withMethod("PUT").withBody("body"), VerificationTimes.once());
+            httpSourceMockServer.verify(putRequestedFor(anyUrl()).withRequestBody(equalTo("body")));
         }
 
         private HttpDataAddress sourceDataAddress() {
@@ -229,18 +319,20 @@ public class DataPlaneHttpIntegrationTests {
 
         @Test
         void transfer_toHttpSink_success() {
-            var body = UUID.randomUUID().toString();
+            var body = "{}";
             var processId = UUID.randomUUID().toString();
-            httpSourceMockServer.when(getRequest(""), once()).respond(successfulResponse(body, APPLICATION_JSON));
-            httpSinkMockServer.when(request(), once()).respond(successfulResponse());
+
+            httpSourceMockServer.stubFor(getRequest("/").willReturn(okForContentType(APPLICATION_JSON, body)));
+            httpSinkMockServer.stubFor(post(anyUrl()).willReturn(ok()));
 
             initiate(transferRequestPayload(processId))
                     .then()
                     .assertThat().statusCode(HttpStatus.SC_OK);
 
             await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
-            httpSourceMockServer.verify(getRequest(""), VerificationTimes.once());
-            httpSinkMockServer.verify(postRequest(body, APPLICATION_JSON), VerificationTimes.once());
+
+            httpSourceMockServer.verify(getRequestedFor(anyUrl()));
+            httpSinkMockServer.verify(postRequestedFor(anyUrl()).withRequestBody(equalToJson(body)));
         }
 
         @Test
@@ -252,8 +344,11 @@ public class DataPlaneHttpIntegrationTests {
                     "param2", "any other value"
             );
 
-            httpSourceMockServer.when(getRequest(queryParams, "path"), once()).respond(successfulResponse(body, APPLICATION_OCTET_STREAM));
-            httpSinkMockServer.when(postRequest(body, APPLICATION_OCTET_STREAM), once()).respond(successfulResponse());
+            httpSourceMockServer.stubFor(getRequest(queryParams, urlMatching("/path.*"))
+                    .willReturn(okForContentType(APPLICATION_OCTET_STREAM, body)));
+            httpSinkMockServer.stubFor(post(anyUrl()).withRequestBody(binaryEqualTo(body.getBytes()))
+                    .withHeader(CONTENT_TYPE_HEADER, equalTo(APPLICATION_OCTET_STREAM))
+                    .willReturn(ok()));
 
             var sourceDataAddress = Json.createObjectBuilder()
                     .add("@type", "dspace:DataAddress")
@@ -268,22 +363,23 @@ public class DataPlaneHttpIntegrationTests {
                     .assertThat().statusCode(HttpStatus.SC_OK);
 
             await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
-            httpSourceMockServer.verify(getRequest(queryParams, "path"), VerificationTimes.once());
-            httpSinkMockServer.verify(postRequest(body, APPLICATION_OCTET_STREAM), VerificationTimes.once());
+            httpSourceMockServer.verify(getRequested(queryParams, urlMatching("/path.*")));
+            httpSinkMockServer.verify(postRequested(body, APPLICATION_OCTET_STREAM));
         }
 
         @Test
         void transfer_toHttpSink_sourceNotAvailable_noInteractionWithSink() {
             var processId = UUID.randomUUID().toString();
-            httpSourceMockServer.when(getRequest("")).error(withDropConnection());
+
+            httpSourceMockServer.stubFor(getRequest("/").willReturn(aResponse().withFault(CONNECTION_RESET_BY_PEER)));
 
             initiate(transferRequestPayload(processId))
                     .then()
                     .assertThat().statusCode(HttpStatus.SC_OK);
 
             await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
-            httpSourceMockServer.verify(getRequest(""), VerificationTimes.atLeast(1));
-            httpSinkMockServer.verifyZeroInteractions();
+            httpSourceMockServer.verify(moreThanOrExactly(1), getRequested("/"));
+            httpSinkMockServer.verify(0, anyRequestedFor(anyUrl()));
         }
 
         /**
@@ -292,20 +388,35 @@ public class DataPlaneHttpIntegrationTests {
         @Test
         void transfer_toHttpSink_sourceTemporaryDropConnection_success() {
             var processId = UUID.randomUUID().toString();
-            httpSourceMockServer.when(getRequest(""), exactly(2)).error(withDropConnection());
-
             var body = UUID.randomUUID().toString();
-            httpSourceMockServer.when(getRequest(""), once()).respond(successfulResponse(body, PLAIN_TEXT_UTF_8));
 
-            httpSinkMockServer.when(postRequest(body, APPLICATION_OCTET_STREAM), once()).respond(successfulResponse());
+            httpSourceMockServer.stubFor(getRequest("/")
+                    .willReturn(aResponse().withFault(CONNECTION_RESET_BY_PEER))
+                    .inScenario("Retry Scenario")
+                    .whenScenarioStateIs("Started")
+                    .willSetStateTo("First Retry"));
+
+            httpSourceMockServer.stubFor(getRequest("/")
+                    .willReturn(aResponse().withFault(CONNECTION_RESET_BY_PEER))
+                    .inScenario("Retry Scenario")
+                    .whenScenarioStateIs("First Retry")
+                    .willSetStateTo("Second Retry"));
+
+            httpSourceMockServer.stubFor(getRequest("/")
+                    .willReturn(okForContentType(TEXT_PLAIN, body))
+                    .inScenario("Retry Scenario")
+                    .whenScenarioStateIs("Second Retry"));
+
+
+            httpSinkMockServer.stubFor(postRequest(body, APPLICATION_OCTET_STREAM).willReturn(ok()));
 
             initiate(transferRequestPayload(processId))
                     .then()
                     .assertThat().statusCode(HttpStatus.SC_OK);
 
             await().atMost(timeout).untilAsserted(() -> expectState(processId, NOTIFIED));
-            httpSourceMockServer.verify(getRequest(""), VerificationTimes.exactly(3));
-            httpSinkMockServer.verify(postRequest(body, PLAIN_TEXT_UTF_8), VerificationTimes.once());
+            httpSourceMockServer.verify(3, getRequested("/"));
+            httpSinkMockServer.verify(postRequested(body, TEXT_PLAIN));
         }
 
         @Test
@@ -337,11 +448,6 @@ public class DataPlaneHttpIntegrationTests {
                     .then()
                     .assertThat().statusCode(HttpStatus.SC_OK)
                     .body(containsString(expectedState.name()));
-        }
-
-        private HttpError withDropConnection() {
-            return error()
-                    .withDropConnection(true);
         }
 
         private JsonObject transferRequestPayload(String processId) {
@@ -389,60 +495,6 @@ public class DataPlaneHttpIntegrationTests {
                     .add("dspace:value", value);
         }
 
-    }
-
-    /**
-     * Mock HTTP GET request for source.
-     *
-     * @return see {@link HttpRequest}
-     */
-    private HttpRequest getRequest(String path) {
-        return getRequest(emptyMap(), path);
-    }
-
-    /**
-     * Mock HTTP GET request with query params for source.
-     *
-     * @return see {@link HttpRequest}
-     */
-    private HttpRequest getRequest(Map<String, String> queryParams, String path) {
-        var request = request();
-
-        var paramsList = queryParams.entrySet()
-                .stream()
-                .map(entry -> param(entry.getKey(), entry.getValue()))
-                .toList();
-
-        request.withQueryStringParameters(new Parameters(paramsList).withKeyMatchStyle(MATCHING_KEY));
-
-        return request
-                .withMethod(HttpMethod.GET.name())
-                .withHeader(AUTH_HEADER_KEY, SOURCE_AUTH_VALUE)
-                .withPath("/" + path);
-    }
-
-    private HttpRequest postRequest(String responseBody, MediaType contentType) {
-        return request()
-                .withMethod(HttpMethod.POST.name())
-                .withHeader(AUTH_HEADER_KEY, SINK_AUTH_VALUE)
-                .withContentType(contentType)
-                .withBody(binary(responseBody.getBytes(StandardCharsets.UTF_8)));
-    }
-
-    /**
-     * Mock http OK response from sink.
-     *
-     * @return see {@link HttpResponse}
-     */
-    private HttpResponse successfulResponse() {
-        return response()
-                .withStatusCode(HttpStatusCode.OK_200.code());
-    }
-
-    private HttpResponse successfulResponse(String responseBody, MediaType contentType) {
-        return successfulResponse()
-                .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), contentType.toString())
-                .withBody(responseBody);
     }
 
 

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.test.e2e;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
@@ -21,54 +22,62 @@ import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.BinaryBody;
-import org.mockserver.model.HttpRequest;
-import org.mockserver.model.HttpResponse;
 
 import java.util.Map;
 import java.util.UUID;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.binaryEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-import static org.mockserver.model.JsonBody.json;
-import static org.mockserver.stop.Stop.stopQuietly;
 
 
 class TransferPushEndToEndTest {
 
     abstract static class Tests extends TransferEndToEndTestBase {
 
-        private static ClientAndServer providerDataSource;
-        private static ClientAndServer consumerDataDestination;
+        @RegisterExtension
+        static WireMockExtension providerDataSource = WireMockExtension.newInstance()
+                .options(wireMockConfig().dynamicPort())
+                .build();
 
-        @BeforeAll
-        static void setUp() {
-            providerDataSource = startClientAndServer(getFreePort());
-            consumerDataDestination = startClientAndServer(getFreePort());
-            consumerDataDestination.when(HttpRequest.request()).respond(HttpResponse.response());
-        }
+        @RegisterExtension
+        static WireMockExtension consumerDataDestination = WireMockExtension.newInstance()
+                .options(wireMockConfig().dynamicPort())
+                .build();
 
-        @AfterAll
-        static void afterAll() {
-            stopQuietly(providerDataSource);
-            stopQuietly(consumerDataDestination);
+        @RegisterExtension
+        static WireMockExtension oauth2server = WireMockExtension.newInstance()
+                .options(wireMockConfig().dynamicPort())
+                .build();
+
+
+        @BeforeEach
+        void beforeEach() {
+            consumerDataDestination.stubFor(post(anyUrl()).willReturn(ok()));
+
         }
 
         @Test
         void httpPushDataTransfer() {
-            providerDataSource.when(HttpRequest.request()).respond(HttpResponse.response().withBody("data"));
+            providerDataSource.stubFor(get(anyUrl()).willReturn(ok("data")));
             var assetId = UUID.randomUUID().toString();
             var dataAddressProperties = Map.<String, Object>of(
                     "name", "transfer-test",
@@ -84,15 +93,17 @@ class TransferPushEndToEndTest {
 
             CONSUMER.awaitTransferToBeInState(transferProcessId, COMPLETED);
 
-            providerDataSource.verify(HttpRequest.request("/source").withMethod("GET"));
-            consumerDataDestination.verify(HttpRequest.request("/destination").withBody(BinaryBody.binary("data".getBytes())));
+            providerDataSource.verify(getRequestedFor(urlEqualTo("/source")));
+            consumerDataDestination.verify(postRequestedFor(urlEqualTo("/destination"))
+                    .withRequestBody(binaryEqualTo("data".getBytes())));
+
         }
 
         @Test
         void httpToHttp_oauth2Provisioning() {
-            var oauth2server = startClientAndServer(getFreePort());
-            oauth2server.when(HttpRequest.request()).respond(HttpResponse.response().withBody(json(Map.of("access_token", "token"))));
-            providerDataSource.when(HttpRequest.request()).respond(HttpResponse.response().withBody("data"));
+
+            oauth2server.stubFor(post(anyUrl()).willReturn(okJson("{\"access_token\": \"token\"}")));
+            providerDataSource.stubFor(get(anyUrl()).willReturn(ok("data")));
             getDataplaneVault().storeSecret("provision-oauth-secret", "supersecret");
             var assetId = UUID.randomUUID().toString();
             var sourceDataAddressProperties = Map.<String, Object>of(
@@ -111,10 +122,15 @@ class TransferPushEndToEndTest {
 
             CONSUMER.awaitTransferToBeInState(transferProcessId, COMPLETED);
 
-            oauth2server.verify(HttpRequest.request("/token").withBody("grant_type=client_credentials&client_secret=supersecret&client_id=clientId"));
-            providerDataSource.verify(HttpRequest.request("/source").withMethod("GET").withHeader("Authorization", "Bearer token"));
-            consumerDataDestination.verify(HttpRequest.request("/destination").withBody(BinaryBody.binary("data".getBytes())));
-            stopQuietly(oauth2server);
+            oauth2server.verify(postRequestedFor(urlEqualTo("/token"))
+                    .withRequestBody(equalTo("grant_type=client_credentials&client_secret=supersecret&client_id=clientId")));
+
+            providerDataSource.verify(getRequestedFor(urlEqualTo("/source"))
+                    .withHeader("Authorization", equalTo("Bearer token")));
+
+            consumerDataDestination.verify(postRequestedFor(urlEqualTo("/destination"))
+                    .withRequestBody(equalTo("data")));
+
         }
 
         private JsonObject httpDataAddress(String baseUrl) {

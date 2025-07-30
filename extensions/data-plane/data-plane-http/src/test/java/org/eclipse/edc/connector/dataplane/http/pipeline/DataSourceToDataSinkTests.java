@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
-import io.netty.handler.codec.http.HttpMethod;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Protocol;
@@ -70,7 +69,7 @@ class DataSourceToDataSinkTests {
         var dataSource = HttpDataSource.Builder.newInstance()
                 .params(HttpRequestParams.Builder.newInstance()
                         .baseUrl(NULL_ENDPOINT)
-                        .method(HttpMethod.GET.name())
+                        .method("GET")
                         .build())
                 .name("test.json")
                 .requestId("1")
@@ -84,7 +83,7 @@ class DataSourceToDataSinkTests {
         var dataSink = HttpDataSink.Builder.newInstance()
                 .params(HttpRequestParams.Builder.newInstance()
                         .baseUrl("https://example.com/sink")
-                        .method(HttpMethod.POST.name())
+                        .method("POST")
                         .contentType(CONTENT_TYPE)
                         .build())
                 .requestId("1")
@@ -117,7 +116,7 @@ class DataSourceToDataSinkTests {
         var dataSource = HttpDataSource.Builder.newInstance()
                 .params(HttpRequestParams.Builder.newInstance()
                         .baseUrl(NULL_ENDPOINT)
-                        .method(HttpMethod.GET.name())
+                        .method("GET")
                         .build())
                 .name("test.json")
                 .requestId("1")
@@ -131,7 +130,7 @@ class DataSourceToDataSinkTests {
         var dataSink = HttpDataSink.Builder.newInstance()
                 .params(HttpRequestParams.Builder.newInstance()
                         .baseUrl("https://example.com/sink")
-                        .method(HttpMethod.POST.name())
+                        .method("POST")
                         .contentType(CONTENT_TYPE)
                         .build())
                 .requestId("1")
@@ -163,7 +162,7 @@ class DataSourceToDataSinkTests {
         var dataSource = HttpDataSource.Builder.newInstance()
                 .params(HttpRequestParams.Builder.newInstance()
                         .baseUrl(NULL_ENDPOINT)
-                        .method(HttpMethod.GET.name())
+                        .method("GET")
                         .build())
                 .name("test.json")
                 .requestId("1")
@@ -183,7 +182,7 @@ class DataSourceToDataSinkTests {
         var dataSink = HttpDataSink.Builder.newInstance()
                 .params(HttpRequestParams.Builder.newInstance()
                         .baseUrl(NULL_ENDPOINT)
-                        .method(HttpMethod.POST.name())
+                        .method("POST")
                         .contentType(CONTENT_TYPE)
                         .build())
                 .requestId("1")
@@ -218,7 +217,7 @@ class DataSourceToDataSinkTests {
         var dataSink = HttpDataSink.Builder.newInstance()
                 .params(HttpRequestParams.Builder.newInstance()
                         .baseUrl("https://example.com/sink")
-                        .method(HttpMethod.POST.name())
+                        .method("POST")
                         .contentType(CONTENT_TYPE)
                         .build())
                 .requestId("1")

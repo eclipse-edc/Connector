@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.connector.dataplane.http.pipeline;
 
-import io.netty.handler.codec.http.HttpMethod;
 import okhttp3.HttpUrl;
 import okhttp3.Request;
 import org.eclipse.edc.connector.dataplane.http.params.HttpRequestFactory;
@@ -83,7 +82,7 @@ class HttpDataSinkFactoryTest {
         var request = createRequest(address);
         var params = HttpRequestParams.Builder.newInstance()
                 .baseUrl("http://some.base.url")
-                .method(HttpMethod.POST.name())
+                .method("POST")
                 .contentType("application/json")
                 .build();
         when(provider.provideSinkParams(request)).thenReturn(params);
@@ -106,7 +105,7 @@ class HttpDataSinkFactoryTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "POST", "GET", "PUT" })
+    @ValueSource(strings = {"POST", "GET", "PUT"})
     void verifyCreateMethodDestination(String method) throws IOException {
         var address = HttpDataAddress.Builder.newInstance().build();
         var request = createRequest(address);

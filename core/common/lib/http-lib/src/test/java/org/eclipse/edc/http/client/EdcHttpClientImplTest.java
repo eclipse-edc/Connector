@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.http.client;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import dev.failsafe.RetryPolicy;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -24,11 +25,8 @@ import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.HttpResponse;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
 import java.util.List;
@@ -36,6 +34,15 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.github.tomakehurst.wiremock.http.Fault.CONNECTION_RESET_BY_PEER;
+import static com.github.tomakehurst.wiremock.http.Fault.RANDOM_DATA_THEN_CLOSE;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusIsNot;
@@ -43,43 +50,42 @@ import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusIsNotIn;
 import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusNot2xxOr4xx;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.Mockito.mock;
-import static org.mockserver.matchers.Times.once;
-import static org.mockserver.matchers.Times.unlimited;
-import static org.mockserver.model.HttpError.error;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.JsonBody.json;
-import static org.mockserver.stop.Stop.stopQuietly;
-import static org.mockserver.verify.VerificationTimes.exactly;
 
 class EdcHttpClientImplTest {
 
-    private final int port = getFreePort();
+    @RegisterExtension
+    static WireMockExtension server = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
 
     private final TypeManager typeManager = new JacksonTypeManager();
-    private ClientAndServer server;
 
     @NotNull
     private static EdcHttpClient clientWith(RetryPolicy<Response> retryPolicy) {
         return new EdcHttpClientImpl(testOkHttpClient(), retryPolicy, mock());
     }
 
-    @BeforeEach
-    public void startServer() {
-        server = ClientAndServer.startClientAndServer(port);
-    }
+    public static OkHttpClient testOkHttpClient(Interceptor... interceptors) {
+        var builder = new OkHttpClient.Builder()
+                .connectTimeout(1, TimeUnit.MINUTES)
+                .writeTimeout(1, TimeUnit.MINUTES)
+                .readTimeout(1, TimeUnit.MINUTES);
 
-    @AfterEach
-    public void stopServer() {
-        stopQuietly(server);
+        for (Interceptor interceptor : interceptors) {
+            builder.addInterceptor(interceptor);
+        }
+
+        return builder.build();
     }
 
     @Test
     void execute_fallback_shouldMapResultWhenResponseIsSuccessful() {
         var client = clientWith(RetryPolicy.ofDefaults());
-        server.when(request(), once()).respond(new HttpResponse().withStatusCode(200).withBody(json(Map.of("message", "data"))));
+
+        server.stubFor(get(anyUrl()).willReturn(okJson("{\"message\": \"data\"}")));
 
         var request = new Request.Builder()
-                .url("http://localhost:" + port)
+                .url("http://localhost:" + server.getPort())
                 .build();
 
         var result = client.execute(request, handleResponse());
@@ -90,26 +96,34 @@ class EdcHttpClientImplTest {
     @Test
     void execute_fallback_shouldRetry() {
         var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
-        server.when(request(), once()).error(error().withDropConnection(true));
-        server.when(request(), once()).respond(new HttpResponse().withStatusCode(200).withBody(json(Map.of("message", "data"))));
+
+        server.stubFor(get(anyUrl()).willReturn(aResponse().withFault(CONNECTION_RESET_BY_PEER))
+                .inScenario("Retry Scenario")
+                .whenScenarioStateIs("Started")
+                .willSetStateTo("First Attempt"));
+
+        server.stubFor(get(anyUrl()).willReturn(okJson("{\"message\": \"data\"}"))
+                .inScenario("Retry Scenario")
+                .whenScenarioStateIs("First Attempt")
+                .willSetStateTo("Second Attempt"));
 
         var request = new Request.Builder()
-                .url("http://localhost:" + port)
+                .url("http://localhost:" + server.getPort())
                 .build();
 
         var result = client.execute(request, handleResponse());
 
         assertThat(result).matches(Result::succeeded).extracting(Result::getContent).isEqualTo("data");
-        server.verify(request(), exactly(2));
+        server.verify(2, getRequestedFor(anyUrl()));
     }
 
     @Test
     void execute_fallback_shouldFailAfterAttemptsExpired_whenResponseFails() {
         var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
-        server.when(request(), unlimited()).error(error().withDropConnection(true));
+        server.stubFor(get(anyUrl()).willReturn(aResponse().withFault(RANDOM_DATA_THEN_CLOSE)));
 
         var request = new Request.Builder()
-                .url("http://localhost:" + port)
+                .url("http://localhost:" + server.getPort())
                 .build();
 
         var result = client.execute(request, handleResponse());
@@ -124,10 +138,10 @@ class EdcHttpClientImplTest {
 
         var request = new Request.Builder()
                 .header("Authentication", "AuthTest")
-                .url("http://localhost:" + port)
+                .url("http://localhost:" + server.getPort())
                 .build();
 
-        server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(500));
+        server.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(500)));
 
         var result = client.execute(request, List.of(retryWhenStatusNot2xxOr4xx()), handleResponse());
 
@@ -135,7 +149,7 @@ class EdcHttpClientImplTest {
                 .asList().first().asString()
                 .matches(it -> it.startsWith("Server response to"))
                 .matches(it -> !it.contains("AuthTest"));
-        server.verify(request(), exactly(2));
+        server.verify(2, getRequestedFor(anyUrl()));
     }
 
     @Test
@@ -144,9 +158,10 @@ class EdcHttpClientImplTest {
 
         var request = new Request.Builder()
                 .header("Authentication", "AuthTest")
-                .url("http://localhost:" + port)
+                .url("http://localhost:" + server.getPort())
                 .build();
-        server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(200));
+
+        server.stubFor(get(anyUrl()).willReturn(ok()));
 
         var result = client.execute(request, List.of(retryWhenStatusIsNot(204)), handleResponse());
 
@@ -154,7 +169,7 @@ class EdcHttpClientImplTest {
                 .asList().first().asString()
                 .matches(it -> it.startsWith("Server response to"))
                 .matches(it -> !it.contains("AuthTest"));
-        server.verify(request(), exactly(2));
+        server.verify(2, getRequestedFor(anyUrl()));
     }
 
     @Test
@@ -163,9 +178,9 @@ class EdcHttpClientImplTest {
 
         var request = new Request.Builder()
                 .header("Authentication", "AuthTest")
-                .url("http://localhost:" + port)
+                .url("http://localhost:" + server.getPort())
                 .build();
-        server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(400));
+        server.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(400)));
 
         var result = client.execute(request, List.of(retryWhenStatusIsNotIn(200, 204)), handleResponse());
 
@@ -174,17 +189,16 @@ class EdcHttpClientImplTest {
                 .matches(it -> it.startsWith("Server response to"))
                 .matches(it -> !it.contains("AuthTest"));
 
-        server.verify(request(), exactly(2));
+        server.verify(2, getRequestedFor(anyUrl()));
     }
 
     @Test
     void execute_fallback_shouldFailAfterAttemptsExpired_whenServerIsDown() {
         var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
-        server.stop();
 
         var request = new Request.Builder()
                 .header("Authentication", "AuthTest")
-                .url("http://localhost:" + port)
+                .url("http://localhost:" + getFreePort())
                 .build();
 
         var result = client.execute(request, handleResponse());
@@ -200,15 +214,15 @@ class EdcHttpClientImplTest {
         var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
 
         var request = new Request.Builder()
-                .url("http://localhost:" + port)
+                .url("http://localhost:" + server.getPort())
                 .build();
 
-        server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(500));
+        server.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(500)));
 
         var result = client.executeAsync(request, List.of(retryWhenStatusNot2xxOr4xx())).thenApply(handleResponse());
 
         assertThat(result).failsWithin(5, TimeUnit.SECONDS);
-        server.verify(request(), exactly(2));
+        server.verify(2, getRequestedFor(anyUrl()));
     }
 
     @Test
@@ -216,15 +230,16 @@ class EdcHttpClientImplTest {
         var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
 
         var request = new Request.Builder()
-                .url("http://localhost:" + port)
+                .url("http://localhost:" + server.getPort())
                 .build();
 
-        server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(500));
+
+        server.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(500)));
 
         var result = client.executeAsync(request, List.of(retryWhenStatusNot2xxOr4xx())).thenApply(handleResponse());
 
         assertThat(result).failsWithin(5, TimeUnit.SECONDS);
-        server.verify(request(), exactly(2));
+        server.verify(2, getRequestedFor(anyUrl()));
     }
 
     @Test
@@ -232,15 +247,15 @@ class EdcHttpClientImplTest {
         var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
 
         var request = new Request.Builder()
-                .url("http://localhost:" + port)
+                .url("http://localhost:" + server.getPort())
                 .build();
 
-        server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(404));
+        server.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(404)));
 
         var result = client.executeAsync(request, List.of(retryWhenStatusNot2xxOr4xx())).thenApply(handleResponse());
 
         assertThat(result).succeedsWithin(5, TimeUnit.SECONDS);
-        server.verify(request(), exactly(1));
+        server.verify(1, getRequestedFor(anyUrl()));
     }
 
     @Test
@@ -248,23 +263,23 @@ class EdcHttpClientImplTest {
         var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
 
         var request = new Request.Builder()
-                .url("http://localhost:" + port)
+                .url("http://localhost:" + server.getPort())
                 .build();
-        server.when(request(), unlimited()).respond(new HttpResponse().withStatusCode(200));
+
+        server.stubFor(get(anyUrl()).willReturn(ok()));
 
         var result = client.executeAsync(request, List.of(retryWhenStatusIsNot(204))).thenApply(handleResponse());
 
         assertThat(result).failsWithin(5, TimeUnit.SECONDS);
-        server.verify(request(), exactly(2));
+        server.verify(2, getRequestedFor(anyUrl()));
     }
 
     @Test
     void executeAsync_fallback_shouldFailAfterAttemptsExpired_whenServerIsDown() {
         var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
-        server.stop();
 
         var request = new Request.Builder()
-                .url("http://localhost:" + port)
+                .url("http://localhost:" + getFreePort())
                 .build();
 
         var result = client.executeAsync(request, emptyList()).thenApply(handleResponse());
@@ -285,18 +300,5 @@ class EdcHttpClientImplTest {
                 throw new RuntimeException(e);
             }
         };
-    }
-
-    public static OkHttpClient testOkHttpClient(Interceptor... interceptors) {
-        var builder = new OkHttpClient.Builder()
-                .connectTimeout(1, TimeUnit.MINUTES)
-                .writeTimeout(1, TimeUnit.MINUTES)
-                .readTimeout(1, TimeUnit.MINUTES);
-
-        for (Interceptor interceptor : interceptors) {
-            builder.addInterceptor(interceptor);
-        }
-
-        return builder.build();
     }
 }

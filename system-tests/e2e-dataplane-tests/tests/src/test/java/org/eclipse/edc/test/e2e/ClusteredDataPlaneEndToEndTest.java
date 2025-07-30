@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.test.e2e;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
@@ -31,43 +32,41 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockserver.integration.ClientAndServer;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.BiFunction;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static com.github.tomakehurst.wiremock.matching.UrlPattern.ANY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
-import static org.mockserver.verify.VerificationTimes.atLeast;
-import static org.mockserver.verify.VerificationTimes.never;
 
 @EndToEndTest
 public class ClusteredDataPlaneEndToEndTest {
 
+
     @RegisterExtension
     @Order(0)
     private static final PostgresqlEndToEndExtension POSTGRESQL = new PostgresqlEndToEndExtension();
-
-    @RegisterExtension
-    @Order(1)
-    protected static DummyControlPlane dummyControlPlane = new DummyControlPlane();
-
     private static final DataPlaneParticipant FOO_DATAPLANE = DataPlaneParticipant.Builder.newInstance()
             .name("provider")
             .id("urn:connector:provider")
             .build();
-
     private static final DataPlaneParticipant BAR_DATAPLANE = DataPlaneParticipant.Builder.newInstance()
             .name("provider")
             .id("urn:connector:provider")
             .build();
-
+    @RegisterExtension
+    @Order(1)
+    protected static DummyControlPlane dummyControlPlane = new DummyControlPlane();
     private static final BiFunction<String, DataPlaneParticipant, EmbeddedRuntime> RUNTIME_SUPPLIER =
             (name, dataPlaneParticipant) -> new EmbeddedRuntime(
                     name,
@@ -80,33 +79,40 @@ public class ClusteredDataPlaneEndToEndTest {
                             "edc.runtime.id", name,
                             "edc.sql.schema.autocreate", "true"
                     )));
-
     private static final EmbeddedRuntime FOO_RUNTIME = RUNTIME_SUPPLIER.apply("foo", FOO_DATAPLANE);
+    @RegisterExtension
+    private static final RuntimeExtension FOO = new RuntimePerClassExtension(FOO_RUNTIME);
     private static final EmbeddedRuntime BAR_RUNTIME = RUNTIME_SUPPLIER.apply("bar", BAR_DATAPLANE);
     private static final Map<String, EmbeddedRuntime> RUNTIMES = Map.of(
             "foo", FOO_RUNTIME,
             "bar", BAR_RUNTIME
     );
-
-    @RegisterExtension
-    private static final RuntimeExtension FOO = new RuntimePerClassExtension(FOO_RUNTIME);
-
     @RegisterExtension
     private static final RuntimeExtension BAR = new RuntimePerClassExtension(BAR_RUNTIME);
 
+    @RegisterExtension
+    static WireMockExtension sourceServer = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
+
+    @RegisterExtension
+    static WireMockExtension destinationServer = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
+
     @Test
     void shouldRestartTransferOwnedByAnotherInstance_whenFlowLeaseExpires() {
-        var source = ClientAndServer.startClientAndServer(getFreePort());
-        source.when(request()).respond(response("data"));
-        var destination = ClientAndServer.startClientAndServer(getFreePort());
-        destination.when(request()).respond(response("ok"));
+
+        sourceServer.stubFor(get(ANY).willReturn(ok("data")));
+        destinationServer.stubFor(post(ANY).willReturn(ok("ok")));
+
 
         var sourceAddress = DataAddress.Builder.newInstance().type("PollingHttp")
-                .property(EDC_NAMESPACE + "baseUrl", "http://localhost:" + source.getPort())
+                .property(EDC_NAMESPACE + "baseUrl", "http://localhost:" + sourceServer.getPort())
                 .build();
 
         var destinationAddress = DataAddress.Builder.newInstance().type("HttpData")
-                .property(EDC_NAMESPACE + "baseUrl", "http://localhost:" + destination.getPort())
+                .property(EDC_NAMESPACE + "baseUrl", "http://localhost:" + destinationServer.getPort())
                 .build();
 
         var startMessage = DataFlowStartMessage.Builder.newInstance()
@@ -121,7 +127,7 @@ public class ClusteredDataPlaneEndToEndTest {
         assertThat(start).isSucceeded();
 
         await().untilAsserted(() -> {
-            destination.verify(request(), atLeast(1));
+            destinationServer.verify(postRequestedFor(anyUrl()));
         });
 
         var firstOwnerRuntimeId = runtime().getService(DataPlaneStore.class)
@@ -129,13 +135,13 @@ public class ClusteredDataPlaneEndToEndTest {
         var firstOwner = RUNTIMES.get(firstOwnerRuntimeId);
         firstOwner.shutdown();
 
-        destination.reset();
-        destination.verify(request(), never());
+        destinationServer.resetAll();
+        destinationServer.verify(0, postRequestedFor(anyUrl()));
 
         await().untilAsserted(() -> {
             var dataFlow = runtime().getService(DataPlaneStore.class).findById(startMessage.getProcessId());
             assertThat(dataFlow.getRuntimeId()).isNotEqualTo(firstOwner);
-            destination.verify(request(), atLeast(1));
+            destinationServer.verify(postRequestedFor(anyUrl()));
         });
     }
 

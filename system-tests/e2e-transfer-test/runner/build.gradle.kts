@@ -33,12 +33,11 @@ dependencies {
     testImplementation(libs.postgres)
     testImplementation(libs.restAssured)
     testImplementation(libs.awaitility)
-    testImplementation(libs.mockserver.netty)
-    testImplementation(libs.mockserver.client)
     testImplementation(libs.kafkaClients)
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.kafka)
     testImplementation(libs.testcontainers.postgres)
+    testImplementation(libs.wiremock)
 
     testCompileOnly(project(":system-tests:e2e-transfer-test:control-plane"))
     testCompileOnly(project(":system-tests:e2e-transfer-test:data-plane"))
