@@ -75,4 +75,13 @@ public interface DataspaceProfileContextRegistry {
      */
     @Nullable
     String getParticipantId(String protocol);
+    
+    /**
+     * Get the function for participant id extraction for a given protocol.
+     *
+     * @param protocol The protocol name
+     * @return The id extraction function, or null if no function is registered for the protocol
+     */
+    @Nullable
+    ParticipantIdExtractionFunction getIdExtractionFunction(String protocol);
 }

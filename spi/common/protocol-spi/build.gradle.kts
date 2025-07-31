@@ -13,6 +13,8 @@
  */
 
 dependencies {
+    api(project(":spi:common:core-spi"))
+
     api(libs.jetbrains.annotations)
 }
 
