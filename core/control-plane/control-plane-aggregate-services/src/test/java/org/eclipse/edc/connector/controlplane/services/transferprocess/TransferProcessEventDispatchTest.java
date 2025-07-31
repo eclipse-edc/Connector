@@ -72,6 +72,7 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.matchers.EventEnvelopeMatcher.isEnvelopeOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
@@ -104,6 +105,7 @@ public class TransferProcessEventDispatchTest {
     @BeforeEach
     void setup() {
         when(DATASPACE_PROFILE_CONTEXT_REGISTRY.getWebhook(any())).thenReturn(() -> "http://dummy");
+        when(DATASPACE_PROFILE_CONTEXT_REGISTRY.getIdExtractionFunction(any())).thenReturn(ct -> "id");
     }
 
     @Test
@@ -136,7 +138,7 @@ public class TransferProcessEventDispatchTest {
         dispatcherRegistry.register("test", getTestDispatcher());
         when(policyArchive.findPolicyForContract(matches(transferRequest.getContractId()))).thenReturn(Policy.Builder.newInstance().target("assetId").build());
         when(negotiationStore.findContractAgreement(transferRequest.getContractId())).thenReturn(agreement);
-        when(agentService.createFor(token)).thenReturn(agent);
+        when(agentService.createFor(eq(token), any())).thenReturn(agent);
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
         var initiateResult = service.initiateTransfer(transferRequest);

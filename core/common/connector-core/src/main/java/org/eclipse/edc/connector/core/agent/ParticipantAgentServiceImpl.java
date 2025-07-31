@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Cofinity-X - make participant id extraction dependent on dataspace profile context
  *
  */
 
@@ -23,35 +24,24 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import static java.util.Objects.requireNonNull;
 import static org.eclipse.edc.participant.spi.ParticipantAgent.PARTICIPANT_IDENTITY;
 
 /**
  * Default implementation.
  */
 public class ParticipantAgentServiceImpl implements ParticipantAgentService {
-    private final String identityClaimKey;
+
     private final List<ParticipantAgentServiceExtension> extensions = new ArrayList<>();
 
-    public ParticipantAgentServiceImpl() {
-        identityClaimKey = DEFAULT_IDENTITY_CLAIM_KEY;
-    }
-
-    public ParticipantAgentServiceImpl(String key) {
-        requireNonNull(key, "key");
-        this.identityClaimKey = key;
-    }
+    public ParticipantAgentServiceImpl() { }
 
     @Override
-    public ParticipantAgent createFor(ClaimToken token) {
+    public ParticipantAgent createFor(ClaimToken token, String participantId) {
         var attributes = new HashMap<String, String>();
+        
         extensions.stream().map(extension -> extension.attributesFor(token)).forEach(attributes::putAll);
-        if (!attributes.containsKey(PARTICIPANT_IDENTITY)) {
-            var claim = token.getClaim(identityClaimKey);
-            if (claim != null) {
-                attributes.put(PARTICIPANT_IDENTITY, claim.toString());
-            }
-        }
+
+        attributes.put(PARTICIPANT_IDENTITY, participantId);
         return new ParticipantAgent(token.getClaims(), attributes);
     }
 
