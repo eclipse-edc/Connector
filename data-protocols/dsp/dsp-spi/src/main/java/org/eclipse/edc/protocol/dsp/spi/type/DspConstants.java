@@ -21,6 +21,7 @@ public interface DspConstants {
 
     String DSP_CONTEXT_SEPARATOR = ":";
     String DSP_SCOPE = "DSP";
+    String DSP_HTTPS_BINDING = "HTTPS";
 
     String DSP_TRANSFORMER_CONTEXT = "dsp-api";
 

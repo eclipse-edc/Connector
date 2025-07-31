@@ -45,8 +45,13 @@ class DspVersionApiControllerTest extends RestControllerTestBase {
 
     @Test
     void shouldInvokeRequestHandler() {
-        var versions = new ProtocolVersions(List.of(new ProtocolVersion("version", "1.0")));
-        var output = Json.createObjectBuilder().add("protocolVersions", Json.createArrayBuilder().add(Json.createObjectBuilder().add("version", "1.0")).build()).build();
+        var versions = new ProtocolVersions(List.of(new ProtocolVersion("version", "/1.0", "binding")));
+        var output = Json.createObjectBuilder()
+                .add("protocolVersions", Json.createArrayBuilder()
+                        .add(Json.createObjectBuilder()
+                                .add("version", "version")
+                                .add("path", "/1.0")
+                                .add("binding", "binding")).build()).build();
 
         when(service.getAll()).thenReturn(ServiceResult.success(versions));
         when(transformerRegistry.transform(eq(versions), eq(JsonObject.class))).thenReturn(Result.success(output));
@@ -58,7 +63,9 @@ class DspVersionApiControllerTest extends RestControllerTestBase {
                 .log().ifError()
                 .statusCode(200)
                 .contentType(APPLICATION_JSON)
-                .body("protocolVersions[0].version", is("1.0"));
+                .body("protocolVersions[0].version", is("version"))
+                .body("protocolVersions[0].path", is("/1.0"))
+                .body("protocolVersions[0].binding", is("binding"));
 
     }
 

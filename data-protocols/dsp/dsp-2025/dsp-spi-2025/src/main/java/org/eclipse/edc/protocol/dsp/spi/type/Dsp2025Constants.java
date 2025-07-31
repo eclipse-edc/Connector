@@ -20,6 +20,7 @@ import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP_SEPARATOR;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_CONTEXT_SEPARATOR;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_HTTPS_BINDING;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT;
 
@@ -27,7 +28,7 @@ public interface Dsp2025Constants {
 
     String V_2025_1_VERSION = "2025-1";
     String V_2025_1_PATH = "/" + V_2025_1_VERSION;
-    ProtocolVersion V_2025_1 = new ProtocolVersion(V_2025_1_VERSION, V_2025_1_PATH);
+    ProtocolVersion V_2025_1 = new ProtocolVersion(V_2025_1_VERSION, V_2025_1_PATH, DSP_HTTPS_BINDING);
 
     String DSPACE_SCHEMA_2025_1 = "https://w3id.org/dspace/2025/1/";
 
