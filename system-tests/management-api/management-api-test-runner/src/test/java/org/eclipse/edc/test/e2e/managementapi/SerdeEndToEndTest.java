@@ -33,6 +33,8 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractD
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.assertions.AbstractResultAssert;
@@ -66,6 +68,7 @@ import java.lang.annotation.Target;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -92,6 +95,7 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createEdrEntr
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createPolicyEvaluationPlan;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createTransferProcess;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dataAddressObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dataPaneInstanceObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.datasetRequestObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.inForceDatePermission;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.policyDefinitionObject;
@@ -105,7 +109,7 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.transferReque
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 public class SerdeEndToEndTest {
-    
+
     static class SerdeRuntime extends ManagementEndToEndExtension {
 
         protected SerdeRuntime() {
@@ -118,7 +122,8 @@ public class SerdeEndToEndTest {
 
             var runtime = new EmbeddedRuntime("control-plane",
                     ":system-tests:management-api:management-api-test-runtime",
-                    ":extensions:common:api:management-api-schema-validator")
+                    ":extensions:common:api:management-api-schema-validator",
+                    ":extensions:data-plane-selector:data-plane-selector-control-api")
                     .configurationProvider(() -> ConfigFactory.fromMap(new HashMap<>() {
                         {
                             put("web.http.path", "/");
@@ -263,6 +268,29 @@ public class SerdeEndToEndTest {
             assertThat(compactResult).isNotNull();
             assertThat(compactResult.getString(TYPE)).isEqualTo("TransferState");
             assertThat(compactResult.getString("state")).isEqualTo(REQUESTED.name());
+
+        }
+
+        @Test
+        void ser_DataPlaneInstance() {
+            var instance = DataPlaneInstance.Builder.newInstance().id("id")
+                    .state(DataPlaneInstanceStates.REGISTERED.code())
+                    .url("http://localhost:8080")
+                    .allowedSourceType("sourceType")
+                    .allowedTransferType("transferType")
+                    .destinationProvisionTypes(Set.of("provisionType"))
+                    .property(EDC_NAMESPACE + "custom", "value")
+                    .build();
+
+            var compactResult = serialize(instance);
+
+            assertThat(compactResult).isNotNull();
+            assertThat(compactResult.getString(TYPE)).isEqualTo("DataPlaneInstance");
+            assertThat(compactResult.getString(ID)).isEqualTo(instance.getId());
+            assertThat(compactResult.getJsonArray("allowedSourceTypes")).hasSize(1);
+            assertThat(compactResult.getJsonArray("allowedTransferTypes")).hasSize(1);
+            assertThat(compactResult.getJsonArray("destinationProvisionTypes")).hasSize(1);
+            assertThat(compactResult.getJsonObject("properties")).hasSize(1);
 
         }
 
@@ -561,7 +589,8 @@ public class SerdeEndToEndTest {
                         Arguments.of(secretObject(jsonLdContext), Secret.class, null),
                         Arguments.of(querySpecObject(jsonLdContext), QuerySpec.class, null),
                         Arguments.of(policyDefinitionObject(jsonLdContext, strictSchema), PolicyDefinition.class, mapper),
-                        Arguments.of(dataAddressObject(jsonLdContext), DataAddress.class, null)
+                        Arguments.of(dataAddressObject(jsonLdContext), DataAddress.class, null),
+                        Arguments.of(dataPaneInstanceObject(jsonLdContext), DataPlaneInstance.class, null)
                 );
             }
 
@@ -603,7 +632,9 @@ public class SerdeEndToEndTest {
         @ArgumentsSource(JsonInputProvider.class)
         @WithContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT)
         void serde(JsonObject inputObject, Class<?> klass, Function<JsonObject, JsonObject> mapper) {
-            verifySerde(inputObject, klass, mapper);
+            if (!klass.equals(DataPlaneInstance.class)) {
+                verifySerde(inputObject, klass, mapper);
+            }
         }
 
         @Override
@@ -616,6 +647,12 @@ public class SerdeEndToEndTest {
         @Disabled
         void de_CatalogRequest() {
             super.de_CatalogRequest();
+        }
+
+        @Override
+        @Disabled
+        void ser_DataPlaneInstance() {
+            super.ser_DataPlaneInstance();
         }
     }
 

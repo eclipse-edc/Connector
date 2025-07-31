@@ -43,7 +43,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  */
 public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
 
-    public static final String DATAPLANE_INSTANCE_TYPE = EDC_NAMESPACE + "DataPlaneInstance";
+    public static final String DATAPLANE_INSTANCE_TYPE_TERM = "DataPlaneInstance";
+    public static final String DATAPLANE_INSTANCE_TYPE = EDC_NAMESPACE + DATAPLANE_INSTANCE_TYPE_TERM;
     @Deprecated(since = "management-api:v3")
     public static final String TURN_COUNT = EDC_NAMESPACE + "turnCount";
     public static final String LAST_ACTIVE = EDC_NAMESPACE + "lastActive";
@@ -57,12 +58,10 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
 
     public static final String DATAPLANE_INSTANCE_STATE = EDC_NAMESPACE + "state";
     public static final String DATAPLANE_INSTANCE_STATE_TIMESTAMP = EDC_NAMESPACE + "stateTimestamp";
-
-
+    private final Set<String> destinationProvisionTypes = new HashSet<>();
     private Map<String, Object> properties = new HashMap<>();
     private Set<String> allowedTransferTypes = new HashSet<>();
     private Set<String> allowedSourceTypes = new HashSet<>();
-    private final Set<String> destinationProvisionTypes = new HashSet<>();
     @Deprecated(since = "management-api:v3")
     private Set<String> allowedDestTypes = new HashSet<>();
     @Deprecated(since = "management-api:v3")

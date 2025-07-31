@@ -22,6 +22,7 @@ dependencies {
     api(project(":spi:common:validator-spi"))
     api(project(":spi:control-plane:transfer-spi"))
     api(project(":spi:control-plane:catalog-spi"))
+    api(project(":spi:data-plane-selector:data-plane-selector-spi"))
 
     implementation(project(":extensions:common:api:lib:management-api-lib"))
 

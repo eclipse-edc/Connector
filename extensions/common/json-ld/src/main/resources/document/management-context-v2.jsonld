@@ -380,6 +380,33 @@
         }
       }
     },
+    "DataPlaneInstance": {
+      "@id": "edc:DataPlaneInstance",
+      "@context": {
+        "state": "edc:state",
+        "url": "edc:url",
+        "allowedSourceTypes": {
+          "@id": "edc:allowedSourceTypes",
+          "@container": "@set"
+        },
+        "allowedTransferTypes": {
+          "@id": "edc:allowedTransferTypes",
+          "@container": "@set"
+        },
+        "destinationProvisionTypes": {
+          "@id": "edc:destinationProvisionTypes",
+          "@container": "@set"
+        },
+        "properties": {
+          "@id": "edc:properties",
+          "@context": {
+            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+          }
+        },
+        "stateTimestamp": "edc:stateTimestamp",
+        "lastActive": "edc:lastActive"
+      }
+    },
     "inForceDate": "edc:inForceDate",
     "ruleFunctions": {
       "@id": "edc:ruleFunctions",

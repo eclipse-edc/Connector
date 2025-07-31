@@ -38,6 +38,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.Co
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE_TERM;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE_TERM;
 import static org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry.EDR_ENTRY_TYPE_TERM;
 import static org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan.EDC_POLICY_EVALUATION_PLAN_TYPE_TERM;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
@@ -55,6 +56,7 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
 
     private final Map<String, String> schemaV4 = new HashMap<>() {
         {
+            put(DATAPLANE_INSTANCE_TYPE_TERM, "dataplane-instance-schema.json");
             put(DATASET_REQUEST_TYPE_TERM, "dataset-request-schema.json");
             put(CATALOG_REQUEST_TYPE_TERM, "catalog-request-schema.json");
             put(EDC_QUERY_SPEC_TYPE_TERM, "query-spec-schema.json");
