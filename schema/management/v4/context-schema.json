@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "ContextSchema",
+  "type": "array",
+  "items": {
+    "type": "string"
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/ContextSchema"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json",
+  "definitions": {
+    "ContextSchema": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "items": {
+          "type": "string"
+        }
+      },
+      "contains": {
+        "const": "https://w3id.org/edc/connector/management/v2"
+      }
+    }
+  }
+}

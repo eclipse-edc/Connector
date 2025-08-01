@@ -74,6 +74,27 @@
         "operandRight": "edc:operandRight"
       }
     },
+    "DatasetRequest": {
+      "@id": "edc:DatasetRequest",
+      "@context": {
+        "counterPartyAddress": "edc:counterPartyAddress",
+        "counterPartyId": "edc:counterPartyId",
+        "protocol": "edc:protocol"
+      }
+    },
+    "CatalogRequest": {
+      "@id": "edc:DatasetRequest",
+      "@context": {
+        "counterPartyAddress": "edc:counterPartyAddress",
+        "counterPartyId": "edc:counterPartyId",
+        "protocol": "edc:protocol",
+        "additionalScopes": {
+          "@id": "edc:additionalScopes",
+          "@container": "@set"
+        },
+        "querySpec": "edc:querySpec"
+      }
+    },
     "ContractRequest": {
       "@id": "edc:ContractRequest",
       "@context": {
@@ -226,7 +247,8 @@
         "assetId": "edc:assetId",
         "transferProcessId": "edc:transferProcessId",
         "contractNegotiationId": "edc:contractNegotiationId",
-        "agreementId": "edc:agreementId"
+        "agreementId": "edc:agreementId",
+        "createdAt": "edc:createdAt"
       }
     },
     "PolicyValidationResult": {
@@ -356,6 +378,33 @@
           "@id": "edc:functionParams",
           "@container": "@set"
         }
+      }
+    },
+    "DataPlaneInstance": {
+      "@id": "edc:DataPlaneInstance",
+      "@context": {
+        "state": "edc:state",
+        "url": "edc:url",
+        "allowedSourceTypes": {
+          "@id": "edc:allowedSourceTypes",
+          "@container": "@set"
+        },
+        "allowedTransferTypes": {
+          "@id": "edc:allowedTransferTypes",
+          "@container": "@set"
+        },
+        "destinationProvisionTypes": {
+          "@id": "edc:destinationProvisionTypes",
+          "@container": "@set"
+        },
+        "properties": {
+          "@id": "edc:properties",
+          "@context": {
+            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+          }
+        },
+        "stateTimestamp": "edc:stateTimestamp",
+        "lastActive": "edc:lastActive"
       }
     },
     "inForceDate": "edc:inForceDate",

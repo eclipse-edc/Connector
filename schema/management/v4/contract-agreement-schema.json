@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "ContractAgreementSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/ContractAgreement"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/contract-agreement-schema.json",
+  "definitions": {
+    "ContractAgreement": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "ContractAgreement"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "assetId": {
+          "type": "string"
+        },
+        "providerId": {
+          "type": "string"
+        },
+        "consumerId": {
+          "type": "string"
+        },
+        "contractSigningDate": {
+          "type": "integer"
+        },
+        "policy": {
+          "$ref": "https://w3id.org/dspace/2025/1/negotiation/contract-schema.json#/definitions/Agreement"
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "@id",
+        "assetId",
+        "providerId",
+        "consumerId",
+        "contractSigningDate",
+        "policy"
+      ]
+    }
+  }
+}

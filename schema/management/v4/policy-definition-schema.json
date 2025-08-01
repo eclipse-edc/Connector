@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "PolicyDefinitionSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/PolicyDefinition"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/policy-definition-schema.json",
+  "definitions": {
+    "PolicyDefinition": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "PolicyDefinition"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "policy": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/policy-definition-schema.json#/definitions/PolicyClass"
+        },
+        "privateProperties": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "policy"
+      ]
+    },
+    "PolicyClass": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string",
+          "const": "Set"
+        },
+        "profile": {
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "permission": {
+          "type": "array",
+          "items": {
+            "$ref": "https://w3id.org/dspace/2025/1/negotiation/contract-schema.json#/definitions/Permission"
+          },
+          "minItems": 1
+        },
+        "prohibition": {
+          "type": "array",
+          "items": {
+            "$ref": "https://w3id.org/dspace/2025/1/negotiation/contract-schema.json#/definitions/Prohibition"
+          },
+          "minItems": 1
+        },
+        "obligation": {
+          "type": "array",
+          "items": {
+            "$ref": "https://w3id.org/dspace/2025/1/negotiation/contract-schema.json#/definitions/Duty"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "@type"
+      ]
+    }
+  }
+}

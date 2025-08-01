@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "AssetSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/Asset"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/asset-schema.json",
+  "definitions": {
+    "Asset": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "Asset"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "properties": {
+          "type": "object"
+        },
+        "privateProperties": {
+          "type": "object"
+        },
+        "dataAddress": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/data-address-schema.json"
+        }
+      },
+      "required": [
+        "@context",
+        "@type"
+      ]
+    }
+  }
+}
