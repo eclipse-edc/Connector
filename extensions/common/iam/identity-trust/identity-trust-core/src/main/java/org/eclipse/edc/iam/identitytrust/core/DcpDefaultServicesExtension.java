@@ -9,22 +9,23 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - make participant id extraction dependent on dataspace profile context
  *
  */
 
 package org.eclipse.edc.iam.identitytrust.core;
 
-import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultDcpParticipantAgentServiceExtension;
+import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultDcpParticipantIdExtractionFunction;
 import org.eclipse.edc.iam.identitytrust.core.defaults.DefaultTrustedIssuerRegistry;
 import org.eclipse.edc.iam.identitytrust.core.defaults.InMemorySignatureSuiteRegistry;
 import org.eclipse.edc.iam.identitytrust.core.scope.DcpScopeExtractorRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.ClaimTokenCreatorFunction;
-import org.eclipse.edc.iam.identitytrust.spi.DcpParticipantAgentServiceExtension;
 import org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry;
 import org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
+import org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -73,8 +74,8 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
     }
 
     @Provider(isDefault = true)
-    public DcpParticipantAgentServiceExtension createDefaultDcpParticipantAgentServiceExtension() {
-        return new DefaultDcpParticipantAgentServiceExtension();
+    public DefaultParticipantIdExtractionFunction defaultParticipantIdExtractionFunction() {
+        return new DefaultDcpParticipantIdExtractionFunction();
     }
 
     @Provider(isDefault = true)

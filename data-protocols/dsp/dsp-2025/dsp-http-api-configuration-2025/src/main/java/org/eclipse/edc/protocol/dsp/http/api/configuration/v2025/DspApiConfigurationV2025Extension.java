@@ -25,6 +25,7 @@ import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.protocol.dsp.http.spi.api.DspBaseWebhookAddress;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -71,6 +72,8 @@ public class DspApiConfigurationV2025Extension implements ServiceExtension {
     private DspBaseWebhookAddress dspWebhookAddress;
     @Inject
     private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
+    @Inject
+    private DefaultParticipantIdExtractionFunction participantIdExtractionFunction;
 
     @Override
     public String name() {
@@ -83,7 +86,7 @@ public class DspApiConfigurationV2025Extension implements ServiceExtension {
         registerNamespaces();
         registerTransformers();
 
-        dataspaceProfileContextRegistry.registerDefault(new DataspaceProfileContext(DATASPACE_PROTOCOL_HTTP_V_2025_1, V_2025_1, () -> dspWebhookAddress.get() + V_2025_1_PATH, context.getParticipantId()));
+        dataspaceProfileContextRegistry.registerDefault(new DataspaceProfileContext(DATASPACE_PROTOCOL_HTTP_V_2025_1, V_2025_1, () -> dspWebhookAddress.get() + V_2025_1_PATH, context.getParticipantId(), participantIdExtractionFunction));
     }
 
     private void registerNamespaces() {

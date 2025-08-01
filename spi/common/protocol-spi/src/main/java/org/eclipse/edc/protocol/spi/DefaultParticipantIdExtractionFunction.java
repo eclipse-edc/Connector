@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.protocol.spi;
 
-/**
- * Represent a Dataspace Profile Context
- *
- * @param name the name.
- * @param protocolVersion the protocol version associated.
- * @param webhook the protocol endpoint url.
- */
-public record DataspaceProfileContext(String name, ProtocolVersion protocolVersion, ProtocolWebhook webhook, String participantId, ParticipantIdExtractionFunction idExtractionFunction) {
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
+/**
+ * A function that describes the default behaviour for extracting a participant's id from a
+ * corresponding ClaimToken.
+ */
+@FunctionalInterface
+@ExtensionPoint
+public interface DefaultParticipantIdExtractionFunction extends ParticipantIdExtractionFunction {
 }
