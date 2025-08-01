@@ -105,7 +105,7 @@ class DataspaceProfileContextRegistryImplTest {
 
         @Test
         void shouldReturnParticipantIdForName() {
-            var version = new ProtocolVersion("version name", "/path");
+            var version = new ProtocolVersion("version name", "/path", "binding");
             registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", "participantId"));
 
             var result = registry.getParticipantId("profile");
