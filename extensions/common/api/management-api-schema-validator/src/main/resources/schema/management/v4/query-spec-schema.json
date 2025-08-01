@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2019-09/schema",
-  "title": "QuertSpecSchema",
+  "title": "QuerySpecSchema",
   "type": "object",
   "allOf": [
     {
@@ -49,14 +49,14 @@
       "type": "object",
       "allOf": [
         {
-          "$ref": "#/definitions/QuerySpec"
-        },
-        {
           "properties": {
             "@context": {
               "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
             }
           }
+        },
+        {
+          "$ref": "#/definitions/QuerySpec"
         }
       ],
       "required": [

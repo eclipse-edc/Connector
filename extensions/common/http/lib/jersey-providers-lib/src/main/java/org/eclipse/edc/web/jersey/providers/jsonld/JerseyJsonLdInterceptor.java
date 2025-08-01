@@ -26,11 +26,16 @@ import jakarta.ws.rs.ext.WriterInterceptor;
 import jakarta.ws.rs.ext.WriterInterceptorContext;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.eclipse.edc.web.spi.exception.ValidationFailureException;
+import org.eclipse.edc.web.spi.validation.SchemaType;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 @Provider
 public class JerseyJsonLdInterceptor implements ReaderInterceptor, WriterInterceptor {
@@ -38,12 +43,20 @@ public class JerseyJsonLdInterceptor implements ReaderInterceptor, WriterInterce
     private final TypeManager typeManager;
     private final String typeContext;
     private final String scope;
+    private final JsonObjectValidatorRegistry validatorRegistry;
+    private final String schemaVersion;
 
     public JerseyJsonLdInterceptor(JsonLd jsonLd, TypeManager typeManager, String typeContext, String scope) {
+        this(jsonLd, typeManager, typeContext, scope, null, null);
+    }
+
+    public JerseyJsonLdInterceptor(JsonLd jsonLd, TypeManager typeManager, String typeContext, String scope, JsonObjectValidatorRegistry validatorRegistry, String schemaVersion) {
         this.jsonLd = jsonLd;
         this.typeManager = typeManager;
         this.typeContext = typeContext;
         this.scope = scope;
+        this.validatorRegistry = validatorRegistry;
+        this.schemaVersion = schemaVersion;
     }
 
     @Override
@@ -52,6 +65,8 @@ public class JerseyJsonLdInterceptor implements ReaderInterceptor, WriterInterce
             var bytes = context.getInputStream().readAllBytes();
             if (bytes.length > 0) {
                 var jsonObject = typeManager.getMapper(typeContext).readValue(bytes, JsonObject.class);
+
+                validateIfNeeded(context, jsonObject);
 
                 var expanded = jsonLd.expand(jsonObject)
                         .orElseThrow(f -> new BadRequestException("Failed to expand JsonObject: " + f.getFailureDetail()));
@@ -62,6 +77,36 @@ public class JerseyJsonLdInterceptor implements ReaderInterceptor, WriterInterce
         }
 
         return context.proceed();
+    }
+
+    private void validateIfNeeded(ReaderInterceptorContext context, JsonObject jsonObject) {
+        if (validatorRegistry != null && schemaVersion != null) {
+            var expectedType = getExpectedType(context);
+            if (expectedType == null) {
+                throw new BadRequestException("SchemaType annotation is required for JsonObject validation");
+            }
+            var type = jsonObject.getString(TYPE, null);
+            if (type != null) {
+                checkExpectedType(type, expectedType);
+                validatorRegistry.validate(schemaVersion + ":" + type, jsonObject).orElseThrow(ValidationFailureException::new);
+            } else {
+                throw new BadRequestException("JsonObject is missing required property: " + TYPE);
+            }
+        }
+    }
+
+    private void checkExpectedType(String type, SchemaType schemaType) {
+        if (!Arrays.asList(schemaType.value()).contains(type)) {
+            throw new BadRequestException("JsonObject type '" + type + "' does not match expected types: " + Arrays.toString(schemaType.value()));
+        }
+    }
+
+    private SchemaType getExpectedType(ReaderInterceptorContext context) {
+        return Arrays.stream(context.getAnnotations())
+                .filter(annotation -> annotation.annotationType().equals(SchemaType.class))
+                .map(a -> (SchemaType) a)
+                .findFirst()
+                .orElse(null);
     }
 
     @Override

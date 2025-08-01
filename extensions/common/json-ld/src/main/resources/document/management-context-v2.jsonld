@@ -25,6 +25,30 @@
         }
       }
     },
+    "CatalogAsset": {
+      "@id": "edc:CatalogAsset",
+      "@context": {
+        "properties": {
+          "@id": "edc:properties",
+          "@context": {
+            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+          }
+        },
+        "privateProperties": {
+          "@id": "edc:privateProperties",
+          "@context": {
+            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+          }
+        },
+        "dataAddress": {
+          "@id": "edc:dataAddress",
+          "@context": {
+            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+          }
+        },
+        "isCatalog": "edc:isCatalog"
+      }
+    },
     "PolicyDefinition": {
       "@id": "edc:PolicyDefinition",
       "@context": {
@@ -405,6 +429,12 @@
         },
         "stateTimestamp": "edc:stateTimestamp",
         "lastActive": "edc:lastActive"
+      }
+    },
+    "IdResponse": {
+      "@id": "edc:IdResponse",
+      "@context": {
+        "createdAt": "edc:createdAt"
       }
     },
     "inForceDate": "edc:inForceDate",

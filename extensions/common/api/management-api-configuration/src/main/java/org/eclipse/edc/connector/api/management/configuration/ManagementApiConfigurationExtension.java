@@ -45,7 +45,6 @@ import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToCriterionTransfo
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
-import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
@@ -138,7 +137,6 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         jsonLd.registerContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, MANAGEMENT_SCOPE_V4);
 
         webService.registerResource(ApiContext.MANAGEMENT, new ObjectMapperProvider(typeManager, JSON_LD));
-        webService.registerResource(ApiContext.MANAGEMENT, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
 
         var managementApiTransformerRegistry = transformerRegistry.forContext(MANAGEMENT_API_CONTEXT);
 
