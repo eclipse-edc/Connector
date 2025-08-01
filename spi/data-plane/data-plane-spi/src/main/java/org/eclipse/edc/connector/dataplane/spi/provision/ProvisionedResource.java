@@ -84,5 +84,10 @@ public class ProvisionedResource {
             resource.pending = pending;
             return this;
         }
+
+        public Builder id(String id) {
+            resource.id = id;
+            return this;
+        }
     }
 }

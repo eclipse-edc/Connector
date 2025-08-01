@@ -227,14 +227,14 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
 
         public Builder allowedSourceTypes(Set<String> types) {
             if (types != null) {
-                entity.allowedSourceTypes = types;
+                entity.allowedSourceTypes.addAll(types);
             }
             return this;
         }
 
         public Builder allowedTransferType(Set<String> types) {
             if (types != null) {
-                entity.allowedTransferTypes = types;
+                entity.allowedTransferTypes.addAll(types);
             }
             return this;
         }
