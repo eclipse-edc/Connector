@@ -38,6 +38,26 @@ public abstract class ManagementEndToEndExtension extends RuntimePerClassExtensi
         this.context = context;
     }
 
+    static Config runtimeConfig() {
+        var managementPort = getFreePort();
+        var protocolPort = getFreePort();
+
+        var settings = new HashMap<String, String>() {
+            {
+                put("web.http.path", "/");
+                put("web.http.port", String.valueOf(getFreePort()));
+                put("web.http.protocol.path", "/protocol");
+                put("web.http.protocol.port", String.valueOf(protocolPort));
+                put("web.http.control.port", String.valueOf(getFreePort()));
+                put("edc.dsp.callback.address", "http://localhost:" + protocolPort + "/protocol");
+                put("web.http.management.path", "/management");
+                put("web.http.management.port", String.valueOf(managementPort));
+            }
+        };
+
+        return ConfigFactory.fromMap(settings);
+    }
+
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         var type = parameterContext.getParameter().getParameterizedType();
@@ -61,7 +81,7 @@ public abstract class ManagementEndToEndExtension extends RuntimePerClassExtensi
         return this;
     }
 
-    static class InMemory extends ManagementEndToEndExtension {
+    public static class InMemory extends ManagementEndToEndExtension {
 
         protected InMemory() {
             super(new ManagementEndToEndTestContext(runtime()));
@@ -73,9 +93,9 @@ public abstract class ManagementEndToEndExtension extends RuntimePerClassExtensi
         }
     }
 
-    static class Postgres extends ManagementEndToEndExtension {
+    public static class Postgres extends ManagementEndToEndExtension {
 
-        protected Postgres(PostgresqlEndToEndExtension postgres) {
+        public Postgres(PostgresqlEndToEndExtension postgres) {
             super(new ManagementEndToEndTestContext(runtime().configurationProvider(postgres::config)));
         }
 
@@ -86,25 +106,5 @@ public abstract class ManagementEndToEndExtension extends RuntimePerClassExtensi
                     .configurationProvider(ManagementEndToEndExtension::runtimeConfig);
         }
 
-    }
-
-    static Config runtimeConfig() {
-        var managementPort = getFreePort();
-        var protocolPort = getFreePort();
-
-        var settings = new HashMap<String, String>() {
-            {
-                put("web.http.path", "/");
-                put("web.http.port", String.valueOf(getFreePort()));
-                put("web.http.protocol.path", "/protocol");
-                put("web.http.protocol.port", String.valueOf(protocolPort));
-                put("web.http.control.port", String.valueOf(getFreePort()));
-                put("edc.dsp.callback.address", "http://localhost:" + protocolPort + "/protocol");
-                put("web.http.management.path", "/management");
-                put("web.http.management.port", String.valueOf(managementPort));
-            }
-        };
-
-        return ConfigFactory.fromMap(settings);
     }
 }

@@ -34,6 +34,7 @@ dependencies {
 
     //we need the JacksonJsonLd util class
     testImplementation(project(":core:common:lib:json-ld-lib"))
+    testImplementation(project(":core:common:lib:api-lib"))
     testImplementation(project(":extensions:common:json-ld"))
 
     testImplementation(libs.restAssured)
