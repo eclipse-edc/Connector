@@ -10,6 +10,7 @@
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
+ *       Cofinity-X - add participantId to DataspaceProfileContext
  *
  */
 
@@ -104,7 +105,6 @@ class ProviderContractNegotiationManagerImplTest {
         var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(listener);
         manager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
-                .participantId(PROVIDER_ID)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(mock())
                 .observable(observable)
@@ -217,6 +217,7 @@ class ProviderContractNegotiationManagerImplTest {
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id("policyId").build());
         when(dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol())).thenReturn(() -> "http://callback.address");
+        when(dataspaceProfileContextRegistry.getParticipantId(negotiation.getProtocol())).thenReturn(PROVIDER_ID);
 
         manager.start();
 
@@ -293,6 +294,7 @@ class ProviderContractNegotiationManagerImplTest {
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(result);
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol())).thenReturn(() -> "http://callback.address");
+        when(dataspaceProfileContextRegistry.getParticipantId(negotiation.getProtocol())).thenReturn(PROVIDER_ID);
 
         manager.start();
 

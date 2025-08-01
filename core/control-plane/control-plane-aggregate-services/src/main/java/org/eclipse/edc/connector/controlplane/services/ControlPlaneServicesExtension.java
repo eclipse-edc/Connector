@@ -10,6 +10,7 @@
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       Cofinity-X - unauthenticated DSP version endpoint
+ *       Cofinity-X - add participantId to DataspaceProfileContext
  *
  */
 
@@ -221,9 +222,9 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     }
 
     @Provider
-    public CatalogProtocolService catalogProtocolService(ServiceExtensionContext context) {
+    public CatalogProtocolService catalogProtocolService() {
         return new CatalogProtocolServiceImpl(datasetResolver, dataServiceRegistry,
-                protocolTokenValidator(), context.getParticipantId(), transactionContext);
+                protocolTokenValidator(), dataspaceProfileContextRegistry, transactionContext);
     }
 
     @Provider

@@ -13,6 +13,7 @@
  *       Daimler TSS GmbH - fixed contract dates to epoch seconds
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - refactor
  *       ZF Friedrichshafen AG - fixed contract validity issue
+ *       Cofinity-X - add participantId to DataspaceProfileContext
  *
  */
 
@@ -133,15 +134,16 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
         var agreement = Optional.ofNullable(negotiation.getContractAgreement())
                 .orElseGet(() -> {
                     var lastOffer = negotiation.getLastContractOffer();
+                    var protocol = negotiation.getProtocol();
 
                     var contractPolicy = lastOffer.getPolicy().toBuilder().type(PolicyType.CONTRACT)
                             .assignee(negotiation.getCounterPartyId())
-                            .assigner(participantId)
+                            .assigner(dataspaceProfileContextRegistry.getParticipantId(protocol))
                             .build();
 
                     return ContractAgreement.Builder.newInstance()
                             .contractSigningDate(clock.instant().getEpochSecond())
-                            .providerId(participantId)
+                            .providerId(dataspaceProfileContextRegistry.getParticipantId(protocol))
                             .consumerId(negotiation.getCounterPartyId())
                             .policy(contractPolicy)
                             .assetId(lastOffer.getAssetId())

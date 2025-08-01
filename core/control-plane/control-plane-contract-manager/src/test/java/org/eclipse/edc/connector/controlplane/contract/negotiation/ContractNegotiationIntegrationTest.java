@@ -10,6 +10,7 @@
  *  Contributors:
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
  *       Microsoft Corporation - introduced Awaitility
+ *       Cofinity-X - add participantId to DataspaceProfileContext
  *
  */
 
@@ -136,7 +137,6 @@ class ContractNegotiationIntegrationTest {
         when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(protocolWebhook);
 
         providerManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
-                .participantId(PROVIDER_ID)
                 .dispatcherRegistry(providerDispatcherRegistry)
                 .monitor(monitor)
                 .waitStrategy(() -> 1000)
@@ -147,7 +147,6 @@ class ContractNegotiationIntegrationTest {
                 .build();
 
         consumerManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
-                .participantId(CONSUMER_ID)
                 .dispatcherRegistry(consumerDispatcherRegistry)
                 .monitor(monitor).waitStrategy(() -> 1000)
                 .observable(mock())
@@ -182,6 +181,8 @@ class ContractNegotiationIntegrationTest {
         when(validationService.validateInitialOffer(participantAgent, validatableOffer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
         when(validationService.validateConfirmed(eq(participantAgent), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.success());
         when(validationService.validateRequest(eq(participantAgent), any(ContractNegotiation.class))).thenReturn(Result.success());
+        
+        when(dataspaceProfileContextRegistry.getParticipantId(any())).thenReturn(PROVIDER_ID);
 
         // Start provider and consumer negotiation managers
         providerManager.start();
@@ -265,6 +266,8 @@ class ContractNegotiationIntegrationTest {
         when(offerResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
         when(validationService.validateInitialOffer(participantAgent, validatableOffer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
         when(validationService.validateConfirmed(eq(participantAgent), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.failure("error"));
+        
+        when(dataspaceProfileContextRegistry.getParticipantId(any())).thenReturn(PROVIDER_ID);
 
         // Start provider and consumer negotiation managers
         providerManager.start();
