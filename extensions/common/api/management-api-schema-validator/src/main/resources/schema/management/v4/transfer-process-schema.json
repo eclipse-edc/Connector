@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "TransferProcessSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/TransferProcess"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/transfer-process-schema.json",
+  "definitions": {
+    "TransferProcess": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "TransferProcess"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "CONSUMER",
+            "PROVIDER"
+          ]
+        },
+        "state": {
+          "type": "string"
+        },
+        "stateTimestamp": {
+          "type": "integer"
+        },
+        "callbackAddresses": {
+          "type": "array",
+          "items": {
+            "$ref": "https://w3id.org/edc/connector/management/schema/v4/callback-address-schema.json"
+          }
+        },
+        "correlationId": {
+          "type": "string"
+        },
+        "assetId": {
+          "type": "string"
+        },
+        "contractId": {
+          "type": "string"
+        },
+        "transferType": {
+          "type": "string"
+        },
+        "errorDetail": {
+          "type": "string"
+        },
+        "dataDestination": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/data-address-schema.json"
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "@id",
+        "type",
+        "state",
+        "stateTimestamp"
+      ]
+    },
+    "TransferState": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "state": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "state"
+      ]
+    }
+  }
+}

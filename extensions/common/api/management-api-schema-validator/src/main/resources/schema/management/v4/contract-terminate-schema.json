@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "ContractTerminateSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/TerminateNegotiation"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/contract-terminate-schema.json",
+  "definitions": {
+    "TerminateNegotiation": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "TerminateNegotiation"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "@context",
+        "@type"
+      ]
+    }
+  }
+}

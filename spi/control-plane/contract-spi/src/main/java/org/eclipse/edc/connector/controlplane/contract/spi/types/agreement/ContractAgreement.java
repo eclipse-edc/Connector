@@ -33,7 +33,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 @JsonDeserialize(builder = ContractAgreement.Builder.class)
 public class ContractAgreement {
 
-    public static final String CONTRACT_AGREEMENT_TYPE = EDC_NAMESPACE + "ContractAgreement";
+    public static final String CONTRACT_AGREEMENT_TYPE_TERM = "ContractAgreement";
+    public static final String CONTRACT_AGREEMENT_TYPE = EDC_NAMESPACE + CONTRACT_AGREEMENT_TYPE_TERM;
     public static final String CONTRACT_AGREEMENT_ASSET_ID = EDC_NAMESPACE + "assetId";
     public static final String CONTRACT_AGREEMENT_PROVIDER_ID = EDC_NAMESPACE + "providerId";
     public static final String CONTRACT_AGREEMENT_CONSUMER_ID = EDC_NAMESPACE + "consumerId";

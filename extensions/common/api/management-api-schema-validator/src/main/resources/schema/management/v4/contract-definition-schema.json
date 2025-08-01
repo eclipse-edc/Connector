@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "ContractDefinitionSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/ContractDefinition"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/contract-definition-schema.json",
+  "definitions": {
+    "ContractDefinition": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "ContractDefinition"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "accessPolicyId": {
+          "type": "string"
+        },
+        "contractPolicyId": {
+          "type": "string"
+        },
+        "privateProperties": {
+          "type": "object"
+        },
+        "assetsSelector": {
+          "type": "array",
+          "items": {
+            "$ref": "https://w3id.org/edc/connector/management/schema/v4/query-spec-schema.json#/definitions/Criterion"
+          }
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "accessPolicyId",
+        "contractPolicyId"
+      ]
+    }
+  }
+}

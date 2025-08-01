@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "CallbackAddressSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/CallbackAddress"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/callback-address-schema.json",
+  "definitions": {
+    "CallbackAddress": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string",
+          "const": "CallbackAddress"
+        },
+        "transactional": {
+          "type": "boolean"
+        },
+        "uri": {
+          "type": "string"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "authKey": {
+          "type": "string"
+        },
+        "authCodeId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "@type",
+        "transactional",
+        "uri",
+        "events"
+      ]
+    }
+  }
+}

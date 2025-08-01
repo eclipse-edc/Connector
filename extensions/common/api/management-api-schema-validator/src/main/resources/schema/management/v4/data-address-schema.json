@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "DataAddressSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/DataAddress"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/data-address-schema.json",
+  "definitions": {
+    "DataAddress": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string",
+          "const": "DataAddress"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "@type",
+        "type"
+      ]
+    }
+  }
+}

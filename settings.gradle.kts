@@ -203,7 +203,7 @@ include(":extensions:common:store:sql:sts-client-store-sql")
 
 include(":extensions:common:api:control-api-configuration")
 include(":extensions:common:api:management-api-configuration")
-
+include(":extensions:common:api:management-api-schema-validator")
 
 include(":extensions:control-plane:api:control-plane-api")
 include(":extensions:control-plane:api:control-plane-api-client")
@@ -300,7 +300,6 @@ include(":spi:control-plane:policy-spi")
 include(":spi:control-plane:transfer-spi")
 include(":spi:control-plane:secrets-spi")
 include(":spi:control-plane:protocol-version-spi")
-
 
 include(":spi:data-plane:data-plane-spi")
 include(":spi:data-plane:data-plane-http-spi")

@@ -1,0 +1,267 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "PolicyEvaluationPlanSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/PolicyEvaluationPlan"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/policy-evaluation-plane-request-schema.json",
+  "definitions": {
+    "PolicyEvaluationPlan": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "PolicyEvaluationPlan"
+        },
+        "preValidators": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "postValidators": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "permissionSteps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PermissionStep"
+          }
+        },
+        "prohibitionSteps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ProhibitionStep"
+          }
+        },
+        "dutySteps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DutyStep"
+          }
+        }
+      },
+      "required": [
+        "@context",
+        "@type"
+      ]
+    },
+    "RuleStep": {
+      "type": "object",
+      "properties": {
+        "isFiltered": {
+          "type": "boolean"
+        },
+        "filteringReasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "constraintSteps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ConstraintStep"
+          }
+        },
+        "ruleFunctions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+      ]
+    },
+    "PermissionStep": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/RuleStep"
+        },
+        {
+          "properties": {
+            "@type": {
+              "type": "string",
+              "const": "PermissionStep"
+            },
+            "dutySteps": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/DutyStep"
+              }
+            }
+          }
+        }
+      ],
+      "required": [
+        "@type"
+      ]
+    },
+    "ProhibitionStep": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/RuleStep"
+        },
+        {
+          "properties": {
+            "@type": {
+              "type": "string",
+              "const": "ProhibitionStep"
+            }
+          }
+        }
+      ],
+      "required": [
+        "@type"
+      ]
+    },
+    "DutyStep": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/RuleStep"
+        },
+        {
+          "properties": {
+            "@type": {
+              "type": "string",
+              "const": "DutyStep"
+            }
+          }
+        }
+      ],
+      "required": [
+        "@type"
+      ]
+    },
+    "ConstraintStep": {
+      "oneOf": [
+        {
+          "$ref": "#/definitions/AndConstraintStep"
+        },
+        {
+          "$ref": "#/definitions/OrConstraintStep"
+        },
+        {
+          "$ref": "#/definitions/XoneConstraintStep"
+        },
+        {
+          "$ref": "#/definitions/AtomicConstraintStep"
+        }
+      ]
+    },
+    "AndConstraintStep": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/MultiplicityConstraintStep"
+        },
+        {
+          "properties": {
+            "@type": {
+              "type": "string",
+              "const": "AndConstraintStep"
+            }
+          }
+        }
+      ],
+      "required": [
+        "@type"
+      ]
+    },
+    "OrConstraintStep": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/MultiplicityConstraintStep"
+        },
+        {
+          "properties": {
+            "@type": {
+              "type": "string",
+              "const": "OrConstraintStep"
+            }
+          }
+        }
+      ],
+      "required": [
+        "@type"
+      ]
+    },
+    "XoneConstraintStep": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/MultiplicityConstraintStep"
+        },
+        {
+          "properties": {
+            "@type": {
+              "type": "string",
+              "const": "XoneConstraintStep"
+            }
+          }
+        }
+      ],
+      "required": [
+        "@type"
+      ]
+    },
+    "AtomicConstraintStep": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string",
+          "const": "AtomicConstraintStep"
+        },
+        "isFiltered": {
+          "type": "boolean"
+        },
+        "filteringReasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "functionName": {
+          "type": "string"
+        },
+        "functionParams": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "@type"
+      ]
+    },
+    "MultiplicityConstraintStep": {
+      "type": "object",
+      "properties": {
+        "constraintSteps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ConstraintStep"
+          }
+        }
+      },
+      "required": [
+        "constraintSteps"
+      ]
+    }
+  }
+}

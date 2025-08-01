@@ -27,7 +27,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 public class TransferRequest {
 
-    public static final String TRANSFER_REQUEST_TYPE = EDC_NAMESPACE + "TransferRequest";
+    public static final String TRANSFER_REQUEST_TYPE_TERM = "TransferRequest";
+    public static final String TRANSFER_REQUEST_TYPE = EDC_NAMESPACE + TRANSFER_REQUEST_TYPE_TERM;
     public static final String TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS = EDC_NAMESPACE + "counterPartyAddress";
     public static final String TRANSFER_REQUEST_CONTRACT_ID = EDC_NAMESPACE + "contractId";
     public static final String TRANSFER_REQUEST_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";

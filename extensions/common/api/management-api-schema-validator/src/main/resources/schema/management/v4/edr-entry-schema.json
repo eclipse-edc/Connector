@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "EndpointDataReferenceEntrySchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/EndpointDataReferenceEntry"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/edr-entry-schema.json",
+  "definitions": {
+    "EndpointDataReferenceEntry": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "EndpointDataReferenceEntry"
+        },
+        "assetId": {
+          "type": "string"
+        },
+        "agreementId": {
+          "type": "string"
+        },
+        "contractNegotiationId": {
+          "type": "string"
+        },
+        "transferProcessId": {
+          "type": "string"
+        },
+        "providerId": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "assetId",
+        "agreementId",
+        "contractNegotiationId",
+        "transferProcessId",
+        "providerId",
+        "createdAt"
+      ]
+    }
+  }
+}
