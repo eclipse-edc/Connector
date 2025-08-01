@@ -150,6 +150,20 @@ public class TransferEndToEndParticipant extends Participant {
         assertThat(data).satisfies(bodyAssertion);
     }
 
+    public void postResponse(DataAddress edr, ThrowingConsumer<String> bodyAssertion) {
+        var data = given()
+                .baseUri(edr.getStringProperty("responseChannel-endpoint"))
+                .header("Authorization", edr.getStringProperty("responseChannel-authorization"))
+                .when()
+                .post()
+                .then()
+                .log().ifError()
+                .statusCode(200)
+                .extract().body().asString();
+
+        assertThat(data).satisfies(bodyAssertion);
+    }
+
     @NotNull
     private String resourceAbsolutePath(String filename) {
         return System.getProperty("user.dir") + separator + "build" + separator + "resources" + separator + "test" + separator + filename;
