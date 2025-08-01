@@ -26,8 +26,33 @@ import java.util.Map;
 
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.DSPACE_2025_SCHEMA_PREFIX;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.EDC_MGMT_V4_SCHEMA_PREFIX;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.ASSET;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.CATALOG_ASSET;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.CATALOG_REQUEST;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.CONTRACT_AGREEMENT;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.CONTRACT_DEFINITION;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.CONTRACT_NEGOTIATION;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.CONTRACT_NEGOTIATION_STATE;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.CONTRACT_REQUEST;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.DATAPLANE_INSTANCE;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.DATASET_REQUEST;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.EDR_ENTRY;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.ID_RESPONSE;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.POLICY_DEFINITION;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.POLICY_EVALUATION_PLAN;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.POLICY_EVALUATION_REQUEST;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.POLICY_VALIDATION_RESULT;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.QUERY_SPEC;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.SECRET;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.SUSPEND_TRANSFER;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.TERMINATE_NEGOTIATION;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.TERMINATE_TRANSFER;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.TRANSFER_PROCESS;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.TRANSFER_PROCESS_STATE;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.TRANSFER_REQUEST;
 import static org.eclipse.edc.connector.api.management.schema.ManagementApiSchemaValidatorExtension.NAME;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_TYPE_TERM;
+import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_CATALOG_ASSET_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_TYPE_TERM;
@@ -56,28 +81,32 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
 
     private final Map<String, String> schemaV4 = new HashMap<>() {
         {
-            put(DATAPLANE_INSTANCE_TYPE_TERM, "dataplane-instance-schema.json");
-            put(DATASET_REQUEST_TYPE_TERM, "dataset-request-schema.json");
-            put(CATALOG_REQUEST_TYPE_TERM, "catalog-request-schema.json");
-            put(EDC_QUERY_SPEC_TYPE_TERM, "query-spec-schema.json");
-            put(EDC_ASSET_TYPE_TERM, "asset-schema.json");
-            put(CONTRACT_DEFINITION_TYPE_TERM, "contract-definition-schema.json");
-            put(CONTRACT_AGREEMENT_TYPE_TERM, "contract-agreement-schema.json");
-            put(EDR_ENTRY_TYPE_TERM, "edr-entry-schema.json");
-            put(EDC_POLICY_DEFINITION_TYPE_TERM, "policy-definition-schema.json");
-            put("PolicyEvaluationPlanRequest", "policy-evaluation-plan-request-schema.json");
-            put(EDC_POLICY_EVALUATION_PLAN_TYPE_TERM, "policy-evaluation-plan-schema.json");
-            put("PolicyValidationResult", "policy-validation-result-schema.json");
-            put(EDC_SECRET_TYPE_TERM, "secret-schema.json");
-            put(CONTRACT_REQUEST_TYPE_TERM, "contract-request-schema.json");
-            put(TERMINATE_NEGOTIATION_TYPE_TERM, "contract-terminate-schema.json");
-            put(CONTRACT_NEGOTIATION_TYPE_TERM, "contract-negotiation-schema.json");
-            put("NegotiationState", "contract-negotiation-schema.json#/definitions/NegotiationState");
-            put(TRANSFER_REQUEST_TYPE_TERM, "transfer-request-schema.json");
-            put(TRANSFER_PROCESS_TYPE_TERM, "transfer-process-schema.json");
-            put("TransferState", "transfer-process-schema.json#/definitions/TransferState");
-            put("TerminateTransfer", "transfer-terminate-schema.json");
-            put("SuspendTransfer", "transfer-suspend-schema.json");
+            put("IdResponse", ID_RESPONSE);
+            put(EDC_ASSET_TYPE_TERM, ASSET);
+            put(EDC_CATALOG_ASSET_TYPE_TERM, CATALOG_ASSET);
+            put(EDC_QUERY_SPEC_TYPE_TERM, QUERY_SPEC);
+            put(EDC_POLICY_DEFINITION_TYPE_TERM, POLICY_DEFINITION);
+            put(CONTRACT_DEFINITION_TYPE_TERM, CONTRACT_DEFINITION);
+            put(DATAPLANE_INSTANCE_TYPE_TERM, DATAPLANE_INSTANCE);
+            put(EDR_ENTRY_TYPE_TERM, EDR_ENTRY);
+            put("PolicyEvaluationPlanRequest", POLICY_EVALUATION_REQUEST);
+            put(EDC_POLICY_EVALUATION_PLAN_TYPE_TERM, POLICY_EVALUATION_PLAN);
+            put("PolicyValidationResult", POLICY_VALIDATION_RESULT);
+            put(EDC_SECRET_TYPE_TERM, SECRET);
+            put(CATALOG_REQUEST_TYPE_TERM, CATALOG_REQUEST);
+            put(DATASET_REQUEST_TYPE_TERM, DATASET_REQUEST);
+            put(CONTRACT_REQUEST_TYPE_TERM, CONTRACT_REQUEST);
+            put(CONTRACT_NEGOTIATION_TYPE_TERM, CONTRACT_NEGOTIATION);
+            put("NegotiationState", CONTRACT_NEGOTIATION_STATE);
+            put(TERMINATE_NEGOTIATION_TYPE_TERM, TERMINATE_NEGOTIATION);
+            put(CONTRACT_AGREEMENT_TYPE_TERM, CONTRACT_AGREEMENT);
+            put(TRANSFER_REQUEST_TYPE_TERM, TRANSFER_REQUEST);
+            put(TRANSFER_PROCESS_TYPE_TERM, TRANSFER_PROCESS);
+            put("TransferState", TRANSFER_PROCESS_STATE);
+            put("TerminateTransfer", TERMINATE_TRANSFER);
+            put("SuspendTransfer", SUSPEND_TRANSFER);
+
+
         }
     };
 
@@ -99,7 +128,7 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
     }
 
     void registerValidatorsV4(ManagementApiSchemaValidatorProvider validatorProvider) {
-        schemaV4.forEach((type, schema) -> validator.register(V_4_PREFIX + type, validatorProvider.validatorFor(EDC_MGMT_V4_SCHEMA_PREFIX + "/" + schema)));
+        schemaV4.forEach((type, schema) -> validator.register(V_4_PREFIX + type, validatorProvider.validatorFor(schema)));
     }
 
 }

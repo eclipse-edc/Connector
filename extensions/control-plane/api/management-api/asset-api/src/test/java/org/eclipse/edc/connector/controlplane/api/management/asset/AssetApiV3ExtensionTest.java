@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.asset;
 
-import org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApiController;
+import org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApiV3Controller;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
@@ -32,7 +32,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(DependencyInjectionExtension.class)
-class AssetApiExtensionTest {
+class AssetApiV3ExtensionTest {
 
     private final JsonObjectValidatorRegistry validatorRegistry = mock();
     private final WebService webService = mock();
@@ -47,7 +47,7 @@ class AssetApiExtensionTest {
     void initialize_shouldRegisterControllers(AssetApiExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(webService).registerResource(any(), isA(AssetApiController.class));
+        verify(webService).registerResource(any(), isA(AssetApiV3Controller.class));
     }
 
     @Test

@@ -1,15 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2019-09/schema",
-  "title": "AssetSchema",
+  "title": "IdResponseSchema",
   "type": "object",
   "allOf": [
     {
-      "$ref": "#/definitions/Asset"
+      "$ref": "#/definitions/IdResponse"
     }
   ],
-  "$id": "https://w3id.org/edc/connector/management/schema/v4/asset-schema.json",
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/id-response-schema.json",
   "definitions": {
-    "Asset": {
+    "IdResponse": {
       "type": "object",
       "properties": {
         "@context": {
@@ -17,26 +17,20 @@
         },
         "@type": {
           "type": "string",
-          "const": "Asset"
+          "const": "IdResponse"
         },
         "@id": {
           "type": "string"
         },
-        "properties": {
-          "type": "object"
-        },
-        "privateProperties": {
-          "type": "object"
-        },
-        "dataAddress": {
-          "$ref": "https://w3id.org/edc/connector/management/schema/v4/data-address-schema.json"
+        "createdAt": {
+          "type": "number"
         }
       },
       "required": [
         "@context",
         "@type",
-        "properties",
-        "dataAddress"
+        "@id",
+        "createdAt"
       ]
     }
   }

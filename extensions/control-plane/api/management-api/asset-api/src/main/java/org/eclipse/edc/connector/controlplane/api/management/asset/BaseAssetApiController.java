@@ -12,18 +12,10 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.asset.v3;
+package org.eclipse.edc.connector.controlplane.api.management.asset;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
@@ -38,34 +30,26 @@ import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
-import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.util.Optional.of;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_TYPE;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
-@Consumes(APPLICATION_JSON)
-@Produces(APPLICATION_JSON)
-@Path("/v3/assets")
-public class AssetApiController implements AssetApi {
-    private final TypeTransformerRegistry transformerRegistry;
-    private final AssetService service;
-    private final Monitor monitor;
-    private final JsonObjectValidatorRegistry validator;
+public abstract class BaseAssetApiController {
+    protected final TypeTransformerRegistry transformerRegistry;
+    protected final AssetService service;
+    protected final Monitor monitor;
+    protected final JsonObjectValidatorRegistry validator;
 
-    public AssetApiController(AssetService service, TypeTransformerRegistry transformerRegistry,
-                              Monitor monitor, JsonObjectValidatorRegistry validator) {
+    public BaseAssetApiController(TypeTransformerRegistry transformerRegistry, AssetService service, Monitor monitor, JsonObjectValidatorRegistry validator) {
         this.transformerRegistry = transformerRegistry;
         this.service = service;
         this.monitor = monitor;
         this.validator = validator;
     }
 
-    @POST
-    @Override
-    public JsonObject createAssetV3(JsonObject assetJson) {
+    public JsonObject createAsset(JsonObject assetJson) {
         validator.validate(EDC_ASSET_TYPE, assetJson).orElseThrow(ValidationFailureException::new);
-
         var asset = transformerRegistry.transform(assetJson, Asset.class)
                 .orElseThrow(InvalidRequestException::new);
 
@@ -80,10 +64,7 @@ public class AssetApiController implements AssetApi {
                 .orElseThrow(f -> new EdcException(f.getFailureDetail()));
     }
 
-    @POST
-    @Path("/request")
-    @Override
-    public JsonArray requestAssetsV3(JsonObject querySpecJson) {
+    public JsonArray requestAssets(JsonObject querySpecJson) {
         QuerySpec querySpec;
         if (querySpecJson == null) {
             querySpec = QuerySpec.Builder.newInstance().build();
@@ -102,10 +83,7 @@ public class AssetApiController implements AssetApi {
                 .collect(toJsonArray());
     }
 
-    @GET
-    @Path("{id}")
-    @Override
-    public JsonObject getAssetV3(@PathParam("id") String id) {
+    public JsonObject getAsset(String id) {
         var asset = of(id)
                 .map(it -> service.findById(id))
                 .orElseThrow(() -> new ObjectNotFoundException(Asset.class, id));
@@ -115,16 +93,11 @@ public class AssetApiController implements AssetApi {
 
     }
 
-    @DELETE
-    @Path("{id}")
-    @Override
-    public void removeAssetV3(@PathParam("id") String id) {
+    public void removeAsset(String id) {
         service.delete(id).orElseThrow(exceptionMapper(Asset.class, id));
     }
 
-    @PUT
-    @Override
-    public void updateAssetV3(JsonObject assetJson) {
+    public void updateAsset(JsonObject assetJson) {
         validator.validate(EDC_ASSET_TYPE, assetJson).orElseThrow(ValidationFailureException::new);
 
         var assetResult = transformerRegistry.transform(assetJson, Asset.class)
@@ -133,5 +106,4 @@ public class AssetApiController implements AssetApi {
         service.update(assetResult)
                 .orElseThrow(exceptionMapper(Asset.class, assetResult.getId()));
     }
-
 }

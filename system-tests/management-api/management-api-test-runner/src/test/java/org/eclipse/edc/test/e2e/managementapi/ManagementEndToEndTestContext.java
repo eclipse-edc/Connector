@@ -26,11 +26,13 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import static io.restassured.RestAssured.given;
+import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 public record ManagementEndToEndTestContext(EmbeddedRuntime runtime) {
@@ -50,6 +52,10 @@ public record ManagementEndToEndTestContext(EmbeddedRuntime runtime) {
     }
 
     public JsonObject query(Criterion... criteria) {
+        return query(createObjectBuilder().add(VOCAB, EDC_NAMESPACE).build(), criteria);
+    }
+
+    private JsonObject query(JsonValue ctx, Criterion... criteria) {
         var criteriaJson = Arrays.stream(criteria)
                 .map(it -> {
                             JsonValue operandRight;
@@ -59,6 +65,7 @@ public record ManagementEndToEndTestContext(EmbeddedRuntime runtime) {
                                 operandRight = Json.createValue(it.getOperandRight().toString());
                             }
                             return createObjectBuilder()
+                                    .add(TYPE, "Criterion")
                                     .add("operandLeft", it.getOperandLeft().toString())
                                     .add("operator", it.getOperator())
                                     .add("operandRight", operandRight)
@@ -67,10 +74,15 @@ public record ManagementEndToEndTestContext(EmbeddedRuntime runtime) {
                 ).collect(toJsonArray());
 
         return createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add(CONTEXT, ctx)
                 .add(TYPE, "QuerySpec")
                 .add("filterExpression", criteriaJson)
                 .build();
+    }
+
+    public JsonObject queryV2(Criterion... criteria) {
+        return query(createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2).build(), criteria);
+
     }
 
     private Config getConfig() {
