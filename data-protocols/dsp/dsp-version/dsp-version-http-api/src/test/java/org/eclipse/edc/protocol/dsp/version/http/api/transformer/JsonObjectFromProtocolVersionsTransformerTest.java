@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_BINDING;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PATH;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PROTOCOL_VERSIONS;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_VERSION;
@@ -38,7 +39,7 @@ class JsonObjectFromProtocolVersionsTransformerTest {
 
     @Test
     void shouldTransform() {
-        var protocolVersion = new ProtocolVersion("version", "/path");
+        var protocolVersion = new ProtocolVersion("version", "/path", "binding");
         var protocolVersions = new ProtocolVersions(List.of(protocolVersion));
 
         var result = transformer.transform(protocolVersions, context);
@@ -48,6 +49,7 @@ class JsonObjectFromProtocolVersionsTransformerTest {
                 .hasSize(1).first().extracting(JsonValue::asJsonObject).satisfies(version -> {
                     assertThat(version.getString(DSPACE_PROPERTY_VERSION)).isEqualTo("version");
                     assertThat(version.getString(DSPACE_PROPERTY_PATH)).isEqualTo("/path");
+                    assertThat(version.getString(DSPACE_PROPERTY_BINDING)).isEqualTo("binding");
                 });
     }
 }

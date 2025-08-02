@@ -23,5 +23,6 @@ public interface DspVersionPropertyAndTypeNames {
 
     String DSPACE_PROPERTY_VERSION = "version";
     String DSPACE_PROPERTY_PATH = "path";
+    String DSPACE_PROPERTY_BINDING = "binding";
 
 }

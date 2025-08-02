@@ -19,6 +19,7 @@ import org.eclipse.edc.protocol.spi.ProtocolVersion;
 
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_CONTEXT_SEPARATOR;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_HTTPS_BINDING;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT;
 
@@ -30,7 +31,7 @@ public interface Dsp08Constants {
     @Deprecated(since = "0.14.0")
     String V_08_PATH = "/";
     @Deprecated(since = "0.14.0")
-    ProtocolVersion V_08 = new ProtocolVersion(V_08_VERSION, V_08_PATH);
+    ProtocolVersion V_08 = new ProtocolVersion(V_08_VERSION, V_08_PATH, DSP_HTTPS_BINDING);
 
     @Deprecated(since = "0.14.0")
     String DSP_SCOPE_V_08 = DSP_SCOPE + DSP_CONTEXT_SEPARATOR + V_08_VERSION;

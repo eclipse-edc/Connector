@@ -111,6 +111,7 @@ dsp-tck-runtime = { module = "org.eclipse.dataspacetck.dsp:tck-runtime", version
 dsp-tck-core = { module = "org.eclipse.dataspacetck.dsp:core", version.ref = "dsp-tck" }
 dsp-tck-api = { module = "org.eclipse.dataspacetck.dsp:dsp-api", version.ref = "dsp-tck" }
 dsp-tck-system = { module = "org.eclipse.dataspacetck.dsp:dsp-system", version.ref = "dsp-tck" }
+dsp-tck-metadata = { module = "org.eclipse.dataspacetck.dsp:dsp-metadata", version.ref = "dsp-tck" }
 dsp-tck-contractnegotiation = { module = "org.eclipse.dataspacetck.dsp:dsp-contract-negotiation", version.ref = "dsp-tck" }
 dsp-tck-transferprocess = { module = "org.eclipse.dataspacetck.dsp:dsp-transfer-process", version.ref = "dsp-tck" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit" }

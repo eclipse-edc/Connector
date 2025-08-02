@@ -24,6 +24,7 @@ public interface TestFixtures {
 
     String V_MOCK_VERSION = "vX.X";
     String V_MOCK_PATH = "/";
-    ProtocolVersion V_MOCK = new ProtocolVersion(V_MOCK_VERSION, V_MOCK_PATH);
+    String V_MOCK_BINDING = "HTTPS";
+    ProtocolVersion V_MOCK = new ProtocolVersion(V_MOCK_VERSION, V_MOCK_PATH, V_MOCK_BINDING);
     String DSP_TRANSFORMER_CONTEXT_V_MOCK = DSP_TRANSFORMER_CONTEXT + DSP_CONTEXT_SEPARATOR + V_MOCK_VERSION;
 }

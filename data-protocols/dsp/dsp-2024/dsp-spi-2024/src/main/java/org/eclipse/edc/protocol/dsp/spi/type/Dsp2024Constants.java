@@ -20,6 +20,7 @@ import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP_SEPARATOR;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_CONTEXT_SEPARATOR;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_HTTPS_BINDING;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT;
 
@@ -35,7 +36,7 @@ public interface Dsp2024Constants {
     String V_2024_1_PATH = "/" + V_2024_1_VERSION;
 
     @Deprecated(since = "0.14.0")
-    ProtocolVersion V_2024_1 = new ProtocolVersion(V_2024_1_VERSION, V_2024_1_PATH);
+    ProtocolVersion V_2024_1 = new ProtocolVersion(V_2024_1_VERSION, V_2024_1_PATH, DSP_HTTPS_BINDING);
 
     @Deprecated(since = "0.14.0")
     String DSP_SCOPE_V_2024_1 = DSP_SCOPE + DSP_CONTEXT_SEPARATOR + V_2024_1_VERSION;

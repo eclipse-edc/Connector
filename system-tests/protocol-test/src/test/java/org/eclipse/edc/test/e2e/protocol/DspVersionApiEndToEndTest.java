@@ -30,6 +30,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_BINDING;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PATH;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PROTOCOL_VERSIONS;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_VERSION;
@@ -48,7 +49,7 @@ class DspVersionApiEndToEndTest {
     @Test
     void shouldReturnValidJson() {
         runtime.getService(DataspaceProfileContextRegistry.class)
-                .register(new DataspaceProfileContext("profile", new ProtocolVersion("1.0", "/v1/path"), () -> "url", "participantId"));
+                .register(new DataspaceProfileContext("profile", new ProtocolVersion("1.0", "/v1/path", "HTTPS"), () -> "url", "participantId"));
 
         var response = given()
                 .port(PROTOCOL_PORT)
@@ -65,7 +66,7 @@ class DspVersionApiEndToEndTest {
         assertThat(response.getJsonArray(DSPACE_PROPERTY_PROTOCOL_VERSIONS))
                 .hasSize(1)
                 .extracting(JsonValue::asJsonObject)
-                .first().satisfies(protocolVersion -> versionIs(protocolVersion, "1.0", "/v1/path"));
+                .first().satisfies(protocolVersion -> versionIs(protocolVersion, "1.0", "/v1/path", "HTTPS"));
 
     }
 
@@ -92,11 +93,12 @@ class DspVersionApiEndToEndTest {
         assertThat(response.getJsonArray(DSPACE_PROPERTY_PROTOCOL_VERSIONS))
                 .hasSize(1)
                 .extracting(JsonValue::asJsonObject)
-                .first().satisfies(protocolVersion -> versionIs(protocolVersion, "1.0", "/v1/path"));
+                .first().satisfies(protocolVersion -> versionIs(protocolVersion, "1.0", "/v1/path", "HTTPS"));
     }
 
-    private void versionIs(JsonObject protocolVersion, String version, String path) {
+    private void versionIs(JsonObject protocolVersion, String version, String path, String binding) {
         assertThat(protocolVersion.getString(DSPACE_PROPERTY_VERSION)).isEqualTo(version);
         assertThat(protocolVersion.getString(DSPACE_PROPERTY_PATH)).isEqualTo(path);
+        assertThat(protocolVersion.getString(DSPACE_PROPERTY_BINDING)).isEqualTo(binding);
     }
 }

@@ -17,5 +17,5 @@ package org.eclipse.edc.protocol.spi;
 /**
  * Supported dataspace protocol version
  */
-public record ProtocolVersion(String version, String path) {
+public record ProtocolVersion(String version, String path, String binding) {
 }

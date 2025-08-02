@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_BINDING;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PATH;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PROTOCOL_VERSIONS;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_VERSION;
@@ -54,6 +55,7 @@ public class JsonObjectFromProtocolVersionsTransformer implements TypeTransforme
                 .map(version -> jsonFactory.createObjectBuilder()
                         .add(DSPACE_PROPERTY_VERSION, version.version())
                         .add(DSPACE_PROPERTY_PATH, version.path())
+                        .add(DSPACE_PROPERTY_BINDING, version.binding())
                         .build())
                 .collect(toJsonArray());
 
