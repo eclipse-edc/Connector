@@ -56,6 +56,7 @@ class ProtocolTokenValidatorImplTest {
     @Test
     void shouldVerifyToken() {
         var participantId = "participantId";
+        var protocol = "protocol";
         var participantAgent = new ParticipantAgent(emptyMap(), emptyMap());
         var claimToken = ClaimToken.Builder.newInstance().build();
         var policy = Policy.Builder.newInstance().build();
@@ -64,7 +65,7 @@ class ProtocolTokenValidatorImplTest {
         when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> participantId);
         when(agentService.createFor(any(), any())).thenReturn(participantAgent);
 
-        var result = validator.verify(tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
+        var result = validator.verify(tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage(), protocol);
 
         assertThat(result).isSucceeded().isSameAs(participantAgent);
         verify(agentService).createFor(claimToken, participantId);
@@ -72,6 +73,7 @@ class ProtocolTokenValidatorImplTest {
             var reqContext = ctx.requestContext();
             return reqContext.getMessage().getClass().equals(TestMessage.class) && reqContext.getDirection().equals(RequestContext.Direction.Ingress);
         })));
+        verify(dataspaceProfileContextRegistry).getIdExtractionFunction(protocol);
         verify(identityService).verifyJwtToken(same(tokenRepresentation), any());
     }
 
@@ -79,7 +81,7 @@ class ProtocolTokenValidatorImplTest {
     void shouldReturnUnauthorized_whenTokenIsNotValid() {
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.failure("failure"));
 
-        var result = validator.verify(TokenRepresentation.Builder.newInstance().build(), TestRequestPolicyContext::new, Policy.Builder.newInstance().build(), new TestMessage());
+        var result = validator.verify(TokenRepresentation.Builder.newInstance().build(), TestRequestPolicyContext::new, Policy.Builder.newInstance().build(), new TestMessage(), "protocol");
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
     }
@@ -93,7 +95,7 @@ class ProtocolTokenValidatorImplTest {
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
         when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(null);
         
-        var result = validator.verify(tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
+        var result = validator.verify(tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage(), "protocol");
         
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
     }

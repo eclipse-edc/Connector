@@ -54,7 +54,7 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
     }
 
     @Override
-    public ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, Policy policy, RemoteMessage message) {
+    public ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, Policy policy, RemoteMessage message, String protocol) {
         var requestScopeBuilder = RequestScope.Builder.newInstance();
         var requestContext = RequestContext.Builder.newInstance().message(message).direction(RequestContext.Direction.Ingress).build();
         var policyContext = policyContextProvider.instantiate(requestContext, requestScopeBuilder);
@@ -71,7 +71,7 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
 
         var claimToken = tokenValidation.getContent();
         
-        var idExtractionFunction = dataspaceProfileContextRegistry.getIdExtractionFunction(message.getProtocol());
+        var idExtractionFunction = dataspaceProfileContextRegistry.getIdExtractionFunction(protocol);
         if (idExtractionFunction == null) {
             return ServiceResult.badRequest("Unsupported protocol: " + message.getProtocol());
         }

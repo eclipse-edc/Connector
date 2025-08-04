@@ -10,6 +10,7 @@
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       Cofinity-X - add participantId to DataspaceProfileContext
+ *       Cofinity-X - make participant id extraction dependent on dataspace profile context
  *
  */
 
@@ -72,7 +73,7 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
 
     @Override
     public @NotNull ServiceResult<Dataset> getDataset(String datasetId, TokenRepresentation tokenRepresentation, String protocol) {
-        return transactionContext.execute(() -> protocolTokenValidator.verify(tokenRepresentation, RequestCatalogPolicyContext::new)
+        return transactionContext.execute(() -> protocolTokenValidator.verify(tokenRepresentation, RequestCatalogPolicyContext::new, protocol)
                 .map(agent -> datasetResolver.getById(agent, datasetId, protocol))
                 .compose(dataset -> {
                     if (dataset == null) {
