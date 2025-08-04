@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - make participant id extraction dependent on dataspace profile context
  *
  */
 
@@ -20,6 +21,7 @@ import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.RequestContext;
 import org.eclipse.edc.spi.iam.RequestScope;
@@ -38,19 +40,21 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
     private final IdentityService identityService;
     private final PolicyEngine policyEngine;
     private final ParticipantAgentService agentService;
+    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
 
     private final Monitor monitor;
 
     public ProtocolTokenValidatorImpl(IdentityService identityService, PolicyEngine policyEngine, Monitor monitor,
-                                      ParticipantAgentService agentService) {
+                                      ParticipantAgentService agentService, DataspaceProfileContextRegistry dataspaceProfileContextRegistry) {
         this.identityService = identityService;
         this.monitor = monitor;
         this.policyEngine = policyEngine;
         this.agentService = agentService;
+        this.dataspaceProfileContextRegistry = dataspaceProfileContextRegistry;
     }
 
     @Override
-    public ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, Policy policy, RemoteMessage message) {
+    public ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, Policy policy, RemoteMessage message, String protocol) {
         var requestScopeBuilder = RequestScope.Builder.newInstance();
         var requestContext = RequestContext.Builder.newInstance().message(message).direction(RequestContext.Direction.Ingress).build();
         var policyContext = policyContextProvider.instantiate(requestContext, requestScopeBuilder);
@@ -66,7 +70,13 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
         }
 
         var claimToken = tokenValidation.getContent();
-        var participantAgent = agentService.createFor(claimToken);
+        
+        var idExtractionFunction = dataspaceProfileContextRegistry.getIdExtractionFunction(protocol);
+        if (idExtractionFunction == null) {
+            return ServiceResult.badRequest("Unsupported protocol: " + message.getProtocol());
+        }
+        
+        var participantAgent = agentService.createFor(claimToken, idExtractionFunction.apply(claimToken));
         return ServiceResult.success(participantAgent);
     }
 

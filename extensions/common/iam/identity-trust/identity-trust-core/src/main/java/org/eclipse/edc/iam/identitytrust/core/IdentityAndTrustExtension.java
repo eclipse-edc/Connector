@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - make participant id extraction dependent on dataspace profile context
  *
  */
 
@@ -146,7 +147,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     @Inject
     private ParticipantAgentService participantAgentService;
 
-    @Inject
+    @Inject(required = false)
     private DcpParticipantAgentServiceExtension participantAgentServiceExtension;
 
     @Inject
@@ -186,7 +187,9 @@ public class IdentityAndTrustExtension implements ServiceExtension {
             context.getMonitor().warning("Could not load JSON-LD file", e);
         }
 
-        participantAgentService.register(participantAgentServiceExtension);
+        if (participantAgentServiceExtension != null) {
+            participantAgentService.register(participantAgentServiceExtension);
+        }
 
         // register revocation services
         var acceptedContentTypes = parseAcceptedContentTypes(contentTypes);

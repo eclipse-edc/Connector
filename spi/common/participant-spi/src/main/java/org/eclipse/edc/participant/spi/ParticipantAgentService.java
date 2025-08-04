@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Cofinity-X - make participant id extraction dependent on dataspace profile context
  *
  */
 
@@ -22,14 +23,13 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 public interface ParticipantAgentService {
 
     /**
-     * The name of the default identity claim.
-     */
-    String DEFAULT_IDENTITY_CLAIM_KEY = "client_id";
-
-    /**
      * Creates a participant agent.
+     *
+     * @param token the token holding claims about the participant
+     * @param participantId id of the participant
+     * @return the ParticipantAgent
      */
-    ParticipantAgent createFor(ClaimToken token);
+    ParticipantAgent createFor(ClaimToken token, String participantId);
 
     /**
      * Registers an extension that can contribute attributes during the creation of a participant agent.

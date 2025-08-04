@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - make participant id extraction dependent on dataspace profile context
  *
  */
 
@@ -33,7 +34,6 @@ import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceS
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
-import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.event.EventRouter;
@@ -75,7 +75,7 @@ class ContractNegotiationEventDispatchTest {
 
     private final EventSubscriber eventSubscriber = mock();
     private final IdentityService identityService = mock();
-    private final ClaimToken token = ClaimToken.Builder.newInstance().claim(ParticipantAgentService.DEFAULT_IDENTITY_CLAIM_KEY, CONSUMER).build();
+    private final ClaimToken token = ClaimToken.Builder.newInstance().claim("client_id", CONSUMER).build();
 
     private final TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance().token(UUID.randomUUID().toString()).build();
     protected DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
@@ -96,6 +96,7 @@ class ContractNegotiationEventDispatchTest {
         extension.registerServiceMock(DataPlaneClientFactory.class, mock());
 
         when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> "http://callback.address");
+        when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> CONSUMER);
     }
 
     @Test

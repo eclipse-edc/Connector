@@ -88,5 +88,5 @@ public interface TransferProcessProtocolService {
      * @return a succeeded result containing the transfer process if it was found, a failed one otherwise
      */
     @NotNull
-    ServiceResult<TransferProcess> findById(String id, TokenRepresentation tokenRepresentation);
+    ServiceResult<TransferProcess> findById(String id, TokenRepresentation tokenRepresentation, String protocol);
 }

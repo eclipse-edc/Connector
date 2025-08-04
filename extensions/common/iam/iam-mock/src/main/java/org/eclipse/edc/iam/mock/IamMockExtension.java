@@ -9,15 +9,18 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Cofinity-X - make participant id extraction dependent on dataspace profile context
  *
  */
 
 package org.eclipse.edc.iam.mock;
 
+import org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.result.Result;
@@ -33,6 +36,11 @@ import org.eclipse.edc.spi.types.TypeManager;
 public class IamMockExtension implements ServiceExtension {
 
     public static final String NAME = "Mock IAM";
+    
+    public static final String DEFAULT_IDENTITY_CLAIM_KEY = "client_id";
+    
+    @Setting(key = "edc.agent.identity.key", description = "The name of the claim key used to determine the participant identity", defaultValue = DEFAULT_IDENTITY_CLAIM_KEY)
+    private String agentIdentityKey;
 
     @Inject
     private TypeManager typeManager;
@@ -48,6 +56,11 @@ public class IamMockExtension implements ServiceExtension {
         var faultyClientId = context.getSetting("edc.mock.faulty_client_id", "faultyClientId");
         var participantId = context.getParticipantId();
         context.registerService(IdentityService.class, new MockIdentityService(typeManager, region, participantId, faultyClientId));
+    }
+    
+    @Provider(isDefault = true)
+    public DefaultParticipantIdExtractionFunction defaultParticipantIdExtractionFunction() {
+        return new MockParticipantIdExtractionFunction(agentIdentityKey);
     }
 
     @Provider

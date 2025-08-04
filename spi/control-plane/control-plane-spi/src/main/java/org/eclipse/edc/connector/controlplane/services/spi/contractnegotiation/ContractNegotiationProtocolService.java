@@ -115,5 +115,5 @@ public interface ContractNegotiationProtocolService {
      * @return a succeeded result containing the negotiation if it was found, a failed one otherwise
      */
     @NotNull
-    ServiceResult<ContractNegotiation> findById(String id, TokenRepresentation tokenRepresentation);
+    ServiceResult<ContractNegotiation> findById(String id, TokenRepresentation tokenRepresentation, String protocol);
 }
