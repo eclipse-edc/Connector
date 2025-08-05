@@ -24,6 +24,7 @@ dependencies {
     testImplementation(libs.dsp.tck.runtime)
     testImplementation(libs.dsp.tck.api)
     testImplementation(libs.dsp.tck.system)
+    testRuntimeOnly(libs.dsp.tck.metadata)
     testRuntimeOnly(libs.dsp.tck.transferprocess)
     testRuntimeOnly(libs.dsp.tck.contractnegotiation)
     testImplementation(libs.junit.platform.launcher)
