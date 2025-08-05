@@ -168,7 +168,7 @@ public class ProvisioningTransferProviderEndToEndTest {
 
             @Override
             public String supportedType() {
-                return "HttpData";
+                return "CustomProvisionType";
             }
 
             @Override
@@ -187,7 +187,7 @@ public class ProvisioningTransferProviderEndToEndTest {
 
             @Override
             public String supportedType() {
-                return "HttpData";
+                return "CustomProvisionType";
             }
 
             @Override
@@ -392,7 +392,7 @@ public class ProvisioningTransferProviderEndToEndTest {
                     .withTransferType("HttpData-PUSH")
                     .withDestination(createObjectBuilder()
                             .add(TYPE, EDC_NAMESPACE + "DataAddress")
-                            .add(EDC_NAMESPACE + "type", "HttpData")
+                            .add(EDC_NAMESPACE + "type", "CustomProvisionType")
                             .add(EDC_NAMESPACE + "baseUrl", "http://localhost:%d/destination".formatted(destination.getPort()))
                             .build()
                     )

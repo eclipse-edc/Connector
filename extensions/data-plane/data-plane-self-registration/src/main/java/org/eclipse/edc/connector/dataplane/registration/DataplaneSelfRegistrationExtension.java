@@ -90,16 +90,17 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
                 .id(context.getComponentId())
                 .url(controlApiUrl.get().toString() + "/v1/dataflows")
                 .allowedSourceTypes(pipelineService.supportedSourceTypes())
+                .allowedSourceTypes(resourceDefinitionGeneratorManager.sourceTypes())
                 .allowedTransferType(transferTypes.collect(toSet()))
                 .destinationProvisionTypes(resourceDefinitionGeneratorManager.destinationTypes())
                 .build();
 
-        var monitor = context.getMonitor().withPrefix("DataPlaneHealthCheck");
         var check = new DataPlaneHealthCheck();
         healthCheckService.addReadinessProvider(check);
         healthCheckService.addLivenessProvider(check);
         healthCheckService.addStartupStatusProvider(check);
 
+        var monitor = context.getMonitor().withPrefix("DataPlaneSelfRegistration");
         monitor.debug("Initiate data plane registration.");
         dataPlaneSelectorService.addInstance(instance)
                 .onSuccess(it -> {
