@@ -164,7 +164,7 @@ class TransferPullEndToEndTest {
             );
             var sourceDataAddress = httpSourceDataAddress();
             sourceDataAddress.put(EDC_NAMESPACE + "responseChannel", responseChannel);
-            createResourcesOnProvider(assetId, PolicyFixtures.contractExpiresIn("10s"), sourceDataAddress);
+            createResourcesOnProvider(assetId, PolicyFixtures.contractExpiresIn("30s"), sourceDataAddress);
 
             var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
                     .withTransferType("HttpData-PULL-HttpData")
