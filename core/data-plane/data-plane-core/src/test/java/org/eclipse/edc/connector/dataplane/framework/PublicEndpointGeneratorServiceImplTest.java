@@ -70,7 +70,7 @@ class PublicEndpointGeneratorServiceImplTest {
         void shouldGenerateEndpointBasedOnDestinationType() {
             var endpoint = new Endpoint("fizz", "bar-type");
 
-            generatorService.addGeneratorFunction("destinationType", () -> endpoint);
+            generatorService.addResponseGeneratorFunction("destinationType", () -> endpoint);
 
             var result = generatorService.generateResponseFor("destinationType");
 

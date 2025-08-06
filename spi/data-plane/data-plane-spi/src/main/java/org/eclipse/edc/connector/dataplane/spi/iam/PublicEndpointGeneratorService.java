@@ -60,7 +60,7 @@ public interface PublicEndpointGeneratorService {
      * @param responseChannelType The type of the source {@link DataAddress}
      * @param generatorFunction   the generator function
      */
-    void addGeneratorFunction(String responseChannelType, Supplier<Endpoint> generatorFunction);
+    void addResponseGeneratorFunction(String responseChannelType, Supplier<Endpoint> generatorFunction);
 
     /**
      * Return the supported destination types.

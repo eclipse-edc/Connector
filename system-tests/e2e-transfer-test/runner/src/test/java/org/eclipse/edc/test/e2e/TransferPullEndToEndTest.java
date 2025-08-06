@@ -50,6 +50,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -95,11 +96,11 @@ class TransferPullEndToEndTest {
 
 
         private static @NotNull Map<String, Object> httpSourceDataAddress() {
-            return Map.of(
+            return new HashMap<>(Map.of(
                     EDC_NAMESPACE + "name", "transfer-test",
                     EDC_NAMESPACE + "baseUrl", "http://any/source",
                     EDC_NAMESPACE + "type", "HttpData"
-            );
+            ));
         }
 
         @Test
@@ -151,6 +152,27 @@ class TransferPullEndToEndTest {
             var edrEntry = assertConsumerCanAccessData(transferProcessId);
 
             assertConsumerCanNotAccessData(transferProcessId, edrEntry);
+        }
+
+        @Test
+        void httpPull_dataTransfer_withHttpResponseChannel() {
+            var assetId = UUID.randomUUID().toString();
+            var responseChannel = Map.of(
+                    EDC_NAMESPACE + "name", "transfer-test",
+                    EDC_NAMESPACE + "baseUrl", "http://any/response/channel",
+                    EDC_NAMESPACE + "type", "HttpData"
+            );
+            var sourceDataAddress = httpSourceDataAddress();
+            sourceDataAddress.put(EDC_NAMESPACE + "responseChannel", responseChannel);
+            createResourcesOnProvider(assetId, PolicyFixtures.contractExpiresIn("30s"), sourceDataAddress);
+
+            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                    .withTransferType("HttpData-PULL-HttpData")
+                    .execute();
+
+            CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
+            assertConsumerCanSendResponse(transferProcessId);
+
         }
 
         @Test
@@ -363,6 +385,11 @@ class TransferPullEndToEndTest {
                                     body -> assertThat(body).isEqualTo("data"))
                     )
             );
+        }
+
+        private void assertConsumerCanSendResponse(String consumerTransferProcessId) {
+            var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(consumerTransferProcessId), Objects::nonNull);
+            await().atMost(timeout).untilAsserted(() -> CONSUMER.postResponse(edr, body -> assertThat(body).isEqualTo("response received")));
         }
 
         private void provision(WireMockServer provisionServer) {
