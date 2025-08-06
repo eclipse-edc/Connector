@@ -18,18 +18,23 @@ import org.eclipse.edc.connector.controlplane.api.management.protocolversion.tra
 import org.eclipse.edc.connector.controlplane.api.management.protocolversion.v4alpha.ProtocolVersionApiV4AlphaController;
 import org.eclipse.edc.connector.controlplane.api.management.protocolversion.validation.ProtocolVersionRequestValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionService;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_CONTEXT;
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
 import static org.eclipse.edc.connector.controlplane.protocolversion.spi.ProtocolVersionRequest.PROTOCOL_VERSION_REQUEST_TYPE;
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(value = ProtocolVersionApiExtension.NAME)
 public class ProtocolVersionApiExtension implements ServiceExtension {
@@ -51,6 +56,12 @@ public class ProtocolVersionApiExtension implements ServiceExtension {
     @Inject
     private CriterionOperatorRegistry criterionOperatorRegistry;
 
+    @Inject
+    private JsonLd jsonLd;
+
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -63,6 +74,8 @@ public class ProtocolVersionApiExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectToProtocolVersionRequestTransformer());
 
         webService.registerResource(ApiContext.MANAGEMENT, new ProtocolVersionApiV4AlphaController(service, managementApiTransformerRegistry, validatorRegistry));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, ProtocolVersionApiV4AlphaController.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
+
         validatorRegistry.register(PROTOCOL_VERSION_REQUEST_TYPE, ProtocolVersionRequestValidator.instance());
 
     }

@@ -24,18 +24,23 @@ import org.eclipse.edc.connector.controlplane.api.management.transferprocess.v3.
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.validation.TerminateTransferValidator;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.validation.TransferRequestValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import static java.util.Collections.emptyMap;
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
 import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TerminateTransfer.TERMINATE_TRANSFER_TYPE;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE;
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(value = TransferProcessApiExtension.NAME)
 public class TransferProcessApiExtension implements ServiceExtension {
@@ -53,6 +58,12 @@ public class TransferProcessApiExtension implements ServiceExtension {
 
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
+
+    @Inject
+    private JsonLd jsonLd;
+
+    @Inject
+    private TypeManager typeManager;
 
     @Override
     public String name() {
@@ -75,5 +86,7 @@ public class TransferProcessApiExtension implements ServiceExtension {
         validatorRegistry.register(TERMINATE_TRANSFER_TYPE, TerminateTransferValidator.instance());
 
         webService.registerResource(ApiContext.MANAGEMENT, new TransferProcessApiV3Controller(context.getMonitor(), service, managementApiTransformerRegistry, validatorRegistry));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, TransferProcessApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
+
     }
 }

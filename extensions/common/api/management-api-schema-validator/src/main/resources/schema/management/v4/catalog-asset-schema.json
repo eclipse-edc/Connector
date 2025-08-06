@@ -1,15 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2019-09/schema",
-  "title": "AssetSchema",
+  "title": "CatalogAssetSchema",
   "type": "object",
   "allOf": [
     {
-      "$ref": "#/definitions/Asset"
+      "$ref": "#/definitions/CatalogAsset"
     }
   ],
-  "$id": "https://w3id.org/edc/connector/management/schema/v4/asset-schema.json",
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/catalog-asset-schema.json",
   "definitions": {
-    "Asset": {
+    "CatalogAsset": {
       "type": "object",
       "properties": {
         "@context": {
@@ -17,7 +17,7 @@
         },
         "@type": {
           "type": "string",
-          "const": "Asset"
+          "const": "CatalogAsset"
         },
         "@id": {
           "type": "string"
@@ -27,6 +27,9 @@
         },
         "privateProperties": {
           "type": "object"
+        },
+        "isCatalog": {
+          "type": "boolean"
         },
         "dataAddress": {
           "$ref": "https://w3id.org/edc/connector/management/schema/v4/data-address-schema.json"

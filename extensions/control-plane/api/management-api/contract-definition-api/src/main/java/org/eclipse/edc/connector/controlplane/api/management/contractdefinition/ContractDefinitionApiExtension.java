@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.v3.ContractDefinitionApiV3Controller;
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.validation.ContractDefinitionValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
@@ -30,11 +31,13 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import java.util.Map;
 
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
@@ -61,6 +64,9 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
     @Inject
     private CriterionOperatorRegistry criterionOperatorRegistry;
 
+    @Inject
+    private JsonLd jsonLd;
+
     @Override
     public String name() {
         return NAME;
@@ -77,5 +83,7 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
         var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
 
         webService.registerResource(ApiContext.MANAGEMENT, new ContractDefinitionApiV3Controller(managementApiTransformerRegistry, service, context.getMonitor(), validatorRegistry));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractDefinitionApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
+
     }
 }

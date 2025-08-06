@@ -20,18 +20,23 @@ import org.eclipse.edc.connector.controlplane.api.management.catalog.v3.CatalogA
 import org.eclipse.edc.connector.controlplane.api.management.catalog.validation.CatalogRequestValidator;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.validation.DatasetRequestValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE;
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(value = CatalogApiExtension.NAME)
 public class CatalogApiExtension implements ServiceExtension {
@@ -53,6 +58,12 @@ public class CatalogApiExtension implements ServiceExtension {
     @Inject
     private CriterionOperatorRegistry criterionOperatorRegistry;
 
+    @Inject
+    private JsonLd jsonLd;
+
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -65,6 +76,7 @@ public class CatalogApiExtension implements ServiceExtension {
 
         var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
         webService.registerResource(ApiContext.MANAGEMENT, new CatalogApiV3Controller(service, managementApiTransformerRegistry, validatorRegistry));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
 
         validatorRegistry.register(CATALOG_REQUEST_TYPE, CatalogRequestValidator.instance(criterionOperatorRegistry));
         validatorRegistry.register(DATASET_REQUEST_TYPE, DatasetRequestValidator.instance());
