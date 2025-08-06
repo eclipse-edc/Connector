@@ -14,11 +14,14 @@
 
 package org.eclipse.edc.test.e2e.managementapi;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
@@ -28,7 +31,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Stream;
 
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createArrayBuilder;
@@ -115,6 +122,45 @@ public class ContractDefinitionApiEndToEndTest {
                     .log().ifError()
                     .statusCode(200)
                     .body("size()", is(0));
+        }
+
+        @Test
+        void queryContractDefinitions_sortByCreatedDate(ManagementEndToEndTestContext context, ContractDefinitionStore store) throws JsonProcessingException {
+            var id1 = UUID.randomUUID().toString();
+            var id2 = UUID.randomUUID().toString();
+            var id3 = UUID.randomUUID().toString();
+            var createdAtTime = new AtomicLong(1000L);
+            Stream.of(id1, id2, id3).forEach(id -> store.save(createContractDefinition(id).createdAt(createdAtTime.getAndIncrement()).build()));
+
+            var content = """
+                    {
+                        "@context": {
+                            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+                        },
+                        "@type": "QuerySpec",
+                        "sortField": "createdAt",
+                        "sortOrder": "DESC",
+                        "limit": 100,
+                        "offset": 0
+                    }
+                    """;
+            var query = JacksonJsonLd.createObjectMapper()
+                    .readValue(content, JsonObject.class);
+
+            var result = context.baseRequest()
+                    .contentType(JSON)
+                    .body(query)
+                    .post("/v3/contractdefinitions/request")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .body("size()", is(3))
+                    .extract()
+                    .as(List.class);
+
+            assertThat(result)
+                    .extracting(cd -> ((LinkedHashMap<?, ?>) cd).get(ID))
+                    .containsExactlyElementsOf(List.of(id3, id2, id1));
         }
 
         @Test
