@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering - refactor to base module
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - refactor to base module
  *
  */
 

@@ -10,7 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Mercedes-Benz Tech Innovation GmbH - add README.md; authentication key can be retrieved from vault
- *       Fraunhofer Institute for Software and Systems Engineering - update monitor info
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - update monitor info
  *
  */
 

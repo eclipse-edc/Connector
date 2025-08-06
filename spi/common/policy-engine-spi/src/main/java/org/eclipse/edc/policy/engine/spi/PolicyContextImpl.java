@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering - context data
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - context data
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */

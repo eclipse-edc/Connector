@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering - extended parameter definition
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - extended parameter definition
  *
  */
 

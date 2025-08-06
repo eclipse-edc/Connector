@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering - register missing transformer
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - register missing transformer
  *
  */
 
