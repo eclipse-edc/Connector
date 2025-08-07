@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering - add test
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - add test
  *
  */
 

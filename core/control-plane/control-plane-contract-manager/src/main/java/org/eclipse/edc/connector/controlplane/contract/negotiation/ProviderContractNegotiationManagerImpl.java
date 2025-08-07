@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - extended method implementation
  *       Daimler TSS GmbH - fixed contract dates to epoch seconds
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - refactor
  *       ZF Friedrichshafen AG - fixed contract validity issue

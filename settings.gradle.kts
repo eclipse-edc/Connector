@@ -9,9 +9,9 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering - refactoring
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - refactoring
  *       ZF Friedrichshafen AG - add dependency & reorder entries
- *       Fraunhofer Institute for Software and Systems Engineering - refactoring
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - refactoring
  *       Mercedes-Benz Tech Innovation GmbH - publish public api context into dedicated swagger hub page
  *       Cofinity-X - make DSP versions pluggable
  *

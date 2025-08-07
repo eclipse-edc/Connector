@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
- *       Fraunhofer Institute for Software and Systems Engineering - add negotiation endpoint
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - add negotiation endpoint
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */

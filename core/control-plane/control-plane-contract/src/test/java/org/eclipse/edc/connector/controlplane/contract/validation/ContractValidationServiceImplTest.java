@@ -11,7 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *       Daimler TSS GmbH - fixed contract dates to epoch seconds
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
- *       Fraunhofer Institute for Software and Systems Engineering - add policy engine
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - add policy engine
  *
  */
 

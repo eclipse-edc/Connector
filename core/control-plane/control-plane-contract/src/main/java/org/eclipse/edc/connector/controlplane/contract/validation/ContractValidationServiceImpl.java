@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering - improvements, add policy engine
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - improvements, add policy engine
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
