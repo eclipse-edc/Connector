@@ -27,7 +27,9 @@ dependencies {
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:validator-lib"))
     implementation(project(":extensions:common:json-ld"))
-
+    implementation(project(":extensions:common:api:lib:management-api-lib"))
+    implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
+    
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))

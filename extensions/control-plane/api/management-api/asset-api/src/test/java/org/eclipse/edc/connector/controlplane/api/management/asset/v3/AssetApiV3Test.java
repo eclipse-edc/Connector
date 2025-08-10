@@ -33,8 +33,8 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.map;
-import static org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApi.AssetInputSchema.ASSET_INPUT_EXAMPLE;
-import static org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApi.AssetOutputSchema.ASSET_OUTPUT_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApiV3.AssetInputSchema.ASSET_INPUT_EXAMPLE;
+import static org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApiV3.AssetOutputSchema.ASSET_OUTPUT_EXAMPLE;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_DATA_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_PROPERTIES;
@@ -43,7 +43,7 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class AssetApiTest {
+class AssetApiV3Test {
     private final TypeManager typeManager = mock();
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final JsonLd jsonLd = new TitaniumJsonLd(mock());

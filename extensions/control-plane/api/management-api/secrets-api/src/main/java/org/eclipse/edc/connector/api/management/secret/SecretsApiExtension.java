@@ -20,17 +20,22 @@ import org.eclipse.edc.connector.api.management.secret.transform.JsonObjectToSec
 import org.eclipse.edc.connector.api.management.secret.v3.SecretsApiV3Controller;
 import org.eclipse.edc.connector.api.management.secret.validation.SecretsValidator;
 import org.eclipse.edc.connector.spi.service.SecretService;
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import java.util.Map;
 
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE;
 
 @Extension(value = SecretsApiExtension.NAME)
@@ -50,6 +55,12 @@ public class SecretsApiExtension implements ServiceExtension {
     @Inject
     private JsonObjectValidatorRegistry validator;
 
+    @Inject
+    private JsonLd jsonLd;
+
+    @Inject
+    private TypeManager typeManager;
+
     @Override
     public String name() {
         return NAME;
@@ -66,6 +77,8 @@ public class SecretsApiExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectToSecretTransformer());
 
         webService.registerResource(ApiContext.MANAGEMENT, new SecretsApiV3Controller(secretService, managementApiTransformerRegistry, validator));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, SecretsApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
+
     }
 
 }
