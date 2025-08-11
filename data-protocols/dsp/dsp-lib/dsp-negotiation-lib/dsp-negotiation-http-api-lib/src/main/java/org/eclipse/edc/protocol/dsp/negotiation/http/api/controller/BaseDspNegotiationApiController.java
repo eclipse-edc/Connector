@@ -83,7 +83,7 @@ public abstract class BaseDspNegotiationApiController {
     @Path("{id}")
     public Response getNegotiation(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
         var request = GetDspRequest.Builder.newInstance(ContractNegotiation.class, ContractNegotiationError.class)
-                .id(id).token(token).serviceCall(protocolService::findById)
+                .id(id).token(token).serviceCall((cnId, tr) -> protocolService.findById(cnId, tr, protocol))
                 .errorProvider(ContractNegotiationError.Builder::newInstance)
                 .protocol(protocol)
                 .build();

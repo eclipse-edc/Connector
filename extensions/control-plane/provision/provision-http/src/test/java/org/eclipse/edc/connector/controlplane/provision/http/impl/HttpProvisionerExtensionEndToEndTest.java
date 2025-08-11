@@ -37,6 +37,7 @@ import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.protocol.spi.ProtocolWebhook;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
@@ -84,6 +85,7 @@ public class HttpProvisionerExtensionEndToEndTest {
     private final Interceptor delegate = mock(Interceptor.class);
     private final ContractValidationService contractValidationService = mock();
     private final IdentityService identityService = mock();
+    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock(DataspaceProfileContextRegistry.class);
 
     @BeforeEach
     void setup(RuntimeExtension extension) {
@@ -99,6 +101,7 @@ public class HttpProvisionerExtensionEndToEndTest {
         extension.registerServiceMock(ContractValidationService.class, contractValidationService);
         extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
         extension.registerServiceMock(IdentityService.class, identityService);
+        extension.registerServiceMock(DataspaceProfileContextRegistry.class, dataspaceProfileContextRegistry);
         extension.registerServiceMock(DataPlaneClientFactory.class, mock());
         var dataAddressValidatorRegistry = mock(DataAddressValidatorRegistry.class);
         when(dataAddressValidatorRegistry.validateSource(any())).thenReturn(ValidationResult.success());
@@ -130,6 +133,7 @@ public class HttpProvisionerExtensionEndToEndTest {
                 .thenAnswer(invocation -> HttpProvisionerFixtures.createResponse(200, invocation));
 
         when(identityService.verifyJwtToken(any(), isA(VerificationContext.class))).thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
+        when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> "id");
 
         var result = protocolService.notifyRequested(createTransferRequestMessage(), TokenRepresentation.Builder.newInstance().build());
 

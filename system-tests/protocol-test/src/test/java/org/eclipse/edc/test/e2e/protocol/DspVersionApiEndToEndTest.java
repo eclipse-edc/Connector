@@ -49,7 +49,7 @@ class DspVersionApiEndToEndTest {
     @Test
     void shouldReturnValidJson() {
         runtime.getService(DataspaceProfileContextRegistry.class)
-                .register(new DataspaceProfileContext("profile", new ProtocolVersion("1.0", "/v1/path", "HTTPS"), () -> "url", "participantId"));
+                .register(new DataspaceProfileContext("profile", new ProtocolVersion("1.0", "/v1/path", "HTTPS"), () -> "url", "participantId", ct -> "id"));
 
         var response = given()
                 .port(PROTOCOL_PORT)

@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initiate provider process
+ *       Cofinity-X - make participant id extraction dependent on dataspace profile context
  *
  */
 
@@ -137,9 +138,9 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<TransferProcess> findById(String id, TokenRepresentation tokenRepresentation) {
+    public ServiceResult<TransferProcess> findById(String id, TokenRepresentation tokenRepresentation, String protocol) {
         return transactionContext.execute(() -> fetchRequestContext(id, this::findTransferProcessById)
-                .compose(context -> verifyRequest(tokenRepresentation, context, null))
+                .compose(context -> verifyRequest(tokenRepresentation, context, protocol))
                 .compose(context -> validateCounterParty(context.participantAgent(), context.agreement(), context.transferProcess())));
     }
 
@@ -262,8 +263,18 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         return tpProvider.apply(input).compose(transferProcess -> findContractByTransferProcess(transferProcess).map(agreement -> new TransferRequestMessageContext(agreement, transferProcess)));
     }
 
-    private ServiceResult<ClaimTokenContext> verifyRequest(TokenRepresentation tokenRepresentation, TransferRequestMessageContext context, RemoteMessage message) {
+    private ServiceResult<ClaimTokenContext> verifyRequest(TokenRepresentation tokenRepresentation, TransferRequestMessageContext context, @NotNull RemoteMessage message) {
         var result = protocolTokenValidator.verify(tokenRepresentation, RequestTransferProcessPolicyContext::new, context.agreement().getPolicy(), message);
+        if (result.failed()) {
+            monitor.debug(() -> "Verification Failed: %s".formatted(result.getFailureDetail()));
+            return ServiceResult.notFound("Not found");
+        } else {
+            return ServiceResult.success(new ClaimTokenContext(result.getContent(), context.agreement(), context.transferProcess()));
+        }
+    }
+    
+    private ServiceResult<ClaimTokenContext> verifyRequest(TokenRepresentation tokenRepresentation, TransferRequestMessageContext context, String protocol) {
+        var result = protocolTokenValidator.verify(tokenRepresentation, RequestTransferProcessPolicyContext::new, context.agreement().getPolicy(), null, protocol);
         if (result.failed()) {
             monitor.debug(() -> "Verification Failed: %s".formatted(result.getFailureDetail()));
             return ServiceResult.notFound("Not found");

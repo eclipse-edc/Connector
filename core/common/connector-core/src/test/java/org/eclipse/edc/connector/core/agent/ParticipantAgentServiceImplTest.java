@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Cofinity-X - make participant id extraction dependent on dataspace profile context
  *
  */
 
@@ -21,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.core.agent.ParticipantAgentServiceImpl.DEFAULT_IDENTITY_CLAIM_KEY;
 import static org.eclipse.edc.participant.spi.ParticipantAgent.PARTICIPANT_IDENTITY;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -41,61 +41,36 @@ class ParticipantAgentServiceImplTest {
         var participantAgentService = new ParticipantAgentServiceImpl();
         participantAgentService.register(extension);
 
-        var participantAgent = participantAgentService.createFor(ClaimToken.Builder.newInstance().build());
+        var participantAgent = participantAgentService.createFor(ClaimToken.Builder.newInstance().build(), "test-participant");
 
         assertThat(participantAgent.getAttributes().containsKey("foo")).isTrue();
         verify(extension).attributesFor(isA(ClaimToken.class));
     }
-
+    
     @Test
-    void verifyDefaultIdentityClaim() {
+    void verifyIdentityIsAddedToParticipantAgent() {
         var participantAgentService = new ParticipantAgentServiceImpl();
-        var agent = participantAgentService.createFor(ClaimToken.Builder.newInstance().claim(DEFAULT_IDENTITY_CLAIM_KEY, "test-participant").build());
-
-        assertThat(agent.getIdentity()).isEqualTo("test-participant");
+        var participantId = "test-participant";
+        
+        var participantAgent = participantAgentService.createFor(ClaimToken.Builder.newInstance().build(), participantId);
+        
+        assertThat(participantAgent.getAttributes()).containsEntry(PARTICIPANT_IDENTITY, participantId);
     }
 
     @Test
-    void verifyNoDefaultIdentityClaim() {
+    void verifyGivenIdentityOverridesIdentityCreatedByExtension() {
         var participantAgentService = new ParticipantAgentServiceImpl();
-        var agent = participantAgentService.createFor(ClaimToken.Builder.newInstance().build());
+        var extensionParticipantId = "overridden-participant";
+        var givenParticipantId = "test-participant";
 
-        assertThat(agent.getIdentity()).isNull();
-    }
-
-    @Test
-    void verifyCustomIdentityClaim() {
-        var participantAgentService = new ParticipantAgentServiceImpl("custom-key");
-        var agent = participantAgentService.createFor(ClaimToken.Builder.newInstance().claim("custom-key", "test-participant").build());
-
-        assertThat(agent.getIdentity()).isEqualTo("test-participant");
-    }
-
-    @Test
-    void verifyExtensionCreatesIdentity() {
-        var participantAgentService = new ParticipantAgentServiceImpl();
-
-        ParticipantAgentServiceExtension extension = mock(ParticipantAgentServiceExtension.class);
-        when(extension.attributesFor(isA(ClaimToken.class))).thenReturn(Map.of(PARTICIPANT_IDENTITY, "test-participant"));
+        var extension = mock(ParticipantAgentServiceExtension.class);
+        when(extension.attributesFor(isA(ClaimToken.class))).thenReturn(Map.of(PARTICIPANT_IDENTITY, extensionParticipantId));
         participantAgentService.register(extension);
 
-        var agent = participantAgentService.createFor(ClaimToken.Builder.newInstance().build());
+        var agent = participantAgentService.createFor(ClaimToken.Builder.newInstance().build(), givenParticipantId);
 
-        assertThat(agent.getIdentity()).isEqualTo("test-participant");
+        assertThat(agent.getIdentity())
+                .isNotEqualTo(extensionParticipantId)
+                .isEqualTo(givenParticipantId);
     }
-
-    @Test
-    void verifyExtensionOverridesDefaultIdentityClaim() {
-        var participantAgentService = new ParticipantAgentServiceImpl();
-
-        ParticipantAgentServiceExtension extension = mock(ParticipantAgentServiceExtension.class);
-        when(extension.attributesFor(isA(ClaimToken.class))).thenReturn(Map.of(PARTICIPANT_IDENTITY, "test-participant"));
-        participantAgentService.register(extension);
-
-        var agent = participantAgentService.createFor(ClaimToken.Builder.newInstance().claim(DEFAULT_IDENTITY_CLAIM_KEY, "overriden-identity").build());
-
-        assertThat(agent.getIdentity()).isEqualTo("test-participant");
-    }
-
-
 }

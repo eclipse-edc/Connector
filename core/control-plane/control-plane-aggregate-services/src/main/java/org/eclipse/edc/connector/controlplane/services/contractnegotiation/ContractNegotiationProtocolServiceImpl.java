@@ -10,6 +10,7 @@
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - implementation for provider offer
+ *       Cofinity-X - make participant id extraction dependent on dataspace profile context
  *
  */
 
@@ -196,9 +197,9 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<ContractNegotiation> findById(String id, TokenRepresentation tokenRepresentation) {
+    public ServiceResult<ContractNegotiation> findById(String id, TokenRepresentation tokenRepresentation, String protocol) {
         return transactionContext.execute(() -> getNegotiation(id)
-                .compose(contractNegotiation -> verifyRequest(tokenRepresentation, contractNegotiation.getLastContractOffer().getPolicy(), null)
+                .compose(contractNegotiation -> verifyRequest(tokenRepresentation, contractNegotiation.getLastContractOffer().getPolicy(), protocol)
                         .compose(agent -> validateRequest(agent, contractNegotiation)
                                 .map(it -> contractNegotiation))));
     }
@@ -350,8 +351,13 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                 .flatMap(ServiceResult::from);
     }
 
-    private ServiceResult<ParticipantAgent> verifyRequest(TokenRepresentation tokenRepresentation, Policy policy, RemoteMessage message) {
+    private ServiceResult<ParticipantAgent> verifyRequest(TokenRepresentation tokenRepresentation, Policy policy, @NotNull RemoteMessage message) {
         return protocolTokenValidator.verify(tokenRepresentation, RequestContractNegotiationPolicyContext::new, policy, message)
+                .onFailure(failure -> monitor.debug(() -> "Verification Failed: %s".formatted(failure.getFailureDetail())));
+    }
+    
+    private ServiceResult<ParticipantAgent> verifyRequest(TokenRepresentation tokenRepresentation, Policy policy, String protocol) {
+        return protocolTokenValidator.verify(tokenRepresentation, RequestContractNegotiationPolicyContext::new, policy, null, protocol)
                 .onFailure(failure -> monitor.debug(() -> "Verification Failed: %s".formatted(failure.getFailureDetail())));
     }
 
