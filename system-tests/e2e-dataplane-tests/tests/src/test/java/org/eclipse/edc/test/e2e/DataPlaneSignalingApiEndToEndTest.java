@@ -81,7 +81,7 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
         runtime.getService(PublicEndpointGeneratorService.class)
                 .addGeneratorFunction("HttpData", address -> Endpoint.url(DATAPLANE_PUBLIC_ENDPOINT_URL));
         runtime.getService(PublicEndpointGeneratorService.class)
-                .addGeneratorFunction("HttpData", () -> Endpoint.url(DATAPLANE_PUBLIC_ENDPOINT_URL + "/responseChannel"));
+                .addResponseGeneratorFunction("HttpData", () -> Endpoint.url(DATAPLANE_PUBLIC_ENDPOINT_URL + "/responseChannel"));
     }
 
     @DisplayName("Verify the POST /v1/dataflows endpoint returns the correct EDR (PULL)")
@@ -130,7 +130,7 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
         assertThat(store).isNotNull();
     }
 
-    @DisplayName("Verify the POST /v1/dataflows endpoint returns the correct EDR (PUSH)")
+    @DisplayName("Verify the POST /v1/dataflows endpoint returns no EDR for PUSH")
     @Test
     void startTransfer_push() throws JsonProcessingException {
         seedVault();
@@ -140,7 +140,7 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
         var flowMessage = DataFlowStartMessage.Builder.newInstance()
                 .processId(processId)
                 .sourceDataAddress(DataAddress.Builder.newInstance().type("HttpData").property(EDC_NAMESPACE + "baseUrl", "http://foo.bar/").build())
-                .transferType(new TransferType("HttpData", FlowType.PUSH, "HttpData"))
+                .transferType(new TransferType("HttpData", FlowType.PUSH))
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("HttpData").property(EDC_NAMESPACE + "baseUrl", "http://bar.baz/").build())
                 .participantId("some-participantId")
                 .assetId("test-asset")
@@ -164,13 +164,7 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
                 .orElseThrow(failTest());
 
         var dataAddress = dataFlowResponseMessage.getDataAddress();
-
-        // verify basic shape of the DSPACE data address (=EDR token)
-        assertThat(dataAddress).isNotNull();
-        assertThat(dataAddress.getType()).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
-        assertThat(dataAddress.getStringProperty("endpoint")).isEqualTo(DATAPLANE_PUBLIC_ENDPOINT_URL);
-        assertThat(dataAddress.getStringProperty("authorization")).isNotNull();
-        assertThat(dataAddress.getStringProperty("authType")).isEqualTo("bearer");
+        assertThat(dataAddress).isNull();
 
         // verify that the data flow was created
         var store = runtime.getService(DataPlaneStore.class).findById(processId);
@@ -184,9 +178,18 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
         var jsonLd = runtime.getService(JsonLd.class);
 
         var processId = UUID.randomUUID().toString();
+
+        var sourceDataAddress = DataAddress.Builder.newInstance()
+                .type("HttpData")
+                .property(EDC_NAMESPACE + "baseUrl", "http://foo.bar/")
+                .responseChannel(DataAddress.Builder.newInstance()
+                        .type("HttpData")
+                        .property(EDC_NAMESPACE + "baseUrl", "http://foo.bar/responseChannel")
+                        .build())
+                .build();
         var flowMessage = DataFlowStartMessage.Builder.newInstance()
                 .processId(processId)
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("HttpData").property(EDC_NAMESPACE + "baseUrl", "http://foo.bar/").build())
+                .sourceDataAddress(sourceDataAddress)
                 .transferType(new TransferType("HttpData", FlowType.PULL, "HttpData"))
                 .participantId("some-participantId")
                 .assetId("test-asset")
@@ -234,9 +237,17 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
         var jsonLd = runtime.getService(JsonLd.class);
 
         var processId = UUID.randomUUID().toString();
+        var sourceDataAddress = DataAddress.Builder.newInstance()
+                .type("HttpData")
+                .property(EDC_NAMESPACE + "baseUrl", "http://foo.bar/")
+                .responseChannel(DataAddress.Builder.newInstance()
+                        .type("HttpData")
+                        .property(EDC_NAMESPACE + "baseUrl", "http://foo.bar/responseChannel")
+                        .build())
+                .build();
         var flowMessage = DataFlowStartMessage.Builder.newInstance()
                 .processId(processId)
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("HttpData").property(EDC_NAMESPACE + "baseUrl", "http://foo.bar/").build())
+                .sourceDataAddress(sourceDataAddress)
                 .destinationDataAddress(DataAddress.Builder.newInstance().type("HttpData").property(EDC_NAMESPACE + "baseUrl", "http://bar.baz/").build())
                 .transferType(new TransferType("HttpData", FlowType.PUSH, "HttpData"))
                 .participantId("some-participantId")

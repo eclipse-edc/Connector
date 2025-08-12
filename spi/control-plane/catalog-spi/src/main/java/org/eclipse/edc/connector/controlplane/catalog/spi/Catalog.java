@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - Initial implementation
- *       Fraunhofer Institute for Software and Systems Engineering - add datasets
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - add datasets
  *
  */
 

@@ -113,7 +113,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 @JsonDeserialize(builder = TransferProcess.Builder.class)
 public class TransferProcess extends StatefulEntity<TransferProcess> {
 
-    public static final String TRANSFER_PROCESS_TYPE = EDC_NAMESPACE + "TransferProcess";
+    public static final String TRANSFER_PROCESS_TYPE_TERM = "TransferProcess";
+    public static final String TRANSFER_PROCESS_TYPE = EDC_NAMESPACE + TRANSFER_PROCESS_TYPE_TERM;
     public static final String TRANSFER_PROCESS_CREATED_AT = EDC_NAMESPACE + "createdAt";
     public static final String TRANSFER_PROCESS_CORRELATION_ID = EDC_NAMESPACE + "correlationId";
     public static final String TRANSFER_PROCESS_STATE = EDC_NAMESPACE + "state";
@@ -244,7 +245,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     }
 
     public boolean shouldIgnoreIncomingMessage(@NotNull String messageId) {
-        return protocolMessages.isAlreadyReceived(messageId) || TransferProcessStates.isFinal(state);
+        return protocolMessages.isAlreadyReceived(messageId);
     }
 
     public ProtocolMessages getProtocolMessages() {

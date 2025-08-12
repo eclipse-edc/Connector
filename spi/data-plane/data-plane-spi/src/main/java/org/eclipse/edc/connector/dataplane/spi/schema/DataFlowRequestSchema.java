@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2020, 2021 Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at

@@ -143,8 +143,6 @@ public class ContractManagerExtension implements ServiceExtension {
     }
 
     private void registerServices(ServiceExtensionContext context) {
-        var participantId = context.getParticipantId();
-
         WaitStrategy consumerWaitStrategy;
         WaitStrategy providerWaitStrategy;
         if (context.getConfig().hasKey(DEPRECATED_ITERATION_WAIT_MILLIS_KEY)) {
@@ -159,7 +157,6 @@ public class ContractManagerExtension implements ServiceExtension {
         }
 
         consumerNegotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
-                .participantId(participantId)
                 .waitStrategy(consumerWaitStrategy)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
@@ -176,7 +173,6 @@ public class ContractManagerExtension implements ServiceExtension {
                 .build();
 
         providerNegotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
-                .participantId(participantId)
                 .waitStrategy(providerWaitStrategy)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)

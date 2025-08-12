@@ -62,10 +62,13 @@ import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_CONTEXT;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_V_4_ALPHA;
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
@@ -78,7 +81,6 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 public class ManagementApiConfigurationExtension implements ServiceExtension {
 
     public static final String NAME = "Management API configuration";
-    static final String MANAGEMENT_SCOPE = "MANAGEMENT_API";
     static final int DEFAULT_MANAGEMENT_PORT = 8181;
     static final String DEFAULT_MANAGEMENT_PATH = "/api/management";
     private static final String API_VERSION_JSON_FILE = "management-api-version.json";
@@ -133,6 +135,8 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
             jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, MANAGEMENT_SCOPE);
         }
 
+        jsonLd.registerContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, MANAGEMENT_SCOPE_V4);
+
         webService.registerResource(ApiContext.MANAGEMENT, new ObjectMapperProvider(typeManager, JSON_LD));
         webService.registerResource(ApiContext.MANAGEMENT, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
 
@@ -155,7 +159,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
 
         var managementApiTransformerRegistryV4Alpha = managementApiTransformerRegistry.forContext(MANAGEMENT_API_V_4_ALPHA);
 
-        managementApiTransformerRegistryV4Alpha.register(new JsonObjectFromPolicyTransformer(factory, participantIdMapper, new JsonObjectFromPolicyTransformer.TransformerConfig(true, false)));
+        managementApiTransformerRegistryV4Alpha.register(new JsonObjectFromPolicyTransformer(factory, participantIdMapper, new JsonObjectFromPolicyTransformer.TransformerConfig(true, true)));
 
         registerVersionInfo(getClass().getClassLoader());
     }

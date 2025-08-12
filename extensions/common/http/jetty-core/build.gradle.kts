@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *      Catena-X Consortium - initial API and implementation
- *      Fraunhofer Institute for Software and Systems Engineering - added dependency
+ *      Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - added dependency
  *
  */
 

@@ -14,32 +14,36 @@
 
 package org.eclipse.edc.iam.oauth2.client;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.matching.MultiValuePattern;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2CredentialsRequest;
 import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.HttpRequest;
-import org.mockserver.model.HttpResponse;
-import org.mockserver.model.Parameter;
-import org.mockserver.model.ParameterBody;
-import org.mockserver.model.Parameters;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.badRequest;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-import static org.mockserver.model.MediaType.APPLICATION_JSON;
 
 class Oauth2ClientImplTest {
 
-    private final int port = getFreePort();
-    private final ClientAndServer server = startClientAndServer(port);
+    @RegisterExtension
+    static WireMockExtension server = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
+
     private final TypeManager typeManager = new JacksonTypeManager();
 
     private Oauth2ClientImpl client;
@@ -53,15 +57,12 @@ class Oauth2ClientImplTest {
     void verifyRequestTokenSuccess() {
         var request = createRequest();
 
-        var formParameters = new Parameters(
-                request.getParams().entrySet().stream()
-                        .map(entry -> Parameter.param(entry.getKey(), entry.getValue().toString()))
-                        .collect(Collectors.toList())
-        );
+        var formParameters = request.getParams().entrySet().stream()
+                .map(entry -> Map.entry(entry.getKey(), MultiValuePattern.of(equalTo(entry.getValue().toString()))))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        var expectedRequest = HttpRequest.request().withBody(new ParameterBody(formParameters));
         var responseBody = typeManager.writeValueAsString(Map.of("access_token", "token"));
-        server.when(expectedRequest).respond(HttpResponse.response().withBody(responseBody, APPLICATION_JSON));
+        server.stubFor(post(anyUrl()).withFormParams(formParameters).willReturn(okJson(responseBody)));
 
         var result = client.requestToken(request);
 
@@ -73,15 +74,13 @@ class Oauth2ClientImplTest {
     void verifyRequestTokenSuccess_withExpiresIn() {
         var request = createRequest();
 
-        var formParameters = new Parameters(
-                request.getParams().entrySet().stream()
-                        .map(entry -> Parameter.param(entry.getKey(), entry.getValue().toString()))
-                        .collect(Collectors.toList())
-        );
+        var formParameters = request.getParams().entrySet().stream()
+                .map(entry -> Map.entry(entry.getKey(), MultiValuePattern.of(equalTo(entry.getValue().toString()))))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        var expectedRequest = HttpRequest.request().withBody(new ParameterBody(formParameters));
+
         var responseBody = typeManager.writeValueAsString(Map.of("access_token", "token", "expires_in", 1800));
-        server.when(expectedRequest).respond(HttpResponse.response().withBody(responseBody, APPLICATION_JSON));
+        server.stubFor(post(anyUrl()).withFormParams(formParameters).willReturn(okJson(responseBody)));
 
         var result = client.requestToken(request);
 
@@ -95,15 +94,12 @@ class Oauth2ClientImplTest {
     void verifyRequestTokenSuccess_withExpiresIn_whenNotNumber() {
         var request = createRequest();
 
-        var formParameters = new Parameters(
-                request.getParams().entrySet().stream()
-                        .map(entry -> Parameter.param(entry.getKey(), entry.getValue().toString()))
-                        .collect(Collectors.toList())
-        );
+        var formParameters = request.getParams().entrySet().stream()
+                .map(entry -> Map.entry(entry.getKey(), MultiValuePattern.of(equalTo(entry.getValue().toString()))))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        var expectedRequest = HttpRequest.request().withBody(new ParameterBody(formParameters));
         var responseBody = typeManager.writeValueAsString(Map.of("access_token", "token", "expires_in", "wrong"));
-        server.when(expectedRequest).respond(HttpResponse.response().withBody(responseBody, APPLICATION_JSON));
+        server.stubFor(post(anyUrl()).withFormParams(formParameters).willReturn(okJson(responseBody)));
 
         var result = client.requestToken(request);
 
@@ -116,15 +112,12 @@ class Oauth2ClientImplTest {
     void verifyRequestTokenSuccess_withAdditionalProperties() {
         var request = createRequest();
 
-        var formParameters = new Parameters(
-                request.getParams().entrySet().stream()
-                        .map(entry -> Parameter.param(entry.getKey(), entry.getValue().toString()))
-                        .collect(Collectors.toList())
-        );
+        var formParameters = request.getParams().entrySet().stream()
+                .map(entry -> Map.entry(entry.getKey(), MultiValuePattern.of(equalTo(entry.getValue().toString()))))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        var expectedRequest = HttpRequest.request().withBody(new ParameterBody(formParameters));
         var responseBody = typeManager.writeValueAsString(Map.of("access_token", "token", "expires_in", 1800, "scope", "test"));
-        server.when(expectedRequest).respond(HttpResponse.response().withBody(responseBody, APPLICATION_JSON));
+        server.stubFor(post(anyUrl()).withFormParams(formParameters).willReturn(okJson(responseBody)));
 
         var result = client.requestToken(request);
 
@@ -137,7 +130,7 @@ class Oauth2ClientImplTest {
     @Test
     void verifyFailureIfServerCallFails() {
         var request = createRequest();
-        server.when(HttpRequest.request()).respond(HttpResponse.response().withStatusCode(400));
+        server.stubFor(post(anyUrl()).willReturn(badRequest()));
 
         var result = client.requestToken(request);
 
@@ -147,9 +140,8 @@ class Oauth2ClientImplTest {
 
     @Test
     void verifyFailureIfServerIsNotReachable() {
-        server.stop();
 
-        var request = createRequest();
+        var request = createRequest(getFreePort());
 
         var result = client.requestToken(request);
 
@@ -158,6 +150,10 @@ class Oauth2ClientImplTest {
     }
 
     private Oauth2CredentialsRequest createRequest() {
+        return createRequest(server.getPort());
+    }
+
+    private Oauth2CredentialsRequest createRequest(int port) {
         return SharedSecretOauth2CredentialsRequest.Builder.newInstance()
                 .url("http://localhost:" + port)
                 .clientId("clientId")

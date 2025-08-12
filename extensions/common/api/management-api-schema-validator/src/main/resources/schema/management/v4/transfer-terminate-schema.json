@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "TransferTerminateSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/TerminateTransfer"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/transfer-terminate-schema.json",
+  "definitions": {
+    "TerminateTransfer": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "TerminateTransfer"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "@context",
+        "@type"
+      ]
+    }
+  }
+}

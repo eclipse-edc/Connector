@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "ContractOfferSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/ContractOffer"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/contract-offer-schema.json",
+  "definitions": {
+    "ContractOffer": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "https://w3id.org/dspace/2025/1/negotiation/contract-schema.json#/definitions/MessageOffer"
+        },
+        {
+          "properties": {
+            "assigner": {
+              "type": "string"
+            }
+          }
+        }
+      ],
+      "required": [
+        "assigner",
+        "target"
+      ]
+    }
+  }
+}

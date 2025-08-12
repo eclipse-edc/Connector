@@ -149,16 +149,16 @@ public class BitString {
                 return Result.failure("The encoded list is using the Base58-BTC alphabet ('z' multibase header), which is not supported.");
             }
             return Result.ofThrowable(() -> {
-                        var localDecoder = decoder;
-                        var sanitizedEncodedList = encodedList;
-                        if (encodedList.startsWith("u")) {
-                            localDecoder = Base64.getUrlDecoder();
-                            sanitizedEncodedList = encodedList.substring(1); // chop off header
-                        }
-                        return localDecoder.decode(sanitizedEncodedList);
-                    })
-                           .compose(this::decompress)
-                           .map(bytes -> new BitString(bytes, leftToRightIndexing));
+                var localDecoder = decoder;
+                var sanitizedEncodedList = encodedList;
+                if (encodedList.startsWith("u")) {
+                    localDecoder = Base64.getUrlDecoder();
+                    sanitizedEncodedList = encodedList.substring(1); // chop off header
+                }
+                return localDecoder.decode(sanitizedEncodedList);
+            })
+            .compose(this::decompress)
+            .map(bytes -> new BitString(bytes, leftToRightIndexing));
         }
 
         private Result<byte[]> decompress(byte[] bytes) {
@@ -193,14 +193,14 @@ public class BitString {
 
         public Result<String> write(BitString bitString) {
             return compress(bitString.bits)
-                           .compose(compressed -> Result.ofThrowable(() -> encoder.encodeToString(compressed)));
+                    .compose(compressed -> Result.ofThrowable(() -> encoder.encodeToString(compressed)));
 
         }
 
         public Result<String> writeMultibase(BitString bitString) {
             // Multibase encoding _always_ uses Base64 URL encoding without padding, ignores configured encoder
             return compress(bitString.bits)
-                           .compose(compressed -> Result.ofThrowable(() -> "u" + Base64.getUrlEncoder().withoutPadding().encodeToString(compressed)));
+                    .compose(compressed -> Result.ofThrowable(() -> "u" + Base64.getUrlEncoder().withoutPadding().encodeToString(compressed)));
 
         }
 

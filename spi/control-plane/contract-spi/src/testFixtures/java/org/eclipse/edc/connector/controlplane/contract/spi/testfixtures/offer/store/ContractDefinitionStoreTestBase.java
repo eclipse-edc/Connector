@@ -12,7 +12,7 @@
  *       Microsoft Corporation - Method signature change
  *       Microsoft Corporation - refactoring
  *       Microsoft Corporation - added tests
- *       Fraunhofer Institute for Software and Systems Engineering - added tests
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - added tests
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *       SAP SE - SAP SE - add private properties to contract definition
  *

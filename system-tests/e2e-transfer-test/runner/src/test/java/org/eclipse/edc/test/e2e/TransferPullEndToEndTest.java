@@ -14,14 +14,14 @@
 
 package org.eclipse.edc.test.e2e;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpMethod;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures;
@@ -47,41 +47,40 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockserver.mock.action.ExpectationResponseCallback;
-import org.mockserver.model.HttpRequest;
-import org.mockserver.model.HttpResponse;
-import org.mockserver.model.HttpStatusCode;
-import org.mockserver.model.MediaType;
 
+import java.io.IOException;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static java.time.Duration.ofDays;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static okhttp3.MediaType.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.inForceDatePolicy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
-import static org.mockserver.stop.Stop.stopQuietly;
 
 
 class TransferPullEndToEndTest {
@@ -90,31 +89,32 @@ class TransferPullEndToEndTest {
 
         private static final ObjectMapper MAPPER = new ObjectMapper();
 
+        @RegisterExtension
+        static WireMockExtension callbacksEndpoint = WireMockExtension.newInstance()
+                .options(wireMockConfig().dynamicPort())
+                .build();
+
+
         private static @NotNull Map<String, Object> httpSourceDataAddress() {
-            return Map.of(
+            return new HashMap<>(Map.of(
                     EDC_NAMESPACE + "name", "transfer-test",
                     EDC_NAMESPACE + "baseUrl", "http://any/source",
                     EDC_NAMESPACE + "type", "HttpData"
-            );
+            ));
         }
 
         @Test
-        void httpPull_dataTransfer_withCallbacks() {
-            var callbacksEndpoint = startClientAndServer(getFreePort());
+        void httpPull_dataTransfer_withCallbacks() throws IOException {
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, httpSourceDataAddress());
 
-            var callbackUrl = String.format("http://localhost:%d/hooks", callbacksEndpoint.getLocalPort());
+            var callbackUrl = String.format("http://localhost:%d/hooks", callbacksEndpoint.getPort());
             var callbacks = Json.createArrayBuilder()
                     .add(createCallback(callbackUrl, true, Set.of("transfer.process.started")))
                     .build();
 
-            var request = request().withPath("/hooks")
-                    .withMethod(HttpMethod.POST.name());
 
-            var events = new ConcurrentHashMap<String, TransferProcessStarted>();
-
-            callbacksEndpoint.when(request).respond(req -> this.cacheEdr(req, events));
+            callbacksEndpoint.stubFor(post("/hooks").willReturn(okJson("{}")));
 
             var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
                     .withTransferType("HttpData-PULL")
@@ -123,13 +123,18 @@ class TransferPullEndToEndTest {
 
             CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
 
-            await().atMost(timeout).untilAsserted(() -> assertThat(events.get(transferProcessId)).isNotNull());
+            await().atMost(timeout).untilAsserted(() -> callbacksEndpoint.verify(postRequestedFor(urlEqualTo("/hooks"))));
 
-            var event = events.get(transferProcessId);
+            var requests = callbacksEndpoint.getAllServeEvents();
+            assertThat(requests).hasSize(1);
+            var request = requests.get(0).getRequest();
+
+            var event = MAPPER.readValue(request.getBody(), new TypeReference<EventEnvelope<TransferProcessStarted>>() {
+            });
+
             var msg = UUID.randomUUID().toString();
-            await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(event.getDataAddress(), Map.of("message", msg), body -> assertThat(body).isEqualTo("data")));
+            await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(event.getPayload().getDataAddress(), Map.of("message", msg), body -> assertThat(body).isEqualTo("data")));
 
-            stopQuietly(callbacksEndpoint);
         }
 
         @Test
@@ -147,6 +152,27 @@ class TransferPullEndToEndTest {
             var edrEntry = assertConsumerCanAccessData(transferProcessId);
 
             assertConsumerCanNotAccessData(transferProcessId, edrEntry);
+        }
+
+        @Test
+        void httpPull_dataTransfer_withHttpResponseChannel() {
+            var assetId = UUID.randomUUID().toString();
+            var responseChannel = Map.of(
+                    EDC_NAMESPACE + "name", "transfer-test",
+                    EDC_NAMESPACE + "baseUrl", "http://any/response/channel",
+                    EDC_NAMESPACE + "type", "HttpData"
+            );
+            var sourceDataAddress = httpSourceDataAddress();
+            sourceDataAddress.put(EDC_NAMESPACE + "responseChannel", responseChannel);
+            createResourcesOnProvider(assetId, PolicyFixtures.contractExpiresIn("30s"), sourceDataAddress);
+
+            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                    .withTransferType("HttpData-PULL-HttpData")
+                    .execute();
+
+            CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
+            assertConsumerCanSendResponse(transferProcessId);
+
         }
 
         @Test
@@ -204,13 +230,16 @@ class TransferPullEndToEndTest {
 
         @Test
         void pullFromHttp_httpProvision() {
-            var provisionServer = startClientAndServer(PROVIDER.getHttpProvisionerPort());
-            provisionServer.when(request("/provision")).respond(new HttpProvisionerCallback());
+
+            var provisionServer = new WireMockServer(options().port(PROVIDER.getHttpProvisionerPort()));
+
+            provisionServer.stubFor(post(urlEqualTo("/provision")).willReturn(ok()));
+            provisionServer.start();
 
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(assetId, Map.of(
                     "name", "transfer-test",
-                    "baseUrl", "http://localhost:" + provisionServer.getPort() + "/provision",
+                    "baseUrl", "http://localhost:" + provisionServer.port() + "/provision",
                     "type", "HttpProvision",
                     "proxyQueryParams", "true"
             ));
@@ -219,23 +248,34 @@ class TransferPullEndToEndTest {
                     .withTransferType("HttpData-PULL")
                     .execute();
 
+            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, REQUESTED);
+
+            var providerTransferProcessId = new AtomicReference<String>();
+
+            await().untilAsserted(() -> {
+                var ptId = PROVIDER.getTransferProcesses().stream()
+                        .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
+                        .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
+
+                assertThat(ptId).isNotNull();
+                providerTransferProcessId.set(ptId);
+            });
+
+            provision(provisionServer);
+
+            provisionServer.verify(postRequestedFor(urlEqualTo("/provision")));
+            provisionServer.resetRequests();
+
             CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
 
             assertConsumerCanAccessData(consumerTransferProcessId);
 
-            provisionServer.verify(request("/provision"));
-            provisionServer.clear(request("provision"));
+            PROVIDER.terminateTransfer(providerTransferProcessId.get());
+            PROVIDER.awaitTransferToBeInState(providerTransferProcessId.get(), DEPROVISIONED);
 
-            var providerTransferProcessId = PROVIDER.getTransferProcesses().stream()
-                    .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
-                    .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
+            provisionServer.verify(postRequestedFor(urlEqualTo("/provision")));
 
-            PROVIDER.terminateTransfer(providerTransferProcessId);
-            PROVIDER.awaitTransferToBeInState(providerTransferProcessId, DEPROVISIONED);
-
-            provisionServer.verify(request("/provision"));
-
-            stopQuietly(provisionServer);
+            provisionServer.stop();
         }
 
         @Test
@@ -347,33 +387,17 @@ class TransferPullEndToEndTest {
             );
         }
 
-        private HttpResponse cacheEdr(HttpRequest request, Map<String, TransferProcessStarted> events) {
+        private void assertConsumerCanSendResponse(String consumerTransferProcessId) {
+            var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(consumerTransferProcessId), Objects::nonNull);
+            await().atMost(timeout).untilAsserted(() -> CONSUMER.postResponse(edr, body -> assertThat(body).isEqualTo("response received")));
+        }
 
+        private void provision(WireMockServer provisionServer) {
+            var events = provisionServer.getAllServeEvents();
+            assertThat(events).hasSize(1);
+            var request = events.get(0).getRequest();
             try {
-                var event = MAPPER.readValue(request.getBody().toString(), new TypeReference<EventEnvelope<TransferProcessStarted>>() {
-                });
-                events.put(event.getPayload().getTransferProcessId(), event.getPayload());
-                return response()
-                        .withStatusCode(HttpStatusCode.OK_200.code())
-                        .withHeader(HttpHeaderNames.CONTENT_TYPE.toString(), MediaType.PLAIN_TEXT_UTF_8.toString())
-                        .withBody("{}");
-
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        private record EdrMessage(DataAddress address, String message) {
-        }
-
-        /**
-         * Mocked http provisioner
-         */
-        private static class HttpProvisionerCallback implements ExpectationResponseCallback {
-
-            @Override
-            public HttpResponse handle(HttpRequest httpRequest) throws Exception {
-                var requestBody = MAPPER.readValue(httpRequest.getBodyAsString(), Map.class);
+                var requestBody = MAPPER.readValue(request.getBody(), Map.class);
 
                 if ("provision".equals(requestBody.get("type"))) {
                     var callbackRequestBody = Map.of(
@@ -388,21 +412,26 @@ class TransferPullEndToEndTest {
 
                     Executors.newScheduledThreadPool(1).schedule(() -> {
                         try {
-                            var request = new Request.Builder()
+                            var provisionRequest = new Request.Builder()
                                     .url("%s/%s/provision".formatted(requestBody.get("callbackAddress"), requestBody.get("transferProcessId")))
-                                    .post(RequestBody.create(MAPPER.writeValueAsString(callbackRequestBody), get("application/json")))
+                                    .post(RequestBody.create(MAPPER.writeValueAsString(callbackRequestBody), MediaType.get("application/json")))
                                     .build();
 
-                            testHttpClient().execute(request).close();
+                            testHttpClient().execute(provisionRequest).close();
                         } catch (Exception e) {
                             throw new EdcException(e);
                         }
                     }, 1, SECONDS);
                 }
-
-                return response();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
+
         }
+
+        private record EdrMessage(DataAddress address, String message) {
+        }
+
     }
 
     @Nested

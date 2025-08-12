@@ -4,8 +4,9 @@ on:
   workflow_dispatch:
 
 jobs:
+
   Release:
-    uses: eclipse-edc/.github/.github/workflows/core-release.yml@main
+    uses: eclipse-edc/.github/.github/workflows/release.yml@main
     secrets: inherit
     with:
       publish-autodoc: true

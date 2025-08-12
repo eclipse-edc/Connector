@@ -28,6 +28,5 @@ dependencies {
     testImplementation(project(":core:common:lib:util-lib"))
     testImplementation(project(":tests:junit-base"))
 
-    testImplementation(libs.mockserver.netty)
-    testImplementation(libs.mockserver.client)
+    testImplementation(libs.wiremock)
 }

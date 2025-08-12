@@ -33,8 +33,6 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.jersey.multipart)
     testImplementation(libs.restAssured)
-    testImplementation(libs.mockserver.netty)
-    testImplementation(libs.mockserver.client)
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
 }
 edcBuild {

@@ -83,7 +83,7 @@ public class DspApiConfigurationV2025Extension implements ServiceExtension {
         registerNamespaces();
         registerTransformers();
 
-        dataspaceProfileContextRegistry.registerDefault(new DataspaceProfileContext(DATASPACE_PROTOCOL_HTTP_V_2025_1, V_2025_1, () -> dspWebhookAddress.get() + V_2025_1_PATH));
+        dataspaceProfileContextRegistry.registerDefault(new DataspaceProfileContext(DATASPACE_PROTOCOL_HTTP_V_2025_1, V_2025_1, () -> dspWebhookAddress.get() + V_2025_1_PATH, context.getParticipantId()));
     }
 
     private void registerNamespaces() {

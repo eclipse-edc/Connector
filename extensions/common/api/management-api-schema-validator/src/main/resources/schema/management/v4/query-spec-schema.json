@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "QuertSpecSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/QuerySpecRoot"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/query-spec-schema.json",
+  "definitions": {
+    "QuerySpec": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string",
+          "const": "QuerySpec"
+        },
+        "offset": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sortField": {
+          "type": "string"
+        },
+        "sortOrder": {
+          "type": "string",
+          "enum": [
+            "ASC",
+            "DESC"
+          ]
+        },
+        "filterExpression": {
+          "type": "array",
+          "items": {
+            "$ref": "https://w3id.org/edc/connector/management/schema/v4/query-spec-schema.json#/definitions/Criterion"
+          }
+        }
+      },
+      "required": [
+        "@type"
+      ]
+    },
+    "QuerySpecRoot": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/QuerySpec"
+        },
+        {
+          "properties": {
+            "@context": {
+              "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+            }
+          }
+        }
+      ],
+      "required": [
+        "@context",
+        "@type"
+      ]
+    },
+    "Criterion": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string",
+          "const": "Criterion"
+        },
+        "operandLeft": {
+          "type": "string"
+        },
+        "operandRight": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "object"
+          ]
+        },
+        "operator": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "@type",
+        "operandLeft",
+        "operandRight",
+        "operator"
+      ]
+    }
+  }
+}

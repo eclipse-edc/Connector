@@ -25,8 +25,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  */
 public class EndpointDataReferenceEntry extends Entity {
 
-    public static final String SIMPLE_TYPE = "EndpointDataReferenceEntry";
-    public static final String EDR_ENTRY_TYPE = EDC_NAMESPACE + SIMPLE_TYPE;
+    public static final String EDR_ENTRY_TYPE_TERM = "EndpointDataReferenceEntry";
+    public static final String EDR_ENTRY_TYPE = EDC_NAMESPACE + EDR_ENTRY_TYPE_TERM;
 
     public static final String ASSET_ID = "assetId";
     public static final String EDR_ENTRY_ASSET_ID = EDC_NAMESPACE + ASSET_ID;

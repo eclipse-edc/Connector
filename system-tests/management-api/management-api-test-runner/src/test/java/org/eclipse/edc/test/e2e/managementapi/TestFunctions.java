@@ -33,8 +33,10 @@ import org.eclipse.edc.policy.engine.spi.plan.step.PermissionStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.ProhibitionStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.ValidatorStep;
 import org.eclipse.edc.policy.engine.spi.plan.step.XoneConstraintStep;
+import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
+import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -55,10 +57,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.policy.model.Operator.EQ;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT;
-import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
-import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.IS_TRANSACTIONAL;
-import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.URI;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -74,17 +72,24 @@ public class TestFunctions {
     private static final String DEFINITION_ID = "some-definition-id";
     private static final String POLICY_ID = "some-policy-id";
 
-    public static JsonArrayBuilder createContextBuilder() {
+    public static JsonArrayBuilder createContextBuilder(String context) {
         return createArrayBuilder()
-                .add(EDC_CONNECTOR_MANAGEMENT_CONTEXT);
+                .add(context);
     }
 
-    public static JsonObject assetObject() {
+    public static JsonObject assetObject(String context) {
         return createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
+                .add(CONTEXT, createContextBuilder(context).build())
                 .add(TYPE, "Asset")
                 .add(ID, TEST_ASSET_ID)
                 .add("properties", createObjectBuilder()
+                        .add("name", TEST_ASSET_NAME)
+                        .add("id", TEST_ASSET_ID)
+                        .add("description", TEST_ASSET_DESCRIPTION)
+                        .add("version", TEST_ASSET_VERSION)
+                        .add("contenttype", TEST_ASSET_CONTENTTYPE)
+                        .build())
+                .add("privateProperties", createObjectBuilder()
                         .add("name", TEST_ASSET_NAME)
                         .add("id", TEST_ASSET_ID)
                         .add("description", TEST_ASSET_DESCRIPTION)
@@ -95,9 +100,9 @@ public class TestFunctions {
                 .build();
     }
 
-    public static JsonObject dataAddressObject() {
+    public static JsonObject dataAddressObject(String context) {
         return createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
+                .add(CONTEXT, createContextBuilder(context).build())
                 .add(TYPE, "DataAddress")
                 .add("type", "address-type")
                 .add("propertyOne", "foo")
@@ -105,7 +110,21 @@ public class TestFunctions {
                 .build();
     }
 
-    public static JsonObject contractDefinitionObject() {
+    public static JsonObject dataPaneInstanceObject(String context) {
+        return createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "DataPlaneInstance")
+                .add(ID, "data-plane-instance-id")
+                .add("url", "http://test.local/")
+                .add("lastActive", 1234567890L)
+                .add("allowedSourceTypes", createArrayBuilder().add("Source"))
+                .add("allowedTransferTypes", createArrayBuilder().add("TransferType"))
+                .add("destinationProvisionTypes", createArrayBuilder().add("ProvisionType"))
+                .add("stateTimestamp", 1234567890L)
+                .build();
+    }
+
+    public static JsonObject contractDefinitionObject(String context) {
         var criterion = Json.createObjectBuilder()
                 .add(TYPE, "Criterion")
                 .add("operandLeft", "foo")
@@ -118,47 +137,53 @@ public class TestFunctions {
                 .build();
 
         return createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
+                .add(CONTEXT, createContextBuilder(context).build())
                 .add(TYPE, "ContractDefinition")
                 .add(ID, DEFINITION_ID)
                 .add("accessPolicyId", "accessPolicyId")
                 .add("contractPolicyId", "contractPolicyId")
                 .add("assetsSelector", assetsSelectorJson)
+                .add("privateProperties", createObjectBuilder()
+                        .add("name", "contract-definition-name")
+                        .add("id", DEFINITION_ID)
+                        .add("description", "contract definition description")
+                        .build())
                 .build();
 
     }
 
-    public static JsonObject terminateNegotiationObject() {
+    public static JsonObject terminateNegotiationObject(String context) {
         return Json.createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
+                .add(CONTEXT, createContextBuilder(context).build())
                 .add(TYPE, "TerminateNegotiation")
                 .add("reason", "reason")
                 .build();
     }
 
-    public static JsonObject terminateTransferObject() {
+    public static JsonObject terminateTransferObject(String context) {
         return Json.createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
+                .add(CONTEXT, createContextBuilder(context).build())
                 .add(TYPE, "TerminateTransfer")
                 .add("reason", "reason")
                 .build();
     }
 
-    public static JsonObject suspendTransferObject() {
+    public static JsonObject suspendTransferObject(String context) {
         return Json.createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
+                .add(CONTEXT, createContextBuilder(context).build())
                 .add(TYPE, "SuspendTransfer")
                 .add("reason", "reason")
                 .build();
     }
 
-    public static JsonObject contractRequestObject() {
-        var policy = policy(atomicConstraint("spatial", "eq", "https://www.wikidata.org/wiki/Q183"))
+    public static JsonObject contractRequestObject(String context, boolean alwaysArray) {
+        var permission = inForceDatePermission("gteq", "contractAgreement+0s", "lteq", "contractAgreement+10s", alwaysArray);
+        var policy = policy(permission, "Offer", alwaysArray)
                 .add(ID, "id")
                 .add("assigner", "provider")
                 .build();
         return Json.createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
+                .add(CONTEXT, createContextBuilder(context).build())
                 .add(TYPE, "ContractRequest")
                 .add("counterPartyAddress", "test-address")
                 .add("protocol", "test-protocol")
@@ -167,22 +192,44 @@ public class TestFunctions {
                 .build();
     }
 
-    public static JsonObject transferRequestObject() {
+    public static JsonObject datasetRequestObject(String context) {
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "DatasetRequest")
+                .add(ID, "dataset-request-id")
+                .add("counterPartyAddress", "test-address")
+                .add("counterPartyId", "test-counter-party-id")
+                .add("protocol", "test-protocol")
+                .build();
+    }
+
+    public static JsonObject catalogRequestObject(String context) {
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "CatalogRequest")
+                .add("counterPartyAddress", "test-address")
+                .add("counterPartyId", "test-counter-party-id")
+                .add("protocol", "test-protocol")
+                .add("querySpec", embeddedQuerySpec())
+                .build();
+    }
+
+    public static JsonObject transferRequestObject(String context) {
         var dataDestination = createObjectBuilder()
                 .add(TYPE, "DataAddress")
                 .add("type", "type").build();
 
-        return transferRequestObject(dataDestination);
+        return transferRequestObject(context, dataDestination);
     }
 
-    public static JsonObject transferRequestObject(JsonObject dataDestination) {
+    public static JsonObject transferRequestObject(String context, JsonObject dataDestination) {
         var propertiesJson = Json.createObjectBuilder().add("foo", "bar").build();
         var privatePropertiesJson = Json.createObjectBuilder().add("fooPrivate", "bar").build();
 
 
         return createObjectBuilder()
                 .add(TYPE, "TransferRequest")
-                .add(CONTEXT, createContextBuilder().build())
+                .add(CONTEXT, createContextBuilder(context).build())
                 .add(ID, "id")
                 .add("counterPartyAddress", "address")
                 .add("contractId", "contractId")
@@ -201,7 +248,12 @@ public class TestFunctions {
                 .providerId("providerId")
                 .consumerId("consumerId")
                 .assetId("assetId")
-                .policy(Policy.Builder.newInstance().type(PolicyType.CONTRACT).build())
+                .policy(Policy.Builder.newInstance().type(PolicyType.CONTRACT)
+                        .target("assetId")
+                        .assignee("providerId")
+                        .assigner("consumerId")
+                        .permission(Permission.Builder.newInstance().action(Action.Builder.newInstance().type("use").build()).build())
+                        .build())
                 .build();
     }
 
@@ -236,8 +288,10 @@ public class TestFunctions {
                 .correlationId("correlationId")
                 .assetId("assetId")
                 .contractId("contractId")
+                .transferType("myTransferType")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").properties(Map.of("bar", "foo")).build())
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("http://any").events(emptySet()).build()))
+                .privateProperties(Map.of("fooPrivate", "bar"))
                 .errorDetail("an error")
                 .build();
     }
@@ -267,8 +321,8 @@ public class TestFunctions {
         var andConstraintStep = new AndConstraintStep(constraints, mock());
         var xoneConstraintStep = new XoneConstraintStep(constraints, mock());
 
-        var permission = PermissionStep.Builder.newInstance().constraint(orConstraintStep).rule(mock()).build();
         var duty = DutyStep.Builder.newInstance().constraint(xoneConstraintStep).rule(mock()).build();
+        var permission = PermissionStep.Builder.newInstance().constraint(orConstraintStep).dutyStep(duty).rule(mock()).build();
         var prohibition = ProhibitionStep.Builder.newInstance().constraint(andConstraintStep).rule(mock()).build();
 
         var validatorFunction = mock(PolicyValidatorRule.class);
@@ -283,27 +337,40 @@ public class TestFunctions {
                 .build();
     }
 
-    public static JsonObject policyDefinitionObject() {
+    public static JsonObject policyDefinitionObject(String context) {
+        return policyDefinitionObject(context, false);
+    }
+
+    public static JsonObject policyDefinitionObject(String context, boolean alwaysArray) {
         return createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
+                .add(CONTEXT, createContextBuilder(context).build())
                 .add(TYPE, "PolicyDefinition")
                 .add(ID, POLICY_ID)
-                .add("policy", inForceDatePolicy("gteq", "contractAgreement+0s", "lteq", "contractAgreement+10s"))
+                .add("policy", inForceDatePolicy("gteq", "contractAgreement+0s", "lteq", "contractAgreement+10s", alwaysArray))
+                .add("privateProperties", createObjectBuilder()
+                        .add("name", "policy-definition-name")
+                        .add("id", POLICY_ID)
+                        .add("description", "policy definition description")
+                        .build())
                 .build();
     }
 
-    public static JsonObject policyDefinitionObject(JsonObject permission) {
+    public static JsonObject policyDefinitionObject(String context, JsonObject permission) {
+        return policyDefinitionObject(context, permission, false);
+    }
+
+    public static JsonObject policyDefinitionObject(String context, JsonObject permission, boolean alwaysArray) {
         return createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
+                .add(CONTEXT, createContextBuilder(context).build())
                 .add(TYPE, "PolicyDefinition")
                 .add(ID, POLICY_ID)
-                .add("policy", policy(permission))
+                .add("policy", policy(permission, alwaysArray))
                 .build();
     }
 
-    public static JsonObject secretObject() {
+    public static JsonObject secretObject(String context) {
         return createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
+                .add(CONTEXT, createContextBuilder(context).build())
                 .add(TYPE, "Secret")
                 .add(ID, "secret-id")
                 .add("value", "superSecret")
@@ -313,27 +380,35 @@ public class TestFunctions {
     private static JsonArrayBuilder createCallbackAddress() {
         var builder = Json.createArrayBuilder();
         return builder.add(Json.createObjectBuilder()
-                .add(IS_TRANSACTIONAL, true)
-                .add(URI, "http://test.local/")
-                .add(EVENTS, Json.createArrayBuilder().build()));
+                .add("@type", "CallbackAddress")
+                .add("transactional", true)
+                .add("uri", "http://test.local/")
+                .add("events", Json.createArrayBuilder().add("event").build()));
     }
 
-    public static JsonObjectBuilder policy(JsonObject permission) {
-        return policy(permission, "Set");
+    public static JsonObjectBuilder policy(JsonObject permission, boolean alwaysArray) {
+        return policy(permission, "Set", alwaysArray);
     }
 
-    public static JsonObjectBuilder policy(JsonObject permission, String type) {
-        return createObjectBuilder()
+    public static JsonObjectBuilder policy(JsonObject permission, String type, boolean alwaysArray) {
+        var permissionValue = alwaysArray ? createArrayBuilder().add(permission).build() : permission;
+
+        var builder = createObjectBuilder()
                 .add(TYPE, type)
-                .add("obligation", createArrayBuilder().build())
-                .add("permission", permission)
-                .add("target", "assetId")
-                .add("prohibition", createArrayBuilder().build());
+                .add("permission", permissionValue)
+                .add("target", "assetId");
+
+        if (!alwaysArray) {
+            builder.add("prohibition", createArrayBuilder().build())
+                    .add("obligation", createArrayBuilder().build());
+
+        }
+        return builder;
     }
 
-    public static JsonObject querySpecObject() {
+    public static JsonObject querySpecObject(String context) {
         return querySpecObject(createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build()));
+                .add(CONTEXT, createContextBuilder(context).build()));
     }
 
     public static JsonObject querySpecObject(JsonObjectBuilder builder) {
@@ -359,8 +434,8 @@ public class TestFunctions {
         return querySpecObject(createObjectBuilder());
     }
 
-    public static JsonObject inForceDatePolicy(String operatorStart, Object startDate, String operatorEnd, Object endDate) {
-        return policy(inForceDatePermission(operatorStart, startDate, operatorEnd, endDate)).build();
+    public static JsonObject inForceDatePolicy(String operatorStart, Object startDate, String operatorEnd, Object endDate, boolean alwaysArray) {
+        return policy(inForceDatePermission(operatorStart, startDate, operatorEnd, endDate, alwaysArray), alwaysArray).build();
     }
 
     public static JsonObject atomicConstraint(String leftOperand, String operator, Object rightOperand) {
@@ -372,20 +447,27 @@ public class TestFunctions {
     }
 
     public static JsonObject inForceDatePermission(String operatorStart, Object startDate, String operatorEnd, Object endDate) {
+        return inForceDatePermission(operatorStart, startDate, operatorEnd, endDate, false);
+    }
+
+    public static JsonObject inForceDatePermission(String operatorStart, Object startDate, String operatorEnd, Object endDate, boolean alwaysArray) {
+
+        var and = createObjectBuilder()
+                .add("and", createArrayBuilder()
+                        .add(atomicConstraint("inForceDate", operatorStart, startDate))
+                        .add(atomicConstraint("inForceDate", operatorEnd, endDate))
+                        .build())
+                .build();
+        var constraint = alwaysArray ? createArrayBuilder().add(and).build() : and;
         return createObjectBuilder()
                 .add("action", "use")
-                .add("constraint", createObjectBuilder()
-                        .add("and", createArrayBuilder()
-                                .add(atomicConstraint("inForceDate", operatorStart, startDate))
-                                .add(atomicConstraint("inForceDate", operatorEnd, endDate))
-                                .build())
-                        .build())
+                .add("constraint", constraint)
                 .build();
     }
 
-    public static JsonObject policyEvaluationPlanRequest() {
+    public static JsonObject policyEvaluationPlanRequest(String context) {
         return Json.createObjectBuilder()
-                .add(CONTEXT, createContextBuilder().build())
+                .add(CONTEXT, createContextBuilder(context).build())
                 .add(TYPE, "PolicyEvaluationPlanRequest")
                 .add("policyScope", "catalog")
                 .build();

@@ -23,8 +23,7 @@ dependencies {
     testImplementation(project(":core:common:lib:json-lib"))
     testImplementation(project(":core:common:lib:util-lib"))
     testImplementation(testFixtures(project(":core:common:lib:http-lib")))
-    testImplementation(libs.mockserver.netty)
-    testImplementation(libs.mockserver.client)
+    testImplementation(libs.wiremock)
 }
 
 

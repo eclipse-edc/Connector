@@ -85,7 +85,7 @@ public class DspApiConfigurationV08Extension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        dataspaceProfileContextRegistry.registerDefault(new DataspaceProfileContext(DATASPACE_PROTOCOL_HTTP, V_08, () -> dspWebhookAddress.get()));
+        dataspaceProfileContextRegistry.registerDefault(new DataspaceProfileContext(DATASPACE_PROTOCOL_HTTP, V_08, () -> dspWebhookAddress.get(), context.getParticipantId()));
 
         // registers ns for DSP scope
         registerNamespaces();

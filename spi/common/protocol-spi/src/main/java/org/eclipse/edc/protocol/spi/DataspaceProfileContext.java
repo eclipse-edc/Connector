@@ -21,6 +21,6 @@ package org.eclipse.edc.protocol.spi;
  * @param protocolVersion the protocol version associated.
  * @param webhook the protocol endpoint url.
  */
-public record DataspaceProfileContext(String name, ProtocolVersion protocolVersion, ProtocolWebhook webhook) {
+public record DataspaceProfileContext(String name, ProtocolVersion protocolVersion, ProtocolWebhook webhook, String participantId) {
 
 }

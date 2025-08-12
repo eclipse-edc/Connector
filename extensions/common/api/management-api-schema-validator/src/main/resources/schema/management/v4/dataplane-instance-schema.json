@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "DataPlaneInstanceSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/DataPlaneInstance"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/dataplane-instance-schema.json",
+  "definitions": {
+    "DataPlaneInstance": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "DataPlaneInstance"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "properties": {
+          "type": "object"
+        },
+        "state": {
+          "type": "string"
+        },
+        "allowedSourceTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "allowedTransferTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "destinationProvisionTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "@context",
+        "@type"
+      ]
+    }
+  }
+}

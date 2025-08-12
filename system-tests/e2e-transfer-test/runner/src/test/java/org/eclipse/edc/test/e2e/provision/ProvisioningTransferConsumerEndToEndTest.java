@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.test.e2e.provision;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import okhttp3.Request;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
@@ -45,13 +46,21 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockserver.integration.ClientAndServer;
 
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static jakarta.json.Json.createObjectBuilder;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -62,8 +71,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
 
 public class ProvisioningTransferConsumerEndToEndTest {
 
@@ -77,6 +84,166 @@ public class ProvisioningTransferConsumerEndToEndTest {
             .build();
 
     private static final int DESTINATION_BACKEND_PORT = getFreePort();
+
+    private void createResourcesOnProvider(String assetId, Map<String, Object> dataAddressProperties) {
+        PROVIDER.createAsset(assetId, Map.of("description", "description"), dataAddressProperties);
+        var noConstraintPolicyId = PROVIDER.createPolicyDefinition(noConstraintPolicy());
+        PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, noConstraintPolicyId);
+    }
+
+    private static class TestConsumerProvisionerExtension implements ServiceExtension {
+
+        @Inject
+        private ResourceDefinitionGeneratorManager resourceDefinitionGeneratorManager;
+
+        @Inject
+        private ProvisionerManager provisionerManager;
+
+        @Inject
+        private EdcHttpClient httpClient;
+
+        @Inject
+        private DataPlaneManager dataPlaneManager;
+
+        @Override
+        public void initialize(ServiceExtensionContext context) {
+            resourceDefinitionGeneratorManager.registerConsumerGenerator(new AddHeaderResourceGenerator());
+            resourceDefinitionGeneratorManager.registerConsumerGenerator(new AsyncResourceGenerator());
+
+            provisionerManager.register(new AddHeaderProvisioner());
+            provisionerManager.register(new CallEndpointDeprovisioner(httpClient));
+            provisionerManager.register(new AsyncProvisioner(dataPlaneManager));
+            provisionerManager.register(new AsyncDeprovisioner());
+        }
+
+        private static class CallEndpointDeprovisioner implements Deprovisioner {
+
+            private final EdcHttpClient httpClient;
+
+            CallEndpointDeprovisioner(EdcHttpClient httpClient) {
+                this.httpClient = httpClient;
+            }
+
+            @Override
+            public String supportedType() {
+                return "AddHeader";
+            }
+
+            @Override
+            public CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionResource definition) {
+                var deprovisionEndpoint = definition.getProperty("deprovisionEndpoint");
+                return httpClient.executeAsync(new Request.Builder().url((String) deprovisionEndpoint).build(), emptyList())
+                        .thenCompose(response -> {
+                            if (response.isSuccessful()) {
+                                return CompletableFuture.completedFuture(StatusResult.success(DeprovisionedResource.Builder.from(definition).build()));
+                            } else {
+                                return CompletableFuture.failedFuture(new EdcException("Deprovision failed"));
+                            }
+                        });
+            }
+        }
+
+        private static class AddHeaderProvisioner implements Provisioner {
+
+            @Override
+            public String supportedType() {
+                return "AddHeader";
+            }
+
+            @Override
+            public CompletableFuture<StatusResult<ProvisionedResource>> provision(ProvisionResource provisionResource) {
+                var provisionedResource = ProvisionedResource.Builder.from(provisionResource)
+                        .dataAddress(DataAddress.Builder.newInstance()
+                                .properties(provisionResource.getDataAddress().getProperties())
+                                .property("header:provisionHeader", "value")
+                                .build())
+                        .build();
+                return CompletableFuture.completedFuture(StatusResult.success(provisionedResource));
+            }
+
+        }
+
+        private static class AddHeaderResourceGenerator implements ResourceDefinitionGenerator {
+
+            @Override
+            public String supportedType() {
+                return "HttpData";
+            }
+
+            @Override
+            public ProvisionResource generate(DataFlow dataFlow) {
+                return ProvisionResource.Builder
+                        .newInstance()
+                        .flowId(dataFlow.getId())
+                        .dataAddress(dataFlow.getDestination())
+                        .type("AddHeader")
+                        .property("deprovisionEndpoint", "http://localhost:%d/deprovision".formatted(DESTINATION_BACKEND_PORT))
+                        .build();
+            }
+        }
+
+        private static class AsyncResourceGenerator implements ResourceDefinitionGenerator {
+
+            @Override
+            public String supportedType() {
+                return "HttpData";
+            }
+
+            @Override
+            public ProvisionResource generate(DataFlow dataFlow) {
+                return ProvisionResource.Builder
+                        .newInstance()
+                        .flowId(dataFlow.getId())
+                        .type("AsyncResource")
+                        .build();
+            }
+        }
+
+        /**
+         * Fake Async provisioner that schedules the response delivery after 2 seconds
+         */
+        private static class AsyncProvisioner implements Provisioner {
+
+            private final DataPlaneManager dataPlaneManager;
+
+            AsyncProvisioner(DataPlaneManager dataPlaneManager) {
+                this.dataPlaneManager = dataPlaneManager;
+            }
+
+            @Override
+            public String supportedType() {
+                return "AsyncResource";
+            }
+
+            @Override
+            public CompletableFuture<StatusResult<ProvisionedResource>> provision(ProvisionResource provisionResource) {
+                Executors.newScheduledThreadPool(1).schedule(() -> {
+                    var actualProvisionedResource = ProvisionedResource.Builder.from(provisionResource).build();
+                    return dataPlaneManager.resourceProvisioned(actualProvisionedResource);
+                }, 2, SECONDS);
+                var asyncProvisionedResource = ProvisionedResource.Builder.from(provisionResource).pending(true).build();
+                return CompletableFuture.completedFuture(StatusResult.success(asyncProvisionedResource));
+            }
+        }
+
+        private class AsyncDeprovisioner implements Deprovisioner {
+
+            @Override
+            public String supportedType() {
+                return "AsyncResource";
+            }
+
+            @Override
+            public CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionResource provisionResource) {
+                Executors.newScheduledThreadPool(1).schedule(() -> {
+                    var actualProvisionedResource = DeprovisionedResource.Builder.from(provisionResource).build();
+                    return dataPlaneManager.resourceDeprovisioned(actualProvisionedResource);
+                }, 2, SECONDS);
+                var resource = DeprovisionedResource.Builder.from(provisionResource).pending(true).build();
+                return CompletableFuture.completedFuture(StatusResult.success(resource));
+            }
+        }
+    }
 
     @Nested
     class EmbeddedDataPlaneInMemory extends Tests {
@@ -192,13 +359,24 @@ public class ProvisioningTransferConsumerEndToEndTest {
     }
 
     abstract class Tests {
+
+        @RegisterExtension
+        static WireMockExtension source = WireMockExtension.newInstance()
+                .options(wireMockConfig().dynamicPort())
+                .build();
+
+        @RegisterExtension
+        static WireMockExtension destination = WireMockExtension.newInstance()
+                .options(wireMockConfig().port(DESTINATION_BACKEND_PORT))
+                .build();
+
         @Test
         void shouldExecuteConsumerProvisioningAndDeprovisioning() {
-            var source = ClientAndServer.startClientAndServer(getFreePort());
-            source.when(request("/source")).respond(response("data"));
-            var destination = ClientAndServer.startClientAndServer(DESTINATION_BACKEND_PORT);
-            destination.when(request()).respond(response());
-            destination.when(request("/deprovision")).respond(response());
+
+            source.stubFor(get("/source").willReturn(ok("data")));
+
+            destination.stubFor(get("/deprovision").willReturn(ok()));
+            destination.stubFor(post(anyUrl()).willReturn(ok()));
 
             var assetId = UUID.randomUUID().toString();
             var sourceDataAddress = Map.<String, Object>of(
@@ -214,187 +392,24 @@ public class ProvisioningTransferConsumerEndToEndTest {
                     .withDestination(createObjectBuilder()
                             .add(TYPE, EDC_NAMESPACE + "DataAddress")
                             .add(EDC_NAMESPACE + "type", "HttpData")
-                            .add(EDC_NAMESPACE + "baseUrl", "http://localhost:%d/destination".formatted(destination.getPort()))
+                            .add(EDC_NAMESPACE + "baseUrl", "http://localhost:%d/destination".formatted(DESTINATION_BACKEND_PORT))
                             .build()
                     )
                     .execute();
 
             CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, COMPLETED);
 
-            destination.verify(request().withHeader("provisionHeader", "value"));
+            destination.verify(postRequestedFor(anyUrl()).withHeader("provisionHeader", equalTo("value")));
 
-            await().untilAsserted(() -> destination.verify(request("/deprovision")));
+            await().untilAsserted(() -> destination.verify(getRequestedFor(urlEqualTo("/deprovision"))));
             await().untilAsserted(() -> {
                 var dataFlow = consumerDataPlaneStore().findById(consumerTransferProcessId);
                 assertThat(dataFlow).isNotNull().extracting(StatefulEntity::getState).isEqualTo(DataFlowStates.DEPROVISIONED.code());
             });
-
-            source.stop();
-            destination.stop();
         }
 
         protected abstract DataPlaneStore consumerDataPlaneStore();
 
-    }
-
-    private void createResourcesOnProvider(String assetId, Map<String, Object> dataAddressProperties) {
-        PROVIDER.createAsset(assetId, Map.of("description", "description"), dataAddressProperties);
-        var noConstraintPolicyId = PROVIDER.createPolicyDefinition(noConstraintPolicy());
-        PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, noConstraintPolicyId);
-    }
-
-    private static class TestConsumerProvisionerExtension implements ServiceExtension {
-
-        @Inject
-        private ResourceDefinitionGeneratorManager resourceDefinitionGeneratorManager;
-
-        @Inject
-        private ProvisionerManager provisionerManager;
-
-        @Inject
-        private EdcHttpClient httpClient;
-
-        @Inject
-        private DataPlaneManager dataPlaneManager;
-
-        @Override
-        public void initialize(ServiceExtensionContext context) {
-            resourceDefinitionGeneratorManager.registerConsumerGenerator(new AddHeaderResourceGenerator());
-            resourceDefinitionGeneratorManager.registerConsumerGenerator(new AsyncResourceGenerator());
-
-            provisionerManager.register(new AddHeaderProvisioner());
-            provisionerManager.register(new CallEndpointDeprovisioner(httpClient));
-            provisionerManager.register(new AsyncProvisioner(dataPlaneManager));
-            provisionerManager.register(new AsyncDeprovisioner());
-        }
-
-        private static class CallEndpointDeprovisioner implements Deprovisioner {
-
-            private final EdcHttpClient httpClient;
-
-            CallEndpointDeprovisioner(EdcHttpClient httpClient) {
-                this.httpClient = httpClient;
-            }
-
-            @Override
-            public String supportedType() {
-                return "AddHeader";
-            }
-
-            @Override
-            public CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionResource definition) {
-                var deprovisionEndpoint = definition.getProperty("deprovisionEndpoint");
-                return httpClient.executeAsync(new Request.Builder().url((String) deprovisionEndpoint).build(), emptyList())
-                        .thenCompose(response -> {
-                            if (response.isSuccessful()) {
-                                return CompletableFuture.completedFuture(StatusResult.success(DeprovisionedResource.Builder.from(definition).build()));
-                            } else {
-                                return CompletableFuture.failedFuture(new EdcException("Deprovision failed"));
-                            }
-                        });
-            }
-        }
-
-        private static class AddHeaderProvisioner implements Provisioner {
-
-            @Override
-            public String supportedType() {
-                return "AddHeader";
-            }
-
-            @Override
-            public CompletableFuture<StatusResult<ProvisionedResource>> provision(ProvisionResource provisionResource) {
-                var provisionedResource = ProvisionedResource.Builder.from(provisionResource)
-                        .dataAddress(DataAddress.Builder.newInstance()
-                                .properties(provisionResource.getDataAddress().getProperties())
-                                .property("header:provisionHeader", "value")
-                                .build())
-                        .build();
-                return CompletableFuture.completedFuture(StatusResult.success(provisionedResource));
-            }
-
-        }
-
-    private static class AddHeaderResourceGenerator implements ResourceDefinitionGenerator {
-
-            @Override
-            public String supportedType() {
-                return "HttpData";
-            }
-
-            @Override
-            public ProvisionResource generate(DataFlow dataFlow) {
-                return ProvisionResource.Builder
-                        .newInstance()
-                        .flowId(dataFlow.getId())
-                        .dataAddress(dataFlow.getDestination())
-                        .type("AddHeader")
-                        .property("deprovisionEndpoint", "http://localhost:%d/deprovision".formatted(DESTINATION_BACKEND_PORT))
-                        .build();
-            }
-        }
-
-        private static class AsyncResourceGenerator implements ResourceDefinitionGenerator {
-
-            @Override
-            public String supportedType() {
-                return "HttpData";
-            }
-
-            @Override
-            public ProvisionResource generate(DataFlow dataFlow) {
-                return ProvisionResource.Builder
-                        .newInstance()
-                        .flowId(dataFlow.getId())
-                        .type("AsyncResource")
-                        .build();
-            }
-        }
-
-        /**
-         * Fake Async provisioner that schedules the response delivery after 2 seconds
-         */
-        private static class AsyncProvisioner implements Provisioner {
-
-            private final DataPlaneManager dataPlaneManager;
-
-            AsyncProvisioner(DataPlaneManager dataPlaneManager) {
-                this.dataPlaneManager = dataPlaneManager;
-            }
-
-            @Override
-            public String supportedType() {
-                return "AsyncResource";
-            }
-
-            @Override
-            public CompletableFuture<StatusResult<ProvisionedResource>> provision(ProvisionResource provisionResource) {
-                Executors.newScheduledThreadPool(1).schedule(() -> {
-                    var actualProvisionedResource = ProvisionedResource.Builder.from(provisionResource).build();
-                    return dataPlaneManager.resourceProvisioned(actualProvisionedResource);
-                }, 2, SECONDS);
-                var asyncProvisionedResource = ProvisionedResource.Builder.from(provisionResource).pending(true).build();
-                return CompletableFuture.completedFuture(StatusResult.success(asyncProvisionedResource));
-            }
-        }
-
-        private class AsyncDeprovisioner implements Deprovisioner {
-
-            @Override
-            public String supportedType() {
-                return "AsyncResource";
-            }
-
-            @Override
-            public CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionResource provisionResource) {
-                Executors.newScheduledThreadPool(1).schedule(() -> {
-                    var actualProvisionedResource = DeprovisionedResource.Builder.from(provisionResource).build();
-                    return dataPlaneManager.resourceDeprovisioned(actualProvisionedResource);
-                }, 2, SECONDS);
-                var resource = DeprovisionedResource.Builder.from(provisionResource).pending(true).build();
-                return CompletableFuture.completedFuture(StatusResult.success(resource));
-            }
-        }
     }
 
 }

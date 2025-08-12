@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "PolicyValidationResultSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/PolicyValidationResult"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/policy-validation-result-schema.json",
+  "definitions": {
+    "PolicyValidationResult": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "PolicyValidationResult"
+        },
+        "isValid": {
+          "type": "boolean"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "isValid",
+        "errors"
+      ]
+    }
+  }
+}

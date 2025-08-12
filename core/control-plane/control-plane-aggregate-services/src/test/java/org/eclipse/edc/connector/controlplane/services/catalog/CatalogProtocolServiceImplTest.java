@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - add participantId to DataspaceProfileContext
  *
  */
 
@@ -23,6 +24,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceFailure;
@@ -53,10 +55,11 @@ class CatalogProtocolServiceImplTest {
     private final DatasetResolver datasetResolver = mock();
     private final DataServiceRegistry dataServiceRegistry = mock();
     private final ProtocolTokenValidator protocolTokenValidator = mock();
+    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
 
     private final CatalogProtocolServiceImpl service = new CatalogProtocolServiceImpl(datasetResolver,
-            dataServiceRegistry, protocolTokenValidator, "participantId", transactionContext);
+            dataServiceRegistry, protocolTokenValidator, dataspaceProfileContextRegistry, transactionContext);
 
     private ParticipantAgent createParticipantAgent() {
         return new ParticipantAgent(emptyMap(), emptyMap());
@@ -85,17 +88,19 @@ class CatalogProtocolServiceImplTest {
             var tokenRepresentation = createTokenRepresentation();
             var participantAgent = createParticipantAgent();
             var dataService = DataService.Builder.newInstance().build();
+            var participantId = "participantId";
 
             when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(dataServiceRegistry.getDataServices(any())).thenReturn(List.of(dataService));
             when(datasetResolver.query(any(), any(), any())).thenReturn(Stream.of(createDataset()));
+            when(dataspaceProfileContextRegistry.getParticipantId(any())).thenReturn(participantId);
 
             var result = service.getCatalog(message, tokenRepresentation);
 
             assertThat(result).isSucceeded().satisfies(catalog -> {
                 assertThat(catalog.getDataServices()).hasSize(1).first().isSameAs(dataService);
                 assertThat(catalog.getDatasets()).hasSize(1);
-                assertThat(catalog.getParticipantId()).isEqualTo("participantId");
+                assertThat(catalog.getParticipantId()).isEqualTo(participantId);
             });
             verify(datasetResolver).query(eq(participantAgent), eq(querySpec), eq("protocol"));
             verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));

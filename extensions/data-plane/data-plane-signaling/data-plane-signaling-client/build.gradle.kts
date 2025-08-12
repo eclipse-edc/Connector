@@ -33,8 +33,7 @@ dependencies {
     testImplementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(libs.restAssured)
-    testImplementation(libs.mockserver.netty)
-    testImplementation(libs.mockserver.client)
+    testImplementation(libs.wiremock)
 
     testImplementation(testFixtures(project(":core:common:lib:http-lib")))
 }

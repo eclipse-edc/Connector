@@ -9,9 +9,9 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *       Fraunhofer Institute for Software and Systems Engineering - refactoring
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - refactoring
  *       ZF Friedrichshafen AG - add dependency & reorder entries
- *       Fraunhofer Institute for Software and Systems Engineering - refactoring
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - refactoring
  *       Mercedes-Benz Tech Innovation GmbH - publish public api context into dedicated swagger hub page
  *       Cofinity-X - make DSP versions pluggable
  *
@@ -21,11 +21,11 @@ rootProject.name = "connector"
 
 pluginManagement {
     repositories {
+        gradlePluginPortal()
+        mavenCentral()
         maven {
             url = uri("https://central.sonatype.com/repository/maven-snapshots/")
         }
-        mavenCentral()
-        gradlePluginPortal()
     }
 }
 
@@ -203,7 +203,7 @@ include(":extensions:common:store:sql:sts-client-store-sql")
 
 include(":extensions:common:api:control-api-configuration")
 include(":extensions:common:api:management-api-configuration")
-
+include(":extensions:common:api:management-api-schema-validator")
 
 include(":extensions:control-plane:api:control-plane-api")
 include(":extensions:control-plane:api:control-plane-api-client")
@@ -301,7 +301,6 @@ include(":spi:control-plane:transfer-spi")
 include(":spi:control-plane:secrets-spi")
 include(":spi:control-plane:protocol-version-spi")
 
-
 include(":spi:data-plane:data-plane-spi")
 include(":spi:data-plane:data-plane-http-spi")
 include(":spi:data-plane:data-plane-iam-spi")
@@ -341,6 +340,3 @@ include(":dist:bom:controlplane-feature-sql-bom")
 
 include(":dist:bom:dataplane-base-bom")
 include(":dist:bom:dataplane-feature-sql-bom")
-
-
-include(":version-catalog")

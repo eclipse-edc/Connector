@@ -82,3 +82,5 @@
 - [2025-06-11 Dataspace Profile Context](2025-05-28-dataspace-profile-context)
 - [2025-06-20 Listeners "pre" methods](./2025-06-20-listeners-pre-methods)
 - [2025-07-09 Embed data-plane-selector in control-plane](2025-07-09-embed-data-plane-selector)
+- [2025-07-25 Different participant identifiers for Dataspace Profile Contexts](2025-07-25-multiple-participant-identifiers)
+- [2025-07-25 JSON-schema adoption](2025-08-01-json-schema-adoption)

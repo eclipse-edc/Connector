@@ -16,6 +16,8 @@ package org.eclipse.edc.connector.dataplane.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromDataFlowProvisionMessageTransformer;
@@ -26,7 +28,6 @@ import org.eclipse.edc.connector.api.signaling.transform.from.JsonObjectFromData
 import org.eclipse.edc.connector.api.signaling.transform.to.JsonObjectToDataFlowResponseMessageTransformer;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.spi.response.TransferErrorResponse;
 import org.eclipse.edc.http.client.ControlApiHttpClientImpl;
 import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
@@ -46,23 +47,25 @@ import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.dspace.from.JsonObjectFromDataAddressDspaceTransformer;
 import org.eclipse.edc.transform.transformer.dspace.to.JsonObjectToDataAddressDspaceTransformer;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockserver.integration.ClientAndServer;
-import org.mockserver.model.HttpRequest;
-import org.mockserver.model.HttpResponse;
-import org.mockserver.model.HttpStatusCode;
-import org.mockserver.model.MediaType;
-import org.mockserver.verify.VerificationTimes;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.badRequest;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.client.DataPlaneSignalingClientExtension.CONTROL_CLIENT_SCOPE;
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
@@ -79,13 +82,6 @@ import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockserver.integration.ClientAndServer.startClientAndServer;
-import static org.mockserver.matchers.Times.once;
-import static org.mockserver.model.HttpRequest.request;
-import static org.mockserver.model.HttpResponse.response;
-import static org.mockserver.model.HttpStatusCode.CONFLICT_409;
-import static org.mockserver.model.HttpStatusCode.NO_CONTENT_204;
-import static org.mockserver.stop.Stop.stopQuietly;
 
 @ComponentTest
 class DataPlaneSignalingClientTest {
@@ -97,7 +93,12 @@ class DataPlaneSignalingClientTest {
     private static final TypeTransformerRegistry TRANSFORMER_REGISTRY = new TypeTransformerRegistryImpl();
     private static final TitaniumJsonLd JSON_LD = new TitaniumJsonLd(mock(Monitor.class));
     private static final TypeManager TYPE_MANAGER = mock();
-    private static ClientAndServer dataPlane;
+
+    @RegisterExtension
+    static WireMockExtension dataPlane = WireMockExtension.newInstance()
+            .options(wireMockConfig().port(DATA_PLANE_API_PORT))
+            .build();
+
     private final DataPlaneInstance instance = DataPlaneInstance.Builder.newInstance().url(DATA_PLANE_API_URI).build();
     private final ControlApiHttpClient httpClient = new ControlApiHttpClientImpl(testHttpClient(), mock());
 
@@ -113,7 +114,6 @@ class DataPlaneSignalingClientTest {
         JSON_LD.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, CONTROL_CLIENT_SCOPE);
         JSON_LD.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, CONTROL_CLIENT_SCOPE);
 
-        dataPlane = startClientAndServer(DATA_PLANE_API_PORT);
         TRANSFORMER_REGISTRY.register(new JsonObjectFromDataFlowTerminateMessageTransformer(factory));
         TRANSFORMER_REGISTRY.register(new JsonObjectFromDataFlowSuspendMessageTransformer(factory));
         TRANSFORMER_REGISTRY.register(new JsonObjectFromDataFlowStartMessageTransformer(factory, TYPE_MANAGER, "test"));
@@ -125,18 +125,9 @@ class DataPlaneSignalingClientTest {
         when(TYPE_MANAGER.getMapper("test")).thenReturn(MAPPER);
     }
 
-    @AfterAll
-    public static void tearDown() {
-        stopQuietly(dataPlane);
-    }
 
     private static Result<JsonObject> compact(JsonObject input) {
         return JSON_LD.compact(input, CONTROL_CLIENT_SCOPE);
-    }
-
-    @AfterEach
-    public void resetMockServer() {
-        dataPlane.reset();
     }
 
     @Nested
@@ -150,12 +141,13 @@ class DataPlaneSignalingClientTest {
                     .compose(DataPlaneSignalingClientTest::compact)
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
-            var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
-            dataPlane.when(httpRequest).respond(response().withStatusCode(HttpStatusCode.BAD_REQUEST_400.code()));
+            var body = MAPPER.writeValueAsString(expected);
+            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+                    .willReturn(badRequest()));
 
             var result = dataPlaneClient.start(flowRequest);
 
-            dataPlane.verify(httpRequest);
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
 
             assertThat(result.failed()).isTrue();
             assertThat(result.getFailure().status()).isEqualTo(FATAL_ERROR);
@@ -171,13 +163,14 @@ class DataPlaneSignalingClientTest {
                     .compose(DataPlaneSignalingClientTest::compact)
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
-            var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
             var errorMsg = UUID.randomUUID().toString();
-            dataPlane.when(httpRequest).respond(withResponse(errorMsg));
+            var body = MAPPER.writeValueAsString(expected);
+            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+                    .willReturn(aResponse().withStatus(400).withBody(errorMsg)));
 
             var result = dataPlaneClient.start(flowRequest);
 
-            dataPlane.verify(httpRequest);
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
 
             assertThat(result.failed()).isTrue();
             assertThat(result.getFailure().status()).isEqualTo(FATAL_ERROR);
@@ -210,12 +203,13 @@ class DataPlaneSignalingClientTest {
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
 
-            var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
-            dataPlane.when(httpRequest, once()).respond(response().withBody("{}").withStatusCode(HttpStatusCode.OK_200.code()));
+            var body = MAPPER.writeValueAsString(expected);
+            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+                    .willReturn(okJson("{}")));
 
             var result = dataPlaneClient.start(flowRequest);
 
-            dataPlane.verify(httpRequest, VerificationTimes.once());
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
 
             assertThat(result.failed()).isTrue();
             assertThat(result.getFailure().status()).isEqualTo(FATAL_ERROR);
@@ -238,12 +232,13 @@ class DataPlaneSignalingClientTest {
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
 
-            var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
-            dataPlane.when(httpRequest, once()).respond(response().withBody(MAPPER.writeValueAsString(response)).withStatusCode(HttpStatusCode.OK_200.code()));
+            var body = MAPPER.writeValueAsString(expected);
+            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+                    .willReturn(okJson(MAPPER.writeValueAsString(response))));
 
             var result = dataPlaneClient.start(flowRequest);
 
-            dataPlane.verify(httpRequest, VerificationTimes.once());
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
 
             assertThat(result).isSucceeded().extracting(DataFlowResponseMessage::getDataAddress).isNotNull();
         }
@@ -261,22 +256,18 @@ class DataPlaneSignalingClientTest {
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
 
-            var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
-            dataPlane.when(httpRequest, once()).respond(response().withBody(MAPPER.writeValueAsString(response)).withStatusCode(HttpStatusCode.OK_200.code()));
+            var body = MAPPER.writeValueAsString(expected);
+            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+                    .willReturn(okJson(MAPPER.writeValueAsString(response))));
 
             var result = dataPlaneClient.start(flowRequest);
 
-            dataPlane.verify(httpRequest, VerificationTimes.once());
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
 
             assertThat(result.succeeded()).isTrue();
             assertThat(result.getContent().getDataAddress()).isNull();
         }
 
-
-        private HttpResponse withResponse(String errorMsg) throws JsonProcessingException {
-            return response().withStatusCode(HttpStatusCode.BAD_REQUEST_400.code())
-                    .withBody(MAPPER.writeValueAsString(new TransferErrorResponse(List.of(errorMsg))), MediaType.APPLICATION_JSON);
-        }
 
         private DataFlowStartMessage createDataFlowRequest() {
             return DataFlowStartMessage.Builder.newInstance()
@@ -305,12 +296,14 @@ class DataPlaneSignalingClientTest {
                     .compose(DataPlaneSignalingClientTest::compact)
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
-            var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
-            dataPlane.when(httpRequest).respond(response().withStatusCode(HttpStatusCode.BAD_REQUEST_400.code()));
+            var body = MAPPER.writeValueAsString(expected);
+            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+                    .willReturn(badRequest()));
+
 
             var result = dataPlaneClient.provision(request);
 
-            dataPlane.verify(httpRequest);
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
 
             assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
             assertThat(result.getFailureMessages())
@@ -325,13 +318,15 @@ class DataPlaneSignalingClientTest {
                     .compose(DataPlaneSignalingClientTest::compact)
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
-            var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
             var errorMsg = UUID.randomUUID().toString();
-            dataPlane.when(httpRequest).respond(withResponse(errorMsg));
+
+            var body = MAPPER.writeValueAsString(expected);
+            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+                    .willReturn(aResponse().withStatus(400).withBody(errorMsg)));
 
             var result = dataPlaneClient.provision(request);
 
-            dataPlane.verify(httpRequest);
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
 
             assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
             assertThat(result.getFailureMessages()).anySatisfy(s -> assertThat(s).contains("400").contains(request.getProcessId()));
@@ -362,12 +357,13 @@ class DataPlaneSignalingClientTest {
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
 
-            var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
-            dataPlane.when(httpRequest, once()).respond(response().withBody("{}").withStatusCode(HttpStatusCode.OK_200.code()));
+            var body = MAPPER.writeValueAsString(expected);
+            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+                    .willReturn(okJson("{}")));
 
             var result = dataPlaneClient.provision(request);
 
-            dataPlane.verify(httpRequest, VerificationTimes.once());
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
 
             assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
             assertThat(result.getFailureMessages())
@@ -389,12 +385,13 @@ class DataPlaneSignalingClientTest {
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
 
-            var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
-            dataPlane.when(httpRequest, once()).respond(response().withBody(MAPPER.writeValueAsString(response)).withStatusCode(HttpStatusCode.OK_200.code()));
+            var body = MAPPER.writeValueAsString(expected);
+            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+                    .willReturn(okJson(MAPPER.writeValueAsString(response))));
 
             var result = dataPlaneClient.provision(request);
 
-            dataPlane.verify(httpRequest, VerificationTimes.once());
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
 
             assertThat(result).isSucceeded().extracting(DataFlowResponseMessage::getDataAddress).isNotNull();
         }
@@ -412,21 +409,18 @@ class DataPlaneSignalingClientTest {
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
 
-            var httpRequest = new HttpRequest().withPath(DATA_PLANE_PATH).withBody(MAPPER.writeValueAsString(expected));
-            dataPlane.when(httpRequest, once()).respond(response().withBody(MAPPER.writeValueAsString(response)).withStatusCode(HttpStatusCode.OK_200.code()));
+            var body = MAPPER.writeValueAsString(expected);
+            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+                    .willReturn(okJson(MAPPER.writeValueAsString(response))));
 
             var result = dataPlaneClient.provision(request);
 
-            dataPlane.verify(httpRequest, VerificationTimes.once());
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
 
             assertThat(result.succeeded()).isTrue();
             assertThat(result.getContent().getDataAddress()).isNull();
         }
 
-        private HttpResponse withResponse(String errorMsg) throws JsonProcessingException {
-            return response().withStatusCode(HttpStatusCode.BAD_REQUEST_400.code())
-                    .withBody(MAPPER.writeValueAsString(new TransferErrorResponse(List.of(errorMsg))), MediaType.APPLICATION_JSON);
-        }
 
         private DataFlowProvisionMessage createProvisionRequest() {
             return DataFlowProvisionMessage.Builder.newInstance()
@@ -447,19 +441,22 @@ class DataPlaneSignalingClientTest {
 
         @Test
         void shouldCallTerminateOnAllTheAvailableDataPlanes() {
-            var httpRequest = new HttpRequest().withMethod("POST").withPath(DATA_PLANE_PATH + "/processId/terminate");
-            dataPlane.when(httpRequest, once()).respond(response().withStatusCode(NO_CONTENT_204.code()));
+
+            dataPlane.stubFor(post(DATA_PLANE_PATH + "/processId/terminate")
+                    .willReturn(aResponse().withStatus(204)));
 
             var result = dataPlaneClient.terminate("processId");
 
             assertThat(result).isSucceeded();
-            dataPlane.verify(httpRequest, VerificationTimes.once());
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH + "/processId/terminate")));
         }
 
         @Test
         void shouldFail_whenConflictResponse() {
-            var httpRequest = new HttpRequest().withMethod("POST").withPath(DATA_PLANE_PATH + "/processId/terminate");
-            dataPlane.when(httpRequest, once()).respond(response().withStatusCode(CONFLICT_409.code()));
+
+            dataPlane.stubFor(post(DATA_PLANE_PATH + "/processId/terminate")
+                    .willReturn(aResponse().withStatus(409)));
+
 
             var result = dataPlaneClient.terminate("processId");
 
@@ -490,19 +487,19 @@ class DataPlaneSignalingClientTest {
 
         @Test
         void shouldCallSuspendOnAllTheAvailableDataPlanes() {
-            var httpRequest = new HttpRequest().withMethod("POST").withPath(DATA_PLANE_PATH + "/processId/suspend");
-            dataPlane.when(httpRequest, once()).respond(response().withStatusCode(NO_CONTENT_204.code()));
+            dataPlane.stubFor(post(DATA_PLANE_PATH + "/processId/suspend")
+                    .willReturn(aResponse().withStatus(204)));
 
             var result = dataPlaneClient.suspend("processId");
 
             assertThat(result).isSucceeded();
-            dataPlane.verify(httpRequest, VerificationTimes.once());
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH + "/processId/suspend")));
         }
 
         @Test
         void shouldFail_whenConflictResponse() {
-            var httpRequest = new HttpRequest().withMethod("POST").withPath(DATA_PLANE_PATH + "/processId/suspend");
-            dataPlane.when(httpRequest, once()).respond(response().withStatusCode(CONFLICT_409.code()));
+            dataPlane.stubFor(post(DATA_PLANE_PATH + "/processId/suspend")
+                    .willReturn(aResponse().withStatus(409)));
 
             var result = dataPlaneClient.suspend("processId");
 
@@ -531,7 +528,8 @@ class DataPlaneSignalingClientTest {
     class CheckAvailability {
         @Test
         void shouldSucceed_whenDataPlaneIsAvailable() {
-            dataPlane.when(request().withPath(DATA_PLANE_PATH + "/check").withMethod("GET")).respond(response().withStatusCode(204));
+            dataPlane.stubFor(get(DATA_PLANE_PATH + "/check")
+                    .willReturn(aResponse().withStatus(204)));
 
             var result = dataPlaneClient.checkAvailability();
 
@@ -540,7 +538,9 @@ class DataPlaneSignalingClientTest {
 
         @Test
         void shouldFail_whenDataPlaneIsNotAvailable() {
-            dataPlane.when(request()).respond(response().withStatusCode(404));
+
+            dataPlane.stubFor(WireMock.get(anyUrl())
+                    .willReturn(aResponse().withStatus(404)));
 
             var result = dataPlaneClient.checkAvailability();
 

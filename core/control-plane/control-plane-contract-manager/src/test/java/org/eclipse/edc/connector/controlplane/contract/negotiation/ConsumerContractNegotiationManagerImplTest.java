@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 - 2022 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2021 - 2022 Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initial API and implementation
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *
  */
@@ -86,7 +86,6 @@ import static org.mockito.Mockito.when;
 
 class ConsumerContractNegotiationManagerImplTest {
 
-    private static final String PARTICIPANT_ID = "participantId";
     private static final int RETRY_LIMIT = 1;
 
     private final ContractNegotiationStore store = mock();
@@ -105,7 +104,6 @@ class ConsumerContractNegotiationManagerImplTest {
         observable.registerListener(listener);
 
         manager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
-                .participantId(PARTICIPANT_ID)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(mock(Monitor.class))
                 .observable(observable)

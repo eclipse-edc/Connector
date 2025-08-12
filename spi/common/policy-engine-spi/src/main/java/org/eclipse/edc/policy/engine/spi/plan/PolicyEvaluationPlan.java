@@ -31,7 +31,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  */
 public class PolicyEvaluationPlan {
 
-    public static final String EDC_POLICY_EVALUATION_PLAN_TYPE = EDC_NAMESPACE + "PolicyEvaluationPlan";
+    public static final String EDC_POLICY_EVALUATION_PLAN_TYPE_TERM = "PolicyEvaluationPlan";
+    public static final String EDC_POLICY_EVALUATION_PLAN_TYPE = EDC_NAMESPACE + EDC_POLICY_EVALUATION_PLAN_TYPE_TERM;
     public static final String EDC_POLICY_EVALUATION_PLAN_PRE_VALIDATORS = EDC_NAMESPACE + "preValidators";
     public static final String EDC_POLICY_EVALUATION_PLAN_POST_VALIDATORS = EDC_NAMESPACE + "postValidators";
     public static final String EDC_POLICY_EVALUATION_PLAN_PERMISSION_STEPS = EDC_NAMESPACE + "permissionSteps";

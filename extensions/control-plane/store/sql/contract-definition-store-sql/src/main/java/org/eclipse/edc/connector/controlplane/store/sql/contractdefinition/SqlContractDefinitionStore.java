@@ -10,7 +10,7 @@
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Microsoft Corporation - refactoring, bugfixing
- *       Fraunhofer Institute for Software and Systems Engineering - added method
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - added method
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - improvements
  *       SAP SE - add private properties to contract definition
  *

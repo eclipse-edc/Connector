@@ -39,7 +39,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAn
 public class JsonObjectFromTransferProcessV2024Transformer extends AbstractNamespaceAwareJsonLdTransformer<TransferProcess, JsonObject> {
 
     private final JsonBuilderFactory jsonBuilderFactory;
-    
+
     public JsonObjectFromTransferProcessV2024Transformer(JsonBuilderFactory jsonBuilderFactory, JsonLdNamespace namespace) {
         super(TransferProcess.class, JsonObject.class, namespace);
         this.jsonBuilderFactory = jsonBuilderFactory;
@@ -75,7 +75,8 @@ public class JsonObjectFromTransferProcessV2024Transformer extends AbstractNames
         }
 
         return switch (transferProcessState) {
-            case INITIAL, REQUESTING, REQUESTED -> forNamespace(DSPACE_VALUE_TRANSFER_STATE_REQUESTED_TERM);
+            case INITIAL, REQUESTING, REQUESTED, PROVISIONING, PROVISIONING_REQUESTED, PROVISIONED ->
+                    forNamespace(DSPACE_VALUE_TRANSFER_STATE_REQUESTED_TERM);
             case STARTING, STARTED -> forNamespace(DSPACE_VALUE_TRANSFER_STATE_STARTED_TERM);
             case SUSPENDING, SUSPENDED, SUSPENDING_REQUESTED, RESUMING, RESUMED ->
                     forNamespace(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM);

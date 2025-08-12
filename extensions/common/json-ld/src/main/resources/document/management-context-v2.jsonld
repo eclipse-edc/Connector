@@ -1,0 +1,416 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "edc": "https://w3id.org/edc/v0.0.1/ns/",
+    "Asset": {
+      "@id": "edc:Asset",
+      "@context": {
+        "properties": {
+          "@id": "edc:properties",
+          "@context": {
+            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+          }
+        },
+        "privateProperties": {
+          "@id": "edc:privateProperties",
+          "@context": {
+            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+          }
+        },
+        "dataAddress": {
+          "@id": "edc:dataAddress",
+          "@context": {
+            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+          }
+        }
+      }
+    },
+    "PolicyDefinition": {
+      "@id": "edc:PolicyDefinition",
+      "@context": {
+        "@import": "https://w3id.org/dspace/2025/1/odrl-profile.jsonld",
+        "@propagate": true,
+        "policy": {
+          "@id": "edc:policy"
+        },
+        "createdAt": "edc:createdAt",
+        "privateProperties": {
+          "@id": "edc:privateProperties",
+          "@context": {
+            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+          }
+        }
+      }
+    },
+    "DataAddress": {
+      "@id": "edc:DataAddress",
+      "@context": {
+        "type": "edc:type",
+        "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+      }
+    },
+    "ContractDefinition": {
+      "@id": "edc:ContractDefinition",
+      "@context": {
+        "privateProperties": {
+          "@id": "edc:privateProperties",
+          "@context": {
+            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+          }
+        },
+        "accessPolicyId": "edc:accessPolicyId",
+        "contractPolicyId": "edc:contractPolicyId",
+        "assetsSelector": {
+          "@id": "edc:assetsSelector",
+          "@container": "@set"
+        }
+      }
+    },
+    "Criterion": {
+      "@id": "edc:Criterion",
+      "@context": {
+        "operandLeft": "edc:operandLeft",
+        "operator": "edc:operator",
+        "operandRight": "edc:operandRight"
+      }
+    },
+    "DatasetRequest": {
+      "@id": "edc:DatasetRequest",
+      "@context": {
+        "counterPartyAddress": "edc:counterPartyAddress",
+        "counterPartyId": "edc:counterPartyId",
+        "protocol": "edc:protocol"
+      }
+    },
+    "CatalogRequest": {
+      "@id": "edc:DatasetRequest",
+      "@context": {
+        "counterPartyAddress": "edc:counterPartyAddress",
+        "counterPartyId": "edc:counterPartyId",
+        "protocol": "edc:protocol",
+        "additionalScopes": {
+          "@id": "edc:additionalScopes",
+          "@container": "@set"
+        },
+        "querySpec": "edc:querySpec"
+      }
+    },
+    "ContractRequest": {
+      "@id": "edc:ContractRequest",
+      "@context": {
+        "@import": "https://w3id.org/dspace/2025/1/odrl-profile.jsonld",
+        "@propagate": true,
+        "policy": {
+          "@id": "edc:policy"
+        },
+        "counterPartyAddress": "edc:counterPartyAddress",
+        "callbackAddresses": {
+          "@id": "edc:callbackAddresses",
+          "@container": "@set"
+        },
+        "protocol": "edc:protocol"
+      }
+    },
+    "QuerySpec": {
+      "@id": "edc:QuerySpec",
+      "@context": {
+        "limit": "edc:limit",
+        "offset": "edc:offset",
+        "filterExpression": {
+          "@id": "edc:filterExpression",
+          "@container": "@set"
+        },
+        "sortOrder": "edc:sortOrder",
+        "sortField": "edc:sortField"
+      }
+    },
+    "ContractNegotiation": {
+      "@id": "edc:ContractNegotiation",
+      "@context": {
+        "type": "edc:type",
+        "counterPartyAddress": "edc:counterPartyAddress",
+        "protocol": "edc:protocol",
+        "callbackAddresses": {
+          "@id": "edc:callbackAddresses",
+          "@container": "@set"
+        },
+        "counterPartyId": "edc:counterPartyId",
+        "state": "edc:state",
+        "errorDetail": "edc:errorDetail",
+        "contractAgreementId": "edc:contractAgreementId",
+        "createdAt": "edc:createdAt"
+      }
+    },
+    "CallbackAddress": {
+      "@id": "edc:CallbackAddress",
+      "@context": {
+        "uri": "edc:uri",
+        "transactional": "edc:transactional",
+        "events": {
+          "@id": "edc:events",
+          "@container": "@set"
+        }
+      }
+    },
+    "NegotiationState": {
+      "@id": "edc:NegotiationState",
+      "@context": {
+        "state": "edc:state"
+      }
+    },
+    "TerminateNegotiation": {
+      "@id": "edc:TerminateNegotiation",
+      "@context": {
+        "reason": "edc:reason"
+      }
+    },
+    "ContractAgreement": {
+      "@id": "edc:ContractAgreement",
+      "@context": {
+        "@import": "https://w3id.org/dspace/2025/1/odrl-profile.jsonld",
+        "@propagate": true,
+        "policy": {
+          "@id": "edc:policy"
+        },
+        "providerId": "edc:providerId",
+        "consumerId": "edc:consumerId",
+        "assetId": "edc:assetId",
+        "contractSigningDate": "edc:contractSigningDate"
+      }
+    },
+    "TransferRequest": {
+      "@id": "edc:TransferRequest",
+      "@context": {
+        "privateProperties": {
+          "@id": "edc:privateProperties",
+          "@context": {
+            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+          }
+        },
+        "counterPartyAddress": "edc:counterPartyAddress",
+        "callbackAddresses": {
+          "@id": "edc:callbackAddresses",
+          "@container": "@set"
+        },
+        "transferType": "edc:transferType",
+        "dataDestination": "edc:dataDestination",
+        "contractId": "edc:contractId",
+        "protocol": "edc:protocol"
+      }
+    },
+    "TransferState": {
+      "@id": "edc:TransferState",
+      "@context": {
+        "state": "edc:state"
+      }
+    },
+    "TransferProcess": {
+      "@id": "edc:TransferProcess",
+      "@context": {
+        "type": "edc:type",
+        "assetId": "edc:assetId",
+        "contractId": "edc:contractId",
+        "callbackAddresses": {
+          "@id": "edc:callbackAddresses",
+          "@container": "@set"
+        },
+        "stateTimestamp": "edc:stateTimestamp",
+        "transferType": "edc:transferType",
+        "dataDestination": "edc:dataDestination",
+        "correlationId": "edc:correlationId",
+        "errorDetail": "edc:errorDetail",
+        "state": "edc:state"
+      }
+    },
+    "TerminateTransfer": {
+      "@id": "edc:TerminateTransfer",
+      "@context": {
+        "reason": "edc:reason"
+      }
+    },
+    "SuspendTransfer": {
+      "@id": "edc:SuspendTransfer",
+      "@context": {
+        "reason": "edc:reason"
+      }
+    },
+    "Secret": {
+      "@id": "edc:Secret",
+      "@context": {
+        "value": "edc:value"
+      }
+    },
+    "EndpointDataReferenceEntry": {
+      "@id": "edc:EndpointDataReferenceEntry",
+      "@context": {
+        "providerId": "edc:providerId",
+        "assetId": "edc:assetId",
+        "transferProcessId": "edc:transferProcessId",
+        "contractNegotiationId": "edc:contractNegotiationId",
+        "agreementId": "edc:agreementId",
+        "createdAt": "edc:createdAt"
+      }
+    },
+    "PolicyValidationResult": {
+      "@id": "edc:PolicyValidationResult",
+      "@context": {
+        "isValid": "edc:isValid",
+        "errors": {
+          "@id": "edc:errors",
+          "@container": "@set"
+        }
+      }
+    },
+    "PolicyEvaluationPlanRequest": {
+      "@id": "edc:PolicyEvaluationPlanRequest",
+      "@context": {
+        "policyScope": "edc:policyScope"
+      }
+    },
+    "PolicyEvaluationPlan": {
+      "@id": "edc:PolicyEvaluationPlan",
+      "@context": {
+        "preValidators": {
+          "@id": "edc:preValidators",
+          "@container": "@set"
+        },
+        "postValidators": {
+          "@id": "edc:postValidators",
+          "@container": "@set"
+        },
+        "permissionSteps": {
+          "@id": "edc:permissionSteps",
+          "@container": "@set"
+        },
+        "prohibitionSteps": {
+          "@id": "edc:prohibitionSteps",
+          "@container": "@set"
+        },
+        "obligationSteps": {
+          "@id": "edc:obligationSteps",
+          "@container": "@set"
+        }
+      }
+    },
+    "PermissionStep": {
+      "@id": "edc:PermissionStep",
+      "@context": {
+        "constraintSteps": {
+          "@id": "edc:constraintSteps",
+          "@container": "@set"
+        },
+        "isFiltered": "edc:isFiltered",
+        "filteringReasons": {
+          "@id": "edc:filteringReasons",
+          "@container": "@set"
+        },
+        "dutySteps": {
+          "@id": "edc:dutySteps",
+          "@container": "@set"
+        }
+      }
+    },
+    "ProhibitionStep": {
+      "@id": "edc:ProhibitionStep",
+      "@context": {
+        "constraintSteps": {
+          "@id": "edc:constraintSteps",
+          "@container": "@set"
+        },
+        "isFiltered": "edc:isFiltered",
+        "filteringReasons": {
+          "@id": "edc:filteringReasons",
+          "@container": "@set"
+        }
+      }
+    },
+    "DutyStep": {
+      "@id": "edc:DutyStep",
+      "@context": {
+        "constraintSteps": {
+          "@id": "edc:constraintSteps",
+          "@container": "@set"
+        },
+        "isFiltered": "edc:isFiltered",
+        "filteringReasons": {
+          "@id": "edc:filteringReasons",
+          "@container": "@set"
+        }
+      }
+    },
+    "OrConstraintStep": {
+      "@id": "edc:OrConstraintStep",
+      "@context": {
+        "constraintSteps": {
+          "@id": "edc:constraintSteps",
+          "@container": "@set"
+        }
+      }
+    },
+    "AndConstraintStep": {
+      "@id": "edc:AndConstraintStep",
+      "@context": {
+        "constraintSteps": {
+          "@id": "edc:constraintSteps",
+          "@container": "@set"
+        }
+      }
+    },
+    "XoneConstraintStep": {
+      "@id": "edc:XoneConstraintStep",
+      "@context": {
+        "constraintSteps": {
+          "@id": "edc:constraintSteps",
+          "@container": "@set"
+        }
+      }
+    },
+    "AtomicConstraintStep": {
+      "@id": "edc:AtomicConstraintStep",
+      "@context": {
+        "filteringReasons": {
+          "@id": "edc:filteringReasons",
+          "@container": "@set"
+        },
+        "isFiltered": "edc:isFiltered",
+        "functionName": "edc:functionName",
+        "functionParams": {
+          "@id": "edc:functionParams",
+          "@container": "@set"
+        }
+      }
+    },
+    "DataPlaneInstance": {
+      "@id": "edc:DataPlaneInstance",
+      "@context": {
+        "state": "edc:state",
+        "url": "edc:url",
+        "allowedSourceTypes": {
+          "@id": "edc:allowedSourceTypes",
+          "@container": "@set"
+        },
+        "allowedTransferTypes": {
+          "@id": "edc:allowedTransferTypes",
+          "@container": "@set"
+        },
+        "destinationProvisionTypes": {
+          "@id": "edc:destinationProvisionTypes",
+          "@container": "@set"
+        },
+        "properties": {
+          "@id": "edc:properties",
+          "@context": {
+            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+          }
+        },
+        "stateTimestamp": "edc:stateTimestamp",
+        "lastActive": "edc:lastActive"
+      }
+    },
+    "inForceDate": "edc:inForceDate",
+    "ruleFunctions": {
+      "@id": "edc:ruleFunctions",
+      "@container": "@set"
+    }
+  }
+}

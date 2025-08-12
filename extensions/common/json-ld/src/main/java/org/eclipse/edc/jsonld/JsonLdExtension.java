@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2023 Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initial API and implementation
  *
  */
 
@@ -38,6 +38,7 @@ import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_CONTEXT_2025_1;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_ODRL_PROFILE_2025_1;
 import static org.eclipse.edc.jsonld.spi.Namespaces.EDC_DSPACE_CONTEXT;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
@@ -98,6 +99,7 @@ public class JsonLdExtension implements ServiceExtension {
                 new JsonLdContext("odrl.jsonld", "http://www.w3.org/ns/odrl.jsonld"),
                 new JsonLdContext("dspace.jsonld", "https://w3id.org/dspace/2024/1/context.json"),
                 new JsonLdContext("management-context-v1.jsonld", EDC_CONNECTOR_MANAGEMENT_CONTEXT),
+                new JsonLdContext("management-context-v2.jsonld", EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2),
                 new JsonLdContext("dspace-edc-context-v1.jsonld", EDC_DSPACE_CONTEXT),
                 new JsonLdContext("dspace-v2025-1.jsonld", DSPACE_CONTEXT_2025_1),
                 new JsonLdContext("dspace-v2025-1-odrl.jsonld", DSPACE_ODRL_PROFILE_2025_1)

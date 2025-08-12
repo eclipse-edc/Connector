@@ -5,11 +5,6 @@ on:
 
 jobs:
 
-  Run-Tests:
-    uses: ./.github/workflows/verify.yaml
-    secrets: inherit
-
   Publish:
-    needs: [ Run-Tests ]
     uses: eclipse-edc/.github/.github/workflows/nightly.yml@main
     secrets: inherit

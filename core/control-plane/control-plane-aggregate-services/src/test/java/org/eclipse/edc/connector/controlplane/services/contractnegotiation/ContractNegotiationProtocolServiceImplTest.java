@@ -802,7 +802,6 @@ class ContractNegotiationProtocolServiceImplTest {
             assertThat(result).isFailed().satisfies(failure -> {
                 assertThat(failure.getReason()).isEqualTo(CONFLICT);
             });
-            verify(store, never()).save(any());
             verifyNoInteractions(listener);
         }
 
@@ -830,7 +829,6 @@ class ContractNegotiationProtocolServiceImplTest {
             assertThat(result).isFailed().satisfies(failure -> {
                 assertThat(failure.getReason()).isEqualTo(CONFLICT);
             });
-            verify(store, never()).save(any());
             verifyNoInteractions(listener);
         }
     }

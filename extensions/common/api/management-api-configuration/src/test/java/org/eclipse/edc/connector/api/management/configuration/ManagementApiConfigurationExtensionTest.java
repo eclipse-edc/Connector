@@ -38,9 +38,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
 
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
 import static org.eclipse.edc.connector.api.management.configuration.ManagementApiConfigurationExtension.DEFAULT_MANAGEMENT_PATH;
 import static org.eclipse.edc.connector.api.management.configuration.ManagementApiConfigurationExtension.DEFAULT_MANAGEMENT_PORT;
-import static org.eclipse.edc.connector.api.management.configuration.ManagementApiConfigurationExtension.MANAGEMENT_SCOPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;

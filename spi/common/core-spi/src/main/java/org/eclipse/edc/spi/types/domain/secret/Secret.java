@@ -26,7 +26,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  * The {@link Secret} contains the metadata and describes the data itself or a collection of data.
  */
 public class Secret extends Entity {
-    public static final String EDC_SECRET_TYPE = EDC_NAMESPACE + "Secret";
+    public static final String EDC_SECRET_TYPE_TERM = "Secret";
+    public static final String EDC_SECRET_TYPE = EDC_NAMESPACE + EDC_SECRET_TYPE_TERM;
     public static final String EDC_SECRET_VALUE = EDC_NAMESPACE + "value";
 
     private String value;

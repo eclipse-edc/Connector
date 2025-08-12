@@ -13,7 +13,6 @@ dependencies {
     implementation(libs.kafkaClients)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(libs.mockserver.netty)
     testImplementation(libs.restAssured)
     testImplementation(libs.awaitility)
 }
