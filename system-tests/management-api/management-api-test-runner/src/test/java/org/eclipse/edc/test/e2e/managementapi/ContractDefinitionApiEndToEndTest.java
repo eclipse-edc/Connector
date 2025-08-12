@@ -16,12 +16,10 @@ package org.eclipse.edc.test.e2e.managementapi;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
@@ -132,20 +130,14 @@ public class ContractDefinitionApiEndToEndTest {
             var createdAtTime = new AtomicLong(1000L);
             Stream.of(id1, id2, id3).forEach(id -> store.save(createContractDefinition(id).createdAt(createdAtTime.getAndIncrement()).build()));
 
-            var content = """
-                    {
-                        "@context": {
-                            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
-                        },
-                        "@type": "QuerySpec",
-                        "sortField": "createdAt",
-                        "sortOrder": "DESC",
-                        "limit": 100,
-                        "offset": 0
-                    }
-                    """;
-            var query = JacksonJsonLd.createObjectMapper()
-                    .readValue(content, JsonObject.class);
+            var query = createObjectBuilder()
+                    .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                    .add(TYPE, EDC_NAMESPACE + "QuerySpec")
+                    .add("sortField", "createdAt")
+                    .add("sortOrder", "DESC")
+                    .add("limit", 100)
+                    .add("offset", 0)
+                    .build();
 
             var result = context.baseRequest()
                     .contentType(JSON)
