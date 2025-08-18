@@ -17,3 +17,5 @@ updates:
       - "java"
     ignore:
       - dependency-name: "org.eclipse.edc:runtime-metamodel"
+      - dependency-name: "*"
+        versions: [ snapshot ]
