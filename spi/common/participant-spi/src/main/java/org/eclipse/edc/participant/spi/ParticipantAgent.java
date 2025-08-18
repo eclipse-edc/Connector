@@ -53,10 +53,7 @@ public class ParticipantAgent {
 
     @Deprecated(since = "0.14.0")
     public ParticipantAgent(Map<String, Object> claims, Map<String, String> attributes) {
-        this.claims = Map.copyOf(claims);
-        this.attributes = Map.copyOf(attributes);
-        
-        this.id = attributes.get(PARTICIPANT_IDENTITY);
+        this(attributes.get(PARTICIPANT_IDENTITY), claims, attributes);
     }
 
     /**
