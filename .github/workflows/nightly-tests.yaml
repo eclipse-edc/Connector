@@ -13,7 +13,7 @@ jobs:
     name: "Run DSP Compatibility Test"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: DSP Compatibility
         run: |
