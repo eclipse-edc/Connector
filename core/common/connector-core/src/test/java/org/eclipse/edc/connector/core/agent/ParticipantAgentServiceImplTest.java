@@ -54,7 +54,7 @@ class ParticipantAgentServiceImplTest {
         
         var participantAgent = participantAgentService.createFor(ClaimToken.Builder.newInstance().build(), participantId);
         
-        assertThat(participantAgent.getAttributes()).containsEntry(PARTICIPANT_IDENTITY, participantId);
+        assertThat(participantAgent.getIdentity()).isEqualTo(participantId);
     }
 
     @Test
