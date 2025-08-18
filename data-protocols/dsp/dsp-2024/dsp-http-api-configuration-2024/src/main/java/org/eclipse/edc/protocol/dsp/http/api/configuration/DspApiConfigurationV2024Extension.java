@@ -25,6 +25,7 @@ import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.protocol.dsp.http.spi.api.DspBaseWebhookAddress;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -85,6 +86,8 @@ public class DspApiConfigurationV2024Extension implements ServiceExtension {
     private DspBaseWebhookAddress dspWebhookAddress;
     @Inject
     private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
+    @Inject
+    private DefaultParticipantIdExtractionFunction participantIdExtractionFunction;
 
     @Override
     public String name() {
@@ -95,7 +98,7 @@ public class DspApiConfigurationV2024Extension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var v2024Path = dspWebhookAddress.get() + (wellKnownPathEnabled ? "" : V_2024_1_PATH);
 
-        dataspaceProfileContextRegistry.registerDefault(new DataspaceProfileContext(DATASPACE_PROTOCOL_HTTP_V_2024_1, V_2024_1, () -> v2024Path, context.getParticipantId()));
+        dataspaceProfileContextRegistry.registerDefault(new DataspaceProfileContext(DATASPACE_PROTOCOL_HTTP_V_2024_1, V_2024_1, () -> v2024Path, context.getParticipantId(), participantIdExtractionFunction));
 
         // registers ns for DSP scope
         registerNamespaces();

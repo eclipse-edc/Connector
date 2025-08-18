@@ -41,12 +41,19 @@ public class ParticipantAgent {
      */
     public static final String PARTICIPANT_IDENTITY = "edc:identity";
 
+    private final String id;
     private final Map<String, Object> claims;
     private final Map<String, String> attributes;
-
-    public ParticipantAgent(Map<String, Object> claims, Map<String, String> attributes) {
+    
+    public ParticipantAgent(String id, Map<String, Object> claims, Map<String, String> attributes) {
+        this.id = id;
         this.claims = Map.copyOf(claims);
         this.attributes = Map.copyOf(attributes);
+    }
+
+    @Deprecated(since = "0.14.0")
+    public ParticipantAgent(Map<String, Object> claims, Map<String, String> attributes) {
+        this(attributes.get(PARTICIPANT_IDENTITY), claims, attributes);
     }
 
     /**
@@ -70,6 +77,6 @@ public class ParticipantAgent {
      */
     @Nullable
     public String getIdentity() {
-        return attributes.get(PARTICIPANT_IDENTITY);
+        return id;
     }
 }

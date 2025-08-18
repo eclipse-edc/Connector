@@ -11,6 +11,7 @@
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       Cofinity-X - unauthenticated DSP version endpoint
  *       Cofinity-X - add participantId to DataspaceProfileContext
+ *       Cofinity-X - make participant id extraction dependent on dataspace profile context
  *
  */
 
@@ -277,7 +278,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public ProtocolTokenValidator protocolTokenValidator() {
         if (protocolTokenValidator == null) {
-            protocolTokenValidator = new ProtocolTokenValidatorImpl(identityService, policyEngine, monitor, participantAgentService);
+            protocolTokenValidator = new ProtocolTokenValidatorImpl(identityService, policyEngine, monitor, participantAgentService, dataspaceProfileContextRegistry);
         }
         return protocolTokenValidator;
     }

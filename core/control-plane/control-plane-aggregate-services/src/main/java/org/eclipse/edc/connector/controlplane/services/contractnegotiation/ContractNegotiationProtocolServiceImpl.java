@@ -10,6 +10,7 @@
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - implementation for provider offer
+ *       Cofinity-X - make participant id extraction dependent on dataspace profile context
  *
  */
 
@@ -23,6 +24,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
@@ -196,9 +198,14 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<ContractNegotiation> findById(String id, TokenRepresentation tokenRepresentation) {
+    public ServiceResult<ContractNegotiation> findById(String id, TokenRepresentation tokenRepresentation, String protocol) {
+        var message = ContractNegotiationRequestMessage.Builder.newInstance()
+                .negotiationId(id)
+                .protocol(protocol)
+                .build();
+        
         return transactionContext.execute(() -> getNegotiation(id)
-                .compose(contractNegotiation -> verifyRequest(tokenRepresentation, contractNegotiation.getLastContractOffer().getPolicy(), null)
+                .compose(contractNegotiation -> verifyRequest(tokenRepresentation, contractNegotiation.getLastContractOffer().getPolicy(), message)
                         .compose(agent -> validateRequest(agent, contractNegotiation)
                                 .map(it -> contractNegotiation))));
     }

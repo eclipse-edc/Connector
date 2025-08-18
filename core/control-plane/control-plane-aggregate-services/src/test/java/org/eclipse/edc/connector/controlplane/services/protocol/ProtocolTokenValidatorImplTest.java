@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - make participant id extraction dependent on dataspace profile context
  *
  */
 
@@ -19,6 +20,7 @@ import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.RequestContext;
@@ -31,6 +33,7 @@ import org.junit.jupiter.api.Test;
 
 import static java.util.Collections.emptyMap;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,25 +49,31 @@ class ProtocolTokenValidatorImplTest {
     private final ParticipantAgentService agentService = mock();
     private final IdentityService identityService = mock();
     private final PolicyEngine policyEngine = mock();
-    private final ProtocolTokenValidatorImpl validator = new ProtocolTokenValidatorImpl(identityService, policyEngine, mock(), agentService);
+    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
+    private final ProtocolTokenValidatorImpl validator = new ProtocolTokenValidatorImpl(identityService,
+            policyEngine, mock(), agentService, dataspaceProfileContextRegistry);
 
     @Test
     void shouldVerifyToken() {
+        var participantId = "participantId";
+        var protocol = "protocol";
         var participantAgent = new ParticipantAgent(emptyMap(), emptyMap());
         var claimToken = ClaimToken.Builder.newInstance().build();
         var policy = Policy.Builder.newInstance().build();
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
-        when(agentService.createFor(any())).thenReturn(participantAgent);
+        when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> participantId);
+        when(agentService.createFor(any(), any())).thenReturn(participantAgent);
 
         var result = validator.verify(tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
 
         assertThat(result).isSucceeded().isSameAs(participantAgent);
-        verify(agentService).createFor(claimToken);
+        verify(agentService).createFor(claimToken, participantId);
         verify(policyEngine).evaluate(same(policy), and(isA(RequestPolicyContext.class), argThat(ctx -> {
             var reqContext = ctx.requestContext();
             return reqContext.getMessage().getClass().equals(TestMessage.class) && reqContext.getDirection().equals(RequestContext.Direction.Ingress);
         })));
+        verify(dataspaceProfileContextRegistry).getIdExtractionFunction(protocol);
         verify(identityService).verifyJwtToken(same(tokenRepresentation), any());
     }
 
@@ -76,17 +85,25 @@ class ProtocolTokenValidatorImplTest {
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
     }
-
-    private RequestPolicyContext policyContext() {
-        var requestScopeBuilder = RequestScope.Builder.newInstance();
-        var requestContext = RequestContext.Builder.newInstance().build();
-        return new TestRequestPolicyContext(requestContext, requestScopeBuilder);
+    
+    @Test
+    void shouldReturnBadRequest_whenProtocolIsNotRegistered() {
+        var claimToken = ClaimToken.Builder.newInstance().build();
+        var policy = Policy.Builder.newInstance().build();
+        var tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
+        
+        when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
+        when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(null);
+        
+        var result = validator.verify(tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
+        
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
     }
 
     static class TestMessage implements RemoteMessage {
         @Override
         public String getProtocol() {
-            return null;
+            return "protocol";
         }
 
         @Override

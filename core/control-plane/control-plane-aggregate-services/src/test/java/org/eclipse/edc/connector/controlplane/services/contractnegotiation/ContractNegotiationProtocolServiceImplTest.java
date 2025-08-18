@@ -84,7 +84,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -283,12 +282,12 @@ class ContractNegotiationProtocolServiceImplTest {
         var contractOffer = contractOffer();
         var negotiation = contractNegotiationBuilder().id(id).type(PROVIDER).contractOffer(contractOffer).state(VERIFIED.code()).build();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), isNull()))
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), any()))
                 .thenReturn(ServiceResult.success(participantAgent));
         when(store.findById(id)).thenReturn(negotiation);
         when(validationService.validateRequest(participantAgent, negotiation)).thenReturn(Result.success());
 
-        var result = service.findById(id, tokenRepresentation);
+        var result = service.findById(id, tokenRepresentation, "protocol");
 
         assertThat(result)
                 .isSucceeded()
@@ -298,11 +297,11 @@ class ContractNegotiationProtocolServiceImplTest {
     @Test
     void findById_shouldReturnNotFound_whenNegotiationNotFound() {
         var tokenRepresentation = tokenRepresentation();
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any()))
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), any()))
                 .thenReturn(ServiceResult.success(participantAgent()));
         when(store.findById(any())).thenReturn(null);
 
-        var result = service.findById("invalidId", tokenRepresentation);
+        var result = service.findById("invalidId", tokenRepresentation, "protocol");
 
         assertThat(result)
                 .isFailed()
@@ -317,14 +316,14 @@ class ContractNegotiationProtocolServiceImplTest {
         var tokenRepresentation = tokenRepresentation();
         var contractOffer = contractOffer();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), isNull())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), any())).thenReturn(ServiceResult.success(participantAgent));
 
         var negotiation = contractNegotiationBuilder().id(id).type(PROVIDER).contractOffer(contractOffer).state(VERIFIED.code()).build();
 
         when(store.findById(id)).thenReturn(negotiation);
         when(validationService.validateRequest(participantAgent, negotiation)).thenReturn(Result.failure("validation error"));
 
-        var result = service.findById(id, tokenRepresentation);
+        var result = service.findById(id, tokenRepresentation, "protocol");
 
         assertThat(result)
                 .isFailed()

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - make participant id extraction dependent on dataspace profile context
  *
  */
 
@@ -34,23 +35,13 @@ public interface ProtocolTokenValidator {
      *
      * @param tokenRepresentation   The token
      * @param policyContextProvider The policy scope
-     * @return Returns the extracted {@link ParticipantAgent} if successful, failure otherwise
-     */
-    default ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider) {
-        return verify(tokenRepresentation, policyContextProvider, Policy.Builder.newInstance().build(), null);
-    }
-    
-    /**
-     * Verify the {@link TokenRepresentation}
-     *
-     * @param tokenRepresentation   The token
-     * @param policyContextProvider The policy scope
      * @param message               The {@link RemoteMessage}
      * @return Returns the extracted {@link ParticipantAgent} if successful, failure otherwise
      */
     default ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, RemoteMessage message) {
         return verify(tokenRepresentation, policyContextProvider, Policy.Builder.newInstance().build(), message);
     }
+
 
     /**
      * Verify the {@link TokenRepresentation} in the context of a policy
