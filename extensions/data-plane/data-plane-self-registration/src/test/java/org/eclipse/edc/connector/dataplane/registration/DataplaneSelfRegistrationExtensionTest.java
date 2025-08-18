@@ -79,6 +79,7 @@ class DataplaneSelfRegistrationExtensionTest {
         when(pipelineService.supportedSourceTypes()).thenReturn(Set.of("sourceType", "anotherSourceType"));
         when(publicEndpointGeneratorService.supportedDestinationTypes()).thenReturn(Set.of("pullDestType", "anotherPullDestType"));
         when(publicEndpointGeneratorService.supportedResponseTypes()).thenReturn(Set.of("responseType", "anotherResponseType"));
+        when(resourceDefinitionGeneratorManager.sourceTypes()).thenReturn(Set.of("supportedSourceProvisionType"));
         when(resourceDefinitionGeneratorManager.destinationTypes()).thenReturn(Set.of("supportedDestinationProvisionType"));
         when(dataPlaneSelectorService.addInstance(any())).thenReturn(ServiceResult.success());
 
@@ -90,7 +91,7 @@ class DataplaneSelfRegistrationExtensionTest {
         var dataPlaneInstance = captor.getValue();
         assertThat(dataPlaneInstance.getId()).isEqualTo("componentId");
         assertThat(dataPlaneInstance.getUrl()).isEqualTo(new URL("http://control/api/url/v1/dataflows"));
-        assertThat(dataPlaneInstance.getAllowedSourceTypes()).containsExactlyInAnyOrder("sourceType", "anotherSourceType");
+        assertThat(dataPlaneInstance.getAllowedSourceTypes()).containsExactlyInAnyOrder("sourceType", "anotherSourceType", "supportedSourceProvisionType");
         assertThat(dataPlaneInstance.getAllowedTransferTypes())
                 .containsExactlyInAnyOrder("anotherPullDestType-PULL-anotherResponseType",
                         "anotherSinkType-PUSH-anotherResponseType",

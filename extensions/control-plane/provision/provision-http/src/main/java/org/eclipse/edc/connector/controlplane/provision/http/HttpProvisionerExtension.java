@@ -38,11 +38,14 @@ import static java.lang.String.format;
 
 /**
  * The HTTP Provisioner extension delegates to HTTP endpoints to perform provision operations.
+ *
+ * @deprecated provisioning has been moved to data-plane
  */
 @Extension(value = HttpProvisionerExtension.NAME)
+@Deprecated(since = "0.14.0")
 public class HttpProvisionerExtension implements ServiceExtension {
 
-    public static final String NAME = "HTTP Provisioning";
+    public static final String NAME = "DEPRECATED: HTTP Provisioning";
 
     public static final String DEFAULT_POLICY_SCOPE = "http.provisioner";
     public static final String HTTP_PROVISIONER_ENTRIES = "provisioner.http.entries";

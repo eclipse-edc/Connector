@@ -63,6 +63,11 @@ public class DeprovisionedResource {
             return resource;
         }
 
+        public Builder id(String id) {
+            resource.id = id;
+            return this;
+        }
+
         public Builder flowId(String flowId) {
             resource.flowId = flowId;
             return this;

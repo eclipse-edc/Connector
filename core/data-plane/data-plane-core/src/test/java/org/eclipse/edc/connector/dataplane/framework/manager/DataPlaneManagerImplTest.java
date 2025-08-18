@@ -34,6 +34,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.ResponseFailure;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
@@ -42,7 +43,6 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
-import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.spi.types.domain.transfer.TransferType;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,6 +53,7 @@ import org.mockito.ArgumentCaptor;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -83,7 +84,9 @@ import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.spi.response.StatusResult.failure;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.GENERAL_ERROR;
+import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PULL;
 import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
@@ -135,122 +138,41 @@ class DataPlaneManagerImplTest {
     }
 
     @Nested
-    class Completed {
+    class Validate {
+
         @Test
-        void shouldNotifyResultToControlPlaneAndTriggerDeprovisioning_whenThereAreProvisionResources() {
-            var resource = ProvisionResource.Builder.newInstance().flowId("flowId").build();
-            resource.transitionProvisioned(ProvisionedResource.Builder.from(resource).build());
-            var dataFlow = dataFlowBuilder().state(COMPLETED.code())
-                    .resourceDefinitions(List.of(resource))
-                    .build();
-            when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(transferProcessApiClient.completed(any())).thenReturn(StatusResult.success());
+        void shouldNotValidatePullTransfers() {
+            var request = dataFlowStartMessageBuilder().flowType(PULL).build();
 
-            manager.start();
+            var result = manager.validate(request);
 
-            await().untilAsserted(() -> {
-                verify(transferProcessApiClient).completed(any());
-                var captor = ArgumentCaptor.forClass(DataFlow.class);
-                verify(store).save(captor.capture());
-                assertThat(captor.getValue()).extracting(StatefulEntity::getState).isEqualTo(DEPROVISIONING.code());
-            });
+            assertThat(result).isSucceeded();
+            verifyNoInteractions(registry, resourceDefinitionGeneratorManager);
         }
 
         @Test
-        void shouldNotifyResultToControlPlaneAndTransitionToNotify_whenThereAreNoProvisionResources() {
-            var dataFlow = dataFlowBuilder().state(COMPLETED.code())
-                    .resourceDefinitions(emptyList())
-                    .build();
-            when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(transferProcessApiClient.completed(any())).thenReturn(StatusResult.success());
+        void shouldValidatePushAgainstProvisionTypes_whenNoTransferServiceAvailable() {
+            var source = DataAddress.Builder.newInstance().type("ProvisionType").build();
+            var request = dataFlowStartMessageBuilder().flowType(PUSH).sourceDataAddress(source).build();
+            when(registry.resolveTransferService(any())).thenReturn(null);
+            when(resourceDefinitionGeneratorManager.sourceTypes()).thenReturn(Set.of("ProvisionType"));
 
-            manager.start();
+            var result = manager.validate(request);
 
-            await().untilAsserted(() -> {
-                verify(transferProcessApiClient).completed(any());
-                var captor = ArgumentCaptor.forClass(DataFlow.class);
-                verify(store).save(captor.capture());
-                assertThat(captor.getValue()).extracting(StatefulEntity::getState).isEqualTo(NOTIFIED.code());
-            });
+            assertThat(result).isSucceeded();
+            verify(resourceDefinitionGeneratorManager).sourceTypes();
         }
 
         @Test
-        void shouldTransitionToCompleted_whenRetriableError() {
-            var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
-            when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(transferProcessApiClient.completed(any())).thenReturn(failure(ERROR_RETRY));
+        void shouldFailWhenValidatePushAgainstProvisionTypes_whenTypeNotSupported() {
+            var source = DataAddress.Builder.newInstance().type("UnknownProvisionType").build();
+            var request = dataFlowStartMessageBuilder().flowType(PUSH).sourceDataAddress(source).build();
+            when(registry.resolveTransferService(any())).thenReturn(null);
+            when(resourceDefinitionGeneratorManager.sourceTypes()).thenReturn(Set.of("ProvisionType"));
 
-            manager.start();
+            var result = manager.validate(request);
 
-            await().untilAsserted(() -> {
-                verify(transferProcessApiClient).completed(any());
-                verify(store).save(argThat(it -> it.getState() == COMPLETED.code()));
-            });
-        }
-
-        @Test
-        void shouldTransitionToTerminated_whenFatalError() {
-            var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
-            when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(transferProcessApiClient.completed(any())).thenReturn(failure(FATAL_ERROR));
-
-            manager.start();
-
-            await().untilAsserted(() -> {
-                verify(transferProcessApiClient).completed(any());
-                verify(store).save(argThat(it -> it.getState() == TERMINATED.code()));
-            });
-        }
-    }
-
-    @Nested
-    class Failed {
-        @Test
-        void shouldNotifyResultToControlPlane() {
-            var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
-            when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(store.findById(any())).thenReturn(dataFlow);
-
-            when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(StatusResult.success());
-
-            manager.start();
-
-            await().untilAsserted(() -> {
-                verify(transferProcessApiClient).failed(any(), eq("an error"));
-                verify(store).save(argThat(it -> it.getState() == NOTIFIED.code()));
-            });
-        }
-
-        @Test
-        void shouldTransitionToFailed_whenRetryableError() {
-            var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
-            when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(store.findById(any())).thenReturn(dataFlow);
-
-            when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(failure(ERROR_RETRY));
-
-            manager.start();
-
-            await().untilAsserted(() -> {
-                verify(transferProcessApiClient).failed(any(), eq("an error"));
-                verify(store).save(argThat(it -> it.getState() == FAILED.code()));
-            });
-        }
-
-        @Test
-        void shouldTransitionToTerminated_whenFatalError() {
-            var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
-            when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
-            when(store.findById(any())).thenReturn(dataFlow);
-
-            when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(failure(FATAL_ERROR));
-
-            manager.start();
-
-            await().untilAsserted(() -> {
-                verify(transferProcessApiClient).failed(any(), eq("an error"));
-                verify(store).save(argThat(it -> it.getState() == TERMINATED.code()));
-            });
+            assertThat(result).isFailed();
         }
     }
 
@@ -284,7 +206,7 @@ class DataPlaneManagerImplTest {
         @Test
         void shouldInitiatePullDataFlow() {
             var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-            var request = dataFlowStartMessageBuilder().flowType(FlowType.PULL).build();
+            var request = dataFlowStartMessageBuilder().flowType(PULL).build();
 
             when(authorizationService.createEndpointDataReference(any())).thenReturn(Result.success(dataAddress));
 
@@ -305,7 +227,7 @@ class DataPlaneManagerImplTest {
 
         @Test
         void shouldNotInitiatePullDataFlow_whenEdrCreationFails() {
-            var request = dataFlowStartMessageBuilder().flowType(FlowType.PULL).build();
+            var request = dataFlowStartMessageBuilder().flowType(PULL).build();
             when(authorizationService.createEndpointDataReference(any())).thenReturn(Result.failure("failure"));
 
             var result = manager.start(request);
@@ -571,7 +493,7 @@ class DataPlaneManagerImplTest {
 
             var result = manager.resourceProvisioned(ProvisionedResource.Builder.newInstance().flowId("any").build());
 
-            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(ERROR_RETRY);
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
         }
 
     }
@@ -596,7 +518,7 @@ class DataPlaneManagerImplTest {
 
             var result = manager.resourceDeprovisioned(DeprovisionedResource.Builder.newInstance().flowId("any").build());
 
-            assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(ERROR_RETRY);
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
         }
     }
 
@@ -619,7 +541,7 @@ class DataPlaneManagerImplTest {
 
         @Test
         void shouldTerminatePullDataFlow() {
-            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).id("dataFlowId").transferType(new TransferType("DestinationType", FlowType.PULL)).build();
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).id("dataFlowId").transferType(new TransferType("DestinationType", PULL)).build();
             when(store.findByIdAndLease(dataFlow.getId())).thenReturn(StoreResult.success(dataFlow));
             when(authorizationService.revokeEndpointDataReference(dataFlow.getId(), null)).thenReturn(ServiceResult.success());
 
@@ -632,7 +554,7 @@ class DataPlaneManagerImplTest {
 
         @Test
         void shouldTerminatePullDataFlow_whenSuspendedAndRevokeNotFound() {
-            var dataFlow = dataFlowBuilder().state(SUSPENDED.code()).id("dataFlowId").transferType(new TransferType("DestinationType", FlowType.PULL)).build();
+            var dataFlow = dataFlowBuilder().state(SUSPENDED.code()).id("dataFlowId").transferType(new TransferType("DestinationType", PULL)).build();
             when(store.findByIdAndLease(dataFlow.getId())).thenReturn(StoreResult.success(dataFlow));
             when(authorizationService.revokeEndpointDataReference(dataFlow.getId(), null)).thenReturn(ServiceResult.notFound("not found"));
 
@@ -645,7 +567,7 @@ class DataPlaneManagerImplTest {
 
         @Test
         void shouldFailToTerminatePullDataFlow_whenRevocationFails() {
-            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).id("dataFlowId").transferType(new TransferType("DestinationType", FlowType.PULL)).build();
+            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).id("dataFlowId").transferType(new TransferType("DestinationType", PULL)).build();
             when(store.findByIdAndLease(dataFlow.getId())).thenReturn(StoreResult.success(dataFlow));
             when(authorizationService.revokeEndpointDataReference(dataFlow.getId(), null)).thenReturn(ServiceResult.notFound("failure"));
 
@@ -743,6 +665,22 @@ class DataPlaneManagerImplTest {
             assertThat(result).isSucceeded();
             verify(store).save(argThat(d -> d.getState() == DEPROVISIONING.code()));
             verifyNoInteractions(transferService, authorizationService);
+        }
+
+        @Test
+        void shouldTransitionToDeprovisioning_whenFlowHasResourcesToBeDeprovisioned() {
+            var provisionResource = ProvisionResource.Builder.newInstance().flowId("dataFlowId").build();
+            provisionResource.transitionProvisioned(ProvisionedResource.Builder.from(provisionResource).build());
+            var dataFlow = dataFlowBuilder().state(STARTED.code()).resourceDefinitions(List.of(provisionResource)).build();
+            when(store.findByIdAndLease("dataFlowId")).thenReturn(StoreResult.success(dataFlow));
+            when(registry.resolveTransferService(any())).thenReturn(transferService);
+            when(transferService.terminate(any())).thenReturn(StreamResult.success());
+
+            var result = manager.terminate("dataFlowId");
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(d -> d.getState() == DEPROVISIONING.code()));
+            verify(transferService).terminate(dataFlow);
         }
 
     }
@@ -888,6 +826,126 @@ class DataPlaneManagerImplTest {
             await().untilAsserted(() -> {
                 verifyNoInteractions(transferService);
                 verify(store, atLeastOnce()).save(argThat(it -> it.getState() == FAILED.code()));
+            });
+        }
+    }
+
+    @Nested
+    class Completed {
+        @Test
+        void shouldNotifyResultToControlPlaneAndTriggerDeprovisioning_whenThereAreProvisionResources() {
+            var resource = ProvisionResource.Builder.newInstance().flowId("flowId").build();
+            resource.transitionProvisioned(ProvisionedResource.Builder.from(resource).build());
+            var dataFlow = dataFlowBuilder().state(COMPLETED.code())
+                    .resourceDefinitions(List.of(resource))
+                    .build();
+            when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(transferProcessApiClient.completed(any())).thenReturn(StatusResult.success());
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(transferProcessApiClient).completed(any());
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                assertThat(captor.getValue()).extracting(StatefulEntity::getState).isEqualTo(DEPROVISIONING.code());
+            });
+        }
+
+        @Test
+        void shouldNotifyResultToControlPlaneAndTransitionToNotify_whenThereAreNoProvisionResources() {
+            var dataFlow = dataFlowBuilder().state(COMPLETED.code())
+                    .resourceDefinitions(emptyList())
+                    .build();
+            when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(transferProcessApiClient.completed(any())).thenReturn(StatusResult.success());
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(transferProcessApiClient).completed(any());
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                assertThat(captor.getValue()).extracting(StatefulEntity::getState).isEqualTo(NOTIFIED.code());
+            });
+        }
+
+        @Test
+        void shouldTransitionToCompleted_whenRetriableError() {
+            var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
+            when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(transferProcessApiClient.completed(any())).thenReturn(failure(ERROR_RETRY));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(transferProcessApiClient).completed(any());
+                verify(store).save(argThat(it -> it.getState() == COMPLETED.code()));
+            });
+        }
+
+        @Test
+        void shouldTransitionToTerminated_whenFatalError() {
+            var dataFlow = dataFlowBuilder().state(COMPLETED.code()).build();
+            when(store.nextNotLeased(anyInt(), stateIs(COMPLETED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(transferProcessApiClient.completed(any())).thenReturn(failure(FATAL_ERROR));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(transferProcessApiClient).completed(any());
+                verify(store).save(argThat(it -> it.getState() == TERMINATED.code()));
+            });
+        }
+    }
+
+    @Nested
+    class Failed {
+        @Test
+        void shouldNotifyResultToControlPlane() {
+            var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
+            when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(store.findById(any())).thenReturn(dataFlow);
+
+            when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(StatusResult.success());
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(transferProcessApiClient).failed(any(), eq("an error"));
+                verify(store).save(argThat(it -> it.getState() == NOTIFIED.code()));
+            });
+        }
+
+        @Test
+        void shouldTransitionToFailed_whenRetryableError() {
+            var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
+            when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(store.findById(any())).thenReturn(dataFlow);
+
+            when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(failure(ERROR_RETRY));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(transferProcessApiClient).failed(any(), eq("an error"));
+                verify(store).save(argThat(it -> it.getState() == FAILED.code()));
+            });
+        }
+
+        @Test
+        void shouldTransitionToTerminated_whenFatalError() {
+            var dataFlow = dataFlowBuilder().state(FAILED.code()).errorDetail("an error").build();
+            when(store.nextNotLeased(anyInt(), stateIs(FAILED.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(store.findById(any())).thenReturn(dataFlow);
+
+            when(transferProcessApiClient.failed(any(), eq("an error"))).thenReturn(failure(FATAL_ERROR));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(transferProcessApiClient).failed(any(), eq("an error"));
+                verify(store).save(argThat(it -> it.getState() == TERMINATED.code()));
             });
         }
     }
@@ -1150,7 +1208,7 @@ class DataPlaneManagerImplTest {
 
         @Test
         void shouldRestartPullFlow_whenAnotherRuntimeAbandonedIt() {
-            var dataFlow = dataFlowBuilder().state(STARTED.code()).transferType(new TransferType("any", FlowType.PULL)).build();
+            var dataFlow = dataFlowBuilder().state(STARTED.code()).transferType(new TransferType("any", PULL)).build();
             when(store.nextNotLeased(anyInt(), startedFlowOwnedByAnotherRuntime()))
                     .thenReturn(List.of(dataFlow)).thenReturn(emptyList());
             when(registry.resolveTransferService(any())).thenReturn(transferService);

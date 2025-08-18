@@ -124,6 +124,13 @@ public class EmbeddedRuntime extends BaseRuntime {
         return new TestServiceExtensionContext(monitor, config, serviceMocks);
     }
 
+    /**
+     * Utility method that doesn't require the addShutdownHook parameter
+     */
+    public void boot() {
+        boot(false);
+    }
+
     @Override
     protected @NotNull Monitor createMonitor() {
         // disable logs when "quiet" log level is set
