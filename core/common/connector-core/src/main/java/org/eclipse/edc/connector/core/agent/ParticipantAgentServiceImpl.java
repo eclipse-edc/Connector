@@ -24,8 +24,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import static org.eclipse.edc.participant.spi.ParticipantAgent.PARTICIPANT_IDENTITY;
-
 /**
  * Default implementation.
  */
@@ -40,9 +38,8 @@ public class ParticipantAgentServiceImpl implements ParticipantAgentService {
         var attributes = new HashMap<String, String>();
         
         extensions.stream().map(extension -> extension.attributesFor(token)).forEach(attributes::putAll);
-
-        attributes.put(PARTICIPANT_IDENTITY, participantId);
-        return new ParticipantAgent(token.getClaims(), attributes);
+        
+        return new ParticipantAgent(participantId, token.getClaims(), attributes);
     }
 
     @Override
