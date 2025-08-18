@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
@@ -198,8 +199,13 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     @WithSpan
     @NotNull
     public ServiceResult<ContractNegotiation> findById(String id, TokenRepresentation tokenRepresentation, String protocol) {
+        var message = ContractNegotiationRequestMessage.Builder.newInstance()
+                .negotiationId(id)
+                .protocol(protocol)
+                .build();
+        
         return transactionContext.execute(() -> getNegotiation(id)
-                .compose(contractNegotiation -> verifyRequest(tokenRepresentation, contractNegotiation.getLastContractOffer().getPolicy(), protocol)
+                .compose(contractNegotiation -> verifyRequest(tokenRepresentation, contractNegotiation.getLastContractOffer().getPolicy(), message)
                         .compose(agent -> validateRequest(agent, contractNegotiation)
                                 .map(it -> contractNegotiation))));
     }
@@ -351,13 +357,8 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                 .flatMap(ServiceResult::from);
     }
 
-    private ServiceResult<ParticipantAgent> verifyRequest(TokenRepresentation tokenRepresentation, Policy policy, @NotNull RemoteMessage message) {
+    private ServiceResult<ParticipantAgent> verifyRequest(TokenRepresentation tokenRepresentation, Policy policy, RemoteMessage message) {
         return protocolTokenValidator.verify(tokenRepresentation, RequestContractNegotiationPolicyContext::new, policy, message)
-                .onFailure(failure -> monitor.debug(() -> "Verification Failed: %s".formatted(failure.getFailureDetail())));
-    }
-    
-    private ServiceResult<ParticipantAgent> verifyRequest(TokenRepresentation tokenRepresentation, Policy policy, String protocol) {
-        return protocolTokenValidator.verify(tokenRepresentation, RequestContractNegotiationPolicyContext::new, policy, null, protocol)
                 .onFailure(failure -> monitor.debug(() -> "Verification Failed: %s".formatted(failure.getFailureDetail())));
     }
 

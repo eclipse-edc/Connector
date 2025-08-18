@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
+import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
@@ -73,7 +74,11 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
 
     @Override
     public @NotNull ServiceResult<Dataset> getDataset(String datasetId, TokenRepresentation tokenRepresentation, String protocol) {
-        return transactionContext.execute(() -> protocolTokenValidator.verify(tokenRepresentation, RequestCatalogPolicyContext::new, protocol)
+        var message = DatasetRequestMessage.Builder.newInstance()
+                .protocol(protocol)
+                .datasetId(datasetId)
+                .build();
+        return transactionContext.execute(() -> protocolTokenValidator.verify(tokenRepresentation, RequestCatalogPolicyContext::new, message)
                 .map(agent -> datasetResolver.getById(agent, datasetId, protocol))
                 .compose(dataset -> {
                     if (dataset == null) {

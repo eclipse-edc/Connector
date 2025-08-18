@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
@@ -139,8 +140,13 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @WithSpan
     @NotNull
     public ServiceResult<TransferProcess> findById(String id, TokenRepresentation tokenRepresentation, String protocol) {
+        var message = TransferProcessRequestMessage.Builder.newInstance()
+                .transferProcessId(id)
+                .protocol(protocol)
+                .build();
+        
         return transactionContext.execute(() -> fetchRequestContext(id, this::findTransferProcessById)
-                .compose(context -> verifyRequest(tokenRepresentation, context, protocol))
+                .compose(context -> verifyRequest(tokenRepresentation, context, message))
                 .compose(context -> validateCounterParty(context.participantAgent(), context.agreement(), context.transferProcess())));
     }
 
@@ -263,18 +269,8 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         return tpProvider.apply(input).compose(transferProcess -> findContractByTransferProcess(transferProcess).map(agreement -> new TransferRequestMessageContext(agreement, transferProcess)));
     }
 
-    private ServiceResult<ClaimTokenContext> verifyRequest(TokenRepresentation tokenRepresentation, TransferRequestMessageContext context, @NotNull RemoteMessage message) {
+    private ServiceResult<ClaimTokenContext> verifyRequest(TokenRepresentation tokenRepresentation, TransferRequestMessageContext context, RemoteMessage message) {
         var result = protocolTokenValidator.verify(tokenRepresentation, RequestTransferProcessPolicyContext::new, context.agreement().getPolicy(), message);
-        if (result.failed()) {
-            monitor.debug(() -> "Verification Failed: %s".formatted(result.getFailureDetail()));
-            return ServiceResult.notFound("Not found");
-        } else {
-            return ServiceResult.success(new ClaimTokenContext(result.getContent(), context.agreement(), context.transferProcess()));
-        }
-    }
-    
-    private ServiceResult<ClaimTokenContext> verifyRequest(TokenRepresentation tokenRepresentation, TransferRequestMessageContext context, String protocol) {
-        var result = protocolTokenValidator.verify(tokenRepresentation, RequestTransferProcessPolicyContext::new, context.agreement().getPolicy(), null, protocol);
         if (result.failed()) {
             monitor.debug(() -> "Verification Failed: %s".formatted(result.getFailureDetail()));
             return ServiceResult.notFound("Not found");

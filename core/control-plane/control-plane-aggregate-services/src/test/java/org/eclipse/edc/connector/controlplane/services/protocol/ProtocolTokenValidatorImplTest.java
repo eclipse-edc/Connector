@@ -65,7 +65,7 @@ class ProtocolTokenValidatorImplTest {
         when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> participantId);
         when(agentService.createFor(any(), any())).thenReturn(participantAgent);
 
-        var result = validator.verify(tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage(), protocol);
+        var result = validator.verify(tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
 
         assertThat(result).isSucceeded().isSameAs(participantAgent);
         verify(agentService).createFor(claimToken, participantId);
@@ -81,7 +81,7 @@ class ProtocolTokenValidatorImplTest {
     void shouldReturnUnauthorized_whenTokenIsNotValid() {
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.failure("failure"));
 
-        var result = validator.verify(TokenRepresentation.Builder.newInstance().build(), TestRequestPolicyContext::new, Policy.Builder.newInstance().build(), new TestMessage(), "protocol");
+        var result = validator.verify(TokenRepresentation.Builder.newInstance().build(), TestRequestPolicyContext::new, Policy.Builder.newInstance().build(), new TestMessage());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
     }
@@ -95,7 +95,7 @@ class ProtocolTokenValidatorImplTest {
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
         when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(null);
         
-        var result = validator.verify(tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage(), "protocol");
+        var result = validator.verify(tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
         
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
     }
@@ -103,7 +103,7 @@ class ProtocolTokenValidatorImplTest {
     static class TestMessage implements RemoteMessage {
         @Override
         public String getProtocol() {
-            return null;
+            return "protocol";
         }
 
         @Override

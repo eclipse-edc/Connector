@@ -81,11 +81,9 @@ import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -284,7 +282,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var contractOffer = contractOffer();
         var negotiation = contractNegotiationBuilder().id(id).type(PROVIDER).contractOffer(contractOffer).state(VERIFIED.code()).build();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), isNull(), anyString()))
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), any()))
                 .thenReturn(ServiceResult.success(participantAgent));
         when(store.findById(id)).thenReturn(negotiation);
         when(validationService.validateRequest(participantAgent, negotiation)).thenReturn(Result.success());
@@ -299,7 +297,7 @@ class ContractNegotiationProtocolServiceImplTest {
     @Test
     void findById_shouldReturnNotFound_whenNegotiationNotFound() {
         var tokenRepresentation = tokenRepresentation();
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), isNull(), anyString()))
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), any()))
                 .thenReturn(ServiceResult.success(participantAgent()));
         when(store.findById(any())).thenReturn(null);
 
@@ -318,7 +316,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var tokenRepresentation = tokenRepresentation();
         var contractOffer = contractOffer();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), isNull(), anyString())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), any())).thenReturn(ServiceResult.success(participantAgent));
 
         var negotiation = contractNegotiationBuilder().id(id).type(PROVIDER).contractOffer(contractOffer).state(VERIFIED.code()).build();
 

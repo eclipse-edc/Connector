@@ -130,7 +130,7 @@ class CatalogProtocolServiceImplTest {
             var participantAgent = createParticipantAgent();
             var dataset = createDataset();
 
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), anyString())).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any())).thenReturn(ServiceResult.success(participantAgent));
             when(datasetResolver.getById(any(), any(), any())).thenReturn(dataset);
 
             var result = service.getDataset("datasetId", tokenRepresentation, "protocol");
@@ -145,7 +145,7 @@ class CatalogProtocolServiceImplTest {
             var participantAgent = createParticipantAgent();
             var tokenRepresentation = createTokenRepresentation();
 
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), anyString())).thenReturn(ServiceResult.success(participantAgent));
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any())).thenReturn(ServiceResult.success(participantAgent));
             when(datasetResolver.getById(any(), any(), any())).thenReturn(null);
 
             var result = service.getDataset("datasetId", tokenRepresentation, "protocol");
@@ -157,7 +157,7 @@ class CatalogProtocolServiceImplTest {
         void shouldFail_whenTokenValidationFails() {
             var tokenRepresentation = createTokenRepresentation();
 
-            when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), anyString())).thenReturn(ServiceResult.unauthorized("unauthorized"));
+            when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any())).thenReturn(ServiceResult.unauthorized("unauthorized"));
 
             var result = service.getDataset("datasetId", tokenRepresentation, "protocol");
 
