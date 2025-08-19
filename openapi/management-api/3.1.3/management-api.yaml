@@ -1604,6 +1604,178 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/assets:
+    put:
+      tags:
+      - Asset v4alpha
+      description: "Updates an asset with the given ID if it exists. If the asset\
+        \ is not found, no further action is taken. DANGER ZONE: Note that updating\
+        \ assets can have unexpected results, especially for contract offers that\
+        \ have been sent out or are ongoing in contract negotiations."
+      operationId: updateAssetV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/asset-schema"
+      responses:
+        "204":
+          description: Asset was updated successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: "Asset could not be updated, because it does not exist."
+    post:
+      tags:
+      - Asset v4alpha
+      description: Creates a new asset together with a data address
+      operationId: createAssetV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/asset-schema"
+      responses:
+        "200":
+          description: Asset was created successfully. Returns the asset Id and created
+            timestamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/id-response-schema"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "409":
+          description: "Could not create asset, because an asset with that ID already\
+            \ exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/assets/request:
+    post:
+      tags:
+      - Asset v4alpha
+      description: Request all assets according to a particular query
+      operationId: requestAssetsV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The assets matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/asset-schema"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/assets/{id}:
+    get:
+      tags:
+      - Asset v4alpha
+      description: Gets an asset with the given ID
+      operationId: getAssetV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The asset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/asset-schema"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An asset with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+    delete:
+      tags:
+      - Asset v4alpha
+      description: "Removes an asset with the given ID if possible. Deleting an asset\
+        \ is only possible if that asset is not yet referenced by a contract agreement,\
+        \ in which case an error is returned. DANGER ZONE: Note that deleting assets\
+        \ can have unexpected results, especially for contract offers that have been\
+        \ sent out or ongoing or contract negotiations."
+      operationId: removeAssetV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Asset was deleted successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An asset with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "409":
+          description: "The asset cannot be deleted, because it is referenced by a\
+            \ contract agreement"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v4alpha/contractagreements/request:
     post:
       tags:
@@ -1808,6 +1980,26 @@ components:
         type: ErrorType
         path: object.error.path
         invalidValue: this value is not valid
+    Asset:
+      required:
+      - '@context'
+      - '@type'
+      - dataAddress
+      - properties
+      type: object
+      properties:
+        '@context':
+          $ref: "#/components/schemas/context-schema"
+        '@type':
+          type: string
+        '@id':
+          type: string
+        properties:
+          type: object
+        privateProperties:
+          type: object
+        dataAddress:
+          $ref: "#/components/schemas/data-address-schema"
     AssetInput:
       required:
       - '@context'
@@ -1975,6 +2167,12 @@ components:
           sortOrder: DESC
           sortField: fieldName
           filterExpression: []
+    ContextSchema:
+      type: array
+      items:
+        type: array
+        items:
+          type: string
     ContractAgreement:
       type: object
       properties:
@@ -2186,12 +2384,37 @@ components:
         operandLeft: fieldName
         operator: =
         operandRight: some value
+    Criterion_1:
+      required:
+      - '@type'
+      - operandLeft
+      - operandRight
+      - operator
+      type: object
+      properties:
+        '@type':
+          type: string
+        operandLeft:
+          type: string
+        operandRight: {}
+        operator:
+          type: string
     DataAddress:
       type: object
       properties:
         '@type':
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/DataAddress
+        type:
+          type: string
+    DataAddress_1:
+      required:
+      - '@type'
+      - type
+      type: object
+      properties:
+        '@type':
+          type: string
         type:
           type: string
     DataPlaneInstanceSchemaV3:
@@ -2396,6 +2619,22 @@ components:
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
         '@id': id-value
         createdAt: 1688465655
+    IdResponse_1:
+      required:
+      - '@context'
+      - '@id'
+      - '@type'
+      - createdAt
+      type: object
+      properties:
+        '@context':
+          $ref: "#/components/schemas/context-schema"
+        '@type':
+          type: string
+        '@id':
+          type: string
+        createdAt:
+          type: number
     JsonArray:
       type: array
       properties:
@@ -2669,6 +2908,40 @@ components:
         sortOrder: DESC
         sortField: fieldName
         filterExpression: []
+    QuerySpecRoot:
+      required:
+      - '@context'
+      - '@type'
+      type: object
+      allOf:
+      - properties:
+          '@context':
+            $ref: "#/components/schemas/context-schema"
+      - $ref: "#/components/schemas/QuerySpec_1"
+    QuerySpec_1:
+      required:
+      - '@type'
+      type: object
+      properties:
+        '@type':
+          type: string
+        offset:
+          minimum: 0
+          type: integer
+        limit:
+          minimum: 1
+          type: integer
+        sortField:
+          type: string
+        sortOrder:
+          type: string
+          enum:
+          - ASC
+          - DESC
+        filterExpression:
+          type: array
+          items:
+            $ref: "#/components/schemas/Criterion_1"
     SecretInput:
       required:
       - '@context'
@@ -2873,3 +3146,30 @@ components:
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
         '@type': https://w3id.org/edc/v0.0.1/ns/TransferState
         state: STARTED
+    asset-schema:
+      title: AssetSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/Asset"
+    context-schema:
+      title: ContextSchema
+      type: array
+      allOf:
+      - $ref: "#/components/schemas/ContextSchema"
+      items:
+        type: string
+    data-address-schema:
+      title: DataAddressSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/DataAddress_1"
+    id-response-schema:
+      title: IdResponseSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/IdResponse_1"
+    query-spec-schema:
+      title: QuerySpecSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/QuerySpecRoot"
