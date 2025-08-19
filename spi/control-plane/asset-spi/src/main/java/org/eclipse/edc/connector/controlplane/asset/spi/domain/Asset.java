@@ -44,7 +44,8 @@ public class Asset extends Entity {
     public static final String PROPERTY_IS_CATALOG = EDC_NAMESPACE + "isCatalog";
     public static final String EDC_ASSET_TYPE_TERM = "Asset";
     public static final String EDC_ASSET_TYPE = EDC_NAMESPACE + EDC_ASSET_TYPE_TERM;
-    public static final String EDC_CATALOG_ASSET_TYPE = EDC_NAMESPACE + "CatalogAsset";
+    public static final String EDC_CATALOG_ASSET_TYPE_TERM = "CatalogAsset";
+    public static final String EDC_CATALOG_ASSET_TYPE = EDC_NAMESPACE + EDC_CATALOG_ASSET_TYPE_TERM;
     public static final String EDC_ASSET_PROPERTIES = EDC_NAMESPACE + "properties";
     public static final String EDC_ASSET_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
     public static final String EDC_ASSET_DATA_ADDRESS = EDC_NAMESPACE + "dataAddress";

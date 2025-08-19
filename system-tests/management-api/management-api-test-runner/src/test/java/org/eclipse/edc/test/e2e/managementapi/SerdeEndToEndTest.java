@@ -18,6 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState;
 import org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyEvaluationPlanRequest;
 import org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyValidationResult;
@@ -86,6 +87,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.MANAGEMENT_API_CONTEXT;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.MANAGEMENT_API_SCOPE;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.assetObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogAsset;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogRequestObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractDefinitionObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractRequestObject;
@@ -353,6 +355,17 @@ public class SerdeEndToEndTest {
         }
 
         @Test
+        void ser_IdResponse() {
+            var response = IdResponse.Builder.newInstance().id("test-id").createdAt(1234).build();
+            var compactResult = serialize(response);
+
+            assertThat(compactResult).isNotNull();
+            assertThat(compactResult.getString(TYPE)).isEqualTo("IdResponse");
+            assertThat(compactResult.getString(ID)).isEqualTo(response.getId());
+            assertThat(compactResult.getInt("createdAt")).isEqualTo(response.getCreatedAt());
+        }
+
+        @Test
         void de_DatasetRequest() {
             var inputObject = datasetRequestObject(jsonLdContext());
             var request = deserialize(inputObject, DatasetRequest.class);
@@ -585,6 +598,7 @@ public class SerdeEndToEndTest {
 
                 return Stream.of(
                         Arguments.of(assetObject(jsonLdContext), Asset.class, null),
+                        Arguments.of(catalogAsset(jsonLdContext), Asset.class, null),
                         Arguments.of(contractDefinitionObject(jsonLdContext), ContractDefinition.class, null),
                         Arguments.of(secretObject(jsonLdContext), Secret.class, null),
                         Arguments.of(querySpecObject(jsonLdContext), QuerySpec.class, null),
@@ -632,7 +646,7 @@ public class SerdeEndToEndTest {
         @ArgumentsSource(JsonInputProvider.class)
         @WithContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT)
         void serde(JsonObject inputObject, Class<?> klass, Function<JsonObject, JsonObject> mapper) {
-            if (!klass.equals(DataPlaneInstance.class)) {
+            if (!klass.equals(DataPlaneInstance.class) && !inputObject.getString(TYPE).equals("CatalogAsset")) {
                 verifySerde(inputObject, klass, mapper);
             }
         }
@@ -653,6 +667,12 @@ public class SerdeEndToEndTest {
         @Disabled
         void ser_DataPlaneInstance() {
             super.ser_DataPlaneInstance();
+        }
+
+        @Override
+        @Disabled
+        void ser_IdResponse() {
+            super.ser_IdResponse();
         }
     }
 

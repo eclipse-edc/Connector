@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.asset.v3;
+package org.eclipse.edc.connector.controlplane.api.management.asset;
 
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.JsonObject;
@@ -20,7 +20,6 @@ import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
-import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -61,17 +60,16 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-@ApiTest
-class AssetApiControllerTest extends RestControllerTestBase {
+public abstract class BaseAssetApiControllerTest extends RestControllerTestBase {
 
     private static final String TEST_ASSET_ID = "test-asset-id";
     private static final String TEST_ASSET_CONTENTTYPE = "application/json";
     private static final String TEST_ASSET_DESCRIPTION = "test description";
     private static final String TEST_ASSET_VERSION = "0.4.2";
     private static final String TEST_ASSET_NAME = "test-asset";
-    private final AssetService service = mock(AssetService.class);
-    private final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
-    private final JsonObjectValidatorRegistry validator = mock(JsonObjectValidatorRegistry.class);
+    protected final AssetService service = mock(AssetService.class);
+    protected final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
+    protected final JsonObjectValidatorRegistry validator = mock(JsonObjectValidatorRegistry.class);
 
     @BeforeEach
     void setup() {
@@ -174,7 +172,7 @@ class AssetApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void requestAsset_shouldReturnBadRequest_whenValidationFails() {
+    public void requestAsset_shouldReturnBadRequest_whenValidationFails() {
         when(transformerRegistry.transform(isA(JsonObject.class), eq(QuerySpec.class)))
                 .thenReturn(Result.success(QuerySpec.Builder.newInstance().build()));
         when(validator.validate(any(), any())).thenReturn(ValidationResult.failure(violation("validation failure", "a path")));
@@ -252,7 +250,7 @@ class AssetApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void createAsset_shouldReturnBadRequest_whenValidationFails() {
+    public void createAsset_shouldReturnBadRequest_whenValidationFails() {
         when(validator.validate(any(), any())).thenReturn(ValidationResult.failure(violation("a failure", "a path")));
 
         baseRequest()
@@ -389,7 +387,7 @@ class AssetApiControllerTest extends RestControllerTestBase {
     }
 
     @Test
-    void updateAsset_shouldReturnBadRequest_whenValidationFails() {
+    public void updateAsset_shouldReturnBadRequest_whenValidationFails() {
         when(transformerRegistry.transform(isA(JsonObject.class), eq(Asset.class))).thenReturn(Result.failure("error"));
         when(validator.validate(any(), any())).thenReturn(ValidationResult.failure(violation("validation failure", "path")));
 
@@ -401,11 +399,6 @@ class AssetApiControllerTest extends RestControllerTestBase {
                 .statusCode(400);
         verify(validator).validate(eq(EDC_ASSET_TYPE), isA(JsonObject.class));
         verifyNoInteractions(service, transformerRegistry);
-    }
-
-    @Override
-    protected Object controller() {
-        return new AssetApiController(service, transformerRegistry, monitor, validator);
     }
 
     private JsonObjectBuilder createAssetJson() {
@@ -432,9 +425,11 @@ class AssetApiControllerTest extends RestControllerTestBase {
 
     private RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:" + port + "/v3")
+                .baseUri("http://localhost:" + port + "/" + versionPath())
                 .when();
     }
+
+    protected abstract String versionPath();
 
     private Asset.Builder createAssetBuilder() {
         return Asset.Builder.newInstance()

@@ -100,6 +100,30 @@ public class TestFunctions {
                 .build();
     }
 
+    public static JsonObject catalogAsset(String context) {
+        return createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "CatalogAsset")
+                .add(ID, TEST_ASSET_ID)
+                .add("properties", createObjectBuilder()
+                        .add("name", TEST_ASSET_NAME)
+                        .add("id", TEST_ASSET_ID)
+                        .add("description", TEST_ASSET_DESCRIPTION)
+                        .add("version", TEST_ASSET_VERSION)
+                        .add("contenttype", TEST_ASSET_CONTENTTYPE)
+                        .add("isCatalog", true)
+                        .build())
+                .add("privateProperties", createObjectBuilder()
+                        .add("name", TEST_ASSET_NAME)
+                        .add("id", TEST_ASSET_ID)
+                        .add("description", TEST_ASSET_DESCRIPTION)
+                        .add("version", TEST_ASSET_VERSION)
+                        .add("contenttype", TEST_ASSET_CONTENTTYPE)
+                        .build())
+                .add("dataAddress", createObjectBuilder().add("@type", "DataAddress").add("type", "address-type"))
+                .build();
+    }
+
     public static JsonObject dataAddressObject(String context) {
         return createObjectBuilder()
                 .add(CONTEXT, createContextBuilder(context).build())

@@ -25,7 +25,6 @@ import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
@@ -85,7 +84,6 @@ class ManagementApiConfigurationExtensionTest {
         extension.initialize(context);
 
         verify(portMappingRegistry).register(new PortMapping(ApiContext.MANAGEMENT, DEFAULT_MANAGEMENT_PORT, DEFAULT_MANAGEMENT_PATH));
-        verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(JerseyJsonLdInterceptor.class));
         verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(ObjectMapperProvider.class));
 
         verify(jsonLd).registerNamespace(VOCAB, EDC_NAMESPACE, MANAGEMENT_SCOPE);
