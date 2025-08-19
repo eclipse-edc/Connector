@@ -101,7 +101,7 @@ maven/mavencentral/io.rest-assured/rest-assured/5.5.5, Apache-2.0, approved, #15
 maven/mavencentral/io.rest-assured/xml-path/5.5.5, Apache-2.0, approved, #19523
 maven/mavencentral/io.setl/rdf-urdna/1.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.swagger.core.v3/swagger-annotations-jakarta/2.2.26, Apache-2.0, approved, #5947
-maven/mavencentral/io.swagger.core.v3/swagger-annotations-jakarta/2.2.34, Apache-2.0, approved, #5947
+maven/mavencentral/io.swagger.core.v3/swagger-annotations-jakarta/2.2.36, Apache-2.0, approved, #5947
 maven/mavencentral/io.swagger.core.v3/swagger-annotations/2.2.26, Apache-2.0, approved, #11362
 maven/mavencentral/io.swagger.core.v3/swagger-core-jakarta/2.2.26, Apache-2.0, approved, #5929
 maven/mavencentral/io.swagger.core.v3/swagger-core/2.2.26, Apache-2.0, approved, #9265
