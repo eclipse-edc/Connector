@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.tck.dsp.identity;
 
+import org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -34,6 +35,11 @@ public class TckIdentityExtension implements ServiceExtension {
     @Provider
     public IdentityService identityService() {
         return new NoopIdentityService();
+    }
+    
+    @Provider
+    public DefaultParticipantIdExtractionFunction defaultParticipantIdExtractionFunction() {
+        return claimToken -> claimToken.getStringClaim("client_id");
     }
 
     @Provider

@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.tck.dsp;
 
-import org.eclipse.edc.junit.annotations.NightlyTest;
+import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
@@ -43,7 +43,7 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.eclipse.edc.tck.dsp.CompatibilityTests.ALLOWED_FAILURES;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
-@NightlyTest
+@PostgresqlIntegrationTest
 @Testcontainers
 public class PostgresEdcCompatibilityDockerTest {
 
