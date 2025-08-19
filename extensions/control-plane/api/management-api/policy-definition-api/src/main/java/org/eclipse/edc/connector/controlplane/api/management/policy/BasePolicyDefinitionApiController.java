@@ -17,6 +17,8 @@ package org.eclipse.edc.connector.controlplane.api.management.policy;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponse;
+import org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyEvaluationPlanRequest;
+import org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyValidationResult;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.spi.EdcException;
@@ -29,8 +31,11 @@ import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
+import java.util.ArrayList;
+
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static java.lang.String.format;
+import static org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyEvaluationPlanRequest.EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
@@ -113,4 +118,40 @@ public abstract class BasePolicyDefinitionApiController {
                 .onSuccess(d -> monitor.debug(format("Policy Definition updated %s", d.getId())))
                 .orElseThrow(exceptionMapper(PolicyDefinition.class, id));
     }
+
+    public JsonObject validatePolicyDefinition(String id) {
+        var definition = service.findById(id);
+        if (definition == null) {
+            throw new ObjectNotFoundException(PolicyDefinition.class, id);
+        }
+
+        var messages = new ArrayList<String>();
+
+        var result = service.validate(definition.getPolicy())
+                .onFailure(failure -> messages.addAll(failure.getMessages()));
+
+        var validationResult = new PolicyValidationResult(result.succeeded(), messages);
+
+        return transformerRegistry.transform(validationResult, JsonObject.class)
+                .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
+    }
+
+    public JsonObject createExecutionPlan(String id, JsonObject request) {
+        validatorRegistry.validate(EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE, request).orElseThrow(ValidationFailureException::new);
+
+        var planeRequest = transformerRegistry.transform(request, PolicyEvaluationPlanRequest.class)
+                .orElseThrow(InvalidRequestException::new);
+
+        var definition = service.findById(id);
+        if (definition == null) {
+            throw new ObjectNotFoundException(PolicyDefinition.class, id);
+        }
+
+        var plan = service.createEvaluationPlan(planeRequest.policyScope(), definition.getPolicy())
+                .orElseThrow(exceptionMapper(PolicyDefinition.class, definition.getId()));
+
+        return transformerRegistry.transform(plan, JsonObject.class)
+                .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
+    }
+
 }

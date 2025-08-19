@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2025 Metaform Systems, Inc.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,28 +8,28 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Metaform Systems, Inc. - initial API and implementation
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.policy.v3;
+package org.eclipse.edc.connector.controlplane.api.management.policy.v4;
 
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.connector.controlplane.api.management.policy.BasePolicyDefinitionApiControllerTest;
 
 import static io.restassured.RestAssured.given;
 
-public class PolicyDefinitionApiV3ControllerTest extends BasePolicyDefinitionApiControllerTest {
+public class PolicyDefinitionApiV4ControllerTest extends BasePolicyDefinitionApiControllerTest {
 
     @Override
     protected Object controller() {
-        return new PolicyDefinitionApiV3Controller(monitor, transformerRegistry, service, validatorRegistry);
+        return new PolicyDefinitionApiV4Controller(monitor, transformerRegistry, service, validatorRegistry);
     }
 
     @Override
     protected RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:%d/v3/policydefinitions".formatted(port))
+                .baseUri("http://localhost:%d/v4alpha/policydefinitions".formatted(port))
                 .port(port);
     }
 
