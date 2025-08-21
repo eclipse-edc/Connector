@@ -128,5 +128,5 @@ jersey-core = ["jersey-server", "jersey-common", "jersey-jackson", "jersey-multi
 
 [plugins]
 edc-build = { id = "org.eclipse.edc.edc-build", version = "0.1.1" }
-shadow = { id = "com.gradleup.shadow", version = "8.3.8" }
+shadow = { id = "com.gradleup.shadow", version = "9.0.2" }
 swagger = { id = "io.swagger.core.v3.swagger-gradle-plugin", version.ref = "swagger" }
