@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2025 Metaform Systems, Inc.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,11 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Metaform Systems, Inc. - initial API and implementation
  *
  */
 
-package org.eclipse.edc.test.e2e.managementapi;
+package org.eclipse.edc.test.e2e.managementapi.v4;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
@@ -23,6 +23,8 @@ import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
+import org.eclipse.edc.test.e2e.managementapi.ManagementEndToEndExtension;
+import org.eclipse.edc.test.e2e.managementapi.ManagementEndToEndTestContext;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -36,11 +38,16 @@ import java.util.UUID;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
-public class ContractAgreementApiEndToEndTest {
+public class ContractAgreementApiV4EndToEndTest {
 
     abstract static class Tests {
 
@@ -51,7 +58,7 @@ public class ContractAgreementApiEndToEndTest {
 
             var jsonPath = context.baseRequest()
                     .contentType(JSON)
-                    .post("/v3/contractagreements/request")
+                    .post("/v4alpha/contractagreements/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -63,6 +70,8 @@ public class ContractAgreementApiEndToEndTest {
             assertThat(jsonPath.getString("[1].assetId")).isNotNull();
             assertThat(jsonPath.getString("[0].@id")).isIn("cn1", "cn2");
             assertThat(jsonPath.getString("[1].@id")).isIn("cn1", "cn2");
+            assertThat(jsonPath.getList("[0].@context")).contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2);
+            assertThat(jsonPath.getList("[1].@context")).contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2);
         }
 
         @Test
@@ -72,14 +81,16 @@ public class ContractAgreementApiEndToEndTest {
 
             context.baseRequest()
                     .contentType(JSON)
-                    .get("/v3/contractagreements/cn1")
+                    .get("/v4alpha/contractagreements/cn1")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
+                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .body(TYPE, equalTo("ContractAgreement"))
                     .body(ID, is(agreement.getId()))
                     .body("assetId", notNullValue())
-                    .body("policy.'odrl:assignee'", is(agreement.getPolicy().getAssignee()))
-                    .body("policy.'odrl:assigner'", is(agreement.getPolicy().getAssigner()));
+                    .body("policy.assignee", is(agreement.getPolicy().getAssignee()))
+                    .body("policy.assigner", is(agreement.getPolicy().getAssigner()));
 
         }
 
@@ -89,15 +100,16 @@ public class ContractAgreementApiEndToEndTest {
                     .contractAgreement(createContractAgreement("agreement-id"))
                     .build());
 
-            var json = context.baseRequest()
+            context.baseRequest()
                     .contentType(JSON)
-                    .get("/v3/contractagreements/agreement-id/negotiation")
+                    .get("/v4alpha/contractagreements/agreement-id/negotiation")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
-                    .extract().jsonPath();
+                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .body(TYPE, equalTo("ContractNegotiation"))
+                    .body(ID, is("negotiation-id"));
 
-            assertThat(json.getString("@id")).isEqualTo("negotiation-id");
         }
 
         private ContractNegotiation.Builder createContractNegotiationBuilder(String negotiationId) {

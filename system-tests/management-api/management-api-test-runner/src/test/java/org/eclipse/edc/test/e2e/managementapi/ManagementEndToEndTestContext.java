@@ -46,9 +46,13 @@ public record ManagementEndToEndTestContext(EmbeddedRuntime runtime) {
     }
 
     public String providerProtocolUrl() {
+        return providerProtocolUrl("");
+    }
+
+    public String providerProtocolUrl(String versionPath) {
         var protocolPort = getConfig().getString("web.http.protocol.port");
         var protocolPath = getConfig().getString("web.http.protocol.path");
-        return "http://localhost:" + protocolPort + protocolPath;
+        return "http://localhost:" + protocolPort + protocolPath + versionPath;
     }
 
     public JsonObject query(Criterion... criteria) {

@@ -14,9 +14,11 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.catalog;
 
+import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.transform.JsonObjectToCatalogRequestTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.transform.JsonObjectToDatasetRequestTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.v3.CatalogApiV3Controller;
+import org.eclipse.edc.connector.controlplane.api.management.catalog.v4.CatalogApiV4Controller;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.validation.CatalogRequestValidator;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.validation.DatasetRequestValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
@@ -34,6 +36,7 @@ import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
@@ -80,5 +83,8 @@ public class CatalogApiExtension implements ServiceExtension {
 
         validatorRegistry.register(CATALOG_REQUEST_TYPE, CatalogRequestValidator.instance(criterionOperatorRegistry));
         validatorRegistry.register(DATASET_REQUEST_TYPE, DatasetRequestValidator.instance());
+
+        webService.registerResource(ApiContext.MANAGEMENT, new CatalogApiV4Controller(service, managementApiTransformerRegistry, validatorRegistry));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
     }
 }
