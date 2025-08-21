@@ -1878,6 +1878,172 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/contractdefinitions:
+    put:
+      tags:
+      - Contract Definition v4alpha
+      description: Updated a contract definition with the given ID. The supplied JSON
+        structure must be a valid JSON-LD object
+      operationId: updateContractDefinitionV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/contract-definition-schema"
+      responses:
+        "204":
+          description: Contract definition was updated successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: A contract definition with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+    post:
+      tags:
+      - Contract Definition v4alpha
+      description: Creates a new contract definition
+      operationId: createContractDefinitionV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/contract-definition-schema"
+      responses:
+        "200":
+          description: contract definition was created successfully. Returns the Contract
+            Definition Id and created timestamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/id-response-schema"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "409":
+          description: "Could not create contract definition, because a contract definition\
+            \ with that ID already exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/contractdefinitions/request:
+    post:
+      tags:
+      - Contract Definition v4alpha
+      description: Returns all contract definitions according to a query
+      operationId: queryContractDefinitionsV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The contract definitions matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/contract-definition-schema"
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/contractdefinitions/{id}:
+    get:
+      tags:
+      - Contract Definition v4alpha
+      description: Gets an contract definition with the given ID
+      operationId: getContractDefinitionV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The contract definition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/contract-definition-schema"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An contract agreement with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+    delete:
+      tags:
+      - Contract Definition v4alpha
+      description: "Removes a contract definition with the given ID if possible. DANGER\
+        \ ZONE: Note that deleting contract definitions can have unexpected results,\
+        \ especially for contract offers that have been sent out or ongoing or contract\
+        \ negotiations."
+      operationId: deleteContractDefinitionV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Contract definition was deleted successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: A contract definition with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v4alpha/dataplanes:
     get:
       tags:
@@ -1894,6 +2060,351 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/DataPlaneInstanceSchemaV4"
+  /v4alpha/edrs/request:
+    post:
+      tags:
+      - EDR Cache v4alpha
+      description: Request all Edr entries according to a particular query
+      operationId: requestEdrEntriesV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The edr entries matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/edr-entry-schema"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/edrs/{transferProcessId}:
+    delete:
+      tags:
+      - EDR Cache v4alpha
+      description: Removes an EDR entry given the transfer process ID
+      operationId: removeEdrEntryV4
+      parameters:
+      - name: transferProcessId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: EDR entry was deleted successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An EDR entry with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/edrs/{transferProcessId}/dataaddress:
+    get:
+      tags:
+      - EDR Cache v4alpha
+      description: Gets the EDR data address with the given transfer process ID
+      operationId: getEdrEntryDataAddressV4
+      parameters:
+      - name: transferProcessId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The data address
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataAddressRoot"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An EDR data address with the given transfer process ID does
+            not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/policydefinitions:
+    post:
+      tags:
+      - Policy Definition v4alpha
+      description: Creates a new policy definition
+      operationId: createPolicyDefinitionV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/policy-definition-schema"
+      responses:
+        "200":
+          description: policy definition was created successfully. Returns the Policy
+            Definition Id and created timestamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/id-response-schema"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "409":
+          description: "Could not create policy definition, because a contract definition\
+            \ with that ID already exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/policydefinitions/request:
+    post:
+      tags:
+      - Policy Definition v4alpha
+      description: Returns all policy definitions according to a query
+      operationId: queryPolicyDefinitionsV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The policy definitions matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/policy-definition-schema"
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/policydefinitions/{id}:
+    get:
+      tags:
+      - Policy Definition v4alpha
+      description: Gets a policy definition with the given ID
+      operationId: getPolicyDefinitionV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The  policy definition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/policy-definition-schema"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An  policy definition with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+    put:
+      tags:
+      - Policy Definition v4alpha
+      description: "Updates an existing Policy, If the Policy is not found, an error\
+        \ is reported"
+      operationId: updatePolicyDefinitionV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/policy-definition-schema"
+      responses:
+        "204":
+          description: policy definition was updated successfully.
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: "policy definition could not be updated, because it does not\
+            \ exists"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorDetail"
+    delete:
+      tags:
+      - Policy Definition v4alpha
+      description: "Removes a policy definition with the given ID if possible. Deleting\
+        \ a policy definition is only possible if that policy definition is not yet\
+        \ referenced by a contract definition, in which case an error is returned.\
+        \ DANGER ZONE: Note that deleting policy definitions can have unexpected results,\
+        \ do this at your own risk!"
+      operationId: deletePolicyDefinitionV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Policy definition was deleted successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An policy definition with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "409":
+          description: "The policy definition cannot be deleted, because it is referenced\
+            \ by a contract definition"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/policydefinitions/{id}/evaluationplan:
+    post:
+      tags:
+      - Policy Definition v4alpha
+      description: "Creates an execution plane for an existing Policy, If the Policy\
+        \ is not found, an error is reported"
+      operationId: createExecutionPlanV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/policy-evaluation-plan-request-schema"
+      responses:
+        "200":
+          description: Returns the evaluation plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/policy-evaluation-plan-schema"
+        "404":
+          description: "An evaluation plan could not be created, because the policy\
+            \ definition does not exists"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/policydefinitions/{id}/validate:
+    post:
+      tags:
+      - Policy Definition v4alpha
+      description: "Validates an existing Policy, If the Policy is not found, an error\
+        \ is reported"
+      operationId: validatePolicyDefinitionV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Returns the validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/policy-validation-result-schema"
+        "404":
+          description: "policy definition could not be validated, because it does\
+            \ not exists"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorDetail"
   /v4alpha/protocol-versions/request:
     post:
       tags:
@@ -1911,6 +2422,135 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ProtocolVersion"
+  /v4alpha/secrets:
+    put:
+      tags:
+      - Secret v4alpha
+      description: "Updates a secret with the given ID if it exists. If the secret\
+        \ is not found, no further action is taken. "
+      operationId: updateSecretV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/secret-schema"
+      responses:
+        "204":
+          description: Secret was updated successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: "Secret could not be updated, because it does not exist."
+    post:
+      tags:
+      - Secret v4alpha
+      description: Creates a new secret.
+      operationId: createSecretV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/secret-schema"
+      responses:
+        "200":
+          description: Secret was created successfully. Returns the secret Id and
+            created timestamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/id-response-schema"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "409":
+          description: "Could not create secret, because a secret with that ID already\
+            \ exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/secrets/{id}:
+    get:
+      tags:
+      - Secret v4alpha
+      description: Gets a secret with the given ID
+      operationId: getSecretV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The secret
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/secret-schema"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: A secret with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+    delete:
+      tags:
+      - Secret v4alpha
+      description: Removes a secret with the given ID if possible.
+      operationId: removeSecretV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Secret was deleted successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: A secret with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /{flowId}/{resourceId}/deprovision:
     post:
       operationId: deprovision
@@ -1964,6 +2604,17 @@ paths:
             '*/*': {}
 components:
   schemas:
+    Action:
+      type: string
+    AndConstraintStep:
+      required:
+      - '@type'
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/MultiplicityConstraintStep"
+      - properties:
+          '@type':
+            type: string
     ApiErrorDetail:
       type: object
       properties:
@@ -2060,6 +2711,38 @@ components:
           type: HttpData
           baseUrl: https://jsonplaceholder.typicode.com/todos
         createdAt: 1688465655
+    AtomicConstraint:
+      required:
+      - leftOperand
+      - operator
+      - rightOperand
+      type: object
+      properties:
+        rightOperand:
+          $ref: "#/components/schemas/RightOperand"
+        leftOperand:
+          $ref: "#/components/schemas/LeftOperand"
+        operator:
+          $ref: "#/components/schemas/Operator"
+    AtomicConstraintStep:
+      required:
+      - '@type'
+      type: object
+      properties:
+        '@type':
+          type: string
+        isFiltered:
+          type: boolean
+        filteringReasons:
+          type: array
+          items:
+            type: string
+        functionName:
+          type: string
+        functionParams:
+          type: array
+          items:
+            type: string
     CallbackAddress:
       type: object
       properties:
@@ -2167,6 +2850,17 @@ components:
           sortOrder: DESC
           sortField: fieldName
           filterExpression: []
+    Constraint:
+      type: object
+      oneOf:
+      - $ref: "#/components/schemas/LogicalConstraint"
+      - $ref: "#/components/schemas/AtomicConstraint"
+    ConstraintStep:
+      oneOf:
+      - $ref: "#/components/schemas/AndConstraintStep"
+      - $ref: "#/components/schemas/OrConstraintStep"
+      - $ref: "#/components/schemas/XoneConstraintStep"
+      - $ref: "#/components/schemas/AtomicConstraintStep"
     ContextSchema:
       type: array
       items:
@@ -2208,6 +2902,30 @@ components:
           permission:
           - target: asset-id
             action: display
+    ContractDefinition:
+      required:
+      - '@context'
+      - '@type'
+      - accessPolicyId
+      - contractPolicyId
+      type: object
+      properties:
+        '@context':
+          $ref: "#/components/schemas/context-schema"
+        '@type':
+          type: string
+        '@id':
+          type: string
+        accessPolicyId:
+          type: string
+        contractPolicyId:
+          type: string
+        privateProperties:
+          type: object
+        assetsSelector:
+          type: array
+          items:
+            $ref: "#/components/schemas/Criterion_1"
     ContractDefinitionInput:
       required:
       - '@context'
@@ -2407,6 +3125,16 @@ components:
           example: https://w3id.org/edc/v0.0.1/ns/DataAddress
         type:
           type: string
+    DataAddressRoot:
+      required:
+      - '@context'
+      - '@type'
+      type: object
+      allOf:
+      - properties:
+          '@context':
+            $ref: "#/components/schemas/context-schema"
+      - $ref: "#/components/schemas/DataAddress_1"
     DataAddress_1:
       required:
       - '@type'
@@ -2588,6 +3316,27 @@ components:
           type: boolean
         provisionedResourceId:
           type: string
+    Duty:
+      type: object
+      allOf:
+      - required:
+        - action
+        properties:
+          action:
+            $ref: "#/components/schemas/Action"
+          constraint:
+            type: array
+            items:
+              $ref: "#/components/schemas/Constraint"
+    DutyStep:
+      required:
+      - '@type'
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/RuleStep"
+      - properties:
+          '@type':
+            type: string
     EndpointDataReferenceEntry:
       type: object
       properties:
@@ -2606,6 +3355,34 @@ components:
         assetId: asset-id
         providerId: provider-id
         createdAt: 1688465655
+    EndpointDataReferenceEntry_1:
+      required:
+      - '@context'
+      - '@type'
+      - agreementId
+      - assetId
+      - contractNegotiationId
+      - createdAt
+      - providerId
+      - transferProcessId
+      type: object
+      properties:
+        '@context':
+          $ref: "#/components/schemas/context-schema"
+        '@type':
+          type: string
+        assetId:
+          type: string
+        agreementId:
+          type: string
+        contractNegotiationId:
+          type: string
+        transferProcessId:
+          type: string
+        providerId:
+          type: string
+        createdAt:
+          type: integer
     IdResponse:
       type: object
       properties:
@@ -2682,6 +3459,45 @@ components:
           - "TRUE"
           - "FALSE"
           - "NULL"
+    LeftOperand:
+      type: string
+    LogicalConstraint:
+      type: object
+      properties:
+        and:
+          type: array
+          items:
+            $ref: "#/components/schemas/Constraint"
+        andSequence:
+          type: array
+          items:
+            $ref: "#/components/schemas/Constraint"
+        or:
+          type: array
+          items:
+            $ref: "#/components/schemas/Constraint"
+        xone:
+          type: array
+          items:
+            $ref: "#/components/schemas/Constraint"
+      oneOf:
+      - required:
+        - and
+      - required:
+        - andSequence
+      - required:
+        - or
+      - required:
+        - xone
+    MultiplicityConstraintStep:
+      required:
+      - constraintSteps
+      type: object
+      properties:
+        constraintSteps:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConstraintStep"
     NegotiationState:
       type: object
       properties:
@@ -2713,6 +3529,48 @@ components:
         permission: []
         prohibition: []
         obligation: []
+    Operator:
+      type: string
+      enum:
+      - eq
+      - gt
+      - gteq
+      - lteq
+      - hasPart
+      - isA
+      - isAllOf
+      - isAnyOf
+      - isNoneOf
+      - isPartOf
+      - lt
+      - term-lteq
+      - neq
+    OrConstraintStep:
+      required:
+      - '@type'
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/MultiplicityConstraintStep"
+      - properties:
+          '@type':
+            type: string
+    Permission:
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/Rule"
+    PermissionStep:
+      required:
+      - '@type'
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/RuleStep"
+      - properties:
+          '@type':
+            type: string
+          dutySteps:
+            type: array
+            items:
+              $ref: "#/components/schemas/DutyStep"
     Policy:
       type: object
       description: ODRL policy
@@ -2730,6 +3588,51 @@ components:
             rightOperand: value
         prohibition: []
         obligation: []
+    PolicyClass:
+      required:
+      - '@type'
+      type: object
+      properties:
+        '@type':
+          type: string
+        profile:
+          oneOf:
+          - type: array
+            items:
+              type: string
+          - type: string
+        permission:
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/Permission"
+        prohibition:
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/Prohibition"
+        obligation:
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/Duty"
+    PolicyDefinition:
+      required:
+      - '@context'
+      - '@type'
+      - policy
+      type: object
+      properties:
+        '@context':
+          $ref: "#/components/schemas/context-schema"
+        '@type':
+          type: string
+        '@id':
+          type: string
+        policy:
+          $ref: "#/components/schemas/PolicyClass"
+        privateProperties:
+          type: object
     PolicyDefinitionInput:
       required:
       - '@context'
@@ -2789,6 +3692,49 @@ components:
               rightOperand: https://www.wikidata.org/wiki/Q183
               comment: i.e Germany
         createdAt: 1688465655
+    PolicyEvaluationPlan:
+      required:
+      - '@context'
+      - '@type'
+      type: object
+      properties:
+        '@context':
+          $ref: "#/components/schemas/context-schema"
+        '@type':
+          type: string
+        preValidators:
+          type: array
+          items:
+            type: string
+        postValidators:
+          type: array
+          items:
+            type: string
+        permissionSteps:
+          type: array
+          items:
+            $ref: "#/components/schemas/PermissionStep"
+        prohibitionSteps:
+          type: array
+          items:
+            $ref: "#/components/schemas/ProhibitionStep"
+        dutySteps:
+          type: array
+          items:
+            $ref: "#/components/schemas/DutyStep"
+    PolicyEvaluationPlanRequest:
+      required:
+      - '@context'
+      - '@type'
+      - policyScope
+      type: object
+      properties:
+        '@context':
+          $ref: "#/components/schemas/context-schema"
+        '@type':
+          type: string
+        policyScope:
+          type: string
     PolicyEvaluationPlanRequestSchema:
       type: object
       properties:
@@ -2828,6 +3774,24 @@ components:
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
           edc: https://w3id.org/edc/v0.0.1/ns/
           odrl: http://www.w3.org/ns/odrl/2/
+    PolicyValidationResult:
+      required:
+      - '@context'
+      - '@type'
+      - errors
+      - isValid
+      type: object
+      properties:
+        '@context':
+          $ref: "#/components/schemas/context-schema"
+        '@type':
+          type: string
+        isValid:
+          type: boolean
+        errors:
+          type: array
+          items:
+            type: string
     PolicyValidationResultSchema:
       type: object
       properties:
@@ -2845,6 +3809,19 @@ components:
         errors:
         - error1
         - error2
+    Prohibition:
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/Rule"
+    ProhibitionStep:
+      required:
+      - '@type'
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/RuleStep"
+      - properties:
+          '@type':
+            type: string
     Properties:
       type: object
     ProtocolVersion:
@@ -2942,6 +3919,52 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Criterion_1"
+    RightOperand:
+      oneOf:
+      - type: string
+      - type: object
+      - type: array
+    Rule:
+      required:
+      - action
+      type: object
+      properties:
+        action:
+          $ref: "#/components/schemas/Action"
+        constraint:
+          type: array
+          items:
+            $ref: "#/components/schemas/Constraint"
+    RuleStep:
+      type: object
+      properties:
+        isFiltered:
+          type: boolean
+        filteringReasons:
+          type: array
+          items:
+            type: string
+        constraintSteps:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConstraintStep"
+        ruleFunctions:
+          type: array
+          items:
+            type: string
+    Secret:
+      required:
+      - '@context'
+      - '@type'
+      - value
+      type: object
+      properties:
+        '@context':
+          $ref: "#/components/schemas/context-schema"
+        '@type':
+          type: string
+        value:
+          type: string
     SecretInput:
       required:
       - '@context'
@@ -3146,6 +4169,15 @@ components:
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
         '@type': https://w3id.org/edc/v0.0.1/ns/TransferState
         state: STARTED
+    XoneConstraintStep:
+      required:
+      - '@type'
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/MultiplicityConstraintStep"
+      - properties:
+          '@type':
+            type: string
     asset-schema:
       title: AssetSchema
       type: object
@@ -3158,18 +4190,53 @@ components:
       - $ref: "#/components/schemas/ContextSchema"
       items:
         type: string
+    contract-definition-schema:
+      title: ContractDefinitionSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/ContractDefinition"
     data-address-schema:
       title: DataAddressSchema
       type: object
       allOf:
       - $ref: "#/components/schemas/DataAddress_1"
+    edr-entry-schema:
+      title: EndpointDataReferenceEntrySchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/EndpointDataReferenceEntry_1"
     id-response-schema:
       title: IdResponseSchema
       type: object
       allOf:
       - $ref: "#/components/schemas/IdResponse_1"
+    policy-definition-schema:
+      title: PolicyDefinitionSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/PolicyDefinition"
+    policy-evaluation-plan-request-schema:
+      title: PolicyEvaluationPlanRequestSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/PolicyEvaluationPlanRequest"
+    policy-evaluation-plan-schema:
+      title: PolicyEvaluationPlanSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/PolicyEvaluationPlan"
+    policy-validation-result-schema:
+      title: PolicyValidationResultSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/PolicyValidationResult"
     query-spec-schema:
       title: QuerySpecSchema
       type: object
       allOf:
       - $ref: "#/components/schemas/QuerySpecRoot"
+    secret-schema:
+      title: SecretSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/Secret"
