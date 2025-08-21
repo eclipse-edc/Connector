@@ -199,7 +199,6 @@ include(":extensions:common:validator:validator-data-address-kafka")
 include(":extensions:common:vault:vault-hashicorp")
 include(":extensions:common:store:sql:edr-index-sql")
 include(":extensions:common:store:sql:jti-validation-store-sql")
-include(":extensions:common:store:sql:sts-client-store-sql")
 
 include(":extensions:common:api:control-api-configuration")
 include(":extensions:common:api:management-api-configuration")
@@ -255,8 +254,6 @@ include(":extensions:data-plane-selector:store:sql:data-plane-instance-store-sql
 
 include(":extensions:policy-monitor:store:sql:policy-monitor-store-sql")
 
-include(":extensions:tck-extension")
-
 // modules for launchers, i.e. runnable compositions of the app ------------------------------------
 include(":launchers:dpf-selector")
 
@@ -286,7 +283,6 @@ include(":spi:common:validator-spi")
 include(":spi:common:web-spi")
 include(":spi:common:verifiable-credentials-spi")
 include(":spi:common:identity-trust-spi")
-include(":spi:common:identity-trust-sts-spi")
 include(":spi:common:edr-store-spi")
 include(":spi:common:vault-hashicorp-spi")
 
@@ -302,7 +298,6 @@ include(":spi:control-plane:protocol-version-spi")
 
 include(":spi:data-plane:data-plane-spi")
 include(":spi:data-plane:data-plane-http-spi")
-include(":spi:data-plane:data-plane-iam-spi")
 
 include(":spi:data-plane-selector:data-plane-selector-spi")
 include(":spi:policy-monitor:policy-monitor-spi")
@@ -322,8 +317,6 @@ include(":system-tests:version-api:version-api-test-runtime")
 include(":system-tests:version-api:version-api-test-runner")
 include(":system-tests:protocol-test")
 include(":system-tests:protocol-2025-test")
-include(":system-tests:sts-api:sts-api-test-runner")
-include(":system-tests:sts-api:sts-api-test-runtime")
 include(":system-tests:telemetry:telemetry-test-runner")
 include(":system-tests:telemetry:telemetry-test-runtime")
 include(":system-tests:bom-tests")

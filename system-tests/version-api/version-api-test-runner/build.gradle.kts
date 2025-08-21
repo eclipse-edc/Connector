@@ -17,8 +17,6 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":spi:common:identity-trust-sts-spi"))
-
     testImplementation(project(":core:common:junit"))
     // gives access to the Json LD models, etc.
     testImplementation(project(":spi:common:json-ld-spi"))
