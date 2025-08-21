@@ -34,6 +34,7 @@ import java.util.Map;
 
 import static jakarta.json.Json.createBuilderFactory;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(value = "DataPlane selector API")
@@ -61,7 +62,7 @@ public class DataPlaneSelectorApiExtension implements ServiceExtension {
         // V4
         managementApiTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(createBuilderFactory(Map.of()), typeManager, JSON_LD));
         webservice.registerResource(ApiContext.MANAGEMENT, new DataplaneSelectorApiV4Controller(selectionService, managementApiTransformerRegistry));
-        webservice.registerDynamicResource(ApiContext.MANAGEMENT, DataplaneSelectorApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
+        webservice.registerDynamicResource(ApiContext.MANAGEMENT, DataplaneSelectorApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4));
 
         // V3
         var managementApiTransformerRegistryV3 = managementApiTransformerRegistry.forContext("v3");

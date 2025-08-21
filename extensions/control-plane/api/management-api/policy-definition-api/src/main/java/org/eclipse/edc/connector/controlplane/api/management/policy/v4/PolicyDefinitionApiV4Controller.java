@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2025 Metaform Systems, Inc.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,11 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Metaform Systems, Inc. - initial API and implementation
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.policy.v3;
+package org.eclipse.edc.connector.controlplane.api.management.policy.v4;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
@@ -29,15 +29,19 @@ import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.Poli
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.eclipse.edc.web.spi.validation.SchemaType;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyEvaluationPlanRequest.EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE_TERM;
+import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE_TERM;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v3/policydefinitions")
-public class PolicyDefinitionApiV3Controller extends BasePolicyDefinitionApiController implements PolicyDefinitionApiV3 {
+@Path("/v4alpha/policydefinitions")
+public class PolicyDefinitionApiV4Controller extends BasePolicyDefinitionApiController implements PolicyDefinitionApiV4 {
 
-    public PolicyDefinitionApiV3Controller(Monitor monitor, TypeTransformerRegistry transformerRegistry, PolicyDefinitionService service,
+    public PolicyDefinitionApiV4Controller(Monitor monitor, TypeTransformerRegistry transformerRegistry, PolicyDefinitionService service,
                                            JsonObjectValidatorRegistry validatorRegistry) {
         super(monitor, transformerRegistry, service, validatorRegistry);
     }
@@ -45,48 +49,48 @@ public class PolicyDefinitionApiV3Controller extends BasePolicyDefinitionApiCont
     @POST
     @Path("request")
     @Override
-    public JsonArray queryPolicyDefinitionsV3(JsonObject querySpecJson) {
+    public JsonArray queryPolicyDefinitionsV4(@SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson) {
         return queryPolicyDefinitions(querySpecJson);
     }
 
     @GET
     @Path("{id}")
     @Override
-    public JsonObject getPolicyDefinitionV3(@PathParam("id") String id) {
+    public JsonObject getPolicyDefinitionV4(@PathParam("id") String id) {
         return getPolicyDefinition(id);
     }
 
     @POST
     @Override
-    public JsonObject createPolicyDefinitionV3(JsonObject request) {
+    public JsonObject createPolicyDefinitionV4(@SchemaType(EDC_POLICY_DEFINITION_TYPE_TERM) JsonObject request) {
         return createPolicyDefinition(request);
     }
 
     @DELETE
     @Path("{id}")
     @Override
-    public void deletePolicyDefinitionV3(@PathParam("id") String id) {
+    public void deletePolicyDefinitionV4(@PathParam("id") String id) {
         deletePolicyDefinition(id);
     }
 
     @PUT
     @Path("{id}")
     @Override
-    public void updatePolicyDefinitionV3(@PathParam("id") String id, JsonObject input) {
+    public void updatePolicyDefinitionV4(@PathParam("id") String id, @SchemaType(EDC_POLICY_DEFINITION_TYPE_TERM) JsonObject input) {
         updatePolicyDefinition(id, input);
     }
 
     @POST
     @Path("{id}/validate")
     @Override
-    public JsonObject validatePolicyDefinitionV3(@PathParam("id") String id) {
+    public JsonObject validatePolicyDefinitionV4(@PathParam("id") String id) {
         return validatePolicyDefinition(id);
     }
 
     @POST
     @Path("{id}/evaluationplan")
     @Override
-    public JsonObject createExecutionPlaneV3(@PathParam("id") String id, JsonObject request) {
+    public JsonObject createExecutionPlanV4(@PathParam("id") String id, @SchemaType(EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE_TERM) JsonObject request) {
         return createExecutionPlan(id, request);
     }
 }

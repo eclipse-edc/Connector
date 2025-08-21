@@ -20,6 +20,7 @@ import jakarta.json.Json;
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.transform.JsonObjectFromContractDefinitionTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.transform.JsonObjectToContractDefinitionTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.v3.ContractDefinitionApiV3Controller;
+import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.v4.ContractDefinitionApiV4Controller;
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.validation.ContractDefinitionValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -38,6 +39,7 @@ import org.eclipse.edc.web.spi.configuration.ApiContext;
 import java.util.Map;
 
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
@@ -84,6 +86,9 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
 
         webService.registerResource(ApiContext.MANAGEMENT, new ContractDefinitionApiV3Controller(managementApiTransformerRegistry, service, context.getMonitor(), validatorRegistry));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractDefinitionApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
+
+        webService.registerResource(ApiContext.MANAGEMENT, new ContractDefinitionApiV4Controller(managementApiTransformerRegistry, service, context.getMonitor(), validatorRegistry));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractDefinitionApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, "v4"));
 
     }
 }
