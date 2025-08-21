@@ -42,5 +42,7 @@ COMMENT ON COLUMN edc_data_plane.source IS 'DataAddress serialized as JSON';
 COMMENT ON COLUMN edc_data_plane.destination IS 'DataAddress serialized as JSON';
 COMMENT ON COLUMN edc_data_plane.properties IS 'Java Map serialized as JSON';
 
+CREATE INDEX IF NOT EXISTS data_plane_lease_id ON edc_data_plane (lease_id);
+
 -- This will help to identify states that need to be transitioned without a table scan when the entries grow
 CREATE INDEX IF NOT EXISTS data_plane_state ON edc_data_plane (state,state_time_stamp);

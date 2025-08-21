@@ -31,6 +31,8 @@ CREATE TABLE IF NOT EXISTS edc_policy_monitor
     contract_id          VARCHAR
 );
 
+CREATE INDEX IF NOT EXISTS policy_monitor_lease_id_index
+    ON edc_policy_monitor (lease_id);
 
 -- This will help to identify states that need to be transitioned without a table scan when the entries grow
 CREATE INDEX IF NOT EXISTS policy_monitor_state ON edc_policy_monitor (state,state_time_stamp);
