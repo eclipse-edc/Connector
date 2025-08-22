@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.api.management.secret;
 
 import jakarta.json.Json;
+import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.api.management.secret.transform.JsonObjectFromSecretTransformer;
 import org.eclipse.edc.connector.api.management.secret.transform.JsonObjectToSecretTransformer;
 import org.eclipse.edc.connector.api.management.secret.v3.SecretsApiV3Controller;
@@ -82,7 +83,7 @@ public class SecretsApiExtension implements ServiceExtension {
         webService.registerDynamicResource(ApiContext.MANAGEMENT, SecretsApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
 
         webService.registerResource(ApiContext.MANAGEMENT, new SecretsApiV4Controller(secretService, managementApiTransformerRegistry, validator));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, SecretsApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validator, "v4"));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, SecretsApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validator, ManagementApiJsonSchema.V4.version()));
 
     }
 

@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.controlplane.api.management.policy;
 
 import jakarta.json.Json;
+import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectFromPolicyDefinitionTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectFromPolicyEvaluationPlanTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectFromPolicyValidationResultTransformer;
@@ -90,8 +91,8 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
         var monitor = context.getMonitor();
         webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV3Controller(monitor, managementApiTransformerRegistry, service, validatorRegistry));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, PolicyDefinitionApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
-        
+
         webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV4Controller(monitor, managementApiTransformerRegistry, service, validatorRegistry));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, PolicyDefinitionApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, "v4"));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, PolicyDefinitionApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
     }
 }

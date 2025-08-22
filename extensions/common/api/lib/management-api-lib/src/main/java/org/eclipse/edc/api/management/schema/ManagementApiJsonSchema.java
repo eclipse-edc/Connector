@@ -46,5 +46,8 @@ public interface ManagementApiJsonSchema {
         String TERMINATE_TRANSFER = EDC_MGMT_V4_SCHEMA_PREFIX + "/transfer-terminate-schema.json";
         String SUSPEND_TRANSFER = EDC_MGMT_V4_SCHEMA_PREFIX + "/transfer-suspend-schema.json";
 
+        static String version() {
+            return "v4";
+        }
     }
 }

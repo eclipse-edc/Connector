@@ -16,6 +16,7 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.asset;
 
+import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.api.validation.DataAddressValidator;
 import org.eclipse.edc.connector.controlplane.api.management.asset.v3.AssetApiV3Controller;
 import org.eclipse.edc.connector.controlplane.api.management.asset.v4.AssetApiV4Controller;
@@ -82,7 +83,7 @@ public class AssetApiExtension implements ServiceExtension {
 
         webService.registerResource(ApiContext.MANAGEMENT, new AssetApiV4Controller(assetService,
                 managementTypeTransformerRegistry, monitor, validator));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, AssetApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validator, "v4"));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, AssetApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validator, ManagementApiJsonSchema.V4.version()));
 
     }
 }

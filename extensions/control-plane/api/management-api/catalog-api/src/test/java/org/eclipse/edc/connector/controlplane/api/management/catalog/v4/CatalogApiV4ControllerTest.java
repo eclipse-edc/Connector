@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2025 Metaform Systems, Inc.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,23 +8,23 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Metaform Systems, Inc. - initial API and implementation
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.catalog.v3;
+package org.eclipse.edc.connector.controlplane.api.management.catalog.v4;
 
 import org.eclipse.edc.connector.controlplane.api.management.catalog.BaseCatalogApiControllerTest;
 
-class CatalogApiV3ControllerTest extends BaseCatalogApiControllerTest {
+class CatalogApiV4ControllerTest extends BaseCatalogApiControllerTest {
 
     @Override
     protected String baseUrl() {
-        return "/v3/catalog";
+        return "/v4alpha/catalog";
     }
 
     @Override
     protected Object controller() {
-        return new CatalogApiV3Controller(service, transformerRegistry, validatorRegistry);
+        return new CatalogApiV4Controller(service, transformerRegistry, validatorRegistry);
     }
 }

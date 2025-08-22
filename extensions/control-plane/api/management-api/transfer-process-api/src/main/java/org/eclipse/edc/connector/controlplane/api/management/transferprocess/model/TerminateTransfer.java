@@ -18,7 +18,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 public record TerminateTransfer(String reason) {
 
-    public static final String TERMINATE_TRANSFER_TYPE = EDC_NAMESPACE + "TerminateTransfer";
+    public static final String TERMINATE_TRANSFER_TYPE_TERM = "TerminateTransfer";
+    public static final String TERMINATE_TRANSFER_TYPE = EDC_NAMESPACE + TERMINATE_TRANSFER_TYPE_TERM;
     public static final String TERMINATE_TRANSFER_REASON = EDC_NAMESPACE + "reason";
 
 }

@@ -18,7 +18,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 public record SuspendTransfer(String reason) {
 
-    public static final String SUSPEND_TRANSFER_TYPE = EDC_NAMESPACE + "SuspendTransfer";
+    public static final String SUSPEND_TRANSFER_TYPE_TERM = "SuspendTransfer";
+    public static final String SUSPEND_TRANSFER_TYPE = EDC_NAMESPACE + SUSPEND_TRANSFER_TYPE_TERM;
     public static final String SUSPEND_TRANSFER_REASON = EDC_NAMESPACE + "reason";
 
 }

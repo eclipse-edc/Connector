@@ -17,6 +17,7 @@
 package org.eclipse.edc.connector.controlplane.api.management.contractdefinition;
 
 import jakarta.json.Json;
+import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.transform.JsonObjectFromContractDefinitionTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.transform.JsonObjectToContractDefinitionTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.v3.ContractDefinitionApiV3Controller;
@@ -88,7 +89,7 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
         webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractDefinitionApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
 
         webService.registerResource(ApiContext.MANAGEMENT, new ContractDefinitionApiV4Controller(managementApiTransformerRegistry, service, context.getMonitor(), validatorRegistry));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractDefinitionApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, "v4"));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractDefinitionApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
 
     }
 }
