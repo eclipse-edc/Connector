@@ -65,7 +65,7 @@ maven/mavencentral/com.networknt/json-schema-validator/1.5.7, Apache-2.0 AND Uni
 maven/mavencentral/com.networknt/json-schema-validator/1.5.8, Apache-2.0 AND Unicode-TOU, approved, #15630
 maven/mavencentral/com.nimbusds/nimbus-jose-jwt/10.3, Apache-2.0, approved, #22529
 maven/mavencentral/com.nimbusds/nimbus-jose-jwt/10.4.2, Apache-2.0, approved, #22824
-maven/mavencentral/com.puppycrawl.tools/checkstyle/10.26.1, LGPL-2.1-or-later, approved, #22306
+maven/mavencentral/com.puppycrawl.tools/checkstyle/11.0.0, , restricted, clearlydefined
 maven/mavencentral/com.squareup.okhttp3/okhttp-dnsoverhttps/5.1.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.squareup.okhttp3/okhttp-jvm/5.1.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.squareup.okhttp3/okhttp/4.12.0, Apache-2.0, approved, #15227
@@ -76,7 +76,6 @@ maven/mavencentral/com.squareup.okio/okio/3.15.0, Apache-2.0, approved, clearlyd
 maven/mavencentral/com.sun.activation/jakarta.activation/2.0.1, EPL-2.0 OR BSD-3-Clause OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jaf
 maven/mavencentral/commons-beanutils/commons-beanutils/1.11.0, Apache-2.0, approved, #21555
 maven/mavencentral/commons-codec/commons-codec/1.11, Apache-2.0 AND BSD-3-Clause, approved, CQ15971
-maven/mavencentral/commons-codec/commons-codec/1.15, Apache-2.0 AND BSD-3-Clause AND LicenseRef-Public-Domain, approved, CQ22641
 maven/mavencentral/commons-collections/commons-collections/3.2.2, Apache-2.0, approved, #15185
 maven/mavencentral/commons-fileupload/commons-fileupload/1.6.0, Apache-2.0, approved, #21847
 maven/mavencentral/commons-io/commons-io/2.19.0, Apache-2.0, approved, #20657
@@ -132,16 +131,16 @@ maven/mavencentral/javax.servlet/javax.servlet-api/3.1.0, (CDDL-1.1 OR GPL-2.0-o
 maven/mavencentral/javax.ws.rs/javax.ws.rs-api/2.1, (CDDL-1.1 OR GPL-2.0 WITH Classpath-exception-2.0) AND Apache-2.0, approved, CQ18121
 maven/mavencentral/junit/junit/4.13.2, EPL-2.0, approved, CQ23636
 maven/mavencentral/net.bytebuddy/byte-buddy-agent/1.14.1, Apache-2.0, approved, #7164
-maven/mavencentral/net.bytebuddy/byte-buddy-agent/1.17.5, Apache-2.0, approved, #19238
+maven/mavencentral/net.bytebuddy/byte-buddy-agent/1.17.6, Apache-2.0, approved, #19238
 maven/mavencentral/net.bytebuddy/byte-buddy/1.14.1, Apache-2.0 AND BSD-3-Clause, approved, #7163
 maven/mavencentral/net.bytebuddy/byte-buddy/1.15.11, Apache-2.0 AND BSD-3-Clause, approved, #16008
-maven/mavencentral/net.bytebuddy/byte-buddy/1.17.5, Apache-2.0 AND BSD-3-Clause, approved, #19239
+maven/mavencentral/net.bytebuddy/byte-buddy/1.17.6, Apache-2.0 AND BSD-3-Clause, approved, #19239
 maven/mavencentral/net.java.dev.jna/jna/5.13.0, Apache-2.0 AND LGPL-2.1-or-later, approved, #15196
 maven/mavencentral/net.javacrumbs.json-unit/json-unit-core/2.40.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/net.minidev/accessors-smart/2.5.0, Apache-2.0, approved, #19432
 maven/mavencentral/net.minidev/json-smart/2.5.0, Apache-2.0, approved, #19431
 maven/mavencentral/net.sf.jopt-simple/jopt-simple/5.0.4, MIT, approved, CQ13174
-maven/mavencentral/net.sf.saxon/Saxon-HE/12.5, W3C-19980720 AND MPL-2.0 AND MPL-1.0, approved, #16061
+maven/mavencentral/net.sf.saxon/Saxon-HE/12.8, MPL-2.0, restricted, clearlydefined
 maven/mavencentral/org.antlr/antlr4-runtime/4.13.2, BSD-3-Clause, approved, #10767
 maven/mavencentral/org.apache.commons/commons-compress/1.24.0, Apache-2.0 AND BSD-3-Clause AND bzip2-1.0.6 AND LicenseRef-Public-Domain, approved, #10368
 maven/mavencentral/org.apache.commons/commons-lang3/3.12.0, Apache-2.0, approved, clearlydefined
@@ -155,11 +154,8 @@ maven/mavencentral/org.apache.groovy/groovy-bom/4.0.22, Apache-2.0, approved, #9
 maven/mavencentral/org.apache.groovy/groovy-json/4.0.22, Apache-2.0, approved, #7411
 maven/mavencentral/org.apache.groovy/groovy-xml/4.0.22, Apache-2.0, approved, #10179
 maven/mavencentral/org.apache.groovy/groovy/4.0.22, Apache-2.0 AND BSD-3-Clause AND MIT, approved, #1742
-maven/mavencentral/org.apache.httpcomponents.client5/httpclient5/5.1.3, Apache-2.0, approved, #6276
 maven/mavencentral/org.apache.httpcomponents.client5/httpclient5/5.5, Apache-2.0 AND MPL-2.0, approved, #21346
-maven/mavencentral/org.apache.httpcomponents.core5/httpcore5-h2/5.1.3, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.httpcomponents.core5/httpcore5-h2/5.3.4, Apache-2.0, approved, #16867
-maven/mavencentral/org.apache.httpcomponents.core5/httpcore5/5.1.3, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.httpcomponents.core5/httpcore5/5.3.4, Apache-2.0, approved, #16866
 maven/mavencentral/org.apache.httpcomponents/httpclient/4.5.13, Apache-2.0, approved, #15248
 maven/mavencentral/org.apache.httpcomponents/httpcore/4.4.13, Apache-2.0, approved, CQ23528
@@ -174,6 +170,7 @@ maven/mavencentral/org.apache.xbean/xbean-reflect/3.7, Apache-2.0, approved, cle
 maven/mavencentral/org.apiguardian/apiguardian-api/1.1.2, Apache-2.0, approved, #17641
 maven/mavencentral/org.assertj/assertj-core/3.26.3, Apache-2.0, approved, #14886
 maven/mavencentral/org.assertj/assertj-core/3.27.3, Apache-2.0, approved, #17980
+maven/mavencentral/org.assertj/assertj-core/3.27.4, Apache-2.0, approved, #17980
 maven/mavencentral/org.awaitility/awaitility/4.2.0, Apache-2.0, approved, #14178
 maven/mavencentral/org.awaitility/awaitility/4.2.2, Apache-2.0, approved, #14178
 maven/mavencentral/org.awaitility/awaitility/4.3.0, Apache-2.0, approved, clearlydefined
@@ -181,6 +178,7 @@ maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.81, MIT, approved, #21822
 maven/mavencentral/org.bouncycastle/bcprov-jdk18on/1.81, MIT AND CC0-1.0, approved, #21819
 maven/mavencentral/org.ccil.cowan.tagsoup/tagsoup/1.2.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.checkerframework/checker-qual/3.49.3, MIT, approved, #20842
+maven/mavencentral/org.checkerframework/checker-qual/3.49.5, MIT, approved, #20842
 maven/mavencentral/org.codehaus.plexus/plexus-classworlds/2.6.0, Apache-2.0 AND Plexus, approved, CQ22821
 maven/mavencentral/org.codehaus.plexus/plexus-component-annotations/2.1.0, Apache-2.0, approved, #809
 maven/mavencentral/org.codehaus.plexus/plexus-container-default/2.1.0, Apache-2.0, approved, clearlydefined
@@ -283,6 +281,7 @@ maven/mavencentral/org.jvnet.mimepull/mimepull/1.9.15, CDDL-1.1 OR GPL-2.0-only 
 maven/mavencentral/org.latencyutils/LatencyUtils/2.0.3, CC0-1.0, approved, #15280
 maven/mavencentral/org.lz4/lz4-java/1.8.0, Apache-2.0, approved, #20005
 maven/mavencentral/org.mockito/mockito-core/5.18.0, MIT AND (Apache-2.0 AND MIT) AND Apache-2.0, approved, #21306
+maven/mavencentral/org.mockito/mockito-core/5.19.0, MIT AND (Apache-2.0 AND MIT) AND Apache-2.0, approved, #22881
 maven/mavencentral/org.mockito/mockito-core/5.2.0, MIT AND (Apache-2.0 AND MIT) AND Apache-2.0, approved, #7401
 maven/mavencentral/org.mockito/mockito-inline/5.2.0, MIT, approved, clearlydefined
 maven/mavencentral/org.objenesis/objenesis/3.3, Apache-2.0, approved, #19727
@@ -309,7 +308,7 @@ maven/mavencentral/org.testcontainers/vault/1.21.3, MIT, approved, clearlydefine
 maven/mavencentral/org.wiremock/wiremock-jetty12/3.13.1, Apache-2.0, approved, #21027
 maven/mavencentral/org.wiremock/wiremock/3.13.1, MIT AND Apache-2.0, approved, #21025
 maven/mavencentral/org.xerial.snappy/snappy-java/1.1.10.5, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #9098
-maven/mavencentral/org.xmlresolver/xmlresolver/5.2.2, Apache-2.0, approved, #19677
+maven/mavencentral/org.xmlresolver/xmlresolver/5.3.3, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.xmlunit/xmlunit-core/2.10.2, Apache-2.0, approved, #14590
 maven/mavencentral/org.xmlunit/xmlunit-legacy/2.10.2, Apache-2.0 AND BSD-3-Clause AND BSD-3-Clause, approved, #20661
 maven/mavencentral/org.xmlunit/xmlunit-placeholders/2.10.2, Apache-2.0, approved, #22214
