@@ -79,9 +79,12 @@ public interface DataFlowManager {
      *
      * @param transferProcess the transfer process.
      * @return success if the transfer has been suspended correctly, failed otherwise.
+     * @deprecated the DataFlow needs to be terminated at suspension
      */
-    @NotNull
-    StatusResult<Void> suspend(TransferProcess transferProcess);
+    @Deprecated(since = "0.15.0")
+    default StatusResult<Void> suspend(TransferProcess transferProcess) {
+        return terminate(transferProcess);
+    }
 
     /**
      * Returns the transfer types available for a specific asset.

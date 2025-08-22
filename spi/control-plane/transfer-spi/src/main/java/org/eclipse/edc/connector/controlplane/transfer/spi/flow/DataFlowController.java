@@ -57,7 +57,9 @@ public interface DataFlowController {
      * @param transferProcess the transfer process.
      * @return success if the flow is suspended correctly, failure otherwise;
      */
-    StatusResult<Void> suspend(TransferProcess transferProcess);
+    default StatusResult<Void> suspend(TransferProcess transferProcess) {
+        return terminate(transferProcess);
+    }
 
     /**
      * Terminate a data flow.

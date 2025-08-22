@@ -464,7 +464,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .reason(process.getErrorDetail());
 
         return entityRetryProcessFactory.retryProcessor(process)
-                .doProcess(result("Suspend DataFlow", (t, c) -> suspendDataFlow(process)))
+                .doProcess(result("Suspend DataFlow", (t, c) -> terminateDataFlow(process)))
                 .doProcess(futureResult("Dispatch TransferSuspensionMessage to " + process.getCounterPartyAddress(),
                         (t, dataFlowResponse) -> {
                             if (t.suspensionWasRequestedByCounterParty()) {
@@ -550,9 +550,9 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     }
 
     @NotNull
-    private StatusResult<Void> suspendDataFlow(TransferProcess process) {
+    private StatusResult<Void> terminateDataFlow(TransferProcess process) {
         if (process.getType() == PROVIDER) {
-            return dataFlowManager.suspend(process);
+            return dataFlowManager.terminate(process);
         } else {
             return StatusResult.success();
         }

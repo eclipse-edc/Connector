@@ -29,6 +29,7 @@ public enum DataFlowStates {
     RECEIVED(100),
     STARTED(150),
     COMPLETED(200),
+    @Deprecated(since = "0.15.0")
     SUSPENDED(225),
     TERMINATED(250),
     FAILED(300),

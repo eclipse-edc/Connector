@@ -78,8 +78,12 @@ public interface DataPlaneManager extends StateEntityManager {
      *
      * @param dataFlowId the data flow id.
      * @return success if data flow is terminated, failed otherwise.
+     * @deprecated data flow should be terminated on TP suspension.
      */
-    StatusResult<Void> suspend(String dataFlowId);
+    @Deprecated(since = "0.15.0")
+    default StatusResult<Void> suspend(String dataFlowId) {
+        return terminate(dataFlowId, "suspension");
+    }
 
     /**
      * Terminate the data flow and specifies a reason.

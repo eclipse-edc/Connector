@@ -73,12 +73,14 @@ public interface DataPlaneSignalingApi {
 
     @Operation(description = "Suspend a data transfer.",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataFlowSuspendMessageSchema.class))),
+            deprecated = true,
             responses = {
                     @ApiResponse(responseCode = "204", description = "Data transfer suspended"),
                     @ApiResponse(responseCode = "404", description = "Data transfer not handled by the data plane"),
                     @ApiResponse(responseCode = "409", description = "Cannot suspend the transfer"),
             }
     )
+    @Deprecated(since = "0.15.0")
     void suspend(String transferProcessId, JsonObject suspendMessage);
 
     @Operation(description = "Check if data plane is available.",

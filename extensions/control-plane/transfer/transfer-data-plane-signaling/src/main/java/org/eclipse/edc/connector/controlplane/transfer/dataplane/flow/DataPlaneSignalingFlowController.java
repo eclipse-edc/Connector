@@ -149,20 +149,6 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
     }
 
     @Override
-    public StatusResult<Void> suspend(TransferProcess transferProcess) {
-        return Optional.ofNullable(transferProcess.getDataPlaneId())
-                .map(StatusResult::success)
-                .orElse(StatusResult.failure(FATAL_ERROR, "DataPlane id is null"))
-                .compose(this::getClientForDataplane)
-                .map(client -> client.suspend(transferProcess.getId()))
-                .orElse(f -> {
-                    var message = "Failed to select the data plane for suspending the transfer process %s. %s"
-                            .formatted(transferProcess.getId(), f.getFailureDetail());
-                    return StatusResult.failure(FATAL_ERROR, message);
-                });
-    }
-
-    @Override
     public StatusResult<Void> terminate(TransferProcess transferProcess) {
         var dataPlaneId = transferProcess.getDataPlaneId();
         if (dataPlaneId == null) {
@@ -172,7 +158,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
         return getClientForDataplane(dataPlaneId)
                 .map(client -> client.terminate(transferProcess.getId()))
                 .orElse(f -> {
-                    var message = "Failed to select the data plane for terminating the transfer process %s. %s"
+                    var message = "Failed to select the data plane for terminating the data flow %s. %s"
                             .formatted(transferProcess.getId(), f.getFailureDetail());
                     return StatusResult.failure(FATAL_ERROR, message);
                 });

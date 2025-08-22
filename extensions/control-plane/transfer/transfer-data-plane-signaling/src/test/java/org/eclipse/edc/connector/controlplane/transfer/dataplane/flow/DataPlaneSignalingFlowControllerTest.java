@@ -336,7 +336,7 @@ public class DataPlaneSignalingFlowControllerTest {
 
             var result = flowController.terminate(transferProcess);
 
-            assertThat(result).isFailed().detail().contains("Failed to select the data plane for terminating the transfer process");
+            assertThat(result).isFailed().detail().contains("Failed to select the data plane for terminating the data flow");
         }
 
         @Test
@@ -353,59 +353,6 @@ public class DataPlaneSignalingFlowControllerTest {
             assertThat(result).isSucceeded();
             verifyNoInteractions(dataPlaneClient, dataPlaneClientFactory, selectorService);
         }
-    }
-
-    @Nested
-    class Suspend {
-
-        @Test
-        void shouldCallTerminate() {
-            var transferProcess = TransferProcess.Builder.newInstance()
-                    .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
-                    .dataPlaneId("dataPlaneId")
-                    .build();
-            when(dataPlaneClient.suspend(any())).thenReturn(StatusResult.success());
-            var dataPlaneInstance = dataPlaneInstanceBuilder().id("dataPlaneId").build();
-            when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(selectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
-
-            var result = flowController.suspend(transferProcess);
-
-            assertThat(result).isSucceeded();
-            verify(dataPlaneClient).suspend("transferProcessId");
-            verify(dataPlaneClientFactory).createClient(dataPlaneInstance);
-        }
-
-        @Test
-        void shouldFail_whenDataPlaneDoesNotExist() {
-            var transferProcess = TransferProcess.Builder.newInstance()
-                    .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
-                    .dataPlaneId("invalid")
-                    .build();
-            when(selectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
-
-            var result = flowController.suspend(transferProcess);
-
-            assertThat(result).isFailed().detail().contains("Failed to select the data plane for suspending the transfer process");
-            verifyNoInteractions(dataPlaneClient, dataPlaneClientFactory);
-        }
-
-        @Test
-        void shouldFail_whenDataPlaneIdIsNull() {
-            var transferProcess = TransferProcess.Builder.newInstance()
-                    .id("transferProcessId")
-                    .contentDataAddress(testDataAddress())
-                    .dataPlaneId(null)
-                    .build();
-
-            var result = flowController.suspend(transferProcess);
-
-            assertThat(result).isFailed().detail().contains("Failed to select the data plane for suspending the transfer process");
-            verifyNoInteractions(dataPlaneClient, dataPlaneClientFactory, selectorService);
-        }
-
     }
 
     @Nested

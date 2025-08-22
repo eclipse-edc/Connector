@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.port.TransferProcessApiClient;
 import org.eclipse.edc.connector.dataplane.spi.provision.DeprovisionedResource;
+import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionerManager;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
@@ -32,7 +33,6 @@ import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -66,7 +66,7 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONIN
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISION_NOTIFYING;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
-import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.SUSPENDED;
+import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
@@ -145,52 +145,32 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     public StatusResult<DataFlowResponseMessage> start(DataFlowStartMessage startMessage) {
         var existingDataFlow = store.findByIdAndLease(startMessage.getProcessId());
 
-        if (existingDataFlow.failed()) {
-            if (existingDataFlow.reason() == StoreFailure.Reason.NOT_FOUND) {
-                var dataFlow = createNewDataFlow(startMessage);
-
-                var resources = resourceDefinitionGeneratorManager.generateProviderResourceDefinition(dataFlow);
-                if (!resources.isEmpty()) {
-                    dataFlow.addResourceDefinitions(resources);
-                    dataFlow.transitionToProvisioning();
-                    update(dataFlow);
-                    return StatusResult.success(DataFlowResponseMessage.Builder.newInstance()
-                            .provisioning(true)
-                            .build());
-                } else {
-                    return triggerDataFlow(dataFlow)
-                            .map(edr -> DataFlowResponseMessage.Builder.newInstance().dataAddress(edr).build());
-                }
-            }
-
+        if (existingDataFlow.failed() && existingDataFlow.reason() != StoreFailure.Reason.NOT_FOUND) {
             return StatusResult.from(existingDataFlow).mapFailure();
         }
 
+        if (existingDataFlow.failed() && existingDataFlow.reason() == StoreFailure.Reason.NOT_FOUND) {
+            var dataFlow = createNewDataFlow(startMessage);
+            return provisionOrStart(dataFlow);
+        }
+
         var dataFlow = existingDataFlow.getContent();
+        if (dataFlow.getResourceDefinitions().stream().allMatch(ProvisionResource::isDeprovisioned)) {
+            dataFlow.clearResourceDefinitions();
+            return provisionOrStart(dataFlow);
+        }
+
         if (!dataFlow.isProvisionCompleted()) {
             return StatusResult.failure(ERROR_RETRY, "Provisioning has not completed");
         }
 
-        return triggerDataFlow(dataFlow)
-                .map(edr -> DataFlowResponseMessage.Builder.newInstance().dataAddress(edr).build());
+        return triggerDataFlow(dataFlow);
     }
 
     @Override
     public DataFlowStates getTransferState(String processId) {
         return Optional.ofNullable(store.findById(processId)).map(StatefulEntity::getState)
                 .map(DataFlowStates::from).orElse(null);
-    }
-
-    @Override
-    public StatusResult<Void> suspend(String dataFlowId) {
-        return store.findByIdAndLease(dataFlowId)
-                .flatMap(StatusResult::from)
-                .compose(this::stop)
-                .onSuccess(dataFlow -> {
-                    dataFlow.transitToSuspended();
-                    update(dataFlow);
-                })
-                .mapEmpty();
     }
 
     @Override
@@ -203,6 +183,12 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                         update(dataFlow);
                         return StatusResult.success();
                     }
+
+                    if (dataFlow.getState() == TERMINATED.code()) {
+                        breakLease(dataFlow);
+                        return StatusResult.success();
+                    }
+
                     return stop(dataFlow, reason)
                             .onSuccess(flow -> {
                                 if (flow.resourcesToBeDeprovisioned().isEmpty()) {
@@ -289,13 +275,27 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .build();
     }
 
-    private StatusResult<DataAddress> triggerDataFlow(DataFlow dataFlow) {
-        var edr = switch (dataFlow.getTransferType().flowType()) {
+    private StatusResult<DataFlowResponseMessage> provisionOrStart(DataFlow dataFlow) {
+        var resources = resourceDefinitionGeneratorManager.generateProviderResourceDefinition(dataFlow);
+        if (resources.isEmpty()) {
+            return triggerDataFlow(dataFlow);
+        }
+
+        dataFlow.addResourceDefinitions(resources);
+        dataFlow.transitionToProvisioning();
+        update(dataFlow);
+        return StatusResult.success(DataFlowResponseMessage.Builder.newInstance()
+                .provisioning(true)
+                .build());
+    }
+
+    private StatusResult<DataFlowResponseMessage> triggerDataFlow(DataFlow dataFlow) {
+        var endpointDataReference = switch (dataFlow.getTransferType().flowType()) {
             case PULL -> handlePull(dataFlow);
             case PUSH -> handlePush(dataFlow);
         };
 
-        return edr
+        return endpointDataReference
                 .flatMap(result -> {
                     if (result.succeeded()) {
                         return StatusResult.success(result.getContent());
@@ -303,7 +303,8 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                         return StatusResult.failure(ERROR_RETRY, result.getFailureDetail());
                     }
                 })
-                .onSuccess(m -> start(dataFlow));
+                .onSuccess(m -> start(dataFlow))
+                .map(edr -> DataFlowResponseMessage.Builder.newInstance().dataAddress(edr).build());
     }
 
     private void start(DataFlow dataFlow) {
@@ -329,10 +330,6 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         return true;
     }
 
-    private StatusResult<DataFlow> stop(DataFlow dataFlow) {
-        return stop(dataFlow, null);
-    }
-
     private StatusResult<DataFlow> stop(DataFlow dataFlow, String reason) {
         if (FlowType.PUSH.equals(dataFlow.getTransferType().flowType())) {
             var transferService = transferServiceRegistry.resolveTransferService(dataFlow.toRequest());
@@ -352,11 +349,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         } else {
             var revokeResult = authorizationService.revokeEndpointDataReference(dataFlow.getId(), reason);
             if (revokeResult.failed()) {
-                if (dataFlow.getState() == SUSPENDED.code() && revokeResult.reason().equals(ServiceFailure.Reason.NOT_FOUND)) {
-                    monitor.warning("Revoking an EDR for DataFlow '%s' in state suspended returned not found error. This may indicate that the EDR was already revoked when it was suspended".formatted(dataFlow.getId()));
-                } else {
-                    return StatusResult.failure(FATAL_ERROR, "DataFlow %s cannot be terminated: %s".formatted(dataFlow.getId(), revokeResult.getFailureDetail()));
-                }
+                return StatusResult.failure(FATAL_ERROR, "DataFlow %s cannot be terminated: %s".formatted(dataFlow.getId(), revokeResult.getFailureDetail()));
             }
         }
 

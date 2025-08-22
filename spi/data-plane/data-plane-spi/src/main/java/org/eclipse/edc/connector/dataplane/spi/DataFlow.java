@@ -47,7 +47,6 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISION_N
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISION_REQUESTED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.RECEIVED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.STARTED;
-import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.SUSPENDED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.TERMINATED;
 
 /**
@@ -185,10 +184,6 @@ public class DataFlow extends StatefulEntity<DataFlow> {
         transitionTo(STARTED.code());
     }
 
-    public void transitToSuspended() {
-        transitionTo(SUSPENDED.code());
-    }
-
     public List<ProvisionResource> getResourceDefinitions() {
         return resourceDefinitions;
     }
@@ -279,6 +274,10 @@ public class DataFlow extends StatefulEntity<DataFlow> {
 
     public String getAgreementId() {
         return properties.get(AGREEMENT_ID_PROPERTY);
+    }
+
+    public void clearResourceDefinitions() {
+        resourceDefinitions.clear();
     }
 
     @JsonPOJOBuilder(withPrefix = "")

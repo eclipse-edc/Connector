@@ -1003,12 +1003,12 @@ class TransferProcessManagerImplTest {
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING.code()).build());
             when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
-            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
+            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
 
             manager.start();
 
             await().untilAsserted(() -> {
-                verify(dataFlowManager).suspend(process);
+                verify(dataFlowManager).terminate(process);
                 var captor = ArgumentCaptor.forClass(TransferSuspensionMessage.class);
                 verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
                 var message = captor.getValue();
@@ -1052,12 +1052,12 @@ class TransferProcessManagerImplTest {
             var process = createTransferProcessBuilder(SUSPENDING_REQUESTED).type(PROVIDER).correlationId("counterPartyId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING_REQUESTED.code()).build());
-            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
+            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
 
             manager.start();
 
             await().untilAsserted(() -> {
-                verify(dataFlowManager).suspend(process);
+                verify(dataFlowManager).terminate(process);
                 verifyNoInteractions(dispatcherRegistry);
                 verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == SUSPENDED.code()));
                 verify(listener).suspended(process);
@@ -1069,12 +1069,12 @@ class TransferProcessManagerImplTest {
             var process = createTransferProcessBuilder(SUSPENDING_REQUESTED).type(PROVIDER).correlationId("counterPartyId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING_REQUESTED.code()).build());
-            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
+            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
 
             manager.start();
 
             await().untilAsserted(() -> {
-                verify(dataFlowManager).suspend(process);
+                verify(dataFlowManager).terminate(process);
                 verifyNoInteractions(dispatcherRegistry);
                 verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == SUSPENDING_REQUESTED.code()));
             });
@@ -1090,12 +1090,12 @@ class TransferProcessManagerImplTest {
             var process = createTransferProcessBuilder(SUSPENDING_REQUESTED).type(PROVIDER).correlationId("counterPartyId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING_REQUESTED.code()).build());
-            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
+            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
 
             manager.start();
 
             await().untilAsserted(() -> {
-                verify(dataFlowManager).suspend(process);
+                verify(dataFlowManager).terminate(process);
                 verifyNoInteractions(dispatcherRegistry);
                 verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == SUSPENDED.code()));
                 verify(listener).suspended(process);
@@ -1112,7 +1112,6 @@ class TransferProcessManagerImplTest {
                 .thenReturn(List.of(transferProcess)).thenReturn(emptyList());
         when(dispatcherRegistry.dispatch(any(), any())).thenReturn(result);
         when(transferProcessStore.findById(transferProcess.getId())).thenReturn(transferProcess);
-        when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
         when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
 
         manager.start();

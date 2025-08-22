@@ -29,7 +29,6 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.spi.types.domain.transfer.TransferType;
@@ -266,15 +265,16 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
                 .statusCode(400);
     }
 
+    @Deprecated(since = "0.15.0")
     @Nested
     class Suspend {
 
         @Test
         void shouldReturn204_whenDataFlowIsSuspended() {
-            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowSuspendMessage.class)))
-                    .thenReturn(success(DataFlowSuspendMessage.Builder.newInstance().reason("test-reason").build()));
+            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowTerminateMessage.class)))
+                    .thenReturn(success(DataFlowTerminateMessage.Builder.newInstance().reason("test-reason").build()));
             var flowId = "test-id";
-            when(dataplaneManager.suspend(eq(flowId))).thenReturn(StatusResult.success());
+            when(dataplaneManager.terminate(eq(flowId), any())).thenReturn(StatusResult.success());
 
             var jsonObject = Json.createObjectBuilder().build();
             baseRequest()
@@ -287,10 +287,10 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
 
         @Test
         void shouldReturn500_whenDataFlowCannotBeSuspended() {
-            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowSuspendMessage.class)))
-                    .thenReturn(success(DataFlowSuspendMessage.Builder.newInstance().reason("test-reason").build()));
+            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowTerminateMessage.class)))
+                    .thenReturn(success(DataFlowTerminateMessage.Builder.newInstance().reason("test-reason").build()));
             var flowId = "test-id";
-            when(dataplaneManager.suspend(eq(flowId))).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR));
+            when(dataplaneManager.terminate(eq(flowId), any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR));
 
             var jsonObject = Json.createObjectBuilder().build();
             baseRequest()
