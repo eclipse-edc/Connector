@@ -44,7 +44,6 @@ import org.eclipse.edc.connector.controlplane.services.policydefinition.PolicyDe
 import org.eclipse.edc.connector.controlplane.services.policydefinition.PolicyDefinitionServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.protocol.ProtocolTokenValidatorImpl;
 import org.eclipse.edc.connector.controlplane.services.protocol.VersionProtocolServiceImpl;
-import org.eclipse.edc.connector.controlplane.services.protocol.VersionServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidators;
 import org.eclipse.edc.connector.controlplane.services.secret.SecretEventListener;
 import org.eclipse.edc.connector.controlplane.services.secret.SecretServiceImpl;
@@ -58,7 +57,6 @@ import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.C
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProtocolService;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessProtocolServiceImpl;
@@ -73,7 +71,6 @@ import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
-import org.eclipse.edc.policy.context.request.spi.RequestVersionPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -97,7 +94,6 @@ import java.time.Clock;
 import static org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext.CATALOGING_REQUEST_SCOPE;
 import static org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext.CONTRACT_NEGOTIATION_REQUEST_SCOPE;
 import static org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext.TRANSFER_PROCESS_REQUEST_SCOPE;
-import static org.eclipse.edc.policy.context.request.spi.RequestVersionPolicyContext.VERSION_REQUEST_SCOPE;
 
 @Extension(ControlPlaneServicesExtension.NAME)
 public class ControlPlaneServicesExtension implements ServiceExtension {
@@ -199,7 +195,6 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
         policyEngine.registerScope(TRANSFER_PROCESS_REQUEST_SCOPE, RequestTransferProcessPolicyContext.class);
         policyEngine.registerScope(CONTRACT_NEGOTIATION_REQUEST_SCOPE, RequestContractNegotiationPolicyContext.class);
         policyEngine.registerScope(CATALOGING_REQUEST_SCOPE, RequestCatalogPolicyContext.class);
-        policyEngine.registerScope(VERSION_REQUEST_SCOPE, RequestVersionPolicyContext.class);
     }
 
     @Provider
@@ -286,11 +281,6 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public VersionProtocolService versionProtocolService() {
         return new VersionProtocolServiceImpl(dataspaceProfileContextRegistry);
-    }
-
-    @Provider
-    public VersionService versionService() {
-        return new VersionServiceImpl(dispatcher);
     }
 
 }

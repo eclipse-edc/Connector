@@ -19,5 +19,4 @@ plugins {
 
 dependencies {
     api(project(":data-protocols:dsp:dsp-version:dsp-version-http-api"))
-    api(project(":data-protocols:dsp:dsp-version:dsp-version-http-dispatcher"))
 }

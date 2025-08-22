@@ -78,7 +78,6 @@ include(":core:policy-monitor:policy-monitor-core")
 include(":data-protocols:dsp:dsp-spi")
 include(":data-protocols:dsp:dsp-http-spi")
 include(":data-protocols:dsp:dsp-version:dsp-version-http-api")
-include(":data-protocols:dsp:dsp-version:dsp-version-http-dispatcher")
 
 // dsp core
 include(":data-protocols:dsp:dsp-core")
@@ -217,7 +216,6 @@ include(":extensions:control-plane:api:management-api:management-api-test-fixtur
 include(":extensions:control-plane:api:management-api:policy-definition-api")
 include(":extensions:control-plane:api:management-api:transfer-process-api")
 include(":extensions:control-plane:api:management-api:edr-cache-api")
-include(":extensions:control-plane:api:management-api:protocol-version-api")
 include(":extensions:control-plane:transfer:transfer-data-plane-signaling")
 include(":extensions:control-plane:provision:provision-http")
 
@@ -294,7 +292,6 @@ include(":spi:control-plane:control-plane-spi")
 include(":spi:control-plane:policy-spi")
 include(":spi:control-plane:transfer-spi")
 include(":spi:control-plane:secrets-spi")
-include(":spi:control-plane:protocol-version-spi")
 
 include(":spi:data-plane:data-plane-spi")
 include(":spi:data-plane:data-plane-http-spi")
