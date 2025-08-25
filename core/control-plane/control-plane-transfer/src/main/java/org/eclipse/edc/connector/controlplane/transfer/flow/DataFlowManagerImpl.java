@@ -87,11 +87,6 @@ public class DataFlowManagerImpl implements DataFlowManager {
     }
 
     @Override
-    public @NotNull StatusResult<Void> suspend(TransferProcess transferProcess) {
-        return chooseControllerAndApply(transferProcess, controller -> controller.suspend(transferProcess));
-    }
-
-    @Override
     public Set<String> transferTypesFor(Asset asset) {
         return controllers.stream()
                 .map(it -> it.controller)

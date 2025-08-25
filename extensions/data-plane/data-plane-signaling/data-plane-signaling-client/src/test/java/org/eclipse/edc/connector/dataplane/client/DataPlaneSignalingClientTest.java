@@ -483,48 +483,6 @@ class DataPlaneSignalingClientTest {
     }
 
     @Nested
-    class Suspend {
-
-        @Test
-        void shouldCallSuspendOnAllTheAvailableDataPlanes() {
-            dataPlane.stubFor(post(DATA_PLANE_PATH + "/processId/suspend")
-                    .willReturn(aResponse().withStatus(204)));
-
-            var result = dataPlaneClient.suspend("processId");
-
-            assertThat(result).isSucceeded();
-            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH + "/processId/suspend")));
-        }
-
-        @Test
-        void shouldFail_whenConflictResponse() {
-            dataPlane.stubFor(post(DATA_PLANE_PATH + "/processId/suspend")
-                    .willReturn(aResponse().withStatus(409)));
-
-            var result = dataPlaneClient.suspend("processId");
-
-            assertThat(result).isFailed();
-        }
-
-        @Test
-        void verifyReturnFatalErrorIfTransformFails() {
-            TypeTransformerRegistry registry = mock();
-            var dataPlaneClient = new DataPlaneSignalingClient(httpClient, registry, JSON_LD, CONTROL_CLIENT_SCOPE, TYPE_MANAGER, "test", instance);
-
-            when(registry.transform(any(), any())).thenReturn(Result.failure("Transform Failure"));
-
-            var result = dataPlaneClient.suspend("processId");
-
-            assertThat(result.failed()).isTrue();
-            assertThat(result.getFailure().status()).isEqualTo(FATAL_ERROR);
-            assertThat(result.getFailureMessages())
-                    .anySatisfy(s -> assertThat(s)
-                            .isEqualTo("Transform Failure")
-                    );
-        }
-    }
-
-    @Nested
     class CheckAvailability {
         @Test
         void shouldSucceed_whenDataPlaneIsAvailable() {

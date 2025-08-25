@@ -29,7 +29,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
@@ -96,11 +95,7 @@ public class DataPlaneSignalingApiController implements DataPlaneSignalingApi {
     @Path("/{id}/suspend")
     @Override
     public void suspend(@PathParam("id") String id, JsonObject suspendMessage) {
-        var msg = typeTransformerRegistry.transform(suspendMessage, DataFlowSuspendMessage.class)
-                .onFailure(f -> monitor.warning("Error transforming %s: %s".formatted(DataFlowSuspendMessage.class, f.getFailureDetail())))
-                .orElseThrow(InvalidRequestException::new);
-
-        dataPlaneManager.suspend(id).orElseThrow(InvalidRequestException::new);
+        terminate(id, suspendMessage);
     }
 
     @Override

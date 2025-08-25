@@ -44,8 +44,12 @@ public interface DataPlaneClient {
      *
      * @param transferProcessId the transfer process id.
      * @return success if the transfer has been suspended, failure otherwise.
+     * @deprecated data flow must be terminated on suspension
      */
-    StatusResult<Void> suspend(String transferProcessId);
+    @Deprecated(since = "0.15.0")
+    default StatusResult<Void> suspend(String transferProcessId) {
+        return terminate(transferProcessId);
+    }
 
     /**
      * Terminate the transfer.

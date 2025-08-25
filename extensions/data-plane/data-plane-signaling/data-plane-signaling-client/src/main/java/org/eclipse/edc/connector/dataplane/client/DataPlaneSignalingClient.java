@@ -32,7 +32,6 @@ import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
@@ -86,16 +85,6 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
                 .compose(builder -> httpClient.request(builder)
                         .flatMap(result -> result.map(this::handleResponse)
                                 .orElse(failure -> failedResult(message.getProcessId(), failure))));
-    }
-
-    @Override
-    public StatusResult<Void> suspend(String transferProcessId) {
-        var url = "%s/%s/suspend".formatted(dataPlane.getUrl(), transferProcessId);
-        var message = DataFlowSuspendMessage.Builder.newInstance().build();
-        return createRequestBuilder(message, url)
-                .compose(builder -> httpClient.request(builder)
-                        .flatMap(result -> result.map(it -> StatusResult.success())
-                                .orElse(failure -> failedResult(transferProcessId, failure))));
     }
 
     @Override
