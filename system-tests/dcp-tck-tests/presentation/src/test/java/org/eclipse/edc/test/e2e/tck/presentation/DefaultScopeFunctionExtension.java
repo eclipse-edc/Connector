@@ -17,7 +17,6 @@ package org.eclipse.edc.test.e2e.tck.presentation;
 import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
-import org.eclipse.edc.policy.context.request.spi.RequestVersionPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -43,7 +42,6 @@ public class DefaultScopeFunctionExtension implements ServiceExtension {
         policyEngine.registerPostValidator(RequestCatalogPolicyContext.class, contextMappingFunction::apply);
         policyEngine.registerPostValidator(RequestContractNegotiationPolicyContext.class, contextMappingFunction::apply);
         policyEngine.registerPostValidator(RequestTransferProcessPolicyContext.class, contextMappingFunction::apply);
-        policyEngine.registerPostValidator(RequestVersionPolicyContext.class, contextMappingFunction::apply);
 
     }
 }

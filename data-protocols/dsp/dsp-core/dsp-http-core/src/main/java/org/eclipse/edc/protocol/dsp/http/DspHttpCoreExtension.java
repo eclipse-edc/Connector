@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractRemoteMessage;
-import org.eclipse.edc.connector.controlplane.protocolversion.spi.ProtocolVersionRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
@@ -34,7 +33,6 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
-import org.eclipse.edc.policy.context.request.spi.RequestVersionPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.protocol.dsp.http.dispatcher.DspHttpRemoteMessageDispatcherImpl;
 import org.eclipse.edc.protocol.dsp.http.dispatcher.DspRequestBasePathProviderImpl;
@@ -64,7 +62,6 @@ import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import static org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext.CATALOGING_REQUEST_SCOPE;
 import static org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext.CONTRACT_NEGOTIATION_REQUEST_SCOPE;
 import static org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext.TRANSFER_PROCESS_REQUEST_SCOPE;
-import static org.eclipse.edc.policy.context.request.spi.RequestVersionPolicyContext.VERSION_REQUEST_SCOPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
@@ -119,7 +116,6 @@ public class DspHttpCoreExtension implements ServiceExtension {
         policyEngine.registerScope(TRANSFER_PROCESS_REQUEST_SCOPE, RequestTransferProcessPolicyContext.class);
         policyEngine.registerScope(CONTRACT_NEGOTIATION_REQUEST_SCOPE, RequestContractNegotiationPolicyContext.class);
         policyEngine.registerScope(CATALOGING_REQUEST_SCOPE, RequestCatalogPolicyContext.class);
-        policyEngine.registerScope(VERSION_REQUEST_SCOPE, RequestVersionPolicyContext.class);
 
         TokenDecorator td; // either a decorator, or noop
         if (decorator != null) {
@@ -133,7 +129,6 @@ public class DspHttpCoreExtension implements ServiceExtension {
         registerNegotiationPolicyScopes(dispatcher);
         registerTransferProcessPolicyScopes(dispatcher);
         registerCatalogPolicyScopes(dispatcher);
-        registerVersionPolicyScopes(dispatcher);
 
         return dispatcher;
     }
@@ -182,7 +177,4 @@ public class DspHttpCoreExtension implements ServiceExtension {
         dispatcher.registerPolicyScope(DatasetRequestMessage.class, DatasetRequestMessage::getPolicy, RequestCatalogPolicyContext::new);
     }
 
-    private void registerVersionPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
-        dispatcher.registerPolicyScope(ProtocolVersionRequestMessage.class, ProtocolVersionRequestMessage::getPolicy, RequestVersionPolicyContext::new);
-    }
 }
