@@ -25,7 +25,7 @@ repository within the EDC organization.
 
 #### ParticipantContext
 
-A new entity called `ParticipantContext`, that represents the context of a participant in the connector will be
+A new entity called `ParticipantContext` that represents the context of a participant in the connector will be
 introduced:
 
 ```java
