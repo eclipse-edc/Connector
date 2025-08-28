@@ -18,7 +18,7 @@ the connector to scale horizontally and improve its performance for certain use 
 
 The current Connector repository, which contains the core modules for a connector, will only provide the foundation
 in the core libraries and components but, it will only support a running single participant workload.
-The implementation of multiple participant workloads will be done using connector core modules but in a separated
+The implementation of multiple participant workloads will be done using connector core modules but in a separate
 repository within the EDC organization.
 
 ### Entities
