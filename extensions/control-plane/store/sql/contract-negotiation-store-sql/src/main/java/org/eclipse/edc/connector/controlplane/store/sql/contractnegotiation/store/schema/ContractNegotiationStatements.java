@@ -15,15 +15,15 @@
 package org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema;
 
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.sql.lease.LeaseStatements;
 import org.eclipse.edc.sql.lease.StatefulEntityStatements;
+import org.eclipse.edc.sql.statement.SqlStatements;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 /**
  * Provides database-related constants, such as column names, table names and statement templates. Methods to compose
  * statements must be overridden by implementors.
  */
-public interface ContractNegotiationStatements extends StatefulEntityStatements, LeaseStatements {
+public interface ContractNegotiationStatements extends StatefulEntityStatements, SqlStatements {
     String getFindTemplate();
 
     String getFindContractAgreementTemplate();
@@ -123,6 +123,8 @@ public interface ContractNegotiationStatements extends StatefulEntityStatements,
     }
 
     SqlQueryStatement createNegotiationsQuery(QuerySpec querySpec);
+
+    SqlQueryStatement createNegotiationNextNotLeaseQuery(QuerySpec querySpec);
 
     SqlQueryStatement createAgreementsQuery(QuerySpec querySpec);
 }

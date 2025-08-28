@@ -18,9 +18,14 @@ import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.stor
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.dialect.PostgresDialect;
+import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.translation.PostgresqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 import org.eclipse.edc.sql.translation.TranslationMapping;
+
+import java.time.Clock;
+
+import static java.lang.String.format;
 
 /**
  * Concrete implementation of the {@link ContractNegotiationStatements} for Postgres. Uses a mapping tree
@@ -31,8 +36,9 @@ import org.eclipse.edc.sql.translation.TranslationMapping;
  */
 public class PostgresDialectStatements extends BaseSqlDialectStatements {
 
-    public PostgresDialectStatements() {
-        super(new PostgresqlOperatorTranslator());
+
+    public PostgresDialectStatements(LeaseStatements leaseStatements, Clock clock) {
+        super(new PostgresqlOperatorTranslator(), leaseStatements, clock);
     }
 
     @Override
@@ -42,10 +48,23 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
     }
 
     @Override
+    public SqlQueryStatement createNegotiationNextNotLeaseQuery(QuerySpec querySpec) {
+        var queryTemplate = "%s LEFT JOIN %s l ON %s.%s = l.%s".formatted(getSelectNegotiationsTemplate(), leaseStatements.getLeaseTableName(), getContractNegotiationTable(), getIdColumn(), leaseStatements.getResourceIdColumn());
+        return new SqlQueryStatement(queryTemplate, querySpec, new ContractNegotiationMapping(this), operatorTranslator)
+                .addWhereClause(getNotLeasedFilter(), clock.millis(), getContractNegotiationTable());
+    }
+
+    private String getNotLeasedFilter() {
+        return format("(l.%s IS NULL OR (? > (%s + %s) AND ? = l.%s))",
+                leaseStatements.getResourceIdColumn(), leaseStatements.getLeasedAtColumn(), leaseStatements.getLeaseDurationColumn(), leaseStatements.getResourceKind());
+    }
+
+    @Override
     public SqlQueryStatement createAgreementsQuery(QuerySpec querySpec) {
         var selectStmt = getSelectFromAgreementsTemplate();
         return new SqlQueryStatement(selectStmt, querySpec, new ContractAgreementMapping(this), operatorTranslator);
     }
+
 
     /**
      * Overridable operator to convert strings to JSON. For postgres, this is the "::json" operator

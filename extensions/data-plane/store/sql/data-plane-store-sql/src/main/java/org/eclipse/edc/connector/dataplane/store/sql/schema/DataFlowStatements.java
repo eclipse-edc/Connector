@@ -15,14 +15,14 @@
 package org.eclipse.edc.connector.dataplane.store.sql.schema;
 
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.sql.lease.LeaseStatements;
 import org.eclipse.edc.sql.lease.StatefulEntityStatements;
+import org.eclipse.edc.sql.statement.SqlStatements;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 /**
  * Sql Statements for DataPlane Store
  */
-public interface DataFlowStatements extends StatefulEntityStatements, LeaseStatements {
+public interface DataFlowStatements extends StatefulEntityStatements, SqlStatements {
 
     default String getIdColumn() {
         return "process_id";
@@ -69,5 +69,7 @@ public interface DataFlowStatements extends StatefulEntityStatements, LeaseState
     String getSelectTemplate();
 
     SqlQueryStatement createQuery(QuerySpec querySpec);
+
+    SqlQueryStatement createNextNotLeaseQuery(QuerySpec querySpec);
 }
 

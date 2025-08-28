@@ -16,12 +16,15 @@ package org.eclipse.edc.connector.dataplane.selector.store.sql.schema.postgres;
 
 import org.eclipse.edc.connector.dataplane.selector.store.sql.schema.BaseSqlDataPlaneInstanceStatements;
 import org.eclipse.edc.sql.dialect.PostgresDialect;
+import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.translation.PostgresqlOperatorTranslator;
+
+import java.time.Clock;
 
 public class PostgresDataPlaneInstanceStatements extends BaseSqlDataPlaneInstanceStatements {
 
-    public PostgresDataPlaneInstanceStatements() {
-        super(new PostgresqlOperatorTranslator());
+    public PostgresDataPlaneInstanceStatements(LeaseStatements leaseStatements, Clock clock) {
+        super(new PostgresqlOperatorTranslator(), leaseStatements, clock);
     }
 
     @Override

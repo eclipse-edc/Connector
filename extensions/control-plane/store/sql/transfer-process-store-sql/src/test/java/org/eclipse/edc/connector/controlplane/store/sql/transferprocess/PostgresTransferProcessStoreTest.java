@@ -23,6 +23,9 @@ import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.sql.lease.BaseSqlLeaseStatements;
+import org.eclipse.edc.sql.lease.SqlLeaseContextBuilderImpl;
+import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.testfixtures.LeaseUtil;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
@@ -30,13 +33,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.time.Duration;
 
 @ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
 
-    private final PostgresDialectStatements statements = new PostgresDialectStatements();
+    private final LeaseStatements leaseStatements = new BaseSqlLeaseStatements();
+    private final PostgresDialectStatements statements = new PostgresDialectStatements(leaseStatements, Clock.systemUTC());
     private LeaseUtil leaseUtil;
     private SqlTransferProcessStore store;
 
@@ -46,9 +51,11 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
         typeManager.registerTypes(TestFunctions.TestResourceDef.class, TestFunctions.TestProvisionedResource.class);
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
-        leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements, clock);
+        leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements.getTransferProcessTableName(), leaseStatements, clock);
+        var leaseContextBuilder = SqlLeaseContextBuilderImpl.with(extension.getTransactionContext(), CONNECTOR_NAME, statements.getTransferProcessTableName(), leaseStatements, clock, queryExecutor);
+
         store = new SqlTransferProcessStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), typeManager.getMapper(), statements, "test-connector",
+                extension.getTransactionContext(), typeManager.getMapper(), statements, leaseContextBuilder,
                 clock, queryExecutor);
 
         var schema = TestUtils.getResourceFileContentAsString("transfer-process-schema.sql");
@@ -58,7 +65,7 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     @AfterEach
     void tearDown(PostgresqlStoreSetupExtension extension) {
         extension.runQuery("DROP TABLE " + statements.getTransferProcessTableName() + " CASCADE");
-        extension.runQuery("DROP TABLE " + statements.getLeaseTableName() + " CASCADE");
+        extension.runQuery("DROP TABLE " + leaseStatements.getLeaseTableName() + " CASCADE");
     }
 
     @Override

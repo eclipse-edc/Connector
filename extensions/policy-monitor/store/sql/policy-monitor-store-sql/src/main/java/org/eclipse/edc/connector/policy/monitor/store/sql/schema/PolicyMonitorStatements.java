@@ -15,11 +15,11 @@
 package org.eclipse.edc.connector.policy.monitor.store.sql.schema;
 
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.sql.lease.LeaseStatements;
 import org.eclipse.edc.sql.lease.StatefulEntityStatements;
+import org.eclipse.edc.sql.statement.SqlStatements;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
-public interface PolicyMonitorStatements extends StatefulEntityStatements, LeaseStatements {
+public interface PolicyMonitorStatements extends StatefulEntityStatements, SqlStatements {
 
     default String getPolicyMonitorTable() {
         return "edc_policy_monitor";
@@ -38,4 +38,6 @@ public interface PolicyMonitorStatements extends StatefulEntityStatements, Lease
     String getSelectTemplate();
 
     SqlQueryStatement createQuery(QuerySpec querySpec);
+
+    SqlQueryStatement createNextNotLeaseQuery(QuerySpec querySpec);
 }

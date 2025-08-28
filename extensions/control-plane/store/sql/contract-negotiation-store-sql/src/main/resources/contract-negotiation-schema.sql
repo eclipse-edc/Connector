@@ -5,18 +5,14 @@ CREATE TABLE IF NOT EXISTS edc_lease
     leased_by      VARCHAR               NOT NULL,
     leased_at      BIGINT,
     lease_duration INTEGER DEFAULT 60000 NOT NULL,
-    lease_id       VARCHAR               NOT NULL
-        CONSTRAINT lease_pk
-            PRIMARY KEY
+    resource_id       VARCHAR NOT NULL,
+    resource_kind  VARCHAR NOT NULL,
+    PRIMARY KEY(resource_id, resource_kind)
 );
 
 COMMENT ON COLUMN edc_lease.leased_at IS 'posix timestamp of lease';
 
 COMMENT ON COLUMN edc_lease.lease_duration IS 'duration of lease in milliseconds';
-
-
-CREATE UNIQUE INDEX IF NOT EXISTS lease_lease_id_uindex
-    ON edc_lease (lease_id);
 
 
 
@@ -58,11 +54,7 @@ CREATE TABLE IF NOT EXISTS edc_contract_negotiation
     callback_addresses   JSON,
     trace_context        JSON,
     pending              BOOLEAN DEFAULT FALSE,
-    protocol_messages    JSON,
-    lease_id             VARCHAR
-        CONSTRAINT contract_negotiation_lease_lease_id_fk
-            REFERENCES edc_lease
-            ON DELETE SET NULL
+    protocol_messages    JSON
 );
 
 COMMENT ON COLUMN edc_contract_negotiation.agreement_id IS 'ContractAgreement serialized as JSON';
@@ -80,9 +72,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS contract_negotiation_id_uindex
 
 CREATE UNIQUE INDEX IF NOT EXISTS contract_agreement_id_uindex
     ON edc_contract_agreement (agr_id);
-
-CREATE INDEX IF NOT EXISTS contract_negotiation_lease_id_index
-    ON edc_contract_negotiation (lease_id);
 
 CREATE INDEX IF NOT EXISTS contract_negotiation_agreement_id_index
     ON edc_contract_negotiation (agreement_id);

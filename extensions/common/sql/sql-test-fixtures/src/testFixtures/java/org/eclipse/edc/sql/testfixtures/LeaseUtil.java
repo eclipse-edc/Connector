@@ -15,8 +15,8 @@
 package org.eclipse.edc.sql.testfixtures;
 
 import org.eclipse.edc.sql.SqlQueryExecutor;
-import org.eclipse.edc.sql.lease.LeaseStatements;
-import org.eclipse.edc.sql.lease.SqlLeaseContextBuilder;
+import org.eclipse.edc.sql.lease.SqlLeaseContextBuilderImpl;
+import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.sql.Connection;
@@ -27,16 +27,16 @@ import java.util.function.Supplier;
 
 /**
  * Helper class to easily acquire and verify leases.
- * Wraps the {@link SqlLeaseContextBuilder} for even easier handling in tests.
+ * Wraps the {@link SqlLeaseContextBuilderImpl} for even easier handling in tests.
  */
 public class LeaseUtil {
 
-    private final SqlLeaseContextBuilder leaseContextBuilder;
+    private final SqlLeaseContextBuilderImpl leaseContextBuilder;
     private final Supplier<Connection> connectionSupplier;
 
-    public LeaseUtil(TransactionContext context, Supplier<Connection> connectionSupplier, LeaseStatements statements, Clock clock) {
+    public LeaseUtil(TransactionContext context, Supplier<Connection> connectionSupplier, String resourceKind, LeaseStatements statements, Clock clock) {
         this.connectionSupplier = connectionSupplier;
-        leaseContextBuilder = SqlLeaseContextBuilder.with(context, "test", statements, clock, new SqlQueryExecutor());
+        leaseContextBuilder = SqlLeaseContextBuilderImpl.with(context, "test", resourceKind, statements, clock, new SqlQueryExecutor());
     }
 
     public void leaseEntity(String tpId, String leaseHolder, Duration leaseDuration) {

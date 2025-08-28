@@ -18,6 +18,7 @@ package org.eclipse.edc.sql.lease;
 
 import org.eclipse.edc.spi.persistence.LeaseContext;
 import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,7 +28,6 @@ import java.sql.SQLException;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Objects;
-import java.util.UUID;
 
 /**
  * SQL-based implementation of the LeaseContext.
@@ -39,15 +39,18 @@ public class SqlLeaseContext implements LeaseContext {
     private final TransactionContext trxContext;
     private final LeaseStatements statements;
     private final String leaseHolder;
+    private final String resourceKind;
     private final Connection connection;
     private final Clock clock;
     private final Duration leaseDuration;
     private final QueryExecutor queryExecutor;
 
-    SqlLeaseContext(TransactionContext trxContext, LeaseStatements statements, String leaseHolder, Clock clock, Duration leaseDuration, Connection connection, QueryExecutor queryExecutor) {
+
+    SqlLeaseContext(TransactionContext trxContext, LeaseStatements statements, String leaseHolder, String resourceKind, Clock clock, Duration leaseDuration, Connection connection, QueryExecutor queryExecutor) {
         this.trxContext = trxContext;
         this.statements = statements;
         this.leaseHolder = leaseHolder;
+        this.resourceKind = resourceKind;
         this.clock = clock;
         this.leaseDuration = leaseDuration;
         this.connection = connection;
@@ -62,11 +65,11 @@ public class SqlLeaseContext implements LeaseContext {
 
             if (l != null) {
                 if (!Objects.equals(leaseHolder, l.getLeasedBy())) {
-                    throw new IllegalStateException("Current runtime does not hold the lease for Object (id [" + entityId + "]), cannot break lease!");
+                    throw new IllegalStateException("Current runtime does not hold the lease for Object (id [%s], kind [%s]), cannot break lease!".formatted(entityId, resourceKind));
                 }
 
                 var stmt = statements.getDeleteLeaseTemplate();
-                queryExecutor.execute(connection, stmt, l.getLeaseId());
+                queryExecutor.execute(connection, stmt, l.getResourceId(), resourceKind);
             }
         });
     }
@@ -75,29 +78,12 @@ public class SqlLeaseContext implements LeaseContext {
     public void acquireLease(String entityId) {
         trxContext.execute(() -> {
             var now = clock.millis();
-
-            var lease = getLease(entityId);
-
-            if (lease != null && !lease.isExpired(clock)) {
-                throw new IllegalStateException("Entity is currently leased!");
-            }
-
-            //clean out old lease if present
-            if (lease != null) {
-                var deleteStmt = statements.getDeleteLeaseTemplate();
-                queryExecutor.execute(connection, deleteStmt, lease.getLeaseId());
-            }
-
-            // create new lease in DB
-            var id = UUID.randomUUID().toString();
             var duration = leaseDuration != null ? leaseDuration.toMillis() : DEFAULT_LEASE_DURATION;
-            var stmt = statements.getInsertLeaseTemplate();
-            queryExecutor.execute(connection, stmt, id, leaseHolder, now, duration);
-
-            //update entity with lease -> effectively lease entity
-            var updStmt = statements.getUpdateLeaseTemplate();
-            queryExecutor.execute(connection, updStmt, id, entityId);
-
+            var upsertStmt = statements.getUpsertLeaseTemplate();
+            var result = queryExecutor.execute(connection, upsertStmt, entityId, leaseHolder, resourceKind, now, duration, now);
+            if (result == 0) {
+                throw new IllegalStateException("Entity %s of kind %s is currently leased!".formatted(entityId, resourceKind));
+            }
         });
     }
 
@@ -109,14 +95,14 @@ public class SqlLeaseContext implements LeaseContext {
      */
     public @Nullable SqlLease getLease(String entityId) {
         var stmt = statements.getFindLeaseByEntityTemplate();
-        return queryExecutor.single(connection, false, this::mapLease, stmt, entityId);
+        return queryExecutor.single(connection, false, this::mapLease, stmt, entityId, resourceKind);
     }
 
     private SqlLease mapLease(ResultSet resultSet) throws SQLException {
-        var lease = new SqlLease(resultSet.getString(statements.getLeasedByColumn()),
+        return new SqlLease(resultSet.getString(statements.getLeasedByColumn()),
+                resultSet.getString(statements.getResourceIdColumn()),
+                resultSet.getString(statements.getResourceKind()),
                 resultSet.getLong(statements.getLeasedAtColumn()),
                 resultSet.getLong(statements.getLeaseDurationColumn()));
-        lease.setLeaseId(resultSet.getString(statements.getLeaseIdColumn()));
-        return lease;
     }
 }
