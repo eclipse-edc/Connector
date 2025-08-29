@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.dataplane.framework.manager;
 import org.eclipse.edc.connector.dataplane.framework.DataPlaneFrameworkExtension.FlowLeaseConfiguration;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
-import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
+import org.eclipse.edc.connector.dataplane.spi.edr.EndpointDataReferenceServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamFailure;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
@@ -81,7 +81,7 @@ import static org.eclipse.edc.statemachine.retry.processor.Process.result;
  */
 public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, DataPlaneStore> implements DataPlaneManager {
 
-    private DataPlaneAuthorizationService authorizationService;
+    private EndpointDataReferenceServiceRegistry endpointDataReferenceServiceRegistry;
     private TransferServiceRegistry transferServiceRegistry;
     private TransferProcessApiClient transferProcessClient;
     private String runtimeId;
@@ -350,7 +350,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 }
             }
         } else {
-            var revokeResult = authorizationService.revokeEndpointDataReference(dataFlow.getId(), reason);
+            var revokeResult = endpointDataReferenceServiceRegistry.revoke(dataFlow, reason);
             if (revokeResult.failed()) {
                 if (dataFlow.getState() == SUSPENDED.code() && revokeResult.reason().equals(ServiceFailure.Reason.NOT_FOUND)) {
                     monitor.warning("Revoking an EDR for DataFlow '%s' in state suspended returned not found error. This may indicate that the EDR was already revoked when it was suspended".formatted(dataFlow.getId()));
@@ -363,18 +363,18 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         return StatusResult.success(dataFlow);
     }
 
-    private Result<DataAddress> handlePull(DataFlow dataFlow) {
-        return authorizationService.createEndpointDataReference(dataFlow)
+    private ServiceResult<DataAddress> handlePull(DataFlow dataFlow) {
+        return endpointDataReferenceServiceRegistry.create(dataFlow, dataFlow.getSource())
                 .onFailure(f -> monitor.warning("Error obtaining EDR DataAddress: %s".formatted(f.getFailureDetail())));
     }
 
-    private Result<DataAddress> handlePush(DataFlow dataFlow) {
+    private ServiceResult<DataAddress> handlePush(DataFlow dataFlow) {
         var responseChannelType = dataFlow.getTransferType().responseChannelType();
         if (responseChannelType != null) {
             monitor.debug("PUSH dataflow with responseChannel '%s' received. Will generate data address".formatted(responseChannelType));
-            return authorizationService.createEndpointDataReference(dataFlow);
+            return endpointDataReferenceServiceRegistry.create(dataFlow, dataFlow.getSource().getResponseChannel());
         }
-        return success(null);
+        return ServiceResult.success();
     }
 
     private boolean processProvisioning(DataFlow dataFlow) {
@@ -592,8 +592,8 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
             return this;
         }
 
-        public Builder authorizationService(DataPlaneAuthorizationService authorizationService) {
-            manager.authorizationService = authorizationService;
+        public Builder endpointDataReferenceServiceRegistry(EndpointDataReferenceServiceRegistry authorizationService) {
+            manager.endpointDataReferenceServiceRegistry = authorizationService;
             return this;
         }
 

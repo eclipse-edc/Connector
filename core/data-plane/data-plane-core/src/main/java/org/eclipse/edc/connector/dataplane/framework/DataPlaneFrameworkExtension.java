@@ -14,10 +14,11 @@
 
 package org.eclipse.edc.connector.dataplane.framework;
 
+import org.eclipse.edc.connector.dataplane.framework.edr.EndpointDataReferenceServiceRegistryImpl;
 import org.eclipse.edc.connector.dataplane.framework.manager.DataPlaneManagerImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceRegistryImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy;
-import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
+import org.eclipse.edc.connector.dataplane.spi.edr.EndpointDataReferenceServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
@@ -87,7 +88,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     @Inject
     private PipelineService pipelineService;
     @Inject
-    private DataPlaneAuthorizationService authorizationService;
+    private EndpointDataReferenceServiceRegistry endpointDataReferenceServiceRegistry;
     @Inject
     private ResourceDefinitionGeneratorManager resourceDefinitionGeneratorManager;
     @Inject
@@ -112,7 +113,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
                 .clock(clock)
                 .entityRetryProcessConfiguration(stateMachineConfiguration.entityRetryProcessConfiguration())
                 .executorInstrumentation(executorInstrumentation)
-                .authorizationService(authorizationService)
+                .endpointDataReferenceServiceRegistry(endpointDataReferenceServiceRegistry)
                 .transferServiceRegistry(transferServiceRegistry)
                 .store(store)
                 .transferProcessClient(transferProcessApiClient)
@@ -146,6 +147,11 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         var executorService = Executors.newFixedThreadPool(numThreads);
         return new DataTransferExecutorServiceContainer(
                 executorInstrumentation.instrument(executorService, "Data plane transfers"));
+    }
+
+    @Provider
+    public EndpointDataReferenceServiceRegistry endpointDataReferenceServiceRegistry() {
+        return new EndpointDataReferenceServiceRegistryImpl();
     }
 
     @Settings

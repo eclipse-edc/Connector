@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.dataplane.framework.manager;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
-import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
+import org.eclipse.edc.connector.dataplane.spi.edr.EndpointDataReferenceServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.StreamResult;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.TransferService;
@@ -113,7 +113,7 @@ class DataPlaneManagerImplTest {
     private final TransferProcessApiClient transferProcessApiClient = mock();
     private final DataPlaneStore store = mock();
     private final TransferServiceRegistry registry = mock();
-    private final DataPlaneAuthorizationService authorizationService = mock();
+    private final EndpointDataReferenceServiceRegistry endpointDataReferenceServiceRegistry = mock();
     private final ResourceDefinitionGeneratorManager resourceDefinitionGeneratorManager = mock();
     private final ProvisionerManager provisionerManager = mock();
     private final String runtimeId = UUID.randomUUID().toString();
@@ -127,7 +127,7 @@ class DataPlaneManagerImplTest {
                 .transferServiceRegistry(registry)
                 .store(store)
                 .transferProcessClient(transferProcessApiClient)
-                .authorizationService(authorizationService)
+                .endpointDataReferenceServiceRegistry(endpointDataReferenceServiceRegistry)
                 .resourceDefinitionGeneratorManager(resourceDefinitionGeneratorManager)
                 .provisionerManager(provisionerManager)
                 .monitor(mock())
@@ -200,7 +200,7 @@ class DataPlaneManagerImplTest {
             assertThat(dataFlow.getProperties()).containsKeys("key", "agreementId", "assetId", "participantId");
             assertThat(dataFlow.getState()).isEqualTo(RECEIVED.code());
 
-            verifyNoInteractions(authorizationService);
+            verifyNoInteractions(endpointDataReferenceServiceRegistry);
         }
 
         @Test
@@ -208,7 +208,7 @@ class DataPlaneManagerImplTest {
             var dataAddress = DataAddress.Builder.newInstance().type("type").build();
             var request = dataFlowStartMessageBuilder().flowType(PULL).build();
 
-            when(authorizationService.createEndpointDataReference(any())).thenReturn(Result.success(dataAddress));
+            when(endpointDataReferenceServiceRegistry.create(any(), any())).thenReturn(ServiceResult.success(dataAddress));
 
             var result = manager.start(request);
 
@@ -228,7 +228,7 @@ class DataPlaneManagerImplTest {
         @Test
         void shouldNotInitiatePullDataFlow_whenEdrCreationFails() {
             var request = dataFlowStartMessageBuilder().flowType(PULL).build();
-            when(authorizationService.createEndpointDataReference(any())).thenReturn(Result.failure("failure"));
+            when(endpointDataReferenceServiceRegistry.create(any(), any())).thenReturn(ServiceResult.unexpected("failure"));
 
             var result = manager.start(request);
 
@@ -543,39 +543,39 @@ class DataPlaneManagerImplTest {
         void shouldTerminatePullDataFlow() {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).id("dataFlowId").transferType(new TransferType("DestinationType", PULL)).build();
             when(store.findByIdAndLease(dataFlow.getId())).thenReturn(StoreResult.success(dataFlow));
-            when(authorizationService.revokeEndpointDataReference(dataFlow.getId(), null)).thenReturn(ServiceResult.success());
+            when(endpointDataReferenceServiceRegistry.revoke(dataFlow, null)).thenReturn(ServiceResult.success());
 
             var result = manager.terminate(dataFlow.getId(), null);
 
             assertThat(result).isSucceeded();
             verify(store).save(argThat(d -> d.getState() == TERMINATED.code()));
-            verify(authorizationService).revokeEndpointDataReference(dataFlow.getId(), null);
+            verify(endpointDataReferenceServiceRegistry).revoke(dataFlow, null);
         }
 
         @Test
         void shouldTerminatePullDataFlow_whenSuspendedAndRevokeNotFound() {
             var dataFlow = dataFlowBuilder().state(SUSPENDED.code()).id("dataFlowId").transferType(new TransferType("DestinationType", PULL)).build();
             when(store.findByIdAndLease(dataFlow.getId())).thenReturn(StoreResult.success(dataFlow));
-            when(authorizationService.revokeEndpointDataReference(dataFlow.getId(), null)).thenReturn(ServiceResult.notFound("not found"));
+            when(endpointDataReferenceServiceRegistry.revoke(dataFlow, null)).thenReturn(ServiceResult.notFound("not found"));
 
             var result = manager.terminate(dataFlow.getId(), null);
 
             assertThat(result).isSucceeded();
             verify(store).save(argThat(d -> d.getState() == TERMINATED.code()));
-            verify(authorizationService).revokeEndpointDataReference(dataFlow.getId(), null);
+            verify(endpointDataReferenceServiceRegistry).revoke(dataFlow, null);
         }
 
         @Test
         void shouldFailToTerminatePullDataFlow_whenRevocationFails() {
             var dataFlow = dataFlowBuilder().state(RECEIVED.code()).id("dataFlowId").transferType(new TransferType("DestinationType", PULL)).build();
             when(store.findByIdAndLease(dataFlow.getId())).thenReturn(StoreResult.success(dataFlow));
-            when(authorizationService.revokeEndpointDataReference(dataFlow.getId(), null)).thenReturn(ServiceResult.notFound("failure"));
+            when(endpointDataReferenceServiceRegistry.revoke(dataFlow, null)).thenReturn(ServiceResult.notFound("failure"));
 
             var result = manager.terminate(dataFlow.getId(), null);
 
             assertThat(result).isFailed();
             verify(store, never()).save(any());
-            verify(authorizationService).revokeEndpointDataReference(dataFlow.getId(), null);
+            verify(endpointDataReferenceServiceRegistry).revoke(dataFlow, null);
         }
 
         @Test
@@ -664,7 +664,7 @@ class DataPlaneManagerImplTest {
 
             assertThat(result).isSucceeded();
             verify(store).save(argThat(d -> d.getState() == DEPROVISIONING.code()));
-            verifyNoInteractions(transferService, authorizationService);
+            verifyNoInteractions(transferService, endpointDataReferenceServiceRegistry);
         }
 
         @Test
