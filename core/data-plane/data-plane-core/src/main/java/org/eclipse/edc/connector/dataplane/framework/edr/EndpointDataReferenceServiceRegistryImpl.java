@@ -15,21 +15,28 @@
 package org.eclipse.edc.connector.dataplane.framework.edr;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
+import org.eclipse.edc.connector.dataplane.spi.edr.EndpointDataReferenceService;
 import org.eclipse.edc.connector.dataplane.spi.edr.EndpointDataReferenceServiceRegistry;
-import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class EndpointDataReferenceServiceRegistryImpl implements EndpointDataReferenceServiceRegistry {
 
-    private final Map<String, DataPlaneAuthorizationService> registry = new HashMap<>();
+    private final Map<String, EndpointDataReferenceService> registry = new HashMap<>();
+    private final Map<String, EndpointDataReferenceService> responseChannelRegistry = new HashMap<>();
 
     @Override
-    public void register(String addressType, DataPlaneAuthorizationService edrService) {
+    public void register(String addressType, EndpointDataReferenceService edrService) {
         registry.put(addressType, edrService);
+    }
+
+    @Override
+    public void registerResponseChannel(String addressType, EndpointDataReferenceService edrService) {
+        responseChannelRegistry.put(addressType, edrService);
     }
 
     @Override
@@ -37,6 +44,17 @@ public class EndpointDataReferenceServiceRegistryImpl implements EndpointDataRef
         var service = registry.get(address.getType());
         if (service == null) {
             return ServiceResult.notFound("No EDR service with type %s found".formatted(address.getType()));
+        }
+
+        return service.createEndpointDataReference(dataFlow).flatMap(ServiceResult::from);
+    }
+
+    @Override
+    public ServiceResult<DataAddress> createResponseChannel(DataFlow dataFlow, DataAddress address) {
+        // TODO: unit tests
+        var service = responseChannelRegistry.get(address.getType());
+        if (service == null) {
+            return ServiceResult.notFound("No EDR response channel service with type %s found".formatted(address.getType()));
         }
 
         return service.createEndpointDataReference(dataFlow).flatMap(ServiceResult::from);
@@ -51,5 +69,17 @@ public class EndpointDataReferenceServiceRegistryImpl implements EndpointDataRef
         }
 
         return service.revokeEndpointDataReference(dataFlow.getId(), reason);
+    }
+
+    @Override
+    public Set<String> supportedDestinationTypes() {
+        // TODO: unit test
+        return registry.keySet();
+    }
+
+    @Override
+    public Set<String> supportedResponseTypes() {
+        // TODO: unit test
+        return responseChannelRegistry.keySet();
     }
 }

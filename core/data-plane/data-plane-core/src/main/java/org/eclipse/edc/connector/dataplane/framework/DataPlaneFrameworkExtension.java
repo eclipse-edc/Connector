@@ -149,11 +149,6 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
                 executorInstrumentation.instrument(executorService, "Data plane transfers"));
     }
 
-    @Provider
-    public EndpointDataReferenceServiceRegistry endpointDataReferenceServiceRegistry() {
-        return new EndpointDataReferenceServiceRegistryImpl();
-    }
-
     @Settings
     public record FlowLeaseConfiguration(
             @Setting(

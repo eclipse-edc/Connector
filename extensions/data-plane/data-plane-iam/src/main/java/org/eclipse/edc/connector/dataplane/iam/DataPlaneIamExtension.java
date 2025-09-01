@@ -44,7 +44,7 @@ public class DataPlaneIamExtension implements ServiceExtension {
     @Inject
     private EndpointDataReferenceServiceRegistry endpointDataReferenceServiceRegistry;
 
-    private DataPlaneAuthorizationService dataPlaneAuthorizationService;
+    private DataPlaneAuthorizationServiceImpl dataPlaneAuthorizationService;
 
     @Override
     public String name() {
@@ -53,7 +53,9 @@ public class DataPlaneIamExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        endpointDataReferenceServiceRegistry.register("HttpData", getDataPlaneAuthorizationService(context));
+        var service = getDataPlaneAuthorizationService(context);
+        endpointDataReferenceServiceRegistry.register("HttpData", service);
+        endpointDataReferenceServiceRegistry.registerResponseChannel("HttpData", service);
     }
 
     @Provider
@@ -61,7 +63,7 @@ public class DataPlaneIamExtension implements ServiceExtension {
         return getDataPlaneAuthorizationService(context);
     }
 
-    private DataPlaneAuthorizationService getDataPlaneAuthorizationService(ServiceExtensionContext context) {
+    private DataPlaneAuthorizationServiceImpl getDataPlaneAuthorizationService(ServiceExtensionContext context) {
         if (dataPlaneAuthorizationService == null) {
             dataPlaneAuthorizationService = new DataPlaneAuthorizationServiceImpl(accessTokenService, endpointGenerator, accessControlService, context.getParticipantId(), clock);
         }

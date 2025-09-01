@@ -15,17 +15,36 @@
 package org.eclipse.edc.connector.dataplane.spi.edr;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
-import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+
+import java.util.Set;
 
 // TODO: document
 public interface EndpointDataReferenceServiceRegistry {
 
-    void register(String addressType, DataPlaneAuthorizationService edrService);
+    void register(String addressType, EndpointDataReferenceService edrService);
+
+    void registerResponseChannel(String addressType, EndpointDataReferenceService edrService);
 
     ServiceResult<DataAddress> create(DataFlow dataFlow, DataAddress address);
 
+    ServiceResult<DataAddress> createResponseChannel(DataFlow dataFlow, DataAddress address);
+
     ServiceResult<Void> revoke(DataFlow dataFlow, String reason);
+
+    /**
+     * Return the supported destination types.
+     *
+     * @return the supported types
+     */
+    Set<String> supportedDestinationTypes();
+
+    /**
+     * Return the types of return channels supported
+     *
+     * @return the supported types
+     */
+    Set<String> supportedResponseTypes();
 
 }

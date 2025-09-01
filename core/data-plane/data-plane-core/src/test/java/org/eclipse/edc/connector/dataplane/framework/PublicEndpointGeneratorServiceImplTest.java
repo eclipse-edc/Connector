@@ -20,22 +20,12 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 
 
 class PublicEndpointGeneratorServiceImplTest {
 
     private final PublicEndpointGeneratorService generatorService = new PublicEndpointGeneratorServiceImpl();
-
-    @Test
-    void supportedTypes() {
-        generatorService.addGeneratorFunction("type", dataAddress -> new Endpoint("any", "any"));
-
-        var result = generatorService.supportedDestinationTypes();
-
-        assertThat(result).containsOnly("type");
-    }
 
     @Nested
     class GenerateFor {

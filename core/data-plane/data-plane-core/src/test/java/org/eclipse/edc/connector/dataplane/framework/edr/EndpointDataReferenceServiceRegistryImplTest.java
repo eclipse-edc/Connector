@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.dataplane.framework.edr;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
-import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
+import org.eclipse.edc.connector.dataplane.spi.edr.EndpointDataReferenceService;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -42,7 +42,7 @@ class EndpointDataReferenceServiceRegistryImplTest {
         void shouldCreateEdrUsingRegisteredService() {
             var dataFlow = DataFlow.Builder.newInstance().build();
             var dataAddress = DataAddress.Builder.newInstance().type("type").build();
-            DataPlaneAuthorizationService service = mock();
+            EndpointDataReferenceService service = mock();
             when(service.createEndpointDataReference(any())).thenReturn(Result.success(DataAddress.Builder.newInstance().type("EDR").build()));
 
             registry.register("type", service);
@@ -70,7 +70,7 @@ class EndpointDataReferenceServiceRegistryImplTest {
         @Test
         void shouldRevokeEdrUsingRegisteredService() {
             var dataFlow = DataFlow.Builder.newInstance().transferType(new TransferType("type", FlowType.PULL)).build();
-            DataPlaneAuthorizationService service = mock();
+            EndpointDataReferenceService service = mock();
             var reason = "reason";
             when(service.revokeEndpointDataReference(any(), any())).thenReturn(ServiceResult.success());
 

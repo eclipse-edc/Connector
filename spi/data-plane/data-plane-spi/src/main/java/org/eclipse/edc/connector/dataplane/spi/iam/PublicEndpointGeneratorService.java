@@ -18,7 +18,6 @@ import org.eclipse.edc.connector.dataplane.spi.Endpoint;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -62,17 +61,4 @@ public interface PublicEndpointGeneratorService {
      */
     void addResponseGeneratorFunction(String responseChannelType, Supplier<Endpoint> generatorFunction);
 
-    /**
-     * Return the supported destination types.
-     *
-     * @return the supported types
-     */
-    Set<String> supportedDestinationTypes();
-
-    /**
-     * Return the types of return channels supported by this generator
-     *
-     * @return the supported types
-     */
-    Set<String> supportedResponseTypes();
 }

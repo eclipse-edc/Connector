@@ -20,7 +20,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -59,13 +58,4 @@ class PublicEndpointGeneratorServiceImpl implements PublicEndpointGeneratorServi
         responseChannelFunctions.put(responseChannelType, generatorFunction);
     }
 
-    @Override
-    public Set<String> supportedDestinationTypes() {
-        return generatorFunctions.keySet();
-    }
-
-    @Override
-    public Set<String> supportedResponseTypes() {
-        return responseChannelFunctions.keySet();
-    }
 }

@@ -372,7 +372,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         var responseChannelType = dataFlow.getTransferType().responseChannelType();
         if (responseChannelType != null) {
             monitor.debug("PUSH dataflow with responseChannel '%s' received. Will generate data address".formatted(responseChannelType));
-            return endpointDataReferenceServiceRegistry.create(dataFlow, dataFlow.getSource().getResponseChannel());
+            return endpointDataReferenceServiceRegistry.createResponseChannel(dataFlow, dataFlow.getSource().getResponseChannel());
         }
         return ServiceResult.success();
     }
