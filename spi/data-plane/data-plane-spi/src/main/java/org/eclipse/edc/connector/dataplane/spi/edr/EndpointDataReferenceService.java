@@ -15,13 +15,13 @@
 package org.eclipse.edc.connector.dataplane.spi.edr;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
-import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService;
-import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
-// TODO: document
+/**
+ * Manages EDRs
+ */
 public interface EndpointDataReferenceService {
 
     /**
@@ -50,20 +50,19 @@ public interface EndpointDataReferenceService {
      * }
      * </pre>
      * <p>
-     * In order to do so, the {@link DataPlaneAuthorizationService} delegates to the {@link DataPlaneAccessTokenService} to create the token.
      *
      * @param dataFlow the data flow.
-     * @return A result containing the {@link DataAddress}, or a failure indicating the cause.
+     * @return A result containing the EDR under the form of {@link DataAddress}, or a failure indicating the cause.
      */
     Result<DataAddress> createEndpointDataReference(DataFlow dataFlow);
 
     /**
-     * Revokes the {@link DataAddress} created with {@link #createEndpointDataReference(DataFlow)}
+     * Revokes the EDR created with {@link #createEndpointDataReference(DataFlow)}
      *
-     * @param transferProcessId The id of the transfer process associated to the {@link DataAddress}
+     * @param flowId The id of the data flow associated to the {@link DataAddress}
      * @param reason            The reason of the revocation
      * @return Successful if revoked, fails otherwise
      */
-    ServiceResult<Void> revokeEndpointDataReference(String transferProcessId, String reason);
+    ServiceResult<Void> revokeEndpointDataReference(String flowId, String reason);
 
 }

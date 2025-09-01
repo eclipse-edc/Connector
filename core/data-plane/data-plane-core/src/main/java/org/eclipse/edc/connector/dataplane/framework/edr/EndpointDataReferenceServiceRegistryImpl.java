@@ -51,7 +51,6 @@ public class EndpointDataReferenceServiceRegistryImpl implements EndpointDataRef
 
     @Override
     public ServiceResult<DataAddress> createResponseChannel(DataFlow dataFlow, DataAddress address) {
-        // TODO: unit tests
         var service = responseChannelRegistry.get(address.getType());
         if (service == null) {
             return ServiceResult.notFound("No EDR response channel service with type %s found".formatted(address.getType()));
@@ -73,13 +72,11 @@ public class EndpointDataReferenceServiceRegistryImpl implements EndpointDataRef
 
     @Override
     public Set<String> supportedDestinationTypes() {
-        // TODO: unit test
         return registry.keySet();
     }
 
     @Override
     public Set<String> supportedResponseTypes() {
-        // TODO: unit test
         return responseChannelRegistry.keySet();
     }
 }

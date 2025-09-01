@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.framework;
 
-import org.eclipse.edc.connector.dataplane.framework.edr.EndpointDataReferenceServiceRegistryImpl;
 import org.eclipse.edc.connector.dataplane.framework.manager.DataPlaneManagerImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceRegistryImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy;

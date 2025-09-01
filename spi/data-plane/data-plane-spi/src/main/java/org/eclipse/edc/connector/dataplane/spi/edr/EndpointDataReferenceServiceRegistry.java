@@ -20,17 +20,53 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.Set;
 
-// TODO: document
+/**
+ * Registry that manages endpoint data reference services
+ */
 public interface EndpointDataReferenceServiceRegistry {
 
+    /**
+     * Register a service
+     *
+     * @param addressType the address type.
+     * @param edrService the service.
+     */
     void register(String addressType, EndpointDataReferenceService edrService);
 
+    /**
+     * Register a service for response channel
+     *
+     * @param addressType the address type.
+     * @param edrService the service.
+     */
     void registerResponseChannel(String addressType, EndpointDataReferenceService edrService);
 
+    /**
+     * Create an EDR.
+     *
+     * @param dataFlow the data flow.
+     * @param address the address.
+     * @return the EDR if successful, failure otherwise.
+     */
     ServiceResult<DataAddress> create(DataFlow dataFlow, DataAddress address);
 
+
+    /**
+     * Create an EDR for response channel.
+     *
+     * @param dataFlow the data flow.
+     * @param address the address.
+     * @return the EDR for response channel if successful, failure otherwise.
+     */
     ServiceResult<DataAddress> createResponseChannel(DataFlow dataFlow, DataAddress address);
 
+    /**
+     * Revoke the EDR.
+     *
+     * @param dataFlow the data flow.
+     * @param reason the reason.
+     * @return the result.
+     */
     ServiceResult<Void> revoke(DataFlow dataFlow, String reason);
 
     /**

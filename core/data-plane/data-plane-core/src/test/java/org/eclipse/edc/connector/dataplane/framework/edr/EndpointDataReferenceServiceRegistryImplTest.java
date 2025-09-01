@@ -66,6 +66,35 @@ class EndpointDataReferenceServiceRegistryImplTest {
     }
 
     @Nested
+    class CreateResponseChannel {
+        @Test
+        void shouldCreateEdrUsingRegisteredService() {
+            var dataFlow = DataFlow.Builder.newInstance().build();
+            var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+            EndpointDataReferenceService service = mock();
+            when(service.createEndpointDataReference(any())).thenReturn(Result.success(DataAddress.Builder.newInstance().type("EDR").build()));
+
+            registry.registerResponseChannel("type", service);
+
+            var result = registry.createResponseChannel(dataFlow, dataAddress);
+
+            assertThat(result).isSucceeded().extracting(DataAddress::getType).isEqualTo("EDR");
+            verify(service).createEndpointDataReference(dataFlow);
+        }
+
+        @Test
+        void shouldReturnNotFound_whenNoServiceAvailable() {
+            var dataFlow = DataFlow.Builder.newInstance().build();
+            var dataAddress = DataAddress.Builder.newInstance().type("unexisting type").build();
+
+            var result = registry.createResponseChannel(dataFlow, dataAddress);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+        }
+
+    }
+
+    @Nested
     class Revoke {
         @Test
         void shouldRevokeEdrUsingRegisteredService() {

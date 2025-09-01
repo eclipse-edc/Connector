@@ -100,8 +100,8 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
     }
 
     @Override
-    public ServiceResult<Void> revokeEndpointDataReference(String transferProcessId, String reason) {
-        return accessTokenService.revoke(transferProcessId, reason);
+    public ServiceResult<Void> revokeEndpointDataReference(String flowId, String reason) {
+        return accessTokenService.revoke(flowId, reason);
     }
 
     private Result<SecureEndpoint> createSecureEndpoint(Endpoint endpoint, TokenParameters tokenParameters, Map<String, Object> additionalProperties, DataAddress sourceDataAddress) {
