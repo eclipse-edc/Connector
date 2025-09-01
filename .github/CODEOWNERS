@@ -1,0 +1,11 @@
+# This file provides an overview of responsibilities in this repository.
+
+# Please note that this file does not represent all contributions to the code. What persons and organizations
+# actually contributed to each file can be seen on GitHub and is documented in the license headers.
+
+# Linked persons with write permissions are automatically added as reviewers when a pull request is opened.
+
+# Each line is a file pattern followed by one or more contact persons. The last matching pattern has the most precedence.
+# For more details, read the following article on GitHub: https://help.github.com/articles/about-codeowners/.
+
+* @eclipse-edc/technology-edc-committers
