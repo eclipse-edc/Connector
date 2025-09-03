@@ -59,17 +59,18 @@ public class BaseSqlPolicyMonitorStatements implements PolicyMonitorStatements {
     public SqlQueryStatement createQuery(QuerySpec querySpec) {
         return new SqlQueryStatement(getSelectTemplate(), querySpec, new PolicyMonitorMapping(this), operatorTranslator);
     }
-
+    
     @Override
     public SqlQueryStatement createNextNotLeaseQuery(QuerySpec querySpec) {
-        var queryTemplate = "%s LEFT JOIN %s l ON %s.%s = l.%s".formatted(getSelectTemplate(), leaseStatements.getLeaseTableName(), getPolicyMonitorTable(), getIdColumn(), leaseStatements.getResourceIdColumn());
-        return new SqlQueryStatement(queryTemplate, querySpec, new PolicyMonitorMapping(this), operatorTranslator)
-                .addWhereClause(getNotLeasedFilter(), clock.millis(), getPolicyMonitorTable());
+        return new SqlQueryStatement(getSelectTemplate(), querySpec, new PolicyMonitorMapping(this), operatorTranslator)
+                .addWhereClause(getNotLeasedFilter(), getPolicyMonitorTable(), clock.millis());
     }
 
     private String getNotLeasedFilter() {
-        return format("(l.%s IS NULL OR (? > (%s + %s) AND ? = l.%s))",
-                leaseStatements.getResourceIdColumn(), leaseStatements.getLeasedAtColumn(), leaseStatements.getLeaseDurationColumn(), leaseStatements.getResourceKind());
+        return format("%s NOT IN (SELECT %s FROM %s WHERE %s = %s AND %s = ? AND ((%s + %s) > ? ))",
+                getIdColumn(), leaseStatements.getResourceIdColumn(),
+                leaseStatements.getLeaseTableName(), getIdColumn(), leaseStatements.getResourceIdColumn(),
+                leaseStatements.getResourceKindColumn(), leaseStatements.getLeasedAtColumn(), leaseStatements.getLeaseDurationColumn());
     }
 
 }

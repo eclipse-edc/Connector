@@ -25,21 +25,21 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 public interface LeaseStatements extends SqlStatements {
 
     default String getDeleteLeaseTemplate() {
-        return executeStatement().delete(getLeaseTableName(), criterion(getResourceIdColumn(), "=", "?"), criterion(getResourceKind(), "=", "?"));
+        return executeStatement().delete(getLeaseTableName(), criterion(getResourceIdColumn(), "=", "?"), criterion(getResourceKindColumn(), "=", "?"));
     }
 
     default String getUpsertLeaseTemplate() {
         return executeStatement()
                 .column(getResourceIdColumn())
                 .column(getLeasedByColumn())
-                .column(getResourceKind())
+                .column(getResourceKindColumn())
                 .column(getLeasedAtColumn())
                 .column(getLeaseDurationColumn())
-                .upsertInto(getLeaseTableName(), format("%s, %s", getResourceIdColumn(), getResourceKind()), "%s.%s + %s.%s < ?".formatted(getLeaseTableName(), getLeasedAtColumn(), getLeaseTableName(), getLeaseDurationColumn()));
+                .upsertInto(getLeaseTableName(), format("%s, %s", getResourceIdColumn(), getResourceKindColumn()), "%s.%s + %s.%s < ?".formatted(getLeaseTableName(), getLeasedAtColumn(), getLeaseTableName(), getLeaseDurationColumn()));
     }
 
     default String getFindLeaseByEntityTemplate() {
-        return "SELECT * FROM %s WHERE %s = ? and %s = ?".formatted(getLeaseTableName(), getResourceIdColumn(), getResourceKind());
+        return "SELECT * FROM %s WHERE %s = ? and %s = ?".formatted(getLeaseTableName(), getResourceIdColumn(), getResourceKindColumn());
     }
 
     default String getLeaseTableName() {
@@ -58,7 +58,7 @@ public interface LeaseStatements extends SqlStatements {
         return "lease_duration";
     }
 
-    default String getResourceKind() {
+    default String getResourceKindColumn() {
         return "resource_kind";
     }
 

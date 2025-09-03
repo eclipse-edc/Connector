@@ -78,7 +78,7 @@ public class BaseSqlDataPlaneInstanceStatements implements DataPlaneInstanceStat
 
     private String getNotLeasedFilter() {
         return format("(l.%s IS NULL OR (? > (%s + %s) AND ? = l.%s))",
-                leaseStatements.getResourceIdColumn(), leaseStatements.getLeasedAtColumn(), leaseStatements.getLeaseDurationColumn(), leaseStatements.getResourceKind());
+                leaseStatements.getResourceIdColumn(), leaseStatements.getLeasedAtColumn(), leaseStatements.getLeaseDurationColumn(), leaseStatements.getResourceKindColumn());
     }
 
 }

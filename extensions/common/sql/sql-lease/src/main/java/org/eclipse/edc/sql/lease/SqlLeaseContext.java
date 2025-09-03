@@ -101,7 +101,7 @@ public class SqlLeaseContext implements LeaseContext {
     private SqlLease mapLease(ResultSet resultSet) throws SQLException {
         return new SqlLease(resultSet.getString(statements.getLeasedByColumn()),
                 resultSet.getString(statements.getResourceIdColumn()),
-                resultSet.getString(statements.getResourceKind()),
+                resultSet.getString(statements.getResourceKindColumn()),
                 resultSet.getLong(statements.getLeasedAtColumn()),
                 resultSet.getLong(statements.getLeaseDurationColumn()));
     }
