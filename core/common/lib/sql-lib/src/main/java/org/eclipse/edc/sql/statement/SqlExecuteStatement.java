@@ -171,6 +171,14 @@ public class SqlExecuteStatement {
         return upsertInto(tableName, idColumn, null);
     }
 
+    /**
+     * Gives a SQL upsert statement based on the "ON CONFLICT" semantic
+     *
+     * @param tableName   the table name.
+     * @param idColumn    the id column.
+     * @param whereFilter additional filter to add to the update on conflict clause
+     * @return sql upsert statement.
+     */
     public String upsertInto(String tableName, String idColumn, String whereFilter) {
         if (columnEntries.isEmpty()) {
             throw new IllegalArgumentException(format("Cannot create UPSERT statement on %s because no columns are registered", tableName));
