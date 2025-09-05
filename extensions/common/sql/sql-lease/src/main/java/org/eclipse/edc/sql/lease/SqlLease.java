@@ -22,18 +22,21 @@ import java.time.Clock;
  * SQL-based implementation of a {@linkplain Lease}. Adds the {@code leaseId} property for use with RDBMS (PK, index,...)
  */
 public class SqlLease extends Lease {
-    private String leaseId;
+    private final String resourceKind;
+    private final String resourceId;
 
-    public SqlLease(String leasedBy, long leasedAt, long leaseDurationMillis) {
+    public SqlLease(String leasedBy, String resourceId, String resourceKind, long leasedAt, long leaseDurationMillis) {
         super(leasedBy, leasedAt, leaseDurationMillis);
+        this.resourceId = resourceId;
+        this.resourceKind = resourceKind;
     }
 
-    public String getLeaseId() {
-        return leaseId;
+    public String getResourceId() {
+        return resourceId;
     }
 
-    public void setLeaseId(String leaseId) {
-        this.leaseId = leaseId;
+    public String getResourceKind() {
+        return resourceKind;
     }
 
     public boolean isExpired(Clock clock) {

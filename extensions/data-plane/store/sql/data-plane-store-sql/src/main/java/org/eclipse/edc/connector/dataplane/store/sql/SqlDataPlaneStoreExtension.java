@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
+import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilderProvider;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -62,6 +63,9 @@ public class SqlDataPlaneStoreExtension implements ServiceExtension {
     @Inject
     private SqlSchemaBootstrapper sqlSchemaBootstrapper;
 
+    @Inject
+    private SqlLeaseContextBuilderProvider leaseContextBuilderProvider;
+
     @Override
     public String name() {
         return NAME;
@@ -70,14 +74,15 @@ public class SqlDataPlaneStoreExtension implements ServiceExtension {
     @Provider
     public DataPlaneStore dataPlaneStore(ServiceExtensionContext context) {
         sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "dataplane-schema.sql");
+        var leaseContextBuilder = leaseContextBuilderProvider.createContextBuilder(getStatementImpl().getDataPlaneTable());
         return new SqlDataPlaneStore(dataSourceRegistry, dataSourceName, transactionContext,
-                getStatementImpl(), typeManager.getMapper(), clock, queryExecutor, context.getRuntimeId());
+                getStatementImpl(), leaseContextBuilder, typeManager.getMapper(), queryExecutor);
     }
 
     /**
      * returns an externally-provided sql statement dialect, or postgres as a default
      */
     private DataFlowStatements getStatementImpl() {
-        return statements != null ? statements : new PostgresDataFlowStatements();
+        return statements != null ? statements : new PostgresDataFlowStatements(leaseContextBuilderProvider.getStatements(), clock);
     }
 }

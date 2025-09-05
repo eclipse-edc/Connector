@@ -17,8 +17,11 @@ package org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.s
 
 import org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.schema.postgres.TransferProcessMapping;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
+
+import java.time.Clock;
 
 import static java.lang.String.format;
 
@@ -28,37 +31,13 @@ import static java.lang.String.format;
 public class BaseSqlDialectStatements implements TransferProcessStoreStatements {
 
     protected final SqlOperatorTranslator operatorTranslator;
+    protected final LeaseStatements leaseStatements;
+    protected final Clock clock;
 
-    protected BaseSqlDialectStatements(SqlOperatorTranslator operatorTranslator) {
+    protected BaseSqlDialectStatements(SqlOperatorTranslator operatorTranslator, LeaseStatements leaseStatements, Clock clock) {
         this.operatorTranslator = operatorTranslator;
-    }
-
-    @Override
-    public String getDeleteLeaseTemplate() {
-        return executeStatement().delete(getLeaseTableName(), getLeaseIdColumn());
-    }
-
-    @Override
-    public String getInsertLeaseTemplate() {
-        return executeStatement()
-                .column(getLeaseIdColumn())
-                .column(getLeasedByColumn())
-                .column(getLeasedAtColumn())
-                .column(getLeaseDurationColumn())
-                .insertInto(getLeaseTableName());
-    }
-
-    @Override
-    public String getUpdateLeaseTemplate() {
-        return executeStatement()
-                .column(getLeaseIdColumn())
-                .update(getTransferProcessTableName(), getIdColumn());
-    }
-
-    @Override
-    public String getFindLeaseByEntityTemplate() {
-        return format("SELECT * FROM %s  WHERE %s = (SELECT lease_id FROM %s WHERE %s=? )",
-                getLeaseTableName(), getLeaseIdColumn(), getTransferProcessTableName(), getIdColumn());
+        this.leaseStatements = leaseStatements;
+        this.clock = clock;
     }
 
     @Override
@@ -107,4 +86,15 @@ public class BaseSqlDialectStatements implements TransferProcessStoreStatements 
         return new SqlQueryStatement(getSelectTemplate(), querySpec, new TransferProcessMapping(this), operatorTranslator);
     }
 
+    @Override
+    public SqlQueryStatement createNextNotLeaseQuery(QuerySpec querySpec) {
+        var queryTemplate = "%s LEFT JOIN %s l ON %s.%s = l.%s".formatted(getSelectTemplate(), leaseStatements.getLeaseTableName(), getTransferProcessTableName(), getIdColumn(), leaseStatements.getResourceIdColumn());
+        return new SqlQueryStatement(queryTemplate, querySpec, new TransferProcessMapping(this), operatorTranslator)
+                .addWhereClause(getNotLeasedFilter(), clock.millis(), getTransferProcessTableName());
+    }
+
+    private String getNotLeasedFilter() {
+        return format("(l.%s IS NULL OR (? > (%s + %s) AND ? = l.%s))",
+                leaseStatements.getResourceIdColumn(), leaseStatements.getLeasedAtColumn(), leaseStatements.getLeaseDurationColumn(), leaseStatements.getResourceKindColumn());
+    }
 }

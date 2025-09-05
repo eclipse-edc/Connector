@@ -107,7 +107,7 @@ public class SqlExecuteStatement {
     /**
      * Gives a SQL update statement.
      *
-     * @param tableName the table name.
+     * @param tableName   the table name.
      * @param whereColumn the column that will be used for the where condition
      * @return sql update statement.
      */
@@ -119,7 +119,7 @@ public class SqlExecuteStatement {
      * Gives a SQL update statement.
      *
      * @param tableName the table name.
-     * @param where the update field criterion
+     * @param where     the update field criterion
      * @return sql update statement.
      */
     public String update(String tableName, Criterion where) {
@@ -137,7 +137,7 @@ public class SqlExecuteStatement {
     /**
      * Gives a SQL delete statement.
      *
-     * @param tableName the table name.
+     * @param tableName   the table name.
      * @param whereColumn the column that will be used for the where condition
      * @return sql delete statement.
      */
@@ -148,7 +148,7 @@ public class SqlExecuteStatement {
     /**
      * Gives a SQL delete statement. The where criteria is joined with AND operator.
      *
-     * @param tableName the table name.
+     * @param tableName     the table name.
      * @param whereCriteria the delete field condition
      * @return sql delete statement.
      */
@@ -164,10 +164,22 @@ public class SqlExecuteStatement {
      * Gives a SQL upsert statement based on the "ON CONFLICT" semantic
      *
      * @param tableName the table name.
-     * @param idColumn the id column.
+     * @param idColumn  the id column.
      * @return sql upsert statement.
      */
     public String upsertInto(String tableName, String idColumn) {
+        return upsertInto(tableName, idColumn, null);
+    }
+
+    /**
+     * Gives a SQL upsert statement based on the "ON CONFLICT" semantic
+     *
+     * @param tableName   the table name.
+     * @param idColumn    the id column.
+     * @param whereFilter additional filter to add to the update on conflict clause
+     * @return sql upsert statement.
+     */
+    public String upsertInto(String tableName, String idColumn, String whereFilter) {
         if (columnEntries.isEmpty()) {
             throw new IllegalArgumentException(format("Cannot create UPSERT statement on %s because no columns are registered", tableName));
         }
@@ -178,7 +190,9 @@ public class SqlExecuteStatement {
                 .map(it -> it + " = EXCLUDED." + it)
                 .collect(joining(", "));
 
-        return insertStatement(tableName) + " ON CONFLICT (" + idColumn + ") DO UPDATE SET " + updateFields + ";";
+        var whereClause = whereFilter != null ? " WHERE " + whereFilter : "";
+
+        return insertStatement(tableName) + " ON CONFLICT (" + idColumn + ") DO UPDATE SET " + updateFields + whereClause + ";";
     }
 
     private String insertStatement(String tableName) {

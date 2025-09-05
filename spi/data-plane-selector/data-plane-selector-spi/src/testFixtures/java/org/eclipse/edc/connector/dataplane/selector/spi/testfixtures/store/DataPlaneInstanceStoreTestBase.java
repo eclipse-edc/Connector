@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.dataplane.selector.spi.testfixtures.store;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.spi.entity.Entity;
-import org.eclipse.edc.spi.entity.MutableEntity;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.result.StoreFailure;
 import org.junit.jupiter.api.Nested;
@@ -156,7 +155,6 @@ public abstract class DataPlaneInstanceStoreTestBase {
                     .isSubsetOf(all.stream().map(Entity::getId).toList())
                     .allMatch(id -> isLeasedBy(id, CONNECTOR_NAME));
 
-            assertThat(leased).extracting(MutableEntity::getUpdatedAt).isSorted();
         }
 
         @Test

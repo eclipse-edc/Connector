@@ -22,6 +22,9 @@ import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.sql.lease.BaseSqlLeaseStatements;
+import org.eclipse.edc.sql.lease.SqlLeaseContextBuilderImpl;
+import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.testfixtures.LeaseUtil;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
@@ -37,7 +40,8 @@ import java.time.Duration;
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 public class PostgresPolicyMonitorStoreTest extends PolicyMonitorStoreTestBase {
 
-    private final PolicyMonitorStatements statements = new PostgresPolicyMonitorStatements();
+    private final LeaseStatements leaseStatements = new BaseSqlLeaseStatements();
+    private final PolicyMonitorStatements statements = new PostgresPolicyMonitorStatements(leaseStatements, Clock.systemUTC());
     private LeaseUtil leaseUtil;
     private SqlPolicyMonitorStore store;
 
@@ -48,9 +52,12 @@ public class PostgresPolicyMonitorStoreTest extends PolicyMonitorStoreTestBase {
 
         var clock = Clock.systemUTC();
 
-        leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements, clock);
+        leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements.getPolicyMonitorTable(), leaseStatements, clock);
+        var leaseContextBuilder = SqlLeaseContextBuilderImpl.with(extension.getTransactionContext(), CONNECTOR_NAME, statements.getPolicyMonitorTable(), leaseStatements, clock, queryExecutor);
+
+
         store = new SqlPolicyMonitorStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(),
-                statements, typeManager.getMapper(), clock, queryExecutor, "test-connector");
+                statements, leaseContextBuilder, typeManager.getMapper(), queryExecutor, "test-connector");
         var schema = TestUtils.getResourceFileContentAsString("policy-monitor-schema.sql");
         extension.runQuery(schema);
     }

@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResource;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.connector.dataplane.store.sql.schema.DataFlowStatements;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -27,7 +28,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.spi.types.domain.transfer.TransferType;
 import org.eclipse.edc.sql.QueryExecutor;
-import org.eclipse.edc.sql.lease.SqlLeaseContextBuilder;
+import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilder;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -38,7 +39,6 @@ import java.net.URI;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Clock;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -55,17 +55,12 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
 
     private final DataFlowStatements statements;
     private final SqlLeaseContextBuilder leaseContext;
-    private final Clock clock;
-    private final String leaseHolderName;
 
     public SqlDataPlaneStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                             DataFlowStatements statements, ObjectMapper objectMapper, Clock clock, QueryExecutor queryExecutor,
-                             String leaseHolderName) {
+                             DataFlowStatements statements, SqlLeaseContextBuilder leaseContext, ObjectMapper objectMapper, QueryExecutor queryExecutor) {
         super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
         this.statements = statements;
-        this.clock = clock;
-        this.leaseHolderName = leaseHolderName;
-        leaseContext = SqlLeaseContextBuilder.with(transactionContext, leaseHolderName, statements, clock, queryExecutor);
+        this.leaseContext = leaseContext;
     }
 
     @Override
@@ -84,20 +79,29 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
         return transactionContext.execute(() -> {
             var filter = Arrays.stream(criteria).collect(toList());
             var querySpec = QuerySpec.Builder.newInstance().filter(filter).sortField("stateTimestamp").limit(max).build();
-            var statement = statements.createQuery(querySpec)
-                    .addWhereClause(statements.getNotLeasedFilter(), clock.millis());
-
+            var statement = statements.createNextNotLeaseQuery(querySpec);
             try (
                     var connection = getConnection();
                     var stream = queryExecutor.query(connection, true, this::mapDataFlow, statement.getQueryAsString(), statement.getParameters())
             ) {
-                var entries = stream.collect(Collectors.toList());
-                entries.forEach(entry -> leaseContext.withConnection(connection).acquireLease(entry.getId()));
-                return entries;
+                return stream.filter(entry -> lease(connection, entry))
+                        .collect(Collectors.toList());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
         });
+    }
+
+    private boolean lease(Connection connection, DataFlow entry) {
+        try {
+            leaseContext.withConnection(connection).acquireLease(entry.getId());
+        } catch (EdcException e) {
+            if (e.getCause() instanceof IllegalStateException) {
+                // already leased
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -144,7 +148,7 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
                         toJson(entity.getResourceDefinitions())
                 );
 
-                leaseContext.by(leaseHolderName).withConnection(connection).breakLease(entity.getId());
+                leaseContext.withConnection(connection).breakLease(entity.getId());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }

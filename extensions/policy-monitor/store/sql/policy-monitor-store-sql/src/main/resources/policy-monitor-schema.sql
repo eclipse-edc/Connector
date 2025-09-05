@@ -2,12 +2,12 @@
 
 CREATE TABLE IF NOT EXISTS edc_lease
 (
-    leased_by      VARCHAR NOT NULL,
-    leased_at      BIGINT,
-    lease_duration INTEGER NOT NULL,
-    lease_id       VARCHAR NOT NULL
-        CONSTRAINT lease_pk
-            PRIMARY KEY
+    leased_by         VARCHAR NOT NULL,
+    leased_at         BIGINT,
+    lease_duration    INTEGER NOT NULL,
+    resource_id       VARCHAR NOT NULL,
+    resource_kind     VARCHAR NOT NULL,
+    PRIMARY KEY(resource_id, resource_kind)
 );
 
 COMMENT ON COLUMN edc_lease.leased_at IS 'posix timestamp of lease';
@@ -23,16 +23,9 @@ CREATE TABLE IF NOT EXISTS edc_policy_monitor
     state_time_stamp     BIGINT,
     trace_context        JSON,
     error_detail         VARCHAR,
-    lease_id             VARCHAR
-        CONSTRAINT policy_monitor_lease_lease_id_fk
-                    REFERENCES edc_lease
-                    ON DELETE SET NULL,
     properties           JSON,
     contract_id          VARCHAR
 );
-
-CREATE INDEX IF NOT EXISTS policy_monitor_lease_id_index
-    ON edc_policy_monitor (lease_id);
 
 -- This will help to identify states that need to be transitioned without a table scan when the entries grow
 CREATE INDEX IF NOT EXISTS policy_monitor_state ON edc_policy_monitor (state,state_time_stamp);

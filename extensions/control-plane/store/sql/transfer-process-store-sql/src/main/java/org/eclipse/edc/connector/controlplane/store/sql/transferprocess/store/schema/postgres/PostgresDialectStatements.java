@@ -17,8 +17,11 @@ package org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.s
 import org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.schema.BaseSqlDialectStatements;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.dialect.PostgresDialect;
+import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.translation.PostgresqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
+
+import java.time.Clock;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.sql.dialect.PostgresDialect.getSelectFromJsonArrayTemplate;
@@ -32,8 +35,9 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
     private static final String RESOURCES_ALIAS = "resources";
     private static final String DEFINITIONS_ALIAS = "definitions";
 
-    public PostgresDialectStatements() {
-        super(new PostgresqlOperatorTranslator());
+
+    public PostgresDialectStatements(LeaseStatements leaseStatements, Clock clock) {
+        super(new PostgresqlOperatorTranslator(), leaseStatements, clock);
     }
 
     @Override

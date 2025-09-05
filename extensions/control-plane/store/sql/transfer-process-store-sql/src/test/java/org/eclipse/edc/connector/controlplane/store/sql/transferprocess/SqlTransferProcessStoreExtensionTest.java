@@ -21,6 +21,7 @@ import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilderProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +37,9 @@ public class SqlTransferProcessStoreExtensionTest {
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
         context.registerService(TypeManager.class, new JacksonTypeManager());
+        var provider = mock(SqlLeaseContextBuilderProvider.class);
+        when(provider.createContextBuilder(any())).thenReturn(mock());
+        context.registerService(SqlLeaseContextBuilderProvider.class, provider);
     }
 
     @Test
@@ -43,7 +47,7 @@ public class SqlTransferProcessStoreExtensionTest {
         var config = mock(Config.class);
         when(context.getConfig()).thenReturn(config);
         when(config.getString(any(), any())).thenReturn("test");
-
+        
         extension.initialize(context);
 
         var service = context.getService(TransferProcessStore.class);

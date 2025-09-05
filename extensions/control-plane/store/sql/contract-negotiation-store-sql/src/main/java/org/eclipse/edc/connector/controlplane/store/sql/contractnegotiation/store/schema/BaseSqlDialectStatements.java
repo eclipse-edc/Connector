@@ -15,8 +15,11 @@
 package org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema;
 
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
+
+import java.time.Clock;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.sql.statement.SqlExecuteStatement.equalTo;
@@ -29,9 +32,13 @@ import static org.eclipse.edc.sql.statement.SqlExecuteStatement.isNull;
 public class BaseSqlDialectStatements implements ContractNegotiationStatements {
 
     protected final SqlOperatorTranslator operatorTranslator;
+    protected final LeaseStatements leaseStatements;
+    protected final Clock clock;
 
-    public BaseSqlDialectStatements(SqlOperatorTranslator operatorTranslator) {
+    public BaseSqlDialectStatements(SqlOperatorTranslator operatorTranslator, LeaseStatements leaseStatements, Clock clock) {
         this.operatorTranslator = operatorTranslator;
+        this.leaseStatements = leaseStatements;
+        this.clock = clock;
     }
 
     @Override
@@ -148,39 +155,16 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
     }
 
     @Override
+    public SqlQueryStatement createNegotiationNextNotLeaseQuery(QuerySpec querySpec) {
+        var queryTemplate = "%s LEFT JOIN %s l ON %s.%s = l.%s".formatted(getSelectNegotiationsTemplate(), leaseStatements.getLeaseTableName(), getContractNegotiationTable(), getIdColumn(), leaseStatements.getResourceIdColumn());
+        return new SqlQueryStatement(queryTemplate, querySpec.getLimit(), querySpec.getOffset());
+    }
+
+    @Override
     public SqlQueryStatement createAgreementsQuery(QuerySpec querySpec) {
         // for generic SQL, only the limit and offset fields are used!
         var sql = "SELECT * FROM " + getContractAgreementTable();
         return new SqlQueryStatement(sql, querySpec.getLimit(), querySpec.getOffset());
-    }
-
-    @Override
-    public String getDeleteLeaseTemplate() {
-        return executeStatement()
-                .delete(getLeaseTableName(), getLeaseIdColumn());
-    }
-
-    @Override
-    public String getInsertLeaseTemplate() {
-        return executeStatement()
-                .column(getLeaseIdColumn())
-                .column(getLeasedByColumn())
-                .column(getLeasedAtColumn())
-                .column(getLeaseDurationColumn())
-                .insertInto(getLeaseTableName());
-    }
-
-    @Override
-    public String getUpdateLeaseTemplate() {
-        return executeStatement()
-                .column(getLeaseIdColumn())
-                .update(getContractNegotiationTable(), getIdColumn());
-    }
-
-    @Override
-    public String getFindLeaseByEntityTemplate() {
-        return format("SELECT * FROM %s  WHERE %s = (SELECT lease_id FROM %s WHERE %s=? )",
-                getLeaseTableName(), getLeaseIdColumn(), getContractNegotiationTable(), getIdColumn());
     }
 
 }

@@ -17,6 +17,8 @@ package org.eclipse.edc.connector.controlplane.store.sql.transferprocess.schema.
 import org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.schema.postgres.PostgresDialectStatements;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.sql.lease.BaseSqlLeaseStatements;
+import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -24,6 +26,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import java.time.Clock;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,7 +35,8 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class PostgresDialectStatementsTest {
 
-    private final PostgresDialectStatements statements = new PostgresDialectStatements();
+    private final LeaseStatements leaseStatements = new BaseSqlLeaseStatements();
+    private final PostgresDialectStatements statements = new PostgresDialectStatements(leaseStatements, Clock.systemUTC());
 
     @Test
     void createQuery() {
@@ -54,6 +58,12 @@ class PostgresDialectStatementsTest {
         assertThat(statements.getFormatAsJsonOperator()).isEqualTo("::json");
     }
 
+    private QuerySpec query(Criterion criterion) {
+        return QuerySpec.Builder.newInstance()
+                .filter(criterion)
+                .build();
+    }
+
     private static class JsonArrayCriteria implements ArgumentsProvider {
 
         @Override
@@ -64,11 +74,5 @@ class PostgresDialectStatementsTest {
                     arguments(criterion("resourceManifest.definitions.id", "like", "%foo"))
             );
         }
-    }
-
-    private QuerySpec query(Criterion criterion) {
-        return QuerySpec.Builder.newInstance()
-                .filter(criterion)
-                .build();
     }
 }

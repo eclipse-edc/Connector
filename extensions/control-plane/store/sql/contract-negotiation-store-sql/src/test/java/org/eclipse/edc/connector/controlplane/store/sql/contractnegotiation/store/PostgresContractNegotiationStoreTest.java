@@ -21,6 +21,9 @@ import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.policy.model.PolicyRegistrationTypes;
 import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.sql.lease.BaseSqlLeaseStatements;
+import org.eclipse.edc.sql.lease.SqlLeaseContextBuilderImpl;
+import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.testfixtures.LeaseUtil;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
@@ -28,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.time.Duration;
 
 /**
@@ -38,29 +42,34 @@ import java.time.Duration;
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 class PostgresContractNegotiationStoreTest extends ContractNegotiationStoreTestBase {
 
+    private final LeaseStatements leaseStatements = new BaseSqlLeaseStatements();
+    private final PostgresDialectStatements statements = new PostgresDialectStatements(leaseStatements, Clock.systemUTC());
     private SqlContractNegotiationStore store;
     private LeaseUtil leaseUtil;
 
     @BeforeEach
     void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
-        var statements = new PostgresDialectStatements();
+
+
         var manager = new JacksonTypeManager();
 
         manager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
+
+        var leaseContextBuilder = SqlLeaseContextBuilderImpl.with(extension.getTransactionContext(), CONNECTOR_NAME, statements.getContractNegotiationTable(), leaseStatements, clock, queryExecutor);
+
         store = new SqlContractNegotiationStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), manager.getMapper(), statements, CONNECTOR_NAME, clock, queryExecutor);
+                extension.getTransactionContext(), manager.getMapper(), statements, leaseContextBuilder, queryExecutor);
 
         var schema = TestUtils.getResourceFileContentAsString("contract-negotiation-schema.sql");
         extension.runQuery(schema);
-        leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements, clock);
+        leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements.getContractNegotiationTable(), leaseStatements, clock);
     }
 
     @AfterEach
     void tearDown(PostgresqlStoreSetupExtension extension) {
-        var dialect = new PostgresDialectStatements();
-        extension.runQuery("DROP TABLE " + dialect.getContractNegotiationTable() + " CASCADE");
-        extension.runQuery("DROP TABLE " + dialect.getContractAgreementTable() + " CASCADE");
-        extension.runQuery("DROP TABLE " + dialect.getLeaseTableName() + " CASCADE");
+        extension.runQuery("DROP TABLE " + statements.getContractNegotiationTable() + " CASCADE");
+        extension.runQuery("DROP TABLE " + statements.getContractAgreementTable() + " CASCADE");
+        extension.runQuery("DROP TABLE " + leaseStatements.getLeaseTableName() + " CASCADE");
     }
 
     @Override

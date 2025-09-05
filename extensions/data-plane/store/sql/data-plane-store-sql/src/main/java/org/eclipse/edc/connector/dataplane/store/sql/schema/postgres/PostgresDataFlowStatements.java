@@ -16,12 +16,15 @@ package org.eclipse.edc.connector.dataplane.store.sql.schema.postgres;
 
 import org.eclipse.edc.connector.dataplane.store.sql.schema.BaseSqlDataFlowStatements;
 import org.eclipse.edc.sql.dialect.PostgresDialect;
+import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.translation.PostgresqlOperatorTranslator;
+
+import java.time.Clock;
 
 public class PostgresDataFlowStatements extends BaseSqlDataFlowStatements {
 
-    public PostgresDataFlowStatements() {
-        super(new PostgresqlOperatorTranslator());
+    public PostgresDataFlowStatements(LeaseStatements leaseStatements, Clock clock) {
+        super(new PostgresqlOperatorTranslator(), leaseStatements, clock);
     }
 
     @Override

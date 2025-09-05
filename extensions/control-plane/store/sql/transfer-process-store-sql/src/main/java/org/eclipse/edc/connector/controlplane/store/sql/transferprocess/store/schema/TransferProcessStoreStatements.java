@@ -17,15 +17,15 @@ package org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.s
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.sql.lease.LeaseStatements;
 import org.eclipse.edc.sql.lease.StatefulEntityStatements;
+import org.eclipse.edc.sql.statement.SqlStatements;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 
 /**
  * Statement templates and SQL table+column names required for the TransferProcessStore
  */
 @ExtensionPoint
-public interface TransferProcessStoreStatements extends StatefulEntityStatements, LeaseStatements {
+public interface TransferProcessStoreStatements extends StatefulEntityStatements, SqlStatements {
 
     String getUpsertStatement();
 
@@ -110,4 +110,7 @@ public interface TransferProcessStoreStatements extends StatefulEntityStatements
     }
 
     SqlQueryStatement createQuery(QuerySpec querySpec);
+
+    SqlQueryStatement createNextNotLeaseQuery(QuerySpec querySpec);
+
 }

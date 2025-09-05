@@ -15,12 +15,16 @@
 package org.eclipse.edc.connector.policy.monitor.store.sql.schema;
 
 import org.eclipse.edc.sql.dialect.PostgresDialect;
+import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.translation.PostgresqlOperatorTranslator;
+
+import java.time.Clock;
 
 public class PostgresPolicyMonitorStatements extends BaseSqlPolicyMonitorStatements {
 
-    public PostgresPolicyMonitorStatements() {
-        super(new PostgresqlOperatorTranslator());
+    public PostgresPolicyMonitorStatements(LeaseStatements leaseStatements, Clock clock) {
+
+        super(new PostgresqlOperatorTranslator(), leaseStatements, clock);
     }
 
     @Override

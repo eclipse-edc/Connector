@@ -33,6 +33,7 @@ dependencies {
     api(project(":extensions:common:sql:sql-core"))
     api(project(":extensions:common:sql:sql-bootstrapper"))
     api(project(":extensions:common:sql:sql-lease"))
+    api(project(":extensions:common:sql:sql-lease-core"))
     api(project(":extensions:common:sql:sql-pool:sql-pool-apache-commons"))
     api(project(":extensions:common:transaction:transaction-local"))
 

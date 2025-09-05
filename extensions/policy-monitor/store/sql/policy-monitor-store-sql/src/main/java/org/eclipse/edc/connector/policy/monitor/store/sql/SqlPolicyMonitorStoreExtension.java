@@ -25,6 +25,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
+import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilderProvider;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -56,13 +57,19 @@ public class SqlPolicyMonitorStoreExtension implements ServiceExtension {
     @Inject
     private SqlSchemaBootstrapper sqlSchemaBootstrapper;
 
+    @Inject
+    private SqlLeaseContextBuilderProvider leaseContextBuilderProvider;
+
     @Provider
     public PolicyMonitorStore policyMonitorStore(ServiceExtensionContext context) {
 
         sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "policy-monitor-schema.sql");
 
+
+        var leaseContext = leaseContextBuilderProvider.createContextBuilder(getStatementImpl().getPolicyMonitorTable());
+
         return new SqlPolicyMonitorStore(dataSourceRegistry, dataSourceName, transactionContext,
-                getStatementImpl(), typeManager.getMapper(), clock, queryExecutor, context.getRuntimeId());
+                getStatementImpl(), leaseContext, typeManager.getMapper(), queryExecutor, context.getRuntimeId());
 
     }
 
@@ -70,7 +77,7 @@ public class SqlPolicyMonitorStoreExtension implements ServiceExtension {
      * returns an externally-provided sql statement dialect, or postgres as a default
      */
     private PolicyMonitorStatements getStatementImpl() {
-        return statements != null ? statements : new PostgresPolicyMonitorStatements();
+        return statements != null ? statements : new PostgresPolicyMonitorStatements(leaseContextBuilderProvider.getStatements(), clock);
     }
 
 }

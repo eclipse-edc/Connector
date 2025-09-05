@@ -16,17 +16,24 @@ package org.eclipse.edc.connector.dataplane.store.sql.schema;
 
 import org.eclipse.edc.connector.dataplane.store.sql.schema.postgres.DataFlowMapping;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
+
+import java.time.Clock;
 
 import static java.lang.String.format;
 
 public class BaseSqlDataFlowStatements implements DataFlowStatements {
 
     protected final SqlOperatorTranslator operatorTranslator;
+    private final LeaseStatements leaseStatements;
+    private final Clock clock;
 
-    public BaseSqlDataFlowStatements(SqlOperatorTranslator operatorTranslator) {
+    public BaseSqlDataFlowStatements(SqlOperatorTranslator operatorTranslator, LeaseStatements leaseStatements, Clock clock) {
         this.operatorTranslator = operatorTranslator;
+        this.leaseStatements = leaseStatements;
+        this.clock = clock;
     }
 
     @Override
@@ -62,30 +69,14 @@ public class BaseSqlDataFlowStatements implements DataFlowStatements {
     }
 
     @Override
-    public String getDeleteLeaseTemplate() {
-        return executeStatement().delete(getLeaseTableName(), getLeaseIdColumn());
+    public SqlQueryStatement createNextNotLeaseQuery(QuerySpec querySpec) {
+        var queryTemplate = "%s LEFT JOIN %s l ON %s.%s = l.%s".formatted(getSelectTemplate(), leaseStatements.getLeaseTableName(), getDataPlaneTable(), getIdColumn(), leaseStatements.getResourceIdColumn());
+        return new SqlQueryStatement(queryTemplate, querySpec, new DataFlowMapping(this), operatorTranslator)
+                .addWhereClause(getNotLeasedFilter(), clock.millis(), getDataPlaneTable());
     }
 
-    @Override
-    public String getInsertLeaseTemplate() {
-        return executeStatement()
-                .column(getLeaseIdColumn())
-                .column(getLeasedByColumn())
-                .column(getLeasedAtColumn())
-                .column(getLeaseDurationColumn())
-                .insertInto(getLeaseTableName());
-    }
-
-    @Override
-    public String getUpdateLeaseTemplate() {
-        return executeStatement()
-                .column(getLeaseIdColumn())
-                .update(getDataPlaneTable(), getIdColumn());
-    }
-
-    @Override
-    public String getFindLeaseByEntityTemplate() {
-        return format("SELECT * FROM %s  WHERE %s = (SELECT lease_id FROM %s WHERE %s=? )",
-                getLeaseTableName(), getLeaseIdColumn(), getDataPlaneTable(), getIdColumn());
+    private String getNotLeasedFilter() {
+        return format("(l.%s IS NULL OR (? > (%s + %s) AND ? = l.%s))",
+                leaseStatements.getResourceIdColumn(), leaseStatements.getLeasedAtColumn(), leaseStatements.getLeaseDurationColumn(), leaseStatements.getResourceKindColumn());
     }
 }

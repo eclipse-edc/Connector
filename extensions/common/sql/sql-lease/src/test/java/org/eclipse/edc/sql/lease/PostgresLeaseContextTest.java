@@ -18,6 +18,7 @@ package org.eclipse.edc.sql.lease;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.sql.ResultSetMapper;
 import org.eclipse.edc.sql.SqlQueryExecutor;
+import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -34,6 +35,11 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,7 +55,7 @@ class PostgresLeaseContextTest {
     private final TransactionContext transactionContext = new NoopTransactionContext();
     private final TestEntityLeaseStatements dialect = new TestEntityLeaseStatements();
     private final SqlQueryExecutor queryExecutor = new SqlQueryExecutor();
-    private SqlLeaseContextBuilder builder;
+    private SqlLeaseContextBuilderImpl builder;
     private SqlLeaseContext leaseContext;
 
     @BeforeEach
@@ -57,7 +63,7 @@ class PostgresLeaseContextTest {
         var schema = Files.readString(Paths.get("./src/test/resources/schema.sql"));
         setupExtension.runQuery(schema);
 
-        builder = SqlLeaseContextBuilder.with(transactionContext, LEASE_HOLDER, dialect, Clock.fixed(now, UTC), queryExecutor);
+        builder = SqlLeaseContextBuilderImpl.with(transactionContext, LEASE_HOLDER, "TestTarget", dialect, Clock.fixed(now, UTC), queryExecutor);
         leaseContext = builder.by(LEASE_HOLDER).withConnection(connection);
     }
 
@@ -71,10 +77,10 @@ class PostgresLeaseContextTest {
     void breakLease(Connection connection) {
         insertTestEntity("id1", connection);
         leaseContext.acquireLease("id1");
-        assertThat(isLeased("id1", connection)).isTrue();
+        assertThat(isLeased("id1")).isTrue();
 
         leaseContext.breakLease("entityId");
-        assertThat(isLeased("id1", connection)).isTrue();
+        assertThat(isLeased("id1")).isTrue();
     }
 
     @Test
@@ -101,12 +107,15 @@ class PostgresLeaseContextTest {
 
         leaseContext.acquireLease(id);
 
-        assertThat(isLeased(id, connection)).isTrue();
-        var leaseAssert = assertThat(leaseContext.getLease(id));
-        leaseAssert.extracting(SqlLease::getLeaseId).isNotNull();
-        leaseAssert.extracting(SqlLease::getLeasedBy).isEqualTo(LEASE_HOLDER);
-        leaseAssert.extracting(SqlLease::getLeasedAt).matches(l -> l <= now.toEpochMilli());
-        leaseAssert.extracting(SqlLease::getLeaseDuration).isEqualTo(60_000L);
+        assertThat(isLeased(id)).isTrue();
+
+        var lease = leaseContext.getLease(id);
+        assertThat(lease).isNotNull();
+        assertThat(lease.getResourceId()).isEqualTo(id);
+        assertThat(lease.getLeasedBy()).isEqualTo(LEASE_HOLDER);
+        assertThat(lease.getResourceKind()).isEqualTo("TestTarget");
+        assertThat(lease.getLeasedAt()).matches(l -> l <= now.toEpochMilli());
+        assertThat(lease.getLeaseDuration()).isEqualTo(60_000L);
     }
 
     @Test
@@ -155,23 +164,111 @@ class PostgresLeaseContextTest {
         leaseContext.acquireLease(entityId);
         var lease = leaseContext.getLease(entityId);
         assertThat(lease).isNotNull();
-        var leaseId = lease.getLeaseId();
+        var leaseBy = lease.getLeasedBy();
 
         // should acquire lease by deleting old one after lease expiry
         var twoMinutesAheadClock = Clock.offset(Clock.fixed(now, UTC), Duration.of(2, ChronoUnit.MINUTES));
-        var twoMinutesAheadBuilder = SqlLeaseContextBuilder.with(transactionContext, LEASE_HOLDER, dialect, twoMinutesAheadClock, queryExecutor);
-        var twoMinutesAheadContext = twoMinutesAheadBuilder.by("someone-else").withConnection(connection);
+        var twoMinutesAheadBuilder = SqlLeaseContextBuilderImpl.with(transactionContext, LEASE_HOLDER, "TestTarget", dialect, twoMinutesAheadClock, queryExecutor);
+        var twoMinutesAheadContext = twoMinutesAheadBuilder.withConnection(connection);
+
         twoMinutesAheadContext.acquireLease(entityId);
 
         var newLease = twoMinutesAheadContext.getLease(entityId);
         assertThat(newLease).isNotNull();
-        assertThat(newLease.getLeaseId()).isNotEqualTo(leaseId);
+        assertThat(newLease.getLeasedBy()).isNotEqualTo(leaseBy);
     }
 
-    protected boolean isLeased(String entityId, Connection connection) {
+
+    @Test
+    void acquireAndReleaseLease_WithMultipleLeaseHolders(PostgresqlStoreSetupExtension extension) throws InterruptedException {
+        var concurrency = 20;
+        var executor = Executors.newFixedThreadPool(concurrency);
+        var entityId = "test-entity";
+
+        var completionLatch = new CountDownLatch(concurrency);
+        var releaseLatch = new CountDownLatch(concurrency - 1);
+
+        var acquireBarrier = new CyclicBarrier(concurrency);
+        var breakBarrier = new CyclicBarrier(concurrency);
+
+        var notAcquired = new AtomicInteger(0);
+        var notReleased = new AtomicInteger(0);
+        var acquiredHolder = new AtomicReference<String>();
+        var releaseHolder = new AtomicReference<String>();
+
+        for (var i = 0; i < concurrency; i++) {
+            int leaseNumber = i;
+            executor.execute(() -> {
+                var leaseHolder = LEASE_HOLDER + leaseNumber;
+                var builder = SqlLeaseContextBuilderImpl.with(transactionContext, leaseHolder, "TestTarget", dialect, Clock.fixed(now, UTC), queryExecutor);
+                var leaseContext = builder.withConnection(extension.getConnection());
+                try {
+                    acquireBarrier.await();
+                    // try to acquire the lease concurrently
+                    if (acquireLease(leaseContext, entityId)) {
+                        acquiredHolder.set(leaseHolder);
+                    } else {
+                        notAcquired.incrementAndGet();
+                    }
+                    breakBarrier.await();
+                    // try to release the lease concurrently. Only the holder should be able to do it.
+                    if (!leaseHolder.equals(acquiredHolder.get())) {
+                        if (!breakLease(leaseContext, entityId)) {
+                            notReleased.incrementAndGet();
+                        }
+                        releaseLatch.countDown();
+                    } else {
+                        releaseLatch.await();
+                        if (breakLease(leaseContext, entityId)) {
+                            releaseHolder.set(leaseHolder);
+                        } else {
+                            notReleased.incrementAndGet();
+                        }
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    completionLatch.countDown();
+                }
+            });
+
+        }
+
+        completionLatch.await();
+
+        assertThat(notAcquired.get()).isEqualTo(concurrency - 1);
+        assertThat(notReleased.get()).isEqualTo(concurrency - 1);
+        assertThat(acquiredHolder.get()).isEqualTo(releaseHolder.get());
+
+
+        var query = "SELECT count(*) FROM " + dialect.getLeaseTableName();
+        var count = queryExecutor.single(extension.getConnection(), true, r -> r.getLong(1), query);
+
+        assertThat(count).isEqualTo(0);
+    }
+
+    protected boolean acquireLease(SqlLeaseContext leaseContext, String entityId) {
+        try {
+            leaseContext.acquireLease(entityId);
+            return true;
+        } catch (IllegalStateException e) {
+            return false;
+        }
+    }
+
+    protected boolean breakLease(SqlLeaseContext leaseContext, String entityId) {
+        try {
+            leaseContext.breakLease(entityId);
+            return true;
+        } catch (IllegalStateException e) {
+            return false;
+        }
+    }
+
+    protected boolean isLeased(String entityId) {
         return transactionContext.execute(() -> {
-            var entity = getTestEntity(entityId, connection);
-            return entity.getLeaseId() != null;
+            var entity = leaseContext.getLease(entityId);
+            return entity != null;
         });
     }
 
@@ -197,33 +294,6 @@ class PostgresLeaseContextTest {
     }
 
     private static class TestEntityLeaseStatements implements LeaseStatements {
-
-        @Override
-        public String getDeleteLeaseTemplate() {
-            return executeStatement().delete(getLeaseTableName(), getLeaseIdColumn());
-        }
-
-        @Override
-        public String getInsertLeaseTemplate() {
-            return executeStatement()
-                    .column(getLeaseIdColumn())
-                    .column(getLeasedByColumn())
-                    .column(getLeasedAtColumn())
-                    .column(getLeaseDurationColumn())
-                    .insertInto(getLeaseTableName());
-        }
-
-        @Override
-        public String getUpdateLeaseTemplate() {
-            return executeStatement()
-                    .column(getLeaseIdColumn())
-                    .update(getEntityTableName(), "id");
-        }
-
-        @Override
-        public String getFindLeaseByEntityTemplate() {
-            return "SELECT * FROM edc_lease WHERE lease_id = (SELECT lease_id FROM " + getEntityTableName() + " WHERE id=?)";
-        }
 
         public String getEntityTableName() {
             return "edc_test_entity";
