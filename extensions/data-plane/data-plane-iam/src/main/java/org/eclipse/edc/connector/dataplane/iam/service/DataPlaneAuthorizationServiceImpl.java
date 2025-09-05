@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.iam.service;
 
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.Endpoint;
+import org.eclipse.edc.connector.dataplane.spi.edr.EndpointDataReferenceService;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
@@ -35,7 +36,7 @@ import java.util.UUID;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.result.Result.success;
 
-public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorizationService {
+public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorizationService, EndpointDataReferenceService {
     public static final String PROPERTY_AGREEMENT_ID = "agreement_id";
     public static final String PROPERTY_ASSET_ID = "asset_id";
     public static final String PROPERTY_PROCESS_ID = "process_id";
@@ -99,8 +100,8 @@ public class DataPlaneAuthorizationServiceImpl implements DataPlaneAuthorization
     }
 
     @Override
-    public ServiceResult<Void> revokeEndpointDataReference(String transferProcessId, String reason) {
-        return accessTokenService.revoke(transferProcessId, reason);
+    public ServiceResult<Void> revokeEndpointDataReference(String flowId, String reason) {
+        return accessTokenService.revoke(flowId, reason);
     }
 
     private Result<SecureEndpoint> createSecureEndpoint(Endpoint endpoint, TokenParameters tokenParameters, Map<String, Object> additionalProperties, DataAddress sourceDataAddress) {
