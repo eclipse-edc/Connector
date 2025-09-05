@@ -14,12 +14,14 @@
 
 package org.eclipse.edc.connector.dataplane.framework;
 
+import org.eclipse.edc.connector.dataplane.framework.edr.EndpointDataReferenceServiceRegistryImpl;
 import org.eclipse.edc.connector.dataplane.framework.pipeline.PipelineServiceImpl;
 import org.eclipse.edc.connector.dataplane.framework.provision.ProvisionerManagerImpl;
 import org.eclipse.edc.connector.dataplane.framework.provision.ResourceDefinitionGeneratorManagerImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy;
 import org.eclipse.edc.connector.dataplane.framework.store.InMemoryAccessTokenDataStore;
 import org.eclipse.edc.connector.dataplane.framework.store.InMemoryDataPlaneStore;
+import org.eclipse.edc.connector.dataplane.spi.edr.EndpointDataReferenceServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.iam.NoOpDataPlaneAuthorizationService;
 import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
@@ -81,6 +83,11 @@ public class DataPlaneDefaultServicesExtension implements ServiceExtension {
     public DataPlaneAuthorizationService dataPlaneAuthorizationService(ServiceExtensionContext context) {
         context.getMonitor().info("No proper DataPlaneAuthorizationService provided. The data-plane won't support PULL transfer types.");
         return new NoOpDataPlaneAuthorizationService();
+    }
+
+    @Provider
+    public EndpointDataReferenceServiceRegistry endpointDataReferenceServiceRegistry() {
+        return new EndpointDataReferenceServiceRegistryImpl();
     }
 
     @Provider

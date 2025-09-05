@@ -14,9 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.spi.iam;
 
-import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.Map;
@@ -31,17 +29,8 @@ public class NoOpDataPlaneAuthorizationService implements DataPlaneAuthorization
             .failure("PULL transfers are not supported unless a proper DataPlaneAuthorizationService is registered");
 
     @Override
-    public Result<DataAddress> createEndpointDataReference(DataFlow dataFlow) {
-        return FAILURE;
-    }
-
-    @Override
     public Result<DataAddress> authorize(String token, Map<String, Object> requestData) {
         return FAILURE;
     }
 
-    @Override
-    public ServiceResult<Void> revokeEndpointDataReference(String transferProcessId, String reason) {
-        return ServiceResult.unexpected(FAILURE.getFailureDetail());
-    }
 }

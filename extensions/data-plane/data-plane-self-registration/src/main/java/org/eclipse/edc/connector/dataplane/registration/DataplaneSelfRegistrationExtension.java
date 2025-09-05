@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.dataplane.registration;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService;
+import org.eclipse.edc.connector.dataplane.spi.edr.EndpointDataReferenceServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -61,7 +61,7 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
     @Inject
     private PipelineService pipelineService;
     @Inject
-    private PublicEndpointGeneratorService publicEndpointGeneratorService;
+    private EndpointDataReferenceServiceRegistry endpointDataReferenceServiceRegistry;
     @Inject
     private HealthCheckService healthCheckService;
     @Inject
@@ -82,8 +82,8 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
     @Override
     public void start() {
         var transferTypes = Stream.concat(
-                toTransferTypes(PULL, publicEndpointGeneratorService.supportedDestinationTypes(), publicEndpointGeneratorService.supportedResponseTypes()),
-                toTransferTypes(PUSH, pipelineService.supportedSinkTypes(), publicEndpointGeneratorService.supportedResponseTypes())
+                toTransferTypes(PULL, endpointDataReferenceServiceRegistry.supportedDestinationTypes(), endpointDataReferenceServiceRegistry.supportedResponseTypes()),
+                toTransferTypes(PUSH, pipelineService.supportedSinkTypes(), endpointDataReferenceServiceRegistry.supportedResponseTypes())
         );
 
         var instance = DataPlaneInstance.Builder.newInstance()

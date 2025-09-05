@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.dataplane.iam;
 
 import org.eclipse.edc.connector.dataplane.iam.service.DataPlaneAuthorizationServiceImpl;
+import org.eclipse.edc.connector.dataplane.spi.edr.EndpointDataReferenceServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
@@ -40,15 +41,33 @@ public class DataPlaneIamExtension implements ServiceExtension {
     private DataPlaneAccessControlService accessControlService;
     @Inject
     private PublicEndpointGeneratorService endpointGenerator;
+    @Inject
+    private EndpointDataReferenceServiceRegistry endpointDataReferenceServiceRegistry;
+
+    private DataPlaneAuthorizationServiceImpl dataPlaneAuthorizationService;
 
     @Override
     public String name() {
         return NAME;
     }
 
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        var service = getDataPlaneAuthorizationService(context);
+        endpointDataReferenceServiceRegistry.register("HttpData", service);
+        endpointDataReferenceServiceRegistry.registerResponseChannel("HttpData", service);
+    }
+
     @Provider
     public DataPlaneAuthorizationService authorizationService(ServiceExtensionContext context) {
-        return new DataPlaneAuthorizationServiceImpl(accessTokenService, endpointGenerator, accessControlService, context.getParticipantId(), clock);
+        return getDataPlaneAuthorizationService(context);
+    }
+
+    private DataPlaneAuthorizationServiceImpl getDataPlaneAuthorizationService(ServiceExtensionContext context) {
+        if (dataPlaneAuthorizationService == null) {
+            dataPlaneAuthorizationService = new DataPlaneAuthorizationServiceImpl(accessTokenService, endpointGenerator, accessControlService, context.getParticipantId(), clock);
+        }
+        return dataPlaneAuthorizationService;
     }
 
 }

@@ -35,9 +35,7 @@ import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.hamcrest.CoreMatchers;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -140,97 +138,9 @@ public class DataPlaneHttpIntegrationTests {
             .build();
     private final Duration timeout = Duration.ofSeconds(30);
 
-    @BeforeAll
-    public static void setUp() {
-        when(DATA_PLANE_AUTHORIZATION_SERVICE.createEndpointDataReference(any())).thenReturn(Result.success(DataAddress.Builder.newInstance().type("type").build()));
-    }
-
     @BeforeEach
     void beforeEach() {
         fakeControlPlane.stubFor(any(anyUrl()).willReturn(ok()));
-
-    }
-
-    /**
-     * Mock HTTP GET request for source.
-     *
-     * @return see {@link MappingBuilder}
-     */
-    private MappingBuilder getRequest(String path) {
-        return getRequest(emptyMap(), path);
-    }
-
-    /**
-     * Mock HTTP GET request with query params for source.
-     *
-     * @return see {@link MappingBuilder}
-     */
-    private MappingBuilder getRequest(Map<String, String> queryParams, String path) {
-        return getRequest(queryParams, urlEqualTo(path));
-    }
-
-    /**
-     * Mock HTTP GET request with query params for source.
-     *
-     * @return see {@link MappingBuilder}
-     */
-    private MappingBuilder getRequest(Map<String, String> queryParams, UrlPattern pattern) {
-        var request = get(pattern);
-        request.withQueryParams(toQueryParams(queryParams));
-        return request
-                .withHeader(AUTH_HEADER_KEY, equalTo(SOURCE_AUTH_VALUE));
-    }
-
-    /**
-     * Mock HTTP GET request with query params for source.
-     *
-     * @return see {@link RequestPatternBuilder}
-     */
-
-    private RequestPatternBuilder getRequested(String path) {
-        return getRequested(emptyMap(), path);
-    }
-
-    /**
-     * Mock HTTP GET request with query params for source.
-     *
-     * @return see {@link RequestPatternBuilder}
-     */
-    private RequestPatternBuilder getRequested(Map<String, String> queryParams, String path) {
-        return getRequested(queryParams, urlEqualTo(path));
-    }
-
-    /**
-     * Mock HTTP GET request with query params for source.
-     *
-     * @return see {@link RequestPatternBuilder}
-     */
-    private RequestPatternBuilder getRequested(Map<String, String> queryParams, UrlPattern pattern) {
-        var request = getRequestedFor(pattern);
-        var params = toQueryParams(queryParams);
-        params.forEach(request::withQueryParam);
-        return request
-                .withHeader(AUTH_HEADER_KEY, equalTo(SOURCE_AUTH_VALUE));
-    }
-
-    private Map<String, StringValuePattern> toQueryParams(Map<String, String> queryParams) {
-        return queryParams.entrySet()
-                .stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> equalTo(entry.getValue())));
-    }
-
-    private RequestPatternBuilder postRequested(String responseBody, String contentType) {
-        return postRequestedFor(anyUrl())
-                .withHeader(AUTH_HEADER_KEY, equalTo(SINK_AUTH_VALUE))
-                .withHeader("Content-Type", equalTo(contentType))
-                .withRequestBody(binaryEqualTo(responseBody.getBytes(StandardCharsets.UTF_8)));
-    }
-
-    private MappingBuilder postRequest(String responseBody, String contentType) {
-        return post("/")
-                .withHeader(AUTH_HEADER_KEY, equalTo(SINK_AUTH_VALUE))
-                .withHeader("Content-Type", equalTo(contentType))
-                .withRequestBody(binaryEqualTo(responseBody.getBytes(StandardCharsets.UTF_8)));
     }
 
     @Nested
@@ -497,5 +407,86 @@ public class DataPlaneHttpIntegrationTests {
 
     }
 
+    /**
+     * Mock HTTP GET request for source.
+     *
+     * @return see {@link MappingBuilder}
+     */
+    private MappingBuilder getRequest(String path) {
+        return getRequest(emptyMap(), path);
+    }
+
+    /**
+     * Mock HTTP GET request with query params for source.
+     *
+     * @return see {@link MappingBuilder}
+     */
+    private MappingBuilder getRequest(Map<String, String> queryParams, String path) {
+        return getRequest(queryParams, urlEqualTo(path));
+    }
+
+    /**
+     * Mock HTTP GET request with query params for source.
+     *
+     * @return see {@link MappingBuilder}
+     */
+    private MappingBuilder getRequest(Map<String, String> queryParams, UrlPattern pattern) {
+        var request = get(pattern);
+        request.withQueryParams(toQueryParams(queryParams));
+        return request
+                .withHeader(AUTH_HEADER_KEY, equalTo(SOURCE_AUTH_VALUE));
+    }
+
+    /**
+     * Mock HTTP GET request with query params for source.
+     *
+     * @return see {@link RequestPatternBuilder}
+     */
+
+    private RequestPatternBuilder getRequested(String path) {
+        return getRequested(emptyMap(), path);
+    }
+
+    /**
+     * Mock HTTP GET request with query params for source.
+     *
+     * @return see {@link RequestPatternBuilder}
+     */
+    private RequestPatternBuilder getRequested(Map<String, String> queryParams, String path) {
+        return getRequested(queryParams, urlEqualTo(path));
+    }
+
+    /**
+     * Mock HTTP GET request with query params for source.
+     *
+     * @return see {@link RequestPatternBuilder}
+     */
+    private RequestPatternBuilder getRequested(Map<String, String> queryParams, UrlPattern pattern) {
+        var request = getRequestedFor(pattern);
+        var params = toQueryParams(queryParams);
+        params.forEach(request::withQueryParam);
+        return request
+                .withHeader(AUTH_HEADER_KEY, equalTo(SOURCE_AUTH_VALUE));
+    }
+
+    private Map<String, StringValuePattern> toQueryParams(Map<String, String> queryParams) {
+        return queryParams.entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> equalTo(entry.getValue())));
+    }
+
+    private RequestPatternBuilder postRequested(String responseBody, String contentType) {
+        return postRequestedFor(anyUrl())
+                .withHeader(AUTH_HEADER_KEY, equalTo(SINK_AUTH_VALUE))
+                .withHeader("Content-Type", equalTo(contentType))
+                .withRequestBody(binaryEqualTo(responseBody.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    private MappingBuilder postRequest(String responseBody, String contentType) {
+        return post("/")
+                .withHeader(AUTH_HEADER_KEY, equalTo(SINK_AUTH_VALUE))
+                .withHeader("Content-Type", equalTo(contentType))
+                .withRequestBody(binaryEqualTo(responseBody.getBytes(StandardCharsets.UTF_8)));
+    }
 
 }
