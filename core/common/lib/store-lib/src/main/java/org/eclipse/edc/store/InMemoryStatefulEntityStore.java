@@ -94,28 +94,26 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
             if (entity == null) {
                 return StoreResult.notFound(format("Entity %s not found", id));
             }
-
-            try {
-                acquireLease(id);
-                return StoreResult.success(entity.copy());
-            } catch (IllegalStateException e) {
-                return StoreResult.alreadyLeased(format("Entity %s is already leased: %s", id, e.getMessage()));
-            }
+            return acquireLease(id).map(it -> entity.copy());
         });
     }
 
     @Override
-    public void save(T entity) {
-        acquireLease(entity.getId());
-        entitiesById.put(entity.getId(), entity.copy());
-        freeLease(entity.getId());
+    public StoreResult<Void> save(T entity) {
+        return acquireLease(entity.getId()).compose(it -> {
+            entitiesById.put(entity.getId(), entity.copy());
+            freeLease(entity.getId());
+            return StoreResult.success();
+        });
+
     }
 
-    public void delete(String id) {
+    public StoreResult<Void> delete(String id) {
         if (isLeased(id)) {
-            throw new IllegalStateException("Entity is leased and cannot be deleted!");
+            return StoreResult.alreadyLeased("Entity is leased and cannot be deleted!");
         }
         entitiesById.remove(id);
+        return StoreResult.success();
     }
 
     public Stream<T> findAll(QuerySpec querySpec) {
@@ -126,11 +124,12 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
         return entitiesById.values().stream();
     }
 
-    public void acquireLease(String id, String lockId, Duration leaseTime) {
+    public StoreResult<Void> acquireLease(String id, String lockId, Duration leaseTime) {
         if (!isLeased(id) || isLeasedBy(id, lockId)) {
             leases.put(id, new Lease(lockId, clock.millis(), leaseTime.toMillis()));
+            return StoreResult.success();
         } else {
-            throw new IllegalStateException("Cannot acquire lease, is already leased by someone else!");
+            return StoreResult.alreadyLeased("Cannot acquire lease, is already leased by someone else!");
         }
     }
 
@@ -142,8 +141,8 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
         leases.remove(id);
     }
 
-    private void acquireLease(String id) {
-        acquireLease(id, lockId, DEFAULT_LEASE_TIME);
+    private StoreResult<Void> acquireLease(String id) {
+        return acquireLease(id, lockId, DEFAULT_LEASE_TIME);
     }
 
     private boolean isLeased(String id) {

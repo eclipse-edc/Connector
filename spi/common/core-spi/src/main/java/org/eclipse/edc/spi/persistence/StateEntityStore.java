@@ -86,5 +86,5 @@ public interface StateEntityStore<T> {
      *
      * @param entity the entity.
      */
-    void save(T entity);
+    StoreResult<Void> save(T entity);
 }

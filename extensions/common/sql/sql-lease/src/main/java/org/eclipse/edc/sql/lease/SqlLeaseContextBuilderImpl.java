@@ -76,7 +76,7 @@ public class SqlLeaseContextBuilderImpl implements SqlLeaseContextBuilder {
         this.leaseHolder = leaseHolder;
         return this;
     }
-    
+
     /**
      * configures the duration for which the lease is acquired. Has no effect when breaking or getting the lease
      */
@@ -89,6 +89,7 @@ public class SqlLeaseContextBuilderImpl implements SqlLeaseContextBuilder {
      * sets the {@linkplain Connection} on which the next DB statement is executed.<p>
      * <strong>Storing references to the {@link SqlLeaseContext} is strongly discouraged, as this would keep the database {@link Connection} open!</strong>
      */
+    @Override
     public SqlLeaseContext withConnection(Connection connection) {
         Objects.requireNonNull(connection, "connection");
         return new SqlLeaseContext(trxContext, statements, leaseHolder, resourceType, clock, leaseDuration, connection, queryExecutor);

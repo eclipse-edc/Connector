@@ -19,7 +19,6 @@ import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResource;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.connector.dataplane.store.sql.schema.DataFlowStatements;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -93,15 +92,7 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
     }
 
     private boolean lease(Connection connection, DataFlow entry) {
-        try {
-            leaseContext.withConnection(connection).acquireLease(entry.getId());
-        } catch (EdcException e) {
-            if (e.getCause() instanceof IllegalStateException) {
-                // already leased
-                return false;
-            }
-        }
-        return true;
+        return leaseContext.withConnection(connection).acquireLease(entry.getId()).succeeded();
     }
 
     @Override
@@ -113,8 +104,7 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
                     return StoreResult.notFound(format("DataFlow %s not found", id));
                 }
 
-                leaseContext.withConnection(connection).acquireLease(entity.getId());
-                return StoreResult.success(entity);
+                return leaseContext.withConnection(connection).acquireLease(entity.getId()).map(it -> entity);
             } catch (IllegalStateException e) {
                 return StoreResult.alreadyLeased(format("DataFlow %s is already leased", id));
             } catch (SQLException e) {
@@ -124,8 +114,8 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
     }
 
     @Override
-    public void save(DataFlow entity) {
-        transactionContext.execute(() -> {
+    public StoreResult<Void> save(DataFlow entity) {
+        return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var sql = statements.getUpsertTemplate();
 
@@ -148,7 +138,7 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
                         toJson(entity.getResourceDefinitions())
                 );
 
-                leaseContext.withConnection(connection).breakLease(entity.getId());
+                return leaseContext.withConnection(connection).breakLease(entity.getId());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }

@@ -25,8 +25,6 @@ import org.eclipse.edc.sql.translation.TranslationMapping;
 
 import java.time.Clock;
 
-import static java.lang.String.format;
-
 /**
  * Concrete implementation of the {@link ContractNegotiationStatements} for Postgres. Uses a mapping tree
  * ({@link TranslationMapping} to generate queries.
@@ -52,11 +50,6 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
         var queryTemplate = "%s LEFT JOIN %s l ON %s.%s = l.%s".formatted(getSelectNegotiationsTemplate(), leaseStatements.getLeaseTableName(), getContractNegotiationTable(), getIdColumn(), leaseStatements.getResourceIdColumn());
         return new SqlQueryStatement(queryTemplate, querySpec, new ContractNegotiationMapping(this), operatorTranslator)
                 .addWhereClause(getNotLeasedFilter(), clock.millis(), getContractNegotiationTable());
-    }
-
-    private String getNotLeasedFilter() {
-        return format("(l.%s IS NULL OR (? > (%s + %s) AND ? = l.%s))",
-                leaseStatements.getResourceIdColumn(), leaseStatements.getLeasedAtColumn(), leaseStatements.getLeaseDurationColumn(), leaseStatements.getResourceKindColumn());
     }
 
     @Override

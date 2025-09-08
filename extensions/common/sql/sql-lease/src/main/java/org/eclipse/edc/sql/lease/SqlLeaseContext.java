@@ -17,6 +17,7 @@ package org.eclipse.edc.sql.lease;
 
 
 import org.eclipse.edc.spi.persistence.LeaseContext;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -58,31 +59,34 @@ public class SqlLeaseContext implements LeaseContext {
     }
 
     @Override
-    public void breakLease(String entityId) {
-        trxContext.execute(() -> {
+    public StoreResult<Void> breakLease(String entityId) {
+        return trxContext.execute(() -> {
 
             var l = getLease(entityId);
 
             if (l != null) {
                 if (!Objects.equals(leaseHolder, l.getLeasedBy())) {
-                    throw new IllegalStateException("Current runtime does not hold the lease for Object (id [%s], kind [%s]), cannot break lease!".formatted(entityId, resourceKind));
+                    return StoreResult.alreadyLeased("Current runtime does not hold the lease for Object (id [%s], kind [%s]), cannot break lease!".formatted(entityId, resourceKind));
                 }
 
                 var stmt = statements.getDeleteLeaseTemplate();
                 queryExecutor.execute(connection, stmt, l.getResourceId(), resourceKind);
             }
+            return StoreResult.success();
         });
     }
 
     @Override
-    public void acquireLease(String entityId) {
-        trxContext.execute(() -> {
+    public StoreResult<Void> acquireLease(String entityId) {
+        return trxContext.execute(() -> {
             var now = clock.millis();
             var duration = leaseDuration != null ? leaseDuration.toMillis() : DEFAULT_LEASE_DURATION;
             var upsertStmt = statements.getUpsertLeaseTemplate();
             var result = queryExecutor.execute(connection, upsertStmt, entityId, leaseHolder, resourceKind, now, duration, now);
             if (result == 0) {
-                throw new IllegalStateException("Entity %s of kind %s is currently leased!".formatted(entityId, resourceKind));
+                return StoreResult.alreadyLeased("Entity %s of kind %s is currently leased!".formatted(entityId, resourceKind));
+            } else {
+                return StoreResult.success();
             }
         });
     }

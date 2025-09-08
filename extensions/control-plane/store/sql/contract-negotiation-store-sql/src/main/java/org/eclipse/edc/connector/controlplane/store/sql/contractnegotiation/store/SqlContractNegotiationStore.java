@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.ProtocolMessages;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
@@ -94,15 +93,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     }
 
     private boolean lease(Connection connection, ContractNegotiation entry) {
-        try {
-            leaseContext.withConnection(connection).acquireLease(entry.getId());
-        } catch (EdcException e) {
-            if (e.getCause() instanceof IllegalStateException) {
-                // already leased
-                return false;
-            }
-        }
-        return true;
+        return leaseContext.withConnection(connection).acquireLease(entry.getId()).succeeded();
     }
 
     @Override
@@ -113,11 +104,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 if (entity == null) {
                     return StoreResult.notFound(format("ContractNegotiation %s not found", id));
                 }
-
-                leaseContext.withConnection(connection).acquireLease(id);
-                return StoreResult.success(entity);
-            } catch (IllegalStateException e) {
-                return StoreResult.alreadyLeased(format("ContractNegotiation %s is already leased", id));
+                return leaseContext.withConnection(connection).acquireLease(id).map(it -> entity);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -125,8 +112,8 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     }
 
     @Override
-    public void save(ContractNegotiation negotiation) {
-        transactionContext.execute(() -> {
+    public StoreResult<Void> save(ContractNegotiation negotiation) {
+        return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
 
                 var contractAgreement = negotiation.getContractAgreement();
@@ -165,7 +152,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                         negotiation.isPending(),
                         toJson(negotiation.getProtocolMessages()));
 
-                leaseContext.withConnection(connection).breakLease(negotiation.getId());
+                return leaseContext.withConnection(connection).breakLease(negotiation.getId());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -196,16 +183,16 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
             try (var connection = getConnection()) {
 
                 // attempt to acquire lease - should fail if someone else holds the lease
-                leaseContext.withConnection(connection).acquireLease(negotiationId);
+                var result = leaseContext.withConnection(connection).acquireLease(negotiationId);
+                if (result.failed()) {
+                    return result;
+                }
 
                 var stmt = statements.getDeleteTemplate();
                 queryExecutor.execute(connection, stmt, negotiationId);
 
                 //necessary to delete the row in edc_lease
-                leaseContext.withConnection(connection).breakLease(negotiationId);
-
-                // return existing;
-                return StoreResult.success();
+                return leaseContext.withConnection(connection).breakLease(negotiationId);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }

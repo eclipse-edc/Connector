@@ -157,7 +157,13 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
     @Override
     public SqlQueryStatement createNegotiationNextNotLeaseQuery(QuerySpec querySpec) {
         var queryTemplate = "%s LEFT JOIN %s l ON %s.%s = l.%s".formatted(getSelectNegotiationsTemplate(), leaseStatements.getLeaseTableName(), getContractNegotiationTable(), getIdColumn(), leaseStatements.getResourceIdColumn());
-        return new SqlQueryStatement(queryTemplate, querySpec.getLimit(), querySpec.getOffset());
+        return new SqlQueryStatement(queryTemplate, querySpec.getLimit(), querySpec.getOffset())
+                .addWhereClause(getNotLeasedFilter(), clock.millis(), getContractNegotiationTable());
+    }
+
+    protected String getNotLeasedFilter() {
+        return format("(l.%s IS NULL OR (? > (%s + %s) AND ? = l.%s))",
+                leaseStatements.getResourceIdColumn(), leaseStatements.getLeasedAtColumn(), leaseStatements.getLeaseDurationColumn(), leaseStatements.getResourceKindColumn());
     }
 
     @Override

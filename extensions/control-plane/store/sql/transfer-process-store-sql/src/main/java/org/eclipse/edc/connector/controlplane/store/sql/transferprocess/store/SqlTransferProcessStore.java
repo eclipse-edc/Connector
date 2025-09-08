@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedResourceSet;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.ProtocolMessages;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
@@ -40,7 +39,6 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Clock;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -57,15 +55,13 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 public class SqlTransferProcessStore extends AbstractSqlStore implements TransferProcessStore {
     private final TransferProcessStoreStatements statements;
     private final SqlLeaseContextBuilder leaseContext;
-    private final Clock clock;
 
     public SqlTransferProcessStore(DataSourceRegistry dataSourceRegistry, String datasourceName,
                                    TransactionContext transactionContext, ObjectMapper objectMapper,
                                    TransferProcessStoreStatements statements, SqlLeaseContextBuilder leaseContext,
-                                   Clock clock, QueryExecutor queryExecutor) {
+                                   QueryExecutor queryExecutor) {
         super(dataSourceRegistry, datasourceName, transactionContext, objectMapper, queryExecutor);
         this.statements = statements;
-        this.clock = clock;
         this.leaseContext = leaseContext;
     }
 
@@ -98,15 +94,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     }
 
     private boolean lease(Connection connection, TransferProcess entry) {
-        try {
-            leaseContext.withConnection(connection).acquireLease(entry.getId());
-        } catch (EdcException e) {
-            if (e.getCause() instanceof IllegalStateException) {
-                // already leased
-                return false;
-            }
-        }
-        return true;
+        return leaseContext.withConnection(connection).acquireLease(entry.getId()).succeeded();
     }
 
     @Override
@@ -118,10 +106,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                     return StoreResult.notFound(format("TransferProcess %s not found", id));
                 }
 
-                leaseContext.withConnection(connection).acquireLease(entity.getId());
-                return StoreResult.success(entity);
-            } catch (IllegalStateException e) {
-                return StoreResult.alreadyLeased(format("TransferProcess %s is already leased", id));
+                return leaseContext.withConnection(connection).acquireLease(entity.getId()).map(it -> entity);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -129,9 +114,9 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     }
 
     @Override
-    public void save(TransferProcess entity) {
+    public StoreResult<Void> save(TransferProcess entity) {
         Objects.requireNonNull(entity.getId(), "TransferProcesses must have an ID!");
-        transactionContext.execute(() -> {
+        return transactionContext.execute(() -> {
             try (var conn = getConnection()) {
                 var sql = statements.getUpsertStatement();
                 queryExecutor.execute(conn, sql, entity.getId(),
@@ -160,7 +145,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                         entity.getContractId(),
                         toJson(entity.getDataDestination()));
 
-                leaseContext.withConnection(conn).breakLease(entity.getId());
+                return leaseContext.withConnection(conn).breakLease(entity.getId());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -178,25 +163,27 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     }
 
     @Override
-    public void delete(String processId) {
-
-        transactionContext.execute(() -> {
+    public StoreResult<Void> delete(String processId) {
+        return transactionContext.execute(() -> {
             var existing = findById(processId);
             if (existing != null) {
                 try (var conn = getConnection()) {
                     // attempt to acquire lease - should fail if someone else holds the lease
-                    leaseContext.withConnection(conn).acquireLease(processId);
+                    var result = leaseContext.withConnection(conn).acquireLease(processId);
+                    if (result.failed()) {
+                        return result;
+                    }
 
                     var stmt = statements.getDeleteTransferProcessTemplate();
                     queryExecutor.execute(conn, stmt, processId);
 
                     //necessary to delete the row in edc_lease
-                    leaseContext.withConnection(conn).breakLease(processId);
+                    return leaseContext.withConnection(conn).breakLease(processId);
                 } catch (SQLException e) {
                     throw new EdcPersistenceException(e);
                 }
             }
-
+            return StoreResult.success();
         });
     }
 

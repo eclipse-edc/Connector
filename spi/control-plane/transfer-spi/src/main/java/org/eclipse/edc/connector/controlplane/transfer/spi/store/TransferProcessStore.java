@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.persistence.StateEntityStore;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.Stream;
@@ -37,7 +38,7 @@ public interface TransferProcessStore extends StateEntityStore<TransferProcess> 
     /**
      * Deletes a transfer process.
      */
-    void delete(String processId);
+    StoreResult<Void> delete(String processId);
 
     /**
      * Returns all the transfer processes in the store that are covered by a given {@link QuerySpec}.

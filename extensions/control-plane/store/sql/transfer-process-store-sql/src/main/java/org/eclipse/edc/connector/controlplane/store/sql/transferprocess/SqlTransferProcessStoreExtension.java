@@ -68,7 +68,7 @@ public class SqlTransferProcessStoreExtension implements ServiceExtension {
 
         var leaseContextBuilder = leaseContextBuilderProvider.createContextBuilder(getStatementImpl().getTransferProcessTableName());
         var store = new SqlTransferProcessStore(dataSourceRegistry, dataSourceName, trxContext,
-                typeManager.getMapper(), getStatementImpl(), leaseContextBuilder, clock, queryExecutor);
+                typeManager.getMapper(), getStatementImpl(), leaseContextBuilder, queryExecutor);
         context.registerService(TransferProcessStore.class, store);
 
         sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "transfer-process-schema.sql");

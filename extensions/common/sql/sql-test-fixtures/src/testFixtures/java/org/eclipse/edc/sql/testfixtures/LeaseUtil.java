@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.sql.testfixtures;
 
+import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.sql.SqlQueryExecutor;
 import org.eclipse.edc.sql.lease.SqlLeaseContextBuilderImpl;
 import org.eclipse.edc.sql.lease.spi.LeaseStatements;
@@ -41,7 +42,8 @@ public class LeaseUtil {
 
     public void leaseEntity(String tpId, String leaseHolder, Duration leaseDuration) {
         try (var conn = connectionSupplier.get()) {
-            leaseContextBuilder.by(leaseHolder).forTime(leaseDuration).withConnection(conn).acquireLease(tpId);
+            leaseContextBuilder.by(leaseHolder).forTime(leaseDuration).withConnection(conn).acquireLease(tpId)
+                    .orElseThrow((l) -> new EdcPersistenceException(l.getFailureDetail()));
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

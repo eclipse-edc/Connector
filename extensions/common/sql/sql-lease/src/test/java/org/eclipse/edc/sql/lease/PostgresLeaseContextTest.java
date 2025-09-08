@@ -16,6 +16,7 @@
 package org.eclipse.edc.sql.lease;
 
 import org.eclipse.edc.junit.annotations.ComponentTest;
+import org.eclipse.edc.spi.result.StoreFailure;
 import org.eclipse.edc.sql.ResultSetMapper;
 import org.eclipse.edc.sql.SqlQueryExecutor;
 import org.eclipse.edc.sql.lease.spi.LeaseStatements;
@@ -43,7 +44,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static java.time.ZoneOffset.UTC;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 
 @ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
@@ -76,16 +77,16 @@ class PostgresLeaseContextTest {
     @Test
     void breakLease(Connection connection) {
         insertTestEntity("id1", connection);
-        leaseContext.acquireLease("id1");
+        leaseContext.acquireLease("id1").orElseThrow(f -> new AssertionError(f.getFailureDetail()));
         assertThat(isLeased("id1")).isTrue();
 
-        leaseContext.breakLease("entityId");
+        leaseContext.breakLease("entityId").orElseThrow(f -> new AssertionError(f.getFailureDetail()));
         assertThat(isLeased("id1")).isTrue();
     }
 
     @Test
     void breakLease_whenNotExist() {
-        leaseContext.breakLease("not-exist");
+        leaseContext.breakLease("not-exist").orElseThrow(f -> new AssertionError(f.getFailureDetail()));
         //should not throw an exception
     }
 
@@ -93,11 +94,13 @@ class PostgresLeaseContextTest {
     void breakLease_whenLeaseByOther(Connection connection) {
         var id = "test-id";
         insertTestEntity(id, connection);
-        leaseContext.acquireLease(id);
+        leaseContext.acquireLease(id).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
         //break lease as someone else
         var leaseContext = builder.by("someone-else").withConnection(connection);
-        assertThatThrownBy(() -> leaseContext.breakLease(id)).isInstanceOf(IllegalStateException.class);
+        assertThat(leaseContext.acquireLease(id)).isFailed()
+                .extracting(StoreFailure::getReason)
+                .isEqualTo(StoreFailure.Reason.ALREADY_LEASED);
     }
 
     @Test
@@ -105,7 +108,7 @@ class PostgresLeaseContextTest {
         var id = "test-id";
         insertTestEntity(id, connection);
 
-        leaseContext.acquireLease(id);
+        leaseContext.acquireLease(id).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
         assertThat(isLeased(id)).isTrue();
 
@@ -124,8 +127,10 @@ class PostgresLeaseContextTest {
         var id = "test-id";
         insertTestEntity(id, connection);
 
-        leaseContext.acquireLease(id);
-        assertThatThrownBy(() -> leaseContext.acquireLease(id)).isInstanceOf(IllegalStateException.class);
+        leaseContext.acquireLease(id).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+        assertThat(leaseContext.acquireLease(id)).isFailed()
+                .extracting(StoreFailure::getReason)
+                .isEqualTo(StoreFailure.Reason.ALREADY_LEASED);
     }
 
     @Test
@@ -134,10 +139,13 @@ class PostgresLeaseContextTest {
         var id = "test-id";
         insertTestEntity(id, connection);
 
-        leaseContext.acquireLease(id);
+        leaseContext.acquireLease(id).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
         var leaseContext = builder.by("someone-else").withConnection(connection);
-        assertThatThrownBy(() -> leaseContext.acquireLease(id)).isInstanceOf(IllegalStateException.class);
+
+        assertThat(leaseContext.acquireLease(id)).isFailed()
+                .extracting(StoreFailure::getReason)
+                .isEqualTo(StoreFailure.Reason.ALREADY_LEASED);
     }
 
     @Test
@@ -145,7 +153,8 @@ class PostgresLeaseContextTest {
         var id = "test-id";
         insertTestEntity(id, connection);
 
-        leaseContext.acquireLease(id);
+        leaseContext.acquireLease(id).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+
         assertThat(leaseContext.getLease(id)).isNotNull();
     }
 
@@ -161,7 +170,7 @@ class PostgresLeaseContextTest {
         var leaseContext = builder.by("someone-else").withConnection(connection);
 
         // no lease present, acquire one
-        leaseContext.acquireLease(entityId);
+        leaseContext.acquireLease(entityId).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
         var lease = leaseContext.getLease(entityId);
         assertThat(lease).isNotNull();
         var leaseBy = lease.getLeasedBy();
@@ -171,7 +180,7 @@ class PostgresLeaseContextTest {
         var twoMinutesAheadBuilder = SqlLeaseContextBuilderImpl.with(transactionContext, LEASE_HOLDER, "TestTarget", dialect, twoMinutesAheadClock, queryExecutor);
         var twoMinutesAheadContext = twoMinutesAheadBuilder.withConnection(connection);
 
-        twoMinutesAheadContext.acquireLease(entityId);
+        twoMinutesAheadContext.acquireLease(entityId).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
         var newLease = twoMinutesAheadContext.getLease(entityId);
         assertThat(newLease).isNotNull();
@@ -248,21 +257,11 @@ class PostgresLeaseContextTest {
     }
 
     protected boolean acquireLease(SqlLeaseContext leaseContext, String entityId) {
-        try {
-            leaseContext.acquireLease(entityId);
-            return true;
-        } catch (IllegalStateException e) {
-            return false;
-        }
+        return leaseContext.acquireLease(entityId).succeeded();
     }
 
     protected boolean breakLease(SqlLeaseContext leaseContext, String entityId) {
-        try {
-            leaseContext.breakLease(entityId);
-            return true;
-        } catch (IllegalStateException e) {
-            return false;
-        }
+        return leaseContext.breakLease(entityId).succeeded();
     }
 
     protected boolean isLeased(String entityId) {
