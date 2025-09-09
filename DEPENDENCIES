@@ -47,7 +47,7 @@ maven/mavencentral/com.github.docker-java/docker-java-transport-zerodep/3.4.2, A
 maven/mavencentral/com.github.docker-java/docker-java-transport/3.4.2, Apache-2.0, approved, #20873
 maven/mavencentral/com.github.jknack/handlebars-helpers/4.3.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.github.jknack/handlebars/4.3.1, MIT AND Apache-2.0, approved, #3064
-maven/mavencentral/com.github.luben/zstd-jni/1.5.6-6, BSD-2-Clause, approved, #19830
+maven/mavencentral/com.github.luben/zstd-jni/1.5.6-10, BSD-2-Clause, approved, #19830
 maven/mavencentral/com.google.code.findbugs/jsr305/3.0.2, Apache-2.0 and CC-BY-2.5, approved, #15220
 maven/mavencentral/com.google.code.gson/gson/2.10.1, Apache-2.0, approved, #6159
 maven/mavencentral/com.google.crypto.tink/tink/1.18.0, Apache-2.0, approved, clearlydefined
@@ -162,7 +162,7 @@ maven/mavencentral/org.apache.httpcomponents/httpclient/4.5.13, Apache-2.0, appr
 maven/mavencentral/org.apache.httpcomponents/httpcore/4.4.13, Apache-2.0, approved, CQ23528
 maven/mavencentral/org.apache.httpcomponents/httpcore/4.4.14, Apache-2.0, approved, CQ23528
 maven/mavencentral/org.apache.httpcomponents/httpmime/4.5.13, Apache-2.0, approved, CQ11718
-maven/mavencentral/org.apache.kafka/kafka-clients/4.0.0, Apache-2.0 AND (Apache-2.0 AND MIT) AND (Apache-2.0 AND BSD-3-Clause), approved, #20386
+maven/mavencentral/org.apache.kafka/kafka-clients/4.1.0, , restricted, clearlydefined
 maven/mavencentral/org.apache.maven.doxia/doxia-core/1.12.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.maven.doxia/doxia-logging-api/1.12.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.maven.doxia/doxia-module-xdoc/1.12.0, Apache-2.0, approved, clearlydefined
@@ -247,7 +247,7 @@ maven/mavencentral/org.glassfish.jersey.media/jersey-media-multipart/3.1.11, EPL
 maven/mavencentral/org.glassfish/jakarta.json/2.0.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jsonp
 maven/mavencentral/org.glassfish/jakarta.json/2.0.1, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jsonp
 maven/mavencentral/org.hamcrest/hamcrest-core/1.3, BSD-2-Clause, approved, CQ11429
-maven/mavencentral/org.hamcrest/hamcrest-core/2.2, None, restricted, #23163
+maven/mavencentral/org.hamcrest/hamcrest-core/2.2, BSD-3-Clause, approved, #23163
 maven/mavencentral/org.hamcrest/hamcrest/2.1, BSD-3-Clause, approved, clearlydefined
 maven/mavencentral/org.hamcrest/hamcrest/2.2, BSD-3-Clause, approved, #17677
 maven/mavencentral/org.hdrhistogram/HdrHistogram/2.2.2, BSD-2-Clause AND CC0-1.0 AND CC0-1.0, approved, #14828
@@ -257,7 +257,6 @@ maven/mavencentral/org.jetbrains.kotlin/kotlin-stdlib/2.1.21, Apache-2.0, approv
 maven/mavencentral/org.jetbrains.kotlin/kotlin-stdlib/2.2.0, Apache-2.0, approved, #22410
 maven/mavencentral/org.jetbrains/annotations/13.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.jetbrains/annotations/17.0.0, Apache-2.0, approved, #19678
-maven/mavencentral/org.jetbrains/annotations/26.0.2, Apache-2.0, approved, #16629
 maven/mavencentral/org.jetbrains/annotations/26.0.2-1, Apache-2.0, approved, #16629
 maven/mavencentral/org.jspecify/jspecify/1.0.0, Apache-2.0, approved, #21897
 maven/mavencentral/org.junit-pioneer/junit-pioneer/2.3.0, EPL-2.0, approved, #16678
@@ -309,7 +308,7 @@ maven/mavencentral/org.testcontainers/testcontainers/1.21.3, MIT, approved, #208
 maven/mavencentral/org.testcontainers/vault/1.21.3, MIT, approved, clearlydefined
 maven/mavencentral/org.wiremock/wiremock-jetty12/3.13.1, Apache-2.0, approved, #21027
 maven/mavencentral/org.wiremock/wiremock/3.13.1, MIT AND Apache-2.0, approved, #21025
-maven/mavencentral/org.xerial.snappy/snappy-java/1.1.10.5, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #9098
+maven/mavencentral/org.xerial.snappy/snappy-java/1.1.10.7, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #9098
 maven/mavencentral/org.xmlresolver/xmlresolver/5.3.3, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.xmlunit/xmlunit-core/2.10.2, Apache-2.0, approved, #14590
 maven/mavencentral/org.xmlunit/xmlunit-legacy/2.10.2, Apache-2.0 AND BSD-3-Clause AND BSD-3-Clause, approved, #20661
