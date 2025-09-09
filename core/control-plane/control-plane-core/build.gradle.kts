@@ -23,6 +23,7 @@ dependencies {
 
     implementation(project(":core:common:lib:store-lib"))
     implementation(project(":core:common:boot"))
+    implementation(project(":core:common::participant-context-core"))
     implementation(project(":core:control-plane:control-plane-catalog"))
     implementation(project(":core:control-plane:control-plane-contract"))
     implementation(project(":core:control-plane:control-plane-contract-manager"))
