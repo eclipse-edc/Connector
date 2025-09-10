@@ -23,7 +23,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.sql.QueryExecutor;
-import org.eclipse.edc.sql.lease.SqlLeaseContextBuilder;
+import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilder;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -33,7 +33,6 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Clock;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,17 +45,15 @@ public class SqlPolicyMonitorStore extends AbstractSqlStore implements PolicyMon
 
     private final PolicyMonitorStatements statements;
     private final SqlLeaseContextBuilder leaseContext;
-    private final Clock clock;
     private final String leaseHolderName;
 
     public SqlPolicyMonitorStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
-                                 PolicyMonitorStatements statements, ObjectMapper objectMapper, Clock clock,
+                                 PolicyMonitorStatements statements, SqlLeaseContextBuilder leaseContext, ObjectMapper objectMapper,
                                  QueryExecutor queryExecutor, String leaseHolderName) {
         super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
         this.statements = statements;
-        this.clock = clock;
         this.leaseHolderName = leaseHolderName;
-        leaseContext = SqlLeaseContextBuilder.with(transactionContext, leaseHolderName, statements, clock, queryExecutor);
+        this.leaseContext = leaseContext;
     }
 
     @Override
@@ -75,20 +72,21 @@ public class SqlPolicyMonitorStore extends AbstractSqlStore implements PolicyMon
         return transactionContext.execute(() -> {
             var filter = Arrays.stream(criteria).collect(toList());
             var querySpec = QuerySpec.Builder.newInstance().filter(filter).sortField("stateTimestamp").limit(max).build();
-            var statement = statements.createQuery(querySpec)
-                    .addWhereClause(statements.getNotLeasedFilter(), clock.millis());
-
+            var statement = statements.createNextNotLeaseQuery(querySpec);
             try (
                     var connection = getConnection();
                     var stream = queryExecutor.query(connection, true, this::mapEntry, statement.getQueryAsString(), statement.getParameters())
             ) {
-                var entries = stream.collect(Collectors.toList());
-                entries.forEach(entry -> leaseContext.withConnection(connection).acquireLease(entry.getId()));
-                return entries;
+                return stream.filter(entry -> lease(connection, entry))
+                        .collect(Collectors.toList());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
         });
+    }
+
+    private boolean lease(Connection connection, PolicyMonitorEntry entry) {
+        return leaseContext.withConnection(connection).acquireLease(entry.getId()).succeeded();
     }
 
     @Override
@@ -99,11 +97,7 @@ public class SqlPolicyMonitorStore extends AbstractSqlStore implements PolicyMon
                 if (entity == null) {
                     return StoreResult.notFound(format("DataFlow %s not found", id));
                 }
-
-                leaseContext.withConnection(connection).acquireLease(entity.getId());
-                return StoreResult.success(entity);
-            } catch (IllegalStateException e) {
-                return StoreResult.alreadyLeased(format("DataFlow %s is already leased", id));
+                return leaseContext.withConnection(connection).acquireLease(entity.getId()).map(v -> entity);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -111,8 +105,8 @@ public class SqlPolicyMonitorStore extends AbstractSqlStore implements PolicyMon
     }
 
     @Override
-    public void save(PolicyMonitorEntry entity) {
-        transactionContext.execute(() -> {
+    public StoreResult<Void> save(PolicyMonitorEntry entity) {
+        return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
                 var sql = statements.getUpsertTemplate();
 
@@ -128,7 +122,7 @@ public class SqlPolicyMonitorStore extends AbstractSqlStore implements PolicyMon
                         entity.getContractId()
                 );
 
-                leaseContext.by(leaseHolderName).withConnection(connection).breakLease(entity.getId());
+                return leaseContext.by(leaseHolderName).withConnection(connection).breakLease(entity.getId());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }

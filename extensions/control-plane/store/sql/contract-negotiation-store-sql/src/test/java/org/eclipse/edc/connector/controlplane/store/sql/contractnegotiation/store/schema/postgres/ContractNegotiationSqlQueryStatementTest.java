@@ -17,10 +17,12 @@ package org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.sto
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.sql.lease.BaseSqlLeaseStatements;
 import org.eclipse.edc.sql.translation.PostgresqlOperatorTranslator;
 import org.eclipse.edc.sql.translation.SqlQueryStatement;
 import org.junit.jupiter.api.Test;
 
+import java.time.Clock;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class ContractNegotiationSqlQueryStatementTest {
 
     private static final String SELECT_STATEMENT = "SELECT * FROM test-table";
-    private final ContractNegotiationStatements postresStatements = new PostgresDialectStatements();
+    private final ContractNegotiationStatements postresStatements = new PostgresDialectStatements(new BaseSqlLeaseStatements(), Clock.systemUTC());
 
     @Test
     void singleExpression_equalsOperator() {

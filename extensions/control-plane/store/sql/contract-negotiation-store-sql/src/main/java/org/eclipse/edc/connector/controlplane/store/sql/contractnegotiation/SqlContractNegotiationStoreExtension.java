@@ -27,12 +27,13 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
+import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilderProvider;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;
 
-@Provides({ ContractNegotiationStore.class })
+@Provides({ContractNegotiationStore.class})
 @Extension(value = "SQL contract negotiation store")
 public class SqlContractNegotiationStoreExtension implements ServiceExtension {
 
@@ -60,10 +61,15 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
     @Inject
     private SqlSchemaBootstrapper sqlSchemaBootstrapper;
 
+    @Inject
+    private SqlLeaseContextBuilderProvider leaseContextBuilderProvider;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
+
+        var leaseContextBuilder = leaseContextBuilderProvider.createContextBuilder(getStatementImpl().getContractNegotiationTable());
         var sqlStore = new SqlContractNegotiationStore(dataSourceRegistry, dataSourceName, trxContext,
-                typeManager.getMapper(), getStatementImpl(), context.getRuntimeId(), clock, queryExecutor);
+                typeManager.getMapper(), getStatementImpl(), leaseContextBuilder, queryExecutor);
         context.registerService(ContractNegotiationStore.class, sqlStore);
 
         sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "contract-negotiation-schema.sql");
@@ -73,6 +79,6 @@ public class SqlContractNegotiationStoreExtension implements ServiceExtension {
      * returns an externally-provided sql statement dialect, or postgres as a default
      */
     private ContractNegotiationStatements getStatementImpl() {
-        return statements != null ? statements : new PostgresDialectStatements();
+        return statements != null ? statements : new PostgresDialectStatements(leaseContextBuilderProvider.getStatements(), clock);
     }
 }

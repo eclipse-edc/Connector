@@ -125,6 +125,19 @@ class SqlExecuteStatementTest {
         }
 
         @Test
+        void shouldReturnStatement_whenThereWhereConditions() {
+            var statement = SqlExecuteStatement.newInstance("::json")
+                    .column("id")
+                    .column("column_name")
+                    .column("another_column_name")
+                    .upsertInto("table_name", "id", "another_column_name = ?");
+
+            assertThat(statement).isEqualToIgnoringCase("insert into table_name (id, column_name, another_column_name) values (?, ?, ?)" +
+                    " on conflict (id) do update set column_name = excluded.column_name, another_column_name = excluded.another_column_name" +
+                    " WHERE another_column_name = ?;");
+        }
+
+        @Test
         void shouldReturnStatement_whenJsonColumn() {
             var statement = SqlExecuteStatement.newInstance("::json")
                     .column("id")

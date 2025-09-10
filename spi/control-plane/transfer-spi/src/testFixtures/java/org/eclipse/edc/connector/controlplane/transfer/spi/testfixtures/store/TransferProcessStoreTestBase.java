@@ -412,8 +412,11 @@ public abstract class TransferProcessStoreTestBase {
 
             t1.transitionProvisioning(ResourceManifest.Builder.newInstance().build()); //modify
 
-            // leased by someone else -> throw exception
-            assertThatThrownBy(() -> getTransferProcessStore().save(t1)).isInstanceOf(IllegalStateException.class);
+            // leased by someone else -> lease error
+
+            assertThat(getTransferProcessStore().save(t1)).isFailed()
+                    .extracting(StoreFailure::getReason)
+                    .isEqualTo(ALREADY_LEASED);
         }
 
         @Test
@@ -453,7 +456,9 @@ public abstract class TransferProcessStoreTestBase {
             leaseEntity(t1.getId(), CONNECTOR_NAME);
 
 
-            assertThatThrownBy(() -> getTransferProcessStore().delete("id1")).isInstanceOf(IllegalStateException.class);
+            assertThat(getTransferProcessStore().delete("id1")).isFailed()
+                    .extracting(StoreFailure::getReason)
+                    .isEqualTo(ALREADY_LEASED);
         }
 
         @Test
@@ -463,7 +468,9 @@ public abstract class TransferProcessStoreTestBase {
 
             leaseEntity(t1.getId(), "someone-else");
 
-            assertThatThrownBy(() -> getTransferProcessStore().delete("id1")).isInstanceOf(IllegalStateException.class);
+            assertThat(getTransferProcessStore().delete("id1")).isFailed()
+                    .extracting(StoreFailure::getReason)
+                    .isEqualTo(ALREADY_LEASED);
         }
 
         @Test

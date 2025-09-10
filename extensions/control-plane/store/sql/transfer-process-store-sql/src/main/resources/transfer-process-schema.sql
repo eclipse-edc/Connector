@@ -5,9 +5,9 @@ CREATE TABLE IF NOT EXISTS edc_lease
     leased_by      VARCHAR NOT NULL,
     leased_at      BIGINT,
     lease_duration INTEGER NOT NULL,
-    lease_id       VARCHAR NOT NULL
-        CONSTRAINT lease_pk
-            PRIMARY KEY
+    resource_id       VARCHAR NOT NULL,
+    resource_kind  VARCHAR NOT NULL,
+    PRIMARY KEY(resource_id, resource_kind)
 );
 
 COMMENT ON COLUMN edc_lease.leased_at IS 'posix timestamp of lease';
@@ -42,11 +42,7 @@ CREATE TABLE IF NOT EXISTS edc_transfer_process
     protocol                   VARCHAR,
     asset_id                   VARCHAR,
     contract_id                VARCHAR,
-    data_destination           JSON,
-    lease_id                   VARCHAR
-            CONSTRAINT transfer_process_lease_lease_id_fk
-                REFERENCES edc_lease
-                ON DELETE SET NULL
+    data_destination           JSON
 );
 
 COMMENT ON COLUMN edc_transfer_process.trace_context IS 'Java Map serialized as JSON';
@@ -63,11 +59,6 @@ COMMENT ON COLUMN edc_transfer_process.deprovisioned_resources IS 'List of depro
 CREATE UNIQUE INDEX IF NOT EXISTS transfer_process_id_uindex
     ON edc_transfer_process (transferprocess_id);
 
-CREATE UNIQUE INDEX IF NOT EXISTS lease_lease_id_uindex
-    ON edc_lease (lease_id);
-
-CREATE INDEX IF NOT EXISTS transfer_process_lease_id_index
-    ON edc_transfer_process (lease_id);
 
 -- This will help to identify states that need to be transitioned without a table scan when the entries grow
 CREATE INDEX IF NOT EXISTS transfer_process_state ON edc_transfer_process (state,state_time_stamp);

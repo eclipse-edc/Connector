@@ -14,24 +14,27 @@
 
 package org.eclipse.edc.spi.persistence;
 
+import org.eclipse.edc.spi.result.StoreResult;
+
 /**
  * Interface for storage implementations that need to "lease" certain entities, i.e. block them from subsequent
  * read/write access.
  */
 public interface LeaseContext {
+
     /**
      * Breaks the exclusive Lock on an entity
      *
      * @param entityId The database ID of the entity
-     * @throws RuntimeException or subclass if the lease could not be broken, e.g. because another holder holds it.
+     * @return a {@link StoreResult} indicating success or failure. Failure can happen if another holder holds the lease
      */
-    void breakLease(String entityId);
+    StoreResult<Void> breakLease(String entityId);
 
     /**
      * Acquires the exclusive Lock on an entity
      *
      * @param entityId The database ID of the entity
-     * @throws RuntimeException or subclass if the lease could not be acquired, e.g. because another holder holds it.
+     * @return a {@link StoreResult} indicating success or failure. Failure can happen if another holder already holds the lease.
      */
-    void acquireLease(String entityId);
+    StoreResult<Void> acquireLease(String entityId);
 }

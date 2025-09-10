@@ -29,7 +29,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.ResultSetMapper;
-import org.eclipse.edc.sql.lease.SqlLeaseContextBuilder;
+import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilder;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -39,7 +39,6 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Clock;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -54,16 +53,14 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
 
     private final ContractNegotiationStatements statements;
     private final SqlLeaseContextBuilder leaseContext;
-    private final Clock clock;
 
     public SqlContractNegotiationStore(DataSourceRegistry dataSourceRegistry, String dataSourceName,
                                        TransactionContext transactionContext, ObjectMapper objectMapper,
-                                       ContractNegotiationStatements statements, String leaseHolderName, Clock clock,
+                                       ContractNegotiationStatements statements, SqlLeaseContextBuilder leaseContext,
                                        QueryExecutor queryExecutor) {
         super(dataSourceRegistry, dataSourceName, transactionContext, objectMapper, queryExecutor);
         this.statements = statements;
-        this.clock = clock;
-        leaseContext = SqlLeaseContextBuilder.with(transactionContext, leaseHolderName, statements, clock, queryExecutor);
+        this.leaseContext = leaseContext;
     }
 
     @Override
@@ -82,20 +79,21 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
         return transactionContext.execute(() -> {
             var filter = Arrays.stream(criteria).toList();
             var querySpec = QuerySpec.Builder.newInstance().filter(filter).sortField("stateTimestamp").limit(max).build();
-            var statement = statements.createNegotiationsQuery(querySpec)
-                    .addWhereClause(statements.getNotLeasedFilter(), clock.millis());
+            var statement = statements.createNegotiationNextNotLeaseQuery(querySpec);
 
             try (
                     var connection = getConnection();
                     var stream = queryExecutor.query(getConnection(), true, contractNegotiationWithAgreementMapper(connection), statement.getQueryAsString(), statement.getParameters())
             ) {
-                var negotiations = stream.collect(toList());
-                negotiations.forEach(cn -> leaseContext.withConnection(connection).acquireLease(cn.getId()));
-                return negotiations;
+                return stream.filter(n -> lease(connection, n)).collect(toList());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
         });
+    }
+
+    private boolean lease(Connection connection, ContractNegotiation entry) {
+        return leaseContext.withConnection(connection).acquireLease(entry.getId()).succeeded();
     }
 
     @Override
@@ -106,11 +104,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 if (entity == null) {
                     return StoreResult.notFound(format("ContractNegotiation %s not found", id));
                 }
-
-                leaseContext.withConnection(connection).acquireLease(id);
-                return StoreResult.success(entity);
-            } catch (IllegalStateException e) {
-                return StoreResult.alreadyLeased(format("ContractNegotiation %s is already leased", id));
+                return leaseContext.withConnection(connection).acquireLease(id).map(it -> entity);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -118,8 +112,8 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     }
 
     @Override
-    public void save(ContractNegotiation negotiation) {
-        transactionContext.execute(() -> {
+    public StoreResult<Void> save(ContractNegotiation negotiation) {
+        return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
 
                 var contractAgreement = negotiation.getContractAgreement();
@@ -158,7 +152,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                         negotiation.isPending(),
                         toJson(negotiation.getProtocolMessages()));
 
-                leaseContext.withConnection(connection).breakLease(negotiation.getId());
+                return leaseContext.withConnection(connection).breakLease(negotiation.getId());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -189,16 +183,16 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
             try (var connection = getConnection()) {
 
                 // attempt to acquire lease - should fail if someone else holds the lease
-                leaseContext.withConnection(connection).acquireLease(negotiationId);
+                var result = leaseContext.withConnection(connection).acquireLease(negotiationId);
+                if (result.failed()) {
+                    return result;
+                }
 
                 var stmt = statements.getDeleteTemplate();
                 queryExecutor.execute(connection, stmt, negotiationId);
 
                 //necessary to delete the row in edc_lease
-                leaseContext.withConnection(connection).breakLease(negotiationId);
-
-                // return existing;
-                return StoreResult.success();
+                return leaseContext.withConnection(connection).breakLease(negotiationId);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }

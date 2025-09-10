@@ -29,7 +29,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.QueryExecutor;
-import org.eclipse.edc.sql.lease.SqlLeaseContextBuilder;
+import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilder;
 import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -39,7 +39,6 @@ import org.jetbrains.annotations.Nullable;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.Clock;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -55,19 +54,15 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
  */
 public class SqlTransferProcessStore extends AbstractSqlStore implements TransferProcessStore {
     private final TransferProcessStoreStatements statements;
-    private final String leaseHolderName;
     private final SqlLeaseContextBuilder leaseContext;
-    private final Clock clock;
 
     public SqlTransferProcessStore(DataSourceRegistry dataSourceRegistry, String datasourceName,
                                    TransactionContext transactionContext, ObjectMapper objectMapper,
-                                   TransferProcessStoreStatements statements, String leaseHolderName, Clock clock,
+                                   TransferProcessStoreStatements statements, SqlLeaseContextBuilder leaseContext,
                                    QueryExecutor queryExecutor) {
         super(dataSourceRegistry, datasourceName, transactionContext, objectMapper, queryExecutor);
         this.statements = statements;
-        this.leaseHolderName = leaseHolderName;
-        this.clock = clock;
-        leaseContext = SqlLeaseContextBuilder.with(transactionContext, leaseHolderName, statements, clock, queryExecutor);
+        this.leaseContext = leaseContext;
     }
 
     @Override
@@ -86,20 +81,20 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
         return transactionContext.execute(() -> {
             var filter = Arrays.stream(criteria).collect(toList());
             var querySpec = QuerySpec.Builder.newInstance().filter(filter).sortField("stateTimestamp").limit(max).build();
-            var statement = statements.createQuery(querySpec)
-                    .addWhereClause(statements.getNotLeasedFilter(), clock.millis());
-
+            var statement = statements.createNextNotLeaseQuery(querySpec);
             try (
                     var connection = getConnection();
                     var stream = queryExecutor.query(connection, true, this::mapTransferProcess, statement.getQueryAsString(), statement.getParameters())
             ) {
-                var transferProcesses = stream.collect(Collectors.toList());
-                transferProcesses.forEach(transferProcess -> leaseContext.withConnection(connection).acquireLease(transferProcess.getId()));
-                return transferProcesses;
+                return stream.filter(tp -> lease(connection, tp)).collect(Collectors.toList());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
         });
+    }
+
+    private boolean lease(Connection connection, TransferProcess entry) {
+        return leaseContext.withConnection(connection).acquireLease(entry.getId()).succeeded();
     }
 
     @Override
@@ -111,10 +106,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                     return StoreResult.notFound(format("TransferProcess %s not found", id));
                 }
 
-                leaseContext.withConnection(connection).acquireLease(entity.getId());
-                return StoreResult.success(entity);
-            } catch (IllegalStateException e) {
-                return StoreResult.alreadyLeased(format("TransferProcess %s is already leased", id));
+                return leaseContext.withConnection(connection).acquireLease(entity.getId()).map(it -> entity);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -122,9 +114,9 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     }
 
     @Override
-    public void save(TransferProcess entity) {
+    public StoreResult<Void> save(TransferProcess entity) {
         Objects.requireNonNull(entity.getId(), "TransferProcesses must have an ID!");
-        transactionContext.execute(() -> {
+        return transactionContext.execute(() -> {
             try (var conn = getConnection()) {
                 var sql = statements.getUpsertStatement();
                 queryExecutor.execute(conn, sql, entity.getId(),
@@ -153,7 +145,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                         entity.getContractId(),
                         toJson(entity.getDataDestination()));
 
-                leaseContext.by(leaseHolderName).withConnection(conn).breakLease(entity.getId());
+                return leaseContext.withConnection(conn).breakLease(entity.getId());
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }
@@ -171,25 +163,27 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     }
 
     @Override
-    public void delete(String processId) {
-
-        transactionContext.execute(() -> {
+    public StoreResult<Void> delete(String processId) {
+        return transactionContext.execute(() -> {
             var existing = findById(processId);
             if (existing != null) {
                 try (var conn = getConnection()) {
                     // attempt to acquire lease - should fail if someone else holds the lease
-                    leaseContext.by(leaseHolderName).withConnection(conn).acquireLease(processId);
+                    var result = leaseContext.withConnection(conn).acquireLease(processId);
+                    if (result.failed()) {
+                        return result;
+                    }
 
                     var stmt = statements.getDeleteTransferProcessTemplate();
                     queryExecutor.execute(conn, stmt, processId);
 
                     //necessary to delete the row in edc_lease
-                    leaseContext.by(leaseHolderName).withConnection(conn).breakLease(processId);
+                    return leaseContext.withConnection(conn).breakLease(processId);
                 } catch (SQLException e) {
                     throw new EdcPersistenceException(e);
                 }
             }
-
+            return StoreResult.success();
         });
     }
 

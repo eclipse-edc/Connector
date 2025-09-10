@@ -72,8 +72,7 @@ public class InMemoryContractNegotiationStore extends InMemoryStatefulEntityStor
             if (existing == null) {
                 return StoreResult.notFound(format("ContractNegotiation %s not found", negotiationId));
             }
-            super.delete(negotiationId);
-            return StoreResult.success();
+            return super.delete(negotiationId);
         } finally {
             lock.writeLock().unlock();
         }

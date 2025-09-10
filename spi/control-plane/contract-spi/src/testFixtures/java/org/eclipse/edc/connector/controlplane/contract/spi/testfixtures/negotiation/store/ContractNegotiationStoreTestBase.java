@@ -270,7 +270,10 @@ public abstract class ContractNegotiationStoreTestBase {
 
             // update should break lease
             assertThat(isLeasedBy(id, "someone-else")).isTrue();
-            assertThatThrownBy(() -> getContractNegotiationStore().save(newNegotiation)).isInstanceOf(IllegalStateException.class);
+
+            assertThat(getContractNegotiationStore().save(newNegotiation)).isFailed()
+                    .extracting(StoreFailure::getReason)
+                    .isEqualTo(ALREADY_LEASED);
         }
 
         @Test
@@ -378,7 +381,9 @@ public abstract class ContractNegotiationStoreTestBase {
 
             leaseEntity(id, CONNECTOR_NAME);
 
-            assertThatThrownBy(() -> getContractNegotiationStore().deleteById(id)).isInstanceOf(IllegalStateException.class);
+            assertThat(getContractNegotiationStore().deleteById(id)).isFailed()
+                    .extracting(StoreFailure::getReason)
+                    .isEqualTo(ALREADY_LEASED);
         }
 
         @Test
@@ -390,7 +395,9 @@ public abstract class ContractNegotiationStoreTestBase {
 
             leaseEntity(id, "someone-else");
 
-            assertThatThrownBy(() -> getContractNegotiationStore().deleteById(id)).isInstanceOf(IllegalStateException.class);
+            assertThat(getContractNegotiationStore().deleteById(id)).isFailed()
+                    .extracting(StoreFailure::getReason)
+                    .isEqualTo(ALREADY_LEASED);
         }
 
     }
@@ -703,7 +710,7 @@ public abstract class ContractNegotiationStoreTestBase {
                     .state(REQUESTED.code())
                     .type(CONSUMER)
                     .build()).forEach(getContractNegotiationStore()::save);
-            var criteria = new Criterion[] {hasState(REQUESTED.code()), new Criterion("type", "=", "CONSUMER")};
+            var criteria = new Criterion[]{hasState(REQUESTED.code()), new Criterion("type", "=", "CONSUMER")};
 
             var result = getContractNegotiationStore().nextNotLeased(10, criteria);
 

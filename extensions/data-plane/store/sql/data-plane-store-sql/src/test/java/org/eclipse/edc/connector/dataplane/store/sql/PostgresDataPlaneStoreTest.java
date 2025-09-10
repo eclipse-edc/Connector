@@ -22,6 +22,9 @@ import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.sql.QueryExecutor;
+import org.eclipse.edc.sql.lease.BaseSqlLeaseStatements;
+import org.eclipse.edc.sql.lease.SqlLeaseContextBuilderImpl;
+import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.testfixtures.LeaseUtil;
 import org.eclipse.edc.sql.testfixtures.PostgresqlStoreSetupExtension;
 import org.junit.jupiter.api.AfterEach;
@@ -36,7 +39,8 @@ import java.time.Duration;
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 public class PostgresDataPlaneStoreTest extends DataPlaneStoreTestBase {
 
-    private final DataFlowStatements statements = new PostgresDataFlowStatements();
+    private final LeaseStatements leaseStatements = new BaseSqlLeaseStatements();
+    private final DataFlowStatements statements = new PostgresDataFlowStatements(leaseStatements, Clock.systemUTC());
     private LeaseUtil leaseUtil;
     private SqlDataPlaneStore store;
 
@@ -46,9 +50,12 @@ public class PostgresDataPlaneStoreTest extends DataPlaneStoreTestBase {
 
         var clock = Clock.systemUTC();
 
-        leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements, clock);
+        leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements.getDataPlaneTable(), leaseStatements, clock);
+
+        var leaseContextBuilder = SqlLeaseContextBuilderImpl.with(extension.getTransactionContext(), CONNECTOR_NAME, statements.getDataPlaneTable(), leaseStatements, clock, queryExecutor);
+
         store = new SqlDataPlaneStore(extension.getDataSourceRegistry(), extension.getDatasourceName(), extension.getTransactionContext(),
-                statements, typeManager.getMapper(), clock, queryExecutor, "test-connector");
+                statements, leaseContextBuilder, typeManager.getMapper(), queryExecutor);
         var schema = TestUtils.getResourceFileContentAsString("dataplane-schema.sql");
         extension.runQuery(schema);
     }
