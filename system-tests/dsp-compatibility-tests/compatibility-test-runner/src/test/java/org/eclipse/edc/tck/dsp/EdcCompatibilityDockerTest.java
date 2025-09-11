@@ -44,7 +44,7 @@ import static org.eclipse.edc.util.io.Ports.getFreePort;
 @Testcontainers
 public class EdcCompatibilityDockerTest {
 
-    private static final GenericContainer<?> TCK_CONTAINER = new TckContainer<>("eclipsedataspacetck/dsp-tck-runtime:1.0.0-RC4");
+    private static final GenericContainer<?> TCK_CONTAINER = new TckContainer<>("eclipsedataspacetck/dsp-tck-runtime:1.0.0-RC5");
     @RegisterExtension
     protected static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime("CUT",
             ":system-tests:dsp-compatibility-tests:connector-under-test"
