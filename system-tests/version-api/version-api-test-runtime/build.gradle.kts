@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":core:common:runtime-core"))
     implementation(project(":core:common:token-core"))
     implementation(project(":core:common:edr-store-core"))
+    implementation(project(":core:common::participant-context-single-core"))
     implementation(project(":core:control-plane:control-plane-core"))
     implementation(project(":data-protocols:dsp"))
     implementation(project(":extensions:common:http"))
