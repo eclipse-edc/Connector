@@ -20,6 +20,7 @@ dependencies {
     implementation(project(":core:common:token-core"))
     implementation(project(":core:common:runtime-core"))
     implementation(project(":core:control-plane:control-plane-core"))
+    implementation(project(":core:common::participant-context-single-core"))
     implementation(project(":data-protocols:dsp"))
     implementation(project(":data-protocols:dsp:dsp-2025"))
     implementation(project(":extensions:common:http"))

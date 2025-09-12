@@ -100,7 +100,8 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                         asset.getCreatedAt(),
                         toJson(asset.getProperties()),
                         toJson(asset.getPrivateProperties()),
-                        toJson(asset.getDataAddress().getProperties())
+                        toJson(asset.getDataAddress().getProperties()),
+                        asset.getParticipantContextId()
                 );
 
                 return StoreResult.success();
@@ -192,6 +193,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                 .dataAddress(DataAddress.Builder.newInstance()
                         .properties(fromJson(resultSet.getString(assetStatements.getDataAddressColumn()), getTypeRef()))
                         .build())
+                .participantContextId(resultSet.getString(assetStatements.getParticipantContextIdColumn()))
                 .build();
     }
 

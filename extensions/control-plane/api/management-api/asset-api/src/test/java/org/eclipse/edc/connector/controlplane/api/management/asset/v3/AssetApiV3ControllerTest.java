@@ -23,10 +23,9 @@ class AssetApiV3ControllerTest extends BaseAssetApiControllerTest {
 
     @Override
     protected Object controller() {
-        return new AssetApiV3Controller(service, transformerRegistry, monitor, validator);
+        return new AssetApiV3Controller(service, transformerRegistry, monitor, validator, participantContextSupplier);
     }
-
-
+    
     @Override
     protected String versionPath() {
         return "v3";
