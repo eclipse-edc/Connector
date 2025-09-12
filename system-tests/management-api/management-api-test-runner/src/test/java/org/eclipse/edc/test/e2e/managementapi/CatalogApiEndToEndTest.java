@@ -269,6 +269,7 @@ public class CatalogApiEndToEndTest {
         private Asset.Builder createAsset(String id, DataAddress address) {
             return Asset.Builder.newInstance()
                     .dataAddress(address)
+                    .participantContextId("participantContextId")
                     .id(id);
         }
 

@@ -124,6 +124,8 @@ public class AssetApiEndToEndTest {
                     .asInstanceOf(MAP)
                     .containsEntry(EDC_NAMESPACE + "simple", List.of(Map.of(VALUE, "value")))
                     .containsEntry(EDC_NAMESPACE + "nested", List.of(Map.of(EDC_NAMESPACE + "innerValue", List.of(Map.of(VALUE, "value")))));
+
+            assertThat(asset.getParticipantContextId()).isNotNull();
         }
 
         @Test
@@ -259,7 +261,7 @@ public class AssetApiEndToEndTest {
         void queryAsset_byContentType(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
             //insert one asset into the index
             var id = UUID.randomUUID().toString();
-            var asset = Asset.Builder.newInstance().id(id).contentType("application/octet-stream").dataAddress(createDataAddress().build()).build();
+            var asset = Asset.Builder.newInstance().id(id).contentType("application/octet-stream").dataAddress(createDataAddress().build()).participantContextId("participantContextId").build();
             assetIndex.create(asset);
 
             var query = createObjectBuilder()
@@ -292,6 +294,7 @@ public class AssetApiEndToEndTest {
                     .contentType("application/octet-stream")
                     .property("myProp", "myVal")
                     .dataAddress(createDataAddress().build())
+                    .participantContextId("participantContextId")
                     .build());
 
             context.baseRequest()
@@ -353,6 +356,7 @@ public class AssetApiEndToEndTest {
                     .id(id)
                     .contentType("application/octet-stream")
                     .dataAddress(createDataAddress().build())
+                    .participantContextId("participantContextId")
                     .build());
 
             var assets = context.baseRequest()
@@ -420,7 +424,8 @@ public class AssetApiEndToEndTest {
                     .description("test description")
                     .contentType("application/json")
                     .version("0.4.2")
-                    .dataAddress(createDataAddress().build());
+                    .dataAddress(createDataAddress().build())
+                    .participantContextId("participantContextId");
         }
 
         private JsonObjectBuilder createPropertiesBuilder() {

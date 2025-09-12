@@ -26,6 +26,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.connector.controlplane.api.management.asset.BaseAssetApiController;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
@@ -42,8 +43,8 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 public class AssetApiV4Controller extends BaseAssetApiController implements AssetApiV4 {
 
     public AssetApiV4Controller(AssetService service, TypeTransformerRegistry transformerRegistry,
-                                Monitor monitor, JsonObjectValidatorRegistry validator) {
-        super(transformerRegistry, service, monitor, validator);
+                                Monitor monitor, JsonObjectValidatorRegistry validator, SingleParticipantContextSupplier participantContextSupplier) {
+        super(transformerRegistry, service, monitor, validator, participantContextSupplier);
     }
 
     @POST

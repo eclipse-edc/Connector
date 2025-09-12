@@ -23,7 +23,7 @@ class AssetApiV4ControllerTest extends BaseAssetApiControllerTest {
 
     @Override
     protected Object controller() {
-        return new AssetApiV4Controller(service, transformerRegistry, monitor, validator);
+        return new AssetApiV4Controller(service, transformerRegistry, monitor, validator, participantContextSupplier);
     }
 
     @Override

@@ -73,7 +73,9 @@ public class DataAssembly {
         var assets = ASSET_IDS.stream().map(DataAssembly::createAsset).collect(toSet());
 
         assets.add(Asset.Builder.newInstance().id("ATP0101")
-                .dataAddress(DataAddress.Builder.newInstance().type("HttpData").build()).build());
+                .dataAddress(DataAddress.Builder.newInstance().type("HttpData").build())
+                .participantContextId("participantContextId")
+                .build());
         return assets;
     }
 
@@ -131,7 +133,7 @@ public class DataAssembly {
 
     private static void record02NegotiationSequences(StepRecorder<ContractNegotiation> recorder) {
         recorder.record("ACN0201", ContractNegotiation::transitionTerminating);
-        
+
         recorder.record("ACN0203", ContractNegotiation::transitionAgreeing);
 
         recorder.record("ACN0204", ContractNegotiation::transitionOffering);
@@ -341,6 +343,7 @@ public class DataAssembly {
         return Asset.Builder.newInstance()
                 .id(id)
                 .dataAddress(DataAddress.Builder.newInstance().type("HttpData").build())
+                .participantContextId("participantContextId")
                 .build();
     }
 
