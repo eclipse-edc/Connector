@@ -56,8 +56,10 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
     private final JsonLd jsonLd;
     private final Monitor monitor;
     private final String dcpContextUrl;
+    private final boolean typeAsAlias;
 
-    public DefaultCredentialServiceClient(EdcHttpClient httpClient, JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd, Monitor monitor, String dcpContextUrl) {
+    public DefaultCredentialServiceClient(EdcHttpClient httpClient, JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext, TypeTransformerRegistry transformerRegistry,
+                                          JsonLd jsonLd, Monitor monitor, String dcpContextUrl, boolean typeAsAlias) {
         this.httpClient = httpClient;
         this.jsonFactory = jsonFactory;
         this.typeManager = typeManager;
@@ -66,6 +68,7 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
         this.jsonLd = jsonLd;
         this.monitor = monitor;
         this.dcpContextUrl = dcpContextUrl;
+        this.typeAsAlias = typeAsAlias;
     }
 
     @Override
@@ -165,7 +168,7 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
                 .add(JsonLdKeywords.CONTEXT, jsonFactory.createArrayBuilder()
                         .add(VcConstants.PRESENTATION_EXCHANGE_URL)
                         .add(dcpContextUrl))
-                .add(JsonLdKeywords.TYPE, PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_TERM)
+                .add(typeField(), PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_TERM)
                 .add("scope", scopeArray.build())
                 .build();
     }
@@ -175,8 +178,12 @@ public class DefaultCredentialServiceClient implements CredentialServiceClient {
         return jsonFactory.createObjectBuilder()
                 .add(JsonLdKeywords.CONTEXT, jsonFactory.createArrayBuilder()
                         .add(dcpContextUrl))
-                .add(JsonLdKeywords.TYPE, PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_TERM)
+                .add(typeField(), PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_TERM)
                 .add("presentationDefinition", presentationObject)
                 .build();
+    }
+
+    private String typeField() {
+        return typeAsAlias ? "type" : JsonLdKeywords.TYPE;
     }
 }

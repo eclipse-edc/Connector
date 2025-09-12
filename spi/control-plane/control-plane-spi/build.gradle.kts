@@ -23,6 +23,7 @@ dependencies {
     api(project(":spi:control-plane:catalog-spi"))
     api(project(":spi:control-plane:contract-spi"))
     api(project(":spi:control-plane:transfer-spi"))
+    api(project(":spi:common:participant-context-spi"))
 }
 
 

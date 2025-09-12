@@ -46,6 +46,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -99,7 +100,7 @@ public class DcpPresentationFlowTest {
                             "edc.iam.sts.oauth.client.secret.alias", "test-secret-alias"
                     )))
     );
-    
+
     @RegisterExtension
     static WireMockExtension server = WireMockExtension.newInstance()
             .options(wireMockConfig().port(DID_SERVER_PORT))
@@ -170,9 +171,12 @@ public class DcpPresentationFlowTest {
         var holderDid = "did:web:localhost%3A" + CALLBACK_PORT + ":holder";
         var thirdPartyDid = "did:web:localhost%3A" + CALLBACK_PORT + ":thirdparty";
         var baseCallbackUrl = "http://localhost:%s".formatted(CALLBACK_PORT);
+        var baseCallbackUri = URI.create(baseCallbackUrl);
         var result = TckRuntime.Builder.newInstance()
                 .properties(Map.of(
                         "dataspacetck.callback.address", baseCallbackUrl,
+                        "dataspacetck.host", baseCallbackUri.getHost(),
+                        "dataspacetck.port", String.valueOf(baseCallbackUri.getPort()),
                         "dataspacetck.launcher", "org.eclipse.dataspacetck.dcp.system.DcpSystemLauncher",
                         "dataspacetck.did.verifier", VERIFIER_DID,
                         "dataspacetck.did.holder", holderDid,

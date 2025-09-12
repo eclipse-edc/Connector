@@ -47,6 +47,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -101,7 +102,7 @@ public class DcpPresentationFlowWithDockerTest {
                             "edc.iam.sts.oauth.client.secret.alias", "test-secret-alias"
                     )))
     );
-    
+
     @RegisterExtension
     static WireMockExtension server = WireMockExtension.newInstance()
             .options(wireMockConfig().port(DID_SERVER_PORT))
@@ -171,12 +172,15 @@ public class DcpPresentationFlowWithDockerTest {
         var holderDid = "did:web:0.0.0.0%3A" + CALLBACK_PORT + ":holder";
         var thirdPartyDid = "did:web:0.0.0.0%3A" + CALLBACK_PORT + ":thirdparty";
         var baseCallbackUrl = "http://0.0.0.0:%s".formatted(CALLBACK_PORT);
+        var baseCallbackUri = URI.create(baseCallbackUrl);
 
-        try (var tckContainer = new GenericContainer<>("eclipsedataspacetck/dcp-tck-runtime:1.0.0-RC4")
+        try (var tckContainer = new GenericContainer<>("eclipsedataspacetck/dcp-tck-runtime:1.0.0-RC5")
                 .withExtraHost("host.docker.internal", "host-gateway")
                 .withExposedPorts(CALLBACK_PORT)
                 .withEnv(Map.of(
                         "dataspacetck.callback.address", baseCallbackUrl,
+                        "dataspacetck.host", baseCallbackUri.getHost(),
+                        "dataspacetck.port", String.valueOf(baseCallbackUri.getPort()),
                         "dataspacetck.launcher", "org.eclipse.dataspacetck.dcp.system.DcpSystemLauncher",
                         "dataspacetck.did.verifier", VERIFIER_DID,
                         "dataspacetck.did.holder", holderDid,

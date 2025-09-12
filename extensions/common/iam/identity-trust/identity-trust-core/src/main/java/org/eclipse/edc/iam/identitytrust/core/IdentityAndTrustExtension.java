@@ -201,7 +201,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     public void start() {
         if (activateJtiValidation) {
             jtiEntryReaperThread = executorInstrumentation.instrument(Executors.newSingleThreadScheduledExecutor(), "JTI Validation Entry Reaper Thread")
-                                           .scheduleAtFixedRate(jtiValidationStore::deleteExpired, reaperCleanupPeriod, reaperCleanupPeriod, TimeUnit.SECONDS);
+                    .scheduleAtFixedRate(jtiValidationStore::deleteExpired, reaperCleanupPeriod, reaperCleanupPeriod, TimeUnit.SECONDS);
         }
     }
 
@@ -240,7 +240,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
 
             credentialServiceClient = new DefaultCredentialServiceClient(httpClient, Json.createBuilderFactory(Map.of()),
-                    typeManager, JSON_LD, clientTypeTransformerRegistry, jsonLd, context.getMonitor(), dcpContext());
+                    typeManager, JSON_LD, clientTypeTransformerRegistry, jsonLd, context.getMonitor(), dcpContext(), !enableDcpV08);
         }
         return credentialServiceClient;
     }
@@ -251,12 +251,12 @@ public class IdentityAndTrustExtension implements ServiceExtension {
 
             var jwtVerifier = new JwtPresentationVerifier(typeManager, JSON_LD, tokenValidationService, rulesRegistry, didPublicKeyResolver);
             var ldpVerifier = LdpVerifier.Builder.newInstance()
-                                      .signatureSuites(signatureSuiteRegistry)
-                                      .jsonLd(jsonLd)
-                                      .typeManager(typeManager)
-                                      .typeContext(JSON_LD)
-                                      .methodResolver(new DidMethodResolver(didResolverRegistry))
-                                      .build();
+                    .signatureSuites(signatureSuiteRegistry)
+                    .jsonLd(jsonLd)
+                    .typeManager(typeManager)
+                    .typeContext(JSON_LD)
+                    .methodResolver(new DidMethodResolver(didResolverRegistry))
+                    .build();
 
             presentationVerifier = new MultiFormatPresentationVerifier(issuerId, jwtVerifier, ldpVerifier);
         }
