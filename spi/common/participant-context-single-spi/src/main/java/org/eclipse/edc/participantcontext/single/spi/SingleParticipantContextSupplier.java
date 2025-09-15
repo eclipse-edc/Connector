@@ -17,6 +17,10 @@ package org.eclipse.edc.participantcontext.single.spi;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 
+/**
+ * Extension point for implementations that supply a single, static {@link org.eclipse.edc.participantcontext.spi.types.ParticipantContext}
+ * for the entire runtime.
+ */
 @ExtensionPoint
 public interface SingleParticipantContextSupplier extends ParticipantContextSupplier {
 }

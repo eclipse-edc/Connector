@@ -18,6 +18,9 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 
 import java.util.function.Supplier;
 
+/**
+ * Supplies the {@link ParticipantContext} for the current runtime context.
+ */
 @FunctionalInterface
 public interface ParticipantContextSupplier extends Supplier<ParticipantContext> {
 }

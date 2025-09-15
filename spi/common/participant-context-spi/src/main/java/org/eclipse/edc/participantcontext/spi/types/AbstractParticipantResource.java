@@ -16,16 +16,18 @@ package org.eclipse.edc.participantcontext.spi.types;
 
 import org.eclipse.edc.spi.entity.Entity;
 
+/**
+ * This is the base class for all resources that are owned by a {@link ParticipantContext}.
+ */
 public abstract class AbstractParticipantResource extends Entity implements ParticipantResource {
 
     protected String participantContextId;
-
-
+    
     @Override
     public String getParticipantContextId() {
         return participantContextId;
     }
-    
+
     protected abstract static class Builder<T extends AbstractParticipantResource, B extends AbstractParticipantResource.Builder<T, B>> extends Entity.Builder<T, B> {
 
         protected Builder(T entity) {
