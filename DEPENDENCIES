@@ -16,6 +16,7 @@ maven/mavencentral/com.atomikos/transactions-jdbc/6.0.0, Apache-2.0, approved, #
 maven/mavencentral/com.atomikos/transactions-jta/6.0.0, Apache-2.0, approved, #9275
 maven/mavencentral/com.atomikos/transactions/6.0.0, Apache-2.0, approved, #9321
 maven/mavencentral/com.ethlo.time/itu/1.10.3, Apache-2.0, approved, #13168
+maven/mavencentral/com.ethlo.time/itu/1.14.0, Apache-2.0, approved, #19505
 maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.10.3, Apache-2.0, approved, CQ21280
 maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.16.2, Apache-2.0, approved, #11606
 maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.18.0, Apache-2.0, approved, #16364
@@ -61,6 +62,7 @@ maven/mavencentral/com.h2database/h2/2.3.232, (MPL-2.0 AND EPL-1.0) AND (MPL-2.0
 maven/mavencentral/com.jayway.jsonpath/json-path/2.9.0, Apache-2.0, approved, #20009
 maven/mavencentral/com.networknt/json-schema-validator/1.5.7, Apache-2.0 AND Unicode-TOU, approved, #15630
 maven/mavencentral/com.networknt/json-schema-validator/1.5.8, Apache-2.0 AND Unicode-TOU, approved, #15630
+maven/mavencentral/com.networknt/json-schema-validator/1.5.9, Apache-2.0 AND Unicode-TOU, approved, #15630
 maven/mavencentral/com.nimbusds/nimbus-jose-jwt/10.3, Apache-2.0, approved, #22529
 maven/mavencentral/com.nimbusds/nimbus-jose-jwt/10.5, Apache-2.0, approved, #23321
 maven/mavencentral/com.puppycrawl.tools/checkstyle/11.0.0, , restricted, clearlydefined
