@@ -50,11 +50,11 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
  * Assembles data for the TCK scenarios.
  */
 public class DataAssembly {
+    public static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
     private static final Set<String> ASSET_IDS = Set.of("ACN0101", "ACN0102", "ACN0103", "ACN0104",
             "ACN0201", "ACN0202", "ACN0203", "ACN0204", "ACN0205", "ACN0206", "ACN0207",
             "ACN0301", "ACN0302", "ACN0303", "ACN0304",
             "CAT0101", "CAT0102");
-
     private static final Set<String> AGREEMENT_IDS = Set.of(
             "ATP0101", "ATP0102", "ATP0103", "ATP0104", "ATP0105",
             "ATP0201", "ATP0202", "ATP0203", "ATP0204", "ATP0205",
@@ -62,7 +62,6 @@ public class DataAssembly {
             "ATPC0101", "ATPC0102", "ATPC0103", "ATPC0104", "ATPC0105",
             "ATPC0201", "ATPC0202", "ATPC0203", "ATPC0204", "ATPC0205",
             "ATPC0301", "ATPC0302", "ATPC0303", "ATPC0304", "ATPC0305", "ATPC0306");
-
     private static final String POLICY_ID = "P123";
     private static final String CONTRACT_DEFINITION_ID = "CD123";
 
@@ -74,7 +73,7 @@ public class DataAssembly {
 
         assets.add(Asset.Builder.newInstance().id("ATP0101")
                 .dataAddress(DataAddress.Builder.newInstance().type("HttpData").build())
-                .participantContextId("participantContextId")
+                .participantContextId(PARTICIPANT_CONTEXT_ID)
                 .build());
         return assets;
     }
@@ -86,6 +85,7 @@ public class DataAssembly {
         return Set.of(PolicyDefinition.Builder.newInstance()
                 .id(POLICY_ID)
                 .policy(Policy.Builder.newInstance().permission(permission).build())
+                .participantContextId(PARTICIPANT_CONTEXT_ID)
                 .build());
     }
 
@@ -343,7 +343,7 @@ public class DataAssembly {
         return Asset.Builder.newInstance()
                 .id(id)
                 .dataAddress(DataAddress.Builder.newInstance().type("HttpData").build())
-                .participantContextId("participantContextId")
+                .participantContextId(PARTICIPANT_CONTEXT_ID)
                 .build();
     }
 
