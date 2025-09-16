@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS edc_policydefinitions
     target                VARCHAR,
     policy_type           VARCHAR NOT NULL,
     private_properties    JSON,
+    participant_context_id VARCHAR NOT NULL,
     PRIMARY KEY (policy_id)
 );
 

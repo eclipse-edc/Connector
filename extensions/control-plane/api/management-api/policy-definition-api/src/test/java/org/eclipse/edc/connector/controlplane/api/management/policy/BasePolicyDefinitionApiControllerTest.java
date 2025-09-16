@@ -23,6 +23,8 @@ import org.eclipse.edc.connector.controlplane.api.management.policy.model.Policy
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.junit.annotations.ApiTest;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -59,6 +61,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
     protected final TypeTransformerRegistry transformerRegistry = mock();
     protected final PolicyDefinitionService service = mock();
     protected final JsonObjectValidatorRegistry validatorRegistry = mock();
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> new ParticipantContext("participantId");
 
     @Test
     void create_shouldReturnDefinitionId() {

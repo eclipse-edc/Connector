@@ -22,6 +22,7 @@ dependencies {
     api(project(":spi:control-plane:contract-spi"))
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":spi:control-plane:policy-spi"))
+    api(project(":spi:common:participant-context-single-spi"))
     api(project(":spi:common:transaction-spi"))
     api(project(":spi:common:policy-model"))
 

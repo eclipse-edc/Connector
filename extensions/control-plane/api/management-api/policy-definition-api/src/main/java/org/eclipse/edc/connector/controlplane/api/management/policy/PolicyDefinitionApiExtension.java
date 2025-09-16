@@ -27,6 +27,7 @@ import org.eclipse.edc.connector.controlplane.api.management.policy.validation.P
 import org.eclipse.edc.connector.controlplane.api.management.policy.validation.PolicyEvaluationPlanRequestValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -70,6 +71,9 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
     @Inject
     private JsonLd jsonLd;
 
+    @Inject
+    private SingleParticipantContextSupplier participantContextSupplier;
+
     @Override
     public String name() {
         return NAME;
@@ -89,10 +93,10 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
         validatorRegistry.register(EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE, PolicyEvaluationPlanRequestValidator.instance());
 
         var monitor = context.getMonitor();
-        webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV3Controller(monitor, managementApiTransformerRegistry, service, validatorRegistry));
+        webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV3Controller(monitor, managementApiTransformerRegistry, service, validatorRegistry, participantContextSupplier));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, PolicyDefinitionApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
 
-        webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV4Controller(monitor, managementApiTransformerRegistry, service, validatorRegistry));
+        webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV4Controller(monitor, managementApiTransformerRegistry, service, validatorRegistry, participantContextSupplier));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, PolicyDefinitionApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
     }
 }
