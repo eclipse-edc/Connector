@@ -38,6 +38,7 @@ public class AssetMapping extends TranslationMapping {
         add("properties", new JsonFieldTranslator(statements.getPropertiesColumn()));
         add("privateProperties", new JsonFieldTranslator(statements.getPrivatePropertiesColumn()));
         add("dataAddress", new JsonFieldTranslator(statements.getDataAddressColumn()));
+        add("participantContextId", statements.getParticipantContextIdColumn());
     }
 
     /**
@@ -61,7 +62,7 @@ public class AssetMapping extends TranslationMapping {
      * it looks into properties wrapping the left operand with '', to permit handling property keys that contain a dot.
      *
      * @param criterion the criterion.
-     * @param operator the operator.
+     * @param operator  the operator.
      * @return the {@link WhereClause}.
      */
     @Override

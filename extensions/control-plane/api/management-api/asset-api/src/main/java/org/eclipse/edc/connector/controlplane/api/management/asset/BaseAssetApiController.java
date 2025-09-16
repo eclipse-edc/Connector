@@ -19,6 +19,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -40,18 +41,24 @@ public abstract class BaseAssetApiController {
     protected final AssetService service;
     protected final Monitor monitor;
     protected final JsonObjectValidatorRegistry validator;
+    private final SingleParticipantContextSupplier participantContextSupplier;
 
-    public BaseAssetApiController(TypeTransformerRegistry transformerRegistry, AssetService service, Monitor monitor, JsonObjectValidatorRegistry validator) {
+    public BaseAssetApiController(TypeTransformerRegistry transformerRegistry, AssetService service, Monitor monitor,
+                                  JsonObjectValidatorRegistry validator, SingleParticipantContextSupplier participantContextSupplier) {
         this.transformerRegistry = transformerRegistry;
         this.service = service;
         this.monitor = monitor;
         this.validator = validator;
+        this.participantContextSupplier = participantContextSupplier;
     }
 
     public JsonObject createAsset(JsonObject assetJson) {
         validator.validate(EDC_ASSET_TYPE, assetJson).orElseThrow(ValidationFailureException::new);
         var asset = transformerRegistry.transform(assetJson, Asset.class)
-                .orElseThrow(InvalidRequestException::new);
+                .orElseThrow(InvalidRequestException::new)
+                .toBuilder()
+                .participantContextId(participantContextSupplier.get().participantContextId())
+                .build();
 
         var idResponse = service.create(asset)
                 .map(a -> IdResponse.Builder.newInstance()

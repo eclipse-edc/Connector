@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.edc.spi.entity.Entity;
+import org.eclipse.edc.participantcontext.spi.types.AbstractParticipantResource;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.HashMap;
@@ -34,7 +34,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  * The {@link Asset} contains the metadata and describes the data itself or a collection of data.
  */
 @JsonDeserialize(builder = Asset.Builder.class)
-public class Asset extends Entity {
+public class Asset extends AbstractParticipantResource {
 
     public static final String PROPERTY_ID = EDC_NAMESPACE + "id";
     public static final String PROPERTY_NAME = EDC_NAMESPACE + "name";
@@ -140,7 +140,7 @@ public class Asset extends Entity {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends Entity.Builder<Asset, Builder> {
+    public static class Builder extends AbstractParticipantResource.Builder<Asset, Builder> {
 
         protected Builder(Asset asset) {
             super(asset);

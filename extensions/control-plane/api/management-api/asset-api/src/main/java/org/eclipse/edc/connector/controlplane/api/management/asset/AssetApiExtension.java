@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.api.management.asset.v4.AssetApiV4
 import org.eclipse.edc.connector.controlplane.api.management.asset.validation.AssetValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -63,6 +64,9 @@ public class AssetApiExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private SingleParticipantContextSupplier participantContextSupplier;
+
     @Override
     public String name() {
         return NAME;
@@ -78,11 +82,11 @@ public class AssetApiExtension implements ServiceExtension {
         var managementTypeTransformerRegistry = transformerRegistry.forContext("management-api");
 
         webService.registerResource(ApiContext.MANAGEMENT, new AssetApiV3Controller(assetService,
-                managementTypeTransformerRegistry, monitor, validator));
+                managementTypeTransformerRegistry, monitor, validator, participantContextSupplier));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, AssetApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
 
         webService.registerResource(ApiContext.MANAGEMENT, new AssetApiV4Controller(assetService,
-                managementTypeTransformerRegistry, monitor, validator));
+                managementTypeTransformerRegistry, monitor, validator, participantContextSupplier));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, AssetApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validator, ManagementApiJsonSchema.V4.version()));
 
     }
