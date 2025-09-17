@@ -126,7 +126,8 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                             contractAgreement.getConsumerId(),
                             contractAgreement.getContractSigningDate(),
                             contractAgreement.getAssetId(),
-                            toJson(contractAgreement.getPolicy())
+                            toJson(contractAgreement.getPolicy()),
+                            contractAgreement.getParticipantContextId()
                     );
                 }
 
@@ -246,6 +247,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
                 .contractSigningDate(resultSet.getLong(statements.getSigningDateColumn()))
                 .policy(fromJson(resultSet.getString(statements.getPolicyColumn()), Policy.class))
+                .participantContextId(resultSet.getString(statements.getAgreementParticipantContextIdColumn()))
                 .build();
     }
 

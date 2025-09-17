@@ -358,12 +358,14 @@ public class DataAssembly {
                         .assetId("ATP0101")
                         .contractSigningDate(System.currentTimeMillis())
                         .policy(Policy.Builder.newInstance().build())
+                        .participantContextId(PARTICIPANT_CONTEXT_ID)
                         .build())
                 .type(ContractNegotiation.Type.PROVIDER)
                 .state(ContractNegotiationStates.FINALIZED.code())
                 .counterPartyId("counterPartyId")
                 .counterPartyAddress("https://test.com")
                 .protocol("test")
+                .participantContextId(PARTICIPANT_CONTEXT_ID)
                 .build();
     }
 

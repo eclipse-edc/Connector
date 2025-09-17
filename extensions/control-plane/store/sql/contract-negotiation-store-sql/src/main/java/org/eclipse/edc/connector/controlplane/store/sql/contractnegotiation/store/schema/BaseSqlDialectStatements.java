@@ -141,6 +141,7 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
                 .column(getSigningDateColumn())
                 .column(getAssetIdColumn())
                 .jsonColumn(getPolicyColumn())
+                .column(getAgreementParticipantContextIdColumn())
                 .upsertInto(getContractAgreementTable(), getContractAgreementIdColumn());
     }
 

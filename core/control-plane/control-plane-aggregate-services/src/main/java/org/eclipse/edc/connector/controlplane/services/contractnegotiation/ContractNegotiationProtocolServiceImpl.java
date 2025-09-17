@@ -305,8 +305,13 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     @NotNull
     private ServiceResult<ContractNegotiation> agreedAction(ContractAgreementMessage message, ContractNegotiation negotiation) {
         if (negotiation.getType().equals(CONSUMER) && negotiation.canBeAgreedConsumer()) {
+
+            var agreement = message.getContractAgreement().toBuilder()
+                    .participantContextId(negotiation.getParticipantContextId())
+                    .build();
+
             negotiation.protocolMessageReceived(message.getId());
-            negotiation.setContractAgreement(message.getContractAgreement());
+            negotiation.setContractAgreement(agreement);
             negotiation.transitionAgreed();
             update(negotiation);
             observable.invokeForEach(l -> l.agreed(negotiation));

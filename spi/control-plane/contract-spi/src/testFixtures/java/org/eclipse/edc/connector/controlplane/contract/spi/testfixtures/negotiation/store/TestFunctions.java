@@ -61,7 +61,8 @@ public class TestFunctions {
                 .consumerId("consumer")
                 .assetId(UUID.randomUUID().toString())
                 .policy(createPolicy())
-                .contractSigningDate(Instant.now().getEpochSecond());
+                .contractSigningDate(Instant.now().getEpochSecond())
+                .participantContextId("participantContextId");
     }
 
     public static ContractNegotiation.Builder createNegotiationBuilder(String id) {

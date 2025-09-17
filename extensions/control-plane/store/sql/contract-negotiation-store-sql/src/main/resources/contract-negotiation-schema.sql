@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS edc_contract_agreement
     start_date        BIGINT,
     end_date          INTEGER,
     asset_id          VARCHAR NOT NULL,
-    policy            JSON
+    policy            JSON,
+    agr_participant_context_id VARCHAR NOT NULL
 );
 
 

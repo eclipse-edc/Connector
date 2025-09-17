@@ -705,6 +705,21 @@ public abstract class ContractNegotiationStoreTestBase {
 
             assertThatThrownBy(() -> getContractNegotiationStore().queryAgreements(query)).isInstanceOf(IllegalArgumentException.class);
         }
+
+        @Test
+        void byParticipantContextId() {
+            range(0, 10).mapToObj(i -> "participantContext-" + i).forEach(participantContextId -> {
+                var contractId = ContractOfferId.create(UUID.randomUUID().toString(), "asset").toString();
+                var contractAgreement = createAgreementBuilder(contractId).assetId("asset").participantContextId(participantContextId).build();
+                var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
+                getContractNegotiationStore().save(negotiation);
+            });
+
+            var query = QuerySpec.Builder.newInstance().filter(criterion("participantContextId", "=", "participantContext-2")).build();
+            var all = getContractNegotiationStore().queryAgreements(query);
+
+            assertThat(all).hasSize(1);
+        }
     }
 
     @Nested

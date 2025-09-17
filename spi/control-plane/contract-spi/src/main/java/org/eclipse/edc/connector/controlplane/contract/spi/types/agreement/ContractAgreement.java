@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.controlplane.contract.spi.types.agreement;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.eclipse.edc.policy.model.Policy;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +32,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  * {@link ContractAgreement} to regulate data transfer between two parties.
  */
 @JsonDeserialize(builder = ContractAgreement.Builder.class)
-public class ContractAgreement {
+public class ContractAgreement implements ParticipantResource {
 
     public static final String CONTRACT_AGREEMENT_TYPE_TERM = "ContractAgreement";
     public static final String CONTRACT_AGREEMENT_TYPE = EDC_NAMESPACE + CONTRACT_AGREEMENT_TYPE_TERM;
@@ -47,6 +48,7 @@ public class ContractAgreement {
     private long contractSigningDate;
     private String assetId;
     private Policy policy;
+    private String participantContextId;
 
     private ContractAgreement() {
     }
@@ -114,6 +116,11 @@ public class ContractAgreement {
     }
 
     @Override
+    public String getParticipantContextId() {
+        return participantContextId;
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(id, providerId, consumerId, contractSigningDate, assetId, policy);
     }
@@ -130,6 +137,17 @@ public class ContractAgreement {
         return contractSigningDate == that.contractSigningDate &&
                 Objects.equals(id, that.id) && Objects.equals(providerId, that.providerId) && Objects.equals(consumerId, that.consumerId) &&
                 Objects.equals(assetId, that.assetId) && Objects.equals(policy, that.policy);
+    }
+
+    public Builder toBuilder() {
+        return new Builder()
+                .id(id)
+                .providerId(providerId)
+                .consumerId(consumerId)
+                .contractSigningDate(contractSigningDate)
+                .assetId(assetId)
+                .policy(policy)
+                .participantContextId(participantContextId);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -173,6 +191,11 @@ public class ContractAgreement {
 
         public Builder policy(Policy policy) {
             this.instance.policy = policy;
+            return this;
+        }
+
+        public Builder participantContextId(String participantContextId) {
+            this.instance.participantContextId = participantContextId;
             return this;
         }
 

@@ -152,7 +152,12 @@ class ContractNegotiationProtocolServiceImplTest {
         var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
 
-        var contractAgreement = mock(ContractAgreement.class);
+        var contractAgreement = ContractAgreement.Builder.newInstance()
+                .providerId("providerId")
+                .consumerId("consumerId")
+                .assetId("assetId")
+                .policy(Policy.Builder.newInstance().build())
+                .build();
         var message = ContractAgreementMessage.Builder.newInstance()
                 .protocol("protocol")
                 .counterPartyAddress("http://any")
@@ -173,8 +178,7 @@ class ContractNegotiationProtocolServiceImplTest {
         verify(store).findById("processId");
         verify(store).findByIdAndLease("processId");
         verify(store).save(argThat(negotiation ->
-                negotiation.getState() == AGREED.code() &&
-                        negotiation.getContractAgreement() == contractAgreement
+                negotiation.getState() == AGREED.code() && negotiation.getContractAgreement().equals(contractAgreement)
         ));
         verify(validationService).validateConfirmed(eq(participantAgent), eq(contractAgreement), any(ContractOffer.class));
         verify(listener).agreed(any());
@@ -481,7 +485,12 @@ class ContractNegotiationProtocolServiceImplTest {
                             .counterPartyAddress("http://any")
                             .consumerPid("consumerPid")
                             .providerPid("providerPid")
-                            .contractAgreement(mock(ContractAgreement.class))
+                            .contractAgreement(ContractAgreement.Builder.newInstance()
+                                    .assetId("assetId")
+                                    .consumerId("consumerId")
+                                    .providerId("providerId")
+                                    .policy(Policy.Builder.newInstance().build())
+                                    .build())
                             .build(), CONSUMER, ACCEPTED),
                     Arguments.of(accepted, ContractNegotiationEventMessage.Builder.newInstance()
                             .type(ContractNegotiationEventMessage.Type.ACCEPTED)
