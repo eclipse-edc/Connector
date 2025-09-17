@@ -75,6 +75,7 @@ public class TestFunctions {
                 .counterPartyId("consumerId")
                 .callbackAddresses(List.of(createCallbackAddress()))
                 .protocol("protocol")
+                .participantContextId("participantContextId")
                 .protocolMessages(new ProtocolMessages());
     }
 

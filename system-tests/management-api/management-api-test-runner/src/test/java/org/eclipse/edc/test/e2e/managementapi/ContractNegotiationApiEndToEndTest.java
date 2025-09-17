@@ -231,6 +231,7 @@ public class ContractNegotiationApiEndToEndTest {
                             .build()))
                     .protocol("dataspace-protocol-http")
                     .state(REQUESTED.code())
+                    .participantContextId("participantContextId")
                     .contractOffer(contractOfferBuilder().build());
         }
 

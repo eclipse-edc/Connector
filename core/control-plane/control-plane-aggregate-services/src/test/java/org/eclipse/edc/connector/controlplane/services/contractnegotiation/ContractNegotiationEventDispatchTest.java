@@ -34,6 +34,8 @@ import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceS
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.event.EventRouter;
@@ -72,14 +74,12 @@ import static org.mockito.Mockito.when;
 @ExtendWith(RuntimePerMethodExtension.class)
 class ContractNegotiationEventDispatchTest {
     private static final String CONSUMER = "consumer";
-
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> new ParticipantContext("participantId");
     private final EventSubscriber eventSubscriber = mock();
     private final IdentityService identityService = mock();
     private final ClaimToken token = ClaimToken.Builder.newInstance().claim("client_id", CONSUMER).build();
-
     private final TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance().token(UUID.randomUUID().toString()).build();
     protected DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
-
 
     @BeforeEach
     void setUp(RuntimeExtension extension) {
@@ -94,6 +94,7 @@ class ContractNegotiationEventDispatchTest {
         extension.registerServiceMock(DataPlaneInstanceStore.class, mock());
         extension.registerServiceMock(IdentityService.class, identityService);
         extension.registerServiceMock(DataPlaneClientFactory.class, mock());
+        extension.registerServiceMock(SingleParticipantContextSupplier.class, participantContextSupplier);
 
         when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> "http://callback.address");
         when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> CONSUMER);
@@ -110,7 +111,7 @@ class ContractNegotiationEventDispatchTest {
 
         when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(token));
         when(dataspaceProfileContextRegistry.getParticipantId(any())).thenReturn("provider");
-        
+
         eventRouter.register(ContractNegotiationEvent.class, eventSubscriber);
         var policy = Policy.Builder.newInstance().build();
         var contractDefinition = ContractDefinition.Builder.newInstance()

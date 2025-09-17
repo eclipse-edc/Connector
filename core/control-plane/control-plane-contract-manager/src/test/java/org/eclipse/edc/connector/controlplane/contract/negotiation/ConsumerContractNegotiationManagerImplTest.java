@@ -29,6 +29,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.EdcException;
@@ -128,7 +129,7 @@ class ConsumerContractNegotiationManagerImplTest {
                         .build()))
                 .build();
 
-        var result = manager.initiate(request);
+        var result = manager.initiate(new ParticipantContext("participantContextId"), request);
 
         assertThat(result.succeeded()).isTrue();
         verify(store).save(argThat(negotiation ->

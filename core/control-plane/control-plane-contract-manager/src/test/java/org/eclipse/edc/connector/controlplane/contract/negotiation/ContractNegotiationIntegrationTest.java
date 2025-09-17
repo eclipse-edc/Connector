@@ -40,6 +40,8 @@ import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.C
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Policy;
@@ -110,6 +112,7 @@ class ContractNegotiationIntegrationTest {
 
     private static final Duration DEFAULT_TEST_TIMEOUT = Duration.ofSeconds(15);
     private static final Duration DEFAULT_POLL_INTERVAL = Duration.ofMillis(100);
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> new ParticipantContext("participantId");
     private final Clock clock = Clock.systemUTC();
     private final CriterionOperatorRegistry criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
     private final InMemoryContractNegotiationStore providerStore = new InMemoryContractNegotiationStore(clock, criterionOperatorRegistry);
@@ -156,8 +159,8 @@ class ContractNegotiationIntegrationTest {
                 .build();
 
         when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), any())).thenReturn(ServiceResult.success(participantAgent));
-        consumerService = new ContractNegotiationProtocolServiceImpl(consumerStore, transactionContext, validationService, offerResolver, protocolTokenValidator, mock(), monitor, mock());
-        providerService = new ContractNegotiationProtocolServiceImpl(providerStore, transactionContext, validationService, offerResolver, protocolTokenValidator, mock(), monitor, mock());
+        consumerService = new ContractNegotiationProtocolServiceImpl(consumerStore, transactionContext, validationService, offerResolver, protocolTokenValidator, mock(), monitor, mock(), participantContextSupplier);
+        providerService = new ContractNegotiationProtocolServiceImpl(providerStore, transactionContext, validationService, offerResolver, protocolTokenValidator, mock(), monitor, mock(), participantContextSupplier);
     }
 
     @AfterEach
@@ -181,7 +184,7 @@ class ContractNegotiationIntegrationTest {
         when(validationService.validateInitialOffer(participantAgent, validatableOffer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
         when(validationService.validateConfirmed(eq(participantAgent), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.success());
         when(validationService.validateRequest(eq(participantAgent), any(ContractNegotiation.class))).thenReturn(Result.success());
-        
+
         when(dataspaceProfileContextRegistry.getParticipantId(any())).thenReturn(PROVIDER_ID);
 
         // Start provider and consumer negotiation managers
@@ -196,7 +199,7 @@ class ContractNegotiationIntegrationTest {
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build()))
                 .build();
 
-        consumerManager.initiate(request);
+        consumerManager.initiate(new ParticipantContext("participantContextId"), request);
 
         await().atMost(DEFAULT_TEST_TIMEOUT).pollInterval(DEFAULT_POLL_INTERVAL).untilAsserted(() -> {
             assertThat(consumerNegotiationId).isNotNull();
@@ -246,7 +249,7 @@ class ContractNegotiationIntegrationTest {
                 .protocol("protocol")
                 .build();
 
-        consumerManager.initiate(request);
+        consumerManager.initiate(new ParticipantContext("participantContextId"), request);
 
         await().atMost(DEFAULT_TEST_TIMEOUT)
                 .pollInterval(DEFAULT_POLL_INTERVAL)
@@ -266,7 +269,7 @@ class ContractNegotiationIntegrationTest {
         when(offerResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
         when(validationService.validateInitialOffer(participantAgent, validatableOffer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
         when(validationService.validateConfirmed(eq(participantAgent), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.failure("error"));
-        
+
         when(dataspaceProfileContextRegistry.getParticipantId(any())).thenReturn(PROVIDER_ID);
 
         // Start provider and consumer negotiation managers
@@ -281,7 +284,7 @@ class ContractNegotiationIntegrationTest {
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build()))
                 .build();
 
-        consumerManager.initiate(request);
+        consumerManager.initiate(new ParticipantContext("participantContextId"), request);
 
         await().atMost(DEFAULT_TEST_TIMEOUT).pollInterval(DEFAULT_POLL_INTERVAL).untilAsserted(() -> {
             assertThat(consumerNegotiationId).isNotNull();

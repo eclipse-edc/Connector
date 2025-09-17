@@ -16,6 +16,7 @@ package org.eclipse.edc.tck.dsp.controller;
 
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -52,6 +53,9 @@ public class TckControllerExtension implements ServiceExtension {
     @Configuration
     private TckWebhookApiConfiguration apiConfiguration;
 
+    @Inject
+    private SingleParticipantContextSupplier participantContextSupplier;
+
     @Override
     public String name() {
         return NAME;
@@ -60,7 +64,7 @@ public class TckControllerExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         mappingRegistry.register(new PortMapping(PROTOCOL, apiConfiguration.port(), apiConfiguration.path()));
-        webService.registerResource(PROTOCOL, new TckWebhookController(monitor, negotiationService, transferProcessService));
+        webService.registerResource(PROTOCOL, new TckWebhookController(monitor, negotiationService, transferProcessService, participantContextSupplier));
     }
 
     @Settings

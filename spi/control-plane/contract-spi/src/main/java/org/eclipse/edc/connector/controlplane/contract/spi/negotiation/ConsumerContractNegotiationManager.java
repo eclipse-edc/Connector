@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.contract.spi.negotiation;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.entity.StateEntityManager;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -32,6 +33,6 @@ public interface ConsumerContractNegotiationManager extends StateEntityManager {
     /**
      * Initiates a contract negotiation for the given provider offer. The offer will have been obtained from a previous contract offer request sent to the provider.
      */
-    StatusResult<ContractNegotiation> initiate(ContractRequest request);
+    StatusResult<ContractNegotiation> initiate(ParticipantContext participantContext, ContractRequest request);
 
 }

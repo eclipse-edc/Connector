@@ -56,6 +56,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.filterByParticipantContextId;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_LEASED;
@@ -212,6 +213,7 @@ public abstract class ContractNegotiationStoreTestBase {
                     .counterPartyAddress("consumer")
                     .counterPartyId("consumerId")
                     .protocol("protocol")
+                    .participantContextId("participantContextId")
                     .build();
 
             getContractNegotiationStore().save(newNegotiation);
@@ -266,6 +268,7 @@ public abstract class ContractNegotiationStoreTestBase {
                     .counterPartyAddress("consumer")
                     .counterPartyId("consumerId")
                     .protocol("protocol")
+                    .participantContextId("participantContextId")
                     .build();
 
             // update should break lease
@@ -543,6 +546,25 @@ public abstract class ContractNegotiationStoreTestBase {
             var result = getContractNegotiationStore().queryNegotiations(query);
 
             assertThat(result).usingRecursiveFieldByFieldElementComparator().containsOnly(negotiation1);
+        }
+
+        @Test
+        void byParticipantContextId() {
+            var negotiation1 = createNegotiationBuilder("negotiation1").participantContextId("customParticipantContext").build();
+            var negotiation2 = createNegotiation("negotiation2");
+
+            getContractNegotiationStore().save(negotiation1);
+            getContractNegotiationStore().save(negotiation2);
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(filterByParticipantContextId("customParticipantContext"))
+                    .build();
+            var result = getContractNegotiationStore().queryNegotiations(query);
+
+            assertThat(result).hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsExactly(negotiation1);
+
         }
 
         @Test

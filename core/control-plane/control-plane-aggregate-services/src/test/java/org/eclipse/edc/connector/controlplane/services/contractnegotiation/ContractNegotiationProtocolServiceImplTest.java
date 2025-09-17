@@ -35,6 +35,8 @@ import org.eclipse.edc.connector.controlplane.contract.spi.validation.ValidatedC
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
@@ -96,7 +98,7 @@ import static org.mockito.Mockito.when;
 class ContractNegotiationProtocolServiceImplTest {
 
     private static final String CONSUMER_ID = "consumer";
-
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> new ParticipantContext("participantId");
     private final ContractNegotiationStore store = mock();
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
     private final ContractValidationService validationService = mock();
@@ -110,7 +112,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(listener);
         service = new ContractNegotiationProtocolServiceImpl(store, transactionContext, validationService,
-                consumerOfferResolver, protocolTokenValidator, observable, mock(), mock());
+                consumerOfferResolver, protocolTokenValidator, observable, mock(), mock(), participantContextSupplier);
     }
 
     @Test

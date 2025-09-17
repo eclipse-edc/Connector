@@ -54,7 +54,8 @@ CREATE TABLE IF NOT EXISTS edc_contract_negotiation
     callback_addresses   JSON,
     trace_context        JSON,
     pending              BOOLEAN DEFAULT FALSE,
-    protocol_messages    JSON
+    protocol_messages    JSON,
+    participant_context_id VARCHAR NOT NULL
 );
 
 COMMENT ON COLUMN edc_contract_negotiation.agreement_id IS 'ContractAgreement serialized as JSON';

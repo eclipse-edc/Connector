@@ -40,6 +40,7 @@ import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.EdcException;
@@ -98,7 +99,9 @@ public class TransferProcessEventDispatchTest {
             .registerServiceMock(PolicyArchive.class, mock())
             .registerServiceMock(ContractNegotiationStore.class, mock())
             .registerServiceMock(ParticipantAgentService.class, mock())
-            .registerServiceMock(DataPlaneClientFactory.class, mock());
+            .registerServiceMock(DataPlaneClientFactory.class, mock())
+            .registerServiceMock(SingleParticipantContextSupplier.class, mock());
+
 
     private final EventSubscriber eventSubscriber = mock();
 

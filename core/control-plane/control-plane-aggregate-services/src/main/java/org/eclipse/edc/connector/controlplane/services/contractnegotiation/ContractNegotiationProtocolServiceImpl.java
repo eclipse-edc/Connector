@@ -35,6 +35,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.validation.ValidatedC
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -64,6 +65,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     private final ContractNegotiationObservable observable;
     private final Monitor monitor;
     private final Telemetry telemetry;
+    private final SingleParticipantContextSupplier participantContextSupplier;
 
     public ContractNegotiationProtocolServiceImpl(ContractNegotiationStore store,
                                                   TransactionContext transactionContext,
@@ -71,7 +73,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                                                   ConsumerOfferResolver consumerOfferResolver,
                                                   ProtocolTokenValidator protocolTokenValidator,
                                                   ContractNegotiationObservable observable,
-                                                  Monitor monitor, Telemetry telemetry) {
+                                                  Monitor monitor, Telemetry telemetry, SingleParticipantContextSupplier participantContextSupplier) {
         this.store = store;
         this.transactionContext = transactionContext;
         this.validationService = validationService;
@@ -80,6 +82,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
         this.observable = observable;
         this.monitor = monitor;
         this.telemetry = telemetry;
+        this.participantContextSupplier = participantContextSupplier;
     }
 
     @Override
@@ -203,7 +206,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                 .negotiationId(id)
                 .protocol(protocol)
                 .build();
-        
+
         return transactionContext.execute(() -> getNegotiation(id)
                 .compose(contractNegotiation -> verifyRequest(tokenRepresentation, contractNegotiation.getLastContractOffer().getPolicy(), message)
                         .compose(agent -> validateRequest(agent, contractNegotiation)
@@ -233,6 +236,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                 .protocol(message.getProtocol())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .type(type)
+                .participantContextId(participantContextSupplier.get().getParticipantContextId())
                 .build();
 
         return ServiceResult.success(negotiation);
