@@ -94,6 +94,7 @@ public class DataAssembly {
                 .id(CONTRACT_DEFINITION_ID)
                 .accessPolicyId(POLICY_ID)
                 .contractPolicyId(POLICY_ID)
+                .participantContextId(PARTICIPANT_CONTEXT_ID)
                 .build());
     }
 

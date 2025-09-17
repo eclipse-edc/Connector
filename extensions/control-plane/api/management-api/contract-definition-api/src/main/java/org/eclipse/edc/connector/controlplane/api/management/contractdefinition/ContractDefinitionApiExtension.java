@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.validation.ContractDefinitionValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
@@ -70,6 +71,9 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
     @Inject
     private JsonLd jsonLd;
 
+    @Inject
+    private SingleParticipantContextSupplier participantContextSupplier;
+
     @Override
     public String name() {
         return NAME;
@@ -85,10 +89,10 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
 
         var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
 
-        webService.registerResource(ApiContext.MANAGEMENT, new ContractDefinitionApiV3Controller(managementApiTransformerRegistry, service, context.getMonitor(), validatorRegistry));
+        webService.registerResource(ApiContext.MANAGEMENT, new ContractDefinitionApiV3Controller(managementApiTransformerRegistry, service, context.getMonitor(), validatorRegistry, participantContextSupplier));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractDefinitionApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
 
-        webService.registerResource(ApiContext.MANAGEMENT, new ContractDefinitionApiV4Controller(managementApiTransformerRegistry, service, context.getMonitor(), validatorRegistry));
+        webService.registerResource(ApiContext.MANAGEMENT, new ContractDefinitionApiV4Controller(managementApiTransformerRegistry, service, context.getMonitor(), validatorRegistry, participantContextSupplier));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractDefinitionApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
 
     }

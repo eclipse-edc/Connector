@@ -281,6 +281,7 @@ public class CatalogApiV4EndToEndTest {
                     .contractPolicyId(policyId)
                     .accessPolicyId(policyId)
                     .assetsSelector(assetsSelectorCritera)
+                    .participantContextId("participantContextId")
                     .build();
 
 
