@@ -46,6 +46,8 @@ import static java.lang.String.format;
 
 public class SqlPolicyDefinitionStore extends AbstractSqlStore implements PolicyDefinitionStore {
 
+    private static final TypeReference<Map<String, Object>> PRIVATE_PROPERTIES_TYPE = new TypeReference<>() {
+    };
     private final SqlPolicyStoreStatements statements;
     private final TypeReference<List<Permission>> permissionListType = new TypeReference<>() {
     };
@@ -58,9 +60,6 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
     private final TypeReference<PolicyType> policyType = new TypeReference<>() {
     };
     private final TypeReference<Map<String, Object>> extensiblePropertiesType = new TypeReference<>() {
-    };
-
-    private static final TypeReference<Map<String, Object>> PRIVATE_PROPERTIES_TYPE = new TypeReference<>() {
     };
 
     public SqlPolicyDefinitionStore(DataSourceRegistry dataSourceRegistry, String dataSourceName, TransactionContext transactionContext,
@@ -157,7 +156,8 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
                         policy.getTarget(),
                         toJson(policy.getType(), policyType),
                         def.getCreatedAt(),
-                        toJson(def.getPrivateProperties()));
+                        toJson(def.getPrivateProperties()),
+                        def.getParticipantContextId());
             } catch (Exception e) {
                 throw new EdcPersistenceException(e.getMessage(), e);
             }
@@ -207,6 +207,7 @@ public class SqlPolicyDefinitionStore extends AbstractSqlStore implements Policy
                 .policy(policy)
                 .createdAt(resultSet.getLong(statements.getCreatedAtColumn()))
                 .privateProperties(fromJson(resultSet.getString(statements.getPrivatePropertiesColumn()), PRIVATE_PROPERTIES_TYPE))
+                .participantContextId(resultSet.getString(statements.getParticipantContextIdColumn()))
                 .build();
     }
 

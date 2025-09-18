@@ -30,5 +30,6 @@ public class PolicyDefinitionMapping extends TranslationMapping {
         add("createdAt", statements.getCreatedAtColumn());
         add("policy", new PolicyMapping(statements));
         add("privateProperties", new JsonFieldTranslator(statements.getPrivatePropertiesColumn()));
+        add("participantContextId", statements.getParticipantContextIdColumn());
     }
 }

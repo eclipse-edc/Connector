@@ -44,6 +44,7 @@ public class TestFunctions {
                 .createdAt(Clock.systemUTC().millis())
                 .id(id)
                 .policy(policy)
+                .participantContextId("participantContext")
                 .build();
     }
 
@@ -54,6 +55,7 @@ public class TestFunctions {
                 .createdAt(Clock.systemUTC().millis())
                 .id(id)
                 .policy(policy)
+                .participantContextId("participantContext")
                 .build();
     }
 
@@ -65,6 +67,7 @@ public class TestFunctions {
                 .id(id)
                 .policy(policy)
                 .privateProperties(privateProperties)
+                .participantContextId("participantContext")
                 .build();
     }
 

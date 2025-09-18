@@ -102,5 +102,9 @@ public interface SqlPolicyStoreStatements extends SqlStatements {
         return "private_properties";
     }
 
+    default String getParticipantContextIdColumn() {
+        return "participant_context_id";
+    }
+
     SqlQueryStatement createQuery(QuerySpec querySpec);
 }

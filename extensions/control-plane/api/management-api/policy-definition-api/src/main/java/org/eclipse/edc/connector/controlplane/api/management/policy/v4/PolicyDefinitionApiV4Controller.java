@@ -26,6 +26,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.connector.controlplane.api.management.policy.BasePolicyDefinitionApiController;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
@@ -42,8 +43,8 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 public class PolicyDefinitionApiV4Controller extends BasePolicyDefinitionApiController implements PolicyDefinitionApiV4 {
 
     public PolicyDefinitionApiV4Controller(Monitor monitor, TypeTransformerRegistry transformerRegistry, PolicyDefinitionService service,
-                                           JsonObjectValidatorRegistry validatorRegistry) {
-        super(monitor, transformerRegistry, service, validatorRegistry);
+                                           JsonObjectValidatorRegistry validatorRegistry, SingleParticipantContextSupplier participantContextSupplier) {
+        super(monitor, transformerRegistry, service, validatorRegistry, participantContextSupplier);
     }
 
     @POST

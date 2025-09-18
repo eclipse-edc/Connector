@@ -23,7 +23,7 @@ public class PolicyDefinitionApiV4ControllerTest extends BasePolicyDefinitionApi
 
     @Override
     protected Object controller() {
-        return new PolicyDefinitionApiV4Controller(monitor, transformerRegistry, service, validatorRegistry);
+        return new PolicyDefinitionApiV4Controller(monitor, transformerRegistry, service, validatorRegistry, participantContextSupplier);
     }
 
     @Override

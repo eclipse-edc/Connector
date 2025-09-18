@@ -55,6 +55,8 @@ import static org.hamcrest.Matchers.is;
 
 public class CatalogApiV4EndToEndTest {
 
+    public static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
+
     abstract static class Tests {
 
         @Test
@@ -282,7 +284,9 @@ public class CatalogApiV4EndToEndTest {
                     .build();
 
 
-            policyStore.create(PolicyDefinition.Builder.newInstance().id(policyId).policy(policy).build());
+            policyStore.create(PolicyDefinition.Builder.newInstance().id(policyId)
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .policy(policy).build());
             contractDefStore.save(contractDefinition);
 
         }
@@ -297,7 +301,7 @@ public class CatalogApiV4EndToEndTest {
         private Asset.Builder createAsset(String id, DataAddress address) {
             return Asset.Builder.newInstance()
                     .dataAddress(address)
-                    .participantContextId("participantContextId")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .id(id);
         }
 

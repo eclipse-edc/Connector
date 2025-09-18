@@ -23,7 +23,7 @@ public class PolicyDefinitionApiV3ControllerTest extends BasePolicyDefinitionApi
 
     @Override
     protected Object controller() {
-        return new PolicyDefinitionApiV3Controller(monitor, transformerRegistry, service, validatorRegistry);
+        return new PolicyDefinitionApiV3Controller(monitor, transformerRegistry, service, validatorRegistry, participantContextSupplier);
     }
 
     @Override

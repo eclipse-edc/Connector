@@ -17,8 +17,8 @@ package org.eclipse.edc.connector.controlplane.policy.spi;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.participantcontext.spi.types.AbstractParticipantResource;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -39,7 +39,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  * <em>Many external Policy formats like ODRL also require policies to have an ID.</em>
  */
 @JsonDeserialize(builder = PolicyDefinition.Builder.class)
-public class PolicyDefinition extends Entity {
+public class PolicyDefinition extends AbstractParticipantResource {
     public static final String EDC_POLICY_DEFINITION_TYPE_TERM = "PolicyDefinition";
     public static final String EDC_POLICY_DEFINITION_TYPE = EDC_NAMESPACE + EDC_POLICY_DEFINITION_TYPE_TERM;
     public static final String EDC_POLICY_DEFINITION_POLICY = EDC_NAMESPACE + "policy";
@@ -80,8 +80,17 @@ public class PolicyDefinition extends Entity {
         return privateProperties.get(key);
     }
 
+    public Builder toBuilder() {
+        return new Builder()
+                .id(id)
+                .policy(policy)
+                .participantContextId(participantContextId)
+                .createdAt(createdAt)
+                .privateProperties(privateProperties);
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder extends Entity.Builder<PolicyDefinition, Builder> {
+    public static final class Builder extends AbstractParticipantResource.Builder<PolicyDefinition, Builder> {
 
         private Builder() {
             super(new PolicyDefinition());

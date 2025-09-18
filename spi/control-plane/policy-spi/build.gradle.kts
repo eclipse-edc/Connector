@@ -20,6 +20,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
+    api(project(":spi:common:participant-context-spi"))
 
     testImplementation(project(":core:common:lib:json-lib"))
 }
