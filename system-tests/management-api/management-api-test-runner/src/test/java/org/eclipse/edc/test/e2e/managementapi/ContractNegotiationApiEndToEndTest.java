@@ -249,6 +249,7 @@ public class ContractNegotiationApiEndToEndTest {
                     .consumerId(randomUUID() + "-consumer")
                     .providerId(randomUUID() + "-provider")
                     .policy(Policy.Builder.newInstance().build())
+                    .participantContextId("participantContextId")
                     .build();
         }
 

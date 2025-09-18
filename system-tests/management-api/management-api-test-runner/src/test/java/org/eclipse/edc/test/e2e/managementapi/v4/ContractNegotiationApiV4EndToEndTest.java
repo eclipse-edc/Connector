@@ -241,6 +241,7 @@ public class ContractNegotiationApiV4EndToEndTest {
                             .build()))
                     .protocol("dataspace-protocol-http")
                     .state(REQUESTED.code())
+                    .participantContextId("participantContextId")
                     .contractOffer(contractOfferBuilder().build());
         }
 
@@ -258,6 +259,7 @@ public class ContractNegotiationApiV4EndToEndTest {
                     .consumerId(randomUUID() + "-consumer")
                     .providerId(randomUUID() + "-provider")
                     .policy(Policy.Builder.newInstance().type(PolicyType.CONTRACT).build())
+                    .participantContextId("participantContextId")
                     .build();
         }
 

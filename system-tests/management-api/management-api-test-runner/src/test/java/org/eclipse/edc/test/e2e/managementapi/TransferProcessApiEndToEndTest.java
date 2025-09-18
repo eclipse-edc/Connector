@@ -125,6 +125,7 @@ public class TransferProcessApiEndToEndTest {
                     .counterPartyAddress("http://counterparty")
                     .protocol("dataspace-protocol-http")
                     .contractAgreement(createContractAgreement(contractId, assetId).build())
+                    .participantContextId("participantContextId")
                     .build();
             contractNegotiationStore.save(contractNegotiation);
 
@@ -190,7 +191,7 @@ public class TransferProcessApiEndToEndTest {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "600", "STARTED" })
+        @ValueSource(strings = {"600", "STARTED"})
         void request_byState(String state, ManagementEndToEndTestContext context, TransferProcessStore store) {
             var actualState = STARTED;
             var tp = createTransferProcessBuilder("test-tp")
@@ -304,6 +305,7 @@ public class TransferProcessApiEndToEndTest {
                     .providerId("providerId")
                     .consumerId("consumerId")
                     .policy(Policy.Builder.newInstance().target(assetId).build())
+                    .participantContextId("participantContextId")
                     .assetId(assetId);
         }
     }

@@ -129,6 +129,7 @@ public class TransferProcessApiV4EndToEndTest {
                     .counterPartyId("counterPartyId")
                     .counterPartyAddress("http://counterparty")
                     .protocol("dataspace-protocol-http")
+                    .participantContextId("participantContextId")
                     .contractAgreement(createContractAgreement(contractId, assetId).build())
                     .build();
             contractNegotiationStore.save(contractNegotiation);
@@ -310,6 +311,7 @@ public class TransferProcessApiV4EndToEndTest {
                     .providerId("providerId")
                     .consumerId("consumerId")
                     .policy(Policy.Builder.newInstance().target(assetId).build())
+                    .participantContextId("participantContextId")
                     .assetId(assetId);
         }
     }
