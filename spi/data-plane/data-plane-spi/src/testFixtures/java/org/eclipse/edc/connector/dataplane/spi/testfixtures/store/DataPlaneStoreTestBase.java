@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionResource;
 import org.eclipse.edc.connector.dataplane.spi.provision.ProvisionedResource;
 import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.spi.entity.Entity;
-import org.eclipse.edc.spi.entity.MutableEntity;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.StoreFailure;
@@ -122,7 +121,7 @@ public abstract class DataPlaneStoreTestBase {
                     .isSubsetOf(all.stream().map(Entity::getId).toList())
                     .allMatch(id -> isLeasedBy(id, CONNECTOR_NAME));
 
-            assertThat(leased).extracting(MutableEntity::getUpdatedAt).isSorted();
+            assertThat(leased).extracting(StatefulEntity::getUpdatedAt).isSorted();
         }
 
         @Test
