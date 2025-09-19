@@ -15,7 +15,7 @@
 package org.eclipse.edc.boot.system;
 
 import org.eclipse.edc.boot.system.injection.InjectionContainer;
-import org.eclipse.edc.boot.system.injection.InjectionPoint;
+import org.eclipse.edc.boot.system.injection.InjectionFailure;
 import org.eclipse.edc.boot.system.injection.InjectionPointScanner;
 import org.eclipse.edc.boot.system.injection.ProviderMethod;
 import org.eclipse.edc.boot.system.injection.ProviderMethodScanner;
@@ -26,7 +26,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Requires;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,13 +50,13 @@ public class DependencyGraph {
     /**
      * contains all missing dependencies that were expressed as injection points
      */
-    private final HashMap<Class<? extends ServiceExtension>, List<InjectionFailure>> unsatisfiedInjectionPoints;
+    private final Map<Class<? extends ServiceExtension>, List<InjectionFailure>> unsatisfiedInjectionPoints;
     /**
      * contains all missing dependencies that were expressed as @Require(...) annotations on the extension class
      */
     private final ArrayList<Class<?>> unsatisfiedRequirements;
 
-    private DependencyGraph(List<InjectionContainer<ServiceExtension>> injectionContainers, HashMap<Class<? extends ServiceExtension>, List<InjectionFailure>> unsatisfiedInjectionPoints, ArrayList<Class<?>> unsatisfiedRequirements) {
+    private DependencyGraph(List<InjectionContainer<ServiceExtension>> injectionContainers, Map<Class<? extends ServiceExtension>, List<InjectionFailure>> unsatisfiedInjectionPoints, ArrayList<Class<?>> unsatisfiedRequirements) {
 
         this.injectionContainers = injectionContainers;
         this.unsatisfiedInjectionPoints = unsatisfiedInjectionPoints;
@@ -170,20 +169,12 @@ public class DependencyGraph {
     }
 
     /**
-     * Returns a list of strings, each containing information about a missing dependency
+     * Returns injection failures
      *
-     * @return A list of errors describing one missing dependency each
+     * @return unsatisfied injection points.
      */
-    public List<String> getProblems() {
-        var messages = unsatisfiedInjectionPoints.entrySet().stream()
-                .map(entry -> {
-                    var dependent = entry.getKey();
-                    var dependencies = entry.getValue();
-                    var missingDependencyList = dependencies.stream().map(injectionFailure -> "  --> " + injectionFailure.failureDetail()).toList();
-                    return "## %s is missing\n%s".formatted(dependent, String.join("\n", missingDependencyList));
-                });
-
-        return messages.toList();
+    public Stream<InjectionFailure> getInjectionFailures() {
+        return unsatisfiedInjectionPoints.entrySet().stream().flatMap(entry -> entry.getValue().stream());
     }
 
     private static Stream<Class<?>> getRequiredFeatures(Class<?> clazz) {
@@ -210,11 +201,4 @@ public class DependencyGraph {
         return allProvides;
     }
 
-    private record InjectionFailure(ServiceExtension dependent, InjectionPoint<ServiceExtension> dependency,
-                                    @Nullable String failureDetail) {
-        @Override
-        public String toString() {
-            return "%s %s".formatted(dependency.getTypeString(), failureDetail);
-        }
-    }
 }

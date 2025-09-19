@@ -231,7 +231,7 @@ class ExtensionLoaderTest {
 
         var graph = loader.buildDependencyGraph(context);
         assertThat(graph.isValid()).isFalse();
-        assertThat(graph.getProblems()).hasSize(1);
+        assertThat(graph.getInjectionFailures()).hasSize(1);
         verify(serviceLocator).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
