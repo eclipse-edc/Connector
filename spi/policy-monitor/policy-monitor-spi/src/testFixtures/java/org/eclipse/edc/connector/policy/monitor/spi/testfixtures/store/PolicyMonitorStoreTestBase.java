@@ -18,7 +18,6 @@ import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntry;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
 import org.eclipse.edc.spi.entity.Entity;
-import org.eclipse.edc.spi.entity.MutableEntity;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.result.StoreFailure;
 import org.junit.jupiter.api.Nested;
@@ -115,7 +114,7 @@ public abstract class PolicyMonitorStoreTestBase {
                     .isSubsetOf(all.stream().map(Entity::getId).toList())
                     .allMatch(id -> isLeasedBy(id, CONNECTOR_NAME));
 
-            assertThat(leased).extracting(MutableEntity::getUpdatedAt).isSorted();
+            assertThat(leased).extracting(StatefulEntity::getUpdatedAt).isSorted();
         }
 
         @Test

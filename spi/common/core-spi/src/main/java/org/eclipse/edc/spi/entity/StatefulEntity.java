@@ -29,13 +29,14 @@ import java.util.UUID;
  *
  * @param <T> implementation type ({@link StatefulEntity} sub-class). Used to define {@link #copy()} method.
  */
-public abstract class StatefulEntity<T extends StatefulEntity<T>> extends MutableEntity implements TraceCarrier {
+public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Entity implements TraceCarrier {
     protected int state;
     protected int stateCount;
     protected long stateTimestamp;
     protected Map<String, String> traceContext = new HashMap<>();
     protected String errorDetail;
     protected boolean pending = false;
+    protected long updatedAt;
 
     protected StatefulEntity() {
     }
@@ -82,6 +83,22 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Mutabl
         stateTimestamp = clock.millis();
     }
 
+    public long getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(long epochMillis) {
+        updatedAt = epochMillis;
+    }
+
+    /**
+     * Updates the updatedAt field to the current epoch in milliseconds, using the clock.
+     */
+    public void setModified() {
+        setUpdatedAt(clock.millis());
+    }
+
+
     public abstract T copy();
 
     /**
@@ -120,7 +137,7 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Mutabl
      * @param <B> derived Builder ({@link Builder} sub-class)
      * @see <a href="http://egalluzzo.blogspot.com/2010/06/using-inheritance-with-fluent.html">Using inheritance with fluent interfaces (blog post)</a> for a background on the use of generic types.
      */
-    protected abstract static class Builder<T extends StatefulEntity<T>, B extends Builder<T, B>> extends MutableEntity.Builder<T, B> {
+    protected abstract static class Builder<T extends StatefulEntity<T>, B extends Builder<T, B>> extends Entity.Builder<T, B> {
 
         protected Builder(T entity) {
             super(entity);
@@ -156,12 +173,19 @@ public abstract class StatefulEntity<T extends StatefulEntity<T>> extends Mutabl
             return self();
         }
 
+        public B updatedAt(long time) {
+            entity.updatedAt = time;
+            return self();
+        }
+
         protected T build() {
             super.build();
             if (entity.id == null) {
                 entity.id = UUID.randomUUID().toString();
             }
-
+            if (entity.updatedAt == 0) {
+                entity.updatedAt = entity.createdAt;
+            }
             if (entity.stateTimestamp == 0) {
                 entity.stateTimestamp = entity.clock.millis();
             }
