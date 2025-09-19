@@ -20,7 +20,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    api(project(":spi:common:participant-context-spi"))
+    api(project(":spi:common:connector-participant-context-spi"))
 
     testImplementation(project(":tests:junit-base"))
     testImplementation(project(":core:common:lib:json-lib"))
