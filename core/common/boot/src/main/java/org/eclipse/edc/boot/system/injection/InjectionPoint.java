@@ -87,8 +87,4 @@ public interface InjectionPoint<T> {
      */
     Result<List<InjectionContainer<T>>> getProviders(Map<Class<?>, List<InjectionContainer<T>>> dependencyMap, ServiceExtensionContext context);
 
-    /**
-     * A human-readable string indicating the type of injection point, e.g. "Service" or "Config value"
-     */
-    String getTypeString();
 }

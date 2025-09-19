@@ -183,17 +183,11 @@ public class ValueInjectionPoint<T> implements InjectionPoint<T> {
         // no default value, the required value may be found in the config
         return context.getConfig().hasKey(key)
                 ? Result.success(emptyProviderlist)
-                : Result.failure(toString());
+                : Result.failure(asString());
     }
 
-    @Override
-    public String getTypeString() {
-        return "Configuration value";
-    }
-
-    @Override
-    public String toString() {
-        return "Configuration value \"%s\" of type [%s] (property '%s')".formatted(targetField.getName(), getType(), key);
+    private String asString() {
+        return "Configuration setting \"%s\" of type [%s] (field '%s')".formatted(key, getType(), targetField.getName());
     }
 
     private Object parseEntry(String string, Class<?> valueType) {

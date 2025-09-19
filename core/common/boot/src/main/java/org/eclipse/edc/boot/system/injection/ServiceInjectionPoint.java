@@ -106,18 +106,12 @@ public class ServiceInjectionPoint<T> implements InjectionPoint<T> {
             return Result.success(List.of());
         } else {
             // attempt to interpret the feature name as class name and see if the context has that service
-            return Result.failure(toString());
+            return Result.failure(asString());
         }
 
     }
 
-    @Override
-    public String getTypeString() {
-        return "Service";
-    }
-
-    @Override
-    public String toString() {
-        return format("Field \"%s\" of type [%s]", injectedField.getName(), getType());
+    private String asString() {
+        return format("Service of type [%s] (field \"%s\")", getType(), injectedField.getName());
     }
 }
