@@ -18,7 +18,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:participant-context-spi"))
+    api(project(":spi:common:connector-participant-context-spi"))
 }
 
 

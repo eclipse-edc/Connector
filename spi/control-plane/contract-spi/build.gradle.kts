@@ -23,7 +23,7 @@ dependencies {
     api(project(":spi:common:participant-spi"))
     api(project(":spi:common:policy-engine-spi"))
     api(project(":spi:control-plane:policy-spi"))
-    api(project(":spi:common:participant-context-spi"))
+    api(project(":spi:common:connector-participant-context-spi"))
 
     testImplementation(project(":tests:junit-base"))
     testImplementation(project(":core:common:lib:json-lib"))
