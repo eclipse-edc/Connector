@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.command.CommandResult;
@@ -181,7 +182,7 @@ class ContractNegotiationServiceImplTest {
     @Test
     void initiateNegotiation_callsManager() {
         var contractNegotiation = createContractNegotiation("negotiationId");
-        when(consumerManager.initiate(isA(ContractRequest.class))).thenReturn(StatusResult.success(contractNegotiation));
+        when(consumerManager.initiate(isA(ParticipantContext.class), isA(ContractRequest.class))).thenReturn(StatusResult.success(contractNegotiation));
 
         var request = ContractRequest.Builder.newInstance()
                 .counterPartyAddress("address")
@@ -189,7 +190,7 @@ class ContractNegotiationServiceImplTest {
                 .contractOffer(createContractOffer())
                 .build();
 
-        var result = service.initiateNegotiation(request);
+        var result = service.initiateNegotiation(new ParticipantContext("participantContextId"), request);
 
         assertThat(result).matches(it -> it.getId().equals("negotiationId"));
     }
@@ -215,28 +216,6 @@ class ContractNegotiationServiceImplTest {
         var result = service.terminate(command);
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
-    }
-
-    private static class InvalidFilters implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    arguments(criterion("contractAgreement.contractStartDate.begin", "=", "123455")), // invalid path
-                    arguments(criterion("contractOffers.policy.unexistent", "=", "123455")), // invalid path
-                    arguments(criterion("contractOffers.policy.assetid", "=", "123455")), // wrong case
-                    arguments(criterion("contractOffers.policy.=some-id", "=", "123455")) // incomplete path
-            );
-        }
-    }
-
-    private static class ValidFilters implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    arguments(criterion("contractAgreement.assetId", "=", "test-asset")),
-                    arguments(criterion("contractAgreement.policy.assignee", "=", "123455"))
-            );
-        }
     }
 
     private ContractNegotiation createContractNegotiation(String negotiationId) {
@@ -268,6 +247,28 @@ class ContractNegotiationServiceImplTest {
                 .policy(Policy.Builder.newInstance().build())
                 .assetId("test-asset")
                 .build();
+    }
+
+    private static class InvalidFilters implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(criterion("contractAgreement.contractStartDate.begin", "=", "123455")), // invalid path
+                    arguments(criterion("contractOffers.policy.unexistent", "=", "123455")), // invalid path
+                    arguments(criterion("contractOffers.policy.assetid", "=", "123455")), // wrong case
+                    arguments(criterion("contractOffers.policy.=some-id", "=", "123455")) // incomplete path
+            );
+        }
+    }
+
+    private static class ValidFilters implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(criterion("contractAgreement.assetId", "=", "test-asset")),
+                    arguments(criterion("contractAgreement.policy.assignee", "=", "123455"))
+            );
+        }
     }
 
     @Nested

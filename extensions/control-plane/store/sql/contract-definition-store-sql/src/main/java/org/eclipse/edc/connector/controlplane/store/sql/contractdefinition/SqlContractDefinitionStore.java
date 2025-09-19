@@ -46,12 +46,11 @@ import static java.lang.String.format;
 
 public class SqlContractDefinitionStore extends AbstractSqlStore implements ContractDefinitionStore {
 
-    private final ContractDefinitionStatements statements;
     public static final TypeReference<List<Criterion>> CRITERION_LIST = new TypeReference<>() {
     };
-
     private static final TypeReference<Map<String, Object>> PRIVATE_PROPERTIES_TYPE = new TypeReference<>() {
     };
+    private final ContractDefinitionStatements statements;
 
     public SqlContractDefinitionStore(DataSourceRegistry dataSourceRegistry, String dataSourceName,
                                       TransactionContext transactionContext, ContractDefinitionStatements statements,
@@ -148,6 +147,7 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
                 .contractPolicyId(resultSet.getString(statements.getContractPolicyIdColumn()))
                 .assetsSelector(fromJson(resultSet.getString(statements.getAssetsSelectorColumn()), CRITERION_LIST))
                 .privateProperties(fromJson(resultSet.getString(statements.getPrivatePropertiesColumn()), PRIVATE_PROPERTIES_TYPE))
+                .participantContextId(resultSet.getString(statements.getParticipantContextIdColumn()))
                 .build();
     }
 
@@ -159,7 +159,8 @@ public class SqlContractDefinitionStore extends AbstractSqlStore implements Cont
                     definition.getContractPolicyId(),
                     toJson(definition.getAssetsSelector()),
                     definition.getCreatedAt(),
-                    toJson(definition.getPrivateProperties()));
+                    toJson(definition.getPrivateProperties()),
+                    definition.getParticipantContextId());
         });
     }
 

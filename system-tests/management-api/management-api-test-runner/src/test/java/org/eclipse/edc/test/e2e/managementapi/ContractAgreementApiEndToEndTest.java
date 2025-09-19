@@ -111,6 +111,7 @@ public class ContractAgreementApiEndToEndTest {
                             .build()))
                     .protocol("dataspace-protocol-http")
                     .contractOffer(contractOfferBuilder().build())
+                    .participantContextId("participantContextId")
                     .state(FINALIZED.code());
         }
 
@@ -128,6 +129,7 @@ public class ContractAgreementApiEndToEndTest {
                     .consumerId(UUID.randomUUID() + "-consumer")
                     .providerId(UUID.randomUUID() + "-provider")
                     .policy(Policy.Builder.newInstance().assignee("assignee").assigner("assigner").build())
+                    .participantContextId("participantContextId")
                     .build();
         }
     }

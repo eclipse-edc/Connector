@@ -30,6 +30,6 @@ class ContractDefinitionApiV3ControllerTest extends BaseContractDefinitionApiCon
 
     @Override
     protected Object controller() {
-        return new ContractDefinitionApiV3Controller(transformerRegistry, service, monitor, validatorRegistry);
+        return new ContractDefinitionApiV3Controller(transformerRegistry, service, monitor, validatorRegistry, participantContextSupplier);
     }
 }

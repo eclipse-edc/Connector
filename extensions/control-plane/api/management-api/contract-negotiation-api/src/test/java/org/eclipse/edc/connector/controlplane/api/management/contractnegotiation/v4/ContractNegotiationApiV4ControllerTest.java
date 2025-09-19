@@ -25,7 +25,7 @@ class ContractNegotiationApiV4ControllerTest extends BaseContractNegotiationApiC
 
     @Override
     protected Object controller() {
-        return new ContractNegotiationApiV4Controller(service, transformerRegistry, monitor, validatorRegistry);
+        return new ContractNegotiationApiV4Controller(service, transformerRegistry, monitor, validatorRegistry, participantContextSupplier);
     }
 
     protected RequestSpecification baseRequest() {

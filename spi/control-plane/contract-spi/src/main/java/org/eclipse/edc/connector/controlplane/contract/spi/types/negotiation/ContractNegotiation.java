@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.eclipse.edc.spi.entity.ProtocolMessages;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -49,7 +50,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  */
 @JsonTypeName("dataspaceconnector:contractnegotiation")
 @JsonDeserialize(builder = ContractNegotiation.Builder.class)
-public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
+public class ContractNegotiation extends StatefulEntity<ContractNegotiation> implements ParticipantResource {
 
     public static final String CONTRACT_NEGOTIATION_TYPE_TERM = "ContractNegotiation";
     public static final String CONTRACT_NEGOTIATION_TYPE = EDC_NAMESPACE + CONTRACT_NEGOTIATION_TYPE_TERM;
@@ -70,6 +71,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
     private String counterPartyId;
     private String counterPartyAddress;
     private String protocol;
+    private String participantContextId;
     private Type type = CONSUMER;
     private ContractAgreement contractAgreement;
     private List<ContractOffer> contractOffers = new ArrayList<>();
@@ -410,7 +412,8 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
                 .contractAgreement(contractAgreement)
                 .contractOffers(contractOffers)
                 .callbackAddresses(callbackAddresses)
-                .protocolMessages(protocolMessages);
+                .protocolMessages(protocolMessages)
+                .participantContextId(participantContextId);
         return copy(builder);
     }
 
@@ -473,6 +476,11 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
 
     public boolean currentStateIsOneOf(ContractNegotiationStates... states) {
         return Arrays.stream(states).map(ContractNegotiationStates::code).anyMatch(code -> code == state);
+    }
+
+    @Override
+    public String getParticipantContextId() {
+        return participantContextId;
     }
 
     public enum Type {
@@ -543,6 +551,11 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> {
         public Builder protocolMessages(ProtocolMessages protocolMessages) {
             entity.protocolMessages = protocolMessages;
             return self();
+        }
+
+        public Builder participantContextId(String participantContextId) {
+            entity.participantContextId = participantContextId;
+            return this;
         }
 
         @Override

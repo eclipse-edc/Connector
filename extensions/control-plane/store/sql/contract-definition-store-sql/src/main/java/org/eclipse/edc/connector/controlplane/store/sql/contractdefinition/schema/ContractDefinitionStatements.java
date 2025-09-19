@@ -55,6 +55,10 @@ public interface ContractDefinitionStatements extends SqlStatements {
         return "private_properties";
     }
 
+    default String getParticipantContextIdColumn() {
+        return "participant_context_id";
+    }
+
     String getDeleteByIdTemplate();
 
     String getFindByTemplate();

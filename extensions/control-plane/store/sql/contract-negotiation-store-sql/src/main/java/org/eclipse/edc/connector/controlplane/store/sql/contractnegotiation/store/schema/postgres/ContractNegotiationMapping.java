@@ -24,6 +24,7 @@ import org.eclipse.edc.sql.lease.StatefulEntityMapping;
  * onto the corresponding SQL schema (= column names)
  */
 class ContractNegotiationMapping extends StatefulEntityMapping {
+    public static final String FIELD_PARTICIPANT_CONTEXT_ID = "participantContextId";
     private static final String FIELD_CORRELATION_ID = "correlationId";
     private static final String FIELD_COUNTER_PARTY_ID = "counterPartyId";
     private static final String FIELD_COUNTERPARTY_ADDRESS = "counterPartyAddress";
@@ -43,6 +44,7 @@ class ContractNegotiationMapping extends StatefulEntityMapping {
         add(FIELD_PENDING, statements.getPendingColumn());
         add(FIELD_CONTRACT_AGREEMENT, new ContractAgreementMapping(statements));
         add(FIELD_TRACECONTEXT, statements.getTraceContextColumn());
+        add(FIELD_PARTICIPANT_CONTEXT_ID, statements.getParticipantContextIdColumn());
     }
 
 

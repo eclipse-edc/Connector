@@ -56,6 +56,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.filterByParticipantContextId;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_LEASED;
@@ -212,6 +213,7 @@ public abstract class ContractNegotiationStoreTestBase {
                     .counterPartyAddress("consumer")
                     .counterPartyId("consumerId")
                     .protocol("protocol")
+                    .participantContextId("participantContextId")
                     .build();
 
             getContractNegotiationStore().save(newNegotiation);
@@ -266,6 +268,7 @@ public abstract class ContractNegotiationStoreTestBase {
                     .counterPartyAddress("consumer")
                     .counterPartyId("consumerId")
                     .protocol("protocol")
+                    .participantContextId("participantContextId")
                     .build();
 
             // update should break lease
@@ -546,6 +549,25 @@ public abstract class ContractNegotiationStoreTestBase {
         }
 
         @Test
+        void byParticipantContextId() {
+            var negotiation1 = createNegotiationBuilder("negotiation1").participantContextId("customParticipantContext").build();
+            var negotiation2 = createNegotiation("negotiation2");
+
+            getContractNegotiationStore().save(negotiation1);
+            getContractNegotiationStore().save(negotiation2);
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(filterByParticipantContextId("customParticipantContext"))
+                    .build();
+            var result = getContractNegotiationStore().queryNegotiations(query);
+
+            assertThat(result).hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .containsExactly(negotiation1);
+
+        }
+
+        @Test
         void byPolicyAssignee() {
             var policy = Policy.Builder.newInstance()
                     .assignee("test-assignee")
@@ -682,6 +704,21 @@ public abstract class ContractNegotiationStoreTestBase {
             var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
             assertThatThrownBy(() -> getContractNegotiationStore().queryAgreements(query)).isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void byParticipantContextId() {
+            range(0, 10).mapToObj(i -> "participantContext-" + i).forEach(participantContextId -> {
+                var contractId = ContractOfferId.create(UUID.randomUUID().toString(), "asset").toString();
+                var contractAgreement = createAgreementBuilder(contractId).assetId("asset").participantContextId(participantContextId).build();
+                var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
+                getContractNegotiationStore().save(negotiation);
+            });
+
+            var query = QuerySpec.Builder.newInstance().filter(criterion("participantContextId", "=", "participantContext-2")).build();
+            var all = getContractNegotiationStore().queryAgreements(query);
+
+            assertThat(all).hasSize(1);
         }
     }
 

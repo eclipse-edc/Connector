@@ -48,6 +48,7 @@ public class BaseSqlDialectStatements implements ContractDefinitionStatements {
                 .jsonColumn(getAssetsSelectorColumn())
                 .column(getCreatedAtColumn())
                 .jsonColumn(getPrivatePropertiesColumn())
+                .column(getParticipantContextIdColumn())
                 .insertInto(getContractDefinitionTable());
     }
 

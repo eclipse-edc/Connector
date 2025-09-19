@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -83,8 +84,8 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
     }
 
     @Override
-    public ContractNegotiation initiateNegotiation(ContractRequest request) {
-        return transactionContext.execute(() -> consumerManager.initiate(request).getContent());
+    public ContractNegotiation initiateNegotiation(ParticipantContext participantContext, ContractRequest request) {
+        return transactionContext.execute(() -> consumerManager.initiate(participantContext, request).getContent());
     }
 
     @Override

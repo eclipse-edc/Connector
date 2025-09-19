@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.controlplane.contract.spi.types.offer;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.edc.spi.entity.Entity;
+import org.eclipse.edc.participantcontext.spi.types.AbstractParticipantResource;
 import org.eclipse.edc.spi.query.Criterion;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,7 +42,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  * Note that the id must be a UUID.
  */
 @JsonDeserialize(builder = ContractDefinition.Builder.class)
-public class ContractDefinition extends Entity {
+public class ContractDefinition extends AbstractParticipantResource {
 
     public static final String CONTRACT_DEFINITION_TYPE_TERM = "ContractDefinition";
     public static final String CONTRACT_DEFINITION_TYPE = EDC_NAMESPACE + CONTRACT_DEFINITION_TYPE_TERM;
@@ -112,8 +112,18 @@ public class ContractDefinition extends Entity {
                 '}';
     }
 
+    public Builder toBuilder() {
+        return new Builder()
+                .id(id)
+                .accessPolicyId(accessPolicyId)
+                .contractPolicyId(contractPolicyId)
+                .assetsSelector(assetsSelector)
+                .privateProperties(privateProperties)
+                .participantContextId(participantContextId);
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends Entity.Builder<ContractDefinition, Builder> {
+    public static class Builder extends AbstractParticipantResource.Builder<ContractDefinition, Builder> {
 
         private Builder() {
             super(new ContractDefinition());

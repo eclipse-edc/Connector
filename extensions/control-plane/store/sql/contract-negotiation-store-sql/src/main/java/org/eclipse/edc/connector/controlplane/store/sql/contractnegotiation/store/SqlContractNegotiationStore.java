@@ -126,7 +126,8 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                             contractAgreement.getConsumerId(),
                             contractAgreement.getContractSigningDate(),
                             contractAgreement.getAssetId(),
-                            toJson(contractAgreement.getPolicy())
+                            toJson(contractAgreement.getPolicy()),
+                            contractAgreement.getParticipantContextId()
                     );
                 }
 
@@ -150,7 +151,8 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                         negotiation.getCreatedAt(),
                         negotiation.getUpdatedAt(),
                         negotiation.isPending(),
-                        toJson(negotiation.getProtocolMessages()));
+                        toJson(negotiation.getProtocolMessages()),
+                        negotiation.getParticipantContextId());
 
                 return leaseContext.withConnection(connection).breakLease(negotiation.getId());
             } catch (SQLException e) {
@@ -245,6 +247,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
                 .contractSigningDate(resultSet.getLong(statements.getSigningDateColumn()))
                 .policy(fromJson(resultSet.getString(statements.getPolicyColumn()), Policy.class))
+                .participantContextId(resultSet.getString(statements.getAgreementParticipantContextIdColumn()))
                 .build();
     }
 
@@ -287,6 +290,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 .updatedAt(resultSet.getLong(statements.getUpdatedAtColumn()))
                 .pending(resultSet.getBoolean(statements.getPendingColumn()))
                 .protocolMessages(fromJson(resultSet.getString(statements.getProtocolMessagesColumn()), ProtocolMessages.class))
+                .participantContextId(resultSet.getString(statements.getParticipantContextIdColumn()))
                 .build();
     }
 

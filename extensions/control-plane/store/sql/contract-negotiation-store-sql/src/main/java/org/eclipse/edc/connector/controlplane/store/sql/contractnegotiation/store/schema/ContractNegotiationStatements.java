@@ -122,6 +122,14 @@ public interface ContractNegotiationStatements extends StatefulEntityStatements,
         return "protocol_messages";
     }
 
+    default String getParticipantContextIdColumn() {
+        return "participant_context_id";
+    }
+
+    default String getAgreementParticipantContextIdColumn() {
+        return "agr_participant_context_id";
+    }
+
     SqlQueryStatement createNegotiationsQuery(QuerySpec querySpec);
 
     SqlQueryStatement createNegotiationNextNotLeaseQuery(QuerySpec querySpec);

@@ -26,6 +26,8 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -69,6 +71,7 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
     protected final ContractNegotiationService service = mock();
     protected final TypeTransformerRegistry transformerRegistry = mock();
     protected final JsonObjectValidatorRegistry validatorRegistry = mock();
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> new ParticipantContext("participantId");
 
     @Test
     void getAll() {
@@ -340,7 +343,7 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
                         .build()));
 
         when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
-        when(service.initiateNegotiation(any(ContractRequest.class))).thenReturn(contractNegotiation);
+        when(service.initiateNegotiation(any(ParticipantContext.class), any(ContractRequest.class))).thenReturn(contractNegotiation);
 
         when(transformerRegistry.transform(any(IdResponse.class), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
 
@@ -352,7 +355,7 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
                 .statusCode(200)
                 .body(ID, is(contractNegotiation.getId()));
 
-        verify(service).initiateNegotiation(any());
+        verify(service).initiateNegotiation(any(), any());
         verify(transformerRegistry).transform(any(JsonObject.class), eq(ContractRequest.class));
         verify(transformerRegistry).transform(any(IdResponse.class), eq(JsonObject.class));
         verifyNoMoreInteractions(transformerRegistry, service);

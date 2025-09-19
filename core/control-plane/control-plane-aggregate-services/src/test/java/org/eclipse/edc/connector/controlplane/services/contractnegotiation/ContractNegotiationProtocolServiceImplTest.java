@@ -35,6 +35,8 @@ import org.eclipse.edc.connector.controlplane.contract.spi.validation.ValidatedC
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
@@ -96,7 +98,7 @@ import static org.mockito.Mockito.when;
 class ContractNegotiationProtocolServiceImplTest {
 
     private static final String CONSUMER_ID = "consumer";
-
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> new ParticipantContext("participantId");
     private final ContractNegotiationStore store = mock();
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
     private final ContractValidationService validationService = mock();
@@ -110,7 +112,7 @@ class ContractNegotiationProtocolServiceImplTest {
         var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(listener);
         service = new ContractNegotiationProtocolServiceImpl(store, transactionContext, validationService,
-                consumerOfferResolver, protocolTokenValidator, observable, mock(), mock());
+                consumerOfferResolver, protocolTokenValidator, observable, mock(), mock(), participantContextSupplier);
     }
 
     @Test
@@ -150,7 +152,12 @@ class ContractNegotiationProtocolServiceImplTest {
         var participantAgent = participantAgent();
         var tokenRepresentation = tokenRepresentation();
 
-        var contractAgreement = mock(ContractAgreement.class);
+        var contractAgreement = ContractAgreement.Builder.newInstance()
+                .providerId("providerId")
+                .consumerId("consumerId")
+                .assetId("assetId")
+                .policy(Policy.Builder.newInstance().build())
+                .build();
         var message = ContractAgreementMessage.Builder.newInstance()
                 .protocol("protocol")
                 .counterPartyAddress("http://any")
@@ -171,8 +178,7 @@ class ContractNegotiationProtocolServiceImplTest {
         verify(store).findById("processId");
         verify(store).findByIdAndLease("processId");
         verify(store).save(argThat(negotiation ->
-                negotiation.getState() == AGREED.code() &&
-                        negotiation.getContractAgreement() == contractAgreement
+                negotiation.getState() == AGREED.code() && negotiation.getContractAgreement().equals(contractAgreement)
         ));
         verify(validationService).validateConfirmed(eq(participantAgent), eq(contractAgreement), any(ContractOffer.class));
         verify(listener).agreed(any());
@@ -479,7 +485,12 @@ class ContractNegotiationProtocolServiceImplTest {
                             .counterPartyAddress("http://any")
                             .consumerPid("consumerPid")
                             .providerPid("providerPid")
-                            .contractAgreement(mock(ContractAgreement.class))
+                            .contractAgreement(ContractAgreement.Builder.newInstance()
+                                    .assetId("assetId")
+                                    .consumerId("consumerId")
+                                    .providerId("providerId")
+                                    .policy(Policy.Builder.newInstance().build())
+                                    .build())
                             .build(), CONSUMER, ACCEPTED),
                     Arguments.of(accepted, ContractNegotiationEventMessage.Builder.newInstance()
                             .type(ContractNegotiationEventMessage.Type.ACCEPTED)

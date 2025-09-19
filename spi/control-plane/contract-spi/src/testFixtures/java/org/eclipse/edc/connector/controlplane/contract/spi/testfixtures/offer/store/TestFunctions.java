@@ -32,21 +32,25 @@ public class TestFunctions {
     }
 
     public static ContractDefinition createContractDefinition(String id, String accessPolicyId, String contractPolicyId) {
-        return ContractDefinition.Builder.newInstance()
-                .id(id)
-                .accessPolicyId(accessPolicyId)
-                .contractPolicyId(contractPolicyId)
-                .createdAt(1234)
-                .build();
+        return createContractDefinitionBuilder(id, accessPolicyId, contractPolicyId, Map.of()).build();
     }
 
-    public static ContractDefinition createContractDefinition(String id, String accessPolicyId, String contractPolicyId, Map<String, Object> privateProperties) {
+    public static ContractDefinition.Builder createContractDefinitionBuilder(String id) {
+        return createContractDefinitionBuilder(id, "access", "contract", Map.of());
+    }
+
+    public static ContractDefinition.Builder createContractDefinitionBuilder(String id, String accessPolicyId, String contractPolicyId, Map<String, Object> privateProperties) {
         return ContractDefinition.Builder.newInstance()
                 .id(id)
                 .accessPolicyId(accessPolicyId)
                 .contractPolicyId(contractPolicyId)
                 .privateProperties(privateProperties)
-                .build();
+                .participantContextId("participantContextId")
+                .createdAt(1234);
+    }
+
+    public static ContractDefinition createContractDefinition(String id, String accessPolicyId, String contractPolicyId, Map<String, Object> privateProperties) {
+        return createContractDefinitionBuilder(id, accessPolicyId, contractPolicyId, privateProperties).build();
     }
 
     public static List<ContractDefinition> createContractDefinitions(int count) {

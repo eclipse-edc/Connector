@@ -37,19 +37,28 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.offer.store.TestFunctions.createContractDefinition;
+import static org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.offer.store.TestFunctions.createContractDefinitionBuilder;
 import static org.eclipse.edc.connector.controlplane.contract.spi.testfixtures.offer.store.TestFunctions.createContractDefinitions;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.filterByParticipantContextId;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 public abstract class ContractDefinitionStoreTestBase {
+
+    protected abstract ContractDefinitionStore getContractDefinitionStore();
+
+    protected void saveContractDefinitions(List<ContractDefinition> definitions) {
+        definitions.forEach(it -> getContractDefinitionStore().save(it));
+    }
 
     @Nested
     class Save {
@@ -253,7 +262,7 @@ public abstract class ContractDefinitionStoreTestBase {
         }
 
         @ParameterizedTest
-        @ValueSource(ints = { 49, 50, 51, 100 })
+        @ValueSource(ints = {49, 50, 51, 100})
         void verifyQueryDefaults(int size) {
             var all = IntStream.range(0, size).mapToObj(i -> createContractDefinition("id" + i, "policyId" + i, "contractId" + i))
                     .peek(cd -> getContractDefinitionStore().save(cd))
@@ -330,6 +339,28 @@ public abstract class ContractDefinitionStoreTestBase {
                     .build();
 
             assertThat(getContractDefinitionStore().findAll(spec)).isEmpty();
+        }
+
+        @Test
+        @DisplayName("Find all contract definitions that exactly match a particular participantContext ID")
+        void queryByParticipantContextId() {
+
+            var definitionsExpected = createContractDefinitions(10);
+
+            var definition = createContractDefinitionBuilder(UUID.randomUUID().toString()).participantContextId("customParticipantContextId").build();
+
+            saveContractDefinitions(definitionsExpected);
+            saveContractDefinitions(List.of(definition));
+
+            var spec = QuerySpec.Builder.newInstance()
+                    .filter(filterByParticipantContextId("customParticipantContextId"))
+                    .build();
+
+            var definitionsRetrieved = getContractDefinitionStore().findAll(spec);
+
+            assertThat(definitionsRetrieved).hasSize(1)
+                    .usingRecursiveFieldByFieldElementComparator()
+                    .allSatisfy(cd -> assertThat(cd.getId()).isEqualTo(definition.getId()));
         }
 
         @Test
@@ -673,11 +704,5 @@ public abstract class ContractDefinitionStoreTestBase {
             assertThat(deleted.getContent()).isNotNull().usingRecursiveComparison().isEqualTo(definitionExpected);
             assertThat(getContractDefinitionStore().findAll(QuerySpec.max())).isEmpty();
         }
-    }
-
-    protected abstract ContractDefinitionStore getContractDefinitionStore();
-
-    protected void saveContractDefinitions(List<ContractDefinition> definitions) {
-        definitions.forEach(it -> getContractDefinitionStore().save(it));
     }
 }

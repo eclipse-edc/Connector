@@ -26,6 +26,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.BaseContractDefinitionApiController;
 import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
@@ -39,8 +40,9 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 @Produces(APPLICATION_JSON)
 @Path("/v4alpha/contractdefinitions")
 public class ContractDefinitionApiV4Controller extends BaseContractDefinitionApiController implements ContractDefinitionApiV4 {
-    public ContractDefinitionApiV4Controller(TypeTransformerRegistry transformerRegistry, ContractDefinitionService service, Monitor monitor, JsonObjectValidatorRegistry validatorRegistry) {
-        super(transformerRegistry, service, monitor, validatorRegistry);
+    public ContractDefinitionApiV4Controller(TypeTransformerRegistry transformerRegistry, ContractDefinitionService service, Monitor monitor,
+                                             JsonObjectValidatorRegistry validatorRegistry, SingleParticipantContextSupplier participantContextSupplier) {
+        super(transformerRegistry, service, monitor, validatorRegistry, participantContextSupplier);
     }
 
     @POST

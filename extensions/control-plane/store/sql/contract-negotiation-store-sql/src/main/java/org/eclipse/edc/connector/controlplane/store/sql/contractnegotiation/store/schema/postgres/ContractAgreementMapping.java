@@ -26,6 +26,7 @@ import org.eclipse.edc.sql.translation.TranslationMapping;
 class ContractAgreementMapping extends TranslationMapping {
 
 
+    public static final String FIELD_PARTICIPANT_CONTEXT_ID = "participantContextId";
     private static final String FIELD_ID = "id";
     private static final String FIELD_PROVIDER_AGENT_ID = "providerId";
     private static final String FIELD_CONSUMER_AGENT_ID = "consumerId";
@@ -40,5 +41,6 @@ class ContractAgreementMapping extends TranslationMapping {
         add(FIELD_CONTRACT_SIGNING_DATE, statements.getSigningDateColumn());
         add(FIELD_ASSET_ID, statements.getAssetIdColumn());
         add(FIELD_POLICY, new JsonFieldTranslator("policy"));
+        add(FIELD_PARTICIPANT_CONTEXT_ID, statements.getAgreementParticipantContextIdColumn());
     }
 }

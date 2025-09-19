@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS edc_contract_agreement
     start_date        BIGINT,
     end_date          INTEGER,
     asset_id          VARCHAR NOT NULL,
-    policy            JSON
+    policy            JSON,
+    agr_participant_context_id VARCHAR NOT NULL
 );
 
 
@@ -54,7 +55,8 @@ CREATE TABLE IF NOT EXISTS edc_contract_negotiation
     callback_addresses   JSON,
     trace_context        JSON,
     pending              BOOLEAN DEFAULT FALSE,
-    protocol_messages    JSON
+    protocol_messages    JSON,
+    participant_context_id VARCHAR NOT NULL
 );
 
 COMMENT ON COLUMN edc_contract_negotiation.agreement_id IS 'ContractAgreement serialized as JSON';
