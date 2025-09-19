@@ -159,16 +159,10 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
                 .filter(Result::failed)
                 .map(AbstractResult::getFailureDetail)
                 .toList();
-        return violators.isEmpty() ? Result.success(List.of()) : Result.failure("%s, through nested settings %s".formatted(toString(), violators));
+        return violators.isEmpty() ? Result.success(List.of()) : Result.failure("%s, through nested %s".formatted(asString(), violators));
     }
 
-    @Override
-    public String getTypeString() {
-        return "Configuration object";
-    }
-
-    @Override
-    public String toString() {
+    private String asString() {
         return "Configuration object \"%s\" of type [%s]"
                 .formatted(configurationObject.getName(), configurationObject.getType());
     }
