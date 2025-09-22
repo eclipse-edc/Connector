@@ -27,6 +27,7 @@ import jakarta.ws.rs.Produces;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -48,15 +49,17 @@ public class DataplaneSelectorControlApiController implements DataplaneSelectorC
     private final JsonObjectValidatorRegistry validatorRegistry;
     private final TypeTransformerRegistry transformerRegistry;
     private final DataPlaneSelectorService service;
+    private final SingleParticipantContextSupplier participantContextSupplier;
     private final Clock clock;
 
     public DataplaneSelectorControlApiController(JsonObjectValidatorRegistry validatorRegistry,
                                                  TypeTransformerRegistry transformerRegistry,
-                                                 DataPlaneSelectorService service, Clock clock) {
+                                                 DataPlaneSelectorService service, SingleParticipantContextSupplier participantContextSupplier, Clock clock) {
 
         this.validatorRegistry = validatorRegistry;
         this.transformerRegistry = transformerRegistry;
         this.service = service;
+        this.participantContextSupplier = participantContextSupplier;
         this.clock = clock;
     }
 
@@ -65,7 +68,11 @@ public class DataplaneSelectorControlApiController implements DataplaneSelectorC
     public JsonObject registerDataplane(JsonObject request) {
         validatorRegistry.validate(DataPlaneInstance.DATAPLANE_INSTANCE_TYPE, request).orElseThrow(ValidationFailureException::new);
 
-        var dataplane = transformerRegistry.transform(request, DataPlaneInstance.class).orElseThrow(InvalidRequestException::new);
+        var dataplane = transformerRegistry.transform(request, DataPlaneInstance.class)
+                .orElseThrow(InvalidRequestException::new)
+                .toBuilder()
+                .participantContextId(participantContextSupplier.get().getParticipantContextId())
+                .build();
 
         service.addInstance(dataplane)
                 .orElseThrow(exceptionMapper(DataPlaneInstance.class, dataplane.getId()));

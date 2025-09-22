@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.selector.spi.instance;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -41,7 +42,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  * Representations of a data plane instance. Every DPF has an ID and a URL as well as a number, how often it was selected,
  * and a timestamp of its last selection time. In addition, there are extensible properties to hold specific properties.
  */
-public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
+public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> implements ParticipantResource {
 
     public static final String DATAPLANE_INSTANCE_TYPE_TERM = "DataPlaneInstance";
     public static final String DATAPLANE_INSTANCE_TYPE = EDC_NAMESPACE + DATAPLANE_INSTANCE_TYPE_TERM;
@@ -68,8 +69,13 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
     private int turnCount = 0;
     private long lastActive = Instant.now().toEpochMilli();
     private URL url;
+    private String participantContextId;
 
     private DataPlaneInstance() {
+    }
+
+    public Builder toBuilder() {
+        return new Builder(copy());
     }
 
     @Override
@@ -82,7 +88,8 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
                 .allowedSourceTypes(allowedSourceTypes)
                 .allowedTransferType(allowedTransferTypes)
                 .properties(properties)
-                .destinationProvisionTypes(destinationProvisionTypes);
+                .destinationProvisionTypes(destinationProvisionTypes)
+                .participantContextId(participantContextId);
 
         return copy(builder);
     }
@@ -139,6 +146,11 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
 
     public Set<String> getDestinationProvisionTypes() {
         return destinationProvisionTypes;
+    }
+
+    @Override
+    public String getParticipantContextId() {
+        return participantContextId;
     }
 
     public boolean canProvisionDestination(@Nullable DataAddress destination) {
@@ -246,6 +258,11 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> {
 
         public Builder destinationProvisionTypes(Set<String> types) {
             entity.destinationProvisionTypes.addAll(types);
+            return this;
+        }
+
+        public Builder participantContextId(String participantContextId) {
+            entity.participantContextId = participantContextId;
             return this;
         }
 

@@ -16,6 +16,7 @@
 package org.eclipse.edc.connector.dataplane.selector.control.api;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -61,6 +62,9 @@ public class DataplaneSelectorControlApiExtension implements ServiceExtension {
     @Inject
     private Clock clock;
 
+    @Inject
+    private SingleParticipantContextSupplier participantContextSupplier;
+
     @Override
     public String name() {
         return NAME;
@@ -75,7 +79,7 @@ public class DataplaneSelectorControlApiExtension implements ServiceExtension {
         typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, JSON_LD));
         typeTransformerRegistry.register(new JsonObjectFromDataPlaneInstanceTransformer(createBuilderFactory(Map.of()), typeManager, JSON_LD));
 
-        var controller = new DataplaneSelectorControlApiController(validatorRegistry, typeTransformerRegistry, dataPlaneSelectorService, clock);
+        var controller = new DataplaneSelectorControlApiController(validatorRegistry, typeTransformerRegistry, dataPlaneSelectorService, participantContextSupplier, clock);
         webService.registerResource(ApiContext.CONTROL, controller);
     }
 }
