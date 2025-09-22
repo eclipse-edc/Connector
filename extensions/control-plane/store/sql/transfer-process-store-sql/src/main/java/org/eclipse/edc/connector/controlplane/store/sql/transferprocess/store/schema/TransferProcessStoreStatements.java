@@ -109,6 +109,10 @@ public interface TransferProcessStoreStatements extends StatefulEntityStatements
         return "protocol_messages";
     }
 
+    default String getParticipantContextIdColumn() {
+        return "participant_context_id";
+    }
+
     SqlQueryStatement createQuery(QuerySpec querySpec);
 
     SqlQueryStatement createNextNotLeaseQuery(QuerySpec querySpec);

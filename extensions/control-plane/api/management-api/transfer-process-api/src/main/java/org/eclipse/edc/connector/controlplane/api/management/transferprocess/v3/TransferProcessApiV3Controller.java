@@ -24,6 +24,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.BaseTransferProcessApiController;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
@@ -35,8 +36,9 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 @Path("/v3/transferprocesses")
 public class TransferProcessApiV3Controller extends BaseTransferProcessApiController implements TransferProcessApiV3 {
 
-    public TransferProcessApiV3Controller(Monitor monitor, TransferProcessService service, TypeTransformerRegistry transformerRegistry, JsonObjectValidatorRegistry validatorRegistry) {
-        super(monitor, service, transformerRegistry, validatorRegistry);
+    public TransferProcessApiV3Controller(Monitor monitor, TransferProcessService service, TypeTransformerRegistry transformerRegistry,
+                                          JsonObjectValidatorRegistry validatorRegistry, SingleParticipantContextSupplier participantContextSupplier) {
+        super(monitor, service, transformerRegistry, validatorRegistry, participantContextSupplier);
     }
 
     @POST

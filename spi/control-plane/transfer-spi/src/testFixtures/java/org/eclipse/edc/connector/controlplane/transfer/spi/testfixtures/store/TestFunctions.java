@@ -61,6 +61,7 @@ public class TestFunctions {
                 .type(TransferProcess.Type.CONSUMER)
                 .contentDataAddress(createDataAddressBuilder("any").build())
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build()))
+                .participantContextId("participantContextId")
                 .resourceManifest(createManifest());
     }
 

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.eclipse.edc.spi.entity.ProtocolMessages;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -111,7 +112,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  */
 @JsonTypeName("dataspaceconnector:transferprocess")
 @JsonDeserialize(builder = TransferProcess.Builder.class)
-public class TransferProcess extends StatefulEntity<TransferProcess> {
+public class TransferProcess extends StatefulEntity<TransferProcess> implements ParticipantResource {
 
     public static final String TRANSFER_PROCESS_TYPE_TERM = "TransferProcess";
     public static final String TRANSFER_PROCESS_TYPE = EDC_NAMESPACE + TRANSFER_PROCESS_TYPE_TERM;
@@ -144,6 +145,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
     private ProtocolMessages protocolMessages = new ProtocolMessages();
     private String transferType;
     private String dataPlaneId;
+    private String participantContextId;
+
 
     private TransferProcess() {
     }
@@ -254,6 +257,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
     public String lastSentProtocolMessage() {
         return protocolMessages.getLastSent();
+    }
+
+    @Override
+    public String getParticipantContextId() {
+        return participantContextId;
     }
 
     public void lastSentProtocolMessage(String id) {
@@ -510,7 +518,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
                 .transferType(transferType)
                 .type(type)
                 .protocolMessages(protocolMessages)
-                .dataPlaneId(dataPlaneId);
+                .dataPlaneId(dataPlaneId)
+                .participantContextId(participantContextId);
         return copy(builder);
     }
 
@@ -678,6 +687,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> {
 
         public Builder contractId(String contractId) {
             entity.contractId = contractId;
+            return this;
+        }
+
+        public Builder participantContextId(String participantContextId) {
+            entity.participantContextId = participantContextId;
             return this;
         }
 

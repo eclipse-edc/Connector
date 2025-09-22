@@ -41,6 +41,7 @@ import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.EdcException;
@@ -144,7 +145,7 @@ public class TransferProcessEventDispatchTest {
         when(agentService.createFor(eq(token), any())).thenReturn(agent);
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
-        var initiateResult = service.initiateTransfer(transferRequest);
+        var initiateResult = service.initiateTransfer(new ParticipantContext("participantContextId"), transferRequest);
 
         assertThat(initiateResult).isSucceeded();
         await().atMost(TIMEOUT).untilAsserted(() -> {
@@ -207,7 +208,7 @@ public class TransferProcessEventDispatchTest {
         dispatcherRegistry.register("test", getTestDispatcher());
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
-        var initiateResult = service.initiateTransfer(transferRequest);
+        var initiateResult = service.initiateTransfer(new ParticipantContext("participantContextId"), transferRequest);
 
         await().atMost(TIMEOUT).untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessInitiated.class)));
@@ -235,7 +236,7 @@ public class TransferProcessEventDispatchTest {
         when(negotiationStore.findContractAgreement(transferRequest.getContractId())).thenReturn(agreement);
         when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().build());
 
-        service.initiateTransfer(transferRequest);
+        service.initiateTransfer(new ParticipantContext("participantContextId"), transferRequest);
 
         await().atMost(TIMEOUT).untilAsserted(() -> verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessTerminated.class))));
     }

@@ -48,6 +48,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.filterByParticipantContextId;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_LEASED;
@@ -533,6 +534,19 @@ public abstract class TransferProcessStoreTestBase {
             var result = getTransferProcessStore().findAll(querySpec);
 
             assertThat(result).extracting(TransferProcess::getTransferType).containsOnly("type4");
+        }
+
+        @Test
+        void queryByParticipantContextId() {
+            var tp = TestFunctions.createTransferProcessBuilder("testprocess1").participantContextId("customParticipantContextId").state(800).build();
+            getTransferProcessStore().save(tp);
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(filterByParticipantContextId("customParticipantContextId"))
+                    .build();
+
+            var result = getTransferProcessStore().findAll(query).toList();
+            assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(tp);
         }
 
         @Test

@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.Complet
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.ResumeTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.SuspendTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.jetbrains.annotations.NotNull;
@@ -117,7 +118,7 @@ public interface TransferProcessService {
      * @return a result that is successful if the transfer process was initiated with the created TransferProcess.
      */
     @NotNull
-    ServiceResult<TransferProcess> initiateTransfer(TransferRequest request);
+    ServiceResult<TransferProcess> initiateTransfer(ParticipantContext participantContext, TransferRequest request);
 
     /**
      * Asynchronously notifies the system that the provisioning phase has been completed.

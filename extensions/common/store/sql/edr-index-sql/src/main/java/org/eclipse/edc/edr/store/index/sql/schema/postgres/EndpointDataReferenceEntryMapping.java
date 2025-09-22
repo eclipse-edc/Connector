@@ -30,5 +30,6 @@ public class EndpointDataReferenceEntryMapping extends TranslationMapping {
         add("providerId", statements.getProviderIdColumn());
         add("contractNegotiationId", statements.getContractNegotiationIdColumn());
         add("createdAt", statements.getCreatedAtColumn());
+        add("participantContextId", statements.getParticipantContextIdColumn());
     }
 }
