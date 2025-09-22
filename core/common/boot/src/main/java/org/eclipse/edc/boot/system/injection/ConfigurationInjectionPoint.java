@@ -184,14 +184,14 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
                 .toList();
     }
 
-    private @NotNull Stream<ValueInjectionPoint<T>> injectionPointsFrom(Field[] fields, SettingContext settingContext) {
+    private @NotNull Stream<SettingInjectionPoint<T>> injectionPointsFrom(Field[] fields, SettingContext settingContext) {
         return Arrays.stream(fields)
                 .filter(f -> f.getAnnotation(Setting.class) != null)
                 .map(f -> {
                     if (settingContext == null) {
-                        return new ValueInjectionPoint<>(null, f, f.getAnnotation(Setting.class), targetInstance.getClass());
+                        return new SettingInjectionPoint<>(null, f, f.getAnnotation(Setting.class), targetInstance.getClass());
                     } else {
-                        return new ValueInjectionPoint<>(null, f, f.getAnnotation(Setting.class), targetInstance.getClass(), settingContext);
+                        return new SettingInjectionPoint<>(null, f, f.getAnnotation(Setting.class), targetInstance.getClass(), settingContext);
                     }
                 });
     }

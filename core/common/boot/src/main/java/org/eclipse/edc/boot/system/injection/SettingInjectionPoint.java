@@ -42,7 +42,7 @@ import static java.util.Optional.ofNullable;
  *
  * @param <T> The type of the declaring class.
  */
-public class ValueInjectionPoint<T> implements InjectionPoint<T> {
+public class SettingInjectionPoint<T> implements InjectionPoint<T> {
     public final List<InjectionContainer<T>> emptyProviderlist = List.of();
     private final T objectInstance;
     private final Field targetField;
@@ -58,11 +58,11 @@ public class ValueInjectionPoint<T> implements InjectionPoint<T> {
      * @param annotationValue The concrete annotation instance (needed to obtain its attributes)
      * @param declaringClass  The class where the annotated field is declared. Usually, this is {@code objectInstance.getClass()}.
      */
-    public ValueInjectionPoint(T objectInstance, Field targetField, Setting annotationValue, Class<?> declaringClass) {
+    public SettingInjectionPoint(T objectInstance, Field targetField, Setting annotationValue, Class<?> declaringClass) {
         this(objectInstance, targetField, annotationValue, declaringClass, null);
     }
 
-    public ValueInjectionPoint(T objectInstance, Field targetField, Setting annotationValue, Class<?> declaringClass, SettingContext settingContext) {
+    public SettingInjectionPoint(T objectInstance, Field targetField, Setting annotationValue, Class<?> declaringClass, SettingContext settingContext) {
         this.objectInstance = objectInstance;
         this.targetField = targetField;
         this.declaringClass = declaringClass;

@@ -35,7 +35,7 @@ public interface InjectionPoint<T> {
 
     /**
      * The type (=class) of the injected field. For example, this could be the service class for a {@link ServiceInjectionPoint}, or
-     * a basic datatype for a {@link ValueInjectionPoint}.
+     * a basic datatype for a {@link SettingInjectionPoint}.
      */
     Class<?> getType();
 
