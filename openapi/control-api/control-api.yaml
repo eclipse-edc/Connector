@@ -2,6 +2,9 @@ openapi: 3.0.1
 info:
   title: control-api
   description: REST API documentation for the control-api
+  license:
+    name: "The Apache License, Version 2.0"
+    url: http://www.apache.org/licenses/LICENSE-2.0.txt
   version: 2.0.0
 servers:
 - url: /
