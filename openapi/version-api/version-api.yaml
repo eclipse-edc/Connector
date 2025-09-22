@@ -7,7 +7,7 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.txt
   version: 1.0.0
 servers:
-- url: /
+- url: http://localhost:8080
 paths:
   /v1/version:
     get:
@@ -42,15 +42,3 @@ components:
         '@id': secret-id
         '@type': https://w3id.org/edc/v0.0.1/ns/Secret
         value: secret-value
-    VersionRecord:
-      type: object
-      properties:
-        lastUpdated:
-          type: string
-          format: date-time
-        maturity:
-          type: string
-        urlPath:
-          type: string
-        version:
-          type: string

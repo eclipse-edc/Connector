@@ -7,7 +7,7 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.txt
   version: 1.0.0
 servers:
-- url: /
+- url: http://localhost:8080
 paths:
   /check/health:
     get:
@@ -67,24 +67,6 @@ paths:
                 $ref: "#/components/schemas/HealthStatus"
 components:
   schemas:
-    Failure:
-      type: object
-      properties:
-        failureDetail:
-          type: string
-        messages:
-          type: array
-          items:
-            type: string
-    HealthCheckResult:
-      type: object
-      properties:
-        component:
-          type: string
-        failure:
-          $ref: "#/components/schemas/Failure"
-        isHealthy:
-          type: boolean
     HealthStatus:
       type: object
       properties:
@@ -94,3 +76,51 @@ components:
             $ref: "#/components/schemas/HealthCheckResult"
         isSystemHealthy:
           type: boolean
+      example:
+        isSystemHealthy: true
+        componentResults:
+        - component: component
+          failure:
+            failureDetail: failureDetail
+            messages:
+            - messages
+            - messages
+          isHealthy: true
+        - component: component
+          failure:
+            failureDetail: failureDetail
+            messages:
+            - messages
+            - messages
+          isHealthy: true
+    HealthCheckResult:
+      type: object
+      properties:
+        component:
+          type: string
+        failure:
+          $ref: "#/components/schemas/Failure"
+        isHealthy:
+          type: boolean
+      example:
+        component: component
+        failure:
+          failureDetail: failureDetail
+          messages:
+          - messages
+          - messages
+        isHealthy: true
+    Failure:
+      type: object
+      properties:
+        failureDetail:
+          type: string
+        messages:
+          type: array
+          items:
+            type: string
+      example:
+        failureDetail: failureDetail
+        messages:
+        - messages
+        - messages

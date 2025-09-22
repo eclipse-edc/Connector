@@ -7,21 +7,14 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.txt
   version: 2.0.0
 servers:
-- url: /
-tags:
-- name: Data Plane Signaling api API
-  description: 'Api targeted by the Control Plane to delegate a data transfer to the
-    Data Plane after the contract has been successfully negotiated and agreed between
-    the two participants. '
+- url: http://localhost:8080
 paths:
-  /transferprocess/{processId}/complete:
+  /transferprocess/{processId}/provisioned:
     post:
       tags:
       - Transfer Process Control Api
-      description: "Requests completion of the transfer process. Due to the asynchronous\
-        \ nature of transfers, a successful response only indicates that the request\
-        \ was successfully received"
-      operationId: complete
+      description: Notify provisioning completion.
+      operationId: provisioned
       parameters:
       - name: processId
         in: path
@@ -30,6 +23,11 @@ paths:
         explode: false
         schema:
           type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DataAddress"
       responses:
         "400":
           description: "Request was malformed, e.g. id was null"
@@ -39,6 +37,90 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v1/dataflows/{id}/terminate:
+    post:
+      tags:
+      - Data Plane Signaling api API
+      description: Terminates a data transfer.
+      operationId: terminate
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DataFlowTerminateMessage"
+      responses:
+        "204":
+          description: Data transfer terminated
+        "404":
+          description: Data transfer not handled by the data plane
+        "409":
+          description: Cannot terminate the transfer
+  /v1/dataflows/{id}/state:
+    get:
+      tags:
+      - Data Plane Signaling api API
+      description: Get the current state of a data transfer.
+      operationId: getTransferState
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: State of the data transfer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataFlowState"
+        "404":
+          description: Data transfer not found in the data plane
+  /v1/dataflows/check:
+    get:
+      tags:
+      - Data Plane Signaling api API
+      description: Check if data plane is available.
+      operationId: checkAvailability
+      responses:
+        "204":
+          description: Data plane is available
+  /v1/dataflows/{id}/suspend:
+    post:
+      tags:
+      - Data Plane Signaling api API
+      description: Suspend a data transfer.
+      operationId: suspend
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DataFlowSuspendMessage"
+      responses:
+        "204":
+          description: Data transfer suspended
+        "404":
+          description: Data transfer not handled by the data plane
+        "409":
+          description: Cannot suspend the transfer
   /transferprocess/{processId}/fail:
     post:
       tags:
@@ -69,140 +151,75 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /transferprocess/{processId}/provisioned:
-    post:
+  /v1/dataplanes/{id}:
+    get:
       tags:
-      - Transfer Process Control Api
-      description: Notify provisioning completion.
-      operationId: provisioned
+      - Dataplane Selector
+      description: Returns the Data Plane Instance with the specified id.
+      operationId: findDataPlaneById
       parameters:
-      - name: processId
+      - name: id
         in: path
         required: true
         style: simple
         explode: false
         schema:
           type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DataAddress"
       responses:
-        "400":
-          description: "Request was malformed, e.g. id was null"
+        "200":
+          description: The Data Plane Instance
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataPlaneInstanceSchema"
+        "404":
+          description: Resource not found
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-  /v1/dataflows:
-    post:
+                  $ref: "#/components/schemas/ApiErrorDetail_1"
+    delete:
       tags:
-      - Data Plane Signaling api API
-      description: "Initiates a data transfer for the given start message. If the\
-        \ data transfer is handled by the data plane, it will be performed asynchronously.\
-        \ If it's a consumer-pull scenario, a data address will be returned"
-      operationId: start
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DataFlowStartMessage"
+      - Dataplane Selector
+      description: Delete existing Dataplane
+      operationId: deleteDataplane
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
       responses:
-        "200":
-          description: Data transfer initiated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DataFlowResponseMessage"
+        "204":
+          description: Dataplane successfully deleted
         "400":
-          description: Failed to validate request
-  /v1/dataflows/check:
-    get:
-      tags:
-      - Data Plane Signaling api API
-      description: Check if data plane is available.
-      operationId: checkAvailability
-      responses:
-        "204":
-          description: Data plane is available
-  /v1/dataflows/{id}/state:
-    get:
-      tags:
-      - Data Plane Signaling api API
-      description: Get the current state of a data transfer.
-      operationId: getTransferState
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: State of the data transfer
+          description: Request body was malformed
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DataFlowState"
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail_1"
         "404":
-          description: Data transfer not found in the data plane
-  /v1/dataflows/{id}/suspend:
-    post:
-      tags:
-      - Data Plane Signaling api API
-      description: Suspend a data transfer.
-      operationId: suspend
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DataFlowSuspendMessage"
-      responses:
-        "204":
-          description: Data transfer suspended
-        "404":
-          description: Data transfer not handled by the data plane
+          description: Resource not found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail_1"
         "409":
-          description: Cannot suspend the transfer
-  /v1/dataflows/{id}/terminate:
-    post:
-      tags:
-      - Data Plane Signaling api API
-      description: Terminates a data transfer.
-      operationId: terminate
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DataFlowTerminateMessage"
-      responses:
-        "204":
-          description: Data transfer terminated
-        "404":
-          description: Data transfer not handled by the data plane
-        "409":
-          description: Cannot terminate the transfer
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail_1"
   /v1/dataplanes:
     get:
       tags:
@@ -243,7 +260,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+                  $ref: "#/components/schemas/ApiErrorDetail_1"
         "409":
           description: Resource already exists
           content:
@@ -251,43 +268,39 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-  /v1/dataplanes/{id}:
-    get:
+                  $ref: "#/components/schemas/ApiErrorDetail_1"
+  /v1/dataflows:
+    post:
       tags:
-      - Dataplane Selector
-      description: Returns the Data Plane Instance with the specified id.
-      operationId: findDataPlaneById
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
+      - Data Plane Signaling api API
+      description: "Initiates a data transfer for the given start message. If the\
+        \ data transfer is handled by the data plane, it will be performed asynchronously.\
+        \ If it's a consumer-pull scenario, a data address will be returned"
+      operationId: start
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DataFlowStartMessage"
       responses:
         "200":
-          description: The Data Plane Instance
+          description: Data transfer initiated
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DataPlaneInstanceSchema"
-        "404":
-          description: Resource not found
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-    delete:
+                $ref: "#/components/schemas/DataFlowResponseMessage"
+        "400":
+          description: Failed to validate request
+  /transferprocess/{processId}/complete:
+    post:
       tags:
-      - Dataplane Selector
-      description: Delete existing Dataplane
-      operationId: deleteDataplane
+      - Transfer Process Control Api
+      description: "Requests completion of the transfer process. Due to the asynchronous\
+        \ nature of transfers, a successful response only indicates that the request\
+        \ was successfully received"
+      operationId: complete
       parameters:
-      - name: id
+      - name: processId
         in: path
         required: true
         style: simple
@@ -295,26 +308,8 @@ paths:
         schema:
           type: string
       responses:
-        "204":
-          description: Dataplane successfully deleted
         "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: Resource not found
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "409":
-          description: Conflict
+          description: "Request was malformed, e.g. id was null"
           content:
             application/json:
               schema:
@@ -345,7 +340,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+                  $ref: "#/components/schemas/ApiErrorDetail_1"
         "404":
           description: Resource not found
           content:
@@ -353,7 +348,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+                  $ref: "#/components/schemas/ApiErrorDetail_1"
         "409":
           description: Conflict
           content:
@@ -361,7 +356,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+                  $ref: "#/components/schemas/ApiErrorDetail_1"
 components:
   schemas:
     ApiErrorDetail:
@@ -375,6 +370,11 @@ components:
           type: string
         type:
           type: string
+      example:
+        path: path
+        message: message
+        type: type
+        invalidValue: "{}"
     DataAddress:
       type: object
       properties:
@@ -382,79 +382,22 @@ components:
           type: object
           additionalProperties:
             type: object
-    DataFlowResponseMessage:
-      type: object
-      properties:
-        '@context':
-          type: object
-        '@type':
-          type: string
-          example: DataFlowResponseMessage
-        dataAddress:
-          $ref: "#/components/schemas/DataAddress"
       example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': DataFlowResponseMessage
-        dataAddress:
-          type: HttpData
-          baseUrl: https://jsonplaceholder.typicode.com/todos
-    DataFlowStartMessage:
-      required:
-      - '@context'
-      - agreementId
-      - datasetId
-      - participantId
-      - processId
-      - properties
-      - sourceDataAddress
-      - transferType
+        properties:
+          key: "{}"
+    DataFlowTerminateMessage:
       type: object
       properties:
-        '@context':
-          type: object
-        '@id':
-          type: string
         '@type':
           type: string
-          example: DataFlowStartMessage
-        agreementId:
-          type: string
-        callbackAddress:
-          type: string
-        datasetId:
-          type: string
-        destinationDataAddress:
-          $ref: "#/components/schemas/DataAddress"
-        participantId:
-          type: string
-        processId:
-          type: string
-        properties:
-          $ref: "#/components/schemas/Properties"
-        sourceDataAddress:
-          $ref: "#/components/schemas/DataAddress"
-        transferType:
+          example: DataFlowTerminateMessage
+        state:
           type: string
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@id': transfer-id
-        '@type': DataFlowStartMessage
-        processId: process-id
-        datasetId: dataset-id
-        participantId: participant-id
-        agreementId: agreement-id
-        transferType: HttpData-PUSH
-        sourceDataAddress:
-          type: HttpData
-          baseUrl: https://jsonplaceholder.typicode.com/todos
-        destinationDataAddress:
-          type: HttpData
-          baseUrl: https://jsonplaceholder.typicode.com/todos
-        callbackAddress: http://control-plane
-        properties:
-          key: value
+        '@type': DataFlowTerminateMessage
+        reason: reason
     DataFlowState:
       type: object
       properties:
@@ -483,19 +426,13 @@ components:
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
         '@type': DataFlowSuspendMessage
         reason: reason
-    DataFlowTerminateMessage:
+    TransferProcessFailStateDto:
       type: object
       properties:
-        '@type':
-          type: string
-          example: DataFlowTerminateMessage
-        state:
+        errorMessage:
           type: string
       example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': DataFlowTerminateMessage
-        reason: reason
+        errorMessage: errorMessage
     DataPlaneInstanceSchema:
       required:
       - '@context'
@@ -537,6 +474,22 @@ components:
         - your-dest-type
         allowedTransferTypes:
         - transfer-type
+    ApiErrorDetail_1:
+      type: object
+      properties:
+        invalidValue:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        type:
+          type: string
+      example:
+        message: error message
+        type: ErrorType
+        path: object.error.path
+        invalidValue: this value is not valid
     IdResponse:
       type: object
       properties:
@@ -550,57 +503,92 @@ components:
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
         '@id': id-value
         createdAt: 1688465655
-    JsonArray:
-      type: array
-      properties:
-        empty:
-          type: boolean
-        valueType:
-          type: string
-          enum:
-          - ARRAY
-          - OBJECT
-          - STRING
-          - NUMBER
-          - "TRUE"
-          - "FALSE"
-          - "NULL"
-      items:
-        $ref: "#/components/schemas/JsonValue"
-    JsonObject:
+    DataFlowResponseMessage:
       type: object
       properties:
-        empty:
-          type: boolean
-        valueType:
+        '@context':
+          type: object
+        '@type':
           type: string
-          enum:
-          - ARRAY
-          - OBJECT
-          - STRING
-          - NUMBER
-          - "TRUE"
-          - "FALSE"
-          - "NULL"
-      additionalProperties:
-        $ref: "#/components/schemas/JsonValue"
-    JsonValue:
+          example: DataFlowResponseMessage
+        dataAddress:
+          $ref: "#/components/schemas/DataAddress_1"
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@type': DataFlowResponseMessage
+        dataAddress:
+          type: HttpData
+          baseUrl: https://jsonplaceholder.typicode.com/todos
+    DataAddress_1:
       type: object
       properties:
-        valueType:
+        '@type':
           type: string
-          enum:
-          - ARRAY
-          - OBJECT
-          - STRING
-          - NUMBER
-          - "TRUE"
-          - "FALSE"
-          - "NULL"
+          example: https://w3id.org/edc/v0.0.1/ns/DataAddress
+        type:
+          type: string
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@type': https://w3id.org/edc/v0.0.1/ns/DataAddress
+        type: HttpData
+        baseUrl: http://example.com
+    DataFlowStartMessage:
+      required:
+      - '@context'
+      - agreementId
+      - datasetId
+      - participantId
+      - processId
+      - properties
+      - sourceDataAddress
+      - transferType
+      type: object
+      properties:
+        '@context':
+          type: object
+        '@id':
+          type: string
+        '@type':
+          type: string
+          example: DataFlowStartMessage
+        agreementId:
+          type: string
+        callbackAddress:
+          type: string
+        datasetId:
+          type: string
+        destinationDataAddress:
+          $ref: "#/components/schemas/DataAddress_1"
+        participantId:
+          type: string
+        processId:
+          type: string
+        properties:
+          type: object
+        sourceDataAddress:
+          $ref: "#/components/schemas/DataAddress_1"
+        transferType:
+          type: string
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@id': transfer-id
+        '@type': DataFlowStartMessage
+        processId: process-id
+        datasetId: dataset-id
+        participantId: participant-id
+        agreementId: agreement-id
+        transferType: HttpData-PUSH
+        sourceDataAddress:
+          type: HttpData
+          baseUrl: https://jsonplaceholder.typicode.com/todos
+        destinationDataAddress:
+          type: HttpData
+          baseUrl: https://jsonplaceholder.typicode.com/todos
+        callbackAddress: http://control-plane
+        properties:
+          key: value
     Properties:
       type: object
-    TransferProcessFailStateDto:
-      type: object
-      properties:
-        errorMessage:
-          type: string

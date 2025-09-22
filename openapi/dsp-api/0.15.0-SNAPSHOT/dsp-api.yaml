@@ -7,85 +7,11 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.txt
   version: 0.15.0-SNAPSHOT
 servers:
-- url: /
+- url: http://localhost:8080
 paths:
-  /.well-known/dspace-version:
-    get:
-      operationId: getProtocolVersions
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2024/1/catalog/datasets/{id}:
-    get:
-      operationId: getDataset
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2024/1/catalog/request:
+  /2025-1/transfers/request:
     post:
-      operationId: requestCatalog
-      parameters:
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: continuationToken
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2024/1/negotiations/offer:
-    post:
-      operationId: initialContractOffer
+      operationId: initiateTransferProcess
       parameters:
       - name: Authorization
         in: header
@@ -98,30 +24,15 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
+              $ref: "#/components/schemas/initiateTransferProcess_request"
       responses:
         default:
           description: default response
           content:
             application/json: {}
-  /2024/1/negotiations/request:
+  /transfers/request:
     post:
-      operationId: initialContractRequest
+      operationId: initiateTransferProcess
       parameters:
       - name: Authorization
         in: header
@@ -134,217 +45,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2024/1/negotiations/{id}:
-    get:
-      operationId: getNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2024/1/negotiations/{id}/agreement:
-    post:
-      operationId: createAgreement
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2024/1/negotiations/{id}/agreement/verification:
-    post:
-      operationId: verifyAgreement
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2024/1/negotiations/{id}/events:
-    post:
-      operationId: createEvent
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2024/1/negotiations/{id}/offer:
-    post:
-      operationId: providerOffer
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
+              $ref: "#/components/schemas/initiateTransferProcess_request"
       responses:
         default:
           description: default response
@@ -372,101 +73,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2024/1/negotiations/{id}/termination:
-    post:
-      operationId: terminateNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2024/1/transfers/request:
-    post:
-      operationId: initiateTransferProcess
-      parameters:
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
+              $ref: "#/components/schemas/initiateTransferProcess_request"
       responses:
         default:
           description: default response
@@ -495,7 +102,43 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2024/1/transfers/{id}/completion:
+  /.well-known/dspace-version:
+    get:
+      operationId: getProtocolVersions
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /negotiations/{id}/request:
+    post:
+      operationId: contractRequest
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2025-1/transfers/{id}/completion:
     post:
       operationId: transferProcessCompletion
       parameters:
@@ -517,174 +160,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2024/1/transfers/{id}/start:
-    post:
-      operationId: transferProcessStart
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2024/1/transfers/{id}/suspension:
-    post:
-      operationId: transferProcessSuspension
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2024/1/transfers/{id}/termination:
-    post:
-      operationId: transferProcessTermination
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2025-1/catalog/datasets/{id}:
-    get:
-      operationId: getDataset
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
+              $ref: "#/components/schemas/initiateTransferProcess_request"
       responses:
         default:
           description: default response
@@ -712,338 +188,13 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
+              $ref: "#/components/schemas/initiateTransferProcess_request"
       responses:
         default:
           description: default response
           content:
             application/json: {}
-  /2025-1/negotiations/offers:
-    post:
-      operationId: initialContractOffer
-      parameters:
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2025-1/negotiations/request:
-    post:
-      operationId: initialContractRequest
-      parameters:
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2025-1/negotiations/{id}:
-    get:
-      operationId: getNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2025-1/negotiations/{id}/agreement:
-    post:
-      operationId: createAgreement
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2025-1/negotiations/{id}/agreement/verification:
-    post:
-      operationId: verifyAgreement
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2025-1/negotiations/{id}/events:
-    post:
-      operationId: createEvent
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2025-1/negotiations/{id}/offers:
-    post:
-      operationId: providerOffer
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2025-1/negotiations/{id}/request:
-    post:
-      operationId: contractRequest
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2025-1/negotiations/{id}/termination:
+  /2024/1/negotiations/{id}/termination:
     post:
       operationId: terminateNegotiation
       parameters:
@@ -1065,31 +216,23 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
+              $ref: "#/components/schemas/initiateTransferProcess_request"
       responses:
         default:
           description: default response
           content:
             application/json: {}
-  /2025-1/transfers/request:
+  /2025-1/transfers/{id}/suspension:
     post:
-      operationId: initiateTransferProcess
+      operationId: transferProcessSuspension
       parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
       - name: Authorization
         in: header
         required: false
@@ -1101,22 +244,63 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2024/1/catalog/request:
+    post:
+      operationId: requestCatalog
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: continuationToken
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2024/1/negotiations/{id}/offer:
+    post:
+      operationId: providerOffer
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
       responses:
         default:
           description: default response
@@ -1145,7 +329,84 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025-1/transfers/{id}/completion:
+  /2024/1/negotiations/request:
+    post:
+      operationId: initialContractRequest
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2025-1/negotiations/{id}/request:
+    post:
+      operationId: contractRequest
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /negotiations/{id}/offer:
+    post:
+      operationId: providerOffer
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /transfers/{id}/completion:
     post:
       operationId: transferProcessCompletion
       parameters:
@@ -1167,22 +428,107 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /negotiations/{id}/agreement/verification:
+    post:
+      operationId: verifyAgreement
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2024/1/transfers/request:
+    post:
+      operationId: initiateTransferProcess
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2025-1/catalog/datasets/{id}:
+    get:
+      operationId: getDataset
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2024/1/transfers/{id}/start:
+    post:
+      operationId: transferProcessStart
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
       responses:
         default:
           description: default response
@@ -1210,30 +556,15 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
+              $ref: "#/components/schemas/initiateTransferProcess_request"
       responses:
         default:
           description: default response
           content:
             application/json: {}
-  /2025-1/transfers/{id}/suspension:
+  /2025-1/negotiations/{id}/offers:
     post:
-      operationId: transferProcessSuspension
+      operationId: providerOffer
       parameters:
       - name: id
         in: path
@@ -1253,22 +584,128 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /transfers/{id}/termination:
+    post:
+      operationId: transferProcessTermination
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2025-1/negotiations/request:
+    post:
+      operationId: initialContractRequest
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2024/1/negotiations/offer:
+    post:
+      operationId: initialContractOffer
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2025-1/negotiations/{id}:
+    get:
+      operationId: getNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /negotiations/{id}/termination:
+    post:
+      operationId: terminateNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
       responses:
         default:
           description: default response
@@ -1296,30 +733,15 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
+              $ref: "#/components/schemas/initiateTransferProcess_request"
       responses:
         default:
           description: default response
           content:
             application/json: {}
-  /catalog/datasets/{id}:
-    get:
-      operationId: getDataset
+  /2024/1/transfers/{id}/termination:
+    post:
+      operationId: transferProcessTermination
       parameters:
       - name: id
         in: path
@@ -1335,85 +757,11 @@ paths:
         explode: false
         schema:
           type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /catalog/request:
-    post:
-      operationId: requestCatalog
-      parameters:
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: continuationToken
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: string
       requestBody:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /negotiations/offer:
-    post:
-      operationId: initialContractOffer
-      parameters:
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
+              $ref: "#/components/schemas/initiateTransferProcess_request"
       responses:
         default:
           description: default response
@@ -1434,22 +782,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
+              $ref: "#/components/schemas/initiateTransferProcess_request"
       responses:
         default:
           description: default response
@@ -1478,6 +811,85 @@ paths:
           description: default response
           content:
             application/json: {}
+  /2024/1/negotiations/{id}/events:
+    post:
+      operationId: createEvent
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2024/1/catalog/datasets/{id}:
+    get:
+      operationId: getDataset
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /transfers/{id}/suspension:
+    post:
+      operationId: transferProcessSuspension
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
   /negotiations/{id}/agreement:
     post:
       operationId: createAgreement
@@ -1500,28 +912,62 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
+              $ref: "#/components/schemas/initiateTransferProcess_request"
       responses:
         default:
           description: default response
           content:
             application/json: {}
-  /negotiations/{id}/agreement/verification:
+  /2025-1/negotiations/offers:
+    post:
+      operationId: initialContractOffer
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /catalog/request:
+    post:
+      operationId: requestCatalog
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: continuationToken
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2024/1/negotiations/{id}/agreement/verification:
     post:
       operationId: verifyAgreement
       parameters:
@@ -1543,22 +989,275 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /negotiations/offer:
+    post:
+      operationId: initialContractOffer
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2024/1/transfers/{id}/completion:
+    post:
+      operationId: transferProcessCompletion
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2025-1/negotiations/{id}/agreement/verification:
+    post:
+      operationId: verifyAgreement
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2025-1/negotiations/{id}/termination:
+    post:
+      operationId: terminateNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2024/1/negotiations/{id}/agreement:
+    post:
+      operationId: createAgreement
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /catalog/datasets/{id}:
+    get:
+      operationId: getDataset
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2025-1/negotiations/{id}/events:
+    post:
+      operationId: createEvent
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2024/1/transfers/{id}/suspension:
+    post:
+      operationId: transferProcessSuspension
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /transfers/{id}/start:
+    post:
+      operationId: transferProcessStart
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2025-1/negotiations/{id}/agreement:
+    post:
+      operationId: createAgreement
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
       responses:
         default:
           description: default response
@@ -1586,30 +1285,15 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
+              $ref: "#/components/schemas/initiateTransferProcess_request"
       responses:
         default:
           description: default response
           content:
             application/json: {}
-  /negotiations/{id}/offer:
-    post:
-      operationId: providerOffer
+  /2024/1/negotiations/{id}:
+    get:
+      operationId: getNegotiation
       parameters:
       - name: id
         in: path
@@ -1625,148 +1309,6 @@ paths:
         explode: false
         schema:
           type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /negotiations/{id}/request:
-    post:
-      operationId: contractRequest
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /negotiations/{id}/termination:
-    post:
-      operationId: terminateNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /transfers/request:
-    post:
-      operationId: initiateTransferProcess
-      parameters:
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
       responses:
         default:
           description: default response
@@ -1795,181 +1337,22 @@ paths:
           description: default response
           content:
             application/json: {}
-  /transfers/{id}/completion:
-    post:
-      operationId: transferProcessCompletion
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /transfers/{id}/start:
-    post:
-      operationId: transferProcessStart
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /transfers/{id}/suspension:
-    post:
-      operationId: transferProcessSuspension
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /transfers/{id}/termination:
-    post:
-      operationId: transferProcessTermination
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                empty:
-                  type: boolean
-                valueType:
-                  type: string
-                  enum:
-                  - ARRAY
-                  - OBJECT
-                  - STRING
-                  - NUMBER
-                  - "TRUE"
-                  - "FALSE"
-                  - "NULL"
-              additionalProperties:
-                $ref: "#/components/schemas/JsonValue"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
 components:
   schemas:
-    JsonObject:
+    JsonValue:
+      type: object
+      properties:
+        valueType:
+          type: string
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
+    initiateTransferProcess_request:
       type: object
       properties:
         empty:
@@ -1986,16 +1369,3 @@ components:
           - "NULL"
       additionalProperties:
         $ref: "#/components/schemas/JsonValue"
-    JsonValue:
-      type: object
-      properties:
-        valueType:
-          type: string
-          enum:
-          - ARRAY
-          - OBJECT
-          - STRING
-          - NUMBER
-          - "TRUE"
-          - "FALSE"
-          - "NULL"
