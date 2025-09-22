@@ -25,6 +25,7 @@ dependencies {
     implementation(project(":extensions:common:json-ld"))
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":spi:common:participant-context-single-spi"))
 }
 
 
