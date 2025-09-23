@@ -288,6 +288,7 @@ public class TransferProcessApiEndToEndTest {
                     .protocol("dataspace-protocol-http")
                     .assetId("asset-id")
                     .contractId("contractId")
+                    .participantContextId("participantContextId")
                     .counterPartyAddress("http://connector/address");
         }
 

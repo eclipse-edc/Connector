@@ -128,6 +128,7 @@ public class TransferProcessEventListener implements TransferProcessListener {
                 .contractId(process.getContractId())
                 .assetId(process.getAssetId())
                 .type(process.getType().name())
+                .participantContextId(process.getParticipantContextId())
                 .callbackAddresses(process.getCallbackAddresses());
     }
 

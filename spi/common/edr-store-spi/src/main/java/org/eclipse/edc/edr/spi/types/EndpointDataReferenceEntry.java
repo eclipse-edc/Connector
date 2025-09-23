@@ -15,7 +15,7 @@
 package org.eclipse.edc.edr.spi.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import org.eclipse.edc.spi.entity.Entity;
+import org.eclipse.edc.participantcontext.spi.types.AbstractParticipantResource;
 
 import static java.util.Objects.requireNonNull;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -23,7 +23,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 /**
  * Represents metadata associated with an EDR
  */
-public class EndpointDataReferenceEntry extends Entity {
+public class EndpointDataReferenceEntry extends AbstractParticipantResource {
 
     public static final String EDR_ENTRY_TYPE_TERM = "EndpointDataReferenceEntry";
     public static final String EDR_ENTRY_TYPE = EDC_NAMESPACE + EDR_ENTRY_TYPE_TERM;
@@ -72,7 +72,7 @@ public class EndpointDataReferenceEntry extends Entity {
         return assetId;
     }
 
-    public static class Builder extends Entity.Builder<EndpointDataReferenceEntry, EndpointDataReferenceEntry.Builder> {
+    public static class Builder extends AbstractParticipantResource.Builder<EndpointDataReferenceEntry, EndpointDataReferenceEntry.Builder> {
 
         private Builder() {
             super(new EndpointDataReferenceEntry());

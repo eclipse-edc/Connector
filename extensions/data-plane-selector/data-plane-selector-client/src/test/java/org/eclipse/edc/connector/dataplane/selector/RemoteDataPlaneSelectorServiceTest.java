@@ -20,6 +20,8 @@ import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -44,11 +46,8 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 class RemoteDataPlaneSelectorServiceTest {
 
-    private final int port = getFreePort();
     private static final String[] FIELDS_TO_BE_IGNORED = {"createdAt", "stateTimestamp", "updatedAt"};
-    private final DataPlaneSelectorService serverService = mock();
-    private final JsonObjectValidatorRegistry validator = mock();
-
+    private final int port = getFreePort();
     @RegisterExtension
     public final RuntimeExtension client = new RuntimePerMethodExtension(new EmbeddedRuntime("client",
             ":core:common:connector-core",
@@ -60,6 +59,9 @@ class RemoteDataPlaneSelectorServiceTest {
                     "edc.core.retry.retries.max", "0"
             )))
     );
+    private final DataPlaneSelectorService serverService = mock();
+    private final JsonObjectValidatorRegistry validator = mock();
+    private final SingleParticipantContextSupplier participantContextSupplier = () -> new ParticipantContext("participantContextId");
 
     @RegisterExtension
     public final RuntimeExtension server = new RuntimePerMethodExtension(new EmbeddedRuntime(
@@ -78,6 +80,7 @@ class RemoteDataPlaneSelectorServiceTest {
             )))
             .registerServiceMock(DataPlaneSelectorService.class, serverService)
             .registerServiceMock(JsonObjectValidatorRegistry.class, validator)
+            .registerServiceMock(SingleParticipantContextSupplier.class, participantContextSupplier)
     );
 
     @Test
@@ -90,6 +93,17 @@ class RemoteDataPlaneSelectorServiceTest {
 
         assertThat(result).isSucceeded();
         verify(serverService).addInstance(any());
+    }
+
+    private DataPlaneSelectorService service() {
+        return client.getService(DataPlaneSelectorService.class);
+    }
+
+    private DataPlaneInstance createInstance(String id) {
+        return DataPlaneInstance.Builder.newInstance()
+                .id(id)
+                .url("http://somewhere.com:1234/api/v1")
+                .build();
     }
 
     @Nested
@@ -170,16 +184,5 @@ class RemoteDataPlaneSelectorServiceTest {
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
         }
 
-    }
-
-    private DataPlaneSelectorService service() {
-        return client.getService(DataPlaneSelectorService.class);
-    }
-
-    private DataPlaneInstance createInstance(String id) {
-        return DataPlaneInstance.Builder.newInstance()
-                .id(id)
-                .url("http://somewhere.com:1234/api/v1")
-                .build();
     }
 }

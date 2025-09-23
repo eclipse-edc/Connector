@@ -27,6 +27,8 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.ResumeT
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.SuspendTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.junit.annotations.ApiTest;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -64,6 +66,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
     protected final TypeTransformerRegistry transformerRegistry = mock();
     protected final TransferProcessService service = mock();
     protected final JsonObjectValidatorRegistry validatorRegistry = mock();
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> new ParticipantContext("participantContextId");
 
     protected abstract RequestSpecification baseRequest();
 
@@ -273,7 +276,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
             var responseBody = Json.createObjectBuilder().add(ID, "transferProcessId").build();
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), eq(TransferRequest.class))).thenReturn(Result.success(transferRequest));
-            when(service.initiateTransfer(any())).thenReturn(ServiceResult.success(transferProcess));
+            when(service.initiateTransfer(any(), any())).thenReturn(ServiceResult.success(transferProcess));
             when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
             var requestBody = Json.createObjectBuilder().build();
 
@@ -286,7 +289,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
                     .contentType(JSON)
                     .body(ID, is("transferProcessId"));
             verify(transformerRegistry).transform(isA(JsonObject.class), eq(TransferRequest.class));
-            verify(service).initiateTransfer(transferRequest);
+            verify(service).initiateTransfer(any(), eq(transferRequest));
             verify(transformerRegistry).transform(isA(IdResponse.class), eq(JsonObject.class));
         }
 
@@ -328,7 +331,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
             var transferRequest = TransferRequest.Builder.newInstance().build();
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), eq(TransferRequest.class))).thenReturn(Result.success(transferRequest));
-            when(service.initiateTransfer(any())).thenReturn(ServiceResult.conflict("already exists"));
+            when(service.initiateTransfer(any(), any())).thenReturn(ServiceResult.conflict("already exists"));
             var requestBody = Json.createObjectBuilder().build();
 
             baseRequest()

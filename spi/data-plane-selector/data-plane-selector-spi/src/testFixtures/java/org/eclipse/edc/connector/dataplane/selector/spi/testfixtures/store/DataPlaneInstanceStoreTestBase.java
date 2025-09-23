@@ -68,7 +68,8 @@ public abstract class DataPlaneInstanceStoreTestBase {
     private DataPlaneInstance.Builder createInstanceBuilder(String id) {
         return DataPlaneInstance.Builder.newInstance()
                 .id(id)
-                .url("http://somewhere.com:1234/api/v1");
+                .url("http://somewhere.com:1234/api/v1")
+                .participantContextId("participantContextId");
     }
 
     @Nested

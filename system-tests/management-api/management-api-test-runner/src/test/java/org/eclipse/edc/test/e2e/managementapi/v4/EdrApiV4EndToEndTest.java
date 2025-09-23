@@ -159,6 +159,7 @@ public class EdrApiV4EndToEndTest {
                     .assetId("asset-" + id)
                     .contractNegotiationId("negotiation-" + id)
                     .providerId("provider-" + id)
+                    .participantContextId("participantContextId")
                     .createdAt(System.currentTimeMillis());
         }
 

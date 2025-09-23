@@ -119,6 +119,7 @@ public class EndpointDataReferenceStoreReceiver implements EventSubscriber {
                 .contractNegotiationId(contractNegotiationId)
                 .providerId(providerId)
                 .agreementId(transferProcessStarted.getContractId())
+                .participantContextId(transferProcessStarted.getParticipantContextId())
                 .build();
     }
 

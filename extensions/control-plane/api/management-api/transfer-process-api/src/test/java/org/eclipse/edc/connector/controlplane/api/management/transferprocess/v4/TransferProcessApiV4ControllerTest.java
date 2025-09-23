@@ -22,7 +22,7 @@ import static io.restassured.RestAssured.given;
 public class TransferProcessApiV4ControllerTest extends BaseTransferProcessApiControllerTest {
     @Override
     protected Object controller() {
-        return new TransferProcessApiV4Controller(monitor, service, transformerRegistry, validatorRegistry);
+        return new TransferProcessApiV4Controller(monitor, service, transformerRegistry, validatorRegistry, participantContextSupplier);
     }
 
     @Override

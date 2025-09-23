@@ -34,6 +34,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.Deprovi
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.ResumeTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.SuspendTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.command.EntityCommand;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -122,7 +123,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     }
 
     @Override
-    public @NotNull ServiceResult<TransferProcess> initiateTransfer(TransferRequest request) {
+    public @NotNull ServiceResult<TransferProcess> initiateTransfer(ParticipantContext participantContext, TransferRequest request) {
         var transferTypeParse = transferTypeParser.parse(request.getTransferType());
         if (transferTypeParse.failed()) {
             return ServiceResult.badRequest("Property transferType not valid: " + transferTypeParse.getFailureDetail());
@@ -147,7 +148,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
         }
 
         return transactionContext.execute(() -> {
-            var transferInitiateResult = manager.initiateConsumerRequest(request);
+            var transferInitiateResult = manager.initiateConsumerRequest(participantContext, request);
             return Optional.ofNullable(transferInitiateResult)
                     .filter(AbstractResult::succeeded)
                     .map(AbstractResult::getContent)

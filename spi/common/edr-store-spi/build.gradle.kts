@@ -19,6 +19,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
+    api(project(":spi:common:connector-participant-context-spi"))
 
     testFixturesImplementation(project(":core:common:junit"))
 }

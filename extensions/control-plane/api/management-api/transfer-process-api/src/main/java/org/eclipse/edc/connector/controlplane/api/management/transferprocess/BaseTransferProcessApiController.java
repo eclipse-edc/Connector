@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.ResumeTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.SuspendTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -51,16 +52,19 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToExcept
 public abstract class BaseTransferProcessApiController {
 
     protected final Monitor monitor;
+    protected final SingleParticipantContextSupplier participantContextSupplier;
     private final TransferProcessService service;
     private final TypeTransformerRegistry transformerRegistry;
     private final JsonObjectValidatorRegistry validatorRegistry;
 
+
     public BaseTransferProcessApiController(Monitor monitor, TransferProcessService service,
-                                            TypeTransformerRegistry transformerRegistry, JsonObjectValidatorRegistry validatorRegistry) {
+                                            TypeTransformerRegistry transformerRegistry, JsonObjectValidatorRegistry validatorRegistry, SingleParticipantContextSupplier participantContextSupplier) {
         this.monitor = monitor;
         this.service = service;
         this.transformerRegistry = transformerRegistry;
         this.validatorRegistry = validatorRegistry;
+        this.participantContextSupplier = participantContextSupplier;
     }
 
     public JsonArray queryTransferProcesses(JsonObject querySpecJson) {
@@ -112,7 +116,7 @@ public abstract class BaseTransferProcessApiController {
         var transferRequest = transformerRegistry.transform(request, TransferRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
-        var createdTransfer = service.initiateTransfer(transferRequest)
+        var createdTransfer = service.initiateTransfer(participantContextSupplier.get(), transferRequest)
                 .onSuccess(d -> monitor.debug(format("Transfer Process created %s", d.getId())))
                 .orElseThrow(it -> mapToException(it, TransferProcess.class));
 

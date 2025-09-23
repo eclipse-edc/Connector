@@ -26,6 +26,7 @@ import org.eclipse.edc.sql.translation.JsonFieldTranslator;
  */
 public class TransferProcessMapping extends StatefulEntityMapping {
 
+    public static final String FIELD_PARTICIPANT_CONTEXT_ID = "participantContextId";
     private static final String FIELD_TYPE = "type";
     private static final String FIELD_CREATED_TIMESTAMP = "createdAt";
     private static final String FIELD_DATAADDRESS = "dataAddress";
@@ -33,12 +34,10 @@ public class TransferProcessMapping extends StatefulEntityMapping {
     private static final String FIELD_RESOURCE_MANIFEST = "resourceManifest";
     private static final String FIELD_PROVISIONED_RESOURCE_SET = "provisionedResourceSet";
     private static final String FIELD_DEPROVISIONED_RESOURCES = "deprovisionedResources";
-
     private static final String FIELD_PRIVATE_PROPERTIES = "privateProperties";
     private static final String FIELD_PENDING = "pending";
     private static final String FIELD_TRANSFER_TYPE = "transferType";
     private static final String FIELD_DATA_PLANE_ID = "dataPlaneId";
-
     private static final String FIELD_CORRELATION_ID = "correlationId";
     private static final String FIELD_COUNTER_PARTY_ADDRESS = "counterPartyAddress";
     private static final String FIELD_PROTOCOL = "protocol";
@@ -66,5 +65,6 @@ public class TransferProcessMapping extends StatefulEntityMapping {
         add(FIELD_PENDING, statements.getPendingColumn());
         add(FIELD_TRANSFER_TYPE, statements.getTransferTypeColumn());
         add(FIELD_DATA_PLANE_ID, statements.getDataPlaneIdColumn());
+        add(FIELD_PARTICIPANT_CONTEXT_ID, statements.getParticipantContextIdColumn());
     }
 }

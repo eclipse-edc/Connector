@@ -51,6 +51,11 @@ public interface EndpointDataReferenceEntryStatements extends SqlStatements {
         return "created_at";
     }
 
+    default String getParticipantContextIdColumn() {
+        return "participant_context_id";
+    }
+
+
     String getDeleteByIdTemplate();
 
     String getFindByTemplate();

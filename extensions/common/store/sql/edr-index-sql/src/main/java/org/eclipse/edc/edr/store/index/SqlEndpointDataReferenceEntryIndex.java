@@ -131,7 +131,8 @@ public class SqlEndpointDataReferenceEntryIndex extends AbstractSqlStore impleme
                     entry.getProviderId(),
                     entry.getAgreementId(),
                     entry.getContractNegotiationId(),
-                    entry.getCreatedAt());
+                    entry.getCreatedAt(),
+                    entry.getParticipantContextId());
         });
     }
 
@@ -156,6 +157,7 @@ public class SqlEndpointDataReferenceEntryIndex extends AbstractSqlStore impleme
                 .agreementId(resultSet.getString(statements.getAgreementIdColumn()))
                 .providerId(resultSet.getString(statements.getProviderIdColumn()))
                 .contractNegotiationId(resultSet.getString(statements.getContractNegotiationIdColumn()))
+                .participantContextId(resultSet.getString(statements.getParticipantContextIdColumn()))
                 .build();
     }
 }

@@ -99,6 +99,6 @@ public class TckWebhookController {
                 .build();
 
         monitor.debug("Starting transfer process for [provider, address, agreement, format]: [%s, %s, %s, %s]".formatted(request.providerId(), request.connectorAddress(), request.agreementId(), request.format()));
-        transferProcessService.initiateTransfer(transferRequest).orElseThrow(f -> new EdcException(f.getFailureDetail()));
+        transferProcessService.initiateTransfer(participantContextSupplier.get(), transferRequest).orElseThrow(f -> new EdcException(f.getFailureDetail()));
     }
 }

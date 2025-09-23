@@ -35,6 +35,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -68,13 +69,14 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     private final Clock clock;
     private final Monitor monitor;
     private final Telemetry telemetry;
+    private final SingleParticipantContextSupplier participantContextSupplier;
 
     public TransferProcessProtocolServiceImpl(TransferProcessStore transferProcessStore,
                                               TransactionContext transactionContext, ContractNegotiationStore negotiationStore,
                                               ContractValidationService contractValidationService,
                                               ProtocolTokenValidator protocolTokenValidator,
                                               DataAddressValidatorRegistry dataAddressValidator, TransferProcessObservable observable,
-                                              Clock clock, Monitor monitor, Telemetry telemetry) {
+                                              Clock clock, Monitor monitor, Telemetry telemetry, SingleParticipantContextSupplier participantContextSupplier) {
         this.transferProcessStore = transferProcessStore;
         this.transactionContext = transactionContext;
         this.negotiationStore = negotiationStore;
@@ -85,6 +87,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         this.clock = clock;
         this.monitor = monitor;
         this.telemetry = telemetry;
+        this.participantContextSupplier = participantContextSupplier;
     }
 
     @Override
@@ -144,7 +147,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                 .transferProcessId(id)
                 .protocol(protocol)
                 .build();
-        
+
         return transactionContext.execute(() -> fetchRequestContext(id, this::findTransferProcessById)
                 .compose(context -> verifyRequest(tokenRepresentation, context, message))
                 .compose(context -> validateCounterParty(context.participantAgent(), context.agreement(), context.transferProcess())));
@@ -168,6 +171,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                 .type(PROVIDER)
                 .clock(clock)
                 .traceContext(telemetry.getCurrentTraceContext())
+                .participantContextId(participantContextSupplier.get().getParticipantContextId())
                 .build();
 
         observable.invokeForEach(l -> l.preCreated(process));

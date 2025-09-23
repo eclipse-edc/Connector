@@ -29,6 +29,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.Deprovi
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.ResumeTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.SuspendTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.command.CommandResult;
@@ -62,6 +63,7 @@ import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -134,85 +136,6 @@ class TransferProcessServiceImplTest {
         verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
-    @Nested
-    class InitiateTransfer {
-        @Test
-        void shouldInitiateTransfer() {
-            var transferRequest = transferRequest();
-            var transferProcess = transferProcess();
-            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
-                    .thenReturn(createContractAgreement(transferProcess.getContractId(), "assetId"));
-            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
-            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
-            when(manager.initiateConsumerRequest(transferRequest)).thenReturn(StatusResult.success(transferProcess));
-
-            var result = service.initiateTransfer(transferRequest);
-
-            assertThat(result).isSucceeded().isEqualTo(transferProcess);
-            verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
-        }
-
-        @Test
-        void shouldFail_whenTransferTypeIsNotValid() {
-            when(transferTypeParser.parse(any())).thenReturn(Result.failure("cannot parse"));
-
-            var result = service.initiateTransfer(transferRequest());
-
-            assertThat(result).isFailed()
-                    .extracting(ServiceFailure::getReason)
-                    .isEqualTo(BAD_REQUEST);
-            assertThat(result.getFailureDetail()).contains("cannot parse");
-            verifyNoInteractions(manager);
-        }
-
-        @Test
-        void shouldFail_whenContractAgreementNotFound() {
-            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
-            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
-
-            var result = service.initiateTransfer(transferRequest());
-
-            assertThat(result).isFailed()
-                    .extracting(ServiceFailure::getReason)
-                    .isEqualTo(BAD_REQUEST);
-            assertThat(result.getFailureMessages()).containsExactly("Contract agreement with id %s not found".formatted(transferRequest().getContractId()));
-            verifyNoInteractions(manager);
-        }
-
-        @Test
-        void shouldFail_whenDestinationIsNotValid() {
-            var transferRequest = transferRequest();
-            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
-                    .thenReturn(createContractAgreement(transferRequest.getContractId(), "assetId"));
-            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
-            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
-
-            var result = service.initiateTransfer(transferRequest);
-
-            assertThat(result).isFailed()
-                    .extracting(ServiceFailure::getReason)
-                    .isEqualTo(BAD_REQUEST);
-            assertThat(result.getFailureMessages()).containsExactly("invalid data address");
-            verifyNoInteractions(manager);
-        }
-
-        @Test
-        void shouldFail_whenDataDestinationNotPassedAndFlowTypeIsPush() {
-            var transferRequest = TransferRequest.Builder.newInstance()
-                    .transferType("any")
-                    .build();
-            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
-                    .thenReturn(createContractAgreement(transferRequest.getContractId(), "assetId"));
-            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
-
-            var result = service.initiateTransfer(transferRequest);
-
-            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
-            assertThat(result.getFailureMessages()).containsExactly("For PUSH transfers dataDestination must be defined");
-            verifyNoInteractions(manager);
-        }
-    }
-
     @Test
     void terminate_shouldExecuteCommandAndReturnResult() {
         when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success());
@@ -232,6 +155,157 @@ class TransferProcessServiceImplTest {
         var result = service.terminate(command);
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+    }
+
+    @Test
+    void deprovision() {
+        when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success());
+
+        var result = service.deprovision(id);
+
+        assertThat(result).isSucceeded();
+        verify(commandHandlerRegistry).execute(isA(DeprovisionRequest.class));
+    }
+
+    @Test
+    void deprovision_whenNotFound() {
+        when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.notFound("not found"));
+
+        var result = service.deprovision(id);
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.getFailureMessages()).containsExactly("not found");
+        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+    }
+
+    private TransferProcess transferProcess() {
+        var state = TransferProcessStates.values()[ThreadLocalRandom.current().nextInt(TransferProcessStates.values().length)];
+        return transferProcess(state, UUID.randomUUID().toString());
+    }
+
+    private TransferProcess transferProcess(TransferProcessStates state, String id) {
+        return TransferProcess.Builder.newInstance()
+                .state(state.code())
+                .id(id)
+                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                .build();
+    }
+
+    private TransferRequest transferRequest() {
+        return TransferRequest.Builder.newInstance()
+                .dataDestination(DataAddress.Builder.newInstance().type("type").build())
+                .build();
+    }
+
+    private ContractAgreement createContractAgreement(String agreementId, String assetId) {
+        return ContractAgreement.Builder.newInstance()
+                .id(agreementId)
+                .providerId(UUID.randomUUID().toString())
+                .consumerId(UUID.randomUUID().toString())
+                .assetId(assetId)
+                .policy(Policy.Builder.newInstance().build())
+                .build();
+    }
+
+    private static class InvalidFilters implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(criterion("provisionedResourceSet.resources.hastoken", "=", "true")), // wrong case
+                    arguments(criterion("resourceManifest.definitions.notexist", "=", "foobar")), // property not exist
+                    arguments(criterion("contentDataAddress.properties[*].someKey", "=", "someval")) // map types not supported
+            );
+        }
+    }
+
+    private static class ValidFilters implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(
+                    arguments(criterion("deprovisionedResources.provisionedResourceId", "=", "someval")),
+                    arguments(criterion("type", "=", "CONSUMER")),
+                    arguments(criterion("provisionedResourceSet.resources.hasToken", "=", "true"))
+            );
+        }
+    }
+
+    @Nested
+    class InitiateTransfer {
+        @Test
+        void shouldInitiateTransfer() {
+            var transferRequest = transferRequest();
+            var transferProcess = transferProcess();
+            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
+                    .thenReturn(createContractAgreement(transferProcess.getContractId(), "assetId"));
+            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
+            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
+            when(manager.initiateConsumerRequest(any(), eq(transferRequest))).thenReturn(StatusResult.success(transferProcess));
+
+            var result = service.initiateTransfer(new ParticipantContext("participantContextId"), transferRequest);
+
+            assertThat(result).isSucceeded().isEqualTo(transferProcess);
+            verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+        }
+
+        @Test
+        void shouldFail_whenTransferTypeIsNotValid() {
+            when(transferTypeParser.parse(any())).thenReturn(Result.failure("cannot parse"));
+
+            var result = service.initiateTransfer(new ParticipantContext("participantContextId"), transferRequest());
+
+            assertThat(result).isFailed()
+                    .extracting(ServiceFailure::getReason)
+                    .isEqualTo(BAD_REQUEST);
+            assertThat(result.getFailureDetail()).contains("cannot parse");
+            verifyNoInteractions(manager);
+        }
+
+        @Test
+        void shouldFail_whenContractAgreementNotFound() {
+            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
+            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
+
+            var result = service.initiateTransfer(new ParticipantContext("participantContextId"), transferRequest());
+
+            assertThat(result).isFailed()
+                    .extracting(ServiceFailure::getReason)
+                    .isEqualTo(BAD_REQUEST);
+            assertThat(result.getFailureMessages()).containsExactly("Contract agreement with id %s not found".formatted(transferRequest().getContractId()));
+            verifyNoInteractions(manager);
+        }
+
+        @Test
+        void shouldFail_whenDestinationIsNotValid() {
+            var transferRequest = transferRequest();
+            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
+                    .thenReturn(createContractAgreement(transferRequest.getContractId(), "assetId"));
+            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
+            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
+
+            var result = service.initiateTransfer(new ParticipantContext("participantContextId"), transferRequest);
+
+            assertThat(result).isFailed()
+                    .extracting(ServiceFailure::getReason)
+                    .isEqualTo(BAD_REQUEST);
+            assertThat(result.getFailureMessages()).containsExactly("invalid data address");
+            verifyNoInteractions(manager);
+        }
+
+        @Test
+        void shouldFail_whenDataDestinationNotPassedAndFlowTypeIsPush() {
+            var transferRequest = TransferRequest.Builder.newInstance()
+                    .transferType("any")
+                    .build();
+            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
+                    .thenReturn(createContractAgreement(transferRequest.getContractId(), "assetId"));
+            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
+
+            var result = service.initiateTransfer(new ParticipantContext("participantContextId"), transferRequest);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+            assertThat(result.getFailureMessages()).containsExactly("For PUSH transfers dataDestination must be defined");
+            verifyNoInteractions(manager);
+        }
     }
 
     @Nested
@@ -283,78 +357,6 @@ class TransferProcessServiceImplTest {
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
         }
-    }
-
-    @Test
-    void deprovision() {
-        when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success());
-
-        var result = service.deprovision(id);
-
-        assertThat(result).isSucceeded();
-        verify(commandHandlerRegistry).execute(isA(DeprovisionRequest.class));
-    }
-
-    @Test
-    void deprovision_whenNotFound() {
-        when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.notFound("not found"));
-
-        var result = service.deprovision(id);
-
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).containsExactly("not found");
-        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
-    }
-
-    private static class InvalidFilters implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    arguments(criterion("provisionedResourceSet.resources.hastoken", "=", "true")), // wrong case
-                    arguments(criterion("resourceManifest.definitions.notexist", "=", "foobar")), // property not exist
-                    arguments(criterion("contentDataAddress.properties[*].someKey", "=", "someval")) // map types not supported
-            );
-        }
-    }
-
-    private static class ValidFilters implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    arguments(criterion("deprovisionedResources.provisionedResourceId", "=", "someval")),
-                    arguments(criterion("type", "=", "CONSUMER")),
-                    arguments(criterion("provisionedResourceSet.resources.hasToken", "=", "true"))
-            );
-        }
-    }
-
-    private TransferProcess transferProcess() {
-        var state = TransferProcessStates.values()[ThreadLocalRandom.current().nextInt(TransferProcessStates.values().length)];
-        return transferProcess(state, UUID.randomUUID().toString());
-    }
-
-    private TransferProcess transferProcess(TransferProcessStates state, String id) {
-        return TransferProcess.Builder.newInstance()
-                .state(state.code())
-                .id(id)
-                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
-                .build();
-    }
-
-    private TransferRequest transferRequest() {
-        return TransferRequest.Builder.newInstance()
-                .dataDestination(DataAddress.Builder.newInstance().type("type").build())
-                .build();
-    }
-
-    private ContractAgreement createContractAgreement(String agreementId, String assetId) {
-        return ContractAgreement.Builder.newInstance()
-                .id(agreementId)
-                .providerId(UUID.randomUUID().toString())
-                .consumerId(UUID.randomUUID().toString())
-                .assetId(assetId)
-                .policy(Policy.Builder.newInstance().build())
-                .build();
     }
 
 }

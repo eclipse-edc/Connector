@@ -37,14 +37,14 @@ import static org.mockito.Mockito.mock;
 @EndToEndTest
 public class DataplaneSelectorControlApiEndToEndTest {
 
-    private final int controlPort = getFreePort();
     private static final String DATA_PLANE_ID = UUID.randomUUID().toString();
-
+    private final int controlPort = getFreePort();
     @RegisterExtension
     @Order(1)
     private final RuntimeExtension dataPlaneSelector = new RuntimePerMethodExtension(new EmbeddedRuntime(
             "data-plane-selector",
             ":core:common:connector-core",
+            ":core:common:participant-context-single-core",
             ":core:common:runtime-core",
             ":core:data-plane-selector:data-plane-selector-core",
             ":extensions:common:http",

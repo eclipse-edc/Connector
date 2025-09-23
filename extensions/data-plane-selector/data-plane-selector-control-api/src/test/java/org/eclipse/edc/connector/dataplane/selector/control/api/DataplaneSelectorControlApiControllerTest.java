@@ -19,6 +19,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.junit.annotations.ApiTest;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -27,6 +28,7 @@ import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
 import java.util.List;
@@ -34,6 +36,7 @@ import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.hamcrest.CoreMatchers.is;
@@ -52,12 +55,19 @@ class DataplaneSelectorControlApiControllerTest extends RestControllerTestBase {
     private final DataPlaneSelectorService service = mock();
     private final Clock clock = mock();
 
+    @Override
+    protected Object controller() {
+        return new DataplaneSelectorControlApiController(validatorRegistry, typeTransformerRegistry, service, () -> new ParticipantContext("participantContextId"), clock);
+    }
+
     @Nested
     class Register {
 
         @Test
         void shouldRegisterDataplane() {
-            var dataplaneInstance = DataPlaneInstance.Builder.newInstance().url("http://url").build();
+            var dataplaneInstance = DataPlaneInstance.Builder.newInstance().url("http://url")
+                    .participantContextId("participantContextId")
+                    .build();
             var response = Json.createObjectBuilder().add(ID, "id").build();
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(typeTransformerRegistry.transform(any(), eq(DataPlaneInstance.class))).thenReturn(Result.success(dataplaneInstance));
@@ -73,7 +83,11 @@ class DataplaneSelectorControlApiControllerTest extends RestControllerTestBase {
                     .statusCode(200)
                     .body(ID, is("id"));
 
-            verify(service).addInstance(dataplaneInstance);
+            var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
+            verify(service).addInstance(captor.capture());
+
+            assertThat(captor.getValue()).usingRecursiveComparison()
+                    .isEqualTo(dataplaneInstance);
         }
 
         @Test
@@ -300,11 +314,6 @@ class DataplaneSelectorControlApiControllerTest extends RestControllerTestBase {
                     .then()
                     .statusCode(500);
         }
-    }
-
-    @Override
-    protected Object controller() {
-        return new DataplaneSelectorControlApiController(validatorRegistry, typeTransformerRegistry, service, clock);
     }
 
 }
