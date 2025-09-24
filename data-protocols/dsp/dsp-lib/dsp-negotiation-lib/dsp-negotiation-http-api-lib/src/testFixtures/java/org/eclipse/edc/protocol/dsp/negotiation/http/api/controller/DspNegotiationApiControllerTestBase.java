@@ -26,6 +26,8 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
@@ -68,6 +70,7 @@ public abstract class DspNegotiationApiControllerTestBase extends RestController
 
     protected final ContractNegotiationProtocolService protocolService = mock();
     protected final DspRequestHandler dspRequestHandler = mock();
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> new ParticipantContext("id");
 
     @Test
     void getNegotiation_shouldGetResource() {

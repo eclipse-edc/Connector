@@ -24,6 +24,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.negotiation.http.api.controller.BaseDspNegotiationApiController;
 
@@ -43,10 +44,9 @@ import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.V_2025_1_PA
 @Path(V_2025_1_PATH + BASE_PATH)
 public class DspNegotiationApiController20251 extends BaseDspNegotiationApiController {
 
-    public DspNegotiationApiController20251(ContractNegotiationProtocolService protocolService, DspRequestHandler dspRequestHandler) {
-        super(protocolService, dspRequestHandler, DATASPACE_PROTOCOL_HTTP_V_2025_1, DSP_NAMESPACE_V_2025_1);
+    public DspNegotiationApiController20251(ContractNegotiationProtocolService protocolService, DspRequestHandler dspRequestHandler, SingleParticipantContextSupplier participantContextSupplier) {
+        super(protocolService, dspRequestHandler, participantContextSupplier, DATASPACE_PROTOCOL_HTTP_V_2025_1, DSP_NAMESPACE_V_2025_1);
     }
-
 
     /**
      * Consumer-specific endpoint.

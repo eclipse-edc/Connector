@@ -35,6 +35,6 @@ class DspNegotiationApiController08Test extends DspNegotiationApiControllerTestB
 
     @Override
     protected Object controller() {
-        return new DspNegotiationApiController08(protocolService, dspRequestHandler);
+        return new DspNegotiationApiController08(protocolService, dspRequestHandler, participantContextSupplier);
     }
 }

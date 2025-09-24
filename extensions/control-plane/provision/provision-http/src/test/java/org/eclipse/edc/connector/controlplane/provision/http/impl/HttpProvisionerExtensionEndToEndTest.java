@@ -36,6 +36,7 @@ import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.protocol.spi.ProtocolWebhook;
@@ -135,7 +136,7 @@ public class HttpProvisionerExtensionEndToEndTest {
         when(identityService.verifyJwtToken(any(), isA(VerificationContext.class))).thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
         when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> "id");
 
-        var result = protocolService.notifyRequested(createTransferRequestMessage(), TokenRepresentation.Builder.newInstance().build());
+        var result = protocolService.notifyRequested(new ParticipantContext("id"), createTransferRequestMessage(), TokenRepresentation.Builder.newInstance().build());
 
         assertThat(result).isSucceeded();
         await().untilAsserted(() -> {

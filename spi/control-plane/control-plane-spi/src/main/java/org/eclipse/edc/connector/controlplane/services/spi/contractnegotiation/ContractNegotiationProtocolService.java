@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +40,7 @@ public interface ContractNegotiationProtocolService {
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
     @NotNull
-    ServiceResult<ContractNegotiation> notifyRequested(ContractRequestMessage message, TokenRepresentation tokenRepresentation);
+    ServiceResult<ContractNegotiation> notifyRequested(ParticipantContext participantContext, ContractRequestMessage message, TokenRepresentation tokenRepresentation);
 
     /**
      * Notifies the ContractNegotiation that it has been offered by the provider.
@@ -50,7 +51,7 @@ public interface ContractNegotiationProtocolService {
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
     @NotNull
-    ServiceResult<ContractNegotiation> notifyOffered(ContractOfferMessage message, TokenRepresentation tokenRepresentation);
+    ServiceResult<ContractNegotiation> notifyOffered(ParticipantContext participantContext, ContractOfferMessage message, TokenRepresentation tokenRepresentation);
 
     /**
      * Notifies the ContractNegotiation that it has been agreed by the accepted.
@@ -61,7 +62,7 @@ public interface ContractNegotiationProtocolService {
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
     @NotNull
-    ServiceResult<ContractNegotiation> notifyAccepted(ContractNegotiationEventMessage message, TokenRepresentation tokenRepresentation);
+    ServiceResult<ContractNegotiation> notifyAccepted(ParticipantContext participantContext, ContractNegotiationEventMessage message, TokenRepresentation tokenRepresentation);
 
     /**
      * Notifies the ContractNegotiation that it has been agreed by the provider.
@@ -72,7 +73,7 @@ public interface ContractNegotiationProtocolService {
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
     @NotNull
-    ServiceResult<ContractNegotiation> notifyAgreed(ContractAgreementMessage message, TokenRepresentation tokenRepresentation);
+    ServiceResult<ContractNegotiation> notifyAgreed(ParticipantContext participantContext, ContractAgreementMessage message, TokenRepresentation tokenRepresentation);
 
     /**
      * Notifies the ContractNegotiation that it has been verified by the consumer.
@@ -83,7 +84,7 @@ public interface ContractNegotiationProtocolService {
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
     @NotNull
-    ServiceResult<ContractNegotiation> notifyVerified(ContractAgreementVerificationMessage message, TokenRepresentation tokenRepresentation);
+    ServiceResult<ContractNegotiation> notifyVerified(ParticipantContext participantContext, ContractAgreementVerificationMessage message, TokenRepresentation tokenRepresentation);
 
     /**
      * Notifies the ContractNegotiation that it has been finalized by the provider.
@@ -94,7 +95,7 @@ public interface ContractNegotiationProtocolService {
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
     @NotNull
-    ServiceResult<ContractNegotiation> notifyFinalized(ContractNegotiationEventMessage message, TokenRepresentation tokenRepresentation);
+    ServiceResult<ContractNegotiation> notifyFinalized(ParticipantContext participantContext, ContractNegotiationEventMessage message, TokenRepresentation tokenRepresentation);
 
     /**
      * Notifies the ContractNegotiation that it has been terminated by the counter-part.
@@ -104,7 +105,7 @@ public interface ContractNegotiationProtocolService {
      * @return a succeeded result if the operation was successful, a failed one otherwise
      */
     @NotNull
-    ServiceResult<ContractNegotiation> notifyTerminated(ContractNegotiationTerminationMessage message, TokenRepresentation tokenRepresentation);
+    ServiceResult<ContractNegotiation> notifyTerminated(ParticipantContext participantContext, ContractNegotiationTerminationMessage message, TokenRepresentation tokenRepresentation);
 
     /**
      * Finds a contract negotiation that has been requested by the counter-part. An existing
@@ -115,5 +116,5 @@ public interface ContractNegotiationProtocolService {
      * @return a succeeded result containing the negotiation if it was found, a failed one otherwise
      */
     @NotNull
-    ServiceResult<ContractNegotiation> findById(String id, TokenRepresentation tokenRepresentation, String protocol);
+    ServiceResult<ContractNegotiation> findById(ParticipantContext participantContext, String id, TokenRepresentation tokenRepresentation, String protocol);
 }

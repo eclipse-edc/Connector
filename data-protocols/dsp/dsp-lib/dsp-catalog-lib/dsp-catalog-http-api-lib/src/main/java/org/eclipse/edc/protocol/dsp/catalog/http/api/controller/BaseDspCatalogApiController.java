@@ -31,6 +31,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.protocol.dsp.http.spi.message.ContinuationTokenManager;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
@@ -47,14 +48,17 @@ public abstract class BaseDspCatalogApiController {
     private final CatalogProtocolService service;
     private final DspRequestHandler dspRequestHandler;
     private final ContinuationTokenManager continuationTokenManager;
+    private final SingleParticipantContextSupplier participantContextSupplier;
     private final String protocol;
     private final JsonLdNamespace namespace;
 
 
-    public BaseDspCatalogApiController(CatalogProtocolService service, DspRequestHandler dspRequestHandler, ContinuationTokenManager continuationTokenManager, String protocol, JsonLdNamespace namespace) {
+    public BaseDspCatalogApiController(CatalogProtocolService service, DspRequestHandler dspRequestHandler, ContinuationTokenManager continuationTokenManager,
+                                       SingleParticipantContextSupplier participantContextSupplier, String protocol, JsonLdNamespace namespace) {
         this.service = service;
         this.dspRequestHandler = dspRequestHandler;
         this.continuationTokenManager = continuationTokenManager;
+        this.participantContextSupplier = participantContextSupplier;
         this.protocol = protocol;
         this.namespace = namespace;
     }
@@ -78,6 +82,7 @@ public abstract class BaseDspCatalogApiController {
                 .serviceCall(service::getCatalog)
                 .errorProvider(CatalogError.Builder::newInstance)
                 .protocol(protocol)
+                .participantContextProvider(participantContextSupplier)
                 .build();
 
         var responseDecorator = continuationTokenManager.createResponseDecorator(uriInfo.getAbsolutePath().toString());
@@ -90,8 +95,9 @@ public abstract class BaseDspCatalogApiController {
         var request = GetDspRequest.Builder.newInstance(Dataset.class, CatalogError.class)
                 .token(token)
                 .id(id)
-                .serviceCall((datasetId, tokenRepresentation) -> service.getDataset(datasetId, tokenRepresentation, protocol))
+                .serviceCall((ctx, datasetId, tokenRepresentation) -> service.getDataset(ctx, datasetId, tokenRepresentation, protocol))
                 .errorProvider(CatalogError.Builder::newInstance)
+                .participantContextProvider(participantContextSupplier)
                 .protocol(protocol)
                 .build();
 

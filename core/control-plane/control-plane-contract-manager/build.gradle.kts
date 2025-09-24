@@ -31,7 +31,6 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:query-lib"))
     testImplementation(project(":core:common:lib:store-lib"))
-    testImplementation(project(":spi:common:participant-context-single-spi"))
 
 //    testImplementation(project(":core:common:lib:policy-engine-lib"))
     testImplementation(libs.awaitility)

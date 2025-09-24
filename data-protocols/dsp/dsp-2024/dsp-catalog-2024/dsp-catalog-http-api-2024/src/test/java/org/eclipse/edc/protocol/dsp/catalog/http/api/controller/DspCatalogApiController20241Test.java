@@ -36,6 +36,6 @@ class DspCatalogApiController20241Test extends DspCatalogApiControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new DspCatalogApiController20241(service, dspRequestHandler, continuationTokenManager);
+        return new DspCatalogApiController20241(service, dspRequestHandler, continuationTokenManager, participantContextSupplier);
     }
 }

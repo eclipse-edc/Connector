@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.controller.DspCatalogApiController20241;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.decorator.Base64continuationTokenSerDes;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.decorator.ContinuationTokenManagerImpl;
@@ -77,6 +78,9 @@ public class DspCatalogApiV2024Extension implements ServiceExtension {
     @Inject
     private JsonLd jsonLd;
 
+    @Inject
+    private SingleParticipantContextSupplier participantContextSupplier;
+
     @Override
     public String name() {
         return NAME;
@@ -86,7 +90,7 @@ public class DspCatalogApiV2024Extension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         registerValidators();
 
-        webService.registerResource(ApiContext.PROTOCOL, new DspCatalogApiController20241(service, dspRequestHandler, continuationTokenManager(monitor)));
+        webService.registerResource(ApiContext.PROTOCOL, new DspCatalogApiController20241(service, dspRequestHandler, continuationTokenManager(monitor), participantContextSupplier));
         webService.registerDynamicResource(ApiContext.PROTOCOL, DspCatalogApiController20241.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, DSP_SCOPE_V_2024_1));
     }
 

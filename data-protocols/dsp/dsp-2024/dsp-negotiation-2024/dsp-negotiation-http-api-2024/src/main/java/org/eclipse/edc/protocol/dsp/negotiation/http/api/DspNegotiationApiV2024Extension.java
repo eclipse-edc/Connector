@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.http.api;
 
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.negotiation.http.api.controller.DspNegotiationApiController20241;
 import org.eclipse.edc.protocol.dsp.negotiation.validation.ContractAgreementMessageValidator;
@@ -71,6 +72,9 @@ public class DspNegotiationApiV2024Extension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private SingleParticipantContextSupplier participantContextSupplier;
+
     @Override
     public String name() {
         return NAME;
@@ -80,7 +84,7 @@ public class DspNegotiationApiV2024Extension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         registerValidators();
 
-        webService.registerResource(ApiContext.PROTOCOL, new DspNegotiationApiController20241(protocolService, dspRequestHandler));
+        webService.registerResource(ApiContext.PROTOCOL, new DspNegotiationApiController20241(protocolService, dspRequestHandler, participantContextSupplier));
         webService.registerDynamicResource(ApiContext.PROTOCOL, DspNegotiationApiController20241.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, DSP_SCOPE_V_2024_1));
     }
 

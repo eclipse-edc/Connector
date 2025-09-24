@@ -34,7 +34,6 @@ import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceS
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
-import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
@@ -74,7 +73,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(RuntimePerMethodExtension.class)
 class ContractNegotiationEventDispatchTest {
     private static final String CONSUMER = "consumer";
-    protected final SingleParticipantContextSupplier participantContextSupplier = () -> new ParticipantContext("participantId");
     private final EventSubscriber eventSubscriber = mock();
     private final IdentityService identityService = mock();
     private final ClaimToken token = ClaimToken.Builder.newInstance().claim("client_id", CONSUMER).build();
@@ -94,7 +92,6 @@ class ContractNegotiationEventDispatchTest {
         extension.registerServiceMock(DataPlaneInstanceStore.class, mock());
         extension.registerServiceMock(IdentityService.class, identityService);
         extension.registerServiceMock(DataPlaneClientFactory.class, mock());
-        extension.registerServiceMock(SingleParticipantContextSupplier.class, participantContextSupplier);
 
         when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> "http://callback.address");
         when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> CONSUMER);
@@ -124,7 +121,7 @@ class ContractNegotiationEventDispatchTest {
         policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).build());
         assetIndex.create(Asset.Builder.newInstance().id("assetId").dataAddress(DataAddress.Builder.newInstance().type("any").build()).build());
 
-        service.notifyRequested(createContractOfferRequest(policy, "assetId"), tokenRepresentation);
+        service.notifyRequested(new ParticipantContext("participantContextId"), createContractOfferRequest(policy, "assetId"), tokenRepresentation);
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationRequested.class)));
