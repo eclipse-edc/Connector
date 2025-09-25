@@ -25,6 +25,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -37,6 +38,7 @@ import java.time.Duration;
 import static org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorExtension.NAME;
 
 @Extension(NAME)
+@Provides(DataPlaneSelectorManager.class)
 public class DataPlaneSelectorExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane Selector core";
@@ -67,24 +69,6 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
     }
 
     @Override
-    public void initialize(ServiceExtensionContext context) {
-
-        var configuration = new DataPlaneSelectorManagerConfiguration(
-                stateMachineConfiguration.iterationWaitExponentialWaitStrategy(),
-                stateMachineConfiguration.batchSize(),
-                Duration.ofSeconds(selectorCheckPeriod)
-        );
-
-        manager = DataPlaneSelectorManagerImpl.Builder.newInstance()
-                .clientFactory(clientFactory)
-                .store(instanceStore)
-                .monitor(context.getMonitor())
-                .configuration(configuration)
-                .entityRetryProcessConfiguration(stateMachineConfiguration.entityRetryProcessConfiguration())
-                .build();
-    }
-
-    @Override
     public void start() {
         manager.start();
     }
@@ -97,6 +81,26 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
     }
 
     @Provider
+    public DataPlaneSelectorManager dataPlaneSelectorManager(ServiceExtensionContext context) {
+        if (manager == null) {
+            var configuration = new DataPlaneSelectorManagerConfiguration(
+                    stateMachineConfiguration.iterationWaitExponentialWaitStrategy(),
+                    stateMachineConfiguration.batchSize(),
+                    Duration.ofSeconds(selectorCheckPeriod)
+            );
+
+            manager = DataPlaneSelectorManagerImpl.Builder.newInstance()
+                    .clientFactory(clientFactory)
+                    .store(instanceStore)
+                    .monitor(context.getMonitor())
+                    .configuration(configuration)
+                    .entityRetryProcessConfiguration(stateMachineConfiguration.entityRetryProcessConfiguration())
+                    .build();
+        }
+        return manager;
+    }
+
+    @Provider(isDefault = true)
     public DataPlaneSelectorService dataPlaneSelectorService() {
         return new EmbeddedDataPlaneSelectorService(instanceStore, selectionStrategyRegistry, transactionContext);
     }

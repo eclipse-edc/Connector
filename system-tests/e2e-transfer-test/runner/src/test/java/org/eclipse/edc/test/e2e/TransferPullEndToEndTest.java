@@ -501,7 +501,6 @@ class TransferPullEndToEndTest {
     @EndToEndTest
     class EmbeddedDataPlane extends Tests {
 
-
         @RegisterExtension
         static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
                 Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("consumer-control-plane")
