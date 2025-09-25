@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotiation;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.spi.event.CallbackAddresses;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
@@ -26,7 +27,7 @@ import java.util.Objects;
  *  Class as organizational between level to catch events of type ContractNegotiation to catch them together in an Event Subscriber
  *  Contains data related to contract negotiations
  */
-public abstract class ContractNegotiationEvent extends Event {
+public abstract class ContractNegotiationEvent extends Event implements CallbackAddresses {
 
     protected String contractNegotiationId;
 

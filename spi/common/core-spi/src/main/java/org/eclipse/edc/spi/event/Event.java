@@ -14,21 +14,11 @@
 
 package org.eclipse.edc.spi.event;
 
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * The Event base class for all EDC events. This represents the content of the event, and it should
  * not contain any event metadata. All the metadata such as id, timestamp, etc. are in the {@link EventEnvelope}
  */
 public abstract class Event {
-
-    public List<CallbackAddress> getCallbackAddresses() {
-        return new ArrayList<>();
-    }
-
 
     /**
      * The name of the event in dot notation.

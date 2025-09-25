@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackEven
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackProtocolResolverRegistry;
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackRegistry;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.event.CallbackAddresses;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventSubscriber;
@@ -80,9 +81,9 @@ public class CallbackEventDispatcher implements EventSubscriber {
 
     private <E extends Event> List<CallbackAddress> getCallbacks(EventEnvelope<E> eventEnvelope) {
         var staticCallbacks = callbackRegistry.resolve(eventEnvelope.getPayload().name()).stream();
-        var dynamicCallbacks =
-                eventEnvelope.getPayload().getCallbackAddresses()
-                        .stream();
+
+        var dynamicCallbacks = eventEnvelope.getPayload() instanceof CallbackAddresses callbackAddresses ?
+                callbackAddresses.getCallbackAddresses().stream() : Stream.<CallbackAddress>empty();
 
         return Stream.concat(staticCallbacks, dynamicCallbacks)
                 .filter(cb -> cb.isTransactional() == transactional)

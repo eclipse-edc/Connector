@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.spi.event;
 
+import org.eclipse.edc.spi.event.CallbackAddresses;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
@@ -25,7 +26,7 @@ import java.util.Objects;
  * Class as organizational between level to catch events of type TransferProcess to catch them together in an Event Subscriber
  * Contains data related to transfer processes
  */
-public abstract class TransferProcessEvent extends Event {
+public abstract class TransferProcessEvent extends Event implements CallbackAddresses {
 
     protected String transferProcessId;
     protected List<CallbackAddress> callbackAddresses = new ArrayList<>();
