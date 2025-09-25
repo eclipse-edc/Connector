@@ -15,6 +15,8 @@
 package org.eclipse.edc.connector.dataplane.selector;
 
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
+import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
+import org.eclipse.edc.connector.dataplane.selector.spi.manager.DataPlaneSelectorManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -42,27 +44,29 @@ class DataPlaneSelectorClientExtensionTest {
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
+        context.registerService(DataPlaneSelectorManager.class, null);
         context.registerService(TypeTransformerRegistry.class, typeTransformerRegistry);
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("edc.dataplane.client.selector.strategy", "http://any",
                 "edc.dpf.selector.url", "http://any")));
-
     }
 
     @Test
     void dataPlaneSelectorService_shouldReturnRemoteService(DataPlaneSelectorClientExtension extension, ServiceExtensionContext context) {
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of()));
 
-        var client = extension.dataPlaneSelectorService(context);
+        extension.initialize(context);
 
-        assertThat(client).isInstanceOf(RemoteDataPlaneSelectorService.class);
+        assertThat(context.getService(DataPlaneSelectorService.class)).isInstanceOf(RemoteDataPlaneSelectorService.class);
     }
 
     @Test
     void dataPlaneSelectorService_shouldThrowException_whenUrlNotConfigured(ServiceExtensionContext context, ObjectFactory objectFactory) {
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(emptyMap()));
 
-        assertThatThrownBy(() -> objectFactory.constructInstance(DataPlaneSelectorClientExtension.class).dataPlaneSelectorService(context)).isInstanceOf(EdcException.class)
-                .hasMessageContaining("No config value and no default value found for injected field");
+        var extension = objectFactory.constructInstance(DataPlaneSelectorClientExtension.class);
+
+        assertThatThrownBy(() -> extension.initialize(context)).isInstanceOf(EdcException.class)
+                .hasMessageContaining("No setting found");
     }
 
     @Test

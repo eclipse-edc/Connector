@@ -27,7 +27,7 @@ dependencies {
     runtimeOnly(libs.tink)
     implementation(libs.jakarta.json.api)
 
-    api("com.apicatalog:iron-verifiable-credentials:0.14.0") {
+    api(libs.iron.vc) {
         exclude("com.github.multiformats")
     }
 
