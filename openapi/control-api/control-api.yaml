@@ -9,6 +9,32 @@ info:
 servers:
 - url: http://localhost:8080
 paths:
+  /v1/dataflows/{id}/terminate:
+    post:
+      tags:
+      - Data Plane Signaling api API
+      description: Terminates a data transfer.
+      operationId: terminate
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DataFlowTerminateMessage"
+      responses:
+        "204":
+          description: Data transfer terminated
+        "404":
+          description: Data transfer not handled by the data plane
+        "409":
+          description: Cannot terminate the transfer
   /transferprocess/{processId}/provisioned:
     post:
       tags:
@@ -37,32 +63,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /v1/dataflows/{id}/terminate:
-    post:
-      tags:
-      - Data Plane Signaling api API
-      description: Terminates a data transfer.
-      operationId: terminate
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DataFlowTerminateMessage"
-      responses:
-        "204":
-          description: Data transfer terminated
-        "404":
-          description: Data transfer not handled by the data plane
-        "409":
-          description: Cannot terminate the transfer
   /v1/dataflows/{id}/state:
     get:
       tags:
@@ -121,36 +121,6 @@ paths:
           description: Data transfer not handled by the data plane
         "409":
           description: Cannot suspend the transfer
-  /transferprocess/{processId}/fail:
-    post:
-      tags:
-      - Transfer Process Control Api
-      description: "Requests completion of the transfer process. Due to the asynchronous\
-        \ nature of transfers, a successful response only indicates that the request\
-        \ was successfully received"
-      operationId: fail
-      parameters:
-      - name: processId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/TransferProcessFailStateDto"
-      responses:
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v1/dataplanes/{id}:
     get:
       tags:
@@ -220,6 +190,36 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail_1"
+  /transferprocess/{processId}/fail:
+    post:
+      tags:
+      - Transfer Process Control Api
+      description: "Requests completion of the transfer process. Due to the asynchronous\
+        \ nature of transfers, a successful response only indicates that the request\
+        \ was successfully received"
+      operationId: fail
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferProcessFailStateDto"
+      responses:
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v1/dataplanes:
     get:
       tags:
@@ -291,31 +291,6 @@ paths:
                 $ref: "#/components/schemas/DataFlowResponseMessage"
         "400":
           description: Failed to validate request
-  /transferprocess/{processId}/complete:
-    post:
-      tags:
-      - Transfer Process Control Api
-      description: "Requests completion of the transfer process. Due to the asynchronous\
-        \ nature of transfers, a successful response only indicates that the request\
-        \ was successfully received"
-      operationId: complete
-      parameters:
-      - name: processId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v1/dataplanes/{id}/unregister:
     put:
       tags:
@@ -357,8 +332,46 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail_1"
+  /transferprocess/{processId}/complete:
+    post:
+      tags:
+      - Transfer Process Control Api
+      description: "Requests completion of the transfer process. Due to the asynchronous\
+        \ nature of transfers, a successful response only indicates that the request\
+        \ was successfully received"
+      operationId: complete
+      parameters:
+      - name: processId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
 components:
   schemas:
+    DataFlowTerminateMessage:
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: DataFlowTerminateMessage
+        state:
+          type: string
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@type': DataFlowTerminateMessage
+        reason: reason
     ApiErrorDetail:
       type: object
       properties:
@@ -385,19 +398,6 @@ components:
       example:
         properties:
           key: "{}"
-    DataFlowTerminateMessage:
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: DataFlowTerminateMessage
-        state:
-          type: string
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': DataFlowTerminateMessage
-        reason: reason
     DataFlowState:
       type: object
       properties:
@@ -426,13 +426,6 @@ components:
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
         '@type': DataFlowSuspendMessage
         reason: reason
-    TransferProcessFailStateDto:
-      type: object
-      properties:
-        errorMessage:
-          type: string
-      example:
-        errorMessage: errorMessage
     DataPlaneInstanceSchema:
       required:
       - '@context'
@@ -490,6 +483,13 @@ components:
         type: ErrorType
         path: object.error.path
         invalidValue: this value is not valid
+    TransferProcessFailStateDto:
+      type: object
+      properties:
+        errorMessage:
+          type: string
+      example:
+        errorMessage: errorMessage
     IdResponse:
       type: object
       properties:
