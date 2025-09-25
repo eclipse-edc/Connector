@@ -1,0 +1,44 @@
+openapi: 3.0.1
+info:
+  title: version-api
+  description: REST API documentation for the version-api
+  license:
+    name: "The Apache License, Version 2.0"
+    url: http://www.apache.org/licenses/LICENSE-2.0.txt
+  version: 1.0.0
+servers:
+- url: http://localhost:8080
+paths:
+  /v1/version:
+    get:
+      tags:
+      - Version
+      description: Gets the exact SemVer string of the Management API
+      operationId: getVersion
+      responses:
+        "200":
+          description: The secret
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecretOutput"
+components:
+  schemas:
+    SecretOutput:
+      required:
+      - https://w3id.org/edc/v0.0.1/ns/value
+      type: object
+      properties:
+        '@id':
+          type: string
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/Secret
+        https://w3id.org/edc/v0.0.1/ns/value:
+          type: string
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@id': secret-id
+        '@type': https://w3id.org/edc/v0.0.1/ns/Secret
+        value: secret-value

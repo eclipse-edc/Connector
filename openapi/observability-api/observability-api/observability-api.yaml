@@ -1,0 +1,126 @@
+openapi: 3.0.1
+info:
+  title: observability-api
+  description: REST API documentation for the observability-api
+  license:
+    name: "The Apache License, Version 2.0"
+    url: http://www.apache.org/licenses/LICENSE-2.0.txt
+  version: 1.0.0
+servers:
+- url: http://localhost:8080
+paths:
+  /check/health:
+    get:
+      tags:
+      - Application Observability
+      description: Performs a liveness probe to determine whether the runtime is working
+        properly.
+      operationId: checkHealth
+      responses:
+        "200":
+          description: The runtime is working properly.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /check/liveness:
+    get:
+      tags:
+      - Application Observability
+      description: Performs a liveness probe to determine whether the runtime is working
+        properly.
+      operationId: getLiveness
+      responses:
+        "200":
+          description: The runtime is working properly.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /check/readiness:
+    get:
+      tags:
+      - Application Observability
+      description: Performs a readiness probe to determine whether the runtime is
+        able to accept requests.
+      operationId: getReadiness
+      responses:
+        "200":
+          description: The runtime is able to accept requests.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /check/startup:
+    get:
+      tags:
+      - Application Observability
+      description: Performs a startup probe to determine whether the runtime has completed
+        startup.
+      operationId: getStartup
+      responses:
+        "200":
+          description: The runtime has completed startup.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        componentResults:
+          type: array
+          items:
+            $ref: "#/components/schemas/HealthCheckResult"
+        isSystemHealthy:
+          type: boolean
+      example:
+        isSystemHealthy: true
+        componentResults:
+        - component: component
+          failure:
+            failureDetail: failureDetail
+            messages:
+            - messages
+            - messages
+          isHealthy: true
+        - component: component
+          failure:
+            failureDetail: failureDetail
+            messages:
+            - messages
+            - messages
+          isHealthy: true
+    HealthCheckResult:
+      type: object
+      properties:
+        component:
+          type: string
+        failure:
+          $ref: "#/components/schemas/Failure"
+        isHealthy:
+          type: boolean
+      example:
+        component: component
+        failure:
+          failureDetail: failureDetail
+          messages:
+          - messages
+          - messages
+        isHealthy: true
+    Failure:
+      type: object
+      properties:
+        failureDetail:
+          type: string
+        messages:
+          type: array
+          items:
+            type: string
+      example:
+        failureDetail: failureDetail
+        messages:
+        - messages
+        - messages
