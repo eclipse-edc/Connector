@@ -159,16 +159,10 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
                 .filter(Result::failed)
                 .map(AbstractResult::getFailureDetail)
                 .toList();
-        return violators.isEmpty() ? Result.success(List.of()) : Result.failure("%s, through nested settings %s".formatted(toString(), violators));
+        return violators.isEmpty() ? Result.success(List.of()) : Result.failure("%s, through nested %s".formatted(asString(), violators));
     }
 
-    @Override
-    public String getTypeString() {
-        return "Configuration object";
-    }
-
-    @Override
-    public String toString() {
+    private String asString() {
         return "Configuration object \"%s\" of type [%s]"
                 .formatted(configurationObject.getName(), configurationObject.getType());
     }
@@ -190,14 +184,14 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
                 .toList();
     }
 
-    private @NotNull Stream<ValueInjectionPoint<T>> injectionPointsFrom(Field[] fields, SettingContext settingContext) {
+    private @NotNull Stream<SettingInjectionPoint<T>> injectionPointsFrom(Field[] fields, SettingContext settingContext) {
         return Arrays.stream(fields)
                 .filter(f -> f.getAnnotation(Setting.class) != null)
                 .map(f -> {
                     if (settingContext == null) {
-                        return new ValueInjectionPoint<>(null, f, f.getAnnotation(Setting.class), targetInstance.getClass());
+                        return new SettingInjectionPoint<>(null, f, f.getAnnotation(Setting.class), targetInstance.getClass());
                     } else {
-                        return new ValueInjectionPoint<>(null, f, f.getAnnotation(Setting.class), targetInstance.getClass(), settingContext);
+                        return new SettingInjectionPoint<>(null, f, f.getAnnotation(Setting.class), targetInstance.getClass(), settingContext);
                     }
                 });
     }

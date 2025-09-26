@@ -35,7 +35,7 @@ public interface InjectionPoint<T> {
 
     /**
      * The type (=class) of the injected field. For example, this could be the service class for a {@link ServiceInjectionPoint}, or
-     * a basic datatype for a {@link ValueInjectionPoint}.
+     * a basic datatype for a {@link SettingInjectionPoint}.
      */
     Class<?> getType();
 
@@ -87,8 +87,4 @@ public interface InjectionPoint<T> {
      */
     Result<List<InjectionContainer<T>>> getProviders(Map<Class<?>, List<InjectionContainer<T>>> dependencyMap, ServiceExtensionContext context);
 
-    /**
-     * A human-readable string indicating the type of injection point, e.g. "Service" or "Config value"
-     */
-    String getTypeString();
 }
