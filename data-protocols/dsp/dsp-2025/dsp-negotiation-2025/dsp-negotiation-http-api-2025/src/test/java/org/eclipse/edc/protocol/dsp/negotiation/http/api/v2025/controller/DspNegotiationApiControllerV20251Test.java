@@ -39,7 +39,7 @@ class DspNegotiationApiControllerV20251Test extends DspNegotiationApiControllerT
 
     @Override
     protected Object controller() {
-        return new DspNegotiationApiController20251(protocolService, dspRequestHandler);
+        return new DspNegotiationApiController20251(protocolService, dspRequestHandler, participantContextSupplier);
     }
 
 

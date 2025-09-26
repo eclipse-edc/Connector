@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.services.spi.catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -35,7 +36,7 @@ public interface CatalogProtocolService {
      * @return succeeded result with the {@link Catalog}, failed result otherwise.
      */
     @NotNull
-    ServiceResult<Catalog> getCatalog(CatalogRequestMessage message, TokenRepresentation tokenRepresentation);
+    ServiceResult<Catalog> getCatalog(ParticipantContext participantContext, CatalogRequestMessage message, TokenRepresentation tokenRepresentation);
 
     /**
      * Returns a dataset given its id and a {@link ClaimToken}
@@ -45,5 +46,5 @@ public interface CatalogProtocolService {
      * @return succeeded result with the {@link Dataset}, failed result otherwise.
      */
     @NotNull
-    ServiceResult<Dataset> getDataset(String datasetId, TokenRepresentation tokenRepresentation, String protocol);
+    ServiceResult<Dataset> getDataset(ParticipantContext participantContext, String datasetId, TokenRepresentation tokenRepresentation, String protocol);
 }

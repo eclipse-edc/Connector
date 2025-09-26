@@ -16,6 +16,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.http.api;
 
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.transferprocess.http.api.controller.DspTransferProcessApiController08;
 import org.eclipse.edc.protocol.dsp.transferprocess.validation.TransferCompletionMessageValidator;
@@ -63,11 +64,14 @@ public class DspTransferProcessApiV08Extension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private SingleParticipantContextSupplier participantContextSupplier;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         registerValidators();
 
-        webService.registerResource(ApiContext.PROTOCOL, new DspTransferProcessApiController08(transferProcessProtocolService, dspRequestHandler));
+        webService.registerResource(ApiContext.PROTOCOL, new DspTransferProcessApiController08(transferProcessProtocolService, dspRequestHandler, participantContextSupplier));
         webService.registerDynamicResource(ApiContext.PROTOCOL, DspTransferProcessApiController08.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, DSP_SCOPE_V_08));
     }
 

@@ -40,7 +40,6 @@ import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.C
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
-import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
@@ -112,7 +111,6 @@ class ContractNegotiationIntegrationTest {
 
     private static final Duration DEFAULT_TEST_TIMEOUT = Duration.ofSeconds(15);
     private static final Duration DEFAULT_POLL_INTERVAL = Duration.ofMillis(100);
-    protected final SingleParticipantContextSupplier participantContextSupplier = () -> new ParticipantContext("participantId");
     private final Clock clock = Clock.systemUTC();
     private final CriterionOperatorRegistry criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
     private final InMemoryContractNegotiationStore providerStore = new InMemoryContractNegotiationStore(clock, criterionOperatorRegistry);
@@ -126,6 +124,7 @@ class ContractNegotiationIntegrationTest {
     private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
     private final AtomicReference<String> providerNegotiationId = new AtomicReference<>(null);
     private final NoopTransactionContext transactionContext = new NoopTransactionContext();
+    private final ParticipantContext participantContext = new ParticipantContext("participantContextId");
     protected ParticipantAgent participantAgent = new ParticipantAgent(Collections.emptyMap(), Collections.emptyMap());
     protected TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
     private String consumerNegotiationId;
@@ -159,8 +158,8 @@ class ContractNegotiationIntegrationTest {
                 .build();
 
         when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), any())).thenReturn(ServiceResult.success(participantAgent));
-        consumerService = new ContractNegotiationProtocolServiceImpl(consumerStore, transactionContext, validationService, offerResolver, protocolTokenValidator, mock(), monitor, mock(), participantContextSupplier);
-        providerService = new ContractNegotiationProtocolServiceImpl(providerStore, transactionContext, validationService, offerResolver, protocolTokenValidator, mock(), monitor, mock(), participantContextSupplier);
+        consumerService = new ContractNegotiationProtocolServiceImpl(consumerStore, transactionContext, validationService, offerResolver, protocolTokenValidator, mock(), monitor, mock());
+        providerService = new ContractNegotiationProtocolServiceImpl(providerStore, transactionContext, validationService, offerResolver, protocolTokenValidator, mock(), monitor, mock());
     }
 
     @AfterEach
@@ -316,7 +315,7 @@ class ContractNegotiationIntegrationTest {
         return i -> {
             ContractRequestMessage request = i.getArgument(1);
             consumerNegotiationId = request.getProcessId();
-            var result = providerService.notifyRequested(request, tokenRepresentation);
+            var result = providerService.notifyRequested(participantContext, request, tokenRepresentation);
             return toFuture(result, ContractNegotiationAck.Builder.newInstance().providerPid(request.getProviderPid()).build());
         };
     }
@@ -325,7 +324,7 @@ class ContractNegotiationIntegrationTest {
     private Answer<Object> onConsumerSentTermination() {
         return i -> {
             ContractNegotiationTerminationMessage request = i.getArgument(1);
-            var result = providerService.notifyTerminated(request, tokenRepresentation);
+            var result = providerService.notifyTerminated(participantContext, request, tokenRepresentation);
             return toFuture(result, "Success!");
         };
     }
@@ -335,7 +334,7 @@ class ContractNegotiationIntegrationTest {
         return i -> {
             ContractAgreementMessage request = i.getArgument(1);
             providerNegotiationId.set(request.getProviderPid());
-            var result = consumerService.notifyAgreed(request, tokenRepresentation);
+            var result = consumerService.notifyAgreed(participantContext, request, tokenRepresentation);
             return toFuture(result, "Success!");
         };
     }
@@ -344,7 +343,7 @@ class ContractNegotiationIntegrationTest {
     private Answer<Object> onProviderSentNegotiationEventMessage() {
         return i -> {
             ContractNegotiationEventMessage request = i.getArgument(1);
-            var result = consumerService.notifyFinalized(request, tokenRepresentation);
+            var result = consumerService.notifyFinalized(participantContext, request, tokenRepresentation);
             return toFuture(result, "Success!");
         };
     }
@@ -354,7 +353,7 @@ class ContractNegotiationIntegrationTest {
         return i -> {
             ContractAgreementVerificationMessage request = i.getArgument(1);
             request.setProcessId(providerNegotiationId.get());
-            var result = providerService.notifyVerified(request, tokenRepresentation);
+            var result = providerService.notifyVerified(participantContext, request, tokenRepresentation);
             return toFuture(result, "Success!");
         };
     }
@@ -363,7 +362,7 @@ class ContractNegotiationIntegrationTest {
     private Answer<Object> onProviderSentTermination() {
         return i -> {
             ContractNegotiationTerminationMessage request = i.getArgument(1);
-            var result = consumerService.notifyTerminated(request, tokenRepresentation);
+            var result = consumerService.notifyTerminated(participantContext, request, tokenRepresentation);
             return toFuture(result, "Success!");
         };
     }

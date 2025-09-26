@@ -14,11 +14,10 @@
 
 package org.eclipse.edc.protocol.dsp.http.spi.message;
 
-import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
 
-import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 import static java.util.Objects.requireNonNull;
@@ -31,8 +30,9 @@ public class DspRequest<I, R, E extends ErrorMessage> {
 
     protected String token;
     protected String protocol;
-    protected BiFunction<I, TokenRepresentation, ServiceResult<R>> serviceCall;
+    protected ServiceCall<I, R> serviceCall;
     protected Supplier<? extends ErrorMessage.Builder<E, ?>> errorProvider;
+    protected ParticipantContextSupplier participantContextProvider;
 
     public DspRequest(Class<I> inputClass, Class<R> resultClass, Class<E> errorClass) {
         this.inputClass = inputClass;
@@ -56,12 +56,16 @@ public class DspRequest<I, R, E extends ErrorMessage> {
         return resultClass;
     }
 
-    public BiFunction<I, TokenRepresentation, ServiceResult<R>> getServiceCall() {
+    public ServiceCall<I, R> getServiceCall() {
         return serviceCall;
     }
 
     public Supplier<? extends ErrorMessage.Builder<E, ?>> getErrorProvider() {
         return errorProvider;
+    }
+
+    public Supplier<ParticipantContext> getParticipantContextProvider() {
+        return participantContextProvider;
     }
 
     public abstract static class Builder<I, R, M extends DspRequest<I, R, E>, E extends ErrorMessage, B extends Builder<I, R, M, E, B>> {
@@ -82,8 +86,13 @@ public class DspRequest<I, R, E extends ErrorMessage> {
             return self();
         }
 
-        public B serviceCall(BiFunction<I, TokenRepresentation, ServiceResult<R>> serviceCall) {
+        public B serviceCall(ServiceCall<I, R> serviceCall) {
             message.serviceCall = serviceCall;
+            return self();
+        }
+
+        public B participantContextProvider(ParticipantContextSupplier participantContextProvider) {
+            message.participantContextProvider = participantContextProvider;
             return self();
         }
 
@@ -96,6 +105,7 @@ public class DspRequest<I, R, E extends ErrorMessage> {
             requireNonNull(message.serviceCall);
             requireNonNull(message.protocol);
             requireNonNull(message.errorProvider);
+            requireNonNull(message.participantContextProvider);
             return message;
         }
 

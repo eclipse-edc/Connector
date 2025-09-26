@@ -31,6 +31,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
@@ -61,13 +62,16 @@ public abstract class BaseDspNegotiationApiController {
     private final String protocol;
     private final JsonLdNamespace namespace;
     private final ContractNegotiationProtocolService protocolService;
+    private final SingleParticipantContextSupplier participantContextSupplier;
 
     public BaseDspNegotiationApiController(ContractNegotiationProtocolService protocolService,
                                            DspRequestHandler dspRequestHandler,
+                                           SingleParticipantContextSupplier participantContextSupplier,
                                            String protocol,
                                            JsonLdNamespace namespace) {
         this.protocolService = protocolService;
         this.dspRequestHandler = dspRequestHandler;
+        this.participantContextSupplier = participantContextSupplier;
         this.protocol = protocol;
         this.namespace = namespace;
     }
@@ -83,9 +87,12 @@ public abstract class BaseDspNegotiationApiController {
     @Path("{id}")
     public Response getNegotiation(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
         var request = GetDspRequest.Builder.newInstance(ContractNegotiation.class, ContractNegotiationError.class)
-                .id(id).token(token).serviceCall((cnId, tr) -> protocolService.findById(cnId, tr, protocol))
+                .id(id)
+                .token(token)
+                .serviceCall((ctx, cnId, tr) -> protocolService.findById(ctx, cnId, tr, protocol))
                 .errorProvider(ContractNegotiationError.Builder::newInstance)
                 .protocol(protocol)
+                .participantContextProvider(participantContextSupplier)
                 .build();
 
         return dspRequestHandler.getResource(request);
@@ -108,6 +115,7 @@ public abstract class BaseDspNegotiationApiController {
                 .serviceCall(protocolService::notifyRequested)
                 .errorProvider(ContractNegotiationError.Builder::newInstance)
                 .protocol(protocol)
+                .participantContextProvider(participantContextSupplier)
                 .build();
 
         return dspRequestHandler.createResource(request);
@@ -130,6 +138,7 @@ public abstract class BaseDspNegotiationApiController {
                 .serviceCall(protocolService::notifyOffered)
                 .errorProvider(ContractNegotiationError.Builder::newInstance)
                 .protocol(protocol)
+                .participantContextProvider(participantContextSupplier)
                 .build();
 
         return dspRequestHandler.createResource(request);
@@ -156,6 +165,7 @@ public abstract class BaseDspNegotiationApiController {
                 .serviceCall(protocolService::notifyRequested)
                 .errorProvider(ContractNegotiationError.Builder::newInstance)
                 .protocol(protocol)
+                .participantContextProvider(participantContextSupplier)
                 .build();
 
         return dspRequestHandler.updateResource(request);
@@ -179,12 +189,13 @@ public abstract class BaseDspNegotiationApiController {
                 .processId(id)
                 .message(jsonObject)
                 .token(token)
-                .serviceCall((message, claimToken) -> switch (message.getType()) {
-                    case FINALIZED -> protocolService.notifyFinalized(message, claimToken);
-                    case ACCEPTED -> protocolService.notifyAccepted(message, claimToken);
+                .serviceCall((ctx, message, claimToken) -> switch (message.getType()) {
+                    case FINALIZED -> protocolService.notifyFinalized(ctx, message, claimToken);
+                    case ACCEPTED -> protocolService.notifyAccepted(ctx, message, claimToken);
                 })
                 .errorProvider(ContractNegotiationError.Builder::newInstance)
                 .protocol(protocol)
+                .participantContextProvider(participantContextSupplier)
                 .build();
 
         return dspRequestHandler.updateResource(request);
@@ -211,6 +222,7 @@ public abstract class BaseDspNegotiationApiController {
                 .serviceCall(protocolService::notifyVerified)
                 .errorProvider(ContractNegotiationError.Builder::newInstance)
                 .protocol(protocol)
+                .participantContextProvider(participantContextSupplier)
                 .build();
 
         return dspRequestHandler.updateResource(request);
@@ -237,6 +249,7 @@ public abstract class BaseDspNegotiationApiController {
                 .serviceCall(protocolService::notifyTerminated)
                 .errorProvider(ContractNegotiationError.Builder::newInstance)
                 .protocol(protocol)
+                .participantContextProvider(participantContextSupplier)
                 .build();
 
         return dspRequestHandler.updateResource(request);
@@ -263,6 +276,7 @@ public abstract class BaseDspNegotiationApiController {
                 .serviceCall(protocolService::notifyOffered)
                 .errorProvider(ContractNegotiationError.Builder::newInstance)
                 .protocol(protocol)
+                .participantContextProvider(participantContextSupplier)
                 .build();
 
         return dspRequestHandler.updateResource(request);
@@ -289,6 +303,7 @@ public abstract class BaseDspNegotiationApiController {
                 .serviceCall(protocolService::notifyAgreed)
                 .errorProvider(ContractNegotiationError.Builder::newInstance)
                 .protocol(protocol)
+                .participantContextProvider(participantContextSupplier)
                 .build();
 
         return dspRequestHandler.updateResource(request);

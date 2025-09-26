@@ -34,7 +34,8 @@ public interface DspRuntime {
                 ":core:control-plane:control-plane-core",
                 ":extensions:common:http",
                 ":core:common:connector-core",
-                ":core:common:runtime-core"
+                ":core:common:runtime-core",
+                ":core:common:participant-context-single-core"
         );
 
         var modules = Stream.concat(baseModules, Arrays.stream(additionalModules)).toArray(String[]::new);

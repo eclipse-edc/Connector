@@ -27,6 +27,8 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
@@ -62,10 +64,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public abstract class DspTransferProcessApiControllerBaseTest extends RestControllerTestBase {
-    
+
     private static final String PROCESS_ID = "testId";
     protected final TransferProcessProtocolService protocolService = mock();
     protected final DspRequestHandler dspRequestHandler = mock();
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> new ParticipantContext("id");
 
     @Test
     void getTransferProcess_shouldGetResource() {

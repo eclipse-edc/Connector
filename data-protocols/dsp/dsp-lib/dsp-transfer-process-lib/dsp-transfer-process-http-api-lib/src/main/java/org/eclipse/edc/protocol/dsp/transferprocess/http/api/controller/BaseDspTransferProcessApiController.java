@@ -30,6 +30,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
@@ -54,12 +55,15 @@ public abstract class BaseDspTransferProcessApiController {
 
     private final TransferProcessProtocolService protocolService;
     private final DspRequestHandler dspRequestHandler;
+    private final SingleParticipantContextSupplier participantContextSupplier;
     private final String protocol;
     private final JsonLdNamespace namespace;
-    
-    public BaseDspTransferProcessApiController(TransferProcessProtocolService protocolService, DspRequestHandler dspRequestHandler, String protocol, JsonLdNamespace namespace) {
+
+    public BaseDspTransferProcessApiController(TransferProcessProtocolService protocolService, DspRequestHandler dspRequestHandler,
+                                               SingleParticipantContextSupplier participantContextSupplier, String protocol, JsonLdNamespace namespace) {
         this.protocolService = protocolService;
         this.dspRequestHandler = dspRequestHandler;
+        this.participantContextSupplier = participantContextSupplier;
         this.protocol = protocol;
         this.namespace = namespace;
     }
@@ -76,9 +80,10 @@ public abstract class BaseDspTransferProcessApiController {
         var request = GetDspRequest.Builder.newInstance(TransferProcess.class, TransferError.class)
                 .id(id)
                 .token(token)
-                .serviceCall((tpId, tr) -> protocolService.findById(tpId, tr, protocol))
+                .serviceCall((ctx, tpId, tr) -> protocolService.findById(ctx, tpId, tr, protocol))
                 .protocol(protocol)
                 .errorProvider(TransferError.Builder::newInstance)
+                .participantContextProvider(participantContextSupplier)
                 .build();
 
         return dspRequestHandler.getResource(request);
@@ -101,6 +106,7 @@ public abstract class BaseDspTransferProcessApiController {
                 .serviceCall(protocolService::notifyRequested)
                 .errorProvider(TransferError.Builder::newInstance)
                 .protocol(protocol)
+                .participantContextProvider(participantContextSupplier)
                 .build();
 
         return dspRequestHandler.createResource(request);
@@ -125,6 +131,7 @@ public abstract class BaseDspTransferProcessApiController {
                 .serviceCall(protocolService::notifyStarted)
                 .errorProvider(TransferError.Builder::newInstance)
                 .protocol(protocol)
+                .participantContextProvider(participantContextSupplier)
                 .build();
 
         return dspRequestHandler.updateResource(request);
@@ -149,6 +156,7 @@ public abstract class BaseDspTransferProcessApiController {
                 .serviceCall(protocolService::notifyCompleted)
                 .errorProvider(TransferError.Builder::newInstance)
                 .protocol(protocol)
+                .participantContextProvider(participantContextSupplier)
                 .build();
 
         return dspRequestHandler.updateResource(request);
@@ -173,6 +181,7 @@ public abstract class BaseDspTransferProcessApiController {
                 .serviceCall(protocolService::notifyTerminated)
                 .errorProvider(TransferError.Builder::newInstance)
                 .protocol(protocol)
+                .participantContextProvider(participantContextSupplier)
                 .build();
 
         return dspRequestHandler.updateResource(request);
@@ -197,6 +206,7 @@ public abstract class BaseDspTransferProcessApiController {
                 .serviceCall(protocolService::notifySuspended)
                 .errorProvider(TransferError.Builder::newInstance)
                 .protocol(protocol)
+                .participantContextProvider(participantContextSupplier)
                 .build();
 
         return dspRequestHandler.updateResource(request);

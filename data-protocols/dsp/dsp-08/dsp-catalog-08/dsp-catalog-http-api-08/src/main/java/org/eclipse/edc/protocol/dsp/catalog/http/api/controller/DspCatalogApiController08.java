@@ -18,6 +18,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.protocol.dsp.http.spi.message.ContinuationTokenManager;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 
@@ -34,8 +35,8 @@ import static org.eclipse.edc.protocol.dsp.spi.type.Dsp08Constants.DSP_NAMESPACE
 @Path(BASE_PATH)
 public class DspCatalogApiController08 extends BaseDspCatalogApiController {
 
-    public DspCatalogApiController08(CatalogProtocolService service, DspRequestHandler dspRequestHandler, ContinuationTokenManager continuationTokenManager) {
-        super(service, dspRequestHandler, continuationTokenManager, DATASPACE_PROTOCOL_HTTP, DSP_NAMESPACE_V_08);
+    public DspCatalogApiController08(CatalogProtocolService service, DspRequestHandler dspRequestHandler, ContinuationTokenManager continuationTokenManager, SingleParticipantContextSupplier participantContextSupplier) {
+        super(service, dspRequestHandler, continuationTokenManager, participantContextSupplier, DATASPACE_PROTOCOL_HTTP, DSP_NAMESPACE_V_08);
     }
 
 }

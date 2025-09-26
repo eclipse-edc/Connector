@@ -35,7 +35,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
-import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -69,14 +69,13 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     private final Clock clock;
     private final Monitor monitor;
     private final Telemetry telemetry;
-    private final SingleParticipantContextSupplier participantContextSupplier;
 
     public TransferProcessProtocolServiceImpl(TransferProcessStore transferProcessStore,
                                               TransactionContext transactionContext, ContractNegotiationStore negotiationStore,
                                               ContractValidationService contractValidationService,
                                               ProtocolTokenValidator protocolTokenValidator,
                                               DataAddressValidatorRegistry dataAddressValidator, TransferProcessObservable observable,
-                                              Clock clock, Monitor monitor, Telemetry telemetry, SingleParticipantContextSupplier participantContextSupplier) {
+                                              Clock clock, Monitor monitor, Telemetry telemetry) {
         this.transferProcessStore = transferProcessStore;
         this.transactionContext = transactionContext;
         this.negotiationStore = negotiationStore;
@@ -87,24 +86,23 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         this.clock = clock;
         this.monitor = monitor;
         this.telemetry = telemetry;
-        this.participantContextSupplier = participantContextSupplier;
     }
 
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<TransferProcess> notifyRequested(TransferRequestMessage message, TokenRepresentation tokenRepresentation) {
+    public ServiceResult<TransferProcess> notifyRequested(ParticipantContext participantContext, TransferRequestMessage message, TokenRepresentation tokenRepresentation) {
         return transactionContext.execute(() -> fetchNotifyRequestContext(message)
                 .compose(context -> verifyRequest(tokenRepresentation, context, message))
                 .compose(context -> validateDestination(message, context))
                 .compose(context -> validateAgreement(message, context))
-                .compose(context -> requestedAction(message, context.agreement().getAssetId())));
+                .compose(context -> requestedAction(participantContext, message, context.agreement().getAssetId())));
     }
 
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<TransferProcess> notifyStarted(TransferStartMessage message, TokenRepresentation tokenRepresentation) {
+    public ServiceResult<TransferProcess> notifyStarted(ParticipantContext participantContext, TransferStartMessage message, TokenRepresentation tokenRepresentation) {
         return transactionContext.execute(() -> fetchRequestContext(message, this::findTransferProcess)
                 .compose(context -> verifyRequest(tokenRepresentation, context, message))
                 .compose(context -> onMessageDo(message, context.participantAgent(), context.agreement(), transferProcess -> startedAction(message, transferProcess)))
@@ -114,7 +112,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<TransferProcess> notifyCompleted(TransferCompletionMessage message, TokenRepresentation tokenRepresentation) {
+    public ServiceResult<TransferProcess> notifyCompleted(ParticipantContext participantContext, TransferCompletionMessage message, TokenRepresentation tokenRepresentation) {
         return transactionContext.execute(() -> fetchRequestContext(message, this::findTransferProcess)
                 .compose(context -> verifyRequest(tokenRepresentation, context, message))
                 .compose(context -> onMessageDo(message, context.participantAgent(), context.agreement(), transferProcess -> completedAction(message, transferProcess)))
@@ -122,7 +120,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     }
 
     @Override
-    public @NotNull ServiceResult<TransferProcess> notifySuspended(TransferSuspensionMessage message, TokenRepresentation tokenRepresentation) {
+    public @NotNull ServiceResult<TransferProcess> notifySuspended(ParticipantContext participantContext, TransferSuspensionMessage message, TokenRepresentation tokenRepresentation) {
         return transactionContext.execute(() -> fetchRequestContext(message, this::findTransferProcess)
                 .compose(context -> verifyRequest(tokenRepresentation, context, message))
                 .compose(context -> onMessageDo(message, context.participantAgent(), context.agreement(), transferProcess -> suspendedAction(message, transferProcess)))
@@ -132,7 +130,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<TransferProcess> notifyTerminated(TransferTerminationMessage message, TokenRepresentation tokenRepresentation) {
+    public ServiceResult<TransferProcess> notifyTerminated(ParticipantContext participantContext, TransferTerminationMessage message, TokenRepresentation tokenRepresentation) {
         return transactionContext.execute(() -> fetchRequestContext(message, this::findTransferProcess)
                 .compose(context -> verifyRequest(tokenRepresentation, context, message))
                 .compose(context -> onMessageDo(message, context.participantAgent(), context.agreement(), transferProcess -> terminatedAction(message, transferProcess)))
@@ -142,7 +140,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<TransferProcess> findById(String id, TokenRepresentation tokenRepresentation, String protocol) {
+    public ServiceResult<TransferProcess> findById(ParticipantContext participantContext, String id, TokenRepresentation tokenRepresentation, String protocol) {
         var message = TransferProcessRequestMessage.Builder.newInstance()
                 .transferProcessId(id)
                 .protocol(protocol)
@@ -154,7 +152,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     }
 
     @NotNull
-    private ServiceResult<TransferProcess> requestedAction(TransferRequestMessage message, String assetId) {
+    private ServiceResult<TransferProcess> requestedAction(ParticipantContext participantContext, TransferRequestMessage message, String assetId) {
         var existingTransferProcess = transferProcessStore.findForCorrelationId(message.getConsumerPid());
         if (existingTransferProcess != null) {
             return ServiceResult.success(existingTransferProcess);
@@ -171,7 +169,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                 .type(PROVIDER)
                 .clock(clock)
                 .traceContext(telemetry.getCurrentTraceContext())
-                .participantContextId(participantContextSupplier.get().getParticipantContextId())
+                .participantContextId(participantContext.getParticipantContextId())
                 .build();
 
         observable.invokeForEach(l -> l.preCreated(process));

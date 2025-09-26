@@ -33,8 +33,6 @@ dependencies {
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:policy-engine-lib"))
     implementation(project(":core:common:lib:query-lib"))
-    // TODO remove when refactored the protocol layer #5199
-    implementation(project(":core:common::participant-context-single-core"))
 
     testImplementation(testFixtures(project(":spi:control-plane:asset-spi")))
     testImplementation(testFixtures(project(":spi:control-plane:contract-spi")))

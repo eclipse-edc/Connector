@@ -19,6 +19,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
@@ -36,9 +37,9 @@ public class DspNegotiationApiController08 extends BaseDspNegotiationApiControll
 
 
     public DspNegotiationApiController08(ContractNegotiationProtocolService protocolService,
-                                         DspRequestHandler dspRequestHandler) {
+                                         DspRequestHandler dspRequestHandler, SingleParticipantContextSupplier participantContextSupplier) {
 
-        super(protocolService, dspRequestHandler, DATASPACE_PROTOCOL_HTTP, DSP_NAMESPACE_V_08);
+        super(protocolService, dspRequestHandler, participantContextSupplier, DATASPACE_PROTOCOL_HTTP, DSP_NAMESPACE_V_08);
     }
 
 }

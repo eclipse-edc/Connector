@@ -63,7 +63,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
         }
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).build();
 
-        var serviceResult = request.getServiceCall().apply(request.getId(), tokenRepresentation);
+        var serviceResult = request.getServiceCall().apply(request.getParticipantContextProvider().get(), request.getId(), tokenRepresentation);
         if (serviceResult.failed()) {
             monitor.debug(() -> "DSP: Service call failed: %s".formatted(serviceResult.getFailureDetail()));
             return forFailure(serviceResult.getFailure(), request);
@@ -129,7 +129,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).build();
 
         var input = inputTransformation.getContent();
-        var serviceResult = request.getServiceCall().apply(input, tokenRepresentation);
+        var serviceResult = request.getServiceCall().apply(request.getParticipantContextProvider().get(), input, tokenRepresentation);
         if (serviceResult.failed()) {
             monitor.debug(() -> "DSP: Service call failed: %s".formatted(serviceResult.getFailureDetail()));
             return forFailure(serviceResult.getFailure(), request);
@@ -201,7 +201,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
         }
 
         return request.getServiceCall()
-                .apply(inputTransformation.getContent(), tokenRepresentation)
+                .apply(request.getParticipantContextProvider().get(), inputTransformation.getContent(), tokenRepresentation)
                 .map(it -> Response.ok().type(MediaType.APPLICATION_JSON_TYPE).build())
                 .orElse(failure -> {
                     monitor.debug(() -> "DSP: Service call failed: %s".formatted(failure.getFailureDetail()));

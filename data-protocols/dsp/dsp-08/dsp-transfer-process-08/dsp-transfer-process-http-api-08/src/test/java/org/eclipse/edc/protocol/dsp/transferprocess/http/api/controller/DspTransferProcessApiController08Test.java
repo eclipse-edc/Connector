@@ -35,6 +35,6 @@ class DspTransferProcessApiController08Test extends DspTransferProcessApiControl
 
     @Override
     protected Object controller() {
-        return new DspTransferProcessApiController08(protocolService, dspRequestHandler);
+        return new DspTransferProcessApiController08(protocolService, dspRequestHandler, participantContextSupplier);
     }
 }

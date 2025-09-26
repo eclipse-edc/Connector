@@ -24,8 +24,6 @@ dependencies {
     implementation(project(":spi:control-plane:control-plane-spi"))
     implementation(project(":spi:control-plane:secrets-spi"))
     implementation(project(":core:common:lib:util-lib"))
-    implementation(project(":spi:common:participant-context-single-spi"))
-
 
     implementation(libs.opentelemetry.instrumentation.annotations)
 

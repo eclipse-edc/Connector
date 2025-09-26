@@ -37,7 +37,7 @@ class DspTransferProcessApiControllerV20251Test extends DspTransferProcessApiCon
 
     @Override
     protected Object controller() {
-        return new DspTransferProcessApiController20251(protocolService, dspRequestHandler);
+        return new DspTransferProcessApiController20251(protocolService, dspRequestHandler, participantContextSupplier);
     }
 
 }
