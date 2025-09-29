@@ -31,8 +31,6 @@ dependencies {
     testImplementation(project(":spi:common:identity-did-spi")) //DidDocument
     testImplementation(libs.nimbus.jwt)
     testImplementation(libs.restAssured)
-    testImplementation(libs.assertj)
-    testImplementation(libs.junit.jupiter.api)
 
     testImplementation(libs.dcp.tck.runtime)
     testImplementation(libs.dcp.system)

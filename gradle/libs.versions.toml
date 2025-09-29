@@ -4,7 +4,7 @@ format.version = "1.1"
 [versions]
 apacheCommonsPool2 = "2.12.1"
 apicatalog = "0.14.0"
-assertj = "3.27.5"
+assertj = "3.27.6"
 atomikos = "6.0.0"
 awaitility = "4.2.2"
 bouncyCastle-jdk18on = "1.82"
@@ -128,6 +128,6 @@ jackson = ["jackson-annotations", "jackson-databind"]
 jersey-core = ["jersey-server", "jersey-common", "jersey-jackson", "jersey-multipart", "jersey-inject", "jersey-servlet", "jersey-servletcore"]
 
 [plugins]
-edc-build = { id = "org.eclipse.edc.edc-build", version = "1.1.0" }
+edc-build = { id = "org.eclipse.edc.edc-build", version = "1.1.1" }
 shadow = { id = "com.gradleup.shadow", version = "9.1.0" }
 swagger = { id = "io.swagger.core.v3.swagger-gradle-plugin", version.ref = "swagger" }
