@@ -116,6 +116,7 @@ class ContractNegotiationEventDispatchTest {
                 .contractPolicyId("policyId")
                 .accessPolicyId("policyId")
                 .assetsSelector(emptyList())
+                .participantContextId("participantContextId")
                 .build();
         contractDefinitionStore.save(contractDefinition);
         policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).build());

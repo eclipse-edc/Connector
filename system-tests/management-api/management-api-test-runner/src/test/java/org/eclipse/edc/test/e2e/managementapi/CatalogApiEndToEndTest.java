@@ -52,7 +52,7 @@ import static org.hamcrest.Matchers.is;
 
 public class CatalogApiEndToEndTest {
 
-    public static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
+    public static final String PARTICIPANT_CONTEXT_ID = "anonymous";
 
     abstract static class Tests {
 

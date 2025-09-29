@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
@@ -42,6 +43,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.lang.Integer.MAX_VALUE;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.filterByParticipantContextId;
 
 public class DatasetResolverImpl implements DatasetResolver {
 
@@ -63,14 +65,18 @@ public class DatasetResolverImpl implements DatasetResolver {
 
     @Override
     @NotNull
-    public Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec, String protocol) {
-        var resolved = contractDefinitionResolver.resolveFor(agent);
+    public Stream<Dataset> query(ParticipantContext participantContext, ParticipantAgent agent, QuerySpec querySpec, String protocol) {
+        var resolved = contractDefinitionResolver.resolveFor(participantContext, agent);
         var contractDefinitions = resolved.contractDefinitions();
         if (contractDefinitions.isEmpty()) {
             return Stream.empty();
         }
 
-        var assetsQuery = QuerySpec.Builder.newInstance().offset(0).limit(MAX_VALUE).filter(querySpec.getFilterExpression()).build();
+        var assetsQuery = QuerySpec.Builder.newInstance()
+                .offset(0).limit(MAX_VALUE).filter(querySpec.getFilterExpression())
+                .filter(filterByParticipantContextId(participantContext.getParticipantContextId()))
+                .build();
+
         return assetIndex.queryAssets(assetsQuery)
                 .map(asset -> toDataset(contractDefinitions, asset, resolved.policies(), protocol))
                 .filter(Dataset::hasOffers)
@@ -79,8 +85,8 @@ public class DatasetResolverImpl implements DatasetResolver {
     }
 
     @Override
-    public Dataset getById(ParticipantAgent agent, String id, String protocol) {
-        var resolved = contractDefinitionResolver.resolveFor(agent);
+    public Dataset getById(ParticipantContext participantContext, ParticipantAgent agent, String id, String protocol) {
+        var resolved = contractDefinitionResolver.resolveFor(participantContext, agent);
         var contractDefinitions = resolved.contractDefinitions();
         if (contractDefinitions.isEmpty()) {
             return null;
@@ -108,6 +114,7 @@ public class DatasetResolverImpl implements DatasetResolver {
 
     private Dataset toDataset(List<ContractDefinition> contractDefinitions, Asset asset, Map<String, Policy> policies, String protocol) {
 
+        // TODO distribution resolver should be based on participant context
         var distributions = distributionResolver.getDistributions(protocol, asset);
         var datasetBuilder = buildDataset(asset)
                 .id(asset.getId())

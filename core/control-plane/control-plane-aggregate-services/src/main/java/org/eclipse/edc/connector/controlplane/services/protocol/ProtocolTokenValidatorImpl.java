@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.controlplane.services.protocol;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
@@ -54,7 +55,7 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
     }
 
     @Override
-    public ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, Policy policy, RemoteMessage message) {
+    public ServiceResult<ParticipantAgent> verify(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, Policy policy, RemoteMessage message) {
         var requestScopeBuilder = RequestScope.Builder.newInstance();
         var requestContext = RequestContext.Builder.newInstance().message(message).direction(RequestContext.Direction.Ingress).build();
         var policyContext = policyContextProvider.instantiate(requestContext, requestScopeBuilder);
@@ -70,12 +71,12 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
         }
 
         var claimToken = tokenValidation.getContent();
-        
+
         var idExtractionFunction = dataspaceProfileContextRegistry.getIdExtractionFunction(message.getProtocol());
         if (idExtractionFunction == null) {
             return ServiceResult.badRequest("Unsupported protocol: " + message.getProtocol());
         }
-        
+
         var participantAgent = agentService.createFor(claimToken, idExtractionFunction.apply(claimToken));
         return ServiceResult.success(participantAgent);
     }

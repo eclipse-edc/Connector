@@ -22,15 +22,16 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractD
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 
 import java.util.HashMap;
 import java.util.Optional;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
 
 /**
  * Determines the contract definitions applicable to a {@link ParticipantAgent} by evaluating the access control and
@@ -49,9 +50,10 @@ public class ContractDefinitionResolverImpl implements ContractDefinitionResolve
     }
 
     @Override
-    public ResolvedContractDefinitions resolveFor(ParticipantAgent agent) {
+    public ResolvedContractDefinitions resolveFor(ParticipantContext participantContext, ParticipantAgent agent) {
         var policies = new HashMap<String, Policy>();
-        var definitions = definitionStore.findAll(QuerySpec.max())
+        var query = queryByParticipantContextId(participantContext.getParticipantContextId()).limit(Integer.MAX_VALUE).build();
+        var definitions = definitionStore.findAll(query)
                 .filter(definition -> {
                     var accessResult = Optional.of(definition.getAccessPolicyId())
                             .map(policyId -> policies.computeIfAbsent(policyId,

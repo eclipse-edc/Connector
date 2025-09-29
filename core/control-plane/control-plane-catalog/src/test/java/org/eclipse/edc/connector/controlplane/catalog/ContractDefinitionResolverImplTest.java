@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractD
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
@@ -33,6 +34,7 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -51,6 +53,8 @@ class ContractDefinitionResolverImplTest {
     private final PolicyDefinitionStore policyStore = mock();
     private final ContractDefinitionStore definitionStore = mock();
 
+    private final ParticipantContext participantContext = new ParticipantContext("participantContextId");
+
     private final ContractDefinitionResolverImpl resolver = new ContractDefinitionResolverImpl(definitionStore,
             policyEngine, policyStore);
 
@@ -62,7 +66,7 @@ class ContractDefinitionResolverImplTest {
         when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(definitionStore.findAll(any())).thenReturn(Stream.of(createContractDefinition()));
 
-        var result = resolver.resolveFor(agent);
+        var result = resolver.resolveFor(participantContext, agent);
 
         assertThat(result.contractDefinitions()).hasSize(1);
         assertThat(result.policies()).hasSize(1);
@@ -70,7 +74,9 @@ class ContractDefinitionResolverImplTest {
                 eq(def.getPolicy()),
                 and(isA(CatalogPolicyContext.class), argThat(c -> c.participantAgent().equals(agent)))
         );
-        verify(definitionStore).findAll(any());
+        var query = queryByParticipantContextId(participantContext.getParticipantContextId()).limit(Integer.MAX_VALUE).build();
+
+        verify(definitionStore).findAll(query);
     }
 
     @Test
@@ -82,7 +88,7 @@ class ContractDefinitionResolverImplTest {
         when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.failure("invalid"));
         when(definitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition));
 
-        var result = resolver.resolveFor(agent);
+        var result = resolver.resolveFor(participantContext, agent);
 
         assertThat(result.contractDefinitions()).isEmpty();
         assertThat(result.policies()).hasSize(1);
@@ -96,7 +102,7 @@ class ContractDefinitionResolverImplTest {
         when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(definitionStore.findAll(QuerySpec.max())).thenReturn(Stream.of(createContractDefinition()));
 
-        var result = resolver.resolveFor(agent);
+        var result = resolver.resolveFor(participantContext, agent);
 
         assertThat(result.contractDefinitions()).isEmpty();
         assertThat(result.policies()).isEmpty();
@@ -113,7 +119,7 @@ class ContractDefinitionResolverImplTest {
         when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(definitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition1, contractDefinition2));
 
-        var result = resolver.resolveFor(new ParticipantAgent(emptyMap(), emptyMap()));
+        var result = resolver.resolveFor(participantContext, new ParticipantAgent(emptyMap(), emptyMap()));
 
         assertThat(result.contractDefinitions()).hasSize(2);
         assertThat(result.policies()).hasSize(1).containsOnly(entry("accessPolicyId", policy));

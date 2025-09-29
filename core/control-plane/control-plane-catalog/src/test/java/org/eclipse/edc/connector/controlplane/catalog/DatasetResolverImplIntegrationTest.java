@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.query.asset.AssetPropertyLookup;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.message.Range;
@@ -66,6 +67,7 @@ class DatasetResolverImplIntegrationTest {
 
     private DatasetResolver resolver;
 
+
     @BeforeEach
     void setUp() {
         PolicyDefinitionStore policyStore = mock();
@@ -96,13 +98,13 @@ class DatasetResolverImplIntegrationTest {
         var def2 = getContractDefBuilder("def2").assetsSelector(selectorFrom(assets2)).build();
         var def3 = getContractDefBuilder("def3").assetsSelector(selectorFrom(assets3)).build();
 
-        when(contractDefinitionResolver.resolveFor(isA(ParticipantAgent.class))).thenReturn(new ResolvedContractDefinitions(List.of(def1, def2, def3)));
+        when(contractDefinitionResolver.resolveFor(any(), isA(ParticipantAgent.class))).thenReturn(new ResolvedContractDefinitions(List.of(def1, def2, def3)));
 
         var from = 20;
         var to = 50;
         var querySpec = QuerySpec.Builder.newInstance().range(new Range(from, to)).build();
 
-        var datasets = resolver.query(createAgent(), querySpec, "protocol");
+        var datasets = resolver.query(createParticipantContext(), createAgent(), querySpec, "protocol");
 
         assertThat(datasets).hasSize(to - from);
     }
@@ -123,10 +125,10 @@ class DatasetResolverImplIntegrationTest {
         var contractDefinition2 = getContractDefBuilder("contract-definition-")
                 .assetsSelector(selectorFrom(assets2)).build();
 
-        when(contractDefinitionResolver.resolveFor(isA(ParticipantAgent.class))).thenReturn(new ResolvedContractDefinitions(List.of(contractDefinition1, contractDefinition2)));
+        when(contractDefinitionResolver.resolveFor(any(), isA(ParticipantAgent.class))).thenReturn(new ResolvedContractDefinitions(List.of(contractDefinition1, contractDefinition2)));
         var querySpec = QuerySpec.Builder.newInstance().range(new Range(from, to)).build();
 
-        var datasets = resolver.query(createAgent(), querySpec, "protocol");
+        var datasets = resolver.query(createParticipantContext(), createAgent(), querySpec, "protocol");
 
         assertThat(datasets).hasSize(min(requestedRange, maximumRange));
     }
@@ -142,14 +144,14 @@ class DatasetResolverImplIntegrationTest {
         var def1 = getContractDefBuilder("def1").assetsSelector(selectorFrom(assets1)).build();
         var def2 = getContractDefBuilder("def2").assetsSelector(selectorFrom(assets2)).build();
 
-        when(contractDefinitionResolver.resolveFor(isA(ParticipantAgent.class))).thenReturn(new ResolvedContractDefinitions(List.of(def1, def2)));
+        when(contractDefinitionResolver.resolveFor(any(), isA(ParticipantAgent.class))).thenReturn(new ResolvedContractDefinitions(List.of(def1, def2)));
 
         var from = 14;
         var to = 50;
         var querySpec = QuerySpec.Builder.newInstance().range(new Range(from, to)).build();
 
         // 4 definitions, 10 assets each = 40 offers total -> offset 20 ==> result = 20
-        var dataset = resolver.query(createAgent(), querySpec, "protocol");
+        var dataset = resolver.query(createParticipantContext(), createAgent(), querySpec, "protocol");
 
         assertThat(dataset).hasSize(4);
     }
@@ -157,13 +159,13 @@ class DatasetResolverImplIntegrationTest {
     @Test
     void shouldLimitResult_pageOffsetLargerThanNumAssets() {
         var contractDefinition = range(0, 2).mapToObj(i -> getContractDefBuilder(String.valueOf(i)).build());
-        when(contractDefinitionResolver.resolveFor(isA(ParticipantAgent.class))).thenReturn(new ResolvedContractDefinitions(contractDefinition.toList()));
+        when(contractDefinitionResolver.resolveFor(any(), isA(ParticipantAgent.class))).thenReturn(new ResolvedContractDefinitions(contractDefinition.toList()));
 
         var from = 25;
         var to = 50;
         var querySpec = QuerySpec.Builder.newInstance().range(new Range(from, to)).build();
         // 2 definitions, 10 assets each = 20 offers total -> offset of 25 is outside
-        var datasets = resolver.query(createAgent(), querySpec, "protocol");
+        var datasets = resolver.query(createParticipantContext(), createAgent(), querySpec, "protocol");
 
         assertThat(datasets).isEmpty();
     }
@@ -171,6 +173,10 @@ class DatasetResolverImplIntegrationTest {
     @NotNull
     private ParticipantAgent createAgent() {
         return new ParticipantAgent(emptyMap(), emptyMap());
+    }
+
+    private ParticipantContext createParticipantContext() {
+        return new ParticipantContext("participantContextId");
     }
 
     private List<Criterion> selectorFrom(Collection<Asset> assets1) {
@@ -190,6 +196,7 @@ class DatasetResolverImplIntegrationTest {
         return Asset.Builder.newInstance()
                 .id(id)
                 .name("test asset " + id)
+                .participantContextId("participantContextId")
                 .dataAddress(DataAddress.Builder.newInstance().type("test-type").build());
     }
 
