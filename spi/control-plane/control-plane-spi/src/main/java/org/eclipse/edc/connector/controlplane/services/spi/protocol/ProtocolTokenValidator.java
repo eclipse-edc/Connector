@@ -16,6 +16,7 @@
 package org.eclipse.edc.connector.controlplane.services.spi.protocol;
 
 import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
@@ -38,8 +39,8 @@ public interface ProtocolTokenValidator {
      * @param message               The {@link RemoteMessage}
      * @return Returns the extracted {@link ParticipantAgent} if successful, failure otherwise
      */
-    default ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, RemoteMessage message) {
-        return verify(tokenRepresentation, policyContextProvider, Policy.Builder.newInstance().build(), message);
+    default ServiceResult<ParticipantAgent> verify(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, RemoteMessage message) {
+        return verify(participantContext, tokenRepresentation, policyContextProvider, Policy.Builder.newInstance().build(), message);
     }
 
 
@@ -52,5 +53,5 @@ public interface ProtocolTokenValidator {
      * @param message               The {@link RemoteMessage}
      * @return Returns the extracted {@link ParticipantAgent} if successful, failure otherwise
      */
-    ServiceResult<ParticipantAgent> verify(TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, Policy policy, RemoteMessage message);
+    ServiceResult<ParticipantAgent> verify(ParticipantContext participantContext, TokenRepresentation tokenRepresentation, RequestPolicyContext.Provider policyContextProvider, Policy policy, RemoteMessage message);
 }

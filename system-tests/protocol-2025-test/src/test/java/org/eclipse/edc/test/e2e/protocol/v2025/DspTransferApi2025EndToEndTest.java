@@ -72,6 +72,7 @@ public class DspTransferApi2025EndToEndTest {
                 .contractId(contractId)
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .state(REQUESTED.code())
+                .participantContextId("anonymous")
                 .build();
         runtime.getService(TransferProcessStore.class).save(transfer);
         runtime.getService(ContractNegotiationStore.class).save(createNegotiationWithAgreement(contractId));

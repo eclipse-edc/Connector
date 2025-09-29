@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractRemoteMessage;
@@ -133,6 +134,14 @@ class ContractNegotiationIntegrationTest {
     private ContractNegotiationProtocolService consumerService;
     private ContractNegotiationProtocolService providerService;
 
+    static ContractDefinition createContractDefinition() {
+        return ContractDefinition.Builder.newInstance()
+                .accessPolicyId("accessPolicyID")
+                .contractPolicyId("contractPolicyId")
+                .participantContextId("participantContextId")
+                .build();
+    }
+
     @BeforeEach
     void init() {
         var monitor = new ConsoleMonitor();
@@ -157,7 +166,7 @@ class ContractNegotiationIntegrationTest {
                 .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
                 .build();
 
-        when(protocolTokenValidator.verify(eq(tokenRepresentation), any(), any(), any())).thenReturn(ServiceResult.success(participantAgent));
+        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), any())).thenReturn(ServiceResult.success(participantAgent));
         consumerService = new ContractNegotiationProtocolServiceImpl(consumerStore, transactionContext, validationService, offerResolver, protocolTokenValidator, mock(), monitor, mock());
         providerService = new ContractNegotiationProtocolServiceImpl(providerStore, transactionContext, validationService, offerResolver, protocolTokenValidator, mock(), monitor, mock());
     }
@@ -179,6 +188,7 @@ class ContractNegotiationIntegrationTest {
         var validatableOffer = mock(ValidatableConsumerOffer.class);
 
         when(validatableOffer.getContractPolicy()).thenReturn(Policy.Builder.newInstance().build());
+        when(validatableOffer.getContractDefinition()).thenReturn(createContractDefinition());
         when(offerResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
         when(validationService.validateInitialOffer(participantAgent, validatableOffer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
         when(validationService.validateConfirmed(eq(participantAgent), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.success());
@@ -234,6 +244,8 @@ class ContractNegotiationIntegrationTest {
         var validatableOffer = mock(ValidatableConsumerOffer.class);
 
         when(validatableOffer.getContractPolicy()).thenReturn(Policy.Builder.newInstance().build());
+        when(validatableOffer.getContractDefinition()).thenReturn(createContractDefinition());
+
         when(offerResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
         when(validationService.validateInitialOffer(participantAgent, validatableOffer)).thenReturn(Result.failure("must be declined"));
 
@@ -265,6 +277,8 @@ class ContractNegotiationIntegrationTest {
         var validatableOffer = mock(ValidatableConsumerOffer.class);
 
         when(validatableOffer.getContractPolicy()).thenReturn(Policy.Builder.newInstance().build());
+        when(validatableOffer.getContractDefinition()).thenReturn(createContractDefinition());
+
         when(offerResolver.resolveOffer(any())).thenReturn(ServiceResult.success(validatableOffer));
         when(validationService.validateInitialOffer(participantAgent, validatableOffer)).thenReturn(Result.success(new ValidatedConsumerOffer(CONSUMER_ID, offer)));
         when(validationService.validateConfirmed(eq(participantAgent), any(ContractAgreement.class), any(ContractOffer.class))).thenReturn(Result.failure("error"));
@@ -398,6 +412,7 @@ class ContractNegotiationIntegrationTest {
 
     @Nested
     class IdempotencyProcessStateReplication {
+
 
         @ParameterizedTest
         @ArgumentsSource(EgressMessages.class)

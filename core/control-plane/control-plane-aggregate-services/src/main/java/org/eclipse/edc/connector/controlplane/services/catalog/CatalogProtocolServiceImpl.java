@@ -58,14 +58,16 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
     @Override
     @NotNull
     public ServiceResult<Catalog> getCatalog(ParticipantContext participantContext, CatalogRequestMessage message, TokenRepresentation tokenRepresentation) {
-        return transactionContext.execute(() -> protocolTokenValidator.verify(tokenRepresentation, RequestCatalogPolicyContext::new, message)
+        return transactionContext.execute(() -> protocolTokenValidator.verify(participantContext, tokenRepresentation, RequestCatalogPolicyContext::new, message)
                 .map(agent -> {
-                    try (var datasets = datasetResolver.query(agent, message.getQuerySpec(), message.getProtocol())) {
+                    try (var datasets = datasetResolver.query(participantContext, agent, message.getQuerySpec(), message.getProtocol())) {
+                        // TODO data services should be based on the participant context
                         var dataServices = dataServiceRegistry.getDataServices(message.getProtocol());
 
                         return Catalog.Builder.newInstance()
                                 .dataServices(dataServices)
                                 .datasets(datasets.toList())
+                                // TODO it should be dynamic based on the participant context
                                 .participantId(dataspaceProfileContextRegistry.getParticipantId(message.getProtocol()))
                                 .build();
                     }
@@ -79,8 +81,8 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
                 .protocol(protocol)
                 .datasetId(datasetId)
                 .build();
-        return transactionContext.execute(() -> protocolTokenValidator.verify(tokenRepresentation, RequestCatalogPolicyContext::new, message)
-                .map(agent -> datasetResolver.getById(agent, datasetId, protocol))
+        return transactionContext.execute(() -> protocolTokenValidator.verify(participantContext, tokenRepresentation, RequestCatalogPolicyContext::new, message)
+                .map(agent -> datasetResolver.getById(participantContext, agent, datasetId, protocol))
                 .compose(dataset -> {
                     if (dataset == null) {
                         return ServiceResult.notFound(format("Dataset %s does not exist", datasetId));

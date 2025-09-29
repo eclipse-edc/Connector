@@ -71,6 +71,7 @@ public class DspNegotiationApiEndToEndTest {
                         .id(UUID.randomUUID().toString()).assetId(UUID.randomUUID().toString())
                         .policy(Policy.Builder.newInstance().build())
                         .build())
+                .participantContextId("anonymous")
                 .build();
         runtime.getService(ContractNegotiationStore.class).save(negotiation);
 

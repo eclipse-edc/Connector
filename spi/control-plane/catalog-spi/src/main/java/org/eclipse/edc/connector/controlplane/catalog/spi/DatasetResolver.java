@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.controlplane.catalog.spi;
 
 import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +34,7 @@ public interface DatasetResolver {
      * @return a stream of datasets.
      */
     @NotNull
-    Stream<Dataset> query(ParticipantAgent agent, QuerySpec querySpec, String protocol);
+    Stream<Dataset> query(ParticipantContext participantContext, ParticipantAgent agent, QuerySpec querySpec, String protocol);
 
     /**
      * Resolves a {@link Dataset} given its id
@@ -42,5 +43,5 @@ public interface DatasetResolver {
      * @param id               the dataset id.
      * @return the {@link Dataset} if found, null otherwise.
      */
-    Dataset getById(ParticipantAgent participantAgent, String id, String protocol);
+    Dataset getById(ParticipantContext participantContext, ParticipantAgent participantAgent, String id, String protocol);
 }

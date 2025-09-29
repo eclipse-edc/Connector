@@ -79,6 +79,7 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 @ExtendWith(RuntimePerMethodExtension.class)
 public class HttpProvisionerExtensionEndToEndTest {
+    public static final String PARTICIPANT_CONTEXT_ID = "anonymous";
     private static final String ASSET_ID = "assetId";
     private static final String CONTRACT_ID = UUID.randomUUID().toString();
     private static final String POLICY_ID = "3";
@@ -136,7 +137,7 @@ public class HttpProvisionerExtensionEndToEndTest {
         when(identityService.verifyJwtToken(any(), isA(VerificationContext.class))).thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
         when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> "id");
 
-        var result = protocolService.notifyRequested(new ParticipantContext("id"), createTransferRequestMessage(), TokenRepresentation.Builder.newInstance().build());
+        var result = protocolService.notifyRequested(new ParticipantContext(PARTICIPANT_CONTEXT_ID), createTransferRequestMessage(), TokenRepresentation.Builder.newInstance().build());
 
         assertThat(result).isSucceeded();
         await().untilAsserted(() -> {
@@ -158,6 +159,7 @@ public class HttpProvisionerExtensionEndToEndTest {
                 .policy(policy)
                 .consumerId("consumer")
                 .providerId("provider")
+                .participantContextId(PARTICIPANT_CONTEXT_ID)
                 .build();
 
         var contractOffer = ContractOffer.Builder.newInstance()
@@ -172,6 +174,7 @@ public class HttpProvisionerExtensionEndToEndTest {
                 .protocol("test")
                 .contractAgreement(contractAgreement)
                 .contractOffer(contractOffer)
+                .participantContextId(PARTICIPANT_CONTEXT_ID)
                 .build();
     }
 

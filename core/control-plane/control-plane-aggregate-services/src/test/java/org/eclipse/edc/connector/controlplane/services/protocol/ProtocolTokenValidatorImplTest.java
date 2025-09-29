@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.services.protocol;
 
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
@@ -53,6 +54,8 @@ class ProtocolTokenValidatorImplTest {
     private final ProtocolTokenValidatorImpl validator = new ProtocolTokenValidatorImpl(identityService,
             policyEngine, mock(), agentService, dataspaceProfileContextRegistry);
 
+    private final ParticipantContext participantContext = new ParticipantContext("participantContextId");
+
     @Test
     void shouldVerifyToken() {
         var participantId = "participantId";
@@ -65,7 +68,7 @@ class ProtocolTokenValidatorImplTest {
         when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> participantId);
         when(agentService.createFor(any(), any())).thenReturn(participantAgent);
 
-        var result = validator.verify(tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
+        var result = validator.verify(participantContext, tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
 
         assertThat(result).isSucceeded().isSameAs(participantAgent);
         verify(agentService).createFor(claimToken, participantId);
@@ -81,22 +84,22 @@ class ProtocolTokenValidatorImplTest {
     void shouldReturnUnauthorized_whenTokenIsNotValid() {
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.failure("failure"));
 
-        var result = validator.verify(TokenRepresentation.Builder.newInstance().build(), TestRequestPolicyContext::new, Policy.Builder.newInstance().build(), new TestMessage());
+        var result = validator.verify(participantContext, TokenRepresentation.Builder.newInstance().build(), TestRequestPolicyContext::new, Policy.Builder.newInstance().build(), new TestMessage());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
     }
-    
+
     @Test
     void shouldReturnBadRequest_whenProtocolIsNotRegistered() {
         var claimToken = ClaimToken.Builder.newInstance().build();
         var policy = Policy.Builder.newInstance().build();
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
-        
+
         when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
         when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(null);
-        
-        var result = validator.verify(tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
-        
+
+        var result = validator.verify(participantContext, tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
+
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
     }
 

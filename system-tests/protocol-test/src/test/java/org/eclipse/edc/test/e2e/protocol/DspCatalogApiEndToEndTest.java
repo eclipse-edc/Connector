@@ -62,7 +62,7 @@ public class DspCatalogApiEndToEndTest {
             ":data-protocols:dsp:dsp-08:dsp-catalog-08",
             ":data-protocols:dsp:dsp-2024:dsp-catalog-2024"
     ));
-    
+
     @ParameterizedTest
     @ArgumentsSource(ProtocolVersionProvider.class)
     void shouldExposeVersion(String basePath, JsonLdNamespace namespace) {
@@ -91,12 +91,12 @@ public class DspCatalogApiEndToEndTest {
         var assetIndex = runtime.getService(AssetIndex.class);
 
         range(0, 8)
-                .mapToObj(i -> Asset.Builder.newInstance().id(i + "").dataAddress(DataAddress.Builder.newInstance().type("any").build()).build())
+                .mapToObj(i -> Asset.Builder.newInstance().id(i + "").dataAddress(DataAddress.Builder.newInstance().type("any").build()).participantContextId("anonymous").build())
                 .forEach(assetIndex::create);
         var policyDefinitionStore = runtime.getService(PolicyDefinitionStore.class);
-        policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build())
+        policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).participantContextId("anonymous").build())
                 .onSuccess(policy -> {
-                    var contractDefinition = ContractDefinition.Builder.newInstance().accessPolicyId(policy.getId()).contractPolicyId(policy.getId()).build();
+                    var contractDefinition = ContractDefinition.Builder.newInstance().accessPolicyId(policy.getId()).contractPolicyId(policy.getId()).participantContextId("anonymous").build();
                     runtime.getService(ContractDefinitionStore.class).save(contractDefinition);
                 });
 

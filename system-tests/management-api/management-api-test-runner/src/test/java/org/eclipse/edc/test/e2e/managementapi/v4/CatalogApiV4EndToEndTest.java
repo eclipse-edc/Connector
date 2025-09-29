@@ -55,7 +55,7 @@ import static org.hamcrest.Matchers.is;
 
 public class CatalogApiV4EndToEndTest {
 
-    public static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
+    public static final String PARTICIPANT_CONTEXT_ID = "anonymous";
 
     abstract static class Tests {
 
@@ -281,7 +281,7 @@ public class CatalogApiV4EndToEndTest {
                     .contractPolicyId(policyId)
                     .accessPolicyId(policyId)
                     .assetsSelector(assetsSelectorCritera)
-                    .participantContextId("participantContextId")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .build();
 
 
