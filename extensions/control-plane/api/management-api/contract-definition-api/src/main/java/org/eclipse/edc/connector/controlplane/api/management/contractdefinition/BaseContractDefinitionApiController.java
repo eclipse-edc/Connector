@@ -84,11 +84,13 @@ public abstract class BaseContractDefinitionApiController {
     public JsonObject createContractDefinition(JsonObject createObject) {
         validatorRegistry.validate(CONTRACT_DEFINITION_TYPE, createObject)
                 .orElseThrow(ValidationFailureException::new);
+        var participantContext = participantContextSupplier.get()
+                .orElseThrow(exceptionMapper(ContractDefinition.class));
 
         var transform = transformerRegistry.transform(createObject, ContractDefinition.class)
                 .orElseThrow(InvalidRequestException::new)
                 .toBuilder()
-                .participantContextId(participantContextSupplier.get().getParticipantContextId())
+                .participantContextId(participantContext.getParticipantContextId())
                 .build();
 
         var responseDto = service.create(transform)

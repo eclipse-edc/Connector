@@ -21,6 +21,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
@@ -46,7 +47,7 @@ public class SingleParticipantContextDefaultServicesExtension implements Service
     @Provider(isDefault = true)
     public SingleParticipantContextSupplier participantContextSupplier() {
         var participantContext = new ParticipantContext(participantId);
-        return () -> participantContext;
+        return () -> ServiceResult.success(participantContext);
     }
 
     @Override

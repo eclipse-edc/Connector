@@ -15,7 +15,6 @@
 package org.eclipse.edc.protocol.dsp.http.spi.message;
 
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextSupplier;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
 
 import java.util.function.Supplier;
@@ -64,7 +63,7 @@ public class DspRequest<I, R, E extends ErrorMessage> {
         return errorProvider;
     }
 
-    public Supplier<ParticipantContext> getParticipantContextProvider() {
+    public ParticipantContextSupplier getParticipantContextProvider() {
         return participantContextProvider;
     }
 

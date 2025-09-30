@@ -68,10 +68,13 @@ public class DataplaneSelectorControlApiController implements DataplaneSelectorC
     public JsonObject registerDataplane(JsonObject request) {
         validatorRegistry.validate(DataPlaneInstance.DATAPLANE_INSTANCE_TYPE, request).orElseThrow(ValidationFailureException::new);
 
+        var participantContext = participantContextSupplier.get()
+                .orElseThrow(exceptionMapper(DataPlaneInstance.class));
+
         var dataplane = transformerRegistry.transform(request, DataPlaneInstance.class)
                 .orElseThrow(InvalidRequestException::new)
                 .toBuilder()
-                .participantContextId(participantContextSupplier.get().getParticipantContextId())
+                .participantContextId(participantContext.getParticipantContextId())
                 .build();
 
         service.addInstance(dataplane)

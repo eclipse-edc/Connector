@@ -57,7 +57,7 @@ class DataplaneSelectorControlApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new DataplaneSelectorControlApiController(validatorRegistry, typeTransformerRegistry, service, () -> new ParticipantContext("participantContextId"), clock);
+        return new DataplaneSelectorControlApiController(validatorRegistry, typeTransformerRegistry, service, () -> ServiceResult.success(new ParticipantContext("participantContextId")), clock);
     }
 
     @Nested

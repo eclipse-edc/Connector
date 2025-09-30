@@ -61,7 +61,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
     protected final TypeTransformerRegistry transformerRegistry = mock();
     protected final PolicyDefinitionService service = mock();
     protected final JsonObjectValidatorRegistry validatorRegistry = mock();
-    protected final SingleParticipantContextSupplier participantContextSupplier = () -> new ParticipantContext("participantId");
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(new ParticipantContext("participantId"));
 
     @Test
     void create_shouldReturnDefinitionId() {

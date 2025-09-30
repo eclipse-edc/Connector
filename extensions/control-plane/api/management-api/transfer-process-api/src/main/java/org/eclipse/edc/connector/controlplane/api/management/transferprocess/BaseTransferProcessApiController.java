@@ -113,10 +113,13 @@ public abstract class BaseTransferProcessApiController {
     public JsonObject initiateTransferProcess(JsonObject request) {
         validatorRegistry.validate(TRANSFER_REQUEST_TYPE, request).orElseThrow(ValidationFailureException::new);
 
+        var participantContext = participantContextSupplier.get()
+                .orElseThrow(exceptionMapper(TransferProcess.class));
+
         var transferRequest = transformerRegistry.transform(request, TransferRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
-        var createdTransfer = service.initiateTransfer(participantContextSupplier.get(), transferRequest)
+        var createdTransfer = service.initiateTransfer(participantContext, transferRequest)
                 .onSuccess(d -> monitor.debug(format("Transfer Process created %s", d.getId())))
                 .orElseThrow(it -> mapToException(it, TransferProcess.class));
 

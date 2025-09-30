@@ -61,7 +61,7 @@ class RemoteDataPlaneSelectorServiceTest {
     );
     private final DataPlaneSelectorService serverService = mock();
     private final JsonObjectValidatorRegistry validator = mock();
-    private final SingleParticipantContextSupplier participantContextSupplier = () -> new ParticipantContext("participantContextId");
+    private final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(new ParticipantContext("participantContextId"));
 
     @RegisterExtension
     public final RuntimeExtension server = new RuntimePerMethodExtension(new EmbeddedRuntime(

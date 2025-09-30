@@ -63,7 +63,7 @@ class DspRequestHandlerImplTest {
 
     private final DspRequestHandlerImpl handler = new DspRequestHandlerImpl(mock(), validatorRegistry, dspTransformerRegistry);
     private final String protocol = DATASPACE_PROTOCOL_HTTP;
-    private final ParticipantContextSupplier participantContextSupplier = () -> new ParticipantContext("participantContextId");
+    private final ParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(new ParticipantContext("participantContextId"));
 
     private static JsonObject error(String code, String reason, String processId) {
         var json = Json.createObjectBuilder()
@@ -225,6 +225,23 @@ class DspRequestHandlerImplTest {
 
         }
 
+        @Test
+        void shouldFail_whenParticipantContextSupplierFails() {
+            var resourceJson = Json.createObjectBuilder().build();
+
+            when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
+            when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(resourceJson));
+
+            var request = getDspRequestBuilder()
+                    .participantContextProvider(() -> ServiceResult.notFound("not found"))
+                    .build();
+
+            var result = handler.getResource(request);
+
+            assertThat(result.getStatus()).isEqualTo(401);
+
+        }
+
         private GetDspRequest.Builder<Object, TestError> getDspRequestBuilder() {
             return GetDspRequest.Builder.newInstance(Object.class, TestError.class)
                     .token("token")
@@ -348,6 +365,23 @@ class DspRequestHandlerImplTest {
             var request = postDspRequestBuilder().protocol(faultyProtocol).build();
 
             assertThatThrownBy(() -> handler.createResource(request)).isInstanceOf(EdcException.class);
+
+        }
+
+        @Test
+        void shouldFail_whenParticipantContextSupplierFails() {
+            var resourceJson = Json.createObjectBuilder().build();
+
+            when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
+            when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(resourceJson));
+
+            var request = postDspRequestBuilder()
+                    .participantContextProvider(() -> ServiceResult.notFound("not found"))
+                    .build();
+
+            var result = handler.createResource(request);
+
+            assertThat(result.getStatus()).isEqualTo(401);
 
         }
 
@@ -606,6 +640,23 @@ class DspRequestHandlerImplTest {
                 assertThat(error.getString(DSPACE_PROPERTY_PROCESS_ID)).isEqualTo("processId");
                 assertThat(error.get(DSPACE_PROPERTY_REASON_IRI)).isNotNull();
             });
+        }
+
+        @Test
+        void shouldFail_whenParticipantContextSupplierFails() {
+            var resourceJson = Json.createObjectBuilder().build();
+
+            when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
+            when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(resourceJson));
+
+            var request = postDspRequestBuilder()
+                    .participantContextProvider(() -> ServiceResult.notFound("not found"))
+                    .build();
+
+            var result = handler.updateResource(request);
+
+            assertThat(result.getStatus()).isEqualTo(401);
+
         }
 
         private PostDspRequest.Builder<TestProcessRemoteMessage, Object, TestError> postDspRequestBuilder() {

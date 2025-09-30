@@ -76,7 +76,7 @@ public class TckWebhookController {
 
         monitor.debug("Starting contract negotiation for [provider, address, offer]: [%s, %s, %s]".formatted(request.providerId(), request.connectorAddress(), request.offerId()));
 
-        negotiationService.initiateNegotiation(participantContextSupplier.get(), contractRequest);
+        negotiationService.initiateNegotiation(participantContextSupplier.get().getContent(), contractRequest);
     }
 
     private Policy defaultPolicy(String providerId) {
@@ -99,6 +99,6 @@ public class TckWebhookController {
                 .build();
 
         monitor.debug("Starting transfer process for [provider, address, agreement, format]: [%s, %s, %s, %s]".formatted(request.providerId(), request.connectorAddress(), request.agreementId(), request.format()));
-        transferProcessService.initiateTransfer(participantContextSupplier.get(), transferRequest).orElseThrow(f -> new EdcException(f.getFailureDetail()));
+        transferProcessService.initiateTransfer(participantContextSupplier.get().getContent(), transferRequest).orElseThrow(f -> new EdcException(f.getFailureDetail()));
     }
 }
