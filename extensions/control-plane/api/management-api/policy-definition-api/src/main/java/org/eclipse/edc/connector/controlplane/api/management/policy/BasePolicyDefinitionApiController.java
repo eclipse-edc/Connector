@@ -90,10 +90,13 @@ public abstract class BasePolicyDefinitionApiController {
     public JsonObject createPolicyDefinition(JsonObject request) {
         validatorRegistry.validate(EDC_POLICY_DEFINITION_TYPE, request).orElseThrow(ValidationFailureException::new);
 
+        var participantContext = participantContextSupplier.get()
+                .orElseThrow(exceptionMapper(PolicyDefinition.class));
+
         var definition = transformerRegistry.transform(request, PolicyDefinition.class)
                 .orElseThrow(InvalidRequestException::new)
                 .toBuilder()
-                .participantContextId(participantContextSupplier.get().getParticipantContextId())
+                .participantContextId(participantContext.getParticipantContextId())
                 .build();
 
         var createdDefinition = service.create(definition)

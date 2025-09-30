@@ -54,10 +54,13 @@ public abstract class BaseAssetApiController {
 
     public JsonObject createAsset(JsonObject assetJson) {
         validator.validate(EDC_ASSET_TYPE, assetJson).orElseThrow(ValidationFailureException::new);
+        var participantContext = participantContextSupplier.get()
+                .orElseThrow(exceptionMapper(Asset.class));
+
         var asset = transformerRegistry.transform(assetJson, Asset.class)
                 .orElseThrow(InvalidRequestException::new)
                 .toBuilder()
-                .participantContextId(participantContextSupplier.get().participantContextId())
+                .participantContextId(participantContext.participantContextId())
                 .build();
 
         var idResponse = service.create(asset)

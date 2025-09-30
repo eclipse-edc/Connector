@@ -15,6 +15,7 @@
 package org.eclipse.edc.participantcontext.spi.service;
 
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.spi.result.ServiceResult;
 
 import java.util.function.Supplier;
 
@@ -22,5 +23,5 @@ import java.util.function.Supplier;
  * Supplies the {@link ParticipantContext} for the current runtime context.
  */
 @FunctionalInterface
-public interface ParticipantContextSupplier extends Supplier<ParticipantContext> {
+public interface ParticipantContextSupplier extends Supplier<ServiceResult<ParticipantContext>> {
 }

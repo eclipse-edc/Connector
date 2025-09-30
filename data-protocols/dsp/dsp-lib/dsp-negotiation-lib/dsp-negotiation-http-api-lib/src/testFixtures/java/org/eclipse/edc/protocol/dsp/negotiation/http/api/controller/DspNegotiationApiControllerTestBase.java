@@ -31,6 +31,7 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -70,7 +71,7 @@ public abstract class DspNegotiationApiControllerTestBase extends RestController
 
     protected final ContractNegotiationProtocolService protocolService = mock();
     protected final DspRequestHandler dspRequestHandler = mock();
-    protected final SingleParticipantContextSupplier participantContextSupplier = () -> new ParticipantContext("id");
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(new ParticipantContext("id"));
 
     @Test
     void getNegotiation_shouldGetResource() {

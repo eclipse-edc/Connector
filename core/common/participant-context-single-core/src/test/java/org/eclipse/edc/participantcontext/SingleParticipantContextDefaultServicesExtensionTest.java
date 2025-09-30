@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 public class SingleParticipantContextDefaultServicesExtensionTest {
-    
+
     @BeforeEach
     void setup(ServiceExtensionContext context) {
         var config = ConfigFactory.fromMap(Map.of(
@@ -43,6 +43,6 @@ public class SingleParticipantContextDefaultServicesExtensionTest {
     @Test
     void verifyParticipantContextSupplier(SingleParticipantContextDefaultServicesExtension extension) {
         var supplier = extension.participantContextSupplier();
-        assertThat(supplier.get()).isEqualTo(new ParticipantContext("participantContextId"));
+        assertThat(supplier.get().getContent()).isEqualTo(new ParticipantContext("participantContextId"));
     }
 }

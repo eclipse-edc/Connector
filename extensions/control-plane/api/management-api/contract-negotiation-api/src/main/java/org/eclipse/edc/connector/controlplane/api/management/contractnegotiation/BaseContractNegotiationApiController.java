@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.spi.EdcException;
@@ -107,10 +108,13 @@ public class BaseContractNegotiationApiController {
         validatorRegistry.validate(CONTRACT_REQUEST_TYPE, requestObject)
                 .orElseThrow(ValidationFailureException::new);
 
+        var participantContext = participantContextSupplier.get()
+                .orElseThrow(exceptionMapper(ContractDefinition.class));
+
         var contractRequest = transformerRegistry.transform(requestObject, ContractRequest.class)
                 .orElseThrow(InvalidRequestException::new);
-
-        var contractNegotiation = service.initiateNegotiation(participantContextSupplier.get(), contractRequest);
+        
+        var contractNegotiation = service.initiateNegotiation(participantContext, contractRequest);
 
         var responseDto = IdResponse.Builder.newInstance()
                 .id(contractNegotiation.getId())

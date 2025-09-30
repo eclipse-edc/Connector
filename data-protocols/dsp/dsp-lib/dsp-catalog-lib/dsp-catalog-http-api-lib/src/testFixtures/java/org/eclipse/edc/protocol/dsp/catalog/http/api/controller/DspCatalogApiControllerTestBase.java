@@ -33,6 +33,7 @@ import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.ResponseDecorator;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Nested;
@@ -64,7 +65,7 @@ public abstract class DspCatalogApiControllerTestBase extends RestControllerTest
     protected final CatalogProtocolService service = mock();
     protected final DspRequestHandler dspRequestHandler = mock();
     protected final ContinuationTokenManager continuationTokenManager = mock();
-    protected final SingleParticipantContextSupplier participantContextSupplier = () -> new ParticipantContext("id");
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(new ParticipantContext("id"));
 
     @Test
     void getDataset_shouldGetResource() {

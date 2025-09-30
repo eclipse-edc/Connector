@@ -63,7 +63,13 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
         }
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).build();
 
-        var serviceResult = request.getServiceCall().apply(request.getParticipantContextProvider().get(), request.getId(), tokenRepresentation);
+        var supplierResult = request.getParticipantContextProvider().get();
+        if (supplierResult.failed()) {
+            monitor.debug(() -> "DSP: Participant context retrieval failed: %s".formatted(supplierResult.getFailureMessages()));
+            return unauthorized(request);
+        }
+
+        var serviceResult = request.getServiceCall().apply(supplierResult.getContent(), request.getId(), tokenRepresentation);
         if (serviceResult.failed()) {
             monitor.debug(() -> "DSP: Service call failed: %s".formatted(serviceResult.getFailureDetail()));
             return forFailure(serviceResult.getFailure(), request);
@@ -99,6 +105,12 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
             return unauthorized(request);
         }
 
+        var supplierResult = request.getParticipantContextProvider().get();
+        if (supplierResult.failed()) {
+            monitor.debug(() -> "DSP: Participant context retrieval failed: %s".formatted(supplierResult.getFailureMessages()));
+            return unauthorized(request);
+        }
+
         var validation = validatorRegistry.validate(request.getExpectedMessageType(), request.getMessage());
         if (validation.failed()) {
             monitor.debug(() -> "DSP: Validation failed: %s".formatted(validation.getFailureMessages()));
@@ -126,10 +138,11 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
             return badRequest(request);
         }
 
+
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).build();
 
         var input = inputTransformation.getContent();
-        var serviceResult = request.getServiceCall().apply(request.getParticipantContextProvider().get(), input, tokenRepresentation);
+        var serviceResult = request.getServiceCall().apply(supplierResult.getContent(), input, tokenRepresentation);
         if (serviceResult.failed()) {
             monitor.debug(() -> "DSP: Service call failed: %s".formatted(serviceResult.getFailureDetail()));
             return forFailure(serviceResult.getFailure(), request);
@@ -159,6 +172,12 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
 
         var token = request.getToken();
         if (token == null) {
+            return unauthorized(request);
+        }
+
+        var supplierResult = request.getParticipantContextProvider().get();
+        if (supplierResult.failed()) {
+            monitor.debug(() -> "DSP: Participant context retrieval failed: %s".formatted(supplierResult.getFailureMessages()));
             return unauthorized(request);
         }
 
@@ -201,7 +220,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
         }
 
         return request.getServiceCall()
-                .apply(request.getParticipantContextProvider().get(), inputTransformation.getContent(), tokenRepresentation)
+                .apply(supplierResult.getContent(), inputTransformation.getContent(), tokenRepresentation)
                 .map(it -> Response.ok().type(MediaType.APPLICATION_JSON_TYPE).build())
                 .orElse(failure -> {
                     monitor.debug(() -> "DSP: Service call failed: %s".formatted(failure.getFailureDetail()));
