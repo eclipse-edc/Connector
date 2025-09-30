@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.function.Predicate;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.query.NotOperatorPredicate.not;
 
 /**
  * Implementation for {@link CriterionOperatorRegistry}
@@ -40,11 +41,12 @@ public class CriterionOperatorRegistryImpl implements CriterionOperatorRegistry 
         var registry = new CriterionOperatorRegistryImpl();
         registry.registerPropertyLookup(new ReflectionPropertyLookup());
         registry.registerOperatorPredicate(EQUAL, new EqualOperatorPredicate());
-        registry.registerOperatorPredicate(IN, new InOperatorPredicate());
+        registry.registerOperatorPredicate(NOT_EQUAL, not(new EqualOperatorPredicate()));
+        registry.registerOperatorPredicate(IN, InOperatorPredicate.in());
+        registry.registerOperatorPredicate(NOT_IN, InOperatorPredicate.notIn());
         registry.registerOperatorPredicate(LIKE, new LikeOperatorPredicate());
         registry.registerOperatorPredicate(ILIKE, new IlikeOperatorPredicate());
         registry.registerOperatorPredicate(CONTAINS, new ContainsOperatorPredicate());
-        registry.registerOperatorPredicate(NOT_EQUAL, new NotEqualOperatorPredicate());
         registry.registerOperatorPredicate(LESS_THAN, NumberStringOperatorPredicate.lessThan());
         registry.registerOperatorPredicate(LESS_THAN_EQUAL, NumberStringOperatorPredicate.lessThanEqual());
         registry.registerOperatorPredicate(GREATER_THAN, NumberStringOperatorPredicate.greaterThan());
