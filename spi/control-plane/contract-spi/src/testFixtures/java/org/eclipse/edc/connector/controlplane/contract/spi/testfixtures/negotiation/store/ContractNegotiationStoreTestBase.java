@@ -56,6 +56,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.filterByParticipantContextId;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_LEASED;
@@ -567,6 +568,22 @@ public abstract class ContractNegotiationStoreTestBase {
             var result = getContractNegotiationStore().queryNegotiations(query);
 
             assertThat(result).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(negotiation1, negotiation2);
+        }
+
+        @Test
+        void shouldFilterByCriteria_whenOperatorIsNotIn() {
+            range(0, 10)
+                    .mapToObj(i -> createNegotiation("negotiation-" + i))
+                    .forEach(cn -> getContractNegotiationStore().save(cn));
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(criterion("id", "not in", List.of("negotiation-0", "negotiation-9")))
+                    .build();
+            var result = getContractNegotiationStore().queryNegotiations(query);
+
+            assertThat(result).hasSize(8)
+                    .noneMatch(n -> n.getId().equals("negotiation-0"))
+                    .noneMatch(n -> n.getId().equals("negotiation-9"));
         }
 
         @Test
