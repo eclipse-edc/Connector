@@ -24,7 +24,6 @@ import org.eclipse.edc.boot.system.DependencyGraph;
 import org.eclipse.edc.boot.system.ExtensionLoader;
 import org.eclipse.edc.boot.system.ServiceLocator;
 import org.eclipse.edc.boot.system.ServiceLocatorImpl;
-import org.eclipse.edc.boot.system.injection.EdcInjectionException;
 import org.eclipse.edc.boot.system.injection.lifecycle.ExtensionLifecycleManager;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -92,13 +91,16 @@ public class BaseRuntime {
         var config = configurationLoader.loadConfiguration(monitor);
         context = createServiceExtensionContext(config);
 
+        var graph = buildDependencyGraph(context);
+
+        if (!graph.isValid()) {
+            graph.getInjectionFailures()
+                    .map(failure -> "%s is required by extension %s".formatted(failure.failureDetail(), failure.dependent().name()))
+                    .forEach(monitor::severe);
+            throw new EdcException("Problems occurred during dependency injection");
+        }
+
         try {
-            var graph = buildDependencyGraph(context);
-
-            if (!graph.isValid()) {
-                onError(new EdcInjectionException("The following problems occurred during dependency injection:\n%s".formatted(String.join("\n", graph.getProblems()))));
-            }
-
             bootExtensions(context, graph);
 
             serviceExtensions = graph.getExtensions();

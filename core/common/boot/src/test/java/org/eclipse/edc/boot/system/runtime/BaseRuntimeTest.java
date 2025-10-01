@@ -16,6 +16,7 @@
 package org.eclipse.edc.boot.system.runtime;
 
 import org.eclipse.edc.boot.system.ServiceLocator;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ConfigurationExtension;
@@ -31,6 +32,7 @@ import static org.eclipse.edc.boot.system.TestFunctions.mutableListOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.doThrow;
@@ -105,6 +107,17 @@ public class BaseRuntimeTest {
         verify(unsuccessful).cleanup();
     }
 
+    @Test
+    void shouldLogProblems_whenDependencyGraphFails() {
+        when(serviceLocator.loadImplementors(eq(ServiceExtension.class), anyBoolean()))
+                .thenReturn(mutableListOf(extensionThatRequiresConfig()));
+
+        assertThatThrownBy(() -> runtime.boot(true)).isInstanceOf(EdcException.class);
+
+        verify(monitor).severe(contains("is required by"));
+        verify(monitor, never()).info(contains(" ready"));
+    }
+
     @NotNull
     private <T> ServiceExtension extensionThatRegisters(Class<T> serviceClass, T service) {
         return new ServiceExtension() {
@@ -112,6 +125,16 @@ public class BaseRuntimeTest {
             public void initialize(ServiceExtensionContext context) {
                 context.registerService(serviceClass, service);
             }
+        };
+    }
+
+    @NotNull
+    private <T> ServiceExtension extensionThatRequiresConfig() {
+        return new ServiceExtension() {
+
+            @Setting(key = "test.org.edc.setting")
+            private String setting;
+
         };
     }
 

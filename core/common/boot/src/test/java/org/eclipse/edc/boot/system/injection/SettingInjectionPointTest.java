@@ -30,10 +30,10 @@ import static org.eclipse.edc.boot.system.TestFunctions.getDeclaredField;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class ValueInjectionPointTest {
+class SettingInjectionPointTest {
 
     abstract class Tests {
-        protected abstract ValueInjectionPoint<?> getInjectionPoint();
+        protected abstract SettingInjectionPoint<?> getInjectionPoint();
 
         protected abstract Object getTargetObject();
 
@@ -160,7 +160,7 @@ class ValueInjectionPointTest {
     class DeclaredOnExtension extends Tests {
 
         private final ExtensionWithConfigValue targetObject = new ExtensionWithConfigValue();
-        private final ValueInjectionPoint<?> injectionPoint = createInjectionPoint(targetObject, "requiredVal", targetObject.getClass());
+        private final SettingInjectionPoint<?> injectionPoint = createInjectionPoint(targetObject, "requiredVal", targetObject.getClass());
 
         @Test
         void getTargetInstance() {
@@ -178,7 +178,7 @@ class ValueInjectionPointTest {
         }
 
         @Override
-        protected ValueInjectionPoint<?> getInjectionPoint() {
+        protected SettingInjectionPoint<?> getInjectionPoint() {
             return injectionPoint;
         }
 
@@ -190,7 +190,7 @@ class ValueInjectionPointTest {
 
     @Nested
     class DeclaredOnConfigObject extends Tests {
-        private final ValueInjectionPoint<?> injectionPoint = createInjectionPoint(null, "requiredVal", ConfigurationObject.class);
+        private final SettingInjectionPoint<?> injectionPoint = createInjectionPoint(null, "requiredVal", ConfigurationObject.class);
 
         @Test
         void getTargetInstance() {
@@ -203,7 +203,7 @@ class ValueInjectionPointTest {
         }
 
         @Override
-        protected ValueInjectionPoint<?> getInjectionPoint() {
+        protected SettingInjectionPoint<?> getInjectionPoint() {
             return injectionPoint;
         }
 
@@ -214,9 +214,9 @@ class ValueInjectionPointTest {
     }
 
 
-    private ValueInjectionPoint<?> createInjectionPoint(Object targetObject, String fieldName, Class<?> targetClass) {
+    private SettingInjectionPoint<?> createInjectionPoint(Object targetObject, String fieldName, Class<?> targetClass) {
         var field = getDeclaredField(ExtensionWithConfigValue.class, fieldName);
-        return new ValueInjectionPoint<>(targetObject, field, field.getAnnotation(Setting.class), targetClass);
+        return new SettingInjectionPoint<>(targetObject, field, field.getAnnotation(Setting.class), targetClass);
     }
 
 }
