@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage.Type;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -114,29 +115,24 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      */
     @WithSpan
     private boolean processRequesting(ContractNegotiation negotiation) {
-
         var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol());
-
-        if (callbackAddress != null) {
-            var type = ContractRequestMessage.Type.INITIAL;
-            if (negotiation.getContractOffers().size() > 1) {
-                type = ContractRequestMessage.Type.COUNTER_OFFER;
-            }
-            var messageBuilder = ContractRequestMessage.Builder.newInstance()
-                    .contractOffer(negotiation.getLastContractOffer())
-                    .callbackAddress(callbackAddress.url())
-                    .type(type);
-
-            return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class, "[Consumer] send request")
-                    .onSuccess(this::transitionToRequested)
-                    .onFailure((n, throwable) -> transitionToRequesting(n))
-                    .onFinalFailure((n, throwable) -> transitionToTerminating(n, format("Failed to send request to provider: %s", throwable.getMessage())))
-                    .execute();
-        } else {
+        if (callbackAddress == null) {
             transitionToTerminated(negotiation, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
             return true;
         }
 
+        var type = negotiation.getContractOffers().size() == 1 ? Type.INITIAL : Type.COUNTER_OFFER;
+
+        var messageBuilder = ContractRequestMessage.Builder.newInstance()
+                .contractOffer(negotiation.getLastContractOffer())
+                .callbackAddress(callbackAddress.url())
+                .type(type);
+
+        return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class, "[Consumer] send request")
+                .onSuccess(this::transitionToRequested)
+                .onFailure((n, throwable) -> transitionToRequesting(n))
+                .onFinalFailure((n, throwable) -> transitionToTerminated(n, format("Failed to request contract to provider: %s", throwable.getMessage())))
+                .execute();
     }
 
     /**

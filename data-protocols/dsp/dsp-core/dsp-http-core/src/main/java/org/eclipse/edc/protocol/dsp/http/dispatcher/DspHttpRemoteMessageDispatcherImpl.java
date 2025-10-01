@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
@@ -148,13 +147,9 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
 
                 return StatusResult.success(responseType.cast(responsePayload));
             } else {
-                var stringBody = Optional.ofNullable(responseBody)
-                        .map(this::asString)
-                        .orElse("Response body is null. Error code: " + response.code());
-
                 var status = response.code() >= 400 && response.code() < 500 ? FATAL_ERROR : ERROR_RETRY;
 
-                return StatusResult.failure(status, stringBody);
+                return StatusResult.failure(status, asString(responseBody));
             }
         }
     }
