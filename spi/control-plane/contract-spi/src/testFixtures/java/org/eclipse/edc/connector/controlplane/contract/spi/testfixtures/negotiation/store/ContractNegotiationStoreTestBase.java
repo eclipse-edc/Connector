@@ -599,6 +599,22 @@ public abstract class ContractNegotiationStoreTestBase {
         }
 
         @Test
+        void shouldFilterByCriteria_whenOperatorIsNotIn() {
+            range(0, 10)
+                    .mapToObj(i -> createNegotiation("negotiation-" + i))
+                    .forEach(cn -> getContractNegotiationStore().save(cn));
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(criterion("id", "not in", List.of("negotiation-0", "negotiation-9")))
+                    .build();
+            var result = getContractNegotiationStore().queryNegotiations(query);
+
+            assertThat(result).hasSize(8)
+                    .noneMatch(n -> n.getId().equals("negotiation-0"))
+                    .noneMatch(n -> n.getId().equals("negotiation-9"));
+        }
+
+        @Test
         void shouldReturnEmpty_whenCriteriaLeftOperandIsInvalid() {
             var contractId = ContractOfferId.create("definition", "asset");
             var agreement1 = createAgreement(contractId);
@@ -720,6 +736,7 @@ public abstract class ContractNegotiationStoreTestBase {
 
             assertThat(all).hasSize(1);
         }
+
     }
 
     @Nested

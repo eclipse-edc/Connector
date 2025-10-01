@@ -26,6 +26,7 @@ import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.LESS_THAN;
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.LESS_THAN_EQUAL;
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.LIKE;
 import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.NOT_EQUAL;
+import static org.eclipse.edc.spi.query.CriterionOperatorRegistry.NOT_IN;
 
 /**
  * Postgresql's implementation of the operator translator
@@ -40,6 +41,7 @@ public class PostgresqlOperatorTranslator implements SqlOperatorTranslator {
             case LIKE -> new SqlOperator("like", String.class);
             case ILIKE -> new SqlOperator("ilike", String.class);
             case IN -> new SqlOperator("in", Collection.class);
+            case NOT_IN -> new SqlOperator("not in", Collection.class);
             case CONTAINS -> new SqlOperator("??", Object.class);
             case LESS_THAN -> new SqlOperator("<", Object.class);
             case LESS_THAN_EQUAL -> new SqlOperator("<=", Object.class);

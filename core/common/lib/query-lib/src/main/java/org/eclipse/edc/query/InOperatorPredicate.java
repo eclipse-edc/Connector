@@ -16,7 +16,20 @@ package org.eclipse.edc.query;
 
 import org.eclipse.edc.spi.query.OperatorPredicate;
 
+import static org.eclipse.edc.query.NotOperatorPredicate.not;
+
 public class InOperatorPredicate implements OperatorPredicate {
+
+    public static OperatorPredicate notIn() {
+        return not(new InOperatorPredicate());
+    }
+
+    public static OperatorPredicate in() {
+        return new InOperatorPredicate();
+    }
+
+    private InOperatorPredicate() {
+    }
 
     @Override
     public boolean test(Object property, Object operandRight) {
@@ -28,7 +41,8 @@ public class InOperatorPredicate implements OperatorPredicate {
             }
             return false;
         } else {
-            throw new IllegalArgumentException("Operator IN requires the right-hand operand to be an " + Iterable.class.getName() + " but was " + operandRight.getClass().getName());
+            throw new IllegalArgumentException("Operators ['IN', 'NOT IN'] require the right-hand operand to be an " +
+                    Iterable.class.getName() + " but was " + operandRight.getClass().getName());
         }
     }
 }
