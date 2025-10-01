@@ -52,30 +52,30 @@ class DspHttpCoreExtensionTest {
     @DisplayName("Assert usage of the default (noop) token decorator")
     void createDispatcher_noTokenDecorator_shouldUseNoop(ServiceExtensionContext context, ObjectFactory factory) {
         when(audienceResolver.resolve(any())).thenReturn(Result.success("audience"));
-        when(identityService.obtainClientCredentials(any())).thenReturn(Result.failure("not-important"));
+        when(identityService.obtainClientCredentials(any(), any())).thenReturn(Result.failure("not-important"));
         context.registerService(TokenDecorator.class, null);
 
         extension = factory.constructInstance(DspHttpCoreExtension.class);
         var dispatcher = extension.dspHttpRemoteMessageDispatcher(context);
         dispatcher.registerMessage(TestMessage.class, mock(), mock());
-        dispatcher.dispatch(String.class, new TestMessage("protocol", "address", "counterPartyId"));
+        dispatcher.dispatch("id", String.class, new TestMessage("protocol", "address", "counterPartyId"));
 
-        verify(identityService).obtainClientCredentials(argThat(tokenParams -> tokenParams.getStringClaim(SCOPE_CLAIM) == null));
+        verify(identityService).obtainClientCredentials(any(), argThat(tokenParams -> tokenParams.getStringClaim(SCOPE_CLAIM) == null));
     }
 
     @Test
     @DisplayName("Assert usage of an injected TokenDecorator")
     void createDispatcher_withTokenDecorator_shouldUse(ServiceExtensionContext context, ObjectFactory factory) {
         when(audienceResolver.resolve(any())).thenReturn(Result.success("audience"));
-        when(identityService.obtainClientCredentials(any())).thenReturn(Result.failure("not-important"));
+        when(identityService.obtainClientCredentials(any(), any())).thenReturn(Result.failure("not-important"));
         context.registerService(TokenDecorator.class, (td) -> td.claims(SCOPE_CLAIM, "test-scope"));
 
         extension = factory.constructInstance(DspHttpCoreExtension.class);
         var dispatcher = extension.dspHttpRemoteMessageDispatcher(context);
         dispatcher.registerMessage(TestMessage.class, mock(), mock());
-        dispatcher.dispatch(String.class, new TestMessage("protocol", "address", "counterPartyId"));
+        dispatcher.dispatch("id", String.class, new TestMessage("protocol", "address", "counterPartyId"));
 
-        verify(identityService).obtainClientCredentials(argThat(tokenParams -> tokenParams.getStringClaim(SCOPE_CLAIM).equals("test-scope")));
+        verify(identityService).obtainClientCredentials(any(), argThat(tokenParams -> tokenParams.getStringClaim(SCOPE_CLAIM).equals("test-scope")));
     }
 
     @Test

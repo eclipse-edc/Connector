@@ -78,14 +78,14 @@ public class CallbackEventDispatcherTest {
                 .build());
 
         when(callbackRegistry.resolve(event.name())).thenReturn(callbacks);
-        when(registry.dispatch(any(), any())).thenReturn(CompletableFuture.completedFuture(StatusResult.success("any")));
+        when(registry.dispatch(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(StatusResult.success("any")));
 
         dispatcher.on(envelope(event));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<CallbackEventRemoteMessage<TransferProcessCompleted>> captor = ArgumentCaptor.forClass(CallbackEventRemoteMessage.class);
 
-        verify(registry).dispatch(any(), captor.capture());
+        verify(registry).dispatch(any(), any(), captor.capture());
 
         assertThat(captor.getValue().getEventEnvelope().getPayload())
                 .usingRecursiveComparison()
@@ -98,7 +98,7 @@ public class CallbackEventDispatcherTest {
         dispatcher = new CallbackEventDispatcher(registry, callbackRegistry, resolverRegistry, true, monitor);
         when(resolverRegistry.resolve("local")).thenReturn("local");
 
-        when(registry.dispatch(any(), any())).thenReturn(CompletableFuture.failedFuture(new RuntimeException("Test")));
+        when(registry.dispatch(any(), any(), any())).thenReturn(CompletableFuture.failedFuture(new RuntimeException("Test")));
 
         var callback = CallbackAddress.Builder.newInstance()
                 .uri("local://test")
@@ -121,7 +121,7 @@ public class CallbackEventDispatcherTest {
     void verifyShouldDispatchWithSameTransactionalConfiguration(boolean transactional) {
 
         when(resolverRegistry.resolve("local")).thenReturn("local");
-        when(registry.dispatch(any(), any())).thenReturn(CompletableFuture.completedFuture(StatusResult.success("any")));
+        when(registry.dispatch(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(StatusResult.success("any")));
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<CallbackEventRemoteMessage<TransferProcessCompleted>> captor = ArgumentCaptor.forClass(CallbackEventRemoteMessage.class);
@@ -142,7 +142,7 @@ public class CallbackEventDispatcherTest {
 
         dispatcher.on(envelope(event));
 
-        verify(registry).dispatch(any(), captor.capture());
+        verify(registry).dispatch(any(), any(), captor.capture());
 
         assertThat(captor.getValue().getEventEnvelope().getPayload().getCallbackAddresses())
                 .usingRecursiveFieldByFieldElementComparator()

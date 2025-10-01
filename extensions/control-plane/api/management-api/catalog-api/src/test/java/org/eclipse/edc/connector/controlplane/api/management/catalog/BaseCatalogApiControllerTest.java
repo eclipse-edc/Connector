@@ -20,9 +20,12 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.junit.annotations.ApiTest;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
@@ -45,6 +48,7 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -56,13 +60,14 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
     protected final CatalogService service = mock();
     protected final TypeTransformerRegistry transformerRegistry = mock();
     protected final JsonObjectValidatorRegistry validatorRegistry = mock();
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(new ParticipantContext("participantContext"));
 
     @Test
     void requestCatalog() {
         var request = CatalogRequest.Builder.newInstance().counterPartyAddress("http://url").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
-        when(service.requestCatalog(any(), any(), any(), any())).thenReturn(completedFuture(StatusResult.success("{}".getBytes())));
+        when(service.requestCatalog(any(), any(), any(), any(), any())).thenReturn(completedFuture(StatusResult.success("{}".getBytes())));
         var requestBody = Json.createObjectBuilder().add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
 
         given()
@@ -113,7 +118,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
         var request = CatalogRequest.Builder.newInstance().counterPartyAddress("http://url").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
-        when(service.requestCatalog(any(), any(), any(), any())).thenReturn(completedFuture(StatusResult.failure(FATAL_ERROR, "error")));
+        when(service.requestCatalog(any(), any(), any(), any(), any())).thenReturn(completedFuture(StatusResult.failure(FATAL_ERROR, "error")));
 
         var requestBody = Json.createObjectBuilder().add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
 
@@ -131,7 +136,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
         var request = CatalogRequest.Builder.newInstance().counterPartyAddress("http://url").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
-        when(service.requestCatalog(any(), any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
+        when(service.requestCatalog(any(), any(), any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
         var requestBody = Json.createObjectBuilder().add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
 
         given()
@@ -153,7 +158,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
                 .build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(request));
-        when(service.requestDataset(any(), any(), any(), any())).thenReturn(CompletableFuture.completedFuture(StatusResult.success("{}".getBytes())));
+        when(service.requestDataset(any(), any(), any(), any(), any())).thenReturn(CompletableFuture.completedFuture(StatusResult.success("{}".getBytes())));
         var requestBody = Json.createObjectBuilder().add(DATASET_REQUEST_PROTOCOL, "any").build();
 
         given()
@@ -166,7 +171,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
 
         verify(validatorRegistry).validate(eq(DATASET_REQUEST_TYPE), any());
         verify(transformerRegistry).transform(any(), eq(DatasetRequest.class));
-        verify(service).requestDataset("dataset-id", "providerId", "http://provider-url", "protocol");
+        verify(service).requestDataset(isA(ParticipantContext.class), eq("dataset-id"), eq("providerId"), eq("http://provider-url"), eq("protocol"));
     }
 
     @Test
@@ -206,7 +211,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
         var request = DatasetRequest.Builder.newInstance().counterPartyAddress("http://url").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(DatasetRequest.class))).thenReturn(Result.success(request));
-        when(service.requestDataset(any(), any(), any(), any())).thenReturn(completedFuture(StatusResult.failure(FATAL_ERROR, "error")));
+        when(service.requestDataset(any(), any(), any(), any(), any())).thenReturn(completedFuture(StatusResult.failure(FATAL_ERROR, "error")));
 
         var requestBody = Json.createObjectBuilder().add(DATASET_REQUEST_PROTOCOL, "any").build();
 
@@ -224,7 +229,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
         var request = DatasetRequest.Builder.newInstance().counterPartyAddress("http://url").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(DatasetRequest.class))).thenReturn(Result.success(request));
-        when(service.requestDataset(any(), any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
+        when(service.requestDataset(any(), any(), any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
         var requestBody = Json.createObjectBuilder().add(DATASET_REQUEST_PROTOCOL, "any").build();
 
         given()
@@ -241,7 +246,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
         var request = CatalogRequest.Builder.newInstance().counterPartyAddress("http://url").build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(argThat(o -> o instanceof JsonObject jo && jo.containsKey(CatalogRequest.CATALOG_REQUEST_ADDITIONAL_SCOPES)), eq(CatalogRequest.class))).thenReturn(Result.success(request));
-        when(service.requestCatalog(any(), any(), any(), any())).thenReturn(completedFuture(StatusResult.success("{}".getBytes())));
+        when(service.requestCatalog(any(), any(), any(), any(), any())).thenReturn(completedFuture(StatusResult.success("{}".getBytes())));
         var requestBody = Json.createObjectBuilder()
                 .add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any")
                 .add(CatalogRequest.CATALOG_REQUEST_ADDITIONAL_SCOPES, Json.createArrayBuilder(List.of("scope1", "scope2")).build())

@@ -587,7 +587,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
         process.lastSentProtocolMessage(message.getId());
 
-        return dispatcherRegistry.dispatch(responseType, message);
+        return dispatcherRegistry.dispatch(process.getParticipantContextId(), responseType, message);
     }
 
     private <T> void handleResult(TransferProcess transferProcess, List<StatusResult<T>> responses, ResponsesHandler<StatusResult<T>> handler) {

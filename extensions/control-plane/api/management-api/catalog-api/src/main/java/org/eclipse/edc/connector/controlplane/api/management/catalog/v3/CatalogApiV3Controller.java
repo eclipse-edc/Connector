@@ -23,6 +23,7 @@ import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.BaseCatalogApiController;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
@@ -32,8 +33,9 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 @Produces(APPLICATION_JSON)
 @Path("/v3/catalog")
 public class CatalogApiV3Controller extends BaseCatalogApiController implements CatalogApiV3 {
-    public CatalogApiV3Controller(CatalogService service, TypeTransformerRegistry transformerRegistry, JsonObjectValidatorRegistry validatorRegistry) {
-        super(service, transformerRegistry, validatorRegistry);
+    public CatalogApiV3Controller(CatalogService service, TypeTransformerRegistry transformerRegistry,
+                                  JsonObjectValidatorRegistry validatorRegistry, SingleParticipantContextSupplier participantContextSupplier) {
+        super(service, transformerRegistry, validatorRegistry, participantContextSupplier);
     }
 
     @POST

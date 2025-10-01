@@ -96,7 +96,7 @@ public class IdentityAndTrustService implements IdentityService {
     }
 
     @Override
-    public Result<TokenRepresentation> obtainClientCredentials(TokenParameters parameters) {
+    public Result<TokenRepresentation> obtainClientCredentials(String participantContextId, TokenParameters parameters) {
         var aud = parameters.getStringClaim(AUDIENCE);
         var scope = parameters.getStringClaim(SCOPE);
         parameters = TokenParameters.Builder.newInstance()
@@ -127,7 +127,7 @@ public class IdentityAndTrustService implements IdentityService {
     }
 
     @Override
-    public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, VerificationContext context) {
+    public Result<ClaimToken> verifyJwtToken(String participantContextId, TokenRepresentation tokenRepresentation, VerificationContext context) {
         // strip out the "Bearer " prefix
         var token = tokenRepresentation.getToken();
         if (!token.startsWith("Bearer ")) {

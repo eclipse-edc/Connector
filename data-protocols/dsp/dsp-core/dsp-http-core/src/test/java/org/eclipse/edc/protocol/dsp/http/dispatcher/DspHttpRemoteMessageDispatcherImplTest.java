@@ -20,6 +20,7 @@ import okhttp3.Request;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
@@ -78,6 +79,8 @@ class DspHttpRemoteMessageDispatcherImplTest {
     private final AudienceResolver audienceResolver = mock();
     private final Duration timeout = Duration.of(5, SECONDS);
 
+    private final ParticipantContext participantContext = new ParticipantContext("id");
+
     private final DspHttpRemoteMessageDispatcher dispatcher =
             new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecorator, policyEngine, audienceResolver);
 
@@ -110,7 +113,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         when(tokenDecorator.decorate(any())).thenAnswer(a -> a.getArgument(0, TokenParameters.Builder.class).claims(additional));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(httpClient.executeAsync(any(), isA(List.class))).thenReturn(completedFuture(dummyResponse(200)));
-        when(identityService.obtainClientCredentials(any()))
+        when(identityService.obtainClientCredentials(any(), any()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(authToken).build()));
 
         dispatcher.registerPolicyScope(TestMessage.class, (m) -> policy, TestPolicyContext::new);
@@ -120,12 +123,12 @@ class DspHttpRemoteMessageDispatcherImplTest {
         dispatcher.registerMessage(TestMessage.class, requestFactory, mock());
 
         var message = new TestMessage();
-        var result = dispatcher.dispatch(String.class, message);
+        var result = dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, message);
 
         assertThat(result).succeedsWithin(timeout);
 
         var captor = ArgumentCaptor.forClass(TokenParameters.class);
-        verify(identityService).obtainClientCredentials(captor.capture());
+        verify(identityService).obtainClientCredentials(any(), captor.capture());
         verify(httpClient).executeAsync(argThat(r -> authToken.equals(r.headers().get("Authorization"))), isA(List.class));
         verify(requestFactory).createRequest(message);
         assertThat(captor.getValue()).satisfies(tr -> {
@@ -145,7 +148,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         when(tokenDecorator.decorate(any())).thenAnswer(a -> a.getArgument(0, TokenParameters.Builder.class).claims(additional).claims(SCOPE_CLAIM, "test-scope"));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(httpClient.executeAsync(any(), isA(List.class))).thenReturn(completedFuture(dummyResponse(200)));
-        when(identityService.obtainClientCredentials(any()))
+        when(identityService.obtainClientCredentials(any(), any()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(authToken).build()));
 
         dispatcher.registerPolicyScope(TestMessage.class, (m) -> policy, TestPolicyContext::new);
@@ -159,12 +162,12 @@ class DspHttpRemoteMessageDispatcherImplTest {
         dispatcher.registerMessage(TestMessage.class, requestFactory, mock());
 
         var message = new TestMessage();
-        var result = dispatcher.dispatch(String.class, message);
+        var result = dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, message);
 
         assertThat(result).succeedsWithin(timeout);
 
         var captor = ArgumentCaptor.forClass(TokenParameters.class);
-        verify(identityService).obtainClientCredentials(captor.capture());
+        verify(identityService).obtainClientCredentials(any(), captor.capture());
         verify(httpClient).executeAsync(argThat(r -> authToken.equals(r.headers().get("Authorization"))), isA(List.class));
         verify(requestFactory).createRequest(message);
         assertThat(captor.getValue()).satisfies(tr -> {
@@ -184,7 +187,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         when(tokenDecorator.decorate(any())).thenAnswer(a -> a.getArgument(0, TokenParameters.Builder.class).claims(additional));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(httpClient.executeAsync(any(), isA(List.class))).thenReturn(completedFuture(dummyResponse(200)));
-        when(identityService.obtainClientCredentials(any()))
+        when(identityService.obtainClientCredentials(any(), any()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(authToken).build()));
 
         dispatcher.registerPolicyScope(TestMessage.class, (m) -> policy, TestPolicyContext::new);
@@ -198,12 +201,12 @@ class DspHttpRemoteMessageDispatcherImplTest {
         dispatcher.registerMessage(TestMessage.class, requestFactory, mock());
 
         var message = new TestMessage();
-        var result = dispatcher.dispatch(String.class, message);
+        var result = dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, message);
 
         assertThat(result).succeedsWithin(timeout);
 
         var captor = ArgumentCaptor.forClass(TokenParameters.class);
-        verify(identityService).obtainClientCredentials(captor.capture());
+        verify(identityService).obtainClientCredentials(any(), captor.capture());
         verify(httpClient).executeAsync(argThat(r -> authToken.equals(r.headers().get("Authorization"))), isA(List.class));
         verify(requestFactory).createRequest(message);
         verify(policyEngine).evaluate(any(), AdditionalMatchers.and(isA(RequestPolicyContext.class), argThat(ctx -> {
@@ -220,7 +223,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
 
     @Test
     void dispatch_messageNotRegistered_throwException() {
-        assertThat(dispatcher.dispatch(String.class, new TestMessage())).failsWithin(timeout)
+        assertThat(dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, new TestMessage())).failsWithin(timeout)
                 .withThrowableThat().withCauseInstanceOf(EdcException.class).withMessageContaining("found");
 
         verifyNoInteractions(httpClient);
@@ -231,9 +234,9 @@ class DspHttpRemoteMessageDispatcherImplTest {
         dispatcher.registerMessage(TestMessage.class, requestFactory, mock());
         when(audienceResolver.resolve(any())).thenReturn(Result.success(AUDIENCE_VALUE));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
-        when(identityService.obtainClientCredentials(any())).thenReturn(Result.failure("error"));
+        when(identityService.obtainClientCredentials(any(), any())).thenReturn(Result.failure("error"));
 
-        assertThat(dispatcher.dispatch(String.class, new TestMessage())).failsWithin(timeout)
+        assertThat(dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, new TestMessage())).failsWithin(timeout)
                 .withThrowableThat().withCauseInstanceOf(EdcException.class).withMessageContaining("credentials");
 
         verifyNoInteractions(httpClient);
@@ -245,7 +248,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         when(audienceResolver.resolve(any())).thenReturn(Result.failure("audience fetch failure"));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
 
-        assertThat(dispatcher.dispatch(String.class, new TestMessage())).failsWithin(timeout)
+        assertThat(dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, new TestMessage())).failsWithin(timeout)
                 .withThrowableThat().withCauseInstanceOf(EdcException.class).withMessageContaining("audience fetch failure");
 
         verifyNoInteractions(httpClient);
@@ -256,11 +259,11 @@ class DspHttpRemoteMessageDispatcherImplTest {
         when(audienceResolver.resolve(any())).thenReturn(Result.success(AUDIENCE_VALUE));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(httpClient.executeAsync(any(), isA(List.class))).thenReturn(completedFuture(dummyResponse(200)));
-        when(identityService.obtainClientCredentials(any()))
+        when(identityService.obtainClientCredentials(any(), any()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("any").build()));
         dispatcher.registerMessage(TestMessage.class, requestFactory, mock());
 
-        var result = dispatcher.dispatch(String.class, new TestMessage());
+        var result = dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, new TestMessage());
 
         assertThat(result).succeedsWithin(timeout);
         verifyNoInteractions(policyEngine);
@@ -276,7 +279,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         when(tokenDecorator.decorate(any())).thenAnswer(a -> a.getArgument(0, TokenParameters.Builder.class).claims(additional));
         when(rqFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(httpClient.executeAsync(any(), isA(List.class))).thenReturn(completedFuture(dummyResponse(200)));
-        when(identityService.obtainClientCredentials(any()))
+        when(identityService.obtainClientCredentials(any(), any()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token(authToken).build()));
 
         dispatcher.registerPolicyScope(CatalogRequestMessage.class, (m) -> policy, TestPolicyContext::new);
@@ -290,12 +293,12 @@ class DspHttpRemoteMessageDispatcherImplTest {
         dispatcher.registerMessage(CatalogRequestMessage.class, rqFactory, mock());
 
         var message = CatalogRequestMessage.Builder.newInstance().additionalScopes("scope1", "scope2").build();
-        var result = dispatcher.dispatch(String.class, message);
+        var result = dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, message);
 
         assertThat(result).succeedsWithin(timeout);
 
         var captor = ArgumentCaptor.forClass(TokenParameters.class);
-        verify(identityService).obtainClientCredentials(captor.capture());
+        verify(identityService).obtainClientCredentials(any(), captor.capture());
         verify(httpClient).executeAsync(argThat(r -> authToken.equals(r.headers().get("Authorization"))), isA(List.class));
         verify(rqFactory).createRequest(message);
         verify(policyEngine).evaluate(any(), and(isA(RequestPolicyContext.class), argThat(ctx -> {
@@ -315,7 +318,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         when(audienceResolver.resolve(any())).thenReturn(Result.success(AUDIENCE_VALUE));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(httpClient.executeAsync(any(), isA(List.class))).thenReturn(completedFuture(dummyResponse(200)));
-        when(identityService.obtainClientCredentials(any()))
+        when(identityService.obtainClientCredentials(any(), any()))
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("any").build()));
         when(policyEngine.evaluate(eq(policy), isA(RequestPolicyContext.class))).thenAnswer((a -> {
             a.getArgument(1, RequestPolicyContext.class).requestScopeBuilder().scope("test-scope");
@@ -325,10 +328,10 @@ class DspHttpRemoteMessageDispatcherImplTest {
         dispatcher.registerMessage(TestMessage.class, requestFactory, mock());
         dispatcher.registerPolicyScope(TestMessage.class, m -> policy, TestPolicyContext::new);
 
-        var result = dispatcher.dispatch(String.class, new TestMessage());
+        var result = dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, new TestMessage());
 
         var captor = ArgumentCaptor.forClass(TokenParameters.class);
-        verify(identityService).obtainClientCredentials(captor.capture());
+        verify(identityService).obtainClientCredentials(any(), captor.capture());
         assertThat(result).succeedsWithin(timeout);
         verify(policyEngine).evaluate(eq(policy), and(isA(PolicyContext.class),
                 and(isA(RequestPolicyContext.class), argThat(c -> c.requestScopeBuilder() != null))));
@@ -376,7 +379,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
             respondWith(dummyResponse(200), bodyExtractor);
             when(bodyExtractor.extractBody(any(), any())).thenReturn("response");
 
-            var future = dispatcher.dispatch(String.class, new TestMessage());
+            var future = dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, new TestMessage());
 
             assertThat(future).succeedsWithin(timeout).satisfies(result -> {
                 assertThat(result).isSucceeded().isEqualTo("response");
@@ -388,7 +391,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
             var responseBody = ResponseBody.create("expectedValue", MediaType.get("application/json"));
             respondWith(dummyResponseBuilder(400).body(responseBody).build(), bodyExtractor);
 
-            var future = dispatcher.dispatch(String.class, new TestMessage());
+            var future = dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, new TestMessage());
 
             assertThat(future).succeedsWithin(timeout).satisfies(result -> {
                 assertThat(result).isFailed().satisfies(failure -> {
@@ -403,7 +406,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         void shouldReturnRetryError_whenResponseIsServerError() {
             respondWith(dummyResponse(500), bodyExtractor);
 
-            var future = dispatcher.dispatch(String.class, new TestMessage());
+            var future = dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, new TestMessage());
 
             assertThat(future).succeedsWithin(timeout).satisfies(result -> {
                 assertThat(result).isFailed().satisfies(failure -> {
@@ -417,7 +420,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
             when(audienceResolver.resolve(any())).thenReturn(Result.success(AUDIENCE_VALUE));
             when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
             when(httpClient.executeAsync(any(), isA(List.class))).thenReturn(completedFuture(response));
-            when(identityService.obtainClientCredentials(any()))
+            when(identityService.obtainClientCredentials(any(), any()))
                     .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("token").build()));
             dispatcher.registerMessage(TestMessage.class, requestFactory, bodyExtractor);
         }

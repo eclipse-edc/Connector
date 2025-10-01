@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.services.spi.catalog;
 
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
 
@@ -30,7 +31,7 @@ public interface CatalogService {
      * @param additionalScopes    optional list of additional scope values that are intended for use with the IAM subsystem
      * @return the provider's catalog
      */
-    CompletableFuture<StatusResult<byte[]>> requestCatalog(String counterPartyId, String counterPartyAddress, String protocol, QuerySpec querySpec, String... additionalScopes);
+    CompletableFuture<StatusResult<byte[]>> requestCatalog(ParticipantContext participantContext, String counterPartyId, String counterPartyAddress, String protocol, QuerySpec querySpec, String... additionalScopes);
 
     /**
      * Return the dataset
@@ -40,5 +41,5 @@ public interface CatalogService {
      * @param protocol            the protocol.
      * @return the provider dataset.
      */
-    CompletableFuture<StatusResult<byte[]>> requestDataset(String id, String counterPartyId, String counterPartyAddress, String protocol);
+    CompletableFuture<StatusResult<byte[]>> requestDataset(ParticipantContext participantContext, String id, String counterPartyId, String counterPartyAddress, String protocol);
 }

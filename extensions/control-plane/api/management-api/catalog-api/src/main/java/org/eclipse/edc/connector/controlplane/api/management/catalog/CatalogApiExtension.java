@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.api.management.catalog.validation.
 import org.eclipse.edc.connector.controlplane.api.management.catalog.validation.DatasetRequestValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
@@ -67,6 +68,9 @@ public class CatalogApiExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
 
+    @Inject
+    private SingleParticipantContextSupplier participantContextSupplier;
+
     @Override
     public String name() {
         return NAME;
@@ -78,13 +82,13 @@ public class CatalogApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectToDatasetRequestTransformer());
 
         var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
-        webService.registerResource(ApiContext.MANAGEMENT, new CatalogApiV3Controller(service, managementApiTransformerRegistry, validatorRegistry));
+        webService.registerResource(ApiContext.MANAGEMENT, new CatalogApiV3Controller(service, managementApiTransformerRegistry, validatorRegistry, participantContextSupplier));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
 
         validatorRegistry.register(CATALOG_REQUEST_TYPE, CatalogRequestValidator.instance(criterionOperatorRegistry));
         validatorRegistry.register(DATASET_REQUEST_TYPE, DatasetRequestValidator.instance());
 
-        webService.registerResource(ApiContext.MANAGEMENT, new CatalogApiV4Controller(service, managementApiTransformerRegistry, validatorRegistry));
+        webService.registerResource(ApiContext.MANAGEMENT, new CatalogApiV4Controller(service, managementApiTransformerRegistry, validatorRegistry, participantContextSupplier));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
     }
 }

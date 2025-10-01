@@ -78,6 +78,7 @@ import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.only;
@@ -87,8 +88,8 @@ import static org.mockito.Mockito.when;
 
 class ConsumerContractNegotiationManagerImplTest {
 
+    public static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
     private static final int RETRY_LIMIT = 1;
-
     private final ContractNegotiationStore store = mock();
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
     private final PolicyDefinitionStore policyStore = mock();
@@ -128,7 +129,7 @@ class ConsumerContractNegotiationManagerImplTest {
                         .build()))
                 .build();
 
-        var result = manager.initiate(new ParticipantContext("participantContextId"), request);
+        var result = manager.initiate(new ParticipantContext(PARTICIPANT_CONTEXT_ID), request);
 
         assertThat(result.succeeded()).isTrue();
         verify(store).save(argThat(negotiation ->
@@ -161,7 +162,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var negotiation = contractNegotiationBuilder().correlationId("correlationId").state(REQUESTING.code()).contractOffer(contractOffer()).build();
         when(store.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").build();
-        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
+        when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> protocolWebhookUrl);
 
@@ -171,7 +172,7 @@ class ConsumerContractNegotiationManagerImplTest {
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == REQUESTED.code()));
             var captor = ArgumentCaptor.<ContractRequestMessage>captor();
-            verify(dispatcherRegistry, only()).dispatch(any(), captor.capture());
+            verify(dispatcherRegistry, only()).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), captor.capture());
             var message = captor.getValue();
             assertThat(message.getProcessId()).isEqualTo("correlationId");
             assertThat(message.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
@@ -188,7 +189,7 @@ class ConsumerContractNegotiationManagerImplTest {
                 .build();
         when(store.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").build();
-        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
+        when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> protocolWebhookUrl);
 
@@ -198,7 +199,7 @@ class ConsumerContractNegotiationManagerImplTest {
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == REQUESTED.code()));
             var captor = ArgumentCaptor.<ContractRequestMessage>captor();
-            verify(dispatcherRegistry, only()).dispatch(any(), captor.capture());
+            verify(dispatcherRegistry, only()).dispatch(any(), any(), captor.capture());
             var message = captor.getValue();
             assertThat(message.getProcessId()).isEqualTo("correlationId");
             assertThat(message.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
@@ -212,7 +213,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var negotiation = contractNegotiationBuilder().correlationId(null).state(REQUESTING.code()).contractOffer(contractOffer()).build();
         when(store.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").build();
-        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
+        when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> protocolWebhookUrl);
 
@@ -225,7 +226,7 @@ class ConsumerContractNegotiationManagerImplTest {
             assertThat(storedNegotiation.getState()).isEqualTo(REQUESTED.code());
             assertThat(storedNegotiation.getCorrelationId()).isEqualTo("providerPid");
             var messageCaptor = ArgumentCaptor.<ContractRequestMessage>captor();
-            verify(dispatcherRegistry, only()).dispatch(any(), messageCaptor.capture());
+            verify(dispatcherRegistry, only()).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), messageCaptor.capture());
             var message = messageCaptor.getValue();
             assertThat(message.getProcessId()).isEqualTo(negotiation.getId());
             assertThat(message.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
@@ -238,7 +239,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var negotiation = contractNegotiationBuilder().correlationId("correlationId").state(REQUESTING.code()).contractOffer(contractOffer()).build();
         when(store.nextNotLeased(anyInt(), stateIs(REQUESTING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").build();
-        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
+        when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(null);
 
@@ -258,7 +259,7 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.nextNotLeased(anyInt(), stateIs(ACCEPTING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
 
         var captor = ArgumentCaptor.forClass(ContractNegotiationEventMessage.class);
-        when(dispatcherRegistry.dispatch(any(), captor.capture())).thenReturn(completedFuture(StatusResult.success("any")));
+        when(dispatcherRegistry.dispatch(any(), any(), captor.capture())).thenReturn(completedFuture(StatusResult.success("any")));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
         manager.start();
@@ -267,7 +268,7 @@ class ConsumerContractNegotiationManagerImplTest {
             var message = captor.getValue();
             assertThat(message.getPolicy()).isNotNull();
             verify(store).save(argThat(p -> p.getState() == ACCEPTED.code()));
-            verify(dispatcherRegistry, only()).dispatch(any(), any());
+            verify(dispatcherRegistry, only()).dispatch(any(), any(), any());
             verify(listener).accepted(any());
         });
     }
@@ -291,13 +292,13 @@ class ConsumerContractNegotiationManagerImplTest {
         var negotiation = contractNegotiationBuilder().state(VERIFYING.code()).contractAgreement(createContractAgreement()).build();
         when(store.nextNotLeased(anyInt(), stateIs(VERIFYING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
-        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+        when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == VERIFIED.code()));
-            verify(dispatcherRegistry).dispatch(any(), isA(ContractAgreementVerificationMessage.class));
+            verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), isA(ContractAgreementVerificationMessage.class));
         });
     }
 
@@ -306,14 +307,14 @@ class ConsumerContractNegotiationManagerImplTest {
         var negotiation = contractNegotiationBuilder().state(TERMINATING.code()).contractOffer(contractOffer()).build();
         negotiation.setErrorDetail("an error");
         when(store.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
-        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+        when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
         manager.start();
 
         await().untilAsserted(() -> {
             verify(store).save(argThat(p -> p.getState() == TERMINATED.code()));
-            verify(dispatcherRegistry, only()).dispatch(any(), any());
+            verify(dispatcherRegistry, only()).dispatch(any(), any(), any());
             verify(listener).terminated(any());
         });
     }
@@ -341,7 +342,7 @@ class ConsumerContractNegotiationManagerImplTest {
     void dispatchException(ContractNegotiationStates starting, ContractNegotiationStates ending, CompletableFuture<StatusResult<Object>> result, UnaryOperator<ContractNegotiation.Builder> builderEnricher) {
         var negotiation = builderEnricher.apply(contractNegotiationBuilder().state(starting.code())).build();
         when(store.nextNotLeased(anyInt(), stateIs(starting.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
-        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(result);
+        when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(result);
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol())).thenReturn(() -> protocolWebhookUrl);
 
@@ -353,7 +354,7 @@ class ConsumerContractNegotiationManagerImplTest {
             assertThat(captor.getAllValues()).hasSize(1).first().satisfies(n -> {
                 assertThat(n.getState()).isEqualTo(ending.code());
             });
-            verify(dispatcherRegistry, only()).dispatch(any(), any());
+            verify(dispatcherRegistry, only()).dispatch(any(), any(), any());
         });
     }
 
@@ -368,6 +369,7 @@ class ConsumerContractNegotiationManagerImplTest {
                 .counterPartyId("connectorId")
                 .counterPartyAddress("callbackAddress")
                 .protocol("protocol")
+                .participantContextId(PARTICIPANT_CONTEXT_ID)
                 .stateTimestamp(Instant.now().toEpochMilli());
     }
 

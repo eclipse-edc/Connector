@@ -68,6 +68,7 @@ class IdentityAndTrustServiceTest {
     public static final String EXPECTED_OWN_DID = "did:web:test";
 
     public static final String CONSUMER_DID = "did:web:consumer";
+    private static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
     private final SecureTokenService mockedSts = mock();
     private final CredentialServiceClient mockedClient = mock();
     private final CredentialServiceUrlResolver credentialServiceUrlResolverMock = mock();
@@ -112,7 +113,7 @@ class IdentityAndTrustServiceTest {
                     .claims(SCOPE, scope)
                     .claims(AUDIENCE, "test-audience")
                     .build();
-            assertThat(service.obtainClientCredentials(tp))
+            assertThat(service.obtainClientCredentials(PARTICIPANT_CONTEXT_ID, tp))
                     .isNotNull()
                     .isFailed()
                     .detail().contains("Scope string invalid");
@@ -125,7 +126,7 @@ class IdentityAndTrustServiceTest {
                     .claims(SCOPE, scope)
                     .claims(AUDIENCE, "test-audience")
                     .build();
-            var result = service.obtainClientCredentials(tp);
+            var result = service.obtainClientCredentials(PARTICIPANT_CONTEXT_ID, tp);
             assertThat(result)
                     .isNotNull()
                     .isSucceeded();
@@ -142,7 +143,7 @@ class IdentityAndTrustServiceTest {
                     .claims(AUDIENCE, "test-audience")
                     .build();
             when(mockedSts.createToken(any(), any())).thenReturn(success(TestFunctions.createToken()));
-            assertThat(service.obtainClientCredentials(tp)).isSucceeded();
+            assertThat(service.obtainClientCredentials(PARTICIPANT_CONTEXT_ID, tp)).isSucceeded();
             verify(mockedSts).createToken(argThat(m -> m.get("iss").equals(EXPECTED_OWN_DID) &&
                     m.get("sub").equals(EXPECTED_OWN_DID) &&
                     m.get("aud").equals(tp.getStringClaim(AUDIENCE))), eq(scope));
@@ -157,7 +158,7 @@ class IdentityAndTrustServiceTest {
         void presentationRequestFails() {
             when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(failure("test-failure"));
             var token = TestFunctions.createToken();
-            var result = service.verifyJwtToken(token, verificationContext());
+            var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, verificationContext());
             assertThat(result).isFailed().detail().isEqualTo("test-failure");
             verifyNoInteractions(credentialValidationServiceMock);
             verify(mockedClient).requestPresentation(any(), any(), isA(List.class));
@@ -170,7 +171,7 @@ class IdentityAndTrustServiceTest {
                     .thenReturn(Result.failure("test error"));
             when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(success(List.of(createPresentationContainer())));
             var token = TestFunctions.createToken();
-            var result = service.verifyJwtToken(token, verificationContext());
+            var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, verificationContext());
             assertThat(result).isFailed().detail().isEqualTo("test error");
 
         }
@@ -180,7 +181,7 @@ class IdentityAndTrustServiceTest {
             when(actionMock.apply(any())).thenReturn(failure("test failure"));
 
             var token = TestFunctions.createToken();
-            assertThat(service.verifyJwtToken(token, verificationContext()))
+            assertThat(service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, verificationContext()))
                     .isFailed()
                     .messages().hasSize(1)
                     .containsExactly("test failure");
@@ -190,7 +191,7 @@ class IdentityAndTrustServiceTest {
         void jwtTokenNotVerified() {
             when(actionMock.apply(any())).thenReturn(failure("test-failure"));
             var token = TestFunctions.createToken();
-            assertThat(service.verifyJwtToken(token, verificationContext()))
+            assertThat(service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, verificationContext()))
                     .isFailed()
                     .messages().hasSize(1)
                     .containsExactly("test-failure");
@@ -199,7 +200,7 @@ class IdentityAndTrustServiceTest {
         @Test
         void cannotResolveCredentialServiceUrl() {
             when(credentialServiceUrlResolverMock.resolve(any())).thenReturn(Result.failure("test-failure"));
-            assertThat(service.verifyJwtToken(TestFunctions.createToken(), verificationContext()))
+            assertThat(service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, TestFunctions.createToken(), verificationContext()))
                     .isFailed()
                     .detail()
                     .isEqualTo("test-failure");
@@ -223,7 +224,7 @@ class IdentityAndTrustServiceTest {
             when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer)));
             when(credentialValidationServiceMock.validate(anyList(), anyCollection())).thenReturn(success());
             var token = TestFunctions.createToken(CONSUMER_DID, EXPECTED_OWN_DID);
-            var result = service.verifyJwtToken(token, verificationContext());
+            var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, verificationContext());
             assertThat(result).isFailed()
                     .detail()
                     .isEqualTo("Returned presentations contains invalid issuer. Expected did:web:consumer found [did:web:wrong]");
@@ -245,7 +246,7 @@ class IdentityAndTrustServiceTest {
             when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer)));
             when(credentialValidationServiceMock.validate(anyList(), anyCollection())).thenReturn(success());
             var token = TestFunctions.createToken(CONSUMER_DID, EXPECTED_OWN_DID);
-            var result = service.verifyJwtToken(token, verificationContext());
+            var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, verificationContext());
             assertThat(result).isSucceeded()
                     .satisfies(ct -> {
                         var vc = (List<VerifiableCredential>) ct.getListClaim("vc");
@@ -276,7 +277,7 @@ class IdentityAndTrustServiceTest {
             when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer)));
             when(credentialValidationServiceMock.validate(anyList(), anyCollection())).thenReturn(success());
             var token = TestFunctions.createToken(CONSUMER_DID, EXPECTED_OWN_DID);
-            var result = service.verifyJwtToken(token, verificationContext());
+            var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, verificationContext());
             assertThat(result).isSucceeded()
                     .satisfies(ct -> {
                         var credentials = (List<VerifiableCredential>) ct.getClaims().get("vc");
@@ -328,7 +329,7 @@ class IdentityAndTrustServiceTest {
             when(credentialValidationServiceMock.validate(anyList(), anyCollection())).thenReturn(success());
 
             var token = TestFunctions.createToken(CONSUMER_DID, EXPECTED_OWN_DID);
-            var result = service.verifyJwtToken(token, verificationContext());
+            var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, verificationContext());
             assertThat(result).isSucceeded()
                     .satisfies(ct -> {
                         var credentials = (List<VerifiableCredential>) ct.getListClaim("vc");
@@ -362,7 +363,7 @@ class IdentityAndTrustServiceTest {
                     .scopes(List.of("org.eclipse.edc.vc.type:test-type:read", "org.eclipse.edc.vc.type:not-provided-type:read")) //should trigger a failure
                     .build();
 
-            var result = service.verifyJwtToken(token, context);
+            var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, context);
 
             assertThat(result).isFailed()
                     .detail()
@@ -393,7 +394,7 @@ class IdentityAndTrustServiceTest {
                     .scopes(List.of("org.eclipse.edc.vc.type:not-provided-type:read")) //should trigger a failure
                     .build();
 
-            var result = service.verifyJwtToken(token, context);
+            var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, context);
 
             assertThat(result).isFailed()
                     .detail()

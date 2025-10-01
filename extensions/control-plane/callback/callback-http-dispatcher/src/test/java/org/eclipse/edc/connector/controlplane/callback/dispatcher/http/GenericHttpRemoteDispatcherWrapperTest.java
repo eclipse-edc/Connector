@@ -90,7 +90,7 @@ public class GenericHttpRemoteDispatcherWrapperTest {
                         .withBody("{}")));
 
 
-        var future = dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP));
+        var future = dispatcher.dispatch("id", Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP));
 
         assertThat(future).succeedsWithin(5, TimeUnit.SECONDS);
         verify(httpClient, atMostOnce()).execute(any());
@@ -123,7 +123,7 @@ public class GenericHttpRemoteDispatcherWrapperTest {
                         .withStatus(200)
                         .withBody("{}")));
 
-        var future = dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP));
+        var future = dispatcher.dispatch("id", Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP));
 
         assertThat(future).succeedsWithin(5, TimeUnit.SECONDS);
         verify(httpClient, atMostOnce()).execute(any());
@@ -149,7 +149,7 @@ public class GenericHttpRemoteDispatcherWrapperTest {
                 .willReturn(aResponse()
                         .withStatus(400)
                         .withBody("{}")));
-        var future = dispatcher.dispatch(Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP));
+        var future = dispatcher.dispatch("id", Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP));
 
         assertThat(future).failsWithin(5, TimeUnit.SECONDS).withThrowableThat().havingCause().isInstanceOf(EdcException.class);
         verify(httpClient, atMostOnce()).execute(any());

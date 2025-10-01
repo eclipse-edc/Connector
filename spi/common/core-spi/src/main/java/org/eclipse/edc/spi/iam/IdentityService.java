@@ -32,7 +32,7 @@ public interface IdentityService {
      * @param parameters parameter object defining the token properties.
      * @return generated client token.
      */
-    Result<TokenRepresentation> obtainClientCredentials(TokenParameters parameters);
+    Result<TokenRepresentation> obtainClientCredentials(String participantContextId, TokenParameters parameters);
 
     /**
      * Verifies a JWT bearer token.
@@ -41,6 +41,6 @@ public interface IdentityService {
      * @param context             The {@link  VerificationContext}.
      * @return Result of the validation.
      */
-    Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, VerificationContext context);
+    Result<ClaimToken> verifyJwtToken(String participantContextId, TokenRepresentation tokenRepresentation, VerificationContext context);
 
 }

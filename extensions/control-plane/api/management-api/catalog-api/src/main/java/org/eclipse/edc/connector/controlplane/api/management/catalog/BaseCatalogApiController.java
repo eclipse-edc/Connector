@@ -19,6 +19,7 @@ import jakarta.ws.rs.container.AsyncResponse;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -29,6 +30,7 @@ import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE;
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 
 public abstract class BaseCatalogApiController {
@@ -36,22 +38,28 @@ public abstract class BaseCatalogApiController {
     private final CatalogService service;
     private final TypeTransformerRegistry transformerRegistry;
     private final JsonObjectValidatorRegistry validatorRegistry;
+    private final SingleParticipantContextSupplier participantContextSupplier;
 
     public BaseCatalogApiController(CatalogService service, TypeTransformerRegistry transformerRegistry,
-                                    JsonObjectValidatorRegistry validatorRegistry) {
+                                    JsonObjectValidatorRegistry validatorRegistry, SingleParticipantContextSupplier participantContextSupplier) {
         this.service = service;
         this.transformerRegistry = transformerRegistry;
         this.validatorRegistry = validatorRegistry;
+        this.participantContextSupplier = participantContextSupplier;
     }
 
     public void requestCatalog(JsonObject requestBody, AsyncResponse response) {
         validatorRegistry.validate(CATALOG_REQUEST_TYPE, requestBody).orElseThrow(ValidationFailureException::new);
 
+        var participantContext = participantContextSupplier.get()
+                .orElseThrow(exceptionMapper(CatalogRequest.class));
+
         var request = transformerRegistry.transform(requestBody, CatalogRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
+
         var scopes = request.getAdditionalScopes().toArray(new String[0]);
-        service.requestCatalog(request.getCounterPartyId(), request.getCounterPartyAddress(), request.getProtocol(), request.getQuerySpec(), scopes)
+        service.requestCatalog(participantContext, request.getCounterPartyId(), request.getCounterPartyAddress(), request.getProtocol(), request.getQuerySpec(), scopes)
                 .whenComplete((result, throwable) -> {
                     try {
                         response.resume(toResponse(result, throwable));
@@ -64,10 +72,13 @@ public abstract class BaseCatalogApiController {
     public void getDataset(JsonObject requestBody, AsyncResponse response) {
         validatorRegistry.validate(DATASET_REQUEST_TYPE, requestBody).orElseThrow(ValidationFailureException::new);
 
+        var participantContext = participantContextSupplier.get()
+                .orElseThrow(exceptionMapper(CatalogRequest.class));
+
         var request = transformerRegistry.transform(requestBody, DatasetRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
-        service.requestDataset(request.getId(), request.getCounterPartyId(), request.getCounterPartyAddress(), request.getProtocol())
+        service.requestDataset(participantContext, request.getId(), request.getCounterPartyId(), request.getCounterPartyAddress(), request.getProtocol())
                 .whenComplete((result, throwable) -> {
                     try {
                         response.resume(toResponse(result, throwable));
