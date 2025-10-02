@@ -71,7 +71,7 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
 
     @Override
     public StatusResult<DataFlowResponseMessage> provision(DataFlowProvisionMessage message) {
-        var url = dataPlane.getUrl().toString();
+        var url = "%s/prepare".formatted(dataPlane.getUrl());
         return createRequestBuilder(message, url)
                 .compose(builder -> httpClient.request(builder)
                         .flatMap(result -> result.map(this::handleResponse)
@@ -81,7 +81,7 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
     @WithSpan
     @Override
     public StatusResult<DataFlowResponseMessage> start(DataFlowStartMessage message) {
-        var url = dataPlane.getUrl().toString();
+        var url = "%s/start".formatted(dataPlane.getUrl());
         return createRequestBuilder(message, url)
                 .compose(builder -> httpClient.request(builder)
                         .flatMap(result -> result.map(this::handleResponse)

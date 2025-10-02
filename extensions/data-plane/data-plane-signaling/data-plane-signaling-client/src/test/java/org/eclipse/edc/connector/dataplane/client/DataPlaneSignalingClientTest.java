@@ -142,12 +142,12 @@ class DataPlaneSignalingClientTest {
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
             var body = MAPPER.writeValueAsString(expected);
-            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+            dataPlane.stubFor(post(DATA_PLANE_PATH + "/start").withRequestBody(equalTo(body))
                     .willReturn(badRequest()));
 
             var result = dataPlaneClient.start(flowRequest);
 
-            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH + "/start")).withRequestBody(equalTo(body)));
 
             assertThat(result.failed()).isTrue();
             assertThat(result.getFailure().status()).isEqualTo(FATAL_ERROR);
@@ -165,12 +165,12 @@ class DataPlaneSignalingClientTest {
 
             var errorMsg = UUID.randomUUID().toString();
             var body = MAPPER.writeValueAsString(expected);
-            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+            dataPlane.stubFor(post(DATA_PLANE_PATH + "/start").withRequestBody(equalTo(body))
                     .willReturn(aResponse().withStatus(400).withBody(errorMsg)));
 
             var result = dataPlaneClient.start(flowRequest);
 
-            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH + "/start")).withRequestBody(equalTo(body)));
 
             assertThat(result.failed()).isTrue();
             assertThat(result.getFailure().status()).isEqualTo(FATAL_ERROR);
@@ -202,14 +202,13 @@ class DataPlaneSignalingClientTest {
                     .compose(DataPlaneSignalingClientTest::compact)
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
-
             var body = MAPPER.writeValueAsString(expected);
-            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+            dataPlane.stubFor(post(DATA_PLANE_PATH + "/start").withRequestBody(equalTo(body))
                     .willReturn(okJson("{}")));
 
             var result = dataPlaneClient.start(flowRequest);
 
-            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH + "/start")).withRequestBody(equalTo(body)));
 
             assertThat(result.failed()).isTrue();
             assertThat(result.getFailure().status()).isEqualTo(FATAL_ERROR);
@@ -231,14 +230,13 @@ class DataPlaneSignalingClientTest {
                     .compose(JSON_LD::compact)
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
-
             var body = MAPPER.writeValueAsString(expected);
-            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+            dataPlane.stubFor(post(DATA_PLANE_PATH + "/start").withRequestBody(equalTo(body))
                     .willReturn(okJson(MAPPER.writeValueAsString(response))));
 
             var result = dataPlaneClient.start(flowRequest);
 
-            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH + "/start")).withRequestBody(equalTo(body)));
 
             assertThat(result).isSucceeded().extracting(DataFlowResponseMessage::getDataAddress).isNotNull();
         }
@@ -255,19 +253,16 @@ class DataPlaneSignalingClientTest {
                     .compose(JSON_LD::compact)
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
-
             var body = MAPPER.writeValueAsString(expected);
-            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+            dataPlane.stubFor(post(DATA_PLANE_PATH + "/start").withRequestBody(equalTo(body))
                     .willReturn(okJson(MAPPER.writeValueAsString(response))));
 
             var result = dataPlaneClient.start(flowRequest);
 
-            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH + "/start")).withRequestBody(equalTo(body)));
 
-            assertThat(result.succeeded()).isTrue();
-            assertThat(result.getContent().getDataAddress()).isNull();
+            assertThat(result).isSucceeded().extracting(DataFlowResponseMessage::getDataAddress).isNull();
         }
-
 
         private DataFlowStartMessage createDataFlowRequest() {
             return DataFlowStartMessage.Builder.newInstance()
@@ -297,13 +292,13 @@ class DataPlaneSignalingClientTest {
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
             var body = MAPPER.writeValueAsString(expected);
-            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+            dataPlane.stubFor(post(DATA_PLANE_PATH + "/prepare").withRequestBody(equalTo(body))
                     .willReturn(badRequest()));
 
 
             var result = dataPlaneClient.provision(request);
 
-            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH + "/prepare")).withRequestBody(equalTo(body)));
 
             assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
             assertThat(result.getFailureMessages())
@@ -321,12 +316,12 @@ class DataPlaneSignalingClientTest {
             var errorMsg = UUID.randomUUID().toString();
 
             var body = MAPPER.writeValueAsString(expected);
-            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+            dataPlane.stubFor(post(DATA_PLANE_PATH + "/prepare").withRequestBody(equalTo(body))
                     .willReturn(aResponse().withStatus(400).withBody(errorMsg)));
 
             var result = dataPlaneClient.provision(request);
 
-            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH + "/prepare")).withRequestBody(equalTo(body)));
 
             assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
             assertThat(result.getFailureMessages()).anySatisfy(s -> assertThat(s).contains("400").contains(request.getProcessId()));
@@ -358,12 +353,12 @@ class DataPlaneSignalingClientTest {
 
 
             var body = MAPPER.writeValueAsString(expected);
-            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+            dataPlane.stubFor(post(DATA_PLANE_PATH + "/prepare").withRequestBody(equalTo(body))
                     .willReturn(okJson("{}")));
 
             var result = dataPlaneClient.provision(request);
 
-            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH + "/prepare")).withRequestBody(equalTo(body)));
 
             assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
             assertThat(result.getFailureMessages())
@@ -384,14 +379,13 @@ class DataPlaneSignalingClientTest {
                     .compose(JSON_LD::compact)
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
-
             var body = MAPPER.writeValueAsString(expected);
-            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+            dataPlane.stubFor(post(DATA_PLANE_PATH + "/prepare").withRequestBody(equalTo(body))
                     .willReturn(okJson(MAPPER.writeValueAsString(response))));
 
             var result = dataPlaneClient.provision(request);
 
-            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH + "/prepare")).withRequestBody(equalTo(body)));
 
             assertThat(result).isSucceeded().extracting(DataFlowResponseMessage::getDataAddress).isNotNull();
         }
@@ -408,19 +402,16 @@ class DataPlaneSignalingClientTest {
                     .compose(JSON_LD::compact)
                     .orElseThrow((e) -> new EdcException(e.getFailureDetail()));
 
-
             var body = MAPPER.writeValueAsString(expected);
-            dataPlane.stubFor(post(DATA_PLANE_PATH).withRequestBody(equalTo(body))
+            dataPlane.stubFor(post(DATA_PLANE_PATH + "/prepare").withRequestBody(equalTo(body))
                     .willReturn(okJson(MAPPER.writeValueAsString(response))));
 
             var result = dataPlaneClient.provision(request);
 
-            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH)).withRequestBody(equalTo(body)));
+            dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH + "/prepare")).withRequestBody(equalTo(body)));
 
-            assertThat(result.succeeded()).isTrue();
-            assertThat(result.getContent().getDataAddress()).isNull();
+            assertThat(result).isSucceeded().extracting(DataFlowResponseMessage::getDataAddress).isNull();
         }
-
 
         private DataFlowProvisionMessage createProvisionRequest() {
             return DataFlowProvisionMessage.Builder.newInstance()
