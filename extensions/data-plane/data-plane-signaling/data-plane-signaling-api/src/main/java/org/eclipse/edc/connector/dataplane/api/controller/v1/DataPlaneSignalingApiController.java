@@ -54,7 +54,7 @@ public class DataPlaneSignalingApiController implements DataPlaneSignalingApi {
 
     @POST
     @Override
-    public JsonObject start(JsonObject message) {
+    public JsonObject startOrPrepare(JsonObject message) {
         var type = message.getJsonArray(TYPE).getString(0);
 
         var response = switch (type) {
@@ -67,11 +67,41 @@ public class DataPlaneSignalingApiController implements DataPlaneSignalingApi {
                     .orElseThrow(f -> new EdcException(f.getFailureDetail()));
     }
 
+    @POST
+    @Path("/prepare")
+    @Override
+    public JsonObject prepare(JsonObject message) {
+        var response = provisionFlow(message);
+
+        return typeTransformerRegistry.transform(response, JsonObject.class)
+                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
+    }
+
+    @POST
+    @Path("/start")
+    @Override
+    public JsonObject start(JsonObject message) {
+        var response = startFlow(message);
+
+        return typeTransformerRegistry.transform(response, JsonObject.class)
+                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
+    }
+
+    @POST
+    @Path("/{id}/start")
+    @Override
+    public JsonObject start(@PathParam("id") String dataFlowId, JsonObject message) {
+        var response = startFlow(message);
+
+        return typeTransformerRegistry.transform(response, JsonObject.class)
+                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
+    }
+
     @GET
     @Path("/{id}/state")
     @Override
-    public JsonObject getTransferState(@PathParam("id") String transferProcessId) {
-        var state = dataPlaneManager.getTransferState(transferProcessId);
+    public JsonObject getTransferState(@PathParam("id") String dataFlowId) {
+        var state = dataPlaneManager.getTransferState(dataFlowId);
         // not really worth to create a dedicated transformer for this simple object
 
         return Json.createObjectBuilder()

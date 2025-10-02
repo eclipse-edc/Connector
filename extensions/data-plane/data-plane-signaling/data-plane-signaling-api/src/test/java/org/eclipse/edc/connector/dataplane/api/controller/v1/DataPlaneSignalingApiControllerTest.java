@@ -67,7 +67,8 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
     private final DataPlaneManager dataplaneManager = mock();
 
     @Nested
-    class Start {
+    @Deprecated(since = "0.15.0")
+    class StartOrPrepare {
 
         @Test
         void shouldStartDataFlow() {
@@ -204,6 +205,327 @@ class DataPlaneSignalingApiControllerTest extends RestControllerTestBase {
                     .contentType(ContentType.JSON)
                     .body(inputWithType(EDC_DATA_FLOW_START_MESSAGE_TYPE))
                     .post("/v1/dataflows")
+                    .then()
+                    .statusCode(500);
+
+            verify(dataplaneManager).start(eq(flowStartMessage));
+        }
+
+        private String inputWithType(String type) {
+            return Json.createObjectBuilder()
+                    .add(TYPE, Json.createArrayBuilder().add(type))
+                    .build()
+                    .toString();
+        }
+    }
+
+    @Nested
+    class Prepare {
+
+        @Test
+        void shouldProvisionDataFlow() {
+            var provisionMessage = createFlowProvisionMessage();
+            var flowResponse = DataFlowResponseMessage.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("test-edr").build()).build();
+            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowProvisionMessage.class)))
+                    .thenReturn(success(provisionMessage));
+            when(dataplaneManager.provision(any())).thenReturn(StatusResult.success(flowResponse));
+            when(transformerRegistry.transform(isA(DataFlowResponseMessage.class), eq(JsonObject.class)))
+                    .thenReturn(success(Json.createObjectBuilder().add("foo", "bar").build()));
+
+            var result = baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(inputWithType(EDC_DATA_FLOW_PROVISION_MESSAGE_TYPE))
+                    .post("/v1/dataflows/prepare")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .extract().body().as(JsonObject.class);
+
+            assertThat(result).hasEntrySatisfying("foo", val -> assertThat(((JsonString) val).getString()).isEqualTo("bar"));
+            verify(dataplaneManager).provision(same(provisionMessage));
+        }
+
+        @Test
+        void shouldReturnBadRequest_whenTransformationFails() {
+            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowProvisionMessage.class))).thenReturn(Result.failure("foo-bar"));
+
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(inputWithType(EDC_DATA_FLOW_PROVISION_MESSAGE_TYPE))
+                    .post("/v1/dataflows/prepare")
+                    .then()
+                    .statusCode(400);
+
+            verify(transformerRegistry).transform(isA(JsonObject.class), eq(DataFlowProvisionMessage.class));
+            verifyNoMoreInteractions(transformerRegistry, dataplaneManager);
+        }
+
+        @Test
+        void shouldReturnBadRequest_whenProvisionFails() {
+            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowProvisionMessage.class)))
+                    .thenReturn(success(createFlowProvisionMessage()));
+            when(dataplaneManager.provision(any()))
+                    .thenReturn(StatusResult.failure(ERROR_RETRY, "test-failure"));
+
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(inputWithType(EDC_DATA_FLOW_PROVISION_MESSAGE_TYPE))
+                    .post("/v1/dataflows/prepare")
+                    .then()
+                    .statusCode(400);
+
+            verify(transformerRegistry).transform(isA(JsonObject.class), eq(DataFlowProvisionMessage.class));
+            verify(dataplaneManager).provision(any());
+            verifyNoMoreInteractions(transformerRegistry, dataplaneManager);
+        }
+
+        @Test
+        void shouldReturnInternalServerError_whenDataAddressTransformationFails() {
+            var flowStartMessage = createFlowProvisionMessage();
+            var flowResponse = DataFlowResponseMessage.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("test-edr").build()).build();
+            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowProvisionMessage.class)))
+                    .thenReturn(success(flowStartMessage));
+            when(dataplaneManager.provision(any()))
+                    .thenReturn(StatusResult.success(flowResponse));
+            when(transformerRegistry.transform(isA(DataAddress.class), eq(JsonObject.class)))
+                    .thenReturn(failure("test-failure"));
+
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(inputWithType(EDC_DATA_FLOW_PROVISION_MESSAGE_TYPE))
+                    .post("/v1/dataflows/prepare")
+                    .then()
+                    .statusCode(500);
+
+            verify(dataplaneManager).provision(eq(flowStartMessage));
+        }
+
+        private String inputWithType(String type) {
+            return Json.createObjectBuilder()
+                    .add(TYPE, Json.createArrayBuilder().add(type))
+                    .build()
+                    .toString();
+        }
+    }
+
+    @Nested
+    class Start {
+
+        @Test
+        void shouldStartDataFlow() {
+            var flowStartMessage = createFlowStartMessage();
+            var flowResponse = DataFlowResponseMessage.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("test-edr").build()).build();
+            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class)))
+                    .thenReturn(success(flowStartMessage));
+            when(dataplaneManager.validate(any())).thenReturn(success());
+            when(dataplaneManager.start(any()))
+                    .thenReturn(StatusResult.success(flowResponse));
+            when(transformerRegistry.transform(isA(DataFlowResponseMessage.class), eq(JsonObject.class)))
+                    .thenReturn(success(Json.createObjectBuilder().add("foo", "bar").build()));
+            when(transformerRegistry.transform(isA(DataAddress.class), eq(JsonObject.class)))
+                    .thenReturn(success(Json.createObjectBuilder().add("foo", "bar").build()));
+
+            var result = baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(inputWithType(EDC_DATA_FLOW_START_MESSAGE_TYPE))
+                    .post("/v1/dataflows/start")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .extract().body().as(JsonObject.class);
+
+            assertThat(result).hasEntrySatisfying("foo", val -> assertThat(((JsonString) val).getString()).isEqualTo("bar"));
+            verify(dataplaneManager).start(eq(flowStartMessage));
+        }
+
+        @Test
+        void shouldReturnBadRequest_whenInvalidMessage() {
+            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class)))
+                    .thenReturn(success(createFlowStartMessage()));
+            when(dataplaneManager.validate(any())).thenReturn(Result.failure("foobar"));
+
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(inputWithType(EDC_DATA_FLOW_START_MESSAGE_TYPE))
+                    .post("/v1/dataflows/start")
+                    .then()
+                    .statusCode(400);
+
+            verify(transformerRegistry).transform(isA(JsonObject.class), eq(DataFlowStartMessage.class));
+            verify(dataplaneManager).validate(any(DataFlowStartMessage.class));
+            verifyNoMoreInteractions(transformerRegistry, dataplaneManager);
+        }
+
+        @Test
+        void shouldReturnBadRequest_whenTransformationFails() {
+            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class))).thenReturn(Result.failure("foo-bar"));
+
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(inputWithType(EDC_DATA_FLOW_START_MESSAGE_TYPE))
+                    .post("/v1/dataflows/start")
+                    .then()
+                    .statusCode(400);
+
+            verify(transformerRegistry).transform(isA(JsonObject.class), eq(DataFlowStartMessage.class));
+            verifyNoMoreInteractions(transformerRegistry, dataplaneManager);
+        }
+
+        @Test
+        void shouldReturnBadRequest_whenCreateEdrFails() {
+            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class)))
+                    .thenReturn(success(createFlowStartMessage()));
+            when(dataplaneManager.validate(any())).thenReturn(success());
+            when(dataplaneManager.start(any()))
+                    .thenReturn(StatusResult.failure(ERROR_RETRY, "test-failure"));
+
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(inputWithType(EDC_DATA_FLOW_START_MESSAGE_TYPE))
+                    .post("/v1/dataflows/start")
+                    .then()
+                    .statusCode(400);
+
+            verify(transformerRegistry).transform(isA(JsonObject.class), eq(DataFlowStartMessage.class));
+            verify(dataplaneManager).validate(any());
+            verify(dataplaneManager).start(any());
+            verifyNoMoreInteractions(transformerRegistry, dataplaneManager);
+        }
+
+        @Test
+        void shouldReturnInternalServerError_whenDataAddressTransformationFails() {
+            var flowStartMessage = createFlowStartMessage();
+            var flowResponse = DataFlowResponseMessage.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("test-edr").build()).build();
+
+            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class)))
+                    .thenReturn(success(flowStartMessage));
+            when(dataplaneManager.validate(any())).thenReturn(success());
+            when(dataplaneManager.start(any()))
+                    .thenReturn(StatusResult.success(flowResponse));
+
+            when(transformerRegistry.transform(isA(DataAddress.class), eq(JsonObject.class)))
+                    .thenReturn(failure("test-failure"));
+
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(inputWithType(EDC_DATA_FLOW_START_MESSAGE_TYPE))
+                    .post("/v1/dataflows/start")
+                    .then()
+                    .statusCode(500);
+
+            verify(dataplaneManager).start(eq(flowStartMessage));
+        }
+
+        private String inputWithType(String type) {
+            return Json.createObjectBuilder()
+                    .add(TYPE, Json.createArrayBuilder().add(type))
+                    .build()
+                    .toString();
+        }
+    }
+
+    @Nested
+    class StartWithId {
+
+        @Test
+        void shouldStartDataFlow() {
+            var flowStartMessage = createFlowStartMessage();
+            var flowResponse = DataFlowResponseMessage.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("test-edr").build()).build();
+            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class)))
+                    .thenReturn(success(flowStartMessage));
+            when(dataplaneManager.validate(any())).thenReturn(success());
+            when(dataplaneManager.start(any()))
+                    .thenReturn(StatusResult.success(flowResponse));
+            when(transformerRegistry.transform(isA(DataFlowResponseMessage.class), eq(JsonObject.class)))
+                    .thenReturn(success(Json.createObjectBuilder().add("foo", "bar").build()));
+            when(transformerRegistry.transform(isA(DataAddress.class), eq(JsonObject.class)))
+                    .thenReturn(success(Json.createObjectBuilder().add("foo", "bar").build()));
+
+            var result = baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(inputWithType(EDC_DATA_FLOW_START_MESSAGE_TYPE))
+                    .post("/v1/dataflows/id/start")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .extract().body().as(JsonObject.class);
+
+            assertThat(result).hasEntrySatisfying("foo", val -> assertThat(((JsonString) val).getString()).isEqualTo("bar"));
+            verify(dataplaneManager).start(eq(flowStartMessage));
+        }
+
+        @Test
+        void shouldReturnBadRequest_whenInvalidMessage() {
+            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class)))
+                    .thenReturn(success(createFlowStartMessage()));
+            when(dataplaneManager.validate(any())).thenReturn(Result.failure("foobar"));
+
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(inputWithType(EDC_DATA_FLOW_START_MESSAGE_TYPE))
+                    .post("/v1/dataflows/id/start")
+                    .then()
+                    .statusCode(400);
+
+            verify(transformerRegistry).transform(isA(JsonObject.class), eq(DataFlowStartMessage.class));
+            verify(dataplaneManager).validate(any(DataFlowStartMessage.class));
+            verifyNoMoreInteractions(transformerRegistry, dataplaneManager);
+        }
+
+        @Test
+        void shouldReturnBadRequest_whenTransformationFails() {
+            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class))).thenReturn(Result.failure("foo-bar"));
+
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(inputWithType(EDC_DATA_FLOW_START_MESSAGE_TYPE))
+                    .post("/v1/dataflows/id/start")
+                    .then()
+                    .statusCode(400);
+
+            verify(transformerRegistry).transform(isA(JsonObject.class), eq(DataFlowStartMessage.class));
+            verifyNoMoreInteractions(transformerRegistry, dataplaneManager);
+        }
+
+        @Test
+        void shouldReturnBadRequest_whenCreateEdrFails() {
+            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class)))
+                    .thenReturn(success(createFlowStartMessage()));
+            when(dataplaneManager.validate(any())).thenReturn(success());
+            when(dataplaneManager.start(any()))
+                    .thenReturn(StatusResult.failure(ERROR_RETRY, "test-failure"));
+
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(inputWithType(EDC_DATA_FLOW_START_MESSAGE_TYPE))
+                    .post("/v1/dataflows/id/start")
+                    .then()
+                    .statusCode(400);
+
+            verify(transformerRegistry).transform(isA(JsonObject.class), eq(DataFlowStartMessage.class));
+            verify(dataplaneManager).validate(any());
+            verify(dataplaneManager).start(any());
+            verifyNoMoreInteractions(transformerRegistry, dataplaneManager);
+        }
+
+        @Test
+        void shouldReturnInternalServerError_whenDataAddressTransformationFails() {
+            var flowStartMessage = createFlowStartMessage();
+            var flowResponse = DataFlowResponseMessage.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("test-edr").build()).build();
+
+            when(transformerRegistry.transform(isA(JsonObject.class), eq(DataFlowStartMessage.class)))
+                    .thenReturn(success(flowStartMessage));
+            when(dataplaneManager.validate(any())).thenReturn(success());
+            when(dataplaneManager.start(any()))
+                    .thenReturn(StatusResult.success(flowResponse));
+
+            when(transformerRegistry.transform(isA(DataAddress.class), eq(JsonObject.class)))
+                    .thenReturn(failure("test-failure"));
+
+            baseRequest()
+                    .contentType(ContentType.JSON)
+                    .body(inputWithType(EDC_DATA_FLOW_START_MESSAGE_TYPE))
+                    .post("/v1/dataflows/id/start")
                     .then()
                     .statusCode(500);
 

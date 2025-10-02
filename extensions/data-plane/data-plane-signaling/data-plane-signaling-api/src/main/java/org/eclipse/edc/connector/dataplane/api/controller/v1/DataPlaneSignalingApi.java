@@ -43,6 +43,7 @@ public interface DataPlaneSignalingApi {
 
     @Operation(description = "Initiates a data transfer for the given start message. If the data transfer is handled by the data plane, it will be performed asynchronously. " +
             "If it's a consumer-pull scenario, a data address will be returned",
+            deprecated = true,
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataFlowStartMessageSchema.class))),
             responses = {
                     @ApiResponse(responseCode = "400", description = "Failed to validate request"),
@@ -50,7 +51,40 @@ public interface DataPlaneSignalingApi {
                             content = @Content(schema = @Schema(implementation = DataFlowResponseMessageSchema.class))),
             }
     )
-    JsonObject start(JsonObject dataFlowStartMessage);
+    @Deprecated(since = "0.15.0")
+    JsonObject startOrPrepare(JsonObject dataFlowStartMessage);
+
+    @Operation(description = "Prepares a data flow. Intended to be called on consumer side.",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataFlowStartMessageSchema.class))),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Data flow preparation triggered.",
+                            content = @Content(schema = @Schema(implementation = DataFlowResponseMessageSchema.class))),
+                    @ApiResponse(responseCode = "400", description = "Failed to validate request")
+            }
+    )
+    JsonObject prepare(JsonObject message);
+
+    @Operation(description = "Starts a new data flow. Intended to be called on provider side",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataFlowStartMessageSchema.class))),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Data flow startup triggered.",
+                            content = @Content(schema = @Schema(implementation = DataFlowResponseMessageSchema.class))),
+                    @ApiResponse(responseCode = "400", description = "Failed to validate request")
+            }
+    )
+    JsonObject start(JsonObject message);
+
+
+    @Operation(description = "Starts an existing data flow. Intended to be called on provider side",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataFlowStartMessageSchema.class))),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Data flow startup triggered.",
+                            content = @Content(schema = @Schema(implementation = DataFlowResponseMessageSchema.class))),
+                    @ApiResponse(responseCode = "400", description = "Failed to validate request"),
+                    @ApiResponse(responseCode = "404", description = "Data flow not found")
+            }
+    )
+    JsonObject start(String dataFlowId, JsonObject message);
 
     @Operation(description = "Get the current state of a data transfer.",
             responses = {
@@ -59,7 +93,7 @@ public interface DataPlaneSignalingApi {
                     @ApiResponse(responseCode = "404", description = "Data transfer not found in the data plane")
             }
     )
-    JsonObject getTransferState(String transferProcessId);
+    JsonObject getTransferState(String dataFlowId);
 
     @Operation(description = "Terminates a data transfer.",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataFlowTerminateMessageSchema.class))),
@@ -69,7 +103,7 @@ public interface DataPlaneSignalingApi {
                     @ApiResponse(responseCode = "409", description = "Cannot terminate the transfer"),
             }
     )
-    void terminate(String transferProcessId, JsonObject terminationMessage);
+    void terminate(String dataFlowId, JsonObject terminationMessage);
 
     @Operation(description = "Suspend a data transfer.",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataFlowSuspendMessageSchema.class))),
@@ -79,7 +113,7 @@ public interface DataPlaneSignalingApi {
                     @ApiResponse(responseCode = "409", description = "Cannot suspend the transfer"),
             }
     )
-    void suspend(String transferProcessId, JsonObject suspendMessage);
+    void suspend(String dataFlowId, JsonObject suspendMessage);
 
     @Operation(description = "Check if data plane is available.",
             responses = {
