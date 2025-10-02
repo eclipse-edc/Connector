@@ -67,8 +67,6 @@ public class BomSmokeTests {
                                     put("edc.iam.sts.oauth.client.secret.alias", "test-alias");
                                     put("web.http.port", DEFAULT_PORT);
                                     put("web.http.path", DEFAULT_PATH);
-                                    put("web.http.version.port", String.valueOf(getFreePort()));
-                                    put("web.http.version.path", "/api/version");
                                     put("web.http.control.port", String.valueOf(getFreePort()));
                                     put("web.http.control.path", "/api/control");
                                     put("web.http.management.port", "8081");
@@ -99,8 +97,6 @@ public class BomSmokeTests {
                                 "edc.dpf.selector.url", "http://localhost:%s/selector".formatted(server.getPort()),
                                 "web.http.control.port", "8081",
                                 "web.http.control.path", "/api/control",
-                                "web.http.version.port", String.valueOf(getFreePort()),
-                                "web.http.version.path", "/api/version",
                                 "web.http.port", DEFAULT_PORT,
                                 "web.http.path", DEFAULT_PATH)))
                 );

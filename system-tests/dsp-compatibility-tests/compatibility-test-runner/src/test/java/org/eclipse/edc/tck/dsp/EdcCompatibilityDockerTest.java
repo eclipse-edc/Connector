@@ -57,8 +57,6 @@ public class EdcCompatibilityDockerTest {
                 put("edc.participant.id", "participantContextId");
                 put("web.http.port", "8080");
                 put("web.http.path", "/api");
-                put("web.http.version.port", String.valueOf(getFreePort()));
-                put("web.http.version.path", "/api/version");
                 put("web.http.control.port", String.valueOf(getFreePort()));
                 put("web.http.control.path", "/api/control");
                 put("web.http.management.port", "8081");
