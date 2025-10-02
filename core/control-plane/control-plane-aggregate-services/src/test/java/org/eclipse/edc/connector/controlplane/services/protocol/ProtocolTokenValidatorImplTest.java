@@ -39,6 +39,7 @@ import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
@@ -64,7 +65,7 @@ class ProtocolTokenValidatorImplTest {
         var claimToken = ClaimToken.Builder.newInstance().build();
         var policy = Policy.Builder.newInstance().build();
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
-        when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
+        when(identityService.verifyJwtToken(any(), any(), any())).thenReturn(Result.success(claimToken));
         when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> participantId);
         when(agentService.createFor(any(), any())).thenReturn(participantAgent);
 
@@ -77,12 +78,12 @@ class ProtocolTokenValidatorImplTest {
             return reqContext.getMessage().getClass().equals(TestMessage.class) && reqContext.getDirection().equals(RequestContext.Direction.Ingress);
         })));
         verify(dataspaceProfileContextRegistry).getIdExtractionFunction(protocol);
-        verify(identityService).verifyJwtToken(same(tokenRepresentation), any());
+        verify(identityService).verifyJwtToken(eq(participantContext.getParticipantContextId()), same(tokenRepresentation), any());
     }
 
     @Test
     void shouldReturnUnauthorized_whenTokenIsNotValid() {
-        when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.failure("failure"));
+        when(identityService.verifyJwtToken(any(), any(), any())).thenReturn(Result.failure("failure"));
 
         var result = validator.verify(participantContext, TokenRepresentation.Builder.newInstance().build(), TestRequestPolicyContext::new, Policy.Builder.newInstance().build(), new TestMessage());
 
@@ -95,7 +96,7 @@ class ProtocolTokenValidatorImplTest {
         var policy = Policy.Builder.newInstance().build();
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
 
-        when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
+        when(identityService.verifyJwtToken(any(), any(), any())).thenReturn(Result.success(claimToken));
         when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(null);
 
         var result = validator.verify(participantContext, tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());

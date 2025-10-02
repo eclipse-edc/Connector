@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.controlplane.services.catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequestMessage;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -33,7 +34,7 @@ public class CatalogServiceImpl implements CatalogService {
     }
 
     @Override
-    public CompletableFuture<StatusResult<byte[]>> requestCatalog(String counterPartyId, String counterPartyAddress, String protocol, QuerySpec querySpec, String... additionalScopes) {
+    public CompletableFuture<StatusResult<byte[]>> requestCatalog(ParticipantContext participantContext, String counterPartyId, String counterPartyAddress, String protocol, QuerySpec querySpec, String... additionalScopes) {
         var request = CatalogRequestMessage.Builder.newInstance()
                 .protocol(protocol)
                 .counterPartyId(counterPartyId)
@@ -42,11 +43,11 @@ public class CatalogServiceImpl implements CatalogService {
                 .additionalScopes(additionalScopes)
                 .build();
 
-        return dispatcher.dispatch(byte[].class, request);
+        return dispatcher.dispatch(participantContext.getParticipantContextId(), byte[].class, request);
     }
 
     @Override
-    public CompletableFuture<StatusResult<byte[]>> requestDataset(String id, String counterPartyId, String counterPartyAddress, String protocol) {
+    public CompletableFuture<StatusResult<byte[]>> requestDataset(ParticipantContext participantContext, String id, String counterPartyId, String counterPartyAddress, String protocol) {
         var request = DatasetRequestMessage.Builder.newInstance()
                 .datasetId(id)
                 .protocol(protocol)
@@ -54,6 +55,6 @@ public class CatalogServiceImpl implements CatalogService {
                 .counterPartyAddress(counterPartyAddress)
                 .build();
 
-        return dispatcher.dispatch(byte[].class, request);
+        return dispatcher.dispatch(participantContext.getParticipantContextId(), byte[].class, request);
     }
 }

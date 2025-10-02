@@ -131,12 +131,12 @@ import static org.mockito.Mockito.when;
 
 class TransferProcessManagerImplTest {
 
+    public static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
     private static final String DESTINATION_TYPE = "test-type";
     private static final int TRANSFER_MANAGER_BATCHSIZE = 10;
     private static final String PROVISIONED_RESOURCE_ID = "1";
     private static final int RETRY_LIMIT = 1;
     private static final int RETRY_EXHAUSTED = RETRY_LIMIT + 1;
-
     private final ProvisionManager provisionManager = mock();
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
     private final ResourceManifestGenerator manifestGenerator = mock();
@@ -394,7 +394,7 @@ class TransferProcessManagerImplTest {
         var transferProcess = builderEnricher.apply(createTransferProcessBuilder(starting).state(starting.code())).build();
         when(transferProcessStore.nextNotLeased(anyInt(), or(stateIs(starting.code()), or(consumerStateIs(starting.code()), providerStateIs(starting.code())))))
                 .thenReturn(List.of(transferProcess)).thenReturn(emptyList());
-        when(dispatcherRegistry.dispatch(any(), any())).thenReturn(result);
+        when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(result);
         when(transferProcessStore.findById(transferProcess.getId())).thenReturn(transferProcess);
         when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
         when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
@@ -407,7 +407,7 @@ class TransferProcessManagerImplTest {
             assertThat(captor.getAllValues()).hasSize(1).first().satisfies(n -> {
                 assertThat(n.getState()).isEqualTo(ending.code());
             });
-            verify(dispatcherRegistry, only()).dispatch(any(), any());
+            verify(dispatcherRegistry, only()).dispatch(any(), any(), any());
         });
     }
 
@@ -440,6 +440,7 @@ class TransferProcessManagerImplTest {
                 .contractId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
                 .dataDestination(DataAddress.Builder.newInstance().type(DESTINATION_TYPE).build())
+                .participantContextId(PARTICIPANT_CONTEXT_ID)
                 .protocol("protocol");
     }
 
@@ -493,13 +494,13 @@ class TransferProcessManagerImplTest {
             var process = createTransferProcessBuilder(COMPLETING).type(PROVIDER).correlationId("correlationId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(COMPLETING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING.code()).build());
-            when(dispatcherRegistry.dispatch(any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dispatcherRegistry.dispatch(any(), any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
             manager.start();
 
             await().untilAsserted(() -> {
                 var captor = ArgumentCaptor.forClass(TransferCompletionMessage.class);
-                verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
+                verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
                 var message = captor.getValue();
                 assertThat(message.getProviderPid()).isEqualTo(process.getId());
                 assertThat(message.getConsumerPid()).isEqualTo("correlationId");
@@ -514,13 +515,13 @@ class TransferProcessManagerImplTest {
             var process = createTransferProcessBuilder(COMPLETING).type(CONSUMER).correlationId("correlationId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(COMPLETING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING.code()).build());
-            when(dispatcherRegistry.dispatch(any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dispatcherRegistry.dispatch(any(), any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
             manager.start();
 
             await().untilAsserted(() -> {
                 var captor = ArgumentCaptor.forClass(TransferCompletionMessage.class);
-                verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
+                verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
                 var message = captor.getValue();
                 assertThat(message.getProviderPid()).isEqualTo("correlationId");
                 assertThat(message.getConsumerPid()).isEqualTo(process.getId());
@@ -535,7 +536,7 @@ class TransferProcessManagerImplTest {
             var process = createTransferProcessBuilder(COMPLETING_REQUESTED).type(CONSUMER).correlationId("correlationId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(COMPLETING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING_REQUESTED.code()).build());
-            when(dispatcherRegistry.dispatch(any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dispatcherRegistry.dispatch(any(), any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
             manager.start();
 
@@ -552,7 +553,7 @@ class TransferProcessManagerImplTest {
             var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER).correlationId("correlationId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
-            when(dispatcherRegistry.dispatch(any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dispatcherRegistry.dispatch(any(), any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
             when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
 
             manager.start();
@@ -560,7 +561,7 @@ class TransferProcessManagerImplTest {
             await().untilAsserted(() -> {
                 verify(dataFlowManager).terminate(process);
                 var captor = ArgumentCaptor.forClass(TransferTerminationMessage.class);
-                verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
+                verify(dispatcherRegistry).dispatch(any(), eq(Object.class), captor.capture());
                 var message = captor.getValue();
                 assertThat(message.getProviderPid()).isEqualTo(process.getId());
                 assertThat(message.getConsumerPid()).isEqualTo("correlationId");
@@ -618,7 +619,7 @@ class TransferProcessManagerImplTest {
             var process = createTransferProcessBuilder(TERMINATING).type(CONSUMER).correlationId("correlationId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
-            when(dispatcherRegistry.dispatch(any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dispatcherRegistry.dispatch(any(), any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
             when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
 
             manager.start();
@@ -626,7 +627,7 @@ class TransferProcessManagerImplTest {
             await().untilAsserted(() -> {
                 verify(dataFlowManager).terminate(process);
                 var captor = ArgumentCaptor.forClass(TransferTerminationMessage.class);
-                verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
+                verify(dispatcherRegistry).dispatch(any(), eq(Object.class), captor.capture());
                 var message = captor.getValue();
                 assertThat(message.getProviderPid()).isEqualTo("correlationId");
                 assertThat(message.getConsumerPid()).isEqualTo(process.getId());
@@ -940,7 +941,7 @@ class TransferProcessManagerImplTest {
             var process = createTransferProcessBuilder(REQUESTING).dataDestination(null).build();
             process.setCorrelationId(null);
             var ack = TransferProcessAck.Builder.newInstance().providerPid("providerPid").build();
-            when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
+            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
             when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
             when(vault.resolveSecret(any())).thenReturn(null);
@@ -955,7 +956,7 @@ class TransferProcessManagerImplTest {
                 assertThat(storedTransferProcess.getCorrelationId()).isEqualTo("providerPid");
                 verify(listener).requested(process);
                 var captor = ArgumentCaptor.forClass(TransferRequestMessage.class);
-                verify(dispatcherRegistry).dispatch(eq(TransferProcessAck.class), captor.capture());
+                verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(TransferProcessAck.class), captor.capture());
                 var message = captor.getValue();
                 assertThat(message.getProcessId()).isEqualTo(process.getId());
                 assertThat(message.getConsumerPid()).isEqualTo(process.getId());
@@ -970,7 +971,7 @@ class TransferProcessManagerImplTest {
             var destination = DataAddress.Builder.newInstance().type("any").keyName("keyName").build();
             var process = createTransferProcessBuilder(REQUESTING).dataDestination(destination).build();
             var ack = TransferProcessAck.Builder.newInstance().providerPid("providerPid").build();
-            when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
+            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
             when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
             when(vault.resolveSecret(any())).thenReturn("secret");
@@ -979,7 +980,7 @@ class TransferProcessManagerImplTest {
 
             await().untilAsserted(() -> {
                 var captor = ArgumentCaptor.forClass(TransferRequestMessage.class);
-                verify(dispatcherRegistry).dispatch(eq(TransferProcessAck.class), captor.capture());
+                verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(TransferProcessAck.class), captor.capture());
                 verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == REQUESTED.code()));
                 verify(listener).requested(process);
                 verify(vault).resolveSecret("keyName");
@@ -1000,14 +1001,14 @@ class TransferProcessManagerImplTest {
             when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process);
             when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
-            when(dispatcherRegistry.dispatch(any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dispatcherRegistry.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
             manager.start();
 
             await().untilAsserted(() -> {
                 var captor = ArgumentCaptor.forClass(TransferStartMessage.class);
                 verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-                verify(dispatcherRegistry).dispatch(any(), captor.capture());
+                verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), captor.capture());
                 verify(transferProcessStore).save(argThat(p -> p.getState() == STARTED.code()));
                 verify(listener).started(eq(process), any());
                 var message = captor.getValue();
@@ -1052,14 +1053,14 @@ class TransferProcessManagerImplTest {
             when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(RESUMING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process);
             when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
-            when(dispatcherRegistry.dispatch(any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dispatcherRegistry.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
             manager.start();
 
             await().untilAsserted(() -> {
                 var captor = ArgumentCaptor.forClass(TransferStartMessage.class);
                 verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-                verify(dispatcherRegistry).dispatch(any(), captor.capture());
+                verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), captor.capture());
                 var transferCaptor = ArgumentCaptor.forClass(TransferProcess.class);
                 verify(transferProcessStore).save(transferCaptor.capture());
                 assertThat(transferCaptor.getValue().getState()).isEqualTo(STARTED.code());
@@ -1082,14 +1083,14 @@ class TransferProcessManagerImplTest {
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
             when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(RESUMING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process);
-            when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
 
             manager.start();
 
             await().untilAsserted(() -> {
                 var captor = ArgumentCaptor.forClass(TransferStartMessage.class);
                 verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-                verify(dispatcherRegistry).dispatch(any(), captor.capture());
+                verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), captor.capture());
                 verify(transferProcessStore).save(argThat(p -> p.getState() == RESUMED.code()));
                 var message = captor.getValue();
                 assertThat(message.getProcessId()).isEqualTo(process.getCorrelationId());
@@ -1107,7 +1108,7 @@ class TransferProcessManagerImplTest {
             var process = createTransferProcessBuilder(SUSPENDING).type(PROVIDER).correlationId("counterPartyId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING.code()).build());
-            when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
             when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
 
             manager.start();
@@ -1115,7 +1116,7 @@ class TransferProcessManagerImplTest {
             await().untilAsserted(() -> {
                 verify(dataFlowManager).suspend(process);
                 var captor = ArgumentCaptor.forClass(TransferSuspensionMessage.class);
-                verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
+                verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
                 var message = captor.getValue();
                 assertThat(message.getProviderPid()).isEqualTo(process.getId());
                 assertThat(message.getConsumerPid()).isEqualTo("counterPartyId");
@@ -1130,14 +1131,14 @@ class TransferProcessManagerImplTest {
             var process = createTransferProcessBuilder(SUSPENDING).type(CONSUMER).correlationId("counterPartyId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING.code()).build());
-            when(dispatcherRegistry.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
 
             manager.start();
 
             await().untilAsserted(() -> {
                 verifyNoInteractions(dataFlowManager);
                 var captor = ArgumentCaptor.forClass(TransferSuspensionMessage.class);
-                verify(dispatcherRegistry).dispatch(eq(Object.class), captor.capture());
+                verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
                 var message = captor.getValue();
                 assertThat(message.getProviderPid()).isEqualTo("counterPartyId");
                 assertThat(message.getConsumerPid()).isEqualTo(process.getId());

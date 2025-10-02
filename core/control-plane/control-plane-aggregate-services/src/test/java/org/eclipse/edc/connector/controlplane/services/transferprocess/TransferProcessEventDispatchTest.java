@@ -123,7 +123,7 @@ public class TransferProcessEventDispatchTest {
         var token = ClaimToken.Builder.newInstance().build();
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(UUID.randomUUID().toString()).build();
 
-        when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(token));
+        when(identityService.verifyJwtToken(any(), any(), any())).thenReturn(Result.success(token));
 
         var transferRequest = createTransferRequest();
         var agent = mock(ParticipantAgent.class);
@@ -243,14 +243,14 @@ public class TransferProcessEventDispatchTest {
     private RemoteMessageDispatcher getTestDispatcher() {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
         var ack = TransferProcessAck.Builder.newInstance().build();
-        when(testDispatcher.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
+        when(testDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         return testDispatcher;
     }
 
     @NotNull
     private RemoteMessageDispatcher getFailingDispatcher() {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
-        when(testDispatcher.dispatch(any(), any())).thenReturn(failedFuture(new EdcException("cannot send message")));
+        when(testDispatcher.dispatch(any(), any(), any())).thenReturn(failedFuture(new EdcException("cannot send message")));
         return testDispatcher;
     }
 

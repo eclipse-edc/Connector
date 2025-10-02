@@ -103,7 +103,7 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
         negotiation.lastSentProtocolMessage(message.getId());
 
         return entityRetryProcessFactory.retryProcessor(negotiation)
-                .doProcess(Process.futureResult(name, (n, v) -> dispatcherRegistry.dispatch(responseType, message)));
+                .doProcess(Process.futureResult(name, (n, v) -> dispatcherRegistry.dispatch(negotiation.getParticipantContextId(), responseType, message)));
     }
 
     protected void transitionToInitial(ContractNegotiation negotiation) {

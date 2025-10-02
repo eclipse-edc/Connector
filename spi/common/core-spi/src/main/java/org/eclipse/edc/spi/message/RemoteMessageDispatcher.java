@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public interface RemoteMessageDispatcher {
 
-    
+
     /**
      * Binds and sends the message.
      *
@@ -32,6 +32,6 @@ public interface RemoteMessageDispatcher {
      * @param message      the message
      * @return a future that can be used to retrieve the response when the operation has completed
      */
-    <T, M extends RemoteMessage> CompletableFuture<StatusResult<T>> dispatch(Class<T> responseType, M message);
+    <T, M extends RemoteMessage> CompletableFuture<StatusResult<T>> dispatch(String participantContextId, Class<T> responseType, M message);
 
 }

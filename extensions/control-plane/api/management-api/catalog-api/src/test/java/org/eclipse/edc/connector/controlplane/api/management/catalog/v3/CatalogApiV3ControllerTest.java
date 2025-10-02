@@ -25,6 +25,6 @@ class CatalogApiV3ControllerTest extends BaseCatalogApiControllerTest {
 
     @Override
     protected Object controller() {
-        return new CatalogApiV3Controller(service, transformerRegistry, validatorRegistry);
+        return new CatalogApiV3Controller(service, transformerRegistry, validatorRegistry, participantContextSupplier);
     }
 }

@@ -40,7 +40,7 @@ public class GenericHttpRemoteDispatcherImpl implements GenericHttpRemoteDispatc
     }
 
     @Override
-    public <T, M extends RemoteMessage> CompletableFuture<StatusResult<T>> dispatch(Class<T> responseType, M message) {
+    public <T, M extends RemoteMessage> CompletableFuture<StatusResult<T>> dispatch(String participantContextId, Class<T> responseType, M message) {
         var delegate = (GenericHttpDispatcherDelegate<M, T>) delegates.get(message.getClass());
         if (delegate == null) {
             throw new EdcException(format("No %s message dispatcher found for message type %s", CALLBACK_EVENT_HTTP, message.getClass()));

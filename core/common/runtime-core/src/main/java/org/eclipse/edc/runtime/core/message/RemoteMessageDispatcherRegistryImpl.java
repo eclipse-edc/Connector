@@ -38,14 +38,14 @@ public class RemoteMessageDispatcherRegistryImpl implements RemoteMessageDispatc
     }
 
     @Override
-    public <T> CompletableFuture<StatusResult<T>> dispatch(Class<T> responseType, RemoteMessage message) {
+    public <T> CompletableFuture<StatusResult<T>> dispatch(String participantContextId, Class<T> responseType, RemoteMessage message) {
         Objects.requireNonNull(message, "Message was null");
         var protocol = message.getProtocol();
         var dispatcher = dispatchers.get(protocol);
         if (dispatcher == null) {
             return failedFuture(new EdcException("No provider dispatcher registered for protocol: " + protocol));
         }
-        return dispatcher.dispatch(responseType, message);
+        return dispatcher.dispatch(participantContextId, responseType, message);
     }
 
 }

@@ -77,7 +77,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
     }
 
     @Override
-    public <T, M extends RemoteMessage> CompletableFuture<StatusResult<T>> dispatch(Class<T> responseType, M message) {
+    public <T, M extends RemoteMessage> CompletableFuture<StatusResult<T>> dispatch(String participantContextId, Class<T> responseType, M message) {
         var handler = (MessageHandler<M, T>) this.handlers.get(message.getClass());
         if (handler == null) {
             return failedFuture(new EdcException(format("No DSP message dispatcher found for message type %s", message.getClass())));
@@ -114,7 +114,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
 
         return audienceResolver.resolve(message)
                 .map(audience -> tokenDecorator.decorate(tokenParametersBuilder).claims(AUDIENCE_CLAIM, audience).build()) // enforce the audience, ignore anything a decorator might have set
-                .compose(identityService::obtainClientCredentials)
+                .compose(token -> identityService.obtainClientCredentials(participantContextId, token))
                 .map(token -> {
                     var requestWithAuth = request.newBuilder()
                             .header("Authorization", token.getToken())
@@ -164,11 +164,13 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
 
     private record MessageHandler<M extends RemoteMessage, R>(
             DspHttpRequestFactory<M> requestFactory,
-            DspHttpResponseBodyExtractor<R> bodyExtractor) { }
+            DspHttpResponseBodyExtractor<R> bodyExtractor) {
+    }
 
     private record PolicyScope<M extends RemoteMessage>(
             Class<M> messageClass,
             Function<M, Policy> policyProvider,
-            RequestPolicyContext.Provider contextProvider) { }
+            RequestPolicyContext.Provider contextProvider) {
+    }
 
 }

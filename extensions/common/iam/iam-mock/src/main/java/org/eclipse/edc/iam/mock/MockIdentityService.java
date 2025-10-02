@@ -38,7 +38,7 @@ public class MockIdentityService implements IdentityService {
     }
 
     @Override
-    public Result<TokenRepresentation> obtainClientCredentials(TokenParameters parameters) {
+    public Result<TokenRepresentation> obtainClientCredentials(String participantContextId, TokenParameters parameters) {
         var token = new MockToken();
         token.setAudience(parameters.getStringClaim("aud"));
         token.setRegion(region);
@@ -50,7 +50,7 @@ public class MockIdentityService implements IdentityService {
     }
 
     @Override
-    public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation, VerificationContext context) {
+    public Result<ClaimToken> verifyJwtToken(String participantContextId, TokenRepresentation tokenRepresentation, VerificationContext context) {
         var token = typeManager.readValue(tokenRepresentation.getToken(), MockToken.class);
 
         if (faultyClientId.equals(token.clientId)) {

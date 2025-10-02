@@ -106,7 +106,7 @@ class ContractNegotiationEventDispatchTest {
                                                                        AssetIndex assetIndex) {
         dispatcherRegistry.register("test", succeedingDispatcher());
 
-        when(identityService.verifyJwtToken(eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(token));
+        when(identityService.verifyJwtToken(any(), eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(token));
         when(dataspaceProfileContextRegistry.getParticipantId(any())).thenReturn("provider");
 
         eventRouter.register(ContractNegotiationEvent.class, eventSubscriber);
@@ -149,7 +149,7 @@ class ContractNegotiationEventDispatchTest {
     @NotNull
     private RemoteMessageDispatcher succeedingDispatcher() {
         var testDispatcher = mock(RemoteMessageDispatcher.class);
-        when(testDispatcher.dispatch(any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+        when(testDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
         return testDispatcher;
     }
 

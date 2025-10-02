@@ -194,7 +194,7 @@ class TransferProcessManagerImplIntegrationTest {
         @ArgumentsSource(EgressMessages.class)
         void shouldSentMessageWithTheSameId_whenFirstDispatchFailed(TransferProcess.Type type, TransferProcessStates state,
                                                                     Class<? extends TransferRemoteMessage> messageType) {
-            when(dispatcherRegistry.dispatch(any(), isA(messageType)))
+            when(dispatcherRegistry.dispatch(any(), any(), isA(messageType)))
                     .thenReturn(completedFuture(StatusResult.failure(ERROR_RETRY)))
                     .thenReturn(completedFuture(StatusResult.success(TransferProcessAck.Builder.newInstance().build())));
             when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
@@ -207,7 +207,7 @@ class TransferProcessManagerImplIntegrationTest {
 
             var sentMessages = ArgumentCaptor.forClass(messageType);
             await().atMost(TIMEOUT).untilAsserted(() -> {
-                verify(dispatcherRegistry, times(2)).dispatch(any(), sentMessages.capture());
+                verify(dispatcherRegistry, times(2)).dispatch(any(), any(), sentMessages.capture());
                 assertThat(sentMessages.getAllValues())
                         .map(TransferRemoteMessage::getId)
                         .matches(ids -> ids.stream().distinct().count() == 1);

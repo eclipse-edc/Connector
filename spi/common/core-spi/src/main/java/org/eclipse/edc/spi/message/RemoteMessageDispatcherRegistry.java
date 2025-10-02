@@ -40,6 +40,6 @@ public interface RemoteMessageDispatcherRegistry {
      * @param message      the message
      * @return a future that can be used to retrieve the response when the operation has completed, it contains a {@link StatusResult}
      */
-    <T> CompletableFuture<StatusResult<T>> dispatch(Class<T> responseType, RemoteMessage message);
+    <T> CompletableFuture<StatusResult<T>> dispatch(String participantContextId, Class<T> responseType, RemoteMessage message);
 
 }

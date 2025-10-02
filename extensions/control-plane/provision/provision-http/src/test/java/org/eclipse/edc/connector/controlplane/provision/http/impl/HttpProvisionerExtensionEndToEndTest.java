@@ -134,7 +134,7 @@ public class HttpProvisionerExtensionEndToEndTest {
                 .thenAnswer(invocation -> HttpProvisionerFixtures.createResponse(503, invocation))
                 .thenAnswer(invocation -> HttpProvisionerFixtures.createResponse(200, invocation));
 
-        when(identityService.verifyJwtToken(any(), isA(VerificationContext.class))).thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
+        when(identityService.verifyJwtToken(any(), any(), isA(VerificationContext.class))).thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
         when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> "id");
 
         var result = protocolService.notifyRequested(new ParticipantContext(PARTICIPANT_CONTEXT_ID), createTransferRequestMessage(), TokenRepresentation.Builder.newInstance().build());
