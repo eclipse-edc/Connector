@@ -133,7 +133,7 @@ public class ProvisioningTransferConsumerEndToEndTest {
 
             @Override
             public CompletableFuture<StatusResult<DeprovisionedResource>> deprovision(ProvisionResource definition) {
-                var deprovisionEndpoint = definition.getProperty("deprovisionEndpoint");
+                var deprovisionEndpoint = definition.getProvisionedResource().getProperty("deprovisionEndpoint");
                 return httpClient.executeAsync(new Request.Builder().url((String) deprovisionEndpoint).build(), emptyList())
                         .thenCompose(response -> {
                             if (response.isSuccessful()) {
@@ -159,6 +159,7 @@ public class ProvisioningTransferConsumerEndToEndTest {
                                 .properties(provisionResource.getDataAddress().getProperties())
                                 .property("header:provisionHeader", "value")
                                 .build())
+                        .property("deprovisionEndpoint", "http://localhost:%d/deprovision".formatted(DESTINATION_BACKEND_PORT))
                         .build();
                 return CompletableFuture.completedFuture(StatusResult.success(provisionedResource));
             }
@@ -179,7 +180,6 @@ public class ProvisioningTransferConsumerEndToEndTest {
                         .flowId(dataFlow.getId())
                         .dataAddress(dataFlow.getDestination())
                         .type("AddHeader")
-                        .property("deprovisionEndpoint", "http://localhost:%d/deprovision".formatted(DESTINATION_BACKEND_PORT))
                         .build();
             }
         }

@@ -16,6 +16,8 @@ package org.eclipse.edc.connector.dataplane.spi.provision;
 
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -27,6 +29,7 @@ public class ProvisionedResource {
     private String flowId;
     private DataAddress dataAddress;
     private boolean pending = false;
+    private final Map<String, Object> properties = new HashMap<>();
 
     public DataAddress getDataAddress() {
         return dataAddress;
@@ -42,6 +45,14 @@ public class ProvisionedResource {
 
     public boolean isPending() {
         return pending;
+    }
+
+    public Object getProperty(String key) {
+        return properties.get(key);
+    }
+
+    public Map<String, Object> getProperties() {
+        return properties;
     }
 
     public static class Builder {
@@ -87,6 +98,16 @@ public class ProvisionedResource {
 
         public Builder id(String id) {
             resource.id = id;
+            return this;
+        }
+
+        public Builder property(String key, Object value) {
+            resource.properties.put(key, value);
+            return this;
+        }
+
+        public Builder properties(Map<String, Object> properties) {
+            resource.properties.putAll(properties);
             return this;
         }
     }
