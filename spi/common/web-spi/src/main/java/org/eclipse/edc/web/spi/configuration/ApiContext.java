@@ -23,8 +23,5 @@ public interface ApiContext {
     String CONTROL = "control";
     String PROTOCOL = "protocol";
     String PUBLIC = "public";
-    String VERSION = "version";
-    String STS = "sts";
-    String STS_ACCOUNTS = "accounts";
 
 }

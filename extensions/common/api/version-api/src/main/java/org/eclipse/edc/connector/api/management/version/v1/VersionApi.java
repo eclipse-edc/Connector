@@ -27,44 +27,16 @@ import org.eclipse.edc.spi.system.apiversion.VersionRecord;
 import java.util.List;
 import java.util.Map;
 
-import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE;
-import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_VALUE;
-
-@OpenAPIDefinition(
-        info = @Info(description = "This contains the version API that provides information about the exact version of the management API", title = "Version API"))
+@OpenAPIDefinition(info = @Info(
+        title = "Version API",
+        description = "This contains the version API that provides information about the exact version of the APIs exposed by the runtime"))
 @Tag(name = "Version")
 public interface VersionApi {
 
-    @Operation(description = "Gets the exact SemVer string of the Management API",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "The secret",
-                            content = @Content(schema = @Schema(implementation = SecretOutputSchema.class)))
-            }
-    )
+    @Operation(description = "Gets the versions exposed by the runtime", responses = {
+            @ApiResponse(responseCode = "200", description = "The version contexts",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = VersionRecord.class))))
+    })
     Map<String, List<VersionRecord>> getVersion();
-
-
-    @ArraySchema()
-    @Schema(name = "SecretOutput", example = SecretOutputSchema.SECRET_OUTPUT_EXAMPLE)
-    record SecretOutputSchema(
-            @Schema(name = ID)
-            String id,
-            @Schema(name = TYPE, example = EDC_SECRET_TYPE)
-            String type,
-            @Schema(name = EDC_SECRET_VALUE, requiredMode = REQUIRED)
-            String value
-    ) {
-        public static final String SECRET_OUTPUT_EXAMPLE = """
-                {
-                    "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
-                    "@id": "secret-id",
-                    "@type": "https://w3id.org/edc/v0.0.1/ns/Secret",
-                    "value": "secret-value"
-                }
-                """;
-    }
 
 }
