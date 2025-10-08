@@ -319,6 +319,8 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         var originalDestination = process.getDataDestination();
         var callbackAddress = dataspaceProfileContextRegistry.getWebhook(process.getProtocol());
 
+        var agreementId = policyArchive.getAgreementIdForContract(process.getContractId());
+
         if (callbackAddress != null) {
             var dataDestination = Optional.ofNullable(originalDestination)
                     .map(DataAddress::getKeyName)
@@ -330,7 +332,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                     .callbackAddress(callbackAddress.url())
                     .dataDestination(dataDestination)
                     .transferType(process.getTransferType())
-                    .contractId(process.getContractId());
+                    .contractId(agreementId);
 
             return entityRetryProcessFactory.retryProcessor(process)
                     .doProcess(futureResult("Dispatch TransferRequestMessage to " + process.getCounterPartyAddress(),

@@ -121,7 +121,7 @@ class JsonObjectToContractAgreementMessageTransformerTest {
         var agreement = result.getContractAgreement();
         assertThat(agreement).isNotNull();
         assertThat(agreement.getClass()).isEqualTo(ContractAgreement.class);
-        assertThat(agreement.getId()).isEqualTo(AGREEMENT_ID);
+        assertThat(agreement.getAgreementId()).isEqualTo(AGREEMENT_ID);
         assertThat(agreement.getConsumerId()).isEqualTo("assignee");
         assertThat(agreement.getProviderId()).isEqualTo("assigner");
         assertThat(agreement.getAssetId()).isEqualTo(TARGET);
