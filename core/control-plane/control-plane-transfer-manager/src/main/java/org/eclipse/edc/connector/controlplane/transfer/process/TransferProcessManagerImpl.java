@@ -319,9 +319,14 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         var originalDestination = process.getDataDestination();
         var callbackAddress = dataspaceProfileContextRegistry.getWebhook(process.getProtocol());
 
-        var agreementId = policyArchive.getAgreementIdForContract(process.getContractId());
-
         if (callbackAddress != null) {
+            var agreementId = policyArchive.getAgreementIdForContract(process.getContractId());
+
+            if (agreementId == null) {
+                transitionToTerminated(process, "No agreement found for contract: " + process.getContractId());
+                return true;
+            }
+
             var dataDestination = Optional.ofNullable(originalDestination)
                     .map(DataAddress::getKeyName)
                     .map(key -> vault.resolveSecret(key))

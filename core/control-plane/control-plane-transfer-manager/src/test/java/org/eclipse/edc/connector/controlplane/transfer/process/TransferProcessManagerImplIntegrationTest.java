@@ -111,6 +111,7 @@ class TransferProcessManagerImplIntegrationTest {
 
         var policyArchive = mock(PolicyArchive.class);
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+        when(policyArchive.getAgreementIdForContract(anyString())).thenReturn("agreementId");
 
         var monitor = mock(Monitor.class);
         var waitStrategy = mock(ExponentialWaitStrategy.class);

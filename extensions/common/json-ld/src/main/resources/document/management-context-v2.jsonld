@@ -199,6 +199,7 @@
         "providerId": "edc:providerId",
         "consumerId": "edc:consumerId",
         "assetId": "edc:assetId",
+        "agreementId": "edc:agreementId",
         "contractSigningDate": "edc:contractSigningDate"
       }
     },

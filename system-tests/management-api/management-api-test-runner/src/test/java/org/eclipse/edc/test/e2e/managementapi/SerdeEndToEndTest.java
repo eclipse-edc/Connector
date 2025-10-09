@@ -181,6 +181,7 @@ public class SerdeEndToEndTest {
             assertThat(compactResult.getString("providerId")).isEqualTo(agreement.getProviderId());
             assertThat(compactResult.getString("consumerId")).isEqualTo(agreement.getConsumerId());
             assertThat(compactResult.getString("assetId")).isEqualTo(agreement.getAssetId());
+            assertThat(compactResult.getString("agreementId")).isEqualTo(agreement.getAgreementId());
             assertThat(compactResult.getJsonObject("policy")).isNotNull()
                     .satisfies(policy -> {
                         assertThat(policy.get(TYPE)).isEqualTo(Json.createValue("Agreement"));
