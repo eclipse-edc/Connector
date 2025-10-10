@@ -66,13 +66,38 @@ class PolicyArchiveImplTest {
         assertThat(result).isNull();
     }
 
+    @Test
+    void shouldGetAgreementIdFromAgreement() {
+        var policy = Policy.Builder.newInstance().assigner("assigner").assignee("assignee").build();
+        var contractAgreement = createContractAgreementBuilder(policy).agreementId("agreementId").build();
+        when(contractNegotiationStore.findContractAgreement("contractId")).thenReturn(contractAgreement);
+
+        var result = policyArchive.getAgreementIdForContract("contractId");
+
+        assertThat(result).isEqualTo("agreementId");
+
+    }
+
+    @Test
+    void shouldReturnAgreementIdNullIfContractDoesNotExist() {
+        when(contractNegotiationStore.findContractAgreement("contractId")).thenReturn(null);
+
+        var result = policyArchive.getAgreementIdForContract("contractId");
+
+        assertThat(result).isNull();
+    }
+
     private ContractAgreement createContractAgreement(Policy policyId) {
+        return createContractAgreementBuilder(policyId)
+                .build();
+    }
+
+    private ContractAgreement.Builder createContractAgreementBuilder(Policy policyId) {
         return ContractAgreement.Builder.newInstance()
                 .id("any")
                 .consumerId("any")
                 .providerId("any")
                 .assetId("any")
-                .policy(policyId)
-                .build();
+                .policy(policyId);
     }
 }

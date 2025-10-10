@@ -88,6 +88,7 @@ public class ContractAgreementApiV4EndToEndTest {
                     .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .body(TYPE, equalTo("ContractAgreement"))
                     .body(ID, is(agreement.getId()))
+                    .body("agreementId", is(agreement.getAgreementId()))
                     .body("assetId", notNullValue())
                     .body("policy.assignee", is(agreement.getPolicy().getAssignee()))
                     .body("policy.assigner", is(agreement.getPolicy().getAssigner()));

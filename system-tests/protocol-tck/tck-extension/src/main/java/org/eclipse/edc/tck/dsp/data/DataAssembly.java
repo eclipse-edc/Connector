@@ -359,6 +359,7 @@ public class DataAssembly {
                         .contractSigningDate(System.currentTimeMillis())
                         .policy(Policy.Builder.newInstance().build())
                         .participantContextId(PARTICIPANT_CONTEXT_ID)
+                        .agreementId(id)
                         .build())
                 .type(ContractNegotiation.Type.PROVIDER)
                 .state(ContractNegotiationStates.FINALIZED.code())

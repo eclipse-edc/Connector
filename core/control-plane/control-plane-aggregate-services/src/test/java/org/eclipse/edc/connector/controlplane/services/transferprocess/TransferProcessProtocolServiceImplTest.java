@@ -130,7 +130,7 @@ class TransferProcessProtocolServiceImplTest {
                 .build();
 
         when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-        when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
+        when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
         when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
         when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
 
@@ -161,7 +161,7 @@ class TransferProcessProtocolServiceImplTest {
         var tokenRepresentation = tokenRepresentation();
 
         when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-        when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
+        when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
         when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
         when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
         when(store.findForCorrelationId(any())).thenReturn(transferProcess(REQUESTED, "transferProcessId"));
@@ -186,7 +186,7 @@ class TransferProcessProtocolServiceImplTest {
         var tokenRepresentation = tokenRepresentation();
 
         when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-        when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
+        when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
         when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.failure("error"));
         when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
 
@@ -209,7 +209,7 @@ class TransferProcessProtocolServiceImplTest {
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .build();
 
-        when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
+        when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
         when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
         when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
 

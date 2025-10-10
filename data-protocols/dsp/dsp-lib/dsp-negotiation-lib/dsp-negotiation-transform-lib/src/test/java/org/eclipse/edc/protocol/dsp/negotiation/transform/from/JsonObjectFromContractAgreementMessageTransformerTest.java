@@ -78,10 +78,10 @@ class JsonObjectFromContractAgreementMessageTransformerTest {
                 .consumerPid("consumerPid")
                 .counterPartyAddress("https://example.com")
                 .contractAgreement(ContractAgreement.Builder.newInstance()
-                        .id(AGREEMENT_ID)
                         .providerId(PROVIDER_ID)
                         .consumerId(CONSUMER_ID)
                         .assetId("assetId")
+                        .agreementId(AGREEMENT_ID)
                         .policy(policy()).build())
                 .build();
         var policyObject = jsonFactory.createObjectBuilder()

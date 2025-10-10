@@ -127,7 +127,7 @@ public class JsonObjectToContractAgreementMessageTransformer extends AbstractNam
         var assignee = policy.getAssignee();
         var assigner = policy.getAssigner();
 
-        builder.id(agreementId)
+        builder.agreementId(agreementId)
                 .consumerId(assignee)
                 .providerId(assigner)
                 .policy(policy)

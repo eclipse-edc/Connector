@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_ASSET_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_CONSUMER_ID;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_POLICY;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_PROVIDER_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_SIGNING_DATE;
@@ -45,6 +46,7 @@ public class JsonObjectFromContractAgreementTransformer extends AbstractJsonLdTr
                 .add(TYPE, CONTRACT_AGREEMENT_TYPE)
                 .add(ID, agreement.getId())
                 .add(CONTRACT_AGREEMENT_ASSET_ID, agreement.getAssetId())
+                .add(CONTRACT_AGREEMENT_ID, agreement.getAgreementId())
                 .add(CONTRACT_AGREEMENT_POLICY, context.transform(agreement.getPolicy(), JsonObject.class))
                 .add(CONTRACT_AGREEMENT_SIGNING_DATE, agreement.getContractSigningDate())
                 .add(CONTRACT_AGREEMENT_CONSUMER_ID, agreement.getConsumerId())

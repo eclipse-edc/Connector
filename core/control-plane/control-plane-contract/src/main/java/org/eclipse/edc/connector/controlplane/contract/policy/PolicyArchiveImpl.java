@@ -36,6 +36,14 @@ public class PolicyArchiveImpl implements PolicyArchive {
                 .orElse(null);
     }
 
+    @Override
+    public String getAgreementIdForContract(String contractId) {
+        return Optional.ofNullable(contractId)
+                .map(contractNegotiationStore::findContractAgreement)
+                .map(ContractAgreement::getAgreementId)
+                .orElse(null);
+    }
+
     // TODO assignee and assigner should end up stored in the Agreement's policy as outlined here
     //  https://github.com/International-Data-Spaces-Association/ids-specification/issues/195
     //  As fallback we fill the assignee and the assigner from the consumer and provider id in

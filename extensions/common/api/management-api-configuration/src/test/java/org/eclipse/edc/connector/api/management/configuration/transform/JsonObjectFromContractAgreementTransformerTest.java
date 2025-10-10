@@ -28,6 +28,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_ASSET_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_CONSUMER_ID;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_POLICY;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_PROVIDER_ID;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,6 +52,7 @@ class JsonObjectFromContractAgreementTransformerTest {
                 .providerId("test-provider")
                 .consumerId("test-consumer")
                 .assetId("test-asset")
+                .agreementId("agreement-id")
                 .policy(Policy.Builder.newInstance().build())
                 .build();
         var context = mock(TransformerContext.class);
@@ -62,6 +64,7 @@ class JsonObjectFromContractAgreementTransformerTest {
         assertThat(result.getJsonString(CONTRACT_AGREEMENT_ASSET_ID)).extracting(JsonString::getString).isEqualTo("test-asset");
         assertThat(result.getJsonString(CONTRACT_AGREEMENT_PROVIDER_ID)).extracting(JsonString::getString).isEqualTo("test-provider");
         assertThat(result.getJsonString(CONTRACT_AGREEMENT_CONSUMER_ID)).extracting(JsonString::getString).isEqualTo("test-consumer");
+        assertThat(result.getJsonString(CONTRACT_AGREEMENT_ID)).extracting(JsonString::getString).isEqualTo("agreement-id");
         assertThat(result.getJsonObject(CONTRACT_AGREEMENT_POLICY)).isNotNull();
     }
 }

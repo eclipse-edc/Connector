@@ -68,7 +68,7 @@ public class JsonObjectFromContractAgreementMessageV2025Transformer extends Abst
         var signing = ofEpochSecond(agreement.getContractSigningDate()).toString();
 
         var copiedPolicy = Json.createObjectBuilder(policy)
-                .add(ID, agreement.getId())
+                .add(ID, agreement.getAgreementId())
                 .add(forNamespace(DSPACE_PROPERTY_TIMESTAMP_TERM), signing)
                 .build();
 

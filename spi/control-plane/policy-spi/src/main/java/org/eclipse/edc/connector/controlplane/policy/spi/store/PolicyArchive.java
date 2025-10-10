@@ -20,11 +20,12 @@ import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 /**
  * Resolves {@linkplain Policy} objects that are part of a contract agreement.
  */
-@FunctionalInterface
 @ExtensionPoint
 public interface PolicyArchive {
     /**
      * Returns a policy for a given id.
      */
     Policy findPolicyForContract(String contractId);
+
+    String getAgreementIdForContract(String contractId);
 }

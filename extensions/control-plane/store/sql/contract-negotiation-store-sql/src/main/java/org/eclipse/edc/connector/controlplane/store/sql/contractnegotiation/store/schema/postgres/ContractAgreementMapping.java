@@ -28,6 +28,7 @@ class ContractAgreementMapping extends TranslationMapping {
 
     public static final String FIELD_PARTICIPANT_CONTEXT_ID = "participantContextId";
     private static final String FIELD_ID = "id";
+    private static final String FIELD_AGREEMENT_ID = "agreementId";
     private static final String FIELD_PROVIDER_AGENT_ID = "providerId";
     private static final String FIELD_CONSUMER_AGENT_ID = "consumerId";
     private static final String FIELD_CONTRACT_SIGNING_DATE = "contractSigningDate";
@@ -42,5 +43,6 @@ class ContractAgreementMapping extends TranslationMapping {
         add(FIELD_ASSET_ID, statements.getAssetIdColumn());
         add(FIELD_POLICY, new JsonFieldTranslator("policy"));
         add(FIELD_PARTICIPANT_CONTEXT_ID, statements.getAgreementParticipantContextIdColumn());
+        add(FIELD_AGREEMENT_ID, statements.getContractAgreementContractIdColumn());
     }
 }

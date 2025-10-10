@@ -78,7 +78,7 @@ class JsonObjectFromContractAgreementMessageV2024TransformerTest {
                 .consumerPid("consumerPid")
                 .counterPartyAddress("https://example.com")
                 .contractAgreement(ContractAgreement.Builder.newInstance()
-                        .id(AGREEMENT_ID)
+                        .agreementId(AGREEMENT_ID)
                         .providerId(PROVIDER_ID)
                         .consumerId(CONSUMER_ID)
                         .assetId("assetId")
