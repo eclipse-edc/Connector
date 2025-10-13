@@ -39,6 +39,7 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
@@ -57,6 +58,7 @@ import static java.util.stream.Collectors.joining;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
 
 public class TransferProcessProtocolServiceImpl implements TransferProcessProtocolService {
 
@@ -97,7 +99,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                 .compose(context -> verifyRequest(participantContext, tokenRepresentation, context, message))
                 .compose(context -> validateDestination(message, context))
                 .compose(context -> validateAgreement(message, context))
-                .compose(context -> requestedAction(participantContext, message, context.agreement().getAssetId())));
+                .compose(context -> requestedAction(participantContext, message, context.agreement())));
     }
 
     @Override
@@ -153,7 +155,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     }
 
     @NotNull
-    private ServiceResult<TransferProcess> requestedAction(ParticipantContext participantContext, TransferRequestMessage message, String assetId) {
+    private ServiceResult<TransferProcess> requestedAction(ParticipantContext participantContext, TransferRequestMessage message, ContractAgreement contractAgreement) {
         var existingTransferProcess = transferProcessStore.findForCorrelationId(message.getConsumerPid());
         if (existingTransferProcess != null) {
             return ServiceResult.success(existingTransferProcess);
@@ -164,8 +166,8 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                 .correlationId(message.getConsumerPid())
                 .counterPartyAddress(message.getCallbackAddress())
                 .dataDestination(message.getDataDestination())
-                .assetId(assetId)
-                .contractId(message.getContractId())
+                .assetId(contractAgreement.getAssetId())
+                .contractId(contractAgreement.getId())
                 .transferType(message.getTransferType())
                 .type(PROVIDER)
                 .clock(clock)
@@ -262,7 +264,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     }
 
     private ServiceResult<TransferRequestMessageContext> fetchNotifyRequestContext(ParticipantContext participantContext, TransferRequestMessage message) {
-        return Optional.ofNullable(negotiationStore.findContractAgreement(message.getContractId()))
+        return Optional.ofNullable(findAgreement(participantContext, message.getContractId()))
                 .filter(agreement -> participantContext.getParticipantContextId().equals(agreement.getParticipantContextId()))
                 .map(contractAgreement -> new TransferRequestMessageContext(contractAgreement, null))
                 .map(ServiceResult::success)
@@ -334,6 +336,15 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     // read only access
     private ServiceResult<TransferProcess> findTransferProcess(ParticipantContext participantContext, TransferRemoteMessage remoteMessage) {
         return findTransferProcessById(participantContext, remoteMessage.getProcessId());
+    }
+
+    private ContractAgreement findAgreement(ParticipantContext participantContext, String contractId) {
+        var query = queryByParticipantContextId(participantContext.getParticipantContextId())
+                .filter(Criterion.criterion("agreementId", "=", contractId))
+                .build();
+        try (var stream = negotiationStore.queryAgreements(query)) {
+            return stream.findFirst().orElse(null);
+        }
     }
 
     // read only access

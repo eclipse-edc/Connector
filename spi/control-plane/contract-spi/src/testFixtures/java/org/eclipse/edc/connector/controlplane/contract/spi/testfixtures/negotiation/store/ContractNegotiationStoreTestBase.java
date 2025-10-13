@@ -737,6 +737,25 @@ public abstract class ContractNegotiationStoreTestBase {
             assertThat(all).hasSize(1);
         }
 
+        @Test
+        void byAgreementIdAndParticipantContextId() {
+            range(0, 10).mapToObj(i -> "agreementId-" + i).forEach(agreementId -> {
+                var contractId = ContractOfferId.create(UUID.randomUUID().toString(), "asset").toString();
+                var contractAgreement = createAgreementBuilder(contractId).assetId("asset").agreementId(agreementId)
+                        .participantContextId("participantContextId").build();
+                var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
+                getContractNegotiationStore().save(negotiation);
+            });
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(criterion("participantContextId", "=", "participantContextId"))
+                    .filter(criterion("agreementId", "=", "agreementId-2"))
+                    .build();
+            var all = getContractNegotiationStore().queryAgreements(query);
+
+            assertThat(all).hasSize(1);
+        }
+
     }
 
     @Nested

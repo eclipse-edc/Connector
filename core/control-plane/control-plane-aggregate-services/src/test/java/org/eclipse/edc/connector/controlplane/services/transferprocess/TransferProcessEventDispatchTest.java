@@ -139,6 +139,7 @@ public class TransferProcessEventDispatchTest {
 
         dispatcherRegistry.register("test", getTestDispatcher());
         when(policyArchive.findPolicyForContract(matches(transferRequest.getContractId()))).thenReturn(Policy.Builder.newInstance().target("assetId").build());
+        when(policyArchive.getAgreementIdForContract(transferRequest.getContractId())).thenReturn(agreement.getAgreementId());
         when(negotiationStore.findContractAgreement(transferRequest.getContractId())).thenReturn(agreement);
         when(agentService.createFor(eq(token), any())).thenReturn(agent);
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);

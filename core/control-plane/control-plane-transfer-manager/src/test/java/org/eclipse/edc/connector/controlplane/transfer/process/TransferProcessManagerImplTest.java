@@ -167,6 +167,7 @@ class TransferProcessManagerImplTest {
         when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> protocolWebhookUrl);
         when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponseBuilder().build()));
         when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().build());
+        when(policyArchive.getAgreementIdForContract(any())).thenReturn("agreementId");
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
         var entityRetryProcessConfiguration = new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L));

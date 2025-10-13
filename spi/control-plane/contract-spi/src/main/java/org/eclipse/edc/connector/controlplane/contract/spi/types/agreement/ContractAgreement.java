@@ -37,6 +37,7 @@ public class ContractAgreement implements ParticipantResource {
     public static final String CONTRACT_AGREEMENT_TYPE_TERM = "ContractAgreement";
     public static final String CONTRACT_AGREEMENT_TYPE = EDC_NAMESPACE + CONTRACT_AGREEMENT_TYPE_TERM;
     public static final String CONTRACT_AGREEMENT_ASSET_ID = EDC_NAMESPACE + "assetId";
+    public static final String CONTRACT_AGREEMENT_ID = EDC_NAMESPACE + "agreementId";
     public static final String CONTRACT_AGREEMENT_PROVIDER_ID = EDC_NAMESPACE + "providerId";
     public static final String CONTRACT_AGREEMENT_CONSUMER_ID = EDC_NAMESPACE + "consumerId";
     public static final String CONTRACT_AGREEMENT_SIGNING_DATE = EDC_NAMESPACE + "contractSigningDate";
@@ -49,6 +50,7 @@ public class ContractAgreement implements ParticipantResource {
     private String assetId;
     private Policy policy;
     private String participantContextId;
+    private String agreementId;
 
     private ContractAgreement() {
     }
@@ -61,6 +63,16 @@ public class ContractAgreement implements ParticipantResource {
     @NotNull
     public String getId() {
         return id;
+    }
+
+
+    /**
+     * The id of the agreement shared between consumer and provider.
+     *
+     * @return agreement id
+     */
+    public String getAgreementId() {
+        return agreementId;
     }
 
     /**
@@ -122,7 +134,7 @@ public class ContractAgreement implements ParticipantResource {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, providerId, consumerId, contractSigningDate, assetId, policy);
+        return Objects.hash(id, providerId, consumerId, contractSigningDate, assetId, policy, participantContextId, agreementId);
     }
 
     @Override
@@ -136,7 +148,8 @@ public class ContractAgreement implements ParticipantResource {
         ContractAgreement that = (ContractAgreement) o;
         return contractSigningDate == that.contractSigningDate &&
                 Objects.equals(id, that.id) && Objects.equals(providerId, that.providerId) && Objects.equals(consumerId, that.consumerId) &&
-                Objects.equals(assetId, that.assetId) && Objects.equals(policy, that.policy);
+                Objects.equals(assetId, that.assetId) && Objects.equals(policy, that.policy) && Objects.equals(participantContextId, that.participantContextId) &&
+                Objects.equals(agreementId, that.agreementId);
     }
 
     public Builder toBuilder() {
@@ -147,7 +160,8 @@ public class ContractAgreement implements ParticipantResource {
                 .contractSigningDate(contractSigningDate)
                 .assetId(assetId)
                 .policy(policy)
-                .participantContextId(participantContextId);
+                .participantContextId(participantContextId)
+                .agreementId(agreementId);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -199,9 +213,17 @@ public class ContractAgreement implements ParticipantResource {
             return this;
         }
 
+        public Builder agreementId(String agreementId) {
+            this.instance.agreementId = agreementId;
+            return this;
+        }
+
         public ContractAgreement build() {
             if (instance.id == null) {
                 instance.id = UUID.randomUUID().toString();
+            }
+            if (instance.agreementId == null) {
+                instance.agreementId = UUID.randomUUID().toString();
             }
             requireNonNull(instance.providerId, "providerId cannot be null");
             requireNonNull(instance.consumerId, "consumerId cannot be null");

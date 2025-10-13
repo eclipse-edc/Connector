@@ -77,6 +77,7 @@ public class ContractAgreementApiEndToEndTest {
                     .statusCode(200)
                     .contentType(JSON)
                     .body(ID, is(agreement.getId()))
+                    .body("agreementId", is(agreement.getAgreementId()))
                     .body("assetId", notNullValue())
                     .body("policy.'odrl:assignee'", is(agreement.getPolicy().getAssignee()))
                     .body("policy.'odrl:assigner'", is(agreement.getPolicy().getAssigner()));

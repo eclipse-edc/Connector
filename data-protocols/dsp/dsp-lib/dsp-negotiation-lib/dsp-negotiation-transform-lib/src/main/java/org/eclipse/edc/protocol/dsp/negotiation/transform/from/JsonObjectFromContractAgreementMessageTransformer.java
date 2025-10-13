@@ -65,7 +65,7 @@ public class JsonObjectFromContractAgreementMessageTransformer extends AbstractN
         var signing = ofEpochSecond(agreement.getContractSigningDate()).toString();
 
         var copiedPolicy = Json.createObjectBuilder(policy)
-                .add(ID, agreement.getId())
+                .add(ID, agreement.getAgreementId())
                 .add(ODRL_ASSIGNEE_ATTRIBUTE, agreement.getConsumerId())
                 .add(ODRL_ASSIGNER_ATTRIBUTE, agreement.getProviderId())
                 .add(forNamespace(DSPACE_PROPERTY_TIMESTAMP_TERM), signing)

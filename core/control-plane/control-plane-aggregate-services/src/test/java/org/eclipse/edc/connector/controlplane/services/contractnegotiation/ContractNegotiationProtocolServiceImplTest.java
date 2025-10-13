@@ -158,6 +158,7 @@ class ContractNegotiationProtocolServiceImplTest {
                 .consumerId("consumerId")
                 .assetId("assetId")
                 .policy(Policy.Builder.newInstance().build())
+                .participantContextId("participantContextId")
                 .build();
         var message = ContractAgreementMessage.Builder.newInstance()
                 .protocol("protocol")
