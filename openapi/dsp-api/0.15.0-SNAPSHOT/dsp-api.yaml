@@ -138,34 +138,6 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025-1/transfers/{id}/completion:
-    post:
-      operationId: transferProcessCompletion
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/initiateTransferProcess_request"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
   /2025-1/catalog/request:
     post:
       operationId: requestCatalog
@@ -182,6 +154,34 @@ paths:
         required: false
         style: form
         explode: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2025-1/transfers/{id}/completion:
+    post:
+      operationId: transferProcessCompletion
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
         schema:
           type: string
       requestBody:
@@ -660,34 +660,6 @@ paths:
           description: default response
           content:
             application/json: {}
-  /negotiations/{id}/termination:
-    post:
-      operationId: terminateNegotiation
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/initiateTransferProcess_request"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
   /2025-1/negotiations/{id}:
     get:
       operationId: getNegotiation
@@ -711,37 +683,9 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2025-1/transfers/{id}/termination:
+  /negotiations/{id}/termination:
     post:
-      operationId: transferProcessTermination
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: false
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/initiateTransferProcess_request"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-  /2024/1/transfers/{id}/termination:
-    post:
-      operationId: transferProcessTermination
+      operationId: terminateNegotiation
       parameters:
       - name: id
         in: path
@@ -811,9 +755,9 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2024/1/catalog/datasets/{id}:
-    get:
-      operationId: getDataset
+  /2024/1/transfers/{id}/termination:
+    post:
+      operationId: transferProcessTermination
       parameters:
       - name: id
         in: path
@@ -829,6 +773,39 @@ paths:
         explode: false
         schema:
           type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2025-1/transfers/{id}/termination:
+    post:
+      operationId: transferProcessTermination
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
       responses:
         default:
           description: default response
@@ -857,6 +834,29 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2024/1/catalog/datasets/{id}:
+    get:
+      operationId: getDataset
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
       responses:
         default:
           description: default response
@@ -967,10 +967,17 @@ paths:
           description: default response
           content:
             application/json: {}
-  /negotiations/offer:
+  /2024/1/negotiations/{id}/agreement/verification:
     post:
-      operationId: initialContractOffer
+      operationId: verifyAgreement
       parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
       - name: Authorization
         in: header
         required: false
@@ -988,17 +995,10 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2024/1/negotiations/{id}/agreement/verification:
+  /negotiations/offer:
     post:
-      operationId: verifyAgreement
+      operationId: initialContractOffer
       parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
       - name: Authorization
         in: header
         required: false
@@ -1291,9 +1291,9 @@ paths:
           description: default response
           content:
             application/json: {}
-  /transfers/{id}:
+  /2024/1/negotiations/{id}:
     get:
-      operationId: getTransferProcess
+      operationId: getNegotiation
       parameters:
       - name: id
         in: path
@@ -1314,9 +1314,9 @@ paths:
           description: default response
           content:
             application/json: {}
-  /2024/1/negotiations/{id}:
+  /transfers/{id}:
     get:
-      operationId: getNegotiation
+      operationId: getTransferProcess
       parameters:
       - name: id
         in: path

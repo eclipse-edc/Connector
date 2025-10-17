@@ -46,34 +46,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /v4alpha/contractdefinitions/request:
-    post:
-      tags:
-      - Contract Definition v4alpha
-      description: Returns all contract definitions according to a query
-      operationId: queryContractDefinitionsV4
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The contract definitions matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/contract-definition-schema"
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v3/assets/request:
     post:
       tags:
@@ -96,6 +68,34 @@ paths:
                   $ref: "#/components/schemas/AssetOutput"
         "400":
           description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/contractdefinitions/request:
+    post:
+      tags:
+      - Contract Definition v4alpha
+      description: Returns all contract definitions according to a query
+      operationId: queryContractDefinitionsV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The contract definitions matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/contract-definition-schema"
+        "400":
+          description: Request was malformed
           content:
             application/json:
               schema:
@@ -487,28 +487,38 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /v3/contractdefinitions/request:
-    post:
+  /v3/edrs/{transferProcessId}/dataaddress:
+    get:
       tags:
-      - Contract Definition V3
-      description: Returns all contract definitions according to a query
-      operationId: queryContractDefinitionsV3
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/QuerySpec"
+      - EDR Cache V3
+      description: Gets the EDR data address with the given transfer process ID
+      operationId: getEdrEntryDataAddressV3
+      parameters:
+      - name: transferProcessId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
       responses:
         "200":
-          description: The contract definitions matching the query
+          description: The data address
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataAddress"
+        "400":
+          description: "Request was malformed, e.g. id was null"
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ContractDefinitionOutput"
-        "400":
-          description: Request was malformed
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An EDR data address with the given transfer process ID does
+            not exist
           content:
             application/json:
               schema:
@@ -552,44 +562,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /v3/edrs/{transferProcessId}/dataaddress:
-    get:
-      tags:
-      - EDR Cache V3
-      description: Gets the EDR data address with the given transfer process ID
-      operationId: getEdrEntryDataAddressV3
-      parameters:
-      - name: transferProcessId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: The data address
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DataAddress"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: An EDR data address with the given transfer process ID does
-            not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v3/contractnegotiations/request:
     post:
       tags:
@@ -610,6 +582,34 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ContractNegotiation"
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v3/contractdefinitions/request:
+    post:
+      tags:
+      - Contract Definition V3
+      description: Returns all contract definitions according to a query
+      operationId: queryContractDefinitionsV3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuerySpec"
+      responses:
+        "200":
+          description: The contract definitions matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContractDefinitionOutput"
         "400":
           description: Request was malformed
           content:
@@ -1600,34 +1600,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorDetail"
-  /v4alpha/transferprocesses/request:
-    post:
-      tags:
-      - Transfer Process v4alpha
-      description: Returns all transfer process according to a query
-      operationId: queryTransferProcessesV4
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/QuerySpec"
-      responses:
-        "200":
-          description: The transfer processes matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/transfer-process-schema"
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v4alpha/policydefinitions/{id}:
     get:
       tags:
@@ -1747,12 +1719,12 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /v3/contractagreements/request:
+  /v4alpha/transferprocesses/request:
     post:
       tags:
-      - Contract Agreement V3
-      description: Gets all contract agreements according to a particular query
-      operationId: queryAgreementsV3
+      - Transfer Process v4alpha
+      description: Returns all transfer process according to a query
+      operationId: queryTransferProcessesV4
       requestBody:
         content:
           application/json:
@@ -1760,43 +1732,15 @@ paths:
               $ref: "#/components/schemas/QuerySpec"
       responses:
         "200":
-          description: The contract agreements matching the query
+          description: The transfer processes matching the query
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/ContractAgreement_1"
+                  $ref: "#/components/schemas/transfer-process-schema"
         "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-  /v4alpha/contractagreements/request:
-    post:
-      tags:
-      - Contract Agreement v4alpha
-      description: Gets all contract agreements according to a particular query
-      operationId: queryAgreementsV4Alpha
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/QuerySpec"
-      responses:
-        "200":
-          description: The contract agreements matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ContractAgreement_1"
-        "400":
-          description: Request body was malformed
+          description: Request was malformed
           content:
             application/json:
               schema:
@@ -1916,6 +1860,62 @@ paths:
         "409":
           description: "The policy definition cannot be deleted, because it is referenced\
             \ by a contract definition"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v3/contractagreements/request:
+    post:
+      tags:
+      - Contract Agreement V3
+      description: Gets all contract agreements according to a particular query
+      operationId: queryAgreementsV3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuerySpec"
+      responses:
+        "200":
+          description: The contract agreements matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContractAgreement_1"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v4alpha/contractagreements/request:
+    post:
+      tags:
+      - Contract Agreement v4alpha
+      description: Gets all contract agreements according to a particular query
+      operationId: queryAgreementsV4Alpha
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuerySpec"
+      responses:
+        "200":
+          description: The contract agreements matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContractAgreement_1"
+        "400":
+          description: Request body was malformed
           content:
             application/json:
               schema:
@@ -2574,6 +2574,42 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v3/policydefinitions:
+    post:
+      tags:
+      - Policy Definition v3
+      description: Creates a new policy definition
+      operationId: createPolicyDefinitionV3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PolicyDefinitionInput"
+      responses:
+        "200":
+          description: policy definition was created successfully. Returns the Policy
+            Definition Id and created timestamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IdResponse"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "409":
+          description: "Could not create policy definition, because a contract definition\
+            \ with that ID already exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v3/transferprocesses/{id}/resume:
     post:
       tags:
@@ -2613,42 +2649,35 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /v3/policydefinitions:
+  /v3/policydefinitions/{id}/validate:
     post:
       tags:
       - Policy Definition v3
-      description: Creates a new policy definition
-      operationId: createPolicyDefinitionV3
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PolicyDefinitionInput"
+      description: "Validates an existing Policy, If the Policy is not found, an error\
+        \ is reported"
+      operationId: validatePolicyDefinitionV3
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
       responses:
         "200":
-          description: policy definition was created successfully. Returns the Policy
-            Definition Id and created timestamp
+          description: Returns the validation result
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/IdResponse"
-        "400":
-          description: Request body was malformed
+                $ref: "#/components/schemas/PolicyValidationResultSchema"
+        "404":
+          description: "policy definition could not be validated, because it does\
+            \ not exists"
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "409":
-          description: "Could not create policy definition, because a contract definition\
-            \ with that ID already exists"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
+                $ref: "#/components/schemas/ApiErrorDetail"
   /v3/contractagreements/{id}/negotiation:
     get:
       tags:
@@ -2723,35 +2752,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /v3/policydefinitions/{id}/validate:
-    post:
-      tags:
-      - Policy Definition v3
-      description: "Validates an existing Policy, If the Policy is not found, an error\
-        \ is reported"
-      operationId: validatePolicyDefinitionV3
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Returns the validation result
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PolicyValidationResultSchema"
-        "404":
-          description: "policy definition could not be validated, because it does\
-            \ not exists"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiErrorDetail"
   /v4alpha/dataplanes:
     get:
       tags:
@@ -3258,6 +3258,103 @@ components:
         type: ErrorType
         path: object.error.path
         invalidValue: this value is not valid
+    AssetOutput:
+      type: object
+      properties:
+        '@id':
+          type: string
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/Asset
+        createdAt:
+          type: integer
+          format: int64
+        dataAddress:
+          $ref: "#/components/schemas/DataAddress"
+        privateProperties:
+          type: object
+        properties:
+          type: object
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@id': asset-id
+        properties:
+          key: value
+        privateProperties:
+          privateKey: privateValue
+        dataAddress:
+          type: HttpData
+          baseUrl: https://jsonplaceholder.typicode.com/todos
+        createdAt: 1688465655
+    DataAddress:
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/DataAddress
+        type:
+          type: string
+      example:
+        '@type': https://w3id.org/edc/v0.0.1/ns/DataAddress
+        type: type
+    Properties:
+      type: object
+    QuerySpec:
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
+        filterExpression:
+          type: array
+          items:
+            $ref: "#/components/schemas/Criterion"
+        limit:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        sortField:
+          type: string
+        sortOrder:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@type': QuerySpec
+        offset: 5
+        limit: 10
+        sortOrder: DESC
+        sortField: fieldName
+        filterExpression: []
+    Criterion:
+      required:
+      - operandLeft
+      - operandRight
+      - operator
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/Criterion
+        operandLeft:
+          type: object
+        operandRight:
+          type: object
+        operator:
+          type: string
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@type': Criterion
+        operandLeft: fieldName
+        operator: =
+        operandRight: some value
     contract-definition-schema:
       title: ContractDefinitionSchema
       type: object
@@ -3308,8 +3405,8 @@ components:
         assetsSelector:
           type: array
           items:
-            $ref: "#/components/schemas/Criterion"
-    Criterion:
+            $ref: "#/components/schemas/Criterion_1"
+    Criterion_1:
       required:
       - '@type'
       - operandLeft
@@ -3343,8 +3440,8 @@ components:
       - properties:
           '@context':
             $ref: "#/components/schemas/context-schema"
-      - $ref: "#/components/schemas/QuerySpec"
-    QuerySpec:
+      - $ref: "#/components/schemas/QuerySpec_1"
+    QuerySpec_1:
       required:
       - '@type'
       type: object
@@ -3367,7 +3464,7 @@ components:
         filterExpression:
           type: array
           items:
-            $ref: "#/components/schemas/Criterion"
+            $ref: "#/components/schemas/Criterion_1"
       example:
         offset: 0
         '@type': '@type'
@@ -3383,103 +3480,6 @@ components:
           '@type': '@type'
           operandLeft: operandLeft
           operator: operator
-    AssetOutput:
-      type: object
-      properties:
-        '@id':
-          type: string
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/Asset
-        createdAt:
-          type: integer
-          format: int64
-        dataAddress:
-          $ref: "#/components/schemas/DataAddress"
-        privateProperties:
-          type: object
-        properties:
-          type: object
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@id': asset-id
-        properties:
-          key: value
-        privateProperties:
-          privateKey: privateValue
-        dataAddress:
-          type: HttpData
-          baseUrl: https://jsonplaceholder.typicode.com/todos
-        createdAt: 1688465655
-    DataAddress:
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/DataAddress
-        type:
-          type: string
-      example:
-        '@type': https://w3id.org/edc/v0.0.1/ns/DataAddress
-        type: type
-    Properties:
-      type: object
-    QuerySpec_1:
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
-        filterExpression:
-          type: array
-          items:
-            $ref: "#/components/schemas/Criterion_1"
-        limit:
-          type: integer
-          format: int32
-        offset:
-          type: integer
-          format: int32
-        sortField:
-          type: string
-        sortOrder:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': QuerySpec
-        offset: 5
-        limit: 10
-        sortOrder: DESC
-        sortField: fieldName
-        filterExpression: []
-    Criterion_1:
-      required:
-      - operandLeft
-      - operandRight
-      - operator
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/Criterion
-        operandLeft:
-          type: object
-        operandRight:
-          type: object
-        operator:
-          type: string
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': Criterion
-        operandLeft: fieldName
-        operator: =
-        operandRight: some value
     catalog-schema:
       title: CatalogSchema
       type: object
@@ -4049,7 +4049,7 @@ components:
           items:
             type: string
         querySpec:
-          $ref: "#/components/schemas/QuerySpec"
+          $ref: "#/components/schemas/QuerySpec_1"
       example:
         counterPartyAddress: counterPartyAddress
         protocol: protocol
@@ -4400,65 +4400,6 @@ components:
         permission: []
         prohibition: []
         obligation: []
-    ContractDefinitionOutput:
-      type: object
-      properties:
-        '@id':
-          type: string
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/ContractDefinition
-        accessPolicyId:
-          type: string
-        assetsSelector:
-          type: array
-          items:
-            $ref: "#/components/schemas/Criterion_1"
-        contractPolicyId:
-          type: string
-        createdAt:
-          type: integer
-          format: int64
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@id': definition-id
-        accessPolicyId: asset-policy-id
-        contractPolicyId: contract-policy-id
-        assetsSelector: []
-        createdAt: 1688465655
-    QuerySpec_2:
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
-        filterExpression:
-          type: array
-          items:
-            $ref: "#/components/schemas/Criterion_1"
-        limit:
-          type: integer
-          format: int32
-        offset:
-          type: integer
-          format: int32
-        sortField:
-          type: string
-        sortOrder:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': QuerySpec
-        offset: 5
-        limit: 10
-        sortOrder: DESC
-        sortField: fieldName
-        filterExpression: []
     ContractAgreement_1:
       type: object
       properties:
@@ -4559,38 +4500,33 @@ components:
           - transfer.process
           authKey: auth-key
           authCodeId: auth-code-id
-    QuerySpec_3:
+    ContractDefinitionOutput:
       type: object
       properties:
+        '@id':
+          type: string
         '@type':
           type: string
-          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
-        filterExpression:
+          example: https://w3id.org/edc/v0.0.1/ns/ContractDefinition
+        accessPolicyId:
+          type: string
+        assetsSelector:
           type: array
           items:
-            $ref: "#/components/schemas/Criterion_1"
-        limit:
-          type: integer
-          format: int32
-        offset:
-          type: integer
-          format: int32
-        sortField:
+            $ref: "#/components/schemas/Criterion"
+        contractPolicyId:
           type: string
-        sortOrder:
-          type: string
-          enum:
-          - ASC
-          - DESC
+        createdAt:
+          type: integer
+          format: int64
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': QuerySpec
-        offset: 5
-        limit: 10
-        sortOrder: DESC
-        sortField: fieldName
-        filterExpression: []
+        '@id': definition-id
+        accessPolicyId: asset-policy-id
+        contractPolicyId: contract-policy-id
+        assetsSelector: []
+        createdAt: 1688465655
     id-response-schema:
       title: IdResponseSchema
       type: object
@@ -4885,7 +4821,7 @@ components:
         assetsSelector:
           type: array
           items:
-            $ref: "#/components/schemas/Criterion_1"
+            $ref: "#/components/schemas/Criterion"
         contractPolicyId:
           type: string
       example:
@@ -5091,38 +5027,6 @@ components:
               rightOperand: https://www.wikidata.org/wiki/Q183
               comment: i.e Germany
         createdAt: 1688465655
-    QuerySpec_4:
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
-        filterExpression:
-          type: array
-          items:
-            $ref: "#/components/schemas/Criterion_1"
-        limit:
-          type: integer
-          format: int32
-        offset:
-          type: integer
-          format: int32
-        sortField:
-          type: string
-        sortOrder:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': QuerySpec
-        offset: 5
-        limit: 10
-        sortOrder: DESC
-        sortField: fieldName
-        filterExpression: []
     transfer-suspend-schema:
       title: TransferSuspendSchema
       type: object
@@ -5866,70 +5770,6 @@ components:
         correlationId: correlationId
         '@id': '@id'
         state: state
-    QuerySpec_5:
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
-        filterExpression:
-          type: array
-          items:
-            $ref: "#/components/schemas/Criterion_1"
-        limit:
-          type: integer
-          format: int32
-        offset:
-          type: integer
-          format: int32
-        sortField:
-          type: string
-        sortOrder:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': QuerySpec
-        offset: 5
-        limit: 10
-        sortOrder: DESC
-        sortField: fieldName
-        filterExpression: []
-    QuerySpec_6:
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
-        filterExpression:
-          type: array
-          items:
-            $ref: "#/components/schemas/Criterion_1"
-        limit:
-          type: integer
-          format: int32
-        offset:
-          type: integer
-          format: int32
-        sortField:
-          type: string
-        sortOrder:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': QuerySpec
-        offset: 5
-        limit: 10
-        sortOrder: DESC
-        sortField: fieldName
-        filterExpression: []
     PolicyDefinitionInput:
       required:
       - '@context'
@@ -5995,38 +5835,6 @@ components:
         assetId: asset-id
         providerId: provider-id
         createdAt: 1688465655
-    QuerySpec_7:
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
-        filterExpression:
-          type: array
-          items:
-            $ref: "#/components/schemas/Criterion_1"
-        limit:
-          type: integer
-          format: int32
-        offset:
-          type: integer
-          format: int32
-        sortField:
-          type: string
-        sortOrder:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': QuerySpec
-        offset: 5
-        limit: 10
-        sortOrder: DESC
-        sortField: fieldName
-        filterExpression: []
     Catalog_1:
       type: object
       description: DCAT catalog
@@ -6098,7 +5906,7 @@ components:
         protocol:
           type: string
         querySpec:
-          $ref: "#/components/schemas/QuerySpec_8"
+          $ref: "#/components/schemas/QuerySpec"
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -6115,38 +5923,6 @@ components:
           sortOrder: DESC
           sortField: fieldName
           filterExpression: []
-    QuerySpec_8:
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
-        filterExpression:
-          type: array
-          items:
-            $ref: "#/components/schemas/Criterion_1"
-        limit:
-          type: integer
-          format: int32
-        offset:
-          type: integer
-          format: int32
-        sortField:
-          type: string
-        sortOrder:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': QuerySpec
-        offset: 5
-        limit: 10
-        sortOrder: DESC
-        sortField: fieldName
-        filterExpression: []
     TerminateTransfer_1:
       type: object
       properties:
@@ -6333,7 +6109,7 @@ components:
         protocol:
           type: string
         querySpec:
-          $ref: "#/components/schemas/QuerySpec_8"
+          $ref: "#/components/schemas/QuerySpec"
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
