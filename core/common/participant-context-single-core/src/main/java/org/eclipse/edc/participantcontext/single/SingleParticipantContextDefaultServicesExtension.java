@@ -14,7 +14,9 @@
 
 package org.eclipse.edc.participantcontext.single;
 
+import org.eclipse.edc.participantcontext.single.config.store.SingleParticipantContextConfigStore;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -35,6 +37,9 @@ public class SingleParticipantContextDefaultServicesExtension implements Service
     @Setting(description = "Configures the participant id this runtime is operating on behalf of", key = "edc.participant.id", defaultValue = ANONYMOUS_PARTICIPANT)
     public String participantId;
 
+    @Setting(description = "Configures the participant context id for the single participant runtime", key = "edc.participant.context.id", required = false)
+    public String participantContextId;
+
     @Inject
     private Monitor monitor;
 
@@ -46,14 +51,25 @@ public class SingleParticipantContextDefaultServicesExtension implements Service
 
     @Provider(isDefault = true)
     public SingleParticipantContextSupplier participantContextSupplier() {
-        var participantContext = new ParticipantContext(participantId);
+        var contextId = participantContextId != null ? participantContextId : participantId;
+        var participantContext = new ParticipantContext(contextId);
         return () -> ServiceResult.success(participantContext);
+    }
+
+
+    @Provider
+    public ParticipantContextConfigStore participantContextConfigStore(ServiceExtensionContext context) {
+        var contextId = participantContextId != null ? participantContextId : participantId;
+        return new SingleParticipantContextConfigStore(contextId, context.getConfig());
     }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        if (ANONYMOUS_PARTICIPANT.equals(participantId)) {
+        if (ANONYMOUS_PARTICIPANT.equals(participantContextId)) {
             monitor.warning("The runtime is configured as an anonymous participant. DO NOT DO THIS IN PRODUCTION.");
+        }
+        if (participantContextId == null) {
+            monitor.warning("The runtime is not configured with a participant context id. Using the participant id as the context id.");
         }
     }
 

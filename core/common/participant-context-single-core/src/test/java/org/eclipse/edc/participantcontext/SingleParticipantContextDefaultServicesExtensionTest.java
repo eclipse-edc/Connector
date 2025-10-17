@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.participantcontext;
 
+import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.participantcontext.single.SingleParticipantContextDefaultServicesExtension;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
@@ -34,7 +35,7 @@ public class SingleParticipantContextDefaultServicesExtensionTest {
     @BeforeEach
     void setup(ServiceExtensionContext context) {
         var config = ConfigFactory.fromMap(Map.of(
-                "edc.participant.id", "participantContextId"
+                "edc.participant.id", "participantId"
 
         ));
         when(context.getConfig()).thenReturn(config);
@@ -42,6 +43,19 @@ public class SingleParticipantContextDefaultServicesExtensionTest {
 
     @Test
     void verifyParticipantContextSupplier(SingleParticipantContextDefaultServicesExtension extension) {
+        var supplier = extension.participantContextSupplier();
+        assertThat(supplier.get().getContent()).isEqualTo(new ParticipantContext("participantId"));
+    }
+
+    @Test
+    void verifyParticipantContextSupplierWithConfiguredParticipantContextId(ServiceExtensionContext context, ObjectFactory factory) {
+        var config = ConfigFactory.fromMap(Map.of(
+                "edc.participant.id", "participantId",
+                "edc.participant.context.id", "participantContextId"
+
+        ));
+        when(context.getConfig()).thenReturn(config);
+        var extension = factory.constructInstance(SingleParticipantContextDefaultServicesExtension.class);
         var supplier = extension.participantContextSupplier();
         assertThat(supplier.get().getContent()).isEqualTo(new ParticipantContext("participantContextId"));
     }

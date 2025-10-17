@@ -15,14 +15,15 @@
 plugins {
     `java-library`
     `maven-publish`
+    `java-test-fixtures`
 }
 
 dependencies {
-    api(project(":spi:common:participant-context-single-spi"))
-    api(project(":spi:common:participant-context-config-spi"))
+    api(project(":spi:common:core-spi"))
+    api(project(":spi:common:validator-spi"))
 
     testImplementation(project(":tests:junit-base"))
-    testImplementation(project(":core:common:junit"))
-    testImplementation(testFixtures(project(":spi:common:participant-context-config-spi")))
-
+    testFixturesImplementation(project(":core:common:junit"))
 }
+
+
