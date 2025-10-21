@@ -26,9 +26,14 @@ import java.util.Objects;
 public abstract class ContractDefinitionEvent extends Event {
 
     protected String contractDefinitionId;
+    protected String participantContextId;
 
     public String getContractDefinitionId() {
         return contractDefinitionId;
+    }
+
+    public String getParticipantContextId() {
+        return participantContextId;
     }
 
     public abstract static class Builder<T extends ContractDefinitionEvent, B extends Builder<T, B>> {
@@ -39,14 +44,17 @@ public abstract class ContractDefinitionEvent extends Event {
             this.event = event;
         }
 
-
         public B contractDefinitionId(String contractDefinitionId) {
             event.contractDefinitionId = contractDefinitionId;
             return self();
         }
 
-        public abstract B self();
+        public B participantContextId(String participantContextId) {
+            event.participantContextId = participantContextId;
+            return self();
+        }
 
+        public abstract B self();
 
         public T build() {
             Objects.requireNonNull(event.contractDefinitionId);

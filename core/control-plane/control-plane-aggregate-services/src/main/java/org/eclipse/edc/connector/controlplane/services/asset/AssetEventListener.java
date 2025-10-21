@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.services.asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.event.AssetCreated;
 import org.eclipse.edc.connector.controlplane.asset.spi.event.AssetDeleted;
+import org.eclipse.edc.connector.controlplane.asset.spi.event.AssetEvent;
 import org.eclipse.edc.connector.controlplane.asset.spi.event.AssetUpdated;
 import org.eclipse.edc.connector.controlplane.asset.spi.observe.AssetListener;
 import org.eclipse.edc.spi.event.EventRouter;
@@ -33,29 +34,30 @@ public class AssetEventListener implements AssetListener {
 
     @Override
     public void created(Asset asset) {
-        var event = AssetCreated.Builder.newInstance()
-                .assetId(asset.getId())
-                .build();
+        var builder = AssetCreated.Builder.newInstance();
 
-        eventRouter.publish(event);
+        eventRouter.publish(withBaseProperties(builder, asset));
     }
 
     @Override
     public void deleted(Asset asset) {
-        var event = AssetDeleted.Builder.newInstance()
-                .assetId(asset.getId())
-                .build();
+        var builder = AssetDeleted.Builder.newInstance();
 
-        eventRouter.publish(event);
+        eventRouter.publish(withBaseProperties(builder, asset));
     }
 
     @Override
     public void updated(Asset asset) {
-        var event = AssetUpdated.Builder.newInstance()
-                .assetId(asset.getId())
-                .build();
+        var builder = AssetUpdated.Builder.newInstance();
 
-        eventRouter.publish(event);
+        eventRouter.publish(withBaseProperties(builder, asset));
+    }
+
+    private <E extends AssetEvent> E withBaseProperties(AssetEvent.Builder<E, ?> builder, Asset asset) {
+        return builder
+                .assetId(asset.getId())
+                .participantContextId(asset.getParticipantContextId())
+                .build();
     }
 
 }

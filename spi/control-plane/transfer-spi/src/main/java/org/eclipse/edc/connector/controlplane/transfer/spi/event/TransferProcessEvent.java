@@ -34,6 +34,7 @@ public abstract class TransferProcessEvent extends Event implements CallbackAddr
     protected String type;
     protected String contractId;
     protected String participantContextId;
+    protected String protocol;
 
     public String getTransferProcessId() {
         return transferProcessId;
@@ -53,6 +54,10 @@ public abstract class TransferProcessEvent extends Event implements CallbackAddr
 
     public String getParticipantContextId() {
         return participantContextId;
+    }
+
+    public String getProtocol() {
+        return protocol;
     }
 
     @Override
@@ -95,6 +100,11 @@ public abstract class TransferProcessEvent extends Event implements CallbackAddr
 
         public B participantContextId(String participantContextId) {
             event.participantContextId = participantContextId;
+            return self();
+        }
+
+        public B protocol(String protocol) {
+            event.protocol = protocol;
             return self();
         }
 

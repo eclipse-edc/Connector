@@ -56,14 +56,14 @@ public class ProvisionerManagerImpl implements ProvisionerManager {
     @Override
     public CompletableFuture<List<StatusResult<ProvisionedResource>>> provision(List<ProvisionResource> definitions) {
         return definitions.stream()
-                .map(definition -> provision(definition).whenComplete(logOnError(definition)))
+                .map(definition -> provision(definition).whenComplete(logOnError(definition, "provisioning")))
                 .collect(asyncAllOf());
     }
 
     @Override
     public CompletableFuture<List<StatusResult<DeprovisionedResource>>> deprovision(List<ProvisionResource> definitions) {
         return definitions.stream()
-                .map(definition -> deprovision(definition).whenComplete(logOnError(definition)))
+                .map(definition -> deprovision(definition).whenComplete(logOnError(definition, "deprovisioning")))
                 .collect(asyncAllOf());
     }
 
@@ -94,10 +94,10 @@ public class ProvisionerManagerImpl implements ProvisionerManager {
     }
 
     @NotNull
-    private BiConsumer<StatusResult<?>, Throwable> logOnError(ProvisionResource definition) {
+    private BiConsumer<StatusResult<?>, Throwable> logOnError(ProvisionResource definition, String type) {
         return (result, throwable) -> {
             if (throwable != null) {
-                monitor.severe("Error provisioning definition %s for flow %s: %s".formatted(definition.getId(), definition.getFlowId(), throwable.getMessage()));
+                monitor.severe("Error %s definition %s for flow %s: %s".formatted(type, definition.getId(), definition.getFlowId(), throwable.getMessage()));
             }
         };
     }

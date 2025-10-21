@@ -90,6 +90,7 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
                 .callbackAddresses(negotiation.getCallbackAddresses())
                 .contractOffers(negotiation.getContractOffers())
                 .counterPartyId(negotiation.getCounterPartyId())
+                .participantContextId(negotiation.getParticipantContextId())
                 .protocol(negotiation.getProtocol());
     }
 

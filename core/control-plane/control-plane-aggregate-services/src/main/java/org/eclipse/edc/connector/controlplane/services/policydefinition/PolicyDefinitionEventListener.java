@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.services.policydefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionCreated;
 import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionDeleted;
+import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionEvent;
 import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionUpdated;
 import org.eclipse.edc.connector.controlplane.policy.spi.observe.PolicyDefinitionListener;
 import org.eclipse.edc.spi.event.EventRouter;
@@ -33,29 +34,30 @@ public class PolicyDefinitionEventListener implements PolicyDefinitionListener {
 
     @Override
     public void created(PolicyDefinition policyDefinition) {
-        var event = PolicyDefinitionCreated.Builder.newInstance()
-                .policyDefinitionId(policyDefinition.getId())
-                .build();
+        var builder = PolicyDefinitionCreated.Builder.newInstance();
 
-        eventRouter.publish(event);
+        eventRouter.publish(withBaseProperties(builder, policyDefinition));
     }
 
     @Override
     public void deleted(PolicyDefinition policyDefinition) {
-        var event = PolicyDefinitionDeleted.Builder.newInstance()
-                .policyDefinitionId(policyDefinition.getId())
-                .build();
+        var builder = PolicyDefinitionDeleted.Builder.newInstance();
 
-        eventRouter.publish(event);
+        eventRouter.publish(withBaseProperties(builder, policyDefinition));
     }
 
     @Override
     public void updated(PolicyDefinition policyDefinition) {
-        var event = PolicyDefinitionUpdated.Builder.newInstance()
-                .policyDefinitionId(policyDefinition.getId())
-                .build();
+        var builder = PolicyDefinitionUpdated.Builder.newInstance();
 
-        eventRouter.publish(event);
+        eventRouter.publish(withBaseProperties(builder, policyDefinition));
+    }
+
+    private <E extends PolicyDefinitionEvent> E withBaseProperties(PolicyDefinitionEvent.Builder<E, ?> builder, PolicyDefinition policyDefinition) {
+        return builder
+                .policyDefinitionId(policyDefinition.getId())
+                .participantContextId(policyDefinition.getParticipantContextId())
+                .build();
     }
 
 }
