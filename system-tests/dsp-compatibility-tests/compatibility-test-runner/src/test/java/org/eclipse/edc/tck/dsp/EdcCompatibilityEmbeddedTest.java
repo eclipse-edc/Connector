@@ -17,7 +17,7 @@ package org.eclipse.edc.tck.dsp;
 import org.assertj.core.api.Assertions;
 import org.eclipse.dataspacetck.core.system.ConsoleMonitor;
 import org.eclipse.dataspacetck.runtime.TckRuntime;
-import org.eclipse.edc.junit.annotations.NightlyTest;
+import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
@@ -44,7 +44,7 @@ import static org.eclipse.dataspacetck.core.api.system.SystemsConstants.TCK_LAUN
 import static org.eclipse.edc.tck.dsp.CompatibilityTests.ALLOWED_FAILURES;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
-@NightlyTest
+@EndToEndTest
 public class EdcCompatibilityEmbeddedTest {
 
     private static final URI PROTOCOL_URL = URI.create("http://localhost:" + getFreePort() + "/api/dsp");

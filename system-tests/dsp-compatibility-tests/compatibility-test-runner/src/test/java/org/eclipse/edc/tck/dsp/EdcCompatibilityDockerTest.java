@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.tck.dsp;
 
-import org.eclipse.edc.junit.annotations.NightlyTest;
+import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
@@ -40,7 +40,7 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.eclipse.edc.tck.dsp.CompatibilityTests.ALLOWED_FAILURES;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
-@NightlyTest
+@EndToEndTest
 @Testcontainers
 public class EdcCompatibilityDockerTest {
 
@@ -81,8 +81,6 @@ public class EdcCompatibilityDockerTest {
     @Timeout(300)
     @Test
     void assertDspCompatibility() {
-
-
         // pipe the docker container's log to this console at the INFO level
         var monitor = new ConsoleMonitor(">>> TCK Runtime (Docker)", ConsoleMonitor.Level.INFO, true);
         var reporter = new TckTestReporter();
