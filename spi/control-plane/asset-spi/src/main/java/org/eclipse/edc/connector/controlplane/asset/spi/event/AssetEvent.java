@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.asset.spi.event;
 
 import org.eclipse.edc.spi.event.Event;
-import org.eclipse.edc.spi.event.EventPayload;
 
 import java.util.Objects;
 
@@ -26,18 +25,14 @@ import java.util.Objects;
 public abstract class AssetEvent extends Event {
 
     protected String assetId;
+    protected String participantContextId;
 
     public String getAssetId() {
         return assetId;
     }
 
-
-    public abstract static class Payload extends EventPayload {
-        protected String assetId;
-
-        public String getAssetId() {
-            return assetId;
-        }
+    public String getParticipantContextId() {
+        return participantContextId;
     }
 
     public abstract static class Builder<T extends AssetEvent, B extends AssetEvent.Builder<T, B>> {
@@ -52,6 +47,11 @@ public abstract class AssetEvent extends Event {
 
         public B assetId(String assetId) {
             event.assetId = assetId;
+            return self();
+        }
+
+        public B participantContextId(String participantContextId) {
+            event.participantContextId = participantContextId;
             return self();
         }
 

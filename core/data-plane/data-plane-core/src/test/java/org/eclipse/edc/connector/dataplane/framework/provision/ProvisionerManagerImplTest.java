@@ -120,7 +120,7 @@ class ProvisionerManagerImplTest {
             var result = provisionerManager.deprovision(List.of(definition));
 
             assertThat(result).failsWithin(1, SECONDS);
-            verify(monitor).severe(contains("Error provisioning"));
+            verify(monitor).severe(contains("Error deprovisioning"));
         }
 
         @Test

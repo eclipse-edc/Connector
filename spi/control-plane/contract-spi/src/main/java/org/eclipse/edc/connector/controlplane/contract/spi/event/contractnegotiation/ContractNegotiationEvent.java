@@ -30,18 +30,16 @@ import java.util.Objects;
 public abstract class ContractNegotiationEvent extends Event implements CallbackAddresses {
 
     protected String contractNegotiationId;
-
     protected String counterPartyAddress;
     protected String counterPartyId;
-
     protected List<CallbackAddress> callbackAddresses = new ArrayList<>();
     protected List<ContractOffer> contractOffers = new ArrayList<>();
+    protected String participantContextId;
     protected String protocol;
 
     public String getContractNegotiationId() {
         return contractNegotiationId;
     }
-
 
     public String getCounterPartyAddress() {
         return counterPartyAddress;
@@ -53,6 +51,10 @@ public abstract class ContractNegotiationEvent extends Event implements Callback
 
     public List<ContractOffer> getContractOffers() {
         return contractOffers;
+    }
+
+    public String getParticipantContextId() {
+        return participantContextId;
     }
 
     public String getProtocol() {
@@ -107,6 +109,11 @@ public abstract class ContractNegotiationEvent extends Event implements Callback
 
         public B callbackAddresses(List<CallbackAddress> callbackAddresses) {
             event.callbackAddresses = callbackAddresses;
+            return self();
+        }
+
+        public B participantContextId(String participantContextId) {
+            event.participantContextId = participantContextId;
             return self();
         }
 

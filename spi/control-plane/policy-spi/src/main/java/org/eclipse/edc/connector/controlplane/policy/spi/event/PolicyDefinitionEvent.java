@@ -25,11 +25,15 @@ import java.util.Objects;
 public abstract class PolicyDefinitionEvent extends Event {
 
     protected String policyDefinitionId;
+    protected String participantContextId;
 
     public String getPolicyDefinitionId() {
         return policyDefinitionId;
     }
 
+    public String getParticipantContextId() {
+        return participantContextId;
+    }
 
     public abstract static class Builder<T extends PolicyDefinitionEvent, B extends PolicyDefinitionEvent.Builder<T, B>> {
 
@@ -43,6 +47,11 @@ public abstract class PolicyDefinitionEvent extends Event {
 
         public B policyDefinitionId(String policyDefinitionId) {
             event.policyDefinitionId = policyDefinitionId;
+            return self();
+        }
+
+        public B participantContextId(String participantContextId) {
+            event.participantContextId = participantContextId;
             return self();
         }
 
