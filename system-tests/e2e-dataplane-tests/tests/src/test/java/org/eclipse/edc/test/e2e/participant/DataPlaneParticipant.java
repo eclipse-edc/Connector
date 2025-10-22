@@ -16,8 +16,8 @@ package org.eclipse.edc.test.e2e.participant;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import io.restassured.specification.RequestSpecification;
-import org.eclipse.edc.connector.controlplane.test.system.utils.LazySupplier;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participant;
+import org.eclipse.edc.junit.utils.LazySupplier;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.jetbrains.annotations.NotNull;

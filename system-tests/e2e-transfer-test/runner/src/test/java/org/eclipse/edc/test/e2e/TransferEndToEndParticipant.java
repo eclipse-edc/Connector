@@ -16,8 +16,8 @@ package org.eclipse.edc.test.e2e;
 
 import io.restassured.common.mapper.TypeRef;
 import org.assertj.core.api.ThrowingConsumer;
-import org.eclipse.edc.connector.controlplane.test.system.utils.LazySupplier;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participant;
+import org.eclipse.edc.junit.utils.LazySupplier;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;

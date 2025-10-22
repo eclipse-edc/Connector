@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.test.system.utils;
+package org.eclipse.edc.junit.utils;
 
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;

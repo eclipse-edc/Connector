@@ -27,8 +27,10 @@ import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.Con
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.eclipse.edc.web.spi.validation.SchemaType;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
@@ -41,7 +43,7 @@ public class ContractAgreementApiV4AlphaController extends BaseContractAgreement
     @POST
     @Path("/request")
     @Override
-    public JsonArray queryAgreementsV4Alpha(JsonObject querySpecJson) {
+    public JsonArray queryAgreementsV4Alpha(@SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson) {
         return queryAgreements(querySpecJson);
     }
 
