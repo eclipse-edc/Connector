@@ -15,7 +15,7 @@
 package org.eclipse.edc.test.e2e;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
-import org.eclipse.edc.connector.controlplane.test.system.utils.LazySupplier;
+import org.eclipse.edc.junit.utils.LazySupplier;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.util.io.Ports;
