@@ -42,6 +42,7 @@ jobs:
           mkdir -p public/context
           cp extensions/common/json-ld/src/main/resources/document/management-context-v1.jsonld public/context/
           cp extensions/common/json-ld/src/main/resources/document/management-context-v2.jsonld public/context/
+          cp extensions/common/json-ld/src/main/resources/document/dspace-edc-context-v1.jsonld public/context/
           mkdir -p public/schema
           cp -r extensions/common/api/management-api-schema-validator/src/main/resources/schema/management public/schema/
       - name: deploy to gh-pages
