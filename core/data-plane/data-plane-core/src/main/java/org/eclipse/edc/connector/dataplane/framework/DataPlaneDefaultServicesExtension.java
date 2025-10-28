@@ -18,7 +18,6 @@ import org.eclipse.edc.connector.dataplane.framework.edr.EndpointDataReferenceSe
 import org.eclipse.edc.connector.dataplane.framework.pipeline.PipelineServiceImpl;
 import org.eclipse.edc.connector.dataplane.framework.provision.ProvisionerManagerImpl;
 import org.eclipse.edc.connector.dataplane.framework.provision.ResourceDefinitionGeneratorManagerImpl;
-import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy;
 import org.eclipse.edc.connector.dataplane.framework.store.InMemoryAccessTokenDataStore;
 import org.eclipse.edc.connector.dataplane.framework.store.InMemoryDataPlaneStore;
 import org.eclipse.edc.connector.dataplane.spi.edr.EndpointDataReferenceServiceRegistry;
@@ -51,11 +50,6 @@ public class DataPlaneDefaultServicesExtension implements ServiceExtension {
     @Override
     public String name() {
         return NAME;
-    }
-
-    @Provider(isDefault = true)
-    public TransferServiceSelectionStrategy transferServiceSelectionStrategy() {
-        return TransferServiceSelectionStrategy.selectFirst();
     }
 
     @Provider(isDefault = true)

@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.dataplane.framework;
 
 import org.eclipse.edc.connector.dataplane.framework.manager.DataPlaneManagerImpl;
 import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceRegistryImpl;
-import org.eclipse.edc.connector.dataplane.framework.registry.TransferServiceSelectionStrategy;
 import org.eclipse.edc.connector.dataplane.spi.edr.EndpointDataReferenceServiceRegistry;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.connector.dataplane.spi.pipeline.DataTransferExecutorServiceContainer;
@@ -73,8 +72,6 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     private DataPlaneManagerImpl dataPlaneManager;
 
     @Inject
-    private TransferServiceSelectionStrategy transferServiceSelectionStrategy;
-    @Inject
     private DataPlaneStore store;
     @Inject
     private TransferProcessApiClient transferProcessApiClient;
@@ -102,7 +99,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
-        var transferServiceRegistry = new TransferServiceRegistryImpl(transferServiceSelectionStrategy);
+        var transferServiceRegistry = new TransferServiceRegistryImpl();
         transferServiceRegistry.registerTransferService(pipelineService);
         context.registerService(TransferServiceRegistry.class, transferServiceRegistry);
 

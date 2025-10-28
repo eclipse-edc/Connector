@@ -30,11 +30,6 @@ import java.util.LinkedHashSet;
 public class TransferServiceRegistryImpl implements TransferServiceRegistry {
 
     private final Collection<PrioritizedTransferService> transferServices = new LinkedHashSet<>();
-    private final TransferServiceSelectionStrategy transferServiceSelectionStrategy;
-
-    public TransferServiceRegistryImpl(TransferServiceSelectionStrategy transferServiceSelectionStrategy) {
-        this.transferServiceSelectionStrategy = transferServiceSelectionStrategy;
-    }
 
     @Override
     public void registerTransferService(TransferService transferService) {
@@ -49,22 +44,11 @@ public class TransferServiceRegistryImpl implements TransferServiceRegistry {
     @Override
     @Nullable
     public TransferService resolveTransferService(DataFlowStartMessage request) {
-        var prioritizedServicesPresent = transferServices.stream()
-                .map(PrioritizedTransferService::priority)
-                .anyMatch(priority -> priority > 0);
-
-        if (prioritizedServicesPresent) {
-            return transferServices.stream()
-                    .filter(pts -> pts.service.canHandle(request))
-                    .sorted(Comparator.comparingInt(pts -> -pts.priority))
-                    .map(PrioritizedTransferService::service)
-                    .findFirst().orElse(null);
-        }
-
-        var possibleServices = transferServices.stream()
+        return transferServices.stream()
+                .filter(pts -> pts.service.canHandle(request))
+                .sorted(Comparator.comparingInt(pts -> -pts.priority))
                 .map(PrioritizedTransferService::service)
-                .filter(ts -> ts.canHandle(request));
-        return transferServiceSelectionStrategy.chooseTransferService(request, possibleServices);
+                .findFirst().orElse(null);
     }
     
     record PrioritizedTransferService(int priority, TransferService service) { }
