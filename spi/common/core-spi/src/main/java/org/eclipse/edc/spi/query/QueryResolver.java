@@ -14,8 +14,6 @@
 
 package org.eclipse.edc.spi.query;
 
-import java.util.function.BinaryOperator;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
@@ -35,17 +33,4 @@ public interface QueryResolver<T> {
      */
     Stream<T> query(Stream<T> stream, QuerySpec spec);
 
-    /**
-     * Method to query a stream by provided specification, using the provided accumulator
-     *
-     * @param stream      stream to be queried.
-     * @param spec        query specification.
-     * @param accumulator binary accumulation operator, e.g. Predicate::and, Predicate::or, etc.
-     * @return stream result from queries.
-     * @deprecated use {@link #query(Stream, QuerySpec)}, the accumulator should be passed as collaborator.
-     */
-    @Deprecated(since = "0.12.0")
-    default Stream<T> query(Stream<T> stream, QuerySpec spec, BinaryOperator<Predicate<Object>> accumulator, Predicate<Object> fallback) {
-        return query(stream, spec);
-    }
 }
