@@ -40,14 +40,16 @@ import static org.mockito.Mockito.when;
 
 public class RemoteSecureTokenServiceTest {
 
+    private final String participantContextId = "participantId";
     private final StsRemoteClientConfiguration configuration = new StsRemoteClientConfiguration("url", "id", "secretAlias");
     private final Oauth2Client oauth2Client = mock();
     private final Vault vault = mock();
     private RemoteSecureTokenService secureTokenService;
 
+
     @BeforeEach
     void setup() {
-        secureTokenService = new RemoteSecureTokenService(oauth2Client, configuration, vault);
+        secureTokenService = new RemoteSecureTokenService(oauth2Client, (it) -> configuration, vault);
     }
 
     @Test
@@ -57,7 +59,7 @@ public class RemoteSecureTokenServiceTest {
         when(oauth2Client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().build()));
         when(vault.resolveSecret(configuration.clientSecretAlias())).thenReturn(secret);
 
-        assertThat(secureTokenService.createToken(Map.of(AUDIENCE, audience), null)).isSucceeded();
+        assertThat(secureTokenService.createToken(participantContextId, Map.of(AUDIENCE, audience), null)).isSucceeded();
 
         var captor = ArgumentCaptor.forClass(SharedSecretOauth2CredentialsRequest.class);
         verify(oauth2Client).requestToken(captor.capture());
@@ -81,7 +83,7 @@ public class RemoteSecureTokenServiceTest {
         when(oauth2Client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().build()));
         when(vault.resolveSecret(configuration.clientSecretAlias())).thenReturn(secret);
 
-        assertThat(secureTokenService.createToken(Map.of(AUDIENCE, audience), bearerAccessScope)).isSucceeded();
+        assertThat(secureTokenService.createToken(participantContextId, Map.of(AUDIENCE, audience), bearerAccessScope)).isSucceeded();
 
         var captor = ArgumentCaptor.forClass(SharedSecretOauth2CredentialsRequest.class);
         verify(oauth2Client).requestToken(captor.capture());
@@ -106,7 +108,7 @@ public class RemoteSecureTokenServiceTest {
         when(oauth2Client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().build()));
         when(vault.resolveSecret(configuration.clientSecretAlias())).thenReturn(secret);
 
-        assertThat(secureTokenService.createToken(Map.of(AUDIENCE, audience, PRESENTATION_TOKEN_CLAIM, accessToken), null)).isSucceeded();
+        assertThat(secureTokenService.createToken(participantContextId, Map.of(AUDIENCE, audience, PRESENTATION_TOKEN_CLAIM, accessToken), null)).isSucceeded();
 
         var captor = ArgumentCaptor.forClass(SharedSecretOauth2CredentialsRequest.class);
         verify(oauth2Client).requestToken(captor.capture());
@@ -129,8 +131,8 @@ public class RemoteSecureTokenServiceTest {
 
         when(oauth2Client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().build()));
         when(vault.resolveSecret(configuration.clientSecretAlias())).thenReturn(null);
-        
-        assertThat(secureTokenService.createToken(Map.of(AUDIENCE, audience, PRESENTATION_TOKEN_CLAIM, accessToken), null))
+
+        assertThat(secureTokenService.createToken(participantContextId, Map.of(AUDIENCE, audience, PRESENTATION_TOKEN_CLAIM, accessToken), null))
                 .isFailed()
                 .detail().isEqualTo(format("Failed to fetch client secret from the vault with alias: %s", configuration.clientSecretAlias()));
 

@@ -18,11 +18,11 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 
-import java.util.function.Function;
-
 /**
  * marker interface for more readable code and better testability
  */
 @FunctionalInterface
-public interface TokenValidationAction extends Function<TokenRepresentation, Result<ClaimToken>> {
+public interface TokenValidationAction {
+
+    Result<ClaimToken> validate(String participantContextId, TokenRepresentation tokenRepresentation);
 }
