@@ -70,7 +70,7 @@ public interface EdrCacheApiV3 {
     void removeEdrEntryV3(String transferProcessId);
 
     @ArraySchema()
-    @Schema(name = "EndpointDataReferenceEntry", example = EndpointDataReferenceEntrySchema.EDR_ENTRY_OUTPUT_EXAMPLE)
+    @Schema(name = "EndpointDataReferenceEntryV3", example = EndpointDataReferenceEntrySchema.EDR_ENTRY_OUTPUT_EXAMPLE)
     record EndpointDataReferenceEntrySchema(
             @Schema(name = ID)
             String id,
