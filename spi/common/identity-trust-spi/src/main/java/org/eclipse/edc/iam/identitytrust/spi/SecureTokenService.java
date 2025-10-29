@@ -34,6 +34,6 @@ public interface SecureTokenService {
      *                          if bearerAccessScope != null -> creates a {@code token} claim, which is another JWT containing the scope as claims.
      *                          if bearerAccessScope == null -> creates a normal JWT using all the claims in the map
      */
-    Result<TokenRepresentation> createToken(Map<String, Object> claims, @Nullable String bearerAccessScope);
+    Result<TokenRepresentation> createToken(String participantContextId, Map<String, Object> claims, @Nullable String bearerAccessScope);
 
 }

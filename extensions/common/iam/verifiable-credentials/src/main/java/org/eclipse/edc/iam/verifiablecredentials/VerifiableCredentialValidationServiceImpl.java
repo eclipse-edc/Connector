@@ -54,7 +54,7 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
     }
 
     @Override
-    public Result<Void> validate(List<VerifiablePresentationContainer> presentations, Collection<? extends CredentialValidationRule> additionalRules) {
+    public Result<Void> validate(List<VerifiablePresentationContainer> presentations, String audience, Collection<? extends CredentialValidationRule> additionalRules) {
         if (presentations.isEmpty()) {
             return failure("No presentations to validate");
         }
@@ -62,7 +62,7 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
             var credentials = verifiablePresentation.presentation().getCredentials();
             // verify, that the VP and all VPs are cryptographically OK
             var presentationIssuer = verifiablePresentation.presentation().getHolder();
-            return presentationVerifier.verifyPresentation(verifiablePresentation)
+            return presentationVerifier.verifyPresentation(verifiablePresentation, audience)
                     .compose(u -> validateVerifiableCredentials(credentials, presentationIssuer, additionalRules));
         }).reduce(success(), Result::merge);
     }

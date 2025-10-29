@@ -60,6 +60,7 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry.WILDCARD;
 import static org.eclipse.edc.spi.result.Result.success;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
@@ -120,9 +121,9 @@ public class DcpPresentationFlowTest {
                 .willReturn(okJson(didDocumentJson)));
 
 
-        when(STS_MOCK.createToken(anyMap(), isNull()))
+        when(STS_MOCK.createToken(any(), anyMap(), isNull()))
                 .thenAnswer(i -> {
-                    Map<String, Object> claims = i.getArgument(0);
+                    Map<String, Object> claims = i.getArgument(1);
 
                     var hdr = new JWSHeader.Builder(JWSAlgorithm.ES256).keyID(verifierKey.getKeyID()).build();
 

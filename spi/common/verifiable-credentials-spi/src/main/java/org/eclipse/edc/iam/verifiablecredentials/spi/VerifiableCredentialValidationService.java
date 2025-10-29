@@ -49,11 +49,12 @@ public interface VerifiableCredentialValidationService {
      * </ul>
      *
      * @param presentations         A list of {@link VerifiablePresentation} objects. Empty lists are interpreted as <em>valid</em>
+     * @param audience              The expected audience of the presentations
      * @param additionalValidations An optional list of additional validation rules that are applied on the credentials. May be empty, never null.
      * @return {@link Result#success()} if (and only if) every presentation and every credential are determined to be valid.
      */
-    default Result<Void> validate(List<VerifiablePresentationContainer> presentations, CredentialValidationRule... additionalValidations) {
-        return validate(presentations, List.of(additionalValidations));
+    default Result<Void> validate(List<VerifiablePresentationContainer> presentations, String audience, CredentialValidationRule... additionalValidations) {
+        return validate(presentations, audience, List.of(additionalValidations));
     }
 
     /**
@@ -71,8 +72,9 @@ public interface VerifiableCredentialValidationService {
      * </ul>
      *
      * @param presentations         A list of {@link VerifiablePresentation} objects. Empty lists are interpreted as <em>valid</em>
+     * @param audience              The expected audience of the presentations
      * @param additionalValidations An optional list of additional validation rules that are applied on the credentials. May be empty, never null.
      * @return {@link Result#success()} if (and only if) every presentation and every credential are determined to be valid.
      */
-    Result<Void> validate(List<VerifiablePresentationContainer> presentations, Collection<? extends CredentialValidationRule> additionalValidations);
+    Result<Void> validate(List<VerifiablePresentationContainer> presentations, String audience, Collection<? extends CredentialValidationRule> additionalValidations);
 }

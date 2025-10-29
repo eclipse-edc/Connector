@@ -31,7 +31,8 @@ public interface PresentationVerifier {
      * Verifies the cryptographic integrity of a VerifiablePresentation.
      *
      * @param container The VP in its raw String representation. This could be JSON-LD or a JWT
+     * @param audience  the expected audience of the presentation
      * @return {@link Result#success()} if valid, {@link Result#failure(String)} otherwise, giving an indication of the error.
      */
-    Result<Void> verifyPresentation(VerifiablePresentationContainer container);
+    Result<Void> verifyPresentation(VerifiablePresentationContainer container, String audience);
 }

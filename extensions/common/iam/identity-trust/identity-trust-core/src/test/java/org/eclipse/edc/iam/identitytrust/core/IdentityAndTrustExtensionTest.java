@@ -25,7 +25,6 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.token.TokenValidationRulesRegistryImpl;
-import org.eclipse.edc.token.rules.AudienceValidationRule;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.eclipse.edc.token.rules.NotBeforeValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRule;
@@ -97,7 +96,6 @@ class IdentityAndTrustExtensionTest {
 
         var expectedRules = Arrays.asList(IssuerEqualsSubjectRule.class,
                 SubJwkIsNullRule.class,
-                AudienceValidationRule.class,
                 ExpirationIssuedAtValidationRule.class,
                 TokenNotNullRule.class,
                 JtiValidationRule.class,
@@ -120,7 +118,6 @@ class IdentityAndTrustExtensionTest {
 
         var expectedRules = Arrays.asList(IssuerEqualsSubjectRule.class,
                 SubJwkIsNullRule.class,
-                AudienceValidationRule.class,
                 ExpirationIssuedAtValidationRule.class,
                 TokenNotNullRule.class,
                 // JtiValidationRule.class, should not be present when jti validation is disabled

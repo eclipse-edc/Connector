@@ -12,5 +12,4 @@
 #
 #
 
-org.eclipse.edc.iam.identitytrust.sts.remote.client.StsRemoteClientConfigurationExtension
 org.eclipse.edc.iam.identitytrust.sts.remote.client.StsRemoteClientExtension

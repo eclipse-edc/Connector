@@ -66,9 +66,9 @@ import static org.eclipse.edc.spi.result.Result.success;
 public class IdentityAndTrustService implements IdentityService {
     private static final String SCOPE_STRING_REGEX = "(.+):(.+):(read|write|\\*)";
     private final SecureTokenService secureTokenService;
-    private final String myOwnDid;
+    private final Function<String, String> didResolver;
     private final CredentialServiceClient credentialServiceClient;
-    private final Function<TokenRepresentation, Result<ClaimToken>> tokenValidationAction;
+    private final TokenValidationAction tokenValidationAction;
 
     private final CredentialServiceUrlResolver credentialServiceUrlResolver;
     private final ClaimTokenCreatorFunction claimTokenCreatorFunction;
@@ -78,16 +78,16 @@ public class IdentityAndTrustService implements IdentityService {
      * Constructs a new instance of the {@link IdentityAndTrustService}.
      *
      * @param secureTokenService Instance of an STS, which can create SI tokens
-     * @param myOwnDid           The DID which belongs to "this connector"
+     * @param didResolver        Function that resolves the DID for a given participant context id
      */
-    public IdentityAndTrustService(SecureTokenService secureTokenService, String myOwnDid,
+    public IdentityAndTrustService(SecureTokenService secureTokenService, Function<String, String> didResolver,
                                    CredentialServiceClient credentialServiceClient,
                                    TokenValidationAction tokenValidationAction,
                                    CredentialServiceUrlResolver csUrlResolver,
                                    ClaimTokenCreatorFunction claimTokenCreatorFunction,
                                    VerifiableCredentialValidationService verifiableCredentialValidationService) {
         this.secureTokenService = secureTokenService;
-        this.myOwnDid = myOwnDid;
+        this.didResolver = didResolver;
         this.credentialServiceClient = credentialServiceClient;
         this.tokenValidationAction = tokenValidationAction;
         this.credentialServiceUrlResolver = csUrlResolver;
@@ -115,12 +115,14 @@ public class IdentityAndTrustService implements IdentityService {
         var claims = new HashMap<String, Object>();
         parameters.getClaims().forEach((k, v) -> claims.replace(k, v.toString()));
 
+        var myOwnDid = didResolver.apply(participantContextId);
+
         claims.putAll(Map.of(
                 ISSUER, myOwnDid,
                 SUBJECT, myOwnDid,
                 AUDIENCE, parameters.getStringClaim(AUDIENCE)));
 
-        return secureTokenService.createToken(claims, scope)
+        return secureTokenService.createToken(participantContextId, claims, scope)
                 .map(originalToken -> originalToken.toBuilder()
                         .token("Bearer " + originalToken.getToken())
                         .build());
@@ -135,7 +137,7 @@ public class IdentityAndTrustService implements IdentityService {
         }
         token = token.replace("Bearer ", "").trim();
         tokenRepresentation = tokenRepresentation.toBuilder().token(token).build();
-        var claimTokenResult = tokenValidationAction.apply(tokenRepresentation);
+        var claimTokenResult = tokenValidationAction.validate(participantContextId, tokenRepresentation);
 
         if (claimTokenResult.failed()) {
             return claimTokenResult.mapEmpty();
@@ -146,13 +148,15 @@ public class IdentityAndTrustService implements IdentityService {
         var accessToken = claimToken.getStringClaim(PRESENTATION_TOKEN_CLAIM);
         var issuer = claimToken.getStringClaim(ISSUER);
 
+        var myOwnDid = didResolver.apply(participantContextId);
+
         Map<String, Object> siTokenClaims = Map.of(PRESENTATION_TOKEN_CLAIM, accessToken,
                 ISSUED_AT, Instant.now().getEpochSecond(),
                 AUDIENCE, issuer,
                 ISSUER, myOwnDid,
                 SUBJECT, myOwnDid,
                 EXPIRATION_TIME, Instant.now().plus(5, ChronoUnit.MINUTES).getEpochSecond());
-        var siToken = secureTokenService.createToken(siTokenClaims, null);
+        var siToken = secureTokenService.createToken(participantContextId, siTokenClaims, null);
         if (siToken.failed()) {
             return siToken.mapFailure();
         }
@@ -172,7 +176,7 @@ public class IdentityAndTrustService implements IdentityService {
         // check all requested credentials are present
 
         var result = validateRequestedCredentials(presentations, requestedScopes)
-                .compose(unused -> verifiableCredentialValidationService.validate(presentations, getAdditionalValidations()));
+                .compose(unused -> verifiableCredentialValidationService.validate(presentations, myOwnDid, getAdditionalValidations()));
 
 
         return result
