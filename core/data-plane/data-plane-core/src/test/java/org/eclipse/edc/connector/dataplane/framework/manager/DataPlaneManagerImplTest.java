@@ -1169,19 +1169,20 @@ class DataPlaneManagerImplTest {
 
         @Test
         void shouldUpdateFlow_whenFlowStartedAfterFlowLease() {
-            var dataFlow = dataFlowBuilder().state(RECEIVED.code()).build();
+            var dataFlow = dataFlowBuilder().runtimeId(runtimeId).state(RECEIVED.code()).build();
             when(store.nextNotLeased(anyInt(), startedFlowOwnedByThisRuntime()))
                     .thenReturn(List.of(dataFlow)).thenReturn(emptyList());
 
             manager.start();
-
+            var updatedAt = dataFlow.getUpdatedAt();
             await().untilAsserted(() -> {
                 var captor = ArgumentCaptor.forClass(DataFlow.class);
                 verify(store).save(captor.capture());
                 var storedDataFlow = captor.getValue();
-                assertThat(storedDataFlow.getState()).isEqualTo(STARTED.code());
+                assertThat(storedDataFlow.getState()).isEqualTo(RECEIVED.code());
                 assertThat(storedDataFlow.getRuntimeId()).isEqualTo(runtimeId);
-                assertThat(storedDataFlow.getStateCount()).isEqualTo(1);
+                assertThat(storedDataFlow.getStateCount()).isEqualTo(0);
+                assertTrue(storedDataFlow.getUpdatedAt() > updatedAt);
             });
         }
     }
