@@ -31,13 +31,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.boot.BootServicesExtension.COMPONENT_ID;
 import static org.eclipse.edc.boot.BootServicesExtension.RUNTIME_ID;
-import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class DefaultServiceExtensionContextTest {
@@ -92,7 +87,6 @@ class DefaultServiceExtensionContextTest {
             var runtimeId = context.getRuntimeId();
             assertThat(UUID.fromString(runtimeId)).isNotNull();
 
-            verify(monitor, times(1)).warning(and(isA(String.class), argThat(message -> !message.contains(RUNTIME_ID))));
         }
 
         @Test
@@ -116,7 +110,6 @@ class DefaultServiceExtensionContextTest {
             var componentId = context.getComponentId();
             assertThat(UUID.fromString(componentId)).isNotNull();
 
-            verify(monitor).warning(and(isA(String.class), argThat(message -> !message.contains(COMPONENT_ID))));
         }
 
 
@@ -141,7 +134,6 @@ class DefaultServiceExtensionContextTest {
 
             assertThat(runtimeId).isEqualTo("runtime-id");
             assertThat(componentId).isEqualTo("component-id");
-            verify(monitor).warning(and(isA(String.class), argThat(message -> !message.contains(RUNTIME_ID))));
         }
     }
 

@@ -33,7 +33,7 @@ class DataspaceProfileContextRegistryImplTest {
         @Test
         void shouldReturnVersions_whenContextsRegisteredDefault() {
             var version = new ProtocolVersion("version name", "/path", "binding");
-            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", "participantId", ct -> "id"));
+            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", ct -> "id"));
 
             var result = registry.getProtocolVersions().protocolVersions();
 
@@ -44,8 +44,8 @@ class DataspaceProfileContextRegistryImplTest {
         void shouldIgnoreDefaultContexts_whenStandardAreRegistered() {
             var defaultVersion = new ProtocolVersion("default", "/path", "binding");
             var standardVersion = new ProtocolVersion("default", "/path", "binding");
-            registry.registerDefault(new DataspaceProfileContext("default", defaultVersion, () -> "url", "participantId", ct -> "id"));
-            registry.register(new DataspaceProfileContext("standard", standardVersion, () -> "url", "participantId", ct -> "id"));
+            registry.registerDefault(new DataspaceProfileContext("default", defaultVersion, () -> "url", ct -> "id"));
+            registry.register(new DataspaceProfileContext("standard", standardVersion, () -> "url", ct -> "id"));
 
             var result = registry.getProtocolVersions().protocolVersions();
 
@@ -66,7 +66,7 @@ class DataspaceProfileContextRegistryImplTest {
         @Test
         void shouldReturnWebhookForName() {
             var version = new ProtocolVersion("version name", "/path", "binding");
-            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", "participantId", ct -> "id"));
+            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", ct -> "id"));
 
             var result = registry.getWebhook("profile");
 
@@ -87,7 +87,7 @@ class DataspaceProfileContextRegistryImplTest {
         @Test
         void shouldReturnVersionForName() {
             var version = new ProtocolVersion("version name", "/path", "binding");
-            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", "participantId", ct -> "id"));
+            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", ct -> "id"));
 
             var result = registry.getProtocolVersion("profile");
 
@@ -96,44 +96,24 @@ class DataspaceProfileContextRegistryImplTest {
     }
 
     @Nested
-    class GetParticipantId {
-        @Test
-        void shouldReturnNull_whenNoParticipantIdFound() {
-            var result = registry.getParticipantId("unexistent");
-
-            assertThat(result).isNull();
-        }
-
-        @Test
-        void shouldReturnParticipantIdForName() {
-            var version = new ProtocolVersion("version name", "/path", "binding");
-            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", "participantId", ct -> "id"));
-            
-            var result = registry.getParticipantId("profile");
-
-            assertThat(result).isEqualTo("participantId");
-        }
-    }
-    
-    @Nested
     class GetIdExtractionFunction {
         @Test
         void shouldReturnNull_whenNoIdExtractionFunctionFound() {
             var result = registry.getIdExtractionFunction("unexistent");
-            
+
             assertThat(result).isNull();
         }
-        
+
         @Test
         void shouldReturnIdExtractionFunctionForName() {
             var claimToken = ClaimToken.Builder.newInstance().build();
             var participantId = "participantId";
             var version = new ProtocolVersion("version name", "/path", "binding");
-            
-            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", participantId, ct -> participantId));
-            
+
+            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", ct -> participantId));
+
             var result = registry.getIdExtractionFunction("profile");
-            
+
             assertThat(result).isNotNull();
             assertThat(result.apply(claimToken)).isEqualTo(participantId);
         }

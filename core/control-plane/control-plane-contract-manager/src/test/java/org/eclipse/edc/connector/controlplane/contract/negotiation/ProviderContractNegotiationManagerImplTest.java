@@ -31,6 +31,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractO
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
@@ -100,6 +101,7 @@ class ProviderContractNegotiationManagerImplTest {
     private final ContractNegotiationListener listener = mock();
     private final ContractNegotiationPendingGuard pendingGuard = mock();
     private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
+    private final ParticipantIdentityResolver identityResolver = mock();
     private ProviderContractNegotiationManagerImpl manager;
 
     @BeforeEach
@@ -115,6 +117,7 @@ class ProviderContractNegotiationManagerImplTest {
                 .entityRetryProcessConfiguration(new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)))
                 .pendingGuard(pendingGuard)
                 .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
+                .identityResolver(identityResolver)
                 .build();
     }
 
@@ -219,7 +222,7 @@ class ProviderContractNegotiationManagerImplTest {
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(policyStore.findById(any())).thenReturn(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id("policyId").build());
         when(dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol())).thenReturn(() -> "http://callback.address");
-        when(dataspaceProfileContextRegistry.getParticipantId(negotiation.getProtocol())).thenReturn(PROVIDER_ID);
+        when(identityResolver.getParticipantId(negotiation.getParticipantContextId(), negotiation.getProtocol())).thenReturn(PROVIDER_ID);
 
         manager.start();
 
@@ -296,7 +299,7 @@ class ProviderContractNegotiationManagerImplTest {
         when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(result);
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
         when(dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol())).thenReturn(() -> "http://callback.address");
-        when(dataspaceProfileContextRegistry.getParticipantId(negotiation.getProtocol())).thenReturn(PROVIDER_ID);
+        when(identityResolver.getParticipantId(negotiation.getParticipantContextId(), negotiation.getProtocol())).thenReturn(PROVIDER_ID);
 
         manager.start();
 

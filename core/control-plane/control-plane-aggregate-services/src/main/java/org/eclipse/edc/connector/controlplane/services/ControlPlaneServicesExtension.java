@@ -68,6 +68,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcess
 import org.eclipse.edc.connector.secret.spi.observe.SecretObservableImpl;
 import org.eclipse.edc.connector.spi.service.SecretService;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
+import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestContractNegotiationPolicyContext;
 import org.eclipse.edc.policy.context.request.spi.RequestTransferProcessPolicyContext;
@@ -185,6 +186,9 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Inject
     private TransferTypeParser transferTypeParser;
 
+    @Inject
+    private ParticipantIdentityResolver identityResolver;
+
     @Override
     public String name() {
         return NAME;
@@ -220,7 +224,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public CatalogProtocolService catalogProtocolService() {
         return new CatalogProtocolServiceImpl(datasetResolver, dataServiceRegistry,
-                protocolTokenValidator(), dataspaceProfileContextRegistry, transactionContext);
+                protocolTokenValidator(), identityResolver, transactionContext);
     }
 
     @Provider

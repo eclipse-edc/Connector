@@ -36,10 +36,7 @@ import java.time.Clock;
 public class BootServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Boot Services";
-
-    @Setting(description = "Configures the participant id this runtime is operating on behalf of")
-    public static final String PARTICIPANT_ID = "edc.participant.id";
-
+    
     @Setting(description = "Configures the runtime id. This should be fully or partly randomized, and need not be stable across restarts. It is recommended to leave this value blank.", defaultValue = "<random UUID>")
     public static final String RUNTIME_ID = "edc.runtime.id";
 

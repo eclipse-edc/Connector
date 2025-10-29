@@ -29,6 +29,7 @@ dependencies {
 
     testImplementation(project(":core:common:runtime-core"))
     testImplementation(project(":core:common:connector-core"))
+    testImplementation(project(":core:common:participant-context-single-core"))
     testImplementation(project(":core:control-plane:control-plane-catalog"))
     testImplementation(project(":core:control-plane:control-plane-contract"))
     testImplementation(project(":core:control-plane:control-plane-core"))
