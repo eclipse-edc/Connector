@@ -50,6 +50,7 @@ import static org.mockito.Mockito.when;
 @SuppressWarnings("unchecked")
 class VerifiableCredentialValidationServiceImplTest {
     public static final String CONSUMER_DID = "did:web:consumer";
+    public static final String EXPECTED_AUDIENCE = "did:web:test";
     private final PresentationVerifier verifier = mock();
     private final TrustedIssuerRegistry trustedIssuerRegistry = mock();
     private final RevocationServiceRegistry revocationServiceRegistry = mock();
@@ -63,9 +64,9 @@ class VerifiableCredentialValidationServiceImplTest {
 
     @Test
     void cryptographicError() {
-        when(verifier.verifyPresentation(any())).thenReturn(Result.failure("Cryptographic error"));
+        when(verifier.verifyPresentation(any(), any())).thenReturn(Result.failure("Cryptographic error"));
         var presentations = List.of(createPresentationContainer());
-        var result = validationService.validate(presentations);
+        var result = validationService.validate(presentations, EXPECTED_AUDIENCE);
         assertThat(result).isFailed().detail().isEqualTo("Cryptographic error");
     }
 
@@ -78,9 +79,9 @@ class VerifiableCredentialValidationServiceImplTest {
                         .build()))
                 .build();
         var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
-        when(verifier.verifyPresentation(any())).thenReturn(success());
+        when(verifier.verifyPresentation(any(), any())).thenReturn(success());
         var presentations = List.of(vpContainer);
-        var result = validationService.validate(presentations);
+        var result = validationService.validate(presentations, EXPECTED_AUDIENCE);
         assertThat(result).isFailed().messages()
                 .hasSizeGreaterThanOrEqualTo(1)
                 .contains("Credential is not yet valid.");
@@ -99,8 +100,8 @@ class VerifiableCredentialValidationServiceImplTest {
                         .build()))
                 .build();
         var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
-        when(verifier.verifyPresentation(any())).thenReturn(success());
-        var result = validationService.validate(List.of(vpContainer));
+        when(verifier.verifyPresentation(any(), any())).thenReturn(success());
+        var result = validationService.validate(List.of(vpContainer), EXPECTED_AUDIENCE);
         assertThat(result).isFailed().messages()
                 .hasSizeGreaterThanOrEqualTo(1)
                 .contains("Not all credential subject IDs match the expected subject ID '%s'. Violating subject IDs: [invalid-subject-id]".formatted(CONSUMER_DID));
@@ -116,8 +117,8 @@ class VerifiableCredentialValidationServiceImplTest {
                 .build();
 
         var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
-        when(verifier.verifyPresentation(any())).thenReturn(success());
-        var result = validationService.validate(List.of(vpContainer));
+        when(verifier.verifyPresentation(any(), any())).thenReturn(success());
+        var result = validationService.validate(List.of(vpContainer), EXPECTED_AUDIENCE);
         assertThat(result).isFailed().messages()
                 .hasSizeGreaterThanOrEqualTo(1)
                 .contains("Credential types '[test-type]' are not supported for issuer 'invalid-issuer'");
@@ -131,8 +132,8 @@ class VerifiableCredentialValidationServiceImplTest {
                 .credentials(List.of())
                 .build();
         var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
-        when(verifier.verifyPresentation(any())).thenReturn(success());
-        var result = validationService.validate(List.of(vpContainer));
+        when(verifier.verifyPresentation(any(), any())).thenReturn(success());
+        var result = validationService.validate(List.of(vpContainer), EXPECTED_AUDIENCE);
         assertThat(result).isSucceeded();
     }
 
@@ -149,8 +150,8 @@ class VerifiableCredentialValidationServiceImplTest {
                         .build()))
                 .build();
         var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
-        when(verifier.verifyPresentation(any())).thenReturn(success());
-        var result = validationService.validate(List.of(vpContainer));
+        when(verifier.verifyPresentation(any(), any())).thenReturn(success());
+        var result = validationService.validate(List.of(vpContainer), EXPECTED_AUDIENCE);
         assertThat(result).isSucceeded();
     }
 
@@ -173,8 +174,8 @@ class VerifiableCredentialValidationServiceImplTest {
                                 .build()))
                 .build();
         var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
-        when(verifier.verifyPresentation(any())).thenReturn(success());
-        var result = validationService.validate(List.of(vpContainer));
+        when(verifier.verifyPresentation(any(), any())).thenReturn(success());
+        var result = validationService.validate(List.of(vpContainer), EXPECTED_AUDIENCE);
         assertThat(result).isSucceeded();
     }
 
@@ -216,9 +217,9 @@ class VerifiableCredentialValidationServiceImplTest {
                 .build();
         var vpContainer2 = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation2);
 
-        when(verifier.verifyPresentation(any())).thenReturn(success());
+        when(verifier.verifyPresentation(any(), any())).thenReturn(success());
 
-        var result = validationService.validate(List.of(vpContainer1, vpContainer2));
+        var result = validationService.validate(List.of(vpContainer1, vpContainer2), EXPECTED_AUDIENCE);
         assertThat(result).isSucceeded();
     }
 
@@ -236,10 +237,10 @@ class VerifiableCredentialValidationServiceImplTest {
                         .build()))
                 .build();
         var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
-        when(verifier.verifyPresentation(any())).thenReturn(success());
+        when(verifier.verifyPresentation(any(), any())).thenReturn(success());
         when(revocationServiceRegistry.checkValidity(any())).thenReturn(Result.failure("invalid"));
 
-        var result = validationService.validate(List.of(vpContainer));
+        var result = validationService.validate(List.of(vpContainer), EXPECTED_AUDIENCE);
         assertThat(result).isFailed()
                 .detail().isEqualTo("invalid");
     }
@@ -260,8 +261,8 @@ class VerifiableCredentialValidationServiceImplTest {
                         .build()))
                 .build();
         var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_JWT, presentation);
-        when(verifier.verifyPresentation(any())).thenReturn(success());
-        var result = validationService.validate(List.of(vpContainer));
+        when(verifier.verifyPresentation(any(), any())).thenReturn(success());
+        var result = validationService.validate(List.of(vpContainer), EXPECTED_AUDIENCE);
         assertThat(result).isFailed().messages()
                 .hasSizeGreaterThanOrEqualTo(1)
                 .allMatch(s -> s.contains("Error validating CredentialSubject against schema"));

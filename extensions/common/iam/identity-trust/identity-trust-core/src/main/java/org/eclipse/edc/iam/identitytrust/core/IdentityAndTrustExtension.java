@@ -43,6 +43,7 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
+import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -53,7 +54,6 @@ import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.token.rules.AudienceValidationRule;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.eclipse.edc.token.rules.NotBeforeValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
@@ -94,10 +94,10 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     public static final String DCP_CLIENT_CONTEXT = "dcp-client";
     public static final String JSON_2020_SIGNATURE_SUITE = "JsonWebSignature2020";
     public static final long DEFAULT_CLEANUP_PERIOD_SECONDS = 60;
+    @Setting(description = "DID of the participant")
+    private static final String ISSUER_ID_KEY = "edc.iam.issuer.id";
     @Setting(description = "Validity period of cached StatusList2021 credential entries in milliseconds.", defaultValue = DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS + "", key = "edc.iam.credential.revocation.cache.validity")
     private long revocationCacheValidity;
-    @Setting(description = "DID of this connector", key = "edc.iam.issuer.id")
-    private String issuerId;
     @Setting(description = "The period of the JTI entry reaper thread in seconds", defaultValue = DEFAULT_CLEANUP_PERIOD_SECONDS + "", key = "edc.sql.store.jti.cleanup.period")
     private long reaperCleanupPeriod;
 
@@ -154,6 +154,9 @@ public class IdentityAndTrustExtension implements ServiceExtension {
     private RevocationServiceRegistry revocationServiceRegistry;
 
     @Inject
+    private ParticipantContextConfig participantContextConfig;
+
+    @Inject
     private JtiValidationStore jtiValidationStore;
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
@@ -169,7 +172,6 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         // add all rules for self-issued ID tokens
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new IssuerEqualsSubjectRule());
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new SubJwkIsNullRule());
-        rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new AudienceValidationRule(issuerId));
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new ExpirationIssuedAtValidationRule(clock, 5, false));
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new TokenNotNullRule());
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new NotBeforeValidationRule(clock, 4, true));
@@ -226,7 +228,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         var credentialValidationService = new VerifiableCredentialValidationServiceImpl(createPresentationVerifier(context),
                 trustedIssuerRegistry, revocationServiceRegistry, clock, typeManager.getMapper());
 
-        return new IdentityAndTrustService(secureTokenService, issuerId,
+        return new IdentityAndTrustService(secureTokenService, this::didResolver,
                 getCredentialServiceClient(context), validationAction, credentialServiceUrlResolver, claimTokenFunction,
                 credentialValidationService);
     }
@@ -258,7 +260,7 @@ public class IdentityAndTrustExtension implements ServiceExtension {
                     .methodResolver(new DidMethodResolver(didResolverRegistry))
                     .build();
 
-            presentationVerifier = new MultiFormatPresentationVerifier(issuerId, jwtVerifier, ldpVerifier);
+            presentationVerifier = new MultiFormatPresentationVerifier(jwtVerifier, ldpVerifier);
         }
         return presentationVerifier;
     }
@@ -275,9 +277,13 @@ public class IdentityAndTrustExtension implements ServiceExtension {
         return enableDcpV08 ? DCP_CONTEXT_URL : DSPACE_DCP_V_1_0_CONTEXT;
     }
 
+    private String didResolver(String participantContext) {
+        return participantContextConfig.getString(participantContext, ISSUER_ID_KEY);
+    }
+
     @NotNull
     private TokenValidationAction tokenValidationAction() {
-        return new SelfIssueIdTokenValidationAction(tokenValidationService, rulesRegistry, didPublicKeyResolver);
+        return new SelfIssueIdTokenValidationAction(tokenValidationService, rulesRegistry, didPublicKeyResolver, this::didResolver);
     }
 
 }

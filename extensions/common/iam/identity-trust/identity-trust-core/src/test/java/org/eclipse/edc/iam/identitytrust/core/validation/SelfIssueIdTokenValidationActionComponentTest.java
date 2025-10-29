@@ -59,6 +59,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 public class SelfIssueIdTokenValidationActionComponentTest {
 
+
+    public static final String PARTICIPANT_CONTEXT_ID = "participant-context-id";
     public static final String CONSUMER_DID = "did:web:consumer";
     public static final String CONSUMER_DID_KEY = "did:web:consumer#key";
     public static final String EXPECTED_AUDIENCE = "did:web:test";
@@ -70,7 +72,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
     private final DidPublicKeyResolver publicKeyResolver = mock();
     private final TokenValidationRulesRegistryImpl ruleRegistry = new TokenValidationRulesRegistryImpl();
     private final TokenValidationService tokenValidationService = new TokenValidationServiceImpl();
-    private final SelfIssueIdTokenValidationAction verifier = new SelfIssueIdTokenValidationAction(tokenValidationService, ruleRegistry, publicKeyResolver);
+    private final SelfIssueIdTokenValidationAction verifier = new SelfIssueIdTokenValidationAction(tokenValidationService, ruleRegistry, publicKeyResolver, (it) -> EXPECTED_AUDIENCE);
 
     public static ECKey generateEcKey(String kid) {
         try {
@@ -101,7 +103,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
     @Test
     void verify_invalidToken(ServiceExtensionContext context, IdentityAndTrustExtension extension) {
         extension.initialize(context);
-        assertThatThrownBy(() -> verifier.apply(TokenRepresentation.Builder.newInstance().token("token").build()))
+        assertThatThrownBy(() -> verifier.validate(PARTICIPANT_CONTEXT_ID, TokenRepresentation.Builder.newInstance().token("token").build()))
                 .isInstanceOf(EdcException.class)
                 .hasCauseInstanceOf(ParseException.class);
     }
@@ -120,7 +122,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
 
         when(publicKeyResolver.resolveKey(CONSUMER_DID_KEY)).thenReturn(Result.success(key.toPublicKey()));
         var token = createToken(claims, key);
-        assertThat(verifier.apply(token)).isSucceeded();
+        assertThat(verifier.validate(PARTICIPANT_CONTEXT_ID, token)).isSucceeded();
     }
 
 
@@ -139,7 +141,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
 
         when(publicKeyResolver.resolveKey(CONSUMER_DID_KEY)).thenReturn(Result.success(key.toPublicKey()));
         var token = createToken(claims, key);
-        assertThat(verifier.apply(token)).isFailed().detail()
+        assertThat(verifier.validate(PARTICIPANT_CONTEXT_ID, token)).isFailed().detail()
                 .isEqualTo("kid header 'did:web:consumer#key' expected to correlate to 'iss' claim ('wrongIssuer'), but it did not.");
     }
 
@@ -158,7 +160,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
 
         when(publicKeyResolver.resolveKey("did:web:issuer#key")).thenReturn(Result.success(key.toPublicKey()));
         var token = createToken(claims, key);
-        assertThat(verifier.apply(token)).isFailed().detail()
+        assertThat(verifier.validate(PARTICIPANT_CONTEXT_ID, token)).isFailed().detail()
                 .isEqualTo("The 'iss' and 'sub' claims must be non-null and identical.");
     }
 
@@ -177,7 +179,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
 
         when(publicKeyResolver.resolveKey(CONSUMER_DID_KEY)).thenReturn(Result.success(key.toPublicKey()));
         var token = createToken(claims, key);
-        assertThat(verifier.apply(token)).isFailed().detail()
+        assertThat(verifier.validate(PARTICIPANT_CONTEXT_ID, token)).isFailed().detail()
                 .isEqualTo("Token audience claim (aud -> [unexpectedAudience]) did not contain expected audience: did:web:test");
     }
 
@@ -195,7 +197,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
 
         when(publicKeyResolver.resolveKey(CONSUMER_DID_KEY)).thenReturn(Result.success(key.toPublicKey()));
         var token = createToken(claims, key);
-        assertThat(verifier.apply(token)).isFailed().detail()
+        assertThat(verifier.validate(PARTICIPANT_CONTEXT_ID, token)).isFailed().detail()
                 .isEqualTo("The 'token' claim is mandatory and must not be null.");
     }
 
@@ -212,7 +214,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
 
         when(publicKeyResolver.resolveKey(CONSUMER_DID_KEY)).thenReturn(Result.success(key.toPublicKey()));
         var token = createToken(claims, key);
-        assertThat(verifier.apply(token)).isFailed().detail()
+        assertThat(verifier.validate(PARTICIPANT_CONTEXT_ID, token)).isFailed().detail()
                 .isEqualTo("Required expiration time (exp) claim is missing in token, The 'token' claim is mandatory and must not be null.");
     }
 
@@ -232,7 +234,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
 
         when(publicKeyResolver.resolveKey(CONSUMER_DID_KEY)).thenReturn(Result.success(key.toPublicKey()));
         var token = createToken(claims, key);
-        assertThat(verifier.apply(token)).isFailed().detail()
+        assertThat(verifier.validate(PARTICIPANT_CONTEXT_ID, token)).isFailed().detail()
                 .isEqualTo("The 'sub_jwk' claim must not be present.");
     }
 

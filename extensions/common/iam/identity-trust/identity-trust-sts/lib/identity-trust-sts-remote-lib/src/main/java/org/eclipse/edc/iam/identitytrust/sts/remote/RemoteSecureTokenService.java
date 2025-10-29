@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.eclipse.edc.iam.identitytrust.spi.SelfIssuedTokenConstants.BEARER_ACCESS_SCOPE;
@@ -41,29 +42,31 @@ public class RemoteSecureTokenService implements SecureTokenService {
             PRESENTATION_TOKEN_CLAIM, PRESENTATION_TOKEN_CLAIM);
 
     private final Oauth2Client oauth2Client;
-    private final StsRemoteClientConfiguration configuration;
+    private final Function<String, StsRemoteClientConfiguration> configResolver;
     private final Vault vault;
 
-    public RemoteSecureTokenService(Oauth2Client oauth2Client, StsRemoteClientConfiguration configuration, Vault vault) {
+    public RemoteSecureTokenService(Oauth2Client oauth2Client, Function<String, StsRemoteClientConfiguration> configResolver, Vault vault) {
         this.oauth2Client = oauth2Client;
-        this.configuration = configuration;
+        this.configResolver = configResolver;
         this.vault = vault;
     }
 
     @Override
-    public Result<TokenRepresentation> createToken(Map<String, Object> claims, @Nullable String bearerAccessScope) {
-        return createRequest(claims, bearerAccessScope)
+    public Result<TokenRepresentation> createToken(String participantContextId, Map<String, Object> claims, @Nullable String bearerAccessScope) {
+        return createRequest(participantContextId, claims, bearerAccessScope)
                 .compose(oauth2Client::requestToken);
     }
 
     @NotNull
-    private Result<Oauth2CredentialsRequest> createRequest(Map<String, Object> claims, @Nullable String bearerAccessScope) {
+    private Result<Oauth2CredentialsRequest> createRequest(String participantContextId, Map<String, Object> claims, @Nullable String bearerAccessScope) {
 
-        var secret = vault.resolveSecret(configuration.clientSecretAlias());
+        var config = configResolver.apply(participantContextId);
+
+        var secret = vault.resolveSecret(config.clientSecretAlias());
         if (secret != null) {
             var builder = SharedSecretOauth2CredentialsRequest.Builder.newInstance()
-                    .url(configuration.tokenUrl())
-                    .clientId(configuration.clientId())
+                    .url(config.tokenUrl())
+                    .clientId(config.clientId())
                     .clientSecret(secret)
                     .grantType(GRANT_TYPE);
 
@@ -79,7 +82,7 @@ public class RemoteSecureTokenService implements SecureTokenService {
             builder.params(additionalParams);
             return Result.success(builder.build());
         } else {
-            return Result.failure("Failed to fetch client secret from the vault with alias: %s".formatted(configuration.clientSecretAlias()));
+            return Result.failure("Failed to fetch client secret from the vault with alias: %s".formatted(config.clientSecretAlias()));
         }
 
 

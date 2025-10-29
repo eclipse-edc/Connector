@@ -24,22 +24,23 @@ import java.util.List;
 
 public class MultiFormatPresentationVerifier implements PresentationVerifier {
 
-    private final VerifierContext context;
+    private final List<CredentialVerifier> verifiers;
 
-    public MultiFormatPresentationVerifier(String audience, CredentialVerifier... verifiers) {
-
-        this.context = VerifierContext.Builder.newInstance()
-                .verifiers(List.of(verifiers))
-                .audience(audience).build();
+    public MultiFormatPresentationVerifier(CredentialVerifier... verifiers) {
+        this.verifiers = List.of(verifiers);
     }
 
-    public VerifierContext getContext() {
-        return context;
+    public List<CredentialVerifier> getVerifiers() {
+        return verifiers;
     }
 
     @Override
-    public Result<Void> verifyPresentation(VerifiablePresentationContainer container) {
-        return context.verify(container.rawVp());
+    public Result<Void> verifyPresentation(VerifiablePresentationContainer container, String audience) {
+        var ctx = VerifierContext.Builder.newInstance()
+                .audience(audience)
+                .verifiers(this.verifiers)
+                .build();
+        return ctx.verify(container.rawVp());
     }
 
 }
