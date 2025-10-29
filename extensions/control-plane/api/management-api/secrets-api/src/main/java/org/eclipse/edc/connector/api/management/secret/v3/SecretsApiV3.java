@@ -81,7 +81,7 @@ public interface SecretsApiV3 {
             })
     void updateSecretV3(JsonObject secret);
 
-    @Schema(name = "SecretInput", example = SecretInputSchema.SECRET_INPUT_EXAMPLE)
+    @Schema(name = "SecretInputV3", example = SecretInputSchema.SECRET_INPUT_EXAMPLE)
     record SecretInputSchema(
             @Schema(name = CONTEXT, requiredMode = REQUIRED)
             Object context,
@@ -102,7 +102,7 @@ public interface SecretsApiV3 {
     }
 
     @ArraySchema()
-    @Schema(name = "SecretOutput", example = SecretOutputSchema.SECRET_OUTPUT_EXAMPLE)
+    @Schema(name = "SecretOutputV3", example = SecretOutputSchema.SECRET_OUTPUT_EXAMPLE)
     record SecretOutputSchema(
             @Schema(name = ID)
             String id,

@@ -133,7 +133,7 @@ public interface ContractNegotiationApiV3 {
     )
     void deleteNegotiationV3(String id);
 
-    @Schema(name = "ContractRequest", example = ContractRequestSchema.CONTRACT_REQUEST_EXAMPLE)
+    @Schema(name = "ContractRequestV3", example = ContractRequestSchema.CONTRACT_REQUEST_EXAMPLE)
     record ContractRequestSchema(
             @Schema(name = CONTEXT, requiredMode = REQUIRED)
             Object context,
@@ -175,7 +175,7 @@ public interface ContractNegotiationApiV3 {
                 """;
     }
 
-    @Schema(name = "Offer", description = "ODRL offer", example = OfferSchema.OFFER_EXAMPLE)
+    @Schema(name = "OfferV3", description = "ODRL offer", example = OfferSchema.OFFER_EXAMPLE)
     record OfferSchema(
             @Schema(name = TYPE, example = ODRL_POLICY_TYPE_OFFER)
             String type,
@@ -200,7 +200,7 @@ public interface ContractNegotiationApiV3 {
                 """;
     }
 
-    @Schema(example = TerminateNegotiationSchema.TERMINATE_NEGOTIATION_EXAMPLE)
+    @Schema(name = "TerminateNegotiationV3", example = TerminateNegotiationSchema.TERMINATE_NEGOTIATION_EXAMPLE)
     record TerminateNegotiationSchema(
             @Schema(name = TYPE, example = TERMINATE_NEGOTIATION_TYPE)
             String ldType,

@@ -121,7 +121,7 @@ public interface PolicyDefinitionApiV3 {
     )
     JsonObject createExecutionPlaneV3(String id, JsonObject input);
 
-    @Schema(name = "PolicyDefinitionInput", example = PolicyDefinitionInputSchema.POLICY_DEFINITION_INPUT_EXAMPLE)
+    @Schema(name = "PolicyDefinitionInputV3", example = PolicyDefinitionInputSchema.POLICY_DEFINITION_INPUT_EXAMPLE)
     record PolicyDefinitionInputSchema(
             @Schema(name = CONTEXT, requiredMode = REQUIRED)
             Object context,
@@ -157,7 +157,7 @@ public interface PolicyDefinitionApiV3 {
                 """;
     }
 
-    @Schema(name = "PolicyDefinitionOutput", example = PolicyDefinitionOutputSchema.POLICY_DEFINITION_OUTPUT_EXAMPLE)
+    @Schema(name = "PolicyDefinitionOutputV3", example = PolicyDefinitionOutputSchema.POLICY_DEFINITION_OUTPUT_EXAMPLE)
     record PolicyDefinitionOutputSchema(
             @Schema(name = ID)
             String id,
@@ -190,7 +190,7 @@ public interface PolicyDefinitionApiV3 {
                 """;
     }
 
-    @Schema(name = "PolicyValidationResultSchema", example = PolicyValidationResultSchema.POLICY_VALIDATION_RESULT_OUTPUT_EXAMPLE)
+    @Schema(name = "PolicyValidationResultSchemaV3", example = PolicyValidationResultSchema.POLICY_VALIDATION_RESULT_OUTPUT_EXAMPLE)
     record PolicyValidationResultSchema(
             Boolean isValid,
             List<String> errors) {
@@ -208,7 +208,7 @@ public interface PolicyDefinitionApiV3 {
                 """;
     }
 
-    @Schema(name = "PolicyEvaluationPlanRequestSchema", example = PolicyEvaluationPlanRequestSchema.POLICY_EVALUATION_PLAN_REQUEST_INPUT_EXAMPLE)
+    @Schema(name = "PolicyEvaluationPlanRequestSchemaV3", example = PolicyEvaluationPlanRequestSchema.POLICY_EVALUATION_PLAN_REQUEST_INPUT_EXAMPLE)
     record PolicyEvaluationPlanRequestSchema(
             String policyScope) {
 
@@ -221,7 +221,7 @@ public interface PolicyDefinitionApiV3 {
                 """;
     }
 
-    @Schema(name = "PolicyEvaluationPlanSchema", example = PolicyEvaluationPlanSchema.POLICY_EVALUATION_PLANE_OUTPUT_EXAMPLE)
+    @Schema(name = "PolicyEvaluationPlanSchemaV3", example = PolicyEvaluationPlanSchema.POLICY_EVALUATION_PLANE_OUTPUT_EXAMPLE)
     record PolicyEvaluationPlanSchema() {
 
         public static final String POLICY_EVALUATION_PLANE_OUTPUT_EXAMPLE = """
