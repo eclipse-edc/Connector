@@ -69,7 +69,7 @@ maven/mavencentral/com.networknt/json-schema-validator/1.5.9, Apache-2.0 AND Uni
 maven/mavencentral/com.nimbusds/nimbus-jose-jwt/10.3, Apache-2.0, approved, #22529
 maven/mavencentral/com.nimbusds/nimbus-jose-jwt/10.5, Apache-2.0, approved, #23321
 maven/mavencentral/com.puppycrawl.tools/checkstyle/11.0.1, LGPL-2.1-or-later, approved, #23559
-maven/mavencentral/com.squareup.okhttp3/okhttp-dnsoverhttps/5.2.1, , restricted, clearlydefined
+maven/mavencentral/com.squareup.okhttp3/okhttp-dnsoverhttps/5.2.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.squareup.okhttp3/okhttp-jvm/5.2.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.squareup.okhttp3/okhttp/4.12.0, Apache-2.0, approved, #15227
 maven/mavencentral/com.squareup.okhttp3/okhttp/4.9.3, Apache-2.0 AND MPL-2.0, approved, #3225
@@ -158,7 +158,7 @@ maven/mavencentral/org.apache.groovy/groovy-bom/4.0.22, Apache-2.0, approved, #9
 maven/mavencentral/org.apache.groovy/groovy-json/4.0.22, Apache-2.0, approved, #7411
 maven/mavencentral/org.apache.groovy/groovy-xml/4.0.22, Apache-2.0, approved, #10179
 maven/mavencentral/org.apache.groovy/groovy/4.0.22, Apache-2.0 AND BSD-3-Clause AND MIT, approved, #1742
-maven/mavencentral/org.apache.httpcomponents.client5/httpclient5/5.5, Apache-2.0 AND MPL-2.0, approved, #21346
+maven/mavencentral/org.apache.httpcomponents.client5/httpclient5/5.5, Apache-2.0 AND MPL-2.0, approved, #24483
 maven/mavencentral/org.apache.httpcomponents.core5/httpcore5-h2/5.3.4, Apache-2.0, approved, #16867
 maven/mavencentral/org.apache.httpcomponents.core5/httpcore5/5.3.4, Apache-2.0, approved, #16866
 maven/mavencentral/org.apache.httpcomponents/httpclient/4.5.13, Apache-2.0, approved, #15248
