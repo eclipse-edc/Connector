@@ -88,6 +88,7 @@ import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.GENERAL_ERROR;
 import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PULL;
 import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
