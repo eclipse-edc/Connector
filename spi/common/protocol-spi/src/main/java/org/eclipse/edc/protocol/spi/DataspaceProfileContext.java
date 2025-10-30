@@ -17,10 +17,11 @@ package org.eclipse.edc.protocol.spi;
 /**
  * Represent a Dataspace Profile Context
  *
- * @param name the name.
+ * @param name            the name.
  * @param protocolVersion the protocol version associated.
- * @param webhook the protocol endpoint url.
+ * @param webhook         the protocol endpoint url.
  */
-public record DataspaceProfileContext(String name, ProtocolVersion protocolVersion, ProtocolWebhook webhook, String participantId, ParticipantIdExtractionFunction idExtractionFunction) {
+public record DataspaceProfileContext(String name, ProtocolVersion protocolVersion, ProtocolWebhook webhook,
+                                      ParticipantIdExtractionFunction idExtractionFunction) {
 
 }

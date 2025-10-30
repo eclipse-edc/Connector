@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ProviderC
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
@@ -115,6 +116,9 @@ public class ContractManagerExtension implements ServiceExtension {
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
 
+    @Inject
+    private ParticipantIdentityResolver identityResolver;
+
     @Override
     public String name() {
         return NAME;
@@ -169,6 +173,7 @@ public class ContractManagerExtension implements ServiceExtension {
                 .batchSize(consumerStateMachineConfiguration.batchSize())
                 .entityRetryProcessConfiguration(consumerStateMachineConfiguration.entityRetryProcessConfiguration())
                 .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
+                .identityResolver(identityResolver)
                 .pendingGuard(pendingGuard)
                 .build();
 
@@ -185,6 +190,7 @@ public class ContractManagerExtension implements ServiceExtension {
                 .batchSize(providerStateMachineConfiguration.batchSize())
                 .entityRetryProcessConfiguration(providerStateMachineConfiguration.entityRetryProcessConfiguration())
                 .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
+                .identityResolver(identityResolver)
                 .pendingGuard(pendingGuard)
                 .build();
 

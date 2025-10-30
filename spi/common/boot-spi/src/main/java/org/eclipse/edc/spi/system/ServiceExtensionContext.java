@@ -33,13 +33,6 @@ public interface ServiceExtensionContext extends SettingResolver {
     }
 
     /**
-     * Returns the id of the participant this runtime operates on behalf of. If not configured {@link #ANONYMOUS_PARTICIPANT} is used.
-     *
-     * @return the participant id.
-     */
-    String getParticipantId();
-
-    /**
      * Return the id of the runtime. A runtime is a physical process. If {@code edc.runtime.id} is not configured, a random UUID is used.
      * <br/><em>It is recommended to leave this configuration blank..</em>
      *

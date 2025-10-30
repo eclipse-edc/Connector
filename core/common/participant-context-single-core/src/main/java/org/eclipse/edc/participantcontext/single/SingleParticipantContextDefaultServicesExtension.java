@@ -17,6 +17,7 @@ package org.eclipse.edc.participantcontext.single;
 import org.eclipse.edc.participantcontext.single.config.store.SingleParticipantContextConfigStore;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
+import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -61,6 +62,12 @@ public class SingleParticipantContextDefaultServicesExtension implements Service
     public ParticipantContextConfigStore participantContextConfigStore(ServiceExtensionContext context) {
         var contextId = participantContextId != null ? participantContextId : participantId;
         return new SingleParticipantContextConfigStore(contextId, context.getConfig());
+    }
+
+    // by default, resolve to the configured participant id for every protocol
+    @Provider(isDefault = true)
+    public ParticipantIdentityResolver participantIdentityResolver() {
+        return (context, protocol) -> participantId;
     }
 
     @Override

@@ -38,6 +38,7 @@ import java.time.Clock;
 
 import static com.nimbusds.jose.jwk.source.JWKSourceBuilder.DEFAULT_CACHE_TIME_TO_LIVE;
 import static org.eclipse.edc.api.auth.delegated.DelegatedAuthenticationService.MANAGEMENT_API_CONTEXT;
+import static org.eclipse.edc.spi.system.ServiceExtensionContext.ANONYMOUS_PARTICIPANT;
 
 /**
  * Extension that registers an AuthenticationService that delegates authentication and authorization to a third-party IdP
@@ -47,19 +48,21 @@ import static org.eclipse.edc.api.auth.delegated.DelegatedAuthenticationService.
 public class DelegatedAuthenticationExtension implements ServiceExtension {
 
     public static final String NAME = "Delegating Authentication Service Extension";
+    public static final String AUTH_KEY = "auth";
+    public static final String CONFIG_ALIAS = "web.http.<context>." + AUTH_KEY + ".";
+    @Setting(context = CONFIG_ALIAS, description = "URL where the third-party IdP's public key(s) can be resolved for the configured <context>")
+    public static final String AUTH_KEY_URL = "dac.key.url";
+    @Setting(context = CONFIG_ALIAS, description = "Duration (in ms) that the internal key cache is valid for the configured <context>", type = "Long", defaultValue = "" + DEFAULT_CACHE_TIME_TO_LIVE)
+    public static final String AUTH_CACHE_VALIDITY_MS = "dac.cache.validity";
+    public static final String AUDIENCE_KEY = "dac.audience";
     private static final int DEFAULT_VALIDATION_TOLERANCE = 5_000;
-    private static final String AUTH_KEY = "auth";
-    private static final String CONFIG_ALIAS = "web.http.<context>." + AUTH_KEY + ".";
     private static final String DELEGATED_TYPE = "delegated";
     @Deprecated(since = "0.12.0", forRemoval = true)
     private static final String KEY_URL_PROPERTY = "edc.api.auth.dac.key.url";
     @Deprecated(since = "0.12.0", forRemoval = true)
     private static final String DEPRECATED_AUTH_CACHE_VALIDITY = "edc.api.auth.dac.cache.validity";
-
-    @Setting(context = CONFIG_ALIAS, description = "URL where the third-party IdP's public key(s) can be resolved for the configured <context>")
-    public static final String AUTH_KEY_URL = "dac.key.url";
-    @Setting(context = CONFIG_ALIAS, description = "Duration (in ms) that the internal key cache is valid for the configured <context>", type = "Long", defaultValue = "" + DEFAULT_CACHE_TIME_TO_LIVE)
-    public static final String AUTH_CACHE_VALIDITY_MS = "dac.cache.validity";
+    @Setting(description = "Configures the participant id this runtime is operating on behalf of", key = "edc.participant.id", defaultValue = ANONYMOUS_PARTICIPANT)
+    public String participantId;
     @Setting(description = "Default token validation time tolerance (in ms), e.g. for nbf or exp claims", defaultValue = "" + DEFAULT_VALIDATION_TOLERANCE, key = "edc.api.auth.dac.validation.tolerance")
     private int validationTolerance;
     @Deprecated(since = "0.12.0", forRemoval = true)
@@ -68,10 +71,8 @@ public class DelegatedAuthenticationExtension implements ServiceExtension {
     @Deprecated(since = "0.12.0", forRemoval = true)
     @Setting(description = "URL where the third-party IdP's public key(s) can be resolved", key = KEY_URL_PROPERTY, required = false)
     private String keyUrl;
-    public static final String AUDIENCE_KEY = "dac.audience";
     @Setting(context = CONFIG_ALIAS, description = "Expected audience in the token received by the api management", key = "web.http.management." + AUTH_KEY + "." + AUDIENCE_KEY, required = false)
     private String audience;
-
     @Inject
     private ApiAuthenticationProviderRegistry providerRegistry;
     @Inject
@@ -102,7 +103,7 @@ public class DelegatedAuthenticationExtension implements ServiceExtension {
 
         if (audience == null) {
             monitor.warning("No audience configured for delegated authentication, defaulting to the participantId");
-            audience = context.getParticipantId();
+            audience = participantId;
         }
 
         tokenValidationRulesRegistry.addRule(MANAGEMENT_API_CONTEXT, new AudienceValidationRule(audience));

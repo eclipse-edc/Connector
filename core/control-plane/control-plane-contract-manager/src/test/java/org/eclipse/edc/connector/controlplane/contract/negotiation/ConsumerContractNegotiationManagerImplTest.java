@@ -29,6 +29,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
+import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
@@ -95,6 +96,7 @@ class ConsumerContractNegotiationManagerImplTest {
     private final PolicyDefinitionStore policyStore = mock();
     private final ContractNegotiationListener listener = mock();
     private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
+    private final ParticipantIdentityResolver identityResolver = mock();
     private final String protocolWebhookUrl = "http://protocol.webhook/url";
     private final ContractNegotiationPendingGuard pendingGuard = mock();
     private ConsumerContractNegotiationManagerImpl manager;
@@ -112,6 +114,7 @@ class ConsumerContractNegotiationManagerImplTest {
                 .policyStore(policyStore)
                 .entityRetryProcessConfiguration(new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)))
                 .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
+                .identityResolver(identityResolver)
                 .pendingGuard(pendingGuard)
                 .build();
     }
