@@ -46,6 +46,7 @@ public class ParticipantContext extends AbstractParticipantResource {
     @Deprecated
     public ParticipantContext(String participantContextId) {
         this.participantContextId = participantContextId;
+        createdAt = Instant.now().toEpochMilli();
 
         if (getLastModified() == 0L) {
             lastModified = getCreatedAt();
@@ -53,7 +54,6 @@ public class ParticipantContext extends AbstractParticipantResource {
 
         clock = Objects.requireNonNullElse(clock, Clock.systemUTC());
 
-        createdAt = Instant.now().toEpochMilli();
 
     }
 
