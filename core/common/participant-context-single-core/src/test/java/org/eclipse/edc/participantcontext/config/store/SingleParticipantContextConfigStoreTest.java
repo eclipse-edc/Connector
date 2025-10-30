@@ -45,6 +45,13 @@ public class SingleParticipantContextConfigStoreTest extends ParticipantContextC
         super.save();
     }
 
+    // SingleParticipantContextConfigStore is read-only
+    @Override
+    @Disabled
+    protected void update() {
+        super.update();
+    }
+
     @Test
     void get() {
         assertThat(getStore().get(PARTICIPANT_CONTEXT_ID))

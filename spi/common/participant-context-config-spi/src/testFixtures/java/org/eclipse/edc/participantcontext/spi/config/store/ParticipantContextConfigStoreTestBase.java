@@ -38,6 +38,31 @@ public abstract class ParticipantContextConfigStoreTestBase {
                     assertThat(cfg.getEntries()).containsAllEntriesOf(cfg.getEntries());
                 });
 
+    }
+
+    @Test
+    protected void update() {
+
+        var config = ConfigFactory.fromMap(Map.of("key1", "value1", "key2", "2"));
+
+        getStore().save("participant1", config);
+
+        assertThat(getStore().get("participant1"))
+                .isNotNull()
+                .satisfies(cfg -> {
+                    assertThat(cfg.getEntries()).containsAllEntriesOf(cfg.getEntries());
+                });
+
+        config = ConfigFactory.fromMap(Map.of("key1", "value1", "key2", "2", "key3", "value3"));
+
+
+        getStore().save("participant1", config);
+
+        assertThat(getStore().get("participant1"))
+                .isNotNull()
+                .satisfies(cfg -> {
+                    assertThat(cfg.getEntries()).containsAllEntriesOf(cfg.getEntries());
+                });
 
     }
 
