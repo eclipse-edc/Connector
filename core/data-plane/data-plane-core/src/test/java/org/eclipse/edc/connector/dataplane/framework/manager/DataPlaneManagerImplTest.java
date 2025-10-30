@@ -1177,6 +1177,7 @@ class DataPlaneManagerImplTest {
                     .thenReturn(List.of(dataFlow)).thenReturn(emptyList());
 
             manager.start();
+            
             await().untilAsserted(() -> {
                 var captor = ArgumentCaptor.forClass(DataFlow.class);
                 verify(store).save(captor.capture());
