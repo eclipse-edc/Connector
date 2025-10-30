@@ -87,4 +87,5 @@
 - [2025-08-26 Participant context](2025-08-26-participant-context)
 - [2025-10-03 Contract agreement changes](2025-10-03-contract-agreement-changes)
 - [2025-10-15 Participant context config](2025-10-15-participant-context-config)
-- [2025-10-15 E2E testing improvements](2025-10-22-e2e-testing-improvements)
+- [2025-10-22 E2E testing improvements](2025-10-22-e2e-testing-improvements)
+- [2025-10-29 Participant identifiers resolution](2025-10-29-participant-identifiers)
