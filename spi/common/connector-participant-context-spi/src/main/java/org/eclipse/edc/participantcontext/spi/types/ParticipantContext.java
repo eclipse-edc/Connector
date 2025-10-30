@@ -20,12 +20,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-
-import static java.util.Optional.ofNullable;
 
 /**
  * Representation of a participant in Identity Hub.
@@ -33,7 +32,6 @@ import static java.util.Optional.ofNullable;
 @JsonDeserialize(builder = ParticipantContext.Builder.class)
 public class ParticipantContext extends AbstractParticipantResource {
     private Map<String, Object> properties = new HashMap<>();
-    private long createdAt;
     private long lastModified;
     private int state; // CREATED, ACTIVATED, DEACTIVATED
 
@@ -48,17 +46,15 @@ public class ParticipantContext extends AbstractParticipantResource {
     @Deprecated
     public ParticipantContext(String participantContextId) {
         this.participantContextId = participantContextId;
-    }
 
-    public String clientSecretAlias() {
-        return ofNullable(properties.get("clientSecret")).map(Object::toString).orElseGet(() -> participantContextId + "-sts-client-secret");
-    }
+        if (getLastModified() == 0L) {
+            lastModified = getCreatedAt();
+        }
 
-    /**
-     * The POSIX timestamp in ms when this entry was created. Immutable
-     */
-    public long getCreatedAt() {
-        return createdAt;
+        clock = Objects.requireNonNullElse(clock, Clock.systemUTC());
+
+        createdAt = Instant.now().toEpochMilli();
+
     }
 
     /**
@@ -118,11 +114,6 @@ public class ParticipantContext extends AbstractParticipantResource {
             return new Builder();
         }
 
-        public Builder createdAt(long createdAt) {
-            this.entity.createdAt = createdAt;
-            return this;
-        }
-
         public Builder lastModified(long lastModified) {
             this.entity.lastModified = lastModified;
             return this;
@@ -130,12 +121,6 @@ public class ParticipantContext extends AbstractParticipantResource {
 
         @Override
         public Builder self() {
-            return this;
-        }
-
-        @Override
-        public Builder participantContextId(String participantContextId) {
-            this.entity.participantContextId = participantContextId;
             return this;
         }
 

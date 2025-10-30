@@ -56,7 +56,7 @@ public abstract class ParticipantContextStoreTestBase {
                 .forEach(getStore()::create);
 
         var query = queryByParticipantContextId("id2")
-                .build();
+                            .build();
 
         assertThat(getStore().query(query)).isSucceeded()
                 .satisfies(str -> assertThat(str).hasSize(1));
@@ -65,8 +65,8 @@ public abstract class ParticipantContextStoreTestBase {
     @Test
     void query_noQuerySpec() {
         var resources = range(0, 5)
-                .mapToObj(i -> createParticipantContext("id" + i))
-                .toList();
+                                .mapToObj(i -> createParticipantContext("id" + i))
+                                .toList();
 
         resources.forEach(getStore()::create);
 
@@ -80,13 +80,13 @@ public abstract class ParticipantContextStoreTestBase {
     @Test
     void query_whenNotFound() {
         var resources = range(0, 5)
-                .mapToObj(i -> createParticipantContext("id" + i))
-                .toList();
+                                .mapToObj(i -> createParticipantContext("id" + i))
+                                .toList();
 
         resources.forEach(getStore()::create);
 
         var query = queryByParticipantContextId("id7")
-                .build();
+                            .build();
         var res = getStore().query(query);
         assertThat(res).isSucceeded();
         assertThat(res.getContent()).isEmpty();
@@ -95,15 +95,15 @@ public abstract class ParticipantContextStoreTestBase {
     @Test
     void query_byInvalidField_shouldReturnEmptyList() {
         var resources = range(0, 5)
-                .mapToObj(i -> createParticipantContext("id" + i))
-                .toList();
+                                .mapToObj(i -> createParticipantContext("id" + i))
+                                .toList();
 
 
         resources.forEach(getStore()::create);
 
         var query = QuerySpec.Builder.newInstance()
-                .filter(new Criterion("invalidField", "=", "test-value"))
-                .build();
+                            .filter(new Criterion("invalidField", "=", "test-value"))
+                            .build();
         var res = getStore().query(query);
         assertThat(res).isSucceeded();
         assertThat(res.getContent()).isNotNull().isEmpty();
@@ -124,7 +124,7 @@ public abstract class ParticipantContextStoreTestBase {
         var context = createParticipantContext("another-id");
 
         var updateRes = getStore().update(context);
-        assertThat(updateRes).isFailed().detail().contains("with ID 'another-id' not found.");
+        assertThat(updateRes).isFailed().detail().contains("with ID 'another-id' does not exist.");
     }
 
     @Test
@@ -139,11 +139,11 @@ public abstract class ParticipantContextStoreTestBase {
     @Test
     void delete_whenNotExists() {
         assertThat(getStore().deleteById("not-exist")).isFailed()
-                .detail().contains("with ID 'not-exist' not found.");
+                .detail().contains("with ID 'not-exist' does not exist.");
     }
-    
+
     private ParticipantContext createParticipantContext(String id) {
-        return new ParticipantContext(id);
+        return ParticipantContext.Builder.newInstance().participantContextId(id).build();
     }
 
     private ParticipantContext createParticipantContext() {
