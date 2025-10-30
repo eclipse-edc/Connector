@@ -61,7 +61,7 @@ public interface CatalogApiV3 {
     )
     void getDatasetV3(JsonObject request, @Suspended AsyncResponse response);
 
-    @Schema(name = "CatalogRequest", example = CatalogRequestSchema.CATALOG_REQUEST_EXAMPLE)
+    @Schema(name = "CatalogRequestV3", example = CatalogRequestSchema.CATALOG_REQUEST_EXAMPLE)
     record CatalogRequestSchema(
             @Schema(name = CONTEXT, requiredMode = REQUIRED)
             Object context,
@@ -97,7 +97,7 @@ public interface CatalogApiV3 {
                 """;
     }
 
-    @Schema(name = "DatasetRequest", example = DatasetRequestSchema.DATASET_REQUEST_EXAMPLE)
+    @Schema(name = "DatasetRequestV3", example = DatasetRequestSchema.DATASET_REQUEST_EXAMPLE)
     record DatasetRequestSchema(
             @Schema(name = TYPE, example = CATALOG_REQUEST_TYPE)
             String type,
@@ -118,7 +118,7 @@ public interface CatalogApiV3 {
                 """;
     }
 
-    @Schema(name = "Catalog", description = "DCAT catalog", example = CatalogSchema.CATALOG_EXAMPLE)
+    @Schema(name = "CatalogV3", description = "DCAT catalog", example = CatalogSchema.CATALOG_EXAMPLE)
     record CatalogSchema(
     ) {
         public static final String CATALOG_EXAMPLE = """
@@ -189,7 +189,7 @@ public interface CatalogApiV3 {
                 """;
     }
 
-    @Schema(name = "Dataset", description = "DCAT dataset", example = DatasetSchema.DATASET_EXAMPLE)
+    @Schema(name = "DatasetV3", description = "DCAT dataset", example = DatasetSchema.DATASET_EXAMPLE)
     record DatasetSchema(
     ) {
         public static final String DATASET_EXAMPLE = """

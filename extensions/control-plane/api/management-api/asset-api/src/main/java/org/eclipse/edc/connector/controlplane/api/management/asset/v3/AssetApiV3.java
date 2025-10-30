@@ -100,7 +100,7 @@ public interface AssetApiV3 {
             })
     void updateAssetV3(JsonObject asset);
 
-    @Schema(name = "AssetInput", example = AssetInputSchema.ASSET_INPUT_EXAMPLE)
+    @Schema(name = "AssetInputV3", example = AssetInputSchema.ASSET_INPUT_EXAMPLE)
     record AssetInputSchema(
             @Schema(name = CONTEXT, requiredMode = REQUIRED)
             Object context,
@@ -133,7 +133,7 @@ public interface AssetApiV3 {
     }
 
     @ArraySchema()
-    @Schema(name = "AssetOutput", example = AssetOutputSchema.ASSET_OUTPUT_EXAMPLE)
+    @Schema(name = "AssetOutputV3", example = AssetOutputSchema.ASSET_OUTPUT_EXAMPLE)
     record AssetOutputSchema(
             @Schema(name = ID)
             String id,

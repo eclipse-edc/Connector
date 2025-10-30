@@ -100,7 +100,7 @@ public interface ContractDefinitionApiV3 {
     )
     void updateContractDefinitionV3(JsonObject updateObject);
 
-    @Schema(name = "ContractDefinitionInput", example = CONTRACT_DEFINITION_INPUT_EXAMPLE)
+    @Schema(name = "ContractDefinitionInputV3", example = CONTRACT_DEFINITION_INPUT_EXAMPLE)
     record ContractDefinitionInputSchema(
             @Schema(name = CONTEXT, requiredMode = REQUIRED)
             Object context,
@@ -126,7 +126,7 @@ public interface ContractDefinitionApiV3 {
                 """;
     }
 
-    @Schema(name = "ContractDefinitionOutput", example = CONTRACT_DEFINITION_OUTPUT_EXAMPLE)
+    @Schema(name = "ContractDefinitionOutputV3", example = CONTRACT_DEFINITION_OUTPUT_EXAMPLE)
     record ContractDefinitionOutputSchema(
             @Schema(name = ID)
             String id,

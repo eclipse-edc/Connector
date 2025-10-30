@@ -149,7 +149,7 @@ public interface TransferProcessApiV3 {
             })
     void resumeTransferProcessV3(String id);
 
-    @Schema(name = "TransferRequest", example = TransferRequestSchema.TRANSFER_REQUEST_EXAMPLE)
+    @Schema(name = "TransferRequestV3", example = TransferRequestSchema.TRANSFER_REQUEST_EXAMPLE)
     record TransferRequestSchema(
             @Schema(name = CONTEXT, requiredMode = REQUIRED)
             Object context,
@@ -195,7 +195,7 @@ public interface TransferProcessApiV3 {
                 """;
     }
 
-    @Schema(name = "TransferProcess", example = TransferProcessSchema.TRANSFER_PROCESS_EXAMPLE)
+    @Schema(name = "TransferProcessV3", example = TransferProcessSchema.TRANSFER_PROCESS_EXAMPLE)
     record TransferProcessSchema(
             @Schema(name = TYPE, example = TRANSFER_PROCESS_TYPE)
             String ldType,
@@ -242,7 +242,7 @@ public interface TransferProcessApiV3 {
                 """;
     }
 
-    @Schema(name = "TransferState", example = TransferStateSchema.TRANSFER_STATE_EXAMPLE)
+    @Schema(name = "TransferStateV3", example = TransferStateSchema.TRANSFER_STATE_EXAMPLE)
     record TransferStateSchema(
             @Schema(name = TYPE, example = TransferState.TRANSFER_STATE_TYPE)
             String ldType,
@@ -257,7 +257,7 @@ public interface TransferProcessApiV3 {
                 """;
     }
 
-    @Schema(name = "TerminateTransfer", example = TerminateTransferSchema.TERMINATE_TRANSFER_EXAMPLE)
+    @Schema(name = "TerminateTransferV3", example = TerminateTransferSchema.TERMINATE_TRANSFER_EXAMPLE)
     record TerminateTransferSchema(
             @Schema(name = TYPE, example = TerminateTransfer.TERMINATE_TRANSFER_TYPE)
             String ldType,
@@ -272,7 +272,7 @@ public interface TransferProcessApiV3 {
                 """;
     }
 
-    @Schema(name = "SuspendTransfer", example = SuspendTransferSchema.SUSPEND_TRANSFER_EXAMPLE)
+    @Schema(name = "SuspendTransferV3", example = SuspendTransferSchema.SUSPEND_TRANSFER_EXAMPLE)
     record SuspendTransferSchema(
             @Schema(name = TYPE, example = SuspendTransfer.SUSPEND_TRANSFER_TYPE)
             String ldType,
