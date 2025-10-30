@@ -39,14 +39,14 @@ public class InMemoryParticipantContextStore implements ParticipantContextStore 
     @Override
     public StoreResult<Collection<ParticipantContext>> query(QuerySpec querySpec) {
         return StoreResult.success(participantContextQueryResolver.query(participants.values().stream(), querySpec)
-                .collect(Collectors.toList()));
+                                           .collect(Collectors.toList()));
     }
 
     @Override
     public StoreResult<Void> create(ParticipantContext participantContext) {
         var prev = participants.putIfAbsent(participantContext.getParticipantContextId(), participantContext);
         if (prev != null) {
-            return StoreResult.alreadyExists("ParticipantContext with ID '%s' already exists.".formatted(participantContext.getParticipantContextId()));
+            return StoreResult.alreadyExists(alreadyExistsErrorMessage(participantContext.getParticipantContextId()));
         }
         return StoreResult.success();
     }
@@ -57,7 +57,7 @@ public class InMemoryParticipantContextStore implements ParticipantContextStore 
         if (prev != null) {
             return StoreResult.success();
         } else {
-            return StoreResult.notFound("ParticipantContext with ID '%s' not found.".formatted(participantContext.getParticipantContextId()));
+            return StoreResult.notFound(notFoundErrorMessage(participantContext.getParticipantContextId()));
         }
     }
 
@@ -67,7 +67,7 @@ public class InMemoryParticipantContextStore implements ParticipantContextStore 
         if (prev != null) {
             return StoreResult.success();
         } else {
-            return StoreResult.notFound("ParticipantContext with ID '%s' not found.".formatted(id));
+            return StoreResult.notFound(notFoundErrorMessage(id));
         }
     }
 }

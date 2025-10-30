@@ -44,7 +44,7 @@ public class SingleParticipantContextDefaultServicesExtensionTest {
     @Test
     void verifyParticipantContextSupplier(SingleParticipantContextDefaultServicesExtension extension) {
         var supplier = extension.participantContextSupplier();
-        assertThat(supplier.get().getContent()).isEqualTo(new ParticipantContext("participantId"));
+        assertThat(supplier.get().getContent()).extracting(ParticipantContext::getParticipantContextId).isEqualTo("participantId");
     }
 
     @Test
@@ -57,6 +57,6 @@ public class SingleParticipantContextDefaultServicesExtensionTest {
         when(context.getConfig()).thenReturn(config);
         var extension = factory.constructInstance(SingleParticipantContextDefaultServicesExtension.class);
         var supplier = extension.participantContextSupplier();
-        assertThat(supplier.get().getContent()).isEqualTo(new ParticipantContext("participantContextId"));
+        assertThat(supplier.get().getContent()).extracting(ParticipantContext::getParticipantContextId).isEqualTo("participantContextId");
     }
 }
