@@ -24,7 +24,6 @@ dependencies {
     api(project(":extensions:control-plane:store:sql:control-plane-sql"))
     api(project(":extensions:control-plane:store:sql:policy-definition-store-sql"))
     api(project(":extensions:control-plane:store:sql:transfer-process-store-sql"))
-    api(project(":extensions:control-plane:store:sql:participantcontext-store-sql"))
     api(project(":extensions:common:store:sql:edr-index-sql"))
     api(project(":extensions:common:store:sql:jti-validation-store-sql"))
     api(project(":extensions:data-plane-selector:store:sql:data-plane-instance-store-sql"))

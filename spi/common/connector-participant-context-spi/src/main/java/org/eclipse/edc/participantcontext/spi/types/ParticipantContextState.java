@@ -27,7 +27,7 @@ public enum ParticipantContextState {
      */
     ACTIVATED,
     /**
-     * The {@link ParticipantContext} is disabled and can not be used currently.
+     * The {@link ParticipantContext} is disabled and cannot be used currently.
      */
     DEACTIVATED
 }
