@@ -32,7 +32,6 @@ import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static java.io.File.separator;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.boot.BootServicesExtension.PARTICIPANT_ID;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 public class TransferEndToEndParticipant extends Participant {
@@ -48,7 +47,7 @@ public class TransferEndToEndParticipant extends Participant {
     public Config controlPlaneConfig() {
         var settings = new HashMap<String, String>() {
             {
-                put(PARTICIPANT_ID, id);
+                put("edc.participant.id", id);
                 put("web.http.port", String.valueOf(getFreePort()));
                 put("web.http.path", "/api");
                 put("web.http.protocol.port", String.valueOf(controlPlaneProtocol.get().getPort()));

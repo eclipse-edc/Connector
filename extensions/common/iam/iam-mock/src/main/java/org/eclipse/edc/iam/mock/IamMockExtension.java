@@ -28,6 +28,8 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 
+import static org.eclipse.edc.spi.system.ServiceExtensionContext.ANONYMOUS_PARTICIPANT;
+
 /**
  * An IAM provider mock used for testing.
  */
@@ -36,12 +38,12 @@ import org.eclipse.edc.spi.types.TypeManager;
 public class IamMockExtension implements ServiceExtension {
 
     public static final String NAME = "Mock IAM";
-    
+
     public static final String DEFAULT_IDENTITY_CLAIM_KEY = "client_id";
-    
+    @Setting(description = "Configures the participant id this runtime is operating on behalf of", key = "edc.participant.id", defaultValue = ANONYMOUS_PARTICIPANT)
+    public String participantId;
     @Setting(key = "edc.agent.identity.key", description = "The name of the claim key used to determine the participant identity", defaultValue = DEFAULT_IDENTITY_CLAIM_KEY)
     private String agentIdentityKey;
-
     @Inject
     private TypeManager typeManager;
 
@@ -54,10 +56,9 @@ public class IamMockExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var region = context.getSetting("edc.mock.region", "eu");
         var faultyClientId = context.getSetting("edc.mock.faulty_client_id", "faultyClientId");
-        var participantId = context.getParticipantId();
         context.registerService(IdentityService.class, new MockIdentityService(typeManager, region, participantId, faultyClientId));
     }
-    
+
     @Provider(isDefault = true)
     public DefaultParticipantIdExtractionFunction defaultParticipantIdExtractionFunction() {
         return new MockParticipantIdExtractionFunction(agentIdentityKey);

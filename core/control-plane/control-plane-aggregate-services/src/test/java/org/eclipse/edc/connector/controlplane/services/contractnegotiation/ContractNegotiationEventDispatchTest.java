@@ -34,6 +34,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceS
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
+import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
@@ -78,6 +79,7 @@ class ContractNegotiationEventDispatchTest {
     private final ClaimToken token = ClaimToken.Builder.newInstance().claim("client_id", CONSUMER).build();
     private final TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance().token(UUID.randomUUID().toString()).build();
     protected DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
+    protected ParticipantIdentityResolver identityResolver = mock();
 
     @BeforeEach
     void setUp(RuntimeExtension extension) {
@@ -107,7 +109,7 @@ class ContractNegotiationEventDispatchTest {
         dispatcherRegistry.register("test", succeedingDispatcher());
 
         when(identityService.verifyJwtToken(any(), eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(token));
-        when(dataspaceProfileContextRegistry.getParticipantId(any())).thenReturn("provider");
+        when(identityResolver.getParticipantId(any(), any())).thenReturn("provider");
 
         eventRouter.register(ContractNegotiationEvent.class, eventSubscriber);
         var policy = Policy.Builder.newInstance().build();

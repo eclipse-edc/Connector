@@ -23,15 +23,21 @@ import org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorServic
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import java.time.Clock;
 
+import static org.eclipse.edc.spi.system.ServiceExtensionContext.ANONYMOUS_PARTICIPANT;
+
 @Extension(value = DataPlaneIamExtension.NAME)
 public class DataPlaneIamExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane IAM";
+
+    @Setting(description = "Configures the participant id this runtime is operating on behalf of", key = "edc.participant.id", defaultValue = ANONYMOUS_PARTICIPANT)
+    public String participantId;
 
     @Inject
     private Clock clock;
@@ -65,7 +71,7 @@ public class DataPlaneIamExtension implements ServiceExtension {
 
     private DataPlaneAuthorizationServiceImpl getDataPlaneAuthorizationService(ServiceExtensionContext context) {
         if (dataPlaneAuthorizationService == null) {
-            dataPlaneAuthorizationService = new DataPlaneAuthorizationServiceImpl(accessTokenService, endpointGenerator, accessControlService, context.getParticipantId(), clock);
+            dataPlaneAuthorizationService = new DataPlaneAuthorizationServiceImpl(accessTokenService, endpointGenerator, accessControlService, participantId, clock);
         }
         return dataPlaneAuthorizationService;
     }

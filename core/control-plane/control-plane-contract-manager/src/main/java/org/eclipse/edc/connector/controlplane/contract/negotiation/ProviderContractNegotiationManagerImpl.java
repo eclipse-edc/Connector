@@ -135,15 +135,16 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
                 .orElseGet(() -> {
                     var lastOffer = negotiation.getLastContractOffer();
                     var protocol = negotiation.getProtocol();
+                    var providerId = identityResolver.getParticipantId(negotiation.getParticipantContextId(), protocol);
 
                     var contractPolicy = lastOffer.getPolicy().toBuilder().type(PolicyType.CONTRACT)
                             .assignee(negotiation.getCounterPartyId())
-                            .assigner(dataspaceProfileContextRegistry.getParticipantId(protocol))
+                            .assigner(providerId)
                             .build();
 
                     return ContractAgreement.Builder.newInstance()
                             .contractSigningDate(clock.instant().getEpochSecond())
-                            .providerId(dataspaceProfileContextRegistry.getParticipantId(protocol))
+                            .providerId(providerId)
                             .consumerId(negotiation.getCounterPartyId())
                             .policy(contractPolicy)
                             .assetId(lastOffer.getAssetId())

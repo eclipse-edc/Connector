@@ -98,7 +98,7 @@ public class DspApiConfigurationV2024Extension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var v2024Path = dspWebhookAddress.get() + (wellKnownPathEnabled ? "" : V_2024_1_PATH);
 
-        dataspaceProfileContextRegistry.registerDefault(new DataspaceProfileContext(DATASPACE_PROTOCOL_HTTP_V_2024_1, V_2024_1, () -> v2024Path, context.getParticipantId(), participantIdExtractionFunction));
+        dataspaceProfileContextRegistry.registerDefault(new DataspaceProfileContext(DATASPACE_PROTOCOL_HTTP_V_2024_1, V_2024_1, () -> v2024Path, participantIdExtractionFunction));
 
         // registers ns for DSP scope
         registerNamespaces();
