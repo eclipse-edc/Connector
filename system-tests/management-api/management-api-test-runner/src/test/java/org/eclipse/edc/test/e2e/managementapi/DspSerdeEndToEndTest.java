@@ -41,9 +41,10 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -88,13 +89,26 @@ import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.transferRe
 import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.transferStartObject;
 import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.transferSuspensionObject;
 import static org.eclipse.edc.test.e2e.managementapi.DspTestFunctions.transferTerminationObject;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 @EndToEndTest
 public class DspSerdeEndToEndTest {
 
     @RegisterExtension
-    private static final RuntimeExtension RUNTIME = new SerdeRuntime();
+    static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
+            .name(Runtimes.ControlPlane.NAME)
+            .modules(Runtimes.ControlPlane.MODULES)
+            .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+            .configurationProvider(DspSerdeEndToEndTest::config)
+            .build();
+
+    private static Config config() {
+        return ConfigFactory.fromMap(new HashMap<>() {
+            {
+                put("edc.dsp.context.enabled", "true");
+                put("edc.dsp.management.enabled", "true");
+            }
+        });
+    }
 
 
     @ParameterizedTest
@@ -241,8 +255,8 @@ public class DspSerdeEndToEndTest {
     @ParameterizedTest(name = "{1}")
     @ArgumentsSource(JsonInputProvider.class)
     void serde(JsonObject inputObject, Class<?> klass, List<String> skipFields) {
-        var typeTransformerRegistry = RUNTIME.getService(TypeTransformerRegistry.class);
-        var jsonLd = RUNTIME.getService(JsonLd.class);
+        var typeTransformerRegistry = runtime.getService(TypeTransformerRegistry.class);
+        var jsonLd = runtime.getService(JsonLd.class);
         var registry = typeTransformerRegistry.forContext(DSP_TRANSFORMER_CONTEXT_V_2025_1);
 
         // Expand the input
@@ -269,13 +283,13 @@ public class DspSerdeEndToEndTest {
     }
 
     private JsonObject serialize(Object object) {
-        var typeTransformerRegistry = RUNTIME.getService(TypeTransformerRegistry.class);
+        var typeTransformerRegistry = runtime.getService(TypeTransformerRegistry.class);
         var registry = typeTransformerRegistry.forContext(DSP_TRANSFORMER_CONTEXT_V_2025_1);
         return registry.transform(object, JsonObject.class).orElseThrow(failure -> new RuntimeException(failure.getFailureDetail()));
     }
 
     private JsonObject compact(JsonObject input) {
-        var jsonLd = RUNTIME.getService(JsonLd.class);
+        var jsonLd = runtime.getService(JsonLd.class);
         return jsonLd.compact(input, DSP_SCOPE_V_2025_1).orElseThrow(failure -> new RuntimeException(failure.getFailureDetail()));
     }
 
@@ -284,9 +298,9 @@ public class DspSerdeEndToEndTest {
     }
 
     private <T> T deserialize(JsonObject inputObject, Class<T> klass, String context) {
-        var typeTransformerRegistry = RUNTIME.getService(TypeTransformerRegistry.class);
+        var typeTransformerRegistry = runtime.getService(TypeTransformerRegistry.class);
         var registry = typeTransformerRegistry.forContext(context);
-        var jsonLd = RUNTIME.getService(JsonLd.class);
+        var jsonLd = runtime.getService(JsonLd.class);
 
         var expanded = jsonLd.expand(inputObject).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
@@ -359,36 +373,4 @@ public class DspSerdeEndToEndTest {
         }
 
     }
-
-    static class SerdeRuntime extends ManagementEndToEndExtension {
-
-        protected SerdeRuntime() {
-            super(context());
-        }
-
-        private static ManagementEndToEndTestContext context() {
-            var managementPort = getFreePort();
-            var protocolPort = getFreePort();
-
-            var runtime = new EmbeddedRuntime("control-plane", ":system-tests:management-api:management-api-test-runtime")
-                    .configurationProvider(() -> ConfigFactory.fromMap(new HashMap<>() {
-                        {
-                            put("web.http.path", "/");
-                            put("web.http.port", String.valueOf(getFreePort()));
-                            put("web.http.protocol.path", "/protocol");
-                            put("web.http.protocol.port", String.valueOf(protocolPort));
-                            put("web.http.control.port", String.valueOf(getFreePort()));
-                            put("edc.dsp.callback.address", "http://localhost:" + protocolPort + "/protocol");
-                            put("web.http.management.path", "/management");
-                            put("web.http.management.port", String.valueOf(managementPort));
-                            put("edc.dsp.context.enabled", "true");
-                            put("edc.dsp.management.enabled", "true");
-                        }
-                    }));
-
-            return new ManagementEndToEndTestContext(runtime);
-        }
-
-    }
-
 }

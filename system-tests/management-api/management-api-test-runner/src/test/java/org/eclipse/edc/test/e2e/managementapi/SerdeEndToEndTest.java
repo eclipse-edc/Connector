@@ -39,13 +39,14 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.assertions.AbstractResultAssert;
-import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
@@ -108,43 +109,21 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.suspendTransf
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.terminateNegotiationObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.terminateTransferObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.transferRequestObject;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
 
+@EndToEndTest
 public class SerdeEndToEndTest {
 
-    static class SerdeRuntime extends ManagementEndToEndExtension {
-
-        protected SerdeRuntime() {
-            super(context());
-        }
-
-        private static ManagementEndToEndTestContext context() {
-            var managementPort = getFreePort();
-            var protocolPort = getFreePort();
-
-            var runtime = new EmbeddedRuntime("control-plane",
-                    ":system-tests:management-api:management-api-test-runtime",
-                    ":extensions:common:api:management-api-schema-validator",
-                    ":extensions:data-plane-selector:data-plane-selector-control-api")
-                    .configurationProvider(() -> ConfigFactory.fromMap(new HashMap<>() {
-                        {
-                            put("web.http.path", "/");
-                            put("web.http.port", String.valueOf(getFreePort()));
-                            put("web.http.protocol.path", "/protocol");
-                            put("web.http.protocol.port", String.valueOf(protocolPort));
-                            put("web.http.control.port", String.valueOf(getFreePort()));
-                            put("edc.dsp.callback.address", "http://localhost:" + protocolPort + "/protocol");
-                            put("web.http.management.path", "/management");
-                            put("web.http.management.port", String.valueOf(managementPort));
-                            put("edc.management.context.enabled", "true");
-                        }
-                    }));
-
-            return new ManagementEndToEndTestContext(runtime);
-        }
-
+    private static Config config() {
+        return ConfigFactory.fromMap(new HashMap<>() {
+            {
+                put("edc.dsp.context.enabled", "true");
+                put("edc.dsp.management.enabled", "true");
+                put("edc.management.context.enabled", "true");
+            }
+        });
     }
 
+    @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
 
 
@@ -168,12 +147,10 @@ public class SerdeEndToEndTest {
             return false;
         }
 
-        abstract RuntimeExtension runtime();
-
         @Test
-        void ser_ContractAgreement() {
+        void ser_ContractAgreement(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var agreement = createContractAgreement("test-id");
-            var compactResult = serialize(agreement);
+            var compactResult = serialize(typeTransformerRegistry, validatorRegistry, jsonLd, agreement);
 
             assertThat(compactResult).isNotNull();
             assertThat(compactResult.getString(ID)).isEqualTo(agreement.getId());
@@ -191,9 +168,9 @@ public class SerdeEndToEndTest {
         }
 
         @Test
-        void ser_ContractNegotiation() {
+        void ser_ContractNegotiation(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var negotiation = createContractNegotiation();
-            var compactResult = serialize(negotiation);
+            var compactResult = serialize(typeTransformerRegistry, validatorRegistry, jsonLd, negotiation);
 
             assertThat(compactResult).isNotNull();
             assertThat(compactResult.getString(ID)).isEqualTo("test-id");
@@ -218,9 +195,9 @@ public class SerdeEndToEndTest {
         }
 
         @Test
-        void ser_TransferProcess() {
+        void ser_TransferProcess(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var transferProcess = createTransferProcess();
-            var compactResult = serialize(transferProcess);
+            var compactResult = serialize(typeTransformerRegistry, validatorRegistry, jsonLd, transferProcess);
 
             assertThat(compactResult).isNotNull();
             assertThat(compactResult.getString(ID)).isEqualTo(transferProcess.getId());
@@ -238,9 +215,9 @@ public class SerdeEndToEndTest {
         }
 
         @Test
-        void ser_EndpointDataReferenceEntry() {
+        void ser_EndpointDataReferenceEntry(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var transferProcess = createEdrEntry();
-            var compactResult = serialize(transferProcess);
+            var compactResult = serialize(typeTransformerRegistry, validatorRegistry, jsonLd, transferProcess);
 
             assertThat(compactResult).isNotNull();
             assertThat(compactResult.getString(ID)).isEqualTo(transferProcess.getId());
@@ -253,9 +230,9 @@ public class SerdeEndToEndTest {
         }
 
         @Test
-        void ser_NegotiationState() {
+        void ser_NegotiationState(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var state = new NegotiationState(TransferProcessStates.REQUESTED.name());
-            var compactResult = serialize(state);
+            var compactResult = serialize(typeTransformerRegistry, validatorRegistry, jsonLd, state);
 
             assertThat(compactResult).isNotNull();
             assertThat(compactResult.getString(TYPE)).isEqualTo("NegotiationState");
@@ -264,9 +241,9 @@ public class SerdeEndToEndTest {
         }
 
         @Test
-        void ser_TransferState() {
+        void ser_TransferState(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var state = new TransferState(REQUESTED.name());
-            var compactResult = serialize(state);
+            var compactResult = serialize(typeTransformerRegistry, validatorRegistry, jsonLd, state);
 
             assertThat(compactResult).isNotNull();
             assertThat(compactResult.getString(TYPE)).isEqualTo("TransferState");
@@ -275,7 +252,7 @@ public class SerdeEndToEndTest {
         }
 
         @Test
-        void ser_DataPlaneInstance() {
+        void ser_DataPlaneInstance(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var instance = DataPlaneInstance.Builder.newInstance().id("id")
                     .state(DataPlaneInstanceStates.REGISTERED.code())
                     .url("http://localhost:8080")
@@ -285,7 +262,7 @@ public class SerdeEndToEndTest {
                     .property(EDC_NAMESPACE + "custom", "value")
                     .build();
 
-            var compactResult = serialize(instance);
+            var compactResult = serialize(typeTransformerRegistry, validatorRegistry, jsonLd, instance);
 
             assertThat(compactResult).isNotNull();
             assertThat(compactResult.getString(TYPE)).isEqualTo("DataPlaneInstance");
@@ -298,9 +275,9 @@ public class SerdeEndToEndTest {
         }
 
         @Test
-        void ser_PolicyValidationResult() {
+        void ser_PolicyValidationResult(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var result = new PolicyValidationResult(false, List.of("error1", "error2"));
-            var compactResult = serialize(result);
+            var compactResult = serialize(typeTransformerRegistry, validatorRegistry, jsonLd, result);
 
             assertThat(compactResult).isNotNull();
             assertThat(compactResult.getString(TYPE)).isEqualTo("PolicyValidationResult");
@@ -310,9 +287,9 @@ public class SerdeEndToEndTest {
         }
 
         @Test
-        void ser_PolicyEvaluationPlan() {
+        void ser_PolicyEvaluationPlan(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var plan = createPolicyEvaluationPlan();
-            var compactResult = serialize(plan);
+            var compactResult = serialize(typeTransformerRegistry, validatorRegistry, jsonLd, plan);
 
             assertThat(compactResult).isNotNull();
             assertThat(compactResult.getString(TYPE)).isEqualTo("PolicyEvaluationPlan");
@@ -356,9 +333,9 @@ public class SerdeEndToEndTest {
         }
 
         @Test
-        void ser_IdResponse() {
+        void ser_IdResponse(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var response = IdResponse.Builder.newInstance().id("test-id").createdAt(1234).build();
-            var compactResult = serialize(response);
+            var compactResult = serialize(typeTransformerRegistry, validatorRegistry, jsonLd, response);
 
             assertThat(compactResult).isNotNull();
             assertThat(compactResult.getString(TYPE)).isEqualTo("IdResponse");
@@ -367,9 +344,9 @@ public class SerdeEndToEndTest {
         }
 
         @Test
-        void de_DatasetRequest() {
+        void de_DatasetRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var inputObject = datasetRequestObject(jsonLdContext());
-            var request = deserialize(inputObject, DatasetRequest.class);
+            var request = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, DatasetRequest.class);
 
             assertThat(request).isNotNull();
             assertThat(request.getId()).isEqualTo(inputObject.getString(ID));
@@ -380,9 +357,9 @@ public class SerdeEndToEndTest {
         }
 
         @Test
-        void de_CatalogRequest() {
+        void de_CatalogRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var inputObject = catalogRequestObject(jsonLdContext());
-            var request = deserialize(inputObject, CatalogRequest.class);
+            var request = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, CatalogRequest.class);
 
             assertThat(request).isNotNull();
             assertThat(request.getProtocol()).isEqualTo(inputObject.getString("protocol"));
@@ -393,9 +370,9 @@ public class SerdeEndToEndTest {
         }
 
         @Test
-        void de_ContractRequest() {
+        void de_ContractRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var inputObject = contractRequestObject(jsonLdContext(), strictSchema());
-            var request = deserialize(inputObject, ContractRequest.class);
+            var request = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, ContractRequest.class);
 
             assertThat(request).isNotNull();
             assertThat(request.getProviderId()).isEqualTo(inputObject.getJsonObject("policy").getString("assigner"));
@@ -407,9 +384,9 @@ public class SerdeEndToEndTest {
         }
 
         @Test
-        void de_TransferRequest() {
+        void de_TransferRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var inputObject = transferRequestObject(jsonLdContext());
-            var transferRequest = deserialize(inputObject, TransferRequest.class);
+            var transferRequest = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, TransferRequest.class);
 
             assertThat(transferRequest).isNotNull();
             assertThat(transferRequest.getId()).isEqualTo(inputObject.getString(ID));
@@ -424,12 +401,12 @@ public class SerdeEndToEndTest {
         }
 
         @Test
-        void de_TransferRequest_withoutDataAddressType() {
+        void de_TransferRequest_withoutDataAddressType(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var dataDestination = createObjectBuilder()
                     .add("type", "type").build();
 
             var inputObject = transferRequestObject(jsonLdContext(), dataDestination);
-            var transferRequest = deserialize(inputObject, TransferRequest.class);
+            var transferRequest = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, TransferRequest.class);
 
             assertThat(transferRequest).isNotNull();
             assertThat(transferRequest.getId()).isEqualTo(inputObject.getString(ID));
@@ -444,18 +421,18 @@ public class SerdeEndToEndTest {
         }
 
         @Test
-        void de_TerminateNegotiation() {
+        void de_TerminateNegotiation(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var inputObject = terminateNegotiationObject(jsonLdContext());
-            var terminateNegotiation = deserialize(inputObject, TerminateNegotiationCommand.class);
+            var terminateNegotiation = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, TerminateNegotiationCommand.class);
 
             assertThat(terminateNegotiation).isNotNull();
             assertThat(terminateNegotiation.getReason()).isEqualTo(inputObject.getString("reason"));
         }
 
         @Test
-        void de_TerminateTransfer() {
+        void de_TerminateTransfer(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var inputObject = terminateTransferObject(jsonLdContext());
-            var terminateTransfer = deserialize(inputObject, TerminateTransfer.class);
+            var terminateTransfer = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, TerminateTransfer.class);
 
             assertThat(terminateTransfer).isNotNull();
             assertThat(terminateTransfer.reason()).isEqualTo(inputObject.getString("reason"));
@@ -463,16 +440,16 @@ public class SerdeEndToEndTest {
         }
 
         @Test
-        void de_SuspendTransfer() {
+        void de_SuspendTransfer(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var inputObject = suspendTransferObject(jsonLdContext());
-            var terminateTransfer = deserialize(inputObject, SuspendTransfer.class);
+            var terminateTransfer = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, SuspendTransfer.class);
 
             assertThat(terminateTransfer).isNotNull();
             assertThat(terminateTransfer.reason()).isEqualTo(inputObject.getString("reason"));
         }
 
         @Test
-        void de_PolicyDefinition_withInForceDate() {
+        void de_PolicyDefinition_withInForceDate(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
 
             var andConstraint = AndConstraint.Builder.newInstance()
                     .constraint(AtomicConstraint.Builder.newInstance()
@@ -490,7 +467,7 @@ public class SerdeEndToEndTest {
             var permission = inForceDatePermission("gteq", "contractAgreement+0s", "lteq", "contractAgreement+10s", strictSchema());
             var inputObject = policyDefinitionObject(jsonLdContext(), permission, strictSchema());
 
-            var deserialized = deserialize(inputObject, PolicyDefinition.class);
+            var deserialized = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, PolicyDefinition.class);
 
             assertThat(deserialized).isNotNull();
             assertThat(deserialized.getPolicy().getPermissions().get(0).getConstraints())
@@ -499,20 +476,19 @@ public class SerdeEndToEndTest {
         }
 
         @Test
-        void de_PolicyEvaluationPlanRequest() {
+        void de_PolicyEvaluationPlanRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var inputObject = policyEvaluationPlanRequest(jsonLdContext());
-            var terminateTransfer = deserialize(inputObject, PolicyEvaluationPlanRequest.class);
+            var terminateTransfer = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, PolicyEvaluationPlanRequest.class);
 
             assertThat(terminateTransfer).isNotNull();
             assertThat(terminateTransfer.policyScope()).isEqualTo(inputObject.getString("policyScope"));
 
         }
 
-        protected void verifySerde(JsonObject inputObject, Class<?> klass, Function<JsonObject, JsonObject> mapper) {
-            var jsonLd = runtime().getService(JsonLd.class);
-            var registry = forContext(transformerScope());
+        protected void verifySerde(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd, JsonObject inputObject, Class<?> klass, Function<JsonObject, JsonObject> mapper) {
+            var registry = forContext(typeTransformerRegistry, transformerScope());
 
-            validate(inputObject);
+            validate(validatorRegistry, inputObject);
 
             // Expand the input
             var expanded = jsonLd.expand(inputObject).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
@@ -532,19 +508,16 @@ public class SerdeEndToEndTest {
             });
         }
 
-        private JsonObject serialize(Object object) {
-            var registry = forContext(transformerScope());
-            var jsonLd = runtime().getService(JsonLd.class);
-
+        private JsonObject serialize(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validator, JsonLd jsonLd, Object object) {
+            var registry = forContext(typeTransformerRegistry, transformerScope());
 
             var result = registry.transform(object, JsonObject.class).orElseThrow(failure -> new RuntimeException());
             var compacted = jsonLd.compact(result, jsonLdScope()).orElseThrow(failure -> new RuntimeException(failure.getFailureDetail()));
-            validate(compacted);
+            validate(validator, compacted);
             return compacted;
         }
 
-        private void validate(JsonObject compacted) {
-            var validator = runtime().getService(JsonObjectValidatorRegistry.class);
+        private void validate(JsonObjectValidatorRegistry validator, JsonObject compacted) {
             var type = compacted.getJsonString(TYPE) != null ? compacted.getString(TYPE) : null;
             if (type != null) {
                 var validationResult = validator.validate(schemaVersion() + ":" + type, compacted);
@@ -554,10 +527,9 @@ public class SerdeEndToEndTest {
             }
         }
 
-        private <T> T deserialize(JsonObject inputObject, Class<T> klass) {
-            validate(inputObject);
-            var registry = forContext(transformerScope());
-            var jsonLd = runtime().getService(JsonLd.class);
+        private <T> T deserialize(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validator, JsonLd jsonLd, JsonObject inputObject, Class<T> klass) {
+            validate(validator, inputObject);
+            var registry = forContext(typeTransformerRegistry, transformerScope());
 
             var expanded = jsonLd.expand(inputObject).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
@@ -569,9 +541,7 @@ public class SerdeEndToEndTest {
             return registry.transform(expanded, klass).orElseThrow(failure -> new RuntimeException());
         }
 
-        private TypeTransformerRegistry forContext(List<String> context) {
-            var runtime = runtime();
-            var typeTransformerRegistry = runtime.getService(TypeTransformerRegistry.class);
+        private TypeTransformerRegistry forContext(TypeTransformerRegistry typeTransformerRegistry, List<String> context) {
             for (String ctx : context) {
                 typeTransformerRegistry = typeTransformerRegistry.forContext(ctx);
             }
@@ -633,12 +603,14 @@ public class SerdeEndToEndTest {
     class SerdeV3Tests extends Tests {
 
         @RegisterExtension
-        private static final RuntimeExtension RUNTIME = new SerdeRuntime();
+        private static final RuntimeExtension RUNTIME = ComponentRuntimeExtension.Builder.newInstance()
+                .name(Runtimes.ControlPlane.NAME)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(":extensions:common:api:management-api-schema-validator", ":extensions:data-plane-selector:data-plane-selector-control-api")
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(SerdeEndToEndTest::config)
+                .build();
 
-        @Override
-        RuntimeExtension runtime() {
-            return RUNTIME;
-        }
 
         /**
          * Tests for entities that supports transformation from/to JsonObject
@@ -646,34 +618,36 @@ public class SerdeEndToEndTest {
         @ParameterizedTest(name = "{1}")
         @ArgumentsSource(JsonInputProvider.class)
         @WithContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT)
-        void serde(JsonObject inputObject, Class<?> klass, Function<JsonObject, JsonObject> mapper) {
+        void serde(JsonObject inputObject, Class<?> klass, Function<JsonObject, JsonObject> mapper,
+                   JsonLd jsonLd, JsonObjectValidatorRegistry validatorRegistry,
+                   TypeTransformerRegistry typeTransformerRegistry) {
             if (!klass.equals(DataPlaneInstance.class) && !inputObject.getString(TYPE).equals("CatalogAsset")) {
-                verifySerde(inputObject, klass, mapper);
+                verifySerde(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, klass, mapper);
             }
         }
 
         @Override
         @Disabled
-        void de_DatasetRequest() {
-            super.de_DatasetRequest();
+        void de_DatasetRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            super.de_DatasetRequest(typeTransformerRegistry, validatorRegistry, jsonLd);
         }
 
         @Override
         @Disabled
-        void de_CatalogRequest() {
-            super.de_CatalogRequest();
+        void de_CatalogRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            super.de_CatalogRequest(typeTransformerRegistry, validatorRegistry, jsonLd);
         }
 
         @Override
         @Disabled
-        void ser_DataPlaneInstance() {
-            super.ser_DataPlaneInstance();
+        void ser_DataPlaneInstance(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            super.ser_DataPlaneInstance(typeTransformerRegistry, validatorRegistry, jsonLd);
         }
 
         @Override
         @Disabled
-        void ser_IdResponse() {
-            super.ser_IdResponse();
+        void ser_IdResponse(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            super.ser_IdResponse(typeTransformerRegistry, validatorRegistry, jsonLd);
         }
     }
 
@@ -682,7 +656,13 @@ public class SerdeEndToEndTest {
     class SerdeV4Tests extends Tests {
 
         @RegisterExtension
-        private static final RuntimeExtension RUNTIME = new SerdeRuntime();
+        static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
+                .name(Runtimes.ControlPlane.NAME)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(":extensions:common:api:management-api-schema-validator", ":extensions:data-plane-selector:data-plane-selector-control-api")
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(SerdeEndToEndTest::config)
+                .build();
 
         @Override
         protected List<String> transformerScope() {
@@ -704,10 +684,6 @@ public class SerdeEndToEndTest {
             return EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
         }
 
-        @Override
-        RuntimeExtension runtime() {
-            return RUNTIME;
-        }
 
         @Override
         protected boolean strictSchema() {
@@ -720,14 +696,15 @@ public class SerdeEndToEndTest {
         @ParameterizedTest(name = "{1}")
         @ArgumentsSource(JsonInputProvider.class)
         @WithContext(value = EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, strictSchema = true)
-        void serde(JsonObject inputObject, Class<?> klass, Function<JsonObject, JsonObject> mapper) {
-            verifySerde(inputObject, klass, mapper);
+        void serde(JsonObject inputObject, Class<?> klass, Function<JsonObject, JsonObject> mapper, JsonLd jsonLd, JsonObjectValidatorRegistry validatorRegistry,
+                   TypeTransformerRegistry typeTransformerRegistry) {
+            verifySerde(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, klass, mapper);
         }
 
         @Override
         @Disabled
-        void de_TransferRequest_withoutDataAddressType() {
-            super.de_TransferRequest_withoutDataAddressType();
+        void de_TransferRequest_withoutDataAddressType(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            super.de_TransferRequest_withoutDataAddressType(typeTransformerRegistry, validatorRegistry, jsonLd);
         }
     }
 
