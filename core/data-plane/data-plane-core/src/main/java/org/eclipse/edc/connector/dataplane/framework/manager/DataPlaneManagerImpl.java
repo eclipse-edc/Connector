@@ -317,8 +317,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     private boolean updateFlowLease(DataFlow dataFlow) {
-        dataFlow.transitToReceived(runtimeId);
-        dataFlow.transitionToStarted(runtimeId);
+        dataFlow.setModified();
         store.save(dataFlow);
         return true;
     }
