@@ -151,7 +151,7 @@ public class ComponentRuntimeExtension extends RuntimePerClassExtension {
             Objects.requireNonNull(name, "name");
 
             var runtime = new EmbeddedRuntime(name, modules.toArray(new String[0]));
-            var context = new ComponentRuntimeContext(runtime, endpoints);
+            var context = new ComponentRuntimeContext(name, runtime, endpoints);
             var extension = new ComponentRuntimeExtension(runtime, context);
 
             extension.name = name;
