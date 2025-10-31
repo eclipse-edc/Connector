@@ -21,6 +21,7 @@ import org.eclipse.edc.junit.annotations.Runtime;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
+import org.eclipse.edc.test.e2e.Runtimes;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
@@ -40,7 +41,6 @@ import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 @SuppressWarnings("JUnitMalformedDeclaration")
 class ContractNegotiationEndToEndTest {
-
 
     abstract static class Tests {
 
@@ -110,7 +110,7 @@ class ContractNegotiationEndToEndTest {
                 .modules(Runtimes.ControlPlane.MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
-                .paramProvider(ManagementApiClientV4.class, Runtimes.ControlPlane::getApiClient)
+                .paramProvider(ManagementApiClientV4.class, ManagementApiClientV4::forContext)
                 .build();
 
         @RegisterExtension
@@ -119,9 +119,8 @@ class ContractNegotiationEndToEndTest {
                 .modules(Runtimes.ControlPlane.MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
-                .paramProvider(ManagementApiClientV4.class, Runtimes.ControlPlane::getApiClient)
+                .paramProvider(ManagementApiClientV4.class, ManagementApiClientV4::forContext)
                 .build();
-
 
     }
 
@@ -148,7 +147,7 @@ class ContractNegotiationEndToEndTest {
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONSUMER_NAME))
-                .paramProvider(ManagementApiClientV4.class, Runtimes.ControlPlane::getApiClient)
+                .paramProvider(ManagementApiClientV4.class, ManagementApiClientV4::forContext)
                 .build();
 
         @RegisterExtension
@@ -159,7 +158,7 @@ class ContractNegotiationEndToEndTest {
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER_NAME))
-                .paramProvider(ManagementApiClientV4.class, Runtimes.ControlPlane::getApiClient)
+                .paramProvider(ManagementApiClientV4.class, ManagementApiClientV4::forContext)
                 .build();
 
     }

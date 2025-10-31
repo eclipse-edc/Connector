@@ -25,10 +25,12 @@ import java.net.URI;
  */
 public class ComponentRuntimeContext {
 
+    private final String name;
     private final EmbeddedRuntime runtime;
     private final Endpoints endpoints;
 
-    protected ComponentRuntimeContext(EmbeddedRuntime runtime, Endpoints endpoints) {
+    protected ComponentRuntimeContext(String name, EmbeddedRuntime runtime, Endpoints endpoints) {
+        this.name = name;
         this.runtime = runtime;
         this.endpoints = endpoints;
     }
@@ -63,4 +65,12 @@ public class ComponentRuntimeContext {
         return runtime.getContext().getConfig();
     }
 
+    /**
+     * Retrieves the name of the runtime.
+     *
+     * @return the name of the runtime
+     */
+    public String getName() {
+        return name;
+    }
 }

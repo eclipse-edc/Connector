@@ -21,10 +21,11 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
+import org.eclipse.edc.junit.annotations.Runtime;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
-import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
-import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.junit.utils.Endpoints;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -68,12 +69,13 @@ public class TransferStreamingEndToEndTest {
         static WireMockExtension destinationServer = WireMockExtension.newInstance()
                 .options(wireMockConfig().dynamicPort())
                 .build();
-        
+
         protected final String sinkTopic = "sink_topic_" + UUID.randomUUID();
         private final String sourceTopic = "source_topic_" + UUID.randomUUID();
 
         protected abstract KafkaExtension getKafkaExtension();
 
+        @SuppressWarnings("resource")
         @BeforeEach
         void setUp() {
             var producer = getKafkaExtension().createKafkaProducer();
@@ -84,23 +86,24 @@ public class TransferStreamingEndToEndTest {
         }
 
         @Test
-        void kafkaToHttpTransfer() {
+        void kafkaToHttpTransfer(@org.eclipse.edc.junit.annotations.Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                 @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
 
             destinationServer.stubFor(post("/api/service")
                     .willReturn(okJson("{}")));
 
             var assetId = UUID.randomUUID().toString();
-            createResourcesOnProvider(assetId, contractExpiresIn("10s"), kafkaSourceProperty(getKafkaExtension().getBootstrapServers()));
+            createResourcesOnProvider(provider, assetId, contractExpiresIn("10s"), kafkaSourceProperty(getKafkaExtension().getBootstrapServers()));
 
             var destination = httpSink(destinationServer.getPort(), "/api/service");
-            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+            var transferProcessId = consumer.requestAssetFrom(assetId, provider)
                     .withDestination(destination).withTransferType("HttpData-PUSH").execute();
 
             await().atMost(timeout).untilAsserted(() -> {
                 destinationServer.verify(moreThanOrExactly(1), postRequestedFor(urlEqualTo("/api/service")));
             });
 
-            CONSUMER.awaitTransferToBeInState(transferProcessId, TERMINATED);
+            consumer.awaitTransferToBeInState(transferProcessId, TERMINATED);
 
             destinationServer.resetRequests();
 
@@ -116,41 +119,43 @@ public class TransferStreamingEndToEndTest {
         }
 
         @Test
-        void kafkaToKafkaTransfer() {
-            try (var consumer = getKafkaExtension().createKafkaConsumer()) {
-                consumer.subscribe(List.of(sinkTopic));
+        void kafkaToKafkaTransfer(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                  @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
+            try (var kafkaConsumer = getKafkaExtension().createKafkaConsumer()) {
+                kafkaConsumer.subscribe(List.of(sinkTopic));
 
                 var assetId = UUID.randomUUID().toString();
-                createResourcesOnProvider(assetId, contractExpiresIn("10s"), kafkaSourceProperty(getKafkaExtension().getBootstrapServers()));
+                createResourcesOnProvider(provider, assetId, contractExpiresIn("10s"), kafkaSourceProperty(getKafkaExtension().getBootstrapServers()));
 
-                var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                var transferProcessId = consumer.requestAssetFrom(assetId, provider)
                         .withDestination(kafkaSink(getKafkaExtension().getBootstrapServers())).withTransferType("Kafka-PUSH").execute();
-                assertMessagesAreSentTo(consumer);
+                assertMessagesAreSentTo(kafkaConsumer);
 
-                CONSUMER.awaitTransferToBeInState(transferProcessId, TERMINATED);
-                assertNoMoreMessagesAreSentTo(consumer);
+                consumer.awaitTransferToBeInState(transferProcessId, TERMINATED);
+                assertNoMoreMessagesAreSentTo(kafkaConsumer);
             }
         }
 
         @Test
-        void shouldSuspendAndResumeTransfer() {
-            try (var consumer = getKafkaExtension().createKafkaConsumer()) {
-                consumer.subscribe(List.of(sinkTopic));
+        void shouldSuspendAndResumeTransfer(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                            @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
+            try (var kafkaConsumer = getKafkaExtension().createKafkaConsumer()) {
+                kafkaConsumer.subscribe(List.of(sinkTopic));
 
                 var assetId = UUID.randomUUID().toString();
-                createResourcesOnProvider(assetId, kafkaSourceProperty(getKafkaExtension().getBootstrapServers()));
+                createResourcesOnProvider(provider, assetId, kafkaSourceProperty(getKafkaExtension().getBootstrapServers()));
 
-                var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                var transferProcessId = consumer.requestAssetFrom(assetId, provider)
                         .withDestination(kafkaSink(getKafkaExtension().getBootstrapServers())).withTransferType("Kafka-PUSH").execute();
-                assertMessagesAreSentTo(consumer);
+                assertMessagesAreSentTo(kafkaConsumer);
 
-                CONSUMER.suspendTransfer(transferProcessId, "any kind of reason");
-                CONSUMER.awaitTransferToBeInState(transferProcessId, SUSPENDED);
-                assertNoMoreMessagesAreSentTo(consumer);
+                consumer.suspendTransfer(transferProcessId, "any kind of reason");
+                consumer.awaitTransferToBeInState(transferProcessId, SUSPENDED);
+                assertNoMoreMessagesAreSentTo(kafkaConsumer);
 
-                CONSUMER.resumeTransfer(transferProcessId);
-                CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
-                assertMessagesAreSentTo(consumer);
+                consumer.resumeTransfer(transferProcessId);
+                consumer.awaitTransferToBeInState(transferProcessId, STARTED);
+                assertMessagesAreSentTo(kafkaConsumer);
             }
         }
 
@@ -221,27 +226,33 @@ public class TransferStreamingEndToEndTest {
         static final KafkaExtension KAFKA_EXTENSION = new KafkaExtension();
 
         @RegisterExtension
-        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane")
-                        .configurationProvider(CONSUMER::controlPlaneConfig)
-        );
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(CONSUMER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
+
+        static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
 
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE.create("provider-control-plane")
-                        .configurationProvider(PROVIDER::controlPlaneConfig)
-        );
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(PROVIDER_ENDPOINTS)
+                .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
 
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane")
-                        .configurationProvider(PROVIDER::dataPlaneConfig)
-        );
-
-        @Override
-        protected Vault getDataplaneVault() {
-            return PROVIDER_DATA_PLANE.getService(Vault.class);
-        }
+        static final RuntimeExtension PROVIDER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_DP)
+                .modules(Runtimes.DataPlane.IN_MEM_MODULES)
+                .endpoints(Runtimes.DataPlane.ENDPOINTS.build())
+                .configurationProvider(Runtimes.DataPlane::config)
+                .configurationProvider(() -> Runtimes.ControlPlane.dataPlaneSelectorFor(PROVIDER_ENDPOINTS))
+                .build();
 
         @Override
         protected KafkaExtension getKafkaExtension() {
@@ -257,42 +268,53 @@ public class TransferStreamingEndToEndTest {
         @RegisterExtension
         static final KafkaExtension KAFKA_EXTENSION = new KafkaExtension();
 
-        @Order(1)
+        static final String CONSUMER_DB = "consumer";
+        static final String PROVIDER_DB = "provider";
+
+        @Order(0)
         @RegisterExtension
         static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension();
 
-        @Order(2)
+        @Order(1)
         @RegisterExtension
         static final BeforeAllCallback CREATE_DATABASES = context -> {
-            POSTGRESQL_EXTENSION.createDatabase(CONSUMER.getName());
-            POSTGRESQL_EXTENSION.createDatabase(PROVIDER.getName());
+            POSTGRESQL_EXTENSION.createDatabase(CONSUMER_DB);
+            POSTGRESQL_EXTENSION.createDatabase(PROVIDER_DB);
         };
 
         @RegisterExtension
-        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.POSTGRES_CONTROL_PLANE.create("consumer-control-plane")
-                        .configurationProvider(CONSUMER::controlPlaneConfig)
-                        .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONSUMER.getName()))
-        );
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(CONSUMER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.SQL_MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
+                .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONSUMER_DB))
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
+
+        static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
 
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.POSTGRES_CONTROL_PLANE.create("provider-control-plane")
-                        .configurationProvider(PROVIDER::controlPlaneConfig)
-                        .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()))
-        );
-
-        private static final EmbeddedRuntime PROVIDER_DATA_PLANE_RUNTIME = Runtimes.POSTGRES_DATA_PLANE.create("provider-data-plane")
-                .configurationProvider(PROVIDER::dataPlaneConfig)
-                .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()));
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.SQL_MODULES)
+                .endpoints(PROVIDER_ENDPOINTS)
+                .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
+                .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER_DB))
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
 
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(PROVIDER_DATA_PLANE_RUNTIME);
-
-        @Override
-        protected Vault getDataplaneVault() {
-            return PROVIDER_DATA_PLANE.getService(Vault.class);
-        }
+        static final RuntimeExtension PROVIDER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_DP)
+                .modules(Runtimes.DataPlane.SQL_MODULES)
+                .endpoints(Runtimes.DataPlane.ENDPOINTS.build())
+                .configurationProvider(Runtimes.DataPlane::config)
+                .configurationProvider(() -> Runtimes.ControlPlane.dataPlaneSelectorFor(PROVIDER_ENDPOINTS))
+                .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER_DB))
+                .build();
 
         @Override
         protected KafkaExtension getKafkaExtension() {
@@ -300,25 +322,27 @@ public class TransferStreamingEndToEndTest {
         }
 
         @Test
-        void shouldResumeTransfer_whenDataPlaneRestarts() {
-            try (var consumer = getKafkaExtension().createKafkaConsumer()) {
-                consumer.subscribe(List.of(sinkTopic));
+        void shouldResumeTransfer_whenDataPlaneRestarts(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                        @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
+                                                        @Runtime(PROVIDER_DP) EmbeddedRuntime dataplane) {
+            try (var kafkaConsumer = getKafkaExtension().createKafkaConsumer()) {
+                kafkaConsumer.subscribe(List.of(sinkTopic));
 
                 var assetId = UUID.randomUUID().toString();
-                createResourcesOnProvider(assetId, kafkaSourceProperty(getKafkaExtension().getBootstrapServers()));
+                createResourcesOnProvider(provider, assetId, kafkaSourceProperty(getKafkaExtension().getBootstrapServers()));
 
-                var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+                var transferProcessId = consumer.requestAssetFrom(assetId, provider)
                         .withDestination(kafkaSink(getKafkaExtension().getBootstrapServers())).withTransferType("Kafka-PUSH").execute();
-                assertMessagesAreSentTo(consumer);
+                assertMessagesAreSentTo(kafkaConsumer);
 
-                PROVIDER_DATA_PLANE_RUNTIME.shutdown();
+                dataplane.shutdown();
 
-                assertNoMoreMessagesAreSentTo(consumer);
+                assertNoMoreMessagesAreSentTo(kafkaConsumer);
 
-                PROVIDER_DATA_PLANE_RUNTIME.boot(false);
+                dataplane.boot(false);
 
-                CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
-                assertMessagesAreSentTo(consumer);
+                consumer.awaitTransferToBeInState(transferProcessId, STARTED);
+                assertMessagesAreSentTo(kafkaConsumer);
             }
         }
     }
