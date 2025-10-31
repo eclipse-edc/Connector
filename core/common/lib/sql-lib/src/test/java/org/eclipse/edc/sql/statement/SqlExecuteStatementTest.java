@@ -17,6 +17,8 @@ package org.eclipse.edc.sql.statement;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.sql.statement.SqlExecuteStatement.equalTo;
@@ -135,6 +137,18 @@ class SqlExecuteStatementTest {
             assertThat(statement).isEqualToIgnoringCase("insert into table_name (id, column_name, another_column_name) values (?, ?, ?)" +
                     " on conflict (id) do update set column_name = excluded.column_name, another_column_name = excluded.another_column_name" +
                     " WHERE another_column_name = ?;");
+        }
+
+        @Test
+        void shouldReturnStatement_whenSkipColumns() {
+            var statement = SqlExecuteStatement.newInstance("::json")
+                    .column("id")
+                    .column("column_name")
+                    .column("another_column_name")
+                    .upsertInto("table_name", "id", List.of("another_column_name"));
+
+            assertThat(statement).isEqualToIgnoringCase("insert into table_name (id, column_name, another_column_name) values (?, ?, ?)" +
+                    " on conflict (id) do update set column_name = excluded.column_name;");
         }
 
         @Test
