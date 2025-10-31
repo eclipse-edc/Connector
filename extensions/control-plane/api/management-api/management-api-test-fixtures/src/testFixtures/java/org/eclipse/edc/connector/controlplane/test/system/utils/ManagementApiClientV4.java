@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.utils.LazySupplier;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.Criterion;
@@ -69,6 +70,13 @@ public class ManagementApiClientV4 {
         super();
     }
 
+    public static ManagementApiClientV4 forContext(ComponentRuntimeContext context) {
+        var participantId = context.getConfig().getString("edc.participant.id");
+        return ManagementApiClientV4.Builder.newInstance().participantId(participantId)
+                .controlPlaneManagement(context.getEndpoint("management"))
+                .controlPlaneProtocol(context.getEndpoint("protocol"))
+                .build();
+    }
 
     public Duration getTimeout() {
         return timeout;
@@ -270,7 +278,6 @@ public class ManagementApiClientV4 {
                 .statusCode(200)
                 .extract().body().jsonPath().getString(ID);
     }
-
 
     /**
      * Get current state of a contract negotiation.
