@@ -15,12 +15,12 @@
 package org.eclipse.edc.test.e2e.managementapi;
 
 import io.restassured.http.ContentType;
-import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
 
@@ -29,7 +29,6 @@ import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.hamcrest.Matchers.is;
 
 /**
@@ -39,69 +38,59 @@ public class AuthConfigurationApiEndToEndTest {
 
     private static final String API_KEY = "apiKey";
 
-    abstract static class Tests {
+    @RegisterExtension
+    static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
+            .name(Runtimes.ControlPlane.NAME)
+            .modules(Runtimes.ControlPlane.MODULES)
+            .modules(":extensions:common:auth:auth-configuration", ":extensions:common:auth:auth-tokenbased")
+            .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+            .configurationProvider(AuthConfigurationApiEndToEndTest::config)
+            .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
+            .build();
 
-
-        @Test
-        void queryAsset(ManagementEndToEndTestContext context) {
-
-            var query = createObjectBuilder()
-                    .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                    .add("filterExpression", createArrayBuilder()).build();
-
-            context.baseRequest()
-                    .header("x-api-key", API_KEY)
-                    .contentType(ContentType.JSON)
-                    .body(query)
-                    .post("/v3/assets/request")
-                    .then()
-                    .log().ifError()
-                    .statusCode(200)
-                    .body("size()", is(0));
-        }
-
-
+    private static Config config() {
+        return ConfigFactory.fromMap(new HashMap<>() {
+            {
+                put("web.http.management.auth.type", "tokenbased");
+                put("web.http.management.auth.key", API_KEY);
+                put("web.http.management.auth.context", "management-api");
+            }
+        });
     }
 
-    static class AuthExtension extends ManagementEndToEndExtension {
+    @Test
+    void queryAsset(ManagementEndToEndTestContext context) {
 
-        protected AuthExtension() {
-            super(context());
-        }
+        var query = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add("filterExpression", createArrayBuilder()).build();
 
-        private static ManagementEndToEndTestContext context() {
-            var managementPort = getFreePort();
-            var protocolPort = getFreePort();
-
-            var runtime = new EmbeddedRuntime(
-                    "control-plane",
-                    ":system-tests:management-api:management-api-test-runtime",
-                    ":extensions:common:auth:auth-configuration",
-                    ":extensions:common:auth:auth-tokenbased")
-                    .configurationProvider(() -> ConfigFactory.fromMap(new HashMap<>() {
-                        {
-                            put("web.http.path", "/");
-                            put("web.http.port", String.valueOf(getFreePort()));
-                            put("web.http.protocol.path", "/protocol");
-                            put("web.http.protocol.port", String.valueOf(protocolPort));
-                            put("web.http.control.port", String.valueOf(getFreePort()));
-                            put("edc.dsp.callback.address", "http://localhost:" + protocolPort + "/protocol");
-                            put("web.http.management.path", "/management");
-                            put("web.http.management.port", String.valueOf(managementPort));
-                            put("web.http.management.auth.type", "tokenbased");
-                            put("web.http.management.auth.key", API_KEY);
-                            put("web.http.management.auth.context", "management-api");
-                        }
-                    }));
-
-            return new ManagementEndToEndTestContext(runtime);
-        }
-
+        context.baseRequest()
+                .header("x-api-key", API_KEY)
+                .contentType(ContentType.JSON)
+                .body(query)
+                .post("/v3/assets/request")
+                .then()
+                .log().ifError()
+                .statusCode(200)
+                .body("size()", is(0));
     }
 
-    @Nested
-    @EndToEndTest
-    @ExtendWith(AuthExtension.class)
-    class InMemory extends Tests {
+    @Test
+    void queryAsset_notAuthorized(ManagementEndToEndTestContext context) {
+
+        var query = createObjectBuilder()
+                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
+                .add("filterExpression", createArrayBuilder()).build();
+
+        context.baseRequest()
+                .header("x-api-key", "wrong-key")
+                .contentType(ContentType.JSON)
+                .body(query)
+                .post("/v3/assets/request")
+                .then()
+                .log().ifError()
+                .statusCode(401);
     }
+
 }
