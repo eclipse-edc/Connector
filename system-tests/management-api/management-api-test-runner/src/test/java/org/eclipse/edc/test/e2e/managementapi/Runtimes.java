@@ -15,8 +15,11 @@
 package org.eclipse.edc.test.e2e.managementapi;
 
 import org.eclipse.edc.junit.utils.Endpoints;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 
 import java.net.URI;
+import java.util.Map;
 
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.eclipse.edc.web.spi.configuration.ApiContext.CONTROL;
@@ -40,5 +43,12 @@ public interface Runtimes {
                 .endpoint(MANAGEMENT, () -> URI.create("http://localhost:" + getFreePort() + "/management"))
                 .endpoint(CONTROL, () -> URI.create("http://localhost:" + getFreePort() + "/control"))
                 .endpoint(PROTOCOL, () -> URI.create("http://localhost:" + getFreePort() + "/protocol"));
+
+
+        static Config config() {
+            return ConfigFactory.fromMap(Map.of(
+                    "edc.participant.id", "anonymous")
+            );
+        }
     }
 }

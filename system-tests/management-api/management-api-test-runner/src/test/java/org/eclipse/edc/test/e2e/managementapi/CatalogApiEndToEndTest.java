@@ -291,6 +291,7 @@ public class CatalogApiEndToEndTest {
                 .name(Runtimes.ControlPlane.NAME)
                 .modules(Runtimes.ControlPlane.MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(Runtimes.ControlPlane::config)
                 .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
                 .build();
     }
@@ -309,6 +310,7 @@ public class CatalogApiEndToEndTest {
                 .modules(Runtimes.ControlPlane.MODULES)
                 .modules(Runtimes.ControlPlane.SQL_MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(Runtimes.ControlPlane::config)
                 .configurationProvider(postgres::config)
                 .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
                 .build();
