@@ -16,24 +16,28 @@ package org.eclipse.edc.connector.controlplane.catalog;
 
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
+import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceResolver;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class DataServiceRegistryImpl implements DataServiceRegistry {
 
-    private final Map<String, List<DataService>> dataServices = new ConcurrentHashMap<>();
+    private final Map<String, List<DataServiceResolver>> dataServices = new ConcurrentHashMap<>();
 
     @Override
-    public void register(String protocol, DataService dataService) {
-        dataServices.computeIfAbsent(protocol, k -> new ArrayList<>()).add(dataService);
+    public void register(String protocol, DataServiceResolver resolver) {
+        dataServices.computeIfAbsent(protocol, k -> new ArrayList<>()).add(resolver);
     }
 
     @Override
-    public List<DataService> getDataServices(String protocol) {
-        return dataServices.computeIfAbsent(protocol, k -> new ArrayList<>());
+    public List<DataService> getDataServices(String participantContextId, String protocol) {
+        return dataServices.computeIfAbsent(protocol, k -> new ArrayList<>())
+                .stream().map(resolver -> resolver.resolve(participantContextId, protocol))
+                .collect(Collectors.toList());
     }
 
 }

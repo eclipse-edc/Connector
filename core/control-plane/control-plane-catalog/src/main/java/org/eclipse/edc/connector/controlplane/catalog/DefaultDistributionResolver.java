@@ -45,12 +45,12 @@ public class DefaultDistributionResolver implements DistributionResolver {
                             .build())
                     .build());
         }
-        return dataFlowManager.transferTypesFor(asset).stream().map((format) -> createDistribution(protocol, format)).toList();
+        return dataFlowManager.transferTypesFor(asset).stream().map((format) -> createDistribution(asset.getParticipantContextId(), protocol, format)).toList();
     }
 
-    private Distribution createDistribution(String protocol, String format) {
+    private Distribution createDistribution(String participantContextId, String protocol, String format) {
         var builder = Distribution.Builder.newInstance().format(format);
-        dataServiceRegistry.getDataServices(protocol).forEach(builder::dataService);
+        dataServiceRegistry.getDataServices(participantContextId, protocol).forEach(builder::dataService);
         return builder.build();
     }
 }
