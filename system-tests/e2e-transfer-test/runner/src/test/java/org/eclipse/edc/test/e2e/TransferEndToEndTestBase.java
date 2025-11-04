@@ -15,9 +15,8 @@
 package org.eclipse.edc.test.e2e;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.junit.annotations.Runtime;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 
 import java.time.Duration;
 import java.util.Map;
@@ -26,45 +25,35 @@ import java.util.UUID;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileContentAsString;
 
+@SuppressWarnings("JUnitMalformedDeclaration")
 public abstract class TransferEndToEndTestBase {
 
-    protected static final TransferEndToEndParticipant CONSUMER = TransferEndToEndParticipant.Builder.newInstance()
-            .name("consumer")
-            .id("urn:connector:consumer")
-            .build();
-    protected static final TransferEndToEndParticipant PROVIDER = TransferEndToEndParticipant.Builder.newInstance()
-            .name("provider")
-            .id("urn:connector:provider")
-            .build();
+    public static final String PROVIDER_DP = "provider-data-plane";
+    public static final String CONSUMER_DP = "consumer-data-plane";
+    public static final String PROVIDER_CP = "provider-control-plane";
+    public static final String CONSUMER_CP = "consumer-control-plane";
+    public static final String CONSUMER_ID = "urn:connector:consumer";
+    public static final String PROVIDER_ID = "urn:connector:provider";
 
     protected static String privateKey = getResourceFileContentAsString("certs/key.pem");
     protected static String publicKey = getResourceFileContentAsString("certs/cert.pem");
 
     protected static String noConstraintPolicyId;
-
-    @BeforeAll
-    static void createNoConstraintPolicy() {
-        noConstraintPolicyId = PROVIDER.createPolicyDefinition(noConstraintPolicy());
-    }
-
-    @BeforeEach
-    void storeKeys() {
-        getDataplaneVault().storeSecret("private-key", privateKey);
-        getDataplaneVault().storeSecret("public-key", publicKey);
-    }
-
-    protected abstract Vault getDataplaneVault();
-
     protected final Duration timeout = Duration.ofSeconds(60);
 
-    protected void createResourcesOnProvider(String assetId, JsonObject contractPolicy, Map<String, Object> dataAddressProperties) {
-        PROVIDER.createAsset(assetId, Map.of("description", "description"), dataAddressProperties);
-        var contractPolicyId = PROVIDER.createPolicyDefinition(contractPolicy);
-        PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, contractPolicyId);
+    @BeforeAll
+    static void setup(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
+        noConstraintPolicyId = provider.createPolicyDefinition(noConstraintPolicy());
     }
 
-    protected void createResourcesOnProvider(String assetId, Map<String, Object> dataAddressProperties) {
-        PROVIDER.createAsset(assetId, Map.of("description", "description"), dataAddressProperties);
-        PROVIDER.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, noConstraintPolicyId);
+    protected void createResourcesOnProvider(TransferEndToEndParticipant provider, String assetId, JsonObject contractPolicy, Map<String, Object> dataAddressProperties) {
+        provider.createAsset(assetId, Map.of("description", "description"), dataAddressProperties);
+        var contractPolicyId = provider.createPolicyDefinition(contractPolicy);
+        provider.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, contractPolicyId);
+    }
+
+    protected void createResourcesOnProvider(TransferEndToEndParticipant provider, String assetId, Map<String, Object> dataAddressProperties) {
+        provider.createAsset(assetId, Map.of("description", "description"), dataAddressProperties);
+        provider.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, noConstraintPolicyId);
     }
 }
