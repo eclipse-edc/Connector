@@ -61,8 +61,7 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
         return transactionContext.execute(() -> protocolTokenValidator.verify(participantContext, tokenRepresentation, RequestCatalogPolicyContext::new, message)
                 .map(agent -> {
                     try (var datasets = datasetResolver.query(participantContext, agent, message.getQuerySpec(), message.getProtocol())) {
-                        // TODO data services should be based on the participant context
-                        var dataServices = dataServiceRegistry.getDataServices(message.getProtocol());
+                        var dataServices = dataServiceRegistry.getDataServices(participantContext.getParticipantContextId(), message.getProtocol());
 
                         return Catalog.Builder.newInstance()
                                 .dataServices(dataServices)
