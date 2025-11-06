@@ -16,13 +16,15 @@ package org.eclipse.edc.iam.verifiablecredentials.rules;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
+import com.networknt.schema.SchemaLocation;
+import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.dialect.Dialects;
+import com.networknt.schema.resource.SchemaLoader;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
 import org.eclipse.edc.spi.result.Result;
 
-import java.net.URI;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -31,7 +33,12 @@ import java.util.Objects;
  */
 public class HasValidSubjectSchema implements CredentialValidationRule {
     private final ObjectMapper jsonMapper;
-    private final JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012, builder -> builder.enableSchemaCache(true));
+    private final SchemaRegistry factory = SchemaRegistry.withDialects(List.of(Dialects.getDraft202012(), Dialects.getDraft4()),
+            builder -> {
+                builder.schemaLoader(SchemaLoader.Builder::fetchRemoteResources)
+                        .schemaCacheEnabled(true);
+            }
+    );
 
     public HasValidSubjectSchema(ObjectMapper jsonMapper) {
         this.jsonMapper = jsonMapper;
@@ -46,7 +53,7 @@ public class HasValidSubjectSchema implements CredentialValidationRule {
         return verifiableCredential.getCredentialSchema().stream().filter(Objects::nonNull).map(schema -> {
             var schemaUrl = schema.id();
             // Returns the schema using the JsonSchemaFactory. The factory does some caching internally, so there is no need to cache again
-            var jsonSchema = factory.getSchema(URI.create(schemaUrl));
+            var jsonSchema = factory.getSchema(SchemaLocation.of(schemaUrl));
 
             // validate all subjects against the current schema
             var validationMessages = verifiableCredential.getCredentialSubject().stream()
