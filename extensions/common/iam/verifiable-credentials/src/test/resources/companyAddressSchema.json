@@ -7,7 +7,7 @@
     },
     "email": {
       "type": "string",
-      "forat": "email"
+      "format": "email"
     },
     "street": {
       "type": "string"
