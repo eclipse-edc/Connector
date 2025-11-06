@@ -7,7 +7,7 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.txt
   version: 3.1.4
 servers:
-- url: http://localhost:8080
+- url: /
 paths:
   /v4alpha/contractnegotiations/{id}/state:
     get:

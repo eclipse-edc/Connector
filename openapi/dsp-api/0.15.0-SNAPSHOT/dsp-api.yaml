@@ -7,7 +7,7 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.txt
   version: 0.15.0-SNAPSHOT
 servers:
-- url: http://localhost:8080
+- url: /
 paths:
   /2025-1/transfers/request:
     post:
