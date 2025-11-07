@@ -212,7 +212,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             var manifest = manifestResult.getContent();
 
             if (manifest.empty()) {
-                var provisioning = dataFlowManager.provision(process, policy);
+                var provisioning = dataFlowManager.prepare(process, policy);
                 if (provisioning.succeeded()) {
                     var response = provisioning.getContent();
                     if (response.isProvisioning()) {

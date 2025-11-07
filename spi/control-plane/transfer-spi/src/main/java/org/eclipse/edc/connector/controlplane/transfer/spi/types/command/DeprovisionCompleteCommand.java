@@ -19,7 +19,10 @@ import org.eclipse.edc.spi.command.EntityCommand;
 
 /**
  * Informs the system that deprovisioning a resource has indeed completed.
+ *
+ * @deprecated provisioning will be fully managed by the data-plane
  */
+@Deprecated(since = "0.14.1")
 public class DeprovisionCompleteCommand extends EntityCommand {
     private final DeprovisionedResource resource;
 

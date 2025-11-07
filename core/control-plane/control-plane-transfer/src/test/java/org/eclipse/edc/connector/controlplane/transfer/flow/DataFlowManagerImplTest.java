@@ -129,13 +129,13 @@ class DataFlowManagerImplTest {
             var policy = Policy.Builder.newInstance().build();
 
             when(controller.canHandle(any())).thenReturn(true);
-            when(controller.provision(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
+            when(controller.prepare(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
             manager.register(controller);
 
-            var result = manager.provision(transferProcess, policy);
+            var result = manager.prepare(transferProcess, policy);
 
             assertThat(result).isSucceeded();
-            verify(controller).provision(transferProcess, policy);
+            verify(controller).prepare(transferProcess, policy);
         }
     }
 

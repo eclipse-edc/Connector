@@ -23,7 +23,7 @@ import jakarta.ws.rs.core.MediaType;
 import org.eclipse.edc.connector.controlplane.api.transferprocess.model.TransferProcessFailStateDto;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.CompleteProvisionCommand;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyPreparedCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.validator.spi.ValidationResult;
@@ -68,10 +68,10 @@ public class TransferProcessControlApiController implements TransferProcessContr
     @POST
     @Path("/{processId}/provisioned")
     @Override
-    public void provisioned(@PathParam("processId") String processId, DataAddress newDataAddress) {
-        var command = new CompleteProvisionCommand(processId, newDataAddress);
+    public void provisioned(@PathParam("processId") String processId, DataAddress dataAddress) {
+        var command = new NotifyPreparedCommand(processId, dataAddress);
 
-        transferProcessService.completeProvision(command)
+        transferProcessService.notifyPrepared(command)
                 .orElseThrow(exceptionMapper(TransferProcess.class, processId));
     }
 

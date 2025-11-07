@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProce
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.CompleteProvisionCommand;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyPreparedCommand;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 
@@ -33,21 +33,21 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-class CompleteProvisionCommandHandlerTest {
+class NotifyPreparedCommandHandlerTest {
 
     private final TransferProcessObservable observable = new TransferProcessObservableImpl();
-    private final CompleteProvisionCommandHandler handler = new CompleteProvisionCommandHandler(mock(TransferProcessStore.class), observable);
+    private final NotifyPreparedCommandHandler handler = new NotifyPreparedCommandHandler(mock(TransferProcessStore.class), observable);
 
     @Test
     void verifyCorrectType() {
-        assertThat(handler.getType()).isEqualTo(CompleteProvisionCommand.class);
+        assertThat(handler.getType()).isEqualTo(NotifyPreparedCommand.class);
     }
 
     @Test
     void shouldTransitionProvisioned_whenConsumer() {
         var newDestination = DataAddress.Builder.newInstance().type("new").build();
         var originalDestination = DataAddress.Builder.newInstance().type("original").build();
-        var command = new CompleteProvisionCommand("test-id", newDestination);
+        var command = new NotifyPreparedCommand("test-id", newDestination);
         var entity = TransferProcess.Builder.newInstance().state(PROVISIONING_REQUESTED.code()).type(CONSUMER).dataDestination(originalDestination).build();
 
         var result = handler.modify(entity, command);
@@ -59,7 +59,7 @@ class CompleteProvisionCommandHandlerTest {
 
     @Test
     void shouldNotUpdateDestination_whenItIsMissing() {
-        var command = new CompleteProvisionCommand("test-id", null);
+        var command = new NotifyPreparedCommand("test-id", null);
         var originalDestination = DataAddress.Builder.newInstance().type("original").build();
         var entity = TransferProcess.Builder.newInstance().state(PROVISIONING_REQUESTED.code()).dataDestination(originalDestination).build();
 
@@ -74,7 +74,7 @@ class CompleteProvisionCommandHandlerTest {
     void shouldTransitionToStarting_whenProvider() {
         var newDestination = DataAddress.Builder.newInstance().type("new").build();
         var originalDestination = DataAddress.Builder.newInstance().type("original").build();
-        var command = new CompleteProvisionCommand("test-id", newDestination);
+        var command = new NotifyPreparedCommand("test-id", newDestination);
         var entity = TransferProcess.Builder.newInstance().state(STARTUP_REQUESTED.code()).type(PROVIDER).dataDestination(originalDestination).build();
 
         var result = handler.modify(entity, command);
@@ -86,7 +86,7 @@ class CompleteProvisionCommandHandlerTest {
 
     @Test
     void postAction_shouldCallProvisioned() {
-        var command = new CompleteProvisionCommand("test-id", null);
+        var command = new NotifyPreparedCommand("test-id", null);
         var entity = TransferProcess.Builder.newInstance().state(PROVISIONING_REQUESTED.code()).build();
         var listener = mock(TransferProcessListener.class);
         observable.registerListener(listener);

@@ -20,16 +20,16 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 /**
  * Informs the transfer process that the provision phase has been completed
  */
-public class CompleteProvisionCommand extends EntityCommand {
+public class NotifyPreparedCommand extends EntityCommand {
 
-    private final DataAddress newAddress;
+    private final DataAddress dataAddress;
 
-    public CompleteProvisionCommand(String transferProcessId, DataAddress newAddress) {
+    public NotifyPreparedCommand(String transferProcessId, DataAddress dataAddress) {
         super(transferProcessId);
-        this.newAddress = newAddress;
+        this.dataAddress = dataAddress;
     }
 
-    public DataAddress getNewAddress() {
-        return newAddress;
+    public DataAddress getDataAddress() {
+        return dataAddress;
     }
 }

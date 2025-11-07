@@ -20,7 +20,10 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
  * A provisioned resource that is asset content.
  *
  * This resource type is created when a provider's backend system provisions data as part of a data transfer.
+ *
+ * @deprecated provisioning will be fully managed by the data-plane
  */
+@Deprecated(since = "0.14.1")
 public abstract class ProvisionedContentResource extends ProvisionedDataAddressResource {
 
     protected ProvisionedContentResource() {

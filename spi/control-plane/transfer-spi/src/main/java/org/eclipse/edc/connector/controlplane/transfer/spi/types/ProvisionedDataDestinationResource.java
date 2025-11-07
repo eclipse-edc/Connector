@@ -20,7 +20,10 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * A provisioned resource that serves as a data destination.
+ *
+ * @deprecated provisioning will be fully managed by the data-plane
  */
+@Deprecated(since = "0.14.1")
 @JsonTypeName("dataspaceconnector:provisioneddatadestinationresource")
 @JsonDeserialize(builder = ProvisionedDataDestinationResource.Builder.class)
 public abstract class ProvisionedDataDestinationResource extends ProvisionedDataAddressResource {

@@ -51,7 +51,7 @@ class EmbeddedDataPlaneClientTest {
                     .build();
             when(dataPlaneManager.provision(any())).thenReturn(StatusResult.success(response));
 
-            var result = client.provision(request);
+            var result = client.prepare(request);
 
             assertThat(result).isSucceeded().isEqualTo(response);
         }
@@ -64,7 +64,7 @@ class EmbeddedDataPlaneClientTest {
                     .build();
             when(dataPlaneManager.provision(any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, "error"));
 
-            var result = client.provision(request);
+            var result = client.prepare(request);
 
             assertThat(result).isFailed();
         }

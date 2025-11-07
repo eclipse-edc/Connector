@@ -17,30 +17,30 @@ package org.eclipse.edc.connector.controlplane.transfer.command.handlers;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.CompleteProvisionCommand;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyPreparedCommand;
 import org.eclipse.edc.spi.command.EntityCommandHandler;
 
 /**
- * Handles a {@link CompleteProvisionCommand}.
+ * Handles a {@link NotifyPreparedCommand}.
  */
-public class CompleteProvisionCommandHandler extends EntityCommandHandler<CompleteProvisionCommand, TransferProcess> {
+public class NotifyPreparedCommandHandler extends EntityCommandHandler<NotifyPreparedCommand, TransferProcess> {
 
     private final TransferProcessObservable observable;
 
-    public CompleteProvisionCommandHandler(TransferProcessStore store, TransferProcessObservable observable) {
+    public NotifyPreparedCommandHandler(TransferProcessStore store, TransferProcessObservable observable) {
         super(store);
         this.observable = observable;
     }
 
     @Override
-    public Class<CompleteProvisionCommand> getType() {
-        return CompleteProvisionCommand.class;
+    public Class<NotifyPreparedCommand> getType() {
+        return NotifyPreparedCommand.class;
     }
 
     @Override
-    protected boolean modify(TransferProcess entity, CompleteProvisionCommand command) {
-        if (command.getNewAddress() != null) {
-            entity.updateDestination(command.getNewAddress());
+    protected boolean modify(TransferProcess entity, NotifyPreparedCommand command) {
+        if (command.getDataAddress() != null) {
+            entity.updateDestination(command.getDataAddress());
         }
 
         if (entity.getType() == TransferProcess.Type.CONSUMER) {
@@ -52,7 +52,7 @@ public class CompleteProvisionCommandHandler extends EntityCommandHandler<Comple
     }
 
     @Override
-    public void postActions(TransferProcess entity, CompleteProvisionCommand command) {
+    public void postActions(TransferProcess entity, NotifyPreparedCommand command) {
         observable.invokeForEach(l -> l.provisioned(entity));
     }
 }

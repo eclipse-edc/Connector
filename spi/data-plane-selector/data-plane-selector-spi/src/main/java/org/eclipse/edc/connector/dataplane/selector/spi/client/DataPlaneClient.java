@@ -32,7 +32,7 @@ public interface DataPlaneClient {
      * @param request the request.
      * @return success if the data flow preparation has been triggered/executed, failure otherwise
      */
-    StatusResult<DataFlowResponseMessage> provision(DataFlowProvisionMessage request);
+    StatusResult<DataFlowResponseMessage> prepare(DataFlowProvisionMessage request);
 
     /**
      * Delegates data transfer to the Data Plane.

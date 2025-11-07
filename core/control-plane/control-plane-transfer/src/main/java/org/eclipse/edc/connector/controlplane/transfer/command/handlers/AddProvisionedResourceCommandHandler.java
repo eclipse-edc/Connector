@@ -25,7 +25,10 @@ import java.util.List;
 
 /**
  * Processes a {@link AddProvisionedResourceCommand}
+ *
+ * @deprecated provisioning will be fully managed by the data-plane
  */
+@Deprecated(since = "0.14.1")
 public class AddProvisionedResourceCommandHandler extends EntityCommandHandler<AddProvisionedResourceCommand, TransferProcess> {
 
     private final ProvisionResponsesHandler provisionResponsesHandler;
