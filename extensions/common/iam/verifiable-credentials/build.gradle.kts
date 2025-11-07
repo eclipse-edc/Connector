@@ -28,6 +28,6 @@ dependencies {
     testImplementation(project(":tests:junit-base"))
     testImplementation(project(":core:common:lib:http-lib"))
     testImplementation(project(":core:common:lib:util-lib"))
-    testImplementation(testFixtures(project(":spi:common:identity-trust-spi"))) //test functions
+    testImplementation(testFixtures(project(":spi:common:decentralized-claims-spi"))) //test functions
 }
 

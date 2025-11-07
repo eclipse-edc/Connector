@@ -19,7 +19,7 @@ plugins {
 dependencies {
     testRuntimeOnly(libs.dcp.testcases)
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":spi:common:identity-trust-spi"))
+    testImplementation(project(":spi:common:decentralized-claims-spi"))
     testImplementation(project(":spi:common:identity-did-spi")) //DidDocument
     testImplementation(libs.nimbus.jwt)
     testImplementation(libs.restAssured)
