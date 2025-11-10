@@ -19,7 +19,7 @@ plugins {
 dependencies {
     api(project(":extensions:common:crypto:lib:jws2020-lib"))
     implementation(project(":spi:common:json-ld-spi"))
-    implementation(project(":spi:common:identity-trust-spi"))
+    implementation(project(":spi:common:decentralized-claims-spi"))
     implementation(project(":core:common:lib:util-lib")) //exposes SignatureSuite in its public API
 
     api(project(":spi:common:identity-did-spi"))

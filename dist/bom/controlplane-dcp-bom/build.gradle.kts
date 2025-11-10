@@ -26,11 +26,11 @@ dependencies {
     api(project(":extensions:common:crypto:ldp-verifiable-credentials"))
     api(project(":extensions:common:crypto:jwt-verifiable-credentials"))
     api(project(":extensions:common:crypto:lib:jws2020-lib"))
-    api(project(":extensions:common:iam:identity-trust:identity-trust-core"))
-    api(project(":extensions:common:iam:identity-trust:identity-trust-issuers-configuration"))
-    api(project(":extensions:common:iam:identity-trust:identity-trust-service"))
-    api(project(":extensions:common:iam:identity-trust:identity-trust-transform"))
-    api(project(":extensions:common:iam:identity-trust:identity-trust-sts:identity-trust-sts-remote-client"))
+    api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-core"))
+    api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-issuers-configuration"))
+    api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-service"))
+    api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-transform"))
+    api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:decentralized-claims-sts-remote-client"))
 
 
     api(project(":extensions:common:iam:decentralized-identity"))
