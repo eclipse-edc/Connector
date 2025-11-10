@@ -43,6 +43,21 @@ Module `api-core`
 _None_
 
 ### Extensions
+#### Class: `org.eclipse.edc.api.ApiCoreDefaultServicesExtension`
+**Name:** "ApiCoreDefaultServicesExtension"
+
+**Overview:** No overview provided.
+
+
+### Configuration_None_
+
+#### Provided services
+- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry`
+- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry`
+
+#### Referenced (injected) services
+_None_
+
 #### Class: `org.eclipse.edc.api.ApiCoreExtension`
 **Name:** "API Core"
 
@@ -58,21 +73,6 @@ _None_
 - `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
 - `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry` (required)
 - `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
-
-#### Class: `org.eclipse.edc.api.ApiCoreDefaultServicesExtension`
-**Name:** "ApiCoreDefaultServicesExtension"
-
-**Overview:** No overview provided.
-
-
-### Configuration_None_
-
-#### Provided services
-- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry`
-- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry`
-
-#### Referenced (injected) services
-_None_
 
 Module `api-observability`
 --------------------------
@@ -468,8 +468,8 @@ Module `connector-core`
 _None_
 
 ### Extensions
-#### Class: `org.eclipse.edc.connector.core.LocalPublicKeyDefaultExtension`
-**Name:** "Security Default Services Extension"
+#### Class: `org.eclipse.edc.connector.core.CoreDefaultServicesExtension`
+**Name:** "CoreDefaultServicesExtension"
 
 **Overview:**  This extension provides default/standard implementations for the {@link PrivateKeyResolver} and the {@link CertificateResolver}
  Those provider methods CANNOT be implemented in {@link CoreDefaultServicesExtension}, because that could potentially cause
@@ -477,20 +477,14 @@ _None_
 
 
 
-### Configuration
-
-| Key                                  | Required | Type     | Default | Pattern | Min | Max | Description                                                                                                                                      |
-| ------------------------------------ | -------- | -------- | ------- | ------- | --- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `edc.iam.publickeys.<pkAlias>.id`    | `*`      | `string` | ``      |         |     |     | ID of the public key.                                                                                                                            |
-| `edc.iam.publickeys.<pkAlias>.value` | `*`      | `string` | ``      |         |     |     | Value of the public key. Multiple formats are supported, depending on the KeyParsers registered in the runtime                                   |
-| `edc.iam.publickeys.<pkAlias>.path`  | `*`      | `string` | ``      |         |     |     | Path to a file that holds the public key, e.g. a PEM file. Multiple formats are supported, depending on the KeyParsers registered in the runtime |
+### Configuration_None_
 
 #### Provided services
-- `org.eclipse.edc.keys.spi.LocalPublicKeyService`
+- `org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider`
+- `org.eclipse.edc.participant.spi.ParticipantIdMapper`
 
 #### Referenced (injected) services
-- `org.eclipse.edc.keys.spi.KeyParserRegistry` (required)
-- `org.eclipse.edc.spi.security.Vault` (required)
+_None_
 
 #### Class: `org.eclipse.edc.connector.core.CoreServicesExtension`
 **Name:** "Core Services"
@@ -535,8 +529,8 @@ _None_
 - `org.eclipse.edc.spi.security.Vault` (required)
 - `org.eclipse.edc.spi.types.TypeManager` (required)
 
-#### Class: `org.eclipse.edc.connector.core.CoreDefaultServicesExtension`
-**Name:** "CoreDefaultServicesExtension"
+#### Class: `org.eclipse.edc.connector.core.LocalPublicKeyDefaultExtension`
+**Name:** "Security Default Services Extension"
 
 **Overview:**  This extension provides default/standard implementations for the {@link PrivateKeyResolver} and the {@link CertificateResolver}
  Those provider methods CANNOT be implemented in {@link CoreDefaultServicesExtension}, because that could potentially cause
@@ -544,14 +538,20 @@ _None_
 
 
 
-### Configuration_None_
+### Configuration
+
+| Key                                  | Required | Type     | Default | Pattern | Min | Max | Description                                                                                                                                      |
+| ------------------------------------ | -------- | -------- | ------- | ------- | --- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `edc.iam.publickeys.<pkAlias>.id`    | `*`      | `string` | ``      |         |     |     | ID of the public key.                                                                                                                            |
+| `edc.iam.publickeys.<pkAlias>.value` | `*`      | `string` | ``      |         |     |     | Value of the public key. Multiple formats are supported, depending on the KeyParsers registered in the runtime                                   |
+| `edc.iam.publickeys.<pkAlias>.path`  | `*`      | `string` | ``      |         |     |     | Path to a file that holds the public key, e.g. a PEM file. Multiple formats are supported, depending on the KeyParsers registered in the runtime |
 
 #### Provided services
-- `org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider`
-- `org.eclipse.edc.participant.spi.ParticipantIdMapper`
+- `org.eclipse.edc.keys.spi.LocalPublicKeyService`
 
 #### Referenced (injected) services
-_None_
+- `org.eclipse.edc.keys.spi.KeyParserRegistry` (required)
+- `org.eclipse.edc.spi.security.Vault` (required)
 
 Module `contract-agreement-api`
 -------------------------------
@@ -899,21 +899,6 @@ Module `control-plane-catalog`
 _None_
 
 ### Extensions
-#### Class: `org.eclipse.edc.connector.controlplane.catalog.CatalogDefaultServicesExtension`
-**Name:** "Catalog Default Services"
-
-**Overview:** No overview provided.
-
-
-### Configuration_None_
-
-#### Provided services
-- `org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry`
-- `org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver`
-
-#### Referenced (injected) services
-- `org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager` (required)
-
 #### Class: `org.eclipse.edc.connector.controlplane.catalog.CatalogCoreExtension`
 **Name:** "Catalog Core"
 
@@ -932,6 +917,21 @@ _None_
 - `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
 - `org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore` (required)
 - `org.eclipse.edc.policy.engine.spi.PolicyEngine` (required)
+
+#### Class: `org.eclipse.edc.connector.controlplane.catalog.CatalogDefaultServicesExtension`
+**Name:** "Catalog Default Services"
+
+**Overview:** No overview provided.
+
+
+### Configuration_None_
+
+#### Provided services
+- `org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry`
+- `org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver`
+
+#### Referenced (injected) services
+- `org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager` (required)
 
 Module `control-plane-contract`
 -------------------------------
@@ -1093,6 +1093,22 @@ Module `control-plane-transfer`
 _None_
 
 ### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.transfer.TransferProcessCommandExtension`
+**Name:** "TransferProcessCommandExtension"
+
+**Overview:**  Provides core data transfer services to the system.
+
+
+
+### Configuration_None_
+
+#### Provided services
+_None_
+
+#### Referenced (injected) services
+- `org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore` (required)
+- `org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable` (required)
+
 #### Class: `org.eclipse.edc.connector.controlplane.transfer.TransferCoreExtension`
 **Name:** "Transfer Core"
 
@@ -1137,22 +1153,6 @@ _None_
 
 #### Referenced (injected) services
 - `org.eclipse.edc.policy.engine.spi.PolicyEngine` (required)
-
-#### Class: `org.eclipse.edc.connector.controlplane.transfer.TransferProcessCommandExtension`
-**Name:** "TransferProcessCommandExtension"
-
-**Overview:**  Provides core data transfer services to the system.
-
-
-
-### Configuration_None_
-
-#### Provided services
-_None_
-
-#### Referenced (injected) services
-- `org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore` (required)
-- `org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable` (required)
 
 Module `control-plane-transfer-manager`
 ---------------------------------------
@@ -1791,6 +1791,22 @@ Module `data-plane-signaling-client`
 _None_
 
 ### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.client.DataPlaneSignalingClientTransformExtension`
+**Name:** "Data Plane Signaling transform Client"
+
+**Overview:**  This extension registers all the transformers relevant for the data plane signaling protocol
+
+
+
+### Configuration_None_
+
+#### Provided services
+_None_
+
+#### Referenced (injected) services
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
 #### Class: `org.eclipse.edc.connector.dataplane.client.DataPlaneSignalingClientExtension`
 **Name:** "Data Plane Signaling Client"
 
@@ -1809,22 +1825,6 @@ _None_
 - `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
 - `org.eclipse.edc.jsonld.spi.JsonLd` (required)
 - `org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager` (optional)
-
-#### Class: `org.eclipse.edc.connector.dataplane.client.DataPlaneSignalingClientTransformExtension`
-**Name:** "Data Plane Signaling transform Client"
-
-**Overview:**  This extension registers all the transformers relevant for the data plane signaling protocol
-
-
-
-### Configuration_None_
-
-#### Provided services
-_None_
-
-#### Referenced (injected) services
-- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
-- `org.eclipse.edc.spi.types.TypeManager` (required)
 
 Module `data-plane-spi`
 -----------------------
@@ -1877,6 +1877,185 @@ _None_
 - `org.eclipse.edc.sql.QueryExecutor` (required)
 - `org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper` (required)
 - `org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilderProvider` (required)
+
+Module `decentralized-claims-core`
+----------------------------------
+**Artifact:** org.eclipse.edc:decentralized-claims-core:0.15.0-SNAPSHOT
+
+**Categories:** _iam, transform, jsonld, iam, transform, jsonld_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.iam.decentralizedclaims.core.DcpDefaultServicesExtension`
+**Name:** "DCP Extension to register default services"
+
+**Overview:** No overview provided.
+
+
+### Configuration
+
+| Key                            | Required | Type     | Default | Pattern | Min | Max | Description                                                                                                                                                |
+| ------------------------------ | -------- | -------- | ------- | ------- | --- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `edc.iam.sts.privatekey.alias` |          | `string` | ``      |         |     |     | Alias of private key used for signing tokens, retrieved from private key resolver. Required when using EmbeddedSTS                                         |
+| `edc.iam.sts.publickey.id`     |          | `string` | ``      |         |     |     | Key Identifier used by the counterparty to resolve the public key for token validation, e.g. did:example:123#public-key-1. Required when using EmbeddedSTS |
+| `edc.iam.sts.token.expiration` | `*`      | `string` | `5`     |         |     |     | Self-issued ID Token expiration in minutes. By default is 5 minutes                                                                                        |
+
+#### Provided services
+- `org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry`
+- `org.eclipse.edc.iam.decentralizedclaims.spi.verification.SignatureSuiteRegistry`
+- `org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction`
+- `org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractorRegistry`
+- `org.eclipse.edc.spi.iam.AudienceResolver`
+- `org.eclipse.edc.iam.decentralizedclaims.spi.ClaimTokenCreatorFunction`
+
+#### Referenced (injected) services
+- `java.time.Clock` (required)
+- `org.eclipse.edc.jwt.signer.spi.JwsSignerProvider` (required)
+- `org.eclipse.edc.jwt.validation.jti.JtiValidationStore` (required)
+
+#### Class: `org.eclipse.edc.iam.decentralizedclaims.core.DcpTransformExtension`
+**Name:** "DCP Transform Extension"
+
+**Overview:** No overview provided.
+
+
+### Configuration_None_
+
+#### Provided services
+_None_
+
+#### Referenced (injected) services
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.spi.monitor.Monitor` (required)
+
+#### Class: `org.eclipse.edc.iam.decentralizedclaims.core.DcpScopeExtractorExtension`
+**Name:** "DCP scope extractor extension"
+
+**Overview:** No overview provided.
+
+
+### Configuration_None_
+
+#### Provided services
+_None_
+
+#### Referenced (injected) services
+- `org.eclipse.edc.policy.engine.spi.PolicyEngine` (required)
+- `org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractorRegistry` (required)
+- `org.eclipse.edc.spi.monitor.Monitor` (required)
+
+#### Class: `org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension`
+**Name:** "DCP Core Extension"
+
+**Overview:** No overview provided.
+
+
+### Configuration
+
+| Key                                            | Required | Type     | Default  | Pattern | Min | Max | Description                                                                         |
+| ---------------------------------------------- | -------- | -------- | -------- | ------- | --- | --- | ----------------------------------------------------------------------------------- |
+| `edc.iam.issuer.id`                            | `*`      | `string` | ``       |         |     |     | DID of the participant                                                              |
+| `edc.iam.credential.revocation.cache.validity` | `*`      | `string` | `900000` |         |     |     | Validity period of cached StatusList2021 credential entries in milliseconds.        |
+| `edc.sql.store.jti.cleanup.period`             | `*`      | `string` | `60`     |         |     |     | The period of the JTI entry reaper thread in seconds                                |
+| `edc.dcp.v08.forced`                           |          | `string` | `false`  |         |     |     | If set enable the dcp v0.8 namespace will be used                                   |
+| `edc.iam.accesstoken.jti.validation`           | `*`      | `string` | `true`   |         |     |     | Activate or deactivate JTI validation                                               |
+| `edc.iam.credential.revocation.mimetype`       | `*`      | `string` | `*/*`    |         |     |     | A comma-separated list of accepted content types of the revocation list credential. |
+
+#### Provided services
+- `org.eclipse.edc.spi.iam.IdentityService`
+- `org.eclipse.edc.iam.decentralizedclaims.spi.CredentialServiceClient`
+- `org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier`
+
+#### Referenced (injected) services
+- `org.eclipse.edc.iam.decentralizedclaims.spi.SecureTokenService` (required)
+- `org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.iam.decentralizedclaims.spi.verification.SignatureSuiteRegistry` (required)
+- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
+- `java.time.Clock` (required)
+- `org.eclipse.edc.http.spi.EdcHttpClient` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry` (required)
+- `org.eclipse.edc.token.spi.TokenValidationService` (required)
+- `org.eclipse.edc.token.spi.TokenValidationRulesRegistry` (required)
+- `org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver` (required)
+- `org.eclipse.edc.iam.decentralizedclaims.spi.ClaimTokenCreatorFunction` (required)
+- `org.eclipse.edc.participant.spi.ParticipantAgentService` (required)
+- `org.eclipse.edc.iam.decentralizedclaims.spi.DcpParticipantAgentServiceExtension` (optional)
+- `org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry` (required)
+- `org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig` (required)
+- `org.eclipse.edc.jwt.validation.jti.JtiValidationStore` (required)
+- `org.eclipse.edc.spi.system.ExecutorInstrumentation` (required)
+
+Module `decentralized-claims-issuers-configuration`
+---------------------------------------------------
+**Artifact:** org.eclipse.edc:decentralized-claims-issuers-configuration:0.15.0-SNAPSHOT
+
+**Categories:** _None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.iam.decentralizedclaims.issuer.configuration.TrustedIssuerConfigurationExtension`
+**Name:** "Trusted Issuers Configuration Extensions"
+
+**Overview:**  This DCP extension makes it possible to configure a list of trusted issuers, that will be matched against the Verifiable Credential issuers.
+
+
+
+### Configuration
+
+| Key                                                   | Required | Type     | Default | Pattern | Min | Max | Description                                         |
+| ----------------------------------------------------- | -------- | -------- | ------- | ------- | --- | --- | --------------------------------------------------- |
+| `edc.iam.trusted-issuer.<issuerAlias>.id`             | `*`      | `string` | ``      |         |     |     | ID of the issuer.                                   |
+| `edc.iam.trusted-issuer.<issuerAlias>.properties`     | `*`      | `string` | ``      |         |     |     | Additional properties of the issuer.                |
+| `edc.iam.trusted-issuer.<issuerAlias>.supportedtypes` | `*`      | `string` | ``      |         |     |     | List of supported credential types for this issuer. |
+
+#### Provided services
+_None_
+
+#### Referenced (injected) services
+- `org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.spi.monitor.Monitor` (required)
+
+Module `decentralized-claims-sts-remote-client`
+-----------------------------------------------
+**Artifact:** org.eclipse.edc:decentralized-claims-sts-remote-client:0.15.0-SNAPSHOT
+
+**Categories:** _None_
+
+### Extension points
+_None_
+
+### Extensions
+#### Class: `org.eclipse.edc.iam.decentralizedclaims.sts.remote.client.StsRemoteClientExtension`
+**Name:** "Sts remote client extension"
+
+**Overview:**  Configuration Extension for the STS OAuth2 client
+
+
+
+### Configuration
+
+| Key                                     | Required | Type     | Default | Pattern | Min | Max | Description                                |
+| --------------------------------------- | -------- | -------- | ------- | ------- | --- | --- | ------------------------------------------ |
+| `edc.iam.sts.oauth.token.url`           | `*`      | `string` | ``      |         |     |     | STS OAuth2 endpoint for requesting a token |
+| `edc.iam.sts.oauth.client.id`           | `*`      | `string` | ``      |         |     |     | STS OAuth2 client id                       |
+| `edc.iam.sts.oauth.client.secret.alias` | `*`      | `string` | ``      |         |     |     | Vault alias of STS OAuth2 client secret    |
+
+#### Provided services
+- `org.eclipse.edc.iam.decentralizedclaims.spi.SecureTokenService`
+
+#### Referenced (injected) services
+- `org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client` (required)
+- `org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig` (required)
+- `org.eclipse.edc.spi.security.Vault` (required)
 
 Module `dsp-catalog-http-api-08`
 --------------------------------
@@ -3054,185 +3233,6 @@ _None_
 - `org.eclipse.edc.http.spi.EdcHttpClient` (required)
 - `org.eclipse.edc.spi.types.TypeManager` (required)
 
-Module `identity-trust-core`
-----------------------------
-**Artifact:** org.eclipse.edc:identity-trust-core:0.15.0-SNAPSHOT
-
-**Categories:** _iam, transform, jsonld, iam, transform, jsonld_
-
-### Extension points
-_None_
-
-### Extensions
-#### Class: `org.eclipse.edc.iam.identitytrust.core.IdentityAndTrustExtension`
-**Name:** "Identity And Trust Extension"
-
-**Overview:** No overview provided.
-
-
-### Configuration
-
-| Key                                            | Required | Type     | Default  | Pattern | Min | Max | Description                                                                         |
-| ---------------------------------------------- | -------- | -------- | -------- | ------- | --- | --- | ----------------------------------------------------------------------------------- |
-| `edc.iam.issuer.id`                            | `*`      | `string` | ``       |         |     |     | DID of the participant                                                              |
-| `edc.iam.credential.revocation.cache.validity` | `*`      | `string` | `900000` |         |     |     | Validity period of cached StatusList2021 credential entries in milliseconds.        |
-| `edc.sql.store.jti.cleanup.period`             | `*`      | `string` | `60`     |         |     |     | The period of the JTI entry reaper thread in seconds                                |
-| `edc.dcp.v08.forced`                           |          | `string` | `false`  |         |     |     | If set enable the dcp v0.8 namespace will be used                                   |
-| `edc.iam.accesstoken.jti.validation`           | `*`      | `string` | `true`   |         |     |     | Activate or deactivate JTI validation                                               |
-| `edc.iam.credential.revocation.mimetype`       | `*`      | `string` | `*/*`    |         |     |     | A comma-separated list of accepted content types of the revocation list credential. |
-
-#### Provided services
-- `org.eclipse.edc.spi.iam.IdentityService`
-- `org.eclipse.edc.iam.identitytrust.spi.CredentialServiceClient`
-- `org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier`
-
-#### Referenced (injected) services
-- `org.eclipse.edc.iam.identitytrust.spi.SecureTokenService` (required)
-- `org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry` (required)
-- `org.eclipse.edc.spi.types.TypeManager` (required)
-- `org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry` (required)
-- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
-- `java.time.Clock` (required)
-- `org.eclipse.edc.http.spi.EdcHttpClient` (required)
-- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
-- `org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry` (required)
-- `org.eclipse.edc.token.spi.TokenValidationService` (required)
-- `org.eclipse.edc.token.spi.TokenValidationRulesRegistry` (required)
-- `org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver` (required)
-- `org.eclipse.edc.iam.identitytrust.spi.ClaimTokenCreatorFunction` (required)
-- `org.eclipse.edc.participant.spi.ParticipantAgentService` (required)
-- `org.eclipse.edc.iam.identitytrust.spi.DcpParticipantAgentServiceExtension` (optional)
-- `org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry` (required)
-- `org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig` (required)
-- `org.eclipse.edc.jwt.validation.jti.JtiValidationStore` (required)
-- `org.eclipse.edc.spi.system.ExecutorInstrumentation` (required)
-
-#### Class: `org.eclipse.edc.iam.identitytrust.core.DcpDefaultServicesExtension`
-**Name:** "Identity And Trust Extension to register default services"
-
-**Overview:** No overview provided.
-
-
-### Configuration
-
-| Key                            | Required | Type     | Default | Pattern | Min | Max | Description                                                                                                                                                |
-| ------------------------------ | -------- | -------- | ------- | ------- | --- | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `edc.iam.sts.privatekey.alias` |          | `string` | ``      |         |     |     | Alias of private key used for signing tokens, retrieved from private key resolver. Required when using EmbeddedSTS                                         |
-| `edc.iam.sts.publickey.id`     |          | `string` | ``      |         |     |     | Key Identifier used by the counterparty to resolve the public key for token validation, e.g. did:example:123#public-key-1. Required when using EmbeddedSTS |
-| `edc.iam.sts.token.expiration` | `*`      | `string` | `5`     |         |     |     | Self-issued ID Token expiration in minutes. By default is 5 minutes                                                                                        |
-
-#### Provided services
-- `org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry`
-- `org.eclipse.edc.iam.identitytrust.spi.verification.SignatureSuiteRegistry`
-- `org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction`
-- `org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry`
-- `org.eclipse.edc.spi.iam.AudienceResolver`
-- `org.eclipse.edc.iam.identitytrust.spi.ClaimTokenCreatorFunction`
-
-#### Referenced (injected) services
-- `java.time.Clock` (required)
-- `org.eclipse.edc.jwt.signer.spi.JwsSignerProvider` (required)
-- `org.eclipse.edc.jwt.validation.jti.JtiValidationStore` (required)
-
-#### Class: `org.eclipse.edc.iam.identitytrust.core.IdentityTrustTransformExtension`
-**Name:** "Identity And Trust Transform Extension"
-
-**Overview:** No overview provided.
-
-
-### Configuration_None_
-
-#### Provided services
-_None_
-
-#### Referenced (injected) services
-- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
-- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
-- `org.eclipse.edc.spi.types.TypeManager` (required)
-- `org.eclipse.edc.spi.monitor.Monitor` (required)
-
-#### Class: `org.eclipse.edc.iam.identitytrust.core.DcpScopeExtractorExtension`
-**Name:** "DCP scope extractor extension"
-
-**Overview:** No overview provided.
-
-
-### Configuration_None_
-
-#### Provided services
-_None_
-
-#### Referenced (injected) services
-- `org.eclipse.edc.policy.engine.spi.PolicyEngine` (required)
-- `org.eclipse.edc.iam.identitytrust.spi.scope.ScopeExtractorRegistry` (required)
-- `org.eclipse.edc.spi.monitor.Monitor` (required)
-
-Module `identity-trust-issuers-configuration`
----------------------------------------------
-**Artifact:** org.eclipse.edc:identity-trust-issuers-configuration:0.15.0-SNAPSHOT
-
-**Categories:** _None_
-
-### Extension points
-_None_
-
-### Extensions
-#### Class: `org.eclipse.edc.iam.identitytrust.issuer.configuration.TrustedIssuerConfigurationExtension`
-**Name:** "Trusted Issuers Configuration Extensions"
-
-**Overview:**  This DCP extension makes it possible to configure a list of trusted issuers, that will be matched against the Verifiable Credential issuers.
-
-
-
-### Configuration
-
-| Key                                                   | Required | Type     | Default | Pattern | Min | Max | Description                                         |
-| ----------------------------------------------------- | -------- | -------- | ------- | ------- | --- | --- | --------------------------------------------------- |
-| `edc.iam.trusted-issuer.<issuerAlias>.id`             | `*`      | `string` | ``      |         |     |     | ID of the issuer.                                   |
-| `edc.iam.trusted-issuer.<issuerAlias>.properties`     | `*`      | `string` | ``      |         |     |     | Additional properties of the issuer.                |
-| `edc.iam.trusted-issuer.<issuerAlias>.supportedtypes` | `*`      | `string` | ``      |         |     |     | List of supported credential types for this issuer. |
-
-#### Provided services
-_None_
-
-#### Referenced (injected) services
-- `org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry` (required)
-- `org.eclipse.edc.spi.types.TypeManager` (required)
-- `org.eclipse.edc.spi.monitor.Monitor` (required)
-
-Module `identity-trust-sts-remote-client`
------------------------------------------
-**Artifact:** org.eclipse.edc:identity-trust-sts-remote-client:0.15.0-SNAPSHOT
-
-**Categories:** _None_
-
-### Extension points
-_None_
-
-### Extensions
-#### Class: `org.eclipse.edc.iam.identitytrust.sts.remote.client.StsRemoteClientExtension`
-**Name:** "Sts remote client extension"
-
-**Overview:**  Configuration Extension for the STS OAuth2 client
-
-
-
-### Configuration
-
-| Key                                     | Required | Type     | Default | Pattern | Min | Max | Description                                |
-| --------------------------------------- | -------- | -------- | ------- | ------- | --- | --- | ------------------------------------------ |
-| `edc.iam.sts.oauth.token.url`           | `*`      | `string` | ``      |         |     |     | STS OAuth2 endpoint for requesting a token |
-| `edc.iam.sts.oauth.client.id`           | `*`      | `string` | ``      |         |     |     | STS OAuth2 client id                       |
-| `edc.iam.sts.oauth.client.secret.alias` | `*`      | `string` | ``      |         |     |     | Vault alias of STS OAuth2 client secret    |
-
-#### Provided services
-- `org.eclipse.edc.iam.identitytrust.spi.SecureTokenService`
-
-#### Referenced (injected) services
-- `org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client` (required)
-- `org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig` (required)
-- `org.eclipse.edc.spi.security.Vault` (required)
-
 Module `jersey-core`
 --------------------
 **Artifact:** org.eclipse.edc:jersey-core:0.15.0-SNAPSHOT
@@ -3615,6 +3615,20 @@ Module `participant-context-config-core`
 _None_
 
 ### Extensions
+#### Class: `org.eclipse.edc.participantcontext.config.defaults.ParticipantContextConfigDefaultServicesExtension`
+**Name:** "Participant Context Config Default Services Extension"
+
+**Overview:** No overview provided.
+
+
+### Configuration_None_
+
+#### Provided services
+- `org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore`
+
+#### Referenced (injected) services
+_None_
+
 #### Class: `org.eclipse.edc.participantcontext.config.ParticipantContextConfigServicesExtension`
 **Name:** "Participant Context Config Default Services Extension"
 
@@ -3630,20 +3644,6 @@ _None_
 #### Referenced (injected) services
 - `org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore` (required)
 - `org.eclipse.edc.transaction.spi.TransactionContext` (required)
-
-#### Class: `org.eclipse.edc.participantcontext.config.defaults.ParticipantContextConfigDefaultServicesExtension`
-**Name:** "Participant Context Config Default Services Extension"
-
-**Overview:** No overview provided.
-
-
-### Configuration_None_
-
-#### Provided services
-- `org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore`
-
-#### Referenced (injected) services
-_None_
 
 Module `participant-context-core`
 ---------------------------------
@@ -3965,6 +3965,25 @@ Module `provision-http`
 _None_
 
 ### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.provision.http.HttpWebhookExtension`
+**Name:** "HttpWebhookExtension"
+
+**Overview:**  The HTTP Provisioner extension delegates to HTTP endpoints to perform provision operations.
+
+ @deprecated provisioning has been moved to data-plane
+
+
+
+### Configuration_None_
+
+#### Provided services
+- `org.eclipse.edc.connector.controlplane.provision.http.HttpProvisionerWebhookUrl`
+
+#### Referenced (injected) services
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService` (required)
+- `org.eclipse.edc.web.spi.configuration.context.ManagementApiUrl` (required)
+
 #### Class: `org.eclipse.edc.connector.controlplane.provision.http.HttpProvisionerExtension`
 **Name:** "DEPRECATED: HTTP Provisioning"
 
@@ -3995,25 +4014,6 @@ _None_
 - `org.eclipse.edc.spi.types.TypeManager` (required)
 - `org.eclipse.edc.validator.spi.DataAddressValidatorRegistry` (required)
 
-#### Class: `org.eclipse.edc.connector.controlplane.provision.http.HttpWebhookExtension`
-**Name:** "HttpWebhookExtension"
-
-**Overview:**  The HTTP Provisioner extension delegates to HTTP endpoints to perform provision operations.
-
- @deprecated provisioning has been moved to data-plane
-
-
-
-### Configuration_None_
-
-#### Provided services
-- `org.eclipse.edc.connector.controlplane.provision.http.HttpProvisionerWebhookUrl`
-
-#### Referenced (injected) services
-- `org.eclipse.edc.web.spi.WebService` (required)
-- `org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService` (required)
-- `org.eclipse.edc.web.spi.configuration.context.ManagementApiUrl` (required)
-
 Module `runtime-core`
 ---------------------
 **Artifact:** org.eclipse.edc:runtime-core:0.15.0-SNAPSHOT
@@ -4024,34 +4024,6 @@ Module `runtime-core`
 _None_
 
 ### Extensions
-#### Class: `org.eclipse.edc.runtime.core.RuntimeCoreServicesExtension`
-**Name:** "Runtime Default Core Services"
-
-**Overview:** No overview provided.
-
-
-### Configuration
-
-| Key            | Required | Type     | Default     | Pattern | Min | Max | Description                                          |
-| -------------- | -------- | -------- | ----------- | ------- | --- | --- | ---------------------------------------------------- |
-| `edc.hostname` | `*`      | `string` | `localhost` |         |     |     | Runtime hostname, which e.g. is used in referer urls |
-
-#### Provided services
-- `org.eclipse.edc.spi.types.TypeManager`
-- `org.eclipse.edc.spi.system.Hostname`
-- `org.eclipse.edc.http.spi.EdcHttpClient`
-- `org.eclipse.edc.spi.command.CommandHandlerRegistry`
-- `org.eclipse.edc.spi.event.EventRouter`
-- `org.eclipse.edc.transform.spi.TypeTransformerRegistry`
-- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry`
-- `org.eclipse.edc.spi.query.CriterionOperatorRegistry`
-- `org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry`
-
-#### Referenced (injected) services
-- `okhttp3.OkHttpClient` (required)
-- `dev.failsafe.RetryPolicy<okhttp3.Response>` (required)
-- `java.time.Clock` (required)
-
 #### Class: `org.eclipse.edc.runtime.core.RuntimeDefaultCoreServicesExtension`
 **Name:** "Runtime Default Core Services"
 
@@ -4084,6 +4056,34 @@ _None_
 
 #### Referenced (injected) services
 - `okhttp3.EventListener` (optional)
+
+#### Class: `org.eclipse.edc.runtime.core.RuntimeCoreServicesExtension`
+**Name:** "Runtime Default Core Services"
+
+**Overview:** No overview provided.
+
+
+### Configuration
+
+| Key            | Required | Type     | Default     | Pattern | Min | Max | Description                                          |
+| -------------- | -------- | -------- | ----------- | ------- | --- | --- | ---------------------------------------------------- |
+| `edc.hostname` | `*`      | `string` | `localhost` |         |     |     | Runtime hostname, which e.g. is used in referer urls |
+
+#### Provided services
+- `org.eclipse.edc.spi.types.TypeManager`
+- `org.eclipse.edc.spi.system.Hostname`
+- `org.eclipse.edc.http.spi.EdcHttpClient`
+- `org.eclipse.edc.spi.command.CommandHandlerRegistry`
+- `org.eclipse.edc.spi.event.EventRouter`
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry`
+- `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry`
+- `org.eclipse.edc.spi.query.CriterionOperatorRegistry`
+- `org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry`
+
+#### Referenced (injected) services
+- `okhttp3.OkHttpClient` (required)
+- `dev.failsafe.RetryPolicy<okhttp3.Response>` (required)
+- `java.time.Clock` (required)
 
 Module `secrets-api`
 --------------------
@@ -4252,6 +4252,23 @@ Module `tck-extension`
 _None_
 
 ### Extensions
+#### Class: `org.eclipse.edc.tck.dsp.identity.TckIdentityExtension`
+**Name:** "TckIdentityExtension"
+
+**Overview:**  Loads customizations and seed data for the TCK.
+
+
+
+### Configuration_None_
+
+#### Provided services
+- `org.eclipse.edc.spi.iam.IdentityService`
+- `org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction`
+- `org.eclipse.edc.spi.iam.AudienceResolver`
+
+#### Referenced (injected) services
+_None_
+
 #### Class: `org.eclipse.edc.tck.dsp.guard.TckGuardExtension`
 **Name:** "TckGuardExtension"
 
@@ -4296,23 +4313,6 @@ _None_
 - `org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService` (required)
 - `org.eclipse.edc.spi.monitor.Monitor` (required)
 - `org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier` (required)
-
-#### Class: `org.eclipse.edc.tck.dsp.identity.TckIdentityExtension`
-**Name:** "TckIdentityExtension"
-
-**Overview:**  Loads customizations and seed data for the TCK.
-
-
-
-### Configuration_None_
-
-#### Provided services
-- `org.eclipse.edc.spi.iam.IdentityService`
-- `org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction`
-- `org.eclipse.edc.spi.iam.AudienceResolver`
-
-#### Referenced (injected) services
-_None_
 
 #### Class: `org.eclipse.edc.tck.dsp.setup.TckSetupExtension`
 **Name:** "DSP TCK Setup"
@@ -4678,6 +4678,33 @@ _None_
 #### Referenced (injected) services
 _None_
 
+#### Class: `org.eclipse.edc.vault.hashicorp.health.HashicorpVaultHealthExtension`
+**Name:** "Hashicorp Vault Health"
+
+**Overview:** No overview provided.
+
+
+### Configuration
+
+| Key                                                 | Required | Type     | Default          | Pattern | Min | Max | Description                                                                                                                        |
+| --------------------------------------------------- | -------- | -------- | ---------------- | ------- | --- | --- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `edc.vault.hashicorp.url`                           | `*`      | `string` | ``               |         |     |     | The URL of the Hashicorp Vault                                                                                                     |
+| `edc.vault.hashicorp.health.check.enabled`          | `*`      | `string` | `true`           |         |     |     | Whether or not the vault health check is enabled                                                                                   |
+| `edc.vault.hashicorp.api.health.check.path`         | `*`      | `string` | `/v1/sys/health` |         |     |     | The URL path of the vault's /health endpoint                                                                                       |
+| `edc.vault.hashicorp.health.check.standby.ok`       | `*`      | `string` | `false`          |         |     |     | Specifies if being a standby should still return the active status code instead of the standby status code                         |
+| `edc.vault.hashicorp.token.scheduled-renew-enabled` | `*`      | `string` | `true`           |         |     |     | Whether the automatic token renewal process will be triggered or not. Should be disabled only for development and testing purposes |
+| `edc.vault.hashicorp.token.ttl`                     | `*`      | `string` | `300`            |         |     |     | The time-to-live (ttl) value of the Hashicorp Vault token in seconds                                                               |
+| `edc.vault.hashicorp.token.renew-buffer`            | `*`      | `string` | `30`             |         |     |     | The renew buffer of the Hashicorp Vault token in seconds                                                                           |
+| `edc.vault.hashicorp.api.secret.path`               | `*`      | `string` | `/v1/secret`     |         |     |     | The URL path of the vault's /secret endpoint                                                                                       |
+| `edc.vault.hashicorp.folder`                        |          | `string` | ``               |         |     |     | The path of the folder that the secret is stored in, relative to VAULT_FOLDER_PATH                                                 |
+
+#### Provided services
+_None_
+
+#### Referenced (injected) services
+- `org.eclipse.edc.spi.system.health.HealthCheckService` (required)
+- `org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService` (required)
+
 #### Class: `org.eclipse.edc.vault.hashicorp.HashicorpVaultExtension`
 **Name:** "Hashicorp Vault"
 
@@ -4707,33 +4734,6 @@ _None_
 - `org.eclipse.edc.http.spi.EdcHttpClient` (required)
 - `org.eclipse.edc.spi.system.ExecutorInstrumentation` (required)
 - `org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider` (required)
-
-#### Class: `org.eclipse.edc.vault.hashicorp.health.HashicorpVaultHealthExtension`
-**Name:** "Hashicorp Vault Health"
-
-**Overview:** No overview provided.
-
-
-### Configuration
-
-| Key                                                 | Required | Type     | Default          | Pattern | Min | Max | Description                                                                                                                        |
-| --------------------------------------------------- | -------- | -------- | ---------------- | ------- | --- | --- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `edc.vault.hashicorp.url`                           | `*`      | `string` | ``               |         |     |     | The URL of the Hashicorp Vault                                                                                                     |
-| `edc.vault.hashicorp.health.check.enabled`          | `*`      | `string` | `true`           |         |     |     | Whether or not the vault health check is enabled                                                                                   |
-| `edc.vault.hashicorp.api.health.check.path`         | `*`      | `string` | `/v1/sys/health` |         |     |     | The URL path of the vault's /health endpoint                                                                                       |
-| `edc.vault.hashicorp.health.check.standby.ok`       | `*`      | `string` | `false`          |         |     |     | Specifies if being a standby should still return the active status code instead of the standby status code                         |
-| `edc.vault.hashicorp.token.scheduled-renew-enabled` | `*`      | `string` | `true`           |         |     |     | Whether the automatic token renewal process will be triggered or not. Should be disabled only for development and testing purposes |
-| `edc.vault.hashicorp.token.ttl`                     | `*`      | `string` | `300`            |         |     |     | The time-to-live (ttl) value of the Hashicorp Vault token in seconds                                                               |
-| `edc.vault.hashicorp.token.renew-buffer`            | `*`      | `string` | `30`             |         |     |     | The renew buffer of the Hashicorp Vault token in seconds                                                                           |
-| `edc.vault.hashicorp.api.secret.path`               | `*`      | `string` | `/v1/secret`     |         |     |     | The URL path of the vault's /secret endpoint                                                                                       |
-| `edc.vault.hashicorp.folder`                        |          | `string` | ``               |         |     |     | The path of the folder that the secret is stored in, relative to VAULT_FOLDER_PATH                                                 |
-
-#### Provided services
-_None_
-
-#### Referenced (injected) services
-- `org.eclipse.edc.spi.system.health.HealthCheckService` (required)
-- `org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService` (required)
 
 Module `verifiable-credentials`
 -------------------------------
