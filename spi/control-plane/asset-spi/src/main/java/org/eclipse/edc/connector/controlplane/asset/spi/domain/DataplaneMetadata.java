@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.controlplane.asset.spi.domain;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
@@ -46,6 +47,7 @@ public class DataplaneMetadata {
         return properties;
     }
 
+    @JsonIgnore
     public boolean isEmpty() {
         return labels.isEmpty() && properties.isEmpty();
     }

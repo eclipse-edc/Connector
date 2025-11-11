@@ -76,9 +76,12 @@ class JsonObjectFromAssetTransformerTest {
     void transform_noCustomProperties() {
         when(context.transform(isA(DataAddress.class), eq(JsonObject.class)))
                 .thenReturn(createObjectBuilder().add(EDC_DATA_ADDRESS_TYPE_PROPERTY, value("address-type")).build());
+        when(context.transform(isA(DataplaneMetadata.class), eq(JsonObject.class)))
+                .thenReturn(createObjectBuilder().add(EDC_ASSET_DATAPLANE_METADATA, createObjectBuilder()).build());
         var dataAddress = DataAddress.Builder.newInstance().type("address-type").build();
         var asset = createAssetBuilder()
                 .dataAddress(dataAddress)
+                .dataplaneMetadata(DataplaneMetadata.Builder.newInstance().label("label").property("any", "any").build())
                 .build();
 
         var jsonObject = transformer.transform(asset, context);

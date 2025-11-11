@@ -29,8 +29,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
-
 @ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 class PostgresAssetIndexTest extends AssetIndexTestBase {
@@ -40,7 +38,7 @@ class PostgresAssetIndexTest extends AssetIndexTestBase {
     private SqlAssetIndex sqlAssetIndex;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension setupExtension, QueryExecutor queryExecutor) throws IOException {
+    void setUp(PostgresqlStoreSetupExtension setupExtension, QueryExecutor queryExecutor) {
         var typeManager = new JacksonTypeManager();
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
