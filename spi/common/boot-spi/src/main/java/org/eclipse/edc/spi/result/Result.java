@@ -74,6 +74,11 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
         return opt.map(Result::success).orElse(Result.failure("Empty optional"));
     }
 
+    /**
+     * Returns a {@link Collector} that collects {@link Result} instances into a single {@link Result} containing a
+     * {@link List} of all successful contents, or a failure with all failure messages if any of the collected Results
+     * is a failure.
+     */
     public static <T> Collector<Result<T>, ?, Result<List<T>>> collector() {
         return Collector.of(
                 ResultAccumulator<T>::new,
