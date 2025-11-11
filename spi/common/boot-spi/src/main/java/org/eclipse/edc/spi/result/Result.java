@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Collector;
 
 /**
  * A generic result type.
@@ -73,6 +74,15 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
         return opt.map(Result::success).orElse(Result.failure("Empty optional"));
     }
 
+    public static <T> Collector<Result<T>, ?, Result<List<T>>> collector() {
+        return Collector.of(
+                ResultAccumulator<T>::new,
+                ResultAccumulator::add,
+                ResultAccumulator::combine,
+                ResultAccumulator::finish
+        );
+    }
+
     /**
      * Merges this result with another one. If both Results are successful, a new one is created with no content. If
      * either this result or {@code other} is a failure, the merged result will be a {@code failure()} and will contain
@@ -105,6 +115,33 @@ public class Result<T> extends AbstractResult<T, Failure, Result<T>> {
     @NotNull
     protected <R1 extends AbstractResult<C1, Failure, R1>, C1> R1 newInstance(@Nullable C1 content, @Nullable Failure failure) {
         return (R1) new Result<>(content, failure);
+    }
+
+    private static class ResultAccumulator<T> {
+        final List<T> successes = new ArrayList<>();
+        final List<String> errors = new ArrayList<>();
+
+        void add(Result<T> result) {
+            if (result.succeeded()) {
+                successes.add(result.getContent());
+            } else {
+                errors.addAll(result.getFailureMessages());
+            }
+        }
+
+        ResultAccumulator<T> combine(ResultAccumulator<T> other) {
+            successes.addAll(other.successes);
+            errors.addAll(other.errors);
+            return this;
+        }
+
+        Result<List<T>> finish() {
+            if (errors.isEmpty()) {
+                return Result.success(successes);
+            } else {
+                return Result.failure(errors);
+            }
+        }
     }
 
 }

@@ -17,6 +17,7 @@ package org.eclipse.edc.spi.result;
 import org.eclipse.edc.spi.EdcException;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -257,5 +258,49 @@ class ResultTest {
             throw new EdcException("Exception");
         });
         assertThat(result).isFailed().detail().contains("Exception");
+    }
+
+    @Test
+    void collector() {
+
+        List<Result<String>> results = List.of(
+                Result.success("success1"),
+                Result.success("success2"),
+                Result.success("success3"));
+
+        var result = results.stream().collect(Result.collector());
+
+        assertThat(result.getFailure()).isNull();
+        assertThat(result).isSucceeded();
+        assertThat(result.getContent()).contains("success1", "success2", "success3");
+    }
+
+    @Test
+    void collector_withFailure() {
+
+        List<Result<String>> results = List.of(
+                Result.success("success1"),
+                Result.success("success2"),
+                Result.failure("fail1"));
+
+        var result = results.stream().collect(Result.collector());
+
+        assertThat(result.getContent()).isNull();
+        assertThat(result).isFailed().detail().contains("fail1");
+    }
+
+    @Test
+    void collector_withMultipleFailure() {
+
+        List<Result<String>> results = List.of(
+                Result.success("success1"),
+                Result.success("success2"),
+                Result.failure("fail1"),
+                Result.failure("fail2"));
+
+        var result = results.stream().collect(Result.collector());
+
+        assertThat(result.getContent()).isNull();
+        assertThat(result).isFailed().messages().contains("fail1", "fail2");
     }
 }
