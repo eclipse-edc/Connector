@@ -21,6 +21,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.transform.Payload;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -35,6 +36,7 @@ import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
+import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_DATAPLANE_METADATA;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_DATA_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_PROPERTIES;
@@ -58,7 +60,7 @@ class JsonObjectFromAssetTransformerTest {
     private static final String TEST_DESCRIPTION = "test-description";
     private static final String TEST_VERSION = "0.6.9";
     private static final String TEST_ASSET_NAME = "test-asset";
-    private final TransformerContext context = mock(TransformerContext.class);
+    private final TransformerContext context = mock();
     private final TypeManager typeManager = mock();
     private JsonObjectFromAssetTransformer transformer;
 
@@ -66,6 +68,8 @@ class JsonObjectFromAssetTransformerTest {
     void setUp() {
         transformer = new JsonObjectFromAssetTransformer(Json.createBuilderFactory(Map.of()), typeManager, "test");
         when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
+        when(context.transform(isA(DataplaneMetadata.class), eq(JsonObject.class)))
+                .thenReturn(createObjectBuilder().add(EDC_ASSET_DATAPLANE_METADATA, createObjectBuilder()).build());
     }
 
     @Test
@@ -90,6 +94,7 @@ class JsonObjectFromAssetTransformerTest {
         assertThat(propsJson.getJsonString(EDC_NAMESPACE + "name").getString()).isEqualTo(TEST_ASSET_NAME);
         assertThat(propsJson.getJsonString(EDC_NAMESPACE + "version").getString()).isEqualTo(TEST_VERSION);
         assertThat(jsonObject.getJsonObject(EDC_ASSET_DATA_ADDRESS).getJsonArray(EDC_DATA_ADDRESS_TYPE_PROPERTY).get(0).asJsonObject().getString(VALUE)).isEqualTo("address-type");
+        assertThat(jsonObject.getJsonObject(EDC_ASSET_DATAPLANE_METADATA)).isNotNull();
         verify(context).transform(dataAddress, JsonObject.class);
     }
 
@@ -169,13 +174,23 @@ class JsonObjectFromAssetTransformerTest {
         assertThat(jsonObject.getString(TYPE)).isEqualTo(EDC_CATALOG_ASSET_TYPE);
     }
 
+    @Test
+    void shouldNotSerializeDataplaneMetadata_whenItIsEmpty() {
+        var asset = createAssetBuilder().build();
+
+        var jsonObject = transformer.transform(asset, context);
+
+        assertThat(jsonObject).isNotNull();
+        assertThat(jsonObject.getJsonObject(EDC_ASSET_DATAPLANE_METADATA)).isNull();
+    }
+
     private Asset.Builder createAssetBuilder() {
         return Asset.Builder.newInstance()
                 .id(TEST_ASSET_ID)
-                .version(TEST_VERSION)
-                .contentType(TEST_CONTENT_TYPE)
+                .property(EDC_NAMESPACE + "version", TEST_VERSION)
+                .property(EDC_NAMESPACE + "contenttype", TEST_CONTENT_TYPE)
                 .description(TEST_DESCRIPTION)
-                .name(TEST_ASSET_NAME);
+                .property(EDC_NAMESPACE + "name", TEST_ASSET_NAME);
     }
 
     private JsonArrayBuilder value(String value) {

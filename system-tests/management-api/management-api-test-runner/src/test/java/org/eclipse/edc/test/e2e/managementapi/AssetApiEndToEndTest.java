@@ -422,10 +422,10 @@ public class AssetApiEndToEndTest {
         private Asset.Builder createAsset() {
             return Asset.Builder.newInstance()
                     .id(UUID.randomUUID().toString())
-                    .name("test-asset")
                     .description("test description")
-                    .contentType("application/json")
-                    .version("0.4.2")
+                    .property(EDC_NAMESPACE + "name", "test-asset")
+                    .property(EDC_NAMESPACE + "contenttype", "application/json")
+                    .property(EDC_NAMESPACE + "version", "0.4.2")
                     .dataAddress(createDataAddress().build())
                     .participantContextId("participantContextId");
         }

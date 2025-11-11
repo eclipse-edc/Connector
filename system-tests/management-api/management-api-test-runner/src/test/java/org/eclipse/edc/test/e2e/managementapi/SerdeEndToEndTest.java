@@ -82,6 +82,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -502,7 +503,7 @@ public class SerdeEndToEndTest {
             var compactResult = jsonLd.compact(object, jsonLdScope());
 
             // checks that the compacted == inputObject
-            AbstractResultAssert.assertThat(compactResult).isSucceeded().satisfies(compacted -> {
+            assertThat(compactResult).isSucceeded().satisfies(compacted -> {
                 var mapped = Optional.ofNullable(mapper).map(m -> m.apply(compacted)).orElse(compacted);
                 assertThat(mapped).isEqualTo(inputObject);
             });

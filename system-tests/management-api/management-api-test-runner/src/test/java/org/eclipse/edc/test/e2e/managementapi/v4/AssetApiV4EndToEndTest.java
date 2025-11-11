@@ -18,6 +18,7 @@ import io.restassured.http.ContentType;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
@@ -63,6 +64,10 @@ public class AssetApiV4EndToEndTest {
             var id = UUID.randomUUID().toString();
             var asset = createAsset().id(id)
                     .dataAddress(createDataAddress().type("addressType").build())
+                    .dataplaneMetadata(DataplaneMetadata.Builder.newInstance()
+                            .label("label")
+                            .property(EDC_NAMESPACE + "property", "value")
+                            .build())
                     .build();
             assetIndex.create(asset);
 
@@ -87,6 +92,9 @@ public class AssetApiV4EndToEndTest {
                     .containsKey("nested");
             assertThat(body.getMap("'dataAddress'.'complex'.'nested'"))
                     .containsEntry("innerValue", "value");
+            assertThat(body.getMap("'dataplaneMetadata'"))
+                    .containsEntry("labels", "label")
+                    .containsEntry("properties", Map.of("property", "value"));
         }
 
         @Test
@@ -430,12 +438,16 @@ public class AssetApiV4EndToEndTest {
         private Asset.Builder createAsset() {
             return Asset.Builder.newInstance()
                     .id(UUID.randomUUID().toString())
-                    .name("test-asset")
                     .description("test description")
-                    .contentType("application/json")
-                    .version("0.4.2")
+                    .property(EDC_NAMESPACE + "name", "test-asset")
+                    .property(EDC_NAMESPACE + "contenttype", "application/json")
+                    .property(EDC_NAMESPACE + "version", "0.4.2")
                     .dataAddress(createDataAddress().build())
-                    .participantContextId("participantContextId");
+                    .participantContextId("participantContextId")
+                    .dataplaneMetadata(DataplaneMetadata.Builder.newInstance()
+                            .label("label")
+                            .property("property", "value")
+                            .build());
         }
 
         private JsonObjectBuilder createPropertiesBuilder() {

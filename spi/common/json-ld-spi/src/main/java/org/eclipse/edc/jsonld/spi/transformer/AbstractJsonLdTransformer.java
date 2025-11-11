@@ -404,8 +404,8 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
      */
     @Nullable
     protected <T> List<T> transformArray(JsonValue value, Class<T> type, TransformerContext context) {
-        if (value instanceof JsonObject) {
-            var transformed = context.transform(value.asJsonObject(), type);
+        if (value instanceof JsonObject jsonObject) {
+            var transformed = context.transform(jsonObject, type);
             if (transformed == null) {
                 context.problem().unexpectedType()
                         .type(OBJECT)
@@ -414,8 +414,8 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
                 return emptyList();
             }
             return List.of(transformed);
-        } else if (value instanceof JsonArray) {
-            return value.asJsonArray().stream()
+        } else if (value instanceof JsonArray jsonArray) {
+            return jsonArray.stream()
                     .map(entry -> context.transform(entry, type))
                     .collect(toList());
         } else {

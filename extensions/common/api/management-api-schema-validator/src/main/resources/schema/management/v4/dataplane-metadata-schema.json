@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "DataplaneMetadataSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/DataplaneMetadata"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/dataplane-metadata-schema.json",
+  "definitions": {
+    "DataplaneMetadata": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string",
+          "const": "DataplaneMetadata"
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "properties": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "@type"
+      ]
+    }
+  }
+}

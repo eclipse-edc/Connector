@@ -17,26 +17,21 @@ package org.eclipse.edc.connector.controlplane.asset.spi.domain;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 class AssetTest {
 
-    private TypeManager typeManager;
-
-    @BeforeEach
-    void setUp() {
-        typeManager = new JacksonTypeManager();
-    }
+    private final TypeManager typeManager = new JacksonTypeManager();
 
     @Test
     void verifySerialization() {
         var asset = Asset.Builder.newInstance().id("abcd123")
-                .contentType("application/json")
-                .version("1.0")
-                .name("testasset")
+                .property("contenttype", "application/json")
+                .property("version", "1.0")
+                .property("name", "testasset")
                 .property("some-critical.value", 21347)
                 .build();
 
@@ -59,25 +54,16 @@ class AssetTest {
 
         assertThat(asset).isNotNull();
         assertThat(asset.getId()).isEqualTo("abcd123");
-        assertThat(asset.getContentType()).isEqualTo("application/json");
-        assertThat(asset.getName()).isNull();
+        assertThat(asset.getProperty(EDC_NAMESPACE + "contenttype")).isEqualTo("application/json");
         assertThat(asset.getProperty("numberVal")).isInstanceOf(Integer.class).isEqualTo(42069);
         assertThat(asset.getCreatedAt()).isNotEqualTo(0);
         assertThat(asset.getProperties()).hasSize(5);
-
     }
 
     @Test
     void getProperty_whenNotPresent_shouldReturnNull() {
         var asset = Asset.Builder.newInstance().build();
         assertThat(asset.getProperty("notexist")).isNull();
-    }
-
-    @Test
-    void getNamedProperty_whenNotPresent_shouldReturnNull() {
-        var asset = Asset.Builder.newInstance().build();
-        assertThat(asset.getName()).isNull();
-        assertThat(asset.getVersion()).isNull();
     }
 
     @Test
