@@ -21,7 +21,10 @@ import java.util.Objects;
 
 /**
  * An asynchronous response to a provision request.
+ *
+ * @deprecated provisioning will be fully managed by the data-plane
  */
+@Deprecated(since = "0.14.1")
 public class ProvisionResponse {
     private final ProvisionedResource resource;
     private final SecretToken secretToken;

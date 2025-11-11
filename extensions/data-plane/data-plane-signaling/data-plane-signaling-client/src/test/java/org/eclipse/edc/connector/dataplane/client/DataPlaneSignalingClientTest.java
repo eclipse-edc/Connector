@@ -296,7 +296,7 @@ class DataPlaneSignalingClientTest {
                     .willReturn(badRequest()));
 
 
-            var result = dataPlaneClient.provision(request);
+            var result = dataPlaneClient.prepare(request);
 
             dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH + "/prepare")).withRequestBody(equalTo(body)));
 
@@ -319,7 +319,7 @@ class DataPlaneSignalingClientTest {
             dataPlane.stubFor(post(DATA_PLANE_PATH + "/prepare").withRequestBody(equalTo(body))
                     .willReturn(aResponse().withStatus(400).withBody(errorMsg)));
 
-            var result = dataPlaneClient.provision(request);
+            var result = dataPlaneClient.prepare(request);
 
             dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH + "/prepare")).withRequestBody(equalTo(body)));
 
@@ -335,7 +335,7 @@ class DataPlaneSignalingClientTest {
 
             when(registry.transform(any(), any())).thenReturn(Result.failure("Transform Failure"));
 
-            var result = dataPlaneClient.provision(request);
+            var result = dataPlaneClient.prepare(request);
 
             assertThat(result).isFailed().extracting(ResponseFailure::status).isEqualTo(FATAL_ERROR);
             assertThat(result.getFailureMessages())
@@ -356,7 +356,7 @@ class DataPlaneSignalingClientTest {
             dataPlane.stubFor(post(DATA_PLANE_PATH + "/prepare").withRequestBody(equalTo(body))
                     .willReturn(okJson("{}")));
 
-            var result = dataPlaneClient.provision(request);
+            var result = dataPlaneClient.prepare(request);
 
             dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH + "/prepare")).withRequestBody(equalTo(body)));
 
@@ -383,7 +383,7 @@ class DataPlaneSignalingClientTest {
             dataPlane.stubFor(post(DATA_PLANE_PATH + "/prepare").withRequestBody(equalTo(body))
                     .willReturn(okJson(MAPPER.writeValueAsString(response))));
 
-            var result = dataPlaneClient.provision(request);
+            var result = dataPlaneClient.prepare(request);
 
             dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH + "/prepare")).withRequestBody(equalTo(body)));
 
@@ -406,7 +406,7 @@ class DataPlaneSignalingClientTest {
             dataPlane.stubFor(post(DATA_PLANE_PATH + "/prepare").withRequestBody(equalTo(body))
                     .willReturn(okJson(MAPPER.writeValueAsString(response))));
 
-            var result = dataPlaneClient.provision(request);
+            var result = dataPlaneClient.prepare(request);
 
             dataPlane.verify(postRequestedFor(urlEqualTo(DATA_PLANE_PATH + "/prepare")).withRequestBody(equalTo(body)));
 

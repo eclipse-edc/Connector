@@ -21,7 +21,10 @@ import org.eclipse.edc.spi.command.EntityCommand;
 /**
  * Issues a request to start deprovisioning a transfer process by setting its state to
  * {@link TransferProcessStates#DEPROVISIONING DEPROVISIONING}.
+ *
+ * @deprecated provisioning will be fully managed by the data-plane
  */
+@Deprecated(since = "0.14.1")
 public class DeprovisionRequest extends EntityCommand {
 
     public DeprovisionRequest(String transferProcessId) {

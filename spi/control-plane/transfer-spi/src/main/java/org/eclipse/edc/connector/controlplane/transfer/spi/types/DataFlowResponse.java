@@ -18,7 +18,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 /**
- * A Response for {@link DataFlowManager#start} and {@link DataFlowManager#provision} operation
+ * A Response for {@link DataFlowManager#start} and {@link DataFlowManager#prepare} operation
  */
 public class DataFlowResponse {
 

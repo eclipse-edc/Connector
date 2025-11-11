@@ -25,7 +25,10 @@ import java.util.List;
 
 /**
  * Handles a {@link DeprovisionCompleteCommand}.
+ *
+ * @deprecated provisioning will be fully managed by the data-plane
  */
+@Deprecated(since = "0.14.1")
 public class DeprovisionCompleteCommandHandler extends EntityCommandHandler<DeprovisionCompleteCommand, TransferProcess> {
 
     private final DeprovisionResponsesHandler deprovisionResponsesHandler;
