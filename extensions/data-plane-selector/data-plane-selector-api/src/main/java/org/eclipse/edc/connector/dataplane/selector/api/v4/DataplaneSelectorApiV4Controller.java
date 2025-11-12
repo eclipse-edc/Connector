@@ -29,9 +29,9 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
-@Path("/v4alpha/dataplanes")
+@Consumes({MediaType.APPLICATION_JSON})
+@Produces({MediaType.APPLICATION_JSON})
+@Path("/v4beta/dataplanes")
 public class DataplaneSelectorApiV4Controller implements DataplaneSelectorApiV4 {
 
     private final DataPlaneSelectorService selectionService;

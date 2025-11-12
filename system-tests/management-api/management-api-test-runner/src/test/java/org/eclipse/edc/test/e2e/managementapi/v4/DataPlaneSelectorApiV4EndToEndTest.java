@@ -44,7 +44,7 @@ public class DataPlaneSelectorApiV4EndToEndTest {
             store.save(instance);
 
             context.baseRequest()
-                    .get("/v4alpha/dataplanes")
+                    .get("/v4beta/dataplanes")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)

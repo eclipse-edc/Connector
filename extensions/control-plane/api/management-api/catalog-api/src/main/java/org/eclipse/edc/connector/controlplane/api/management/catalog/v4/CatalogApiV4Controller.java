@@ -34,7 +34,7 @@ import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v4alpha/catalog")
+@Path("/v4beta/catalog")
 public class CatalogApiV4Controller extends BaseCatalogApiController implements CatalogApiV4 {
     public CatalogApiV4Controller(CatalogService service, TypeTransformerRegistry transformerRegistry,
                                   JsonObjectValidatorRegistry validatorRegistry, SingleParticipantContextSupplier participantContextSupplier) {

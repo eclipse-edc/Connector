@@ -60,7 +60,7 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_CONTEXT;
-import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_V_4_ALPHA;
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_V_4;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
@@ -155,9 +155,9 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectToAssetTransformer());
         managementApiTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, JSON_LD));
 
-        var managementApiTransformerRegistryV4Alpha = managementApiTransformerRegistry.forContext(MANAGEMENT_API_V_4_ALPHA);
+        var managementApiTransformerRegistryV4 = managementApiTransformerRegistry.forContext(MANAGEMENT_API_V_4);
 
-        managementApiTransformerRegistryV4Alpha.register(new JsonObjectFromPolicyTransformer(factory, participantIdMapper, new JsonObjectFromPolicyTransformer.TransformerConfig(true, true)));
+        managementApiTransformerRegistryV4.register(new JsonObjectFromPolicyTransformer(factory, participantIdMapper, new JsonObjectFromPolicyTransformer.TransformerConfig(true, true)));
 
         registerVersionInfo(getClass().getClassLoader());
     }

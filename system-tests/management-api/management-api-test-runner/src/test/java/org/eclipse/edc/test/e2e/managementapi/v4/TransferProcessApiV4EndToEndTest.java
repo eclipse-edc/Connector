@@ -82,7 +82,7 @@ public class TransferProcessApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(JSON)
                     .body(context.queryV2(criterion("id", "in", List.of(id1, id2))))
-                    .post("/v4alpha/transferprocesses/request")
+                    .post("/v4beta/transferprocesses/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -100,7 +100,7 @@ public class TransferProcessApiV4EndToEndTest {
             store.save(createTransferProcess("tp2"));
 
             context.baseRequest()
-                    .get("/v4alpha/transferprocesses/tp2")
+                    .get("/v4beta/transferprocesses/tp2")
                     .then()
                     .statusCode(200)
                     .body(TYPE, is("TransferProcess"))
@@ -113,7 +113,7 @@ public class TransferProcessApiV4EndToEndTest {
             store.save(createTransferProcessBuilder("tp2").state(COMPLETED.code()).build());
 
             context.baseRequest()
-                    .get("/v4alpha/transferprocesses/tp2/state")
+                    .get("/v4beta/transferprocesses/tp2/state")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -158,7 +158,7 @@ public class TransferProcessApiV4EndToEndTest {
             var id = context.baseRequest()
                     .contentType(JSON)
                     .body(requestBody)
-                    .post("/v4alpha/transferprocesses/")
+                    .post("/v4beta/transferprocesses/")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -174,7 +174,7 @@ public class TransferProcessApiV4EndToEndTest {
 
             context.baseRequest()
                     .contentType(JSON)
-                    .post("/v4alpha/transferprocesses/" + id + "/deprovision")
+                    .post("/v4beta/transferprocesses/" + id + "/deprovision")
                     .then()
                     .statusCode(204);
         }
@@ -192,7 +192,7 @@ public class TransferProcessApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(JSON)
                     .body(requestBody)
-                    .post("/v4alpha/transferprocesses/" + id + "/terminate")
+                    .post("/v4beta/transferprocesses/" + id + "/terminate")
                     .then()
                     .log().ifError()
                     .statusCode(204);
@@ -230,7 +230,7 @@ public class TransferProcessApiV4EndToEndTest {
             var result = context.baseRequest()
                     .contentType(JSON)
                     .body(requestBody)
-                    .post("/v4alpha/transferprocesses/request")
+                    .post("/v4beta/transferprocesses/request")
                     .then()
                     .statusCode(200)
                     .extract().body().as(JsonArray.class);
@@ -266,7 +266,7 @@ public class TransferProcessApiV4EndToEndTest {
             var result = context.baseRequest()
                     .contentType(JSON)
                     .body(query)
-                    .post("/v4alpha/transferprocesses/request")
+                    .post("/v4beta/transferprocesses/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)

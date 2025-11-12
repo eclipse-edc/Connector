@@ -52,7 +52,7 @@ public class SecretsApiV4EndToEndTest {
             vault.storeSecret(id, value);
 
             context.baseRequest()
-                    .get("/v4alpha/secrets/" + id)
+                    .get("/v4beta/secrets/" + id)
                     .then()
                     .statusCode(200)
                     .body(notNullValue())
@@ -75,7 +75,7 @@ public class SecretsApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(ContentType.JSON)
                     .body(secretJson)
-                    .post("/v4alpha/secrets")
+                    .post("/v4beta/secrets")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -98,7 +98,7 @@ public class SecretsApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(ContentType.JSON)
                     .body(secretJson)
-                    .post("/v4alpha/secrets")
+                    .post("/v4beta/secrets")
                     .then()
                     .log().ifError()
                     .statusCode(400);
@@ -120,7 +120,7 @@ public class SecretsApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(ContentType.JSON)
                     .body(secretJson)
-                    .put("/v4alpha/secrets")
+                    .put("/v4beta/secrets")
                     .then()
                     .log().all()
                     .statusCode(204)

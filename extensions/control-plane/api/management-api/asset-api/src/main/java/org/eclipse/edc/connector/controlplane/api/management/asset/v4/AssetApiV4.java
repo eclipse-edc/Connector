@@ -26,12 +26,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
-import org.eclipse.edc.api.model.ApiCoreSchema;
 
 @OpenAPIDefinition(
         info = @Info(description = "This contains both the current and the new Asset API, which accepts JSON-LD and will " +
-                "become the standard API once the Dataspace Protocol is stable.", title = "Asset API", version = "v4alpha"))
-@Tag(name = "Asset v4alpha")
+                "become the standard API once the Dataspace Protocol is stable.", title = "Asset API", version = "v4beta"))
+@Tag(name = "Asset v4beta")
 public interface AssetApiV4 {
     @Operation(description = "Creates a new asset together with a data address",
             requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.ASSET))),
@@ -39,9 +38,9 @@ public interface AssetApiV4 {
                     @ApiResponse(responseCode = "200", description = "Asset was created successfully. Returns the asset Id and created timestamp",
                             content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.ID_RESPONSE))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "409", description = "Could not create asset, because an asset with that ID already exists",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))}
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))}
     )
     JsonObject createAssetV4(JsonObject asset);
 
@@ -53,7 +52,7 @@ public interface AssetApiV4 {
                     @ApiResponse(responseCode = "200", description = "The assets matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.ASSET)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
             })
     JsonArray requestAssetsV4(JsonObject querySpecJson);
 
@@ -62,9 +61,9 @@ public interface AssetApiV4 {
                     @ApiResponse(responseCode = "200", description = "The asset",
                             content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.ASSET))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "404", description = "An asset with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
             }
     )
     JsonObject getAssetV4(String id);
@@ -75,11 +74,11 @@ public interface AssetApiV4 {
             responses = {
                     @ApiResponse(responseCode = "204", description = "Asset was deleted successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "404", description = "An asset with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "409", description = "The asset cannot be deleted, because it is referenced by a contract agreement",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
             })
     void removeAssetV4(String id);
 
@@ -90,7 +89,7 @@ public interface AssetApiV4 {
                     @ApiResponse(responseCode = "204", description = "Asset was updated successfully"),
                     @ApiResponse(responseCode = "404", description = "Asset could not be updated, because it does not exist."),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
             })
     void updateAssetV4(JsonObject asset);
 
