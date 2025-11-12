@@ -110,6 +110,56 @@ paths:
           description: default response
           content:
             application/json: {}
+  /2025-1/negotiations/offer:
+    post:
+      operationId: deprecatedInitialContractOffer
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+      deprecated: true
+  /negotiations/{id}/offers:
+    post:
+      operationId: providerOffer
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
   /negotiations/{id}/request:
     post:
       operationId: contractRequest
@@ -280,7 +330,7 @@ paths:
             application/json: {}
   /2024/1/negotiations/{id}/offer:
     post:
-      operationId: providerOffer
+      operationId: deprecatedProviderOffer
       parameters:
       - name: id
         in: path
@@ -306,6 +356,7 @@ paths:
           description: default response
           content:
             application/json: {}
+      deprecated: true
   /2025-1/transfers/{id}:
     get:
       operationId: getTransferProcess
@@ -380,7 +431,7 @@ paths:
             application/json: {}
   /negotiations/{id}/offer:
     post:
-      operationId: providerOffer
+      operationId: deprecatedProviderOffer
       parameters:
       - name: id
         in: path
@@ -406,6 +457,7 @@ paths:
           description: default response
           content:
             application/json: {}
+      deprecated: true
   /negotiations/{id}/agreement/verification:
     post:
       operationId: verifyAgreement
@@ -501,6 +553,55 @@ paths:
         explode: false
         schema:
           type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2024/1/negotiations/offers:
+    post:
+      operationId: initialContractOffer
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /2024/1/negotiations/{id}/offers:
+    post:
+      operationId: providerOffer
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
       responses:
         default:
           description: default response
@@ -641,7 +742,7 @@ paths:
             application/json: {}
   /2024/1/negotiations/offer:
     post:
-      operationId: initialContractOffer
+      operationId: deprecatedInitialContractOffer
       parameters:
       - name: Authorization
         in: header
@@ -660,6 +761,7 @@ paths:
           description: default response
           content:
             application/json: {}
+      deprecated: true
   /2025-1/negotiations/{id}:
     get:
       operationId: getNegotiation
@@ -918,6 +1020,27 @@ paths:
           description: default response
           content:
             application/json: {}
+  /negotiations/offers:
+    post:
+      operationId: initialContractOffer
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
   /2025-1/negotiations/offers:
     post:
       operationId: initialContractOffer
@@ -997,7 +1120,7 @@ paths:
             application/json: {}
   /negotiations/offer:
     post:
-      operationId: initialContractOffer
+      operationId: deprecatedInitialContractOffer
       parameters:
       - name: Authorization
         in: header
@@ -1016,6 +1139,7 @@ paths:
           description: default response
           content:
             application/json: {}
+      deprecated: true
   /2024/1/transfers/{id}/completion:
     post:
       operationId: transferProcessCompletion
@@ -1291,6 +1415,35 @@ paths:
           description: default response
           content:
             application/json: {}
+  /2025-1/negotiations/{id}/offer:
+    post:
+      operationId: deprecatedProviderOffer
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: false
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/initiateTransferProcess_request"
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+      deprecated: true
   /2024/1/negotiations/{id}:
     get:
       operationId: getNegotiation
