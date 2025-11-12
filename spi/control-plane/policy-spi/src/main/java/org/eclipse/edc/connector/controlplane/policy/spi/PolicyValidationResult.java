@@ -12,12 +12,14 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.policy.model;
+package org.eclipse.edc.connector.controlplane.policy.spi;
+
+import java.util.List;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
-public record PolicyEvaluationPlanRequest(String policyScope) {
-    public static final String EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE_TERM = "PolicyEvaluationPlanRequest";
-    public static final String EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE = EDC_NAMESPACE + EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE_TERM;
-    public static final String EDC_POLICY_EVALUATION_PLAN_REQUEST_POLICY_SCOPE = EDC_NAMESPACE + "policyScope";
+public record PolicyValidationResult(boolean isValid, List<String> errors) {
+    public static final String EDC_POLICY_VALIDATION_RESULT_TYPE = EDC_NAMESPACE + "PolicyValidationResult";
+    public static final String EDC_POLICY_VALIDATION_RESULT_IS_VALID = EDC_NAMESPACE + "isValid";
+    public static final String EDC_POLICY_VALIDATION_RESULT_ERRORS = EDC_NAMESPACE + "errors";
 }

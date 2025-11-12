@@ -12,17 +12,16 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.policy.transform;
+package org.eclipse.edc.connector.controlplane.transform.edc.policy.from;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyValidationResult;
+import org.eclipse.edc.connector.controlplane.policy.spi.PolicyValidationResult;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyValidationResult.EDC_POLICY_VALIDATION_RESULT_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 public class JsonObjectFromPolicyValidationResultTransformer extends AbstractJsonLdTransformer<PolicyValidationResult, JsonObject> {
@@ -37,7 +36,7 @@ public class JsonObjectFromPolicyValidationResultTransformer extends AbstractJso
     @Override
     public @Nullable JsonObject transform(@NotNull PolicyValidationResult input, @NotNull TransformerContext context) {
         var objectBuilder = jsonFactory.createObjectBuilder();
-        objectBuilder.add(TYPE, EDC_POLICY_VALIDATION_RESULT_TYPE);
+        objectBuilder.add(TYPE, PolicyValidationResult.EDC_POLICY_VALIDATION_RESULT_TYPE);
         objectBuilder.add(PolicyValidationResult.EDC_POLICY_VALIDATION_RESULT_IS_VALID, input.isValid());
         objectBuilder.add(PolicyValidationResult.EDC_POLICY_VALIDATION_RESULT_ERRORS, jsonFactory.createArrayBuilder(input.errors()));
         return objectBuilder.build();

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.policy.transform;
+package org.eclipse.edc.connector.controlplane.transform.edc.policy.to;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
@@ -28,7 +28,6 @@ import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
-import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -84,7 +83,7 @@ class JsonObjectToPolicyDefinitionTransformerTest {
                 .add(ID, "definitionId")
                 .add(TYPE, EDC_POLICY_DEFINITION_TYPE)
                 .add(EDC_POLICY_DEFINITION_POLICY, policyJson)
-                .add(EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES,
+                .add(PolicyDefinition.EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES,
                         createArrayBuilder()
                                 .add(createObjectBuilder()
                                         .add("test-prop", "test-val")
