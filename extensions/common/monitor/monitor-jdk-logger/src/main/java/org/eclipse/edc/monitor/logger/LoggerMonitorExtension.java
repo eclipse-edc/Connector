@@ -20,9 +20,17 @@ import org.eclipse.edc.spi.system.MonitorExtension;
 
 /**
  * Extension adding logging monitor.
+ *
+ * @deprecated will be removed soon.
  */
 @Extension("Logger monitor")
+@Deprecated(since = "0.15.0")
 public class LoggerMonitorExtension implements MonitorExtension {
+
+    @Override
+    public String name() {
+        return "DEPRECATED: Logger Monitor";
+    }
 
     @Override
     public Monitor getMonitor() {
