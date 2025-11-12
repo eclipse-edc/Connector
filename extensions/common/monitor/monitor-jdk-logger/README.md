@@ -1,5 +1,7 @@
 # JDK Logger Monitor
 
+> This extension has been deprecated and it could be removed after 0.17.0 release
+
 This extension provides a `Logger` which is an implementation of edc `Monitor` interface. It is based on `java.util.logging` package so it doesn't introduce any additional dependencies. As this extension is based on `MonitorExtension` which means this logger extension will load during the runtime initialization and all monitor logs (including edc core framework) will be forwarded to this logger.
 
 ## Usages
