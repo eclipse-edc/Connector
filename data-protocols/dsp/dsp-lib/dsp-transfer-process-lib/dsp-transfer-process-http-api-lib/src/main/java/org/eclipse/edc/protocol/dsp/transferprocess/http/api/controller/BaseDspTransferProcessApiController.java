@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Schaeffler AG
  *
  */
 
@@ -77,10 +78,10 @@ public abstract class BaseDspTransferProcessApiController {
     @GET
     @Path("/{id}")
     public Response getTransferProcess(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
-        var request = GetDspRequest.Builder.newInstance(TransferProcess.class, TransferError.class)
+        var request = GetDspRequest.Builder.newInstance(TransferRequestMessage.class, TransferProcess.class, TransferError.class)
                 .id(id)
                 .token(token)
-                .serviceCall((ctx, tpId, tr) -> protocolService.findById(ctx, tpId, tr, protocol))
+                .serviceCall((ctx, tp, tr) -> protocolService.findById(ctx, tp.getId(), tr, protocol))
                 .protocol(protocol)
                 .errorProvider(TransferError.Builder::newInstance)
                 .participantContextProvider(participantContextSupplier)

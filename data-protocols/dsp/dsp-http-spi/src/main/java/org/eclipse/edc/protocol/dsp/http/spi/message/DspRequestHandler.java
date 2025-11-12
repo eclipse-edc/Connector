@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Schaeffler AG
  *
  */
 
@@ -30,7 +31,7 @@ public interface DspRequestHandler {
      * @param <R>     the resource type.
      * @return the response to be returned to the client
      */
-    <R, E extends ErrorMessage> Response getResource(GetDspRequest<R, E> request);
+    <I extends RemoteMessage, R, E extends ErrorMessage> Response getResource(GetDspRequest<I, R, E> request);
 
     /**
      * Verify identity, validate incoming message, transform, call the service to create the resource, transform it and

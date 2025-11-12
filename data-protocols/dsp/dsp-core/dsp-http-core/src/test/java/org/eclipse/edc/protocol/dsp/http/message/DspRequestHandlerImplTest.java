@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Schaeffler AG
  *
  */
 
@@ -129,11 +130,11 @@ class DspRequestHandlerImplTest {
         @Test
         void shouldSucceed() {
             var content = new Object();
-            var resourceJson = Json.createObjectBuilder().build();
-            ServiceCall<String, Object> serviceCall = (ctx, m, t) -> ServiceResult.success(content);
+            var message = new TestProcessRemoteMessage();
+            ServiceCall<TestProcessRemoteMessage, Object> serviceCall = (ctx, m, t) -> ServiceResult.success(content);
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
-            when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(resourceJson));
-            var request = GetDspRequest.Builder.newInstance(Object.class, TestError.class)
+            when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
+            var request = GetDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class, TestError.class)
                     .token("token")
                     .id("id")
                     .serviceCall(serviceCall)
@@ -152,8 +153,10 @@ class DspRequestHandlerImplTest {
         void shouldReturnUnauthorized_whenTokenIsNull() {
             var request = getDspRequestBuilder().token(null).serviceCall((ctx, m, t) -> ServiceResult.success()).build();
             var jsonError = error("401", "unauthorized");
+            var message = new TestProcessRemoteMessage();
 
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
+            when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
             when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(jsonError));
 
             var result = handler.getResource(request);
@@ -170,7 +173,9 @@ class DspRequestHandlerImplTest {
         void shouldFail_whenTokenIsNotValid() {
             var request = getDspRequestBuilder().serviceCall((ctx, m, t) -> ServiceResult.unauthorized("unauthorized")).build();
             var jsonError = error("401", "unauthorized");
+            var message = new TestProcessRemoteMessage();
 
+            when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
             when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(jsonError));
 
@@ -186,12 +191,14 @@ class DspRequestHandlerImplTest {
 
         @Test
         void shouldFail_whenServiceCallFails() {
-            ServiceCall<String, Object> serviceCall = (ctx, m, t) -> ServiceResult.notFound("error");
+            ServiceCall<TestProcessRemoteMessage, Object> serviceCall = (ctx, m, t) -> ServiceResult.notFound("error");
             var request = getDspRequestBuilder()
                     .serviceCall(serviceCall)
                     .build();
             var jsonError = error("404", "error");
+            var message = new TestProcessRemoteMessage();
 
+            when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
             when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(jsonError));
 
@@ -211,7 +218,7 @@ class DspRequestHandlerImplTest {
 
             var result = handler.getResource(request);
 
-            assertThat(result.getStatus()).isEqualTo(500);
+            assertThat(result.getStatus()).isEqualTo(400);
         }
 
         @Test
@@ -242,8 +249,8 @@ class DspRequestHandlerImplTest {
 
         }
 
-        private GetDspRequest.Builder<Object, TestError> getDspRequestBuilder() {
-            return GetDspRequest.Builder.newInstance(Object.class, TestError.class)
+        private GetDspRequest.Builder<TestProcessRemoteMessage, Object, TestError> getDspRequestBuilder() {
+            return GetDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class, TestError.class)
                     .token("token")
                     .id("id")
                     .serviceCall((ctx, i, c) -> ServiceResult.success())
