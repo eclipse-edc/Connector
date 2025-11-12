@@ -19,8 +19,6 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.credentialservice.Pre
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DCP_PREFIX;
-
 /**
  * A representation of a <a href="https://github.com/eclipse-tractusx/identity-trust/blob/main/specifications/M1/verifiable.presentation.protocol.md#4113-response">Presentation Response</a>
  * that the credential service sends back to the requester.
@@ -31,14 +29,8 @@ import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DCP_PREFI
  */
 public class PresentationResponseMessage {
 
-    @Deprecated(since = "0.12.0", forRemoval = true)
-    public static final String PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_PROPERTY = DCP_PREFIX + "presentation";
     public static final String PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_TERM = "presentation";
-    @Deprecated(since = "0.12.0", forRemoval = true)
-    public static final String PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_SUBMISSION_PROPERTY = DCP_PREFIX + "presentationSubmission";
     public static final String PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_SUBMISSION_TERM = "presentationSubmission";
-    @Deprecated(since = "0.12.0", forRemoval = true)
-    public static final String PRESENTATION_RESPONSE_MESSAGE_TYPE_PROPERTY = DCP_PREFIX + "PresentationResponseMessage";
     public static final String PRESENTATION_RESPONSE_MESSAGE_TYPE_TERM = "PresentationResponseMessage";
 
     private List<Object> presentation = new ArrayList<>();

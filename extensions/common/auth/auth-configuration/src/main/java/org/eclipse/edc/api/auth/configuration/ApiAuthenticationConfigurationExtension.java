@@ -44,12 +44,8 @@ public class ApiAuthenticationConfigurationExtension implements ServiceExtension
     public static final String AUTH_KEY = "auth";
     public static final String CONFIG_ALIAS = "web.http.<context>." + AUTH_KEY + ".";
 
-    @Setting(context = CONFIG_ALIAS, value = "The type of the authentication provider.", required = true)
+    @Setting(context = CONFIG_ALIAS, value = "The type of the authentication provider.")
     public static final String TYPE_KEY = "type";
-
-    @Setting(context = CONFIG_ALIAS, value = "The api context where to apply the authentication. Default to the web <context>")
-    @Deprecated(since = "0.12.0", forRemoval = true)
-    public static final String CONTEXT_KEY = "context";
 
     private Map<String, Config> authConfiguration = new HashMap<>();
 
@@ -81,10 +77,6 @@ public class ApiAuthenticationConfigurationExtension implements ServiceExtension
     @Override
     public void prepare() {
         for (var entry : authConfiguration.entrySet()) {
-            if (entry.getValue().getString(CONTEXT_KEY, null) != null) {
-                var message = "Setting web.http.%s.auth.%s has been removed. The authentication will be applied to the web context %s".formatted(entry.getKey(), CONTEXT_KEY, entry.getKey());
-                monitor.warning(message);
-            }
             var serviceResult = configureService(entry.getValue());
             if (serviceResult.failed()) {
                 throw new EdcException("Failed to configure authentication for context %s: %s".formatted(entry.getKey(), serviceResult.getFailureDetail()));
