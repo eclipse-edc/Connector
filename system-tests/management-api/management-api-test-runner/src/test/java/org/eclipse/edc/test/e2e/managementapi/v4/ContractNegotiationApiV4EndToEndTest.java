@@ -90,7 +90,7 @@ public class ContractNegotiationApiV4EndToEndTest {
                             )
                             .build()
                     )
-                    .post("/v4alpha/contractnegotiations/request")
+                    .post("/v4beta/contractnegotiations/request")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -115,7 +115,7 @@ public class ContractNegotiationApiV4EndToEndTest {
 
             context.baseRequest()
                     .contentType(JSON)
-                    .get("/v4alpha/contractnegotiations/cn1")
+                    .get("/v4beta/contractnegotiations/cn1")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -132,7 +132,7 @@ public class ContractNegotiationApiV4EndToEndTest {
 
             context.baseRequest()
                     .contentType(JSON)
-                    .get("/v4alpha/contractnegotiations/cn1/state")
+                    .get("/v4beta/contractnegotiations/cn1/state")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -146,7 +146,7 @@ public class ContractNegotiationApiV4EndToEndTest {
 
             context.baseRequest()
                     .contentType(JSON)
-                    .get("/v4alpha/contractnegotiations/cn1/agreement")
+                    .get("/v4beta/contractnegotiations/cn1/agreement")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -174,7 +174,7 @@ public class ContractNegotiationApiV4EndToEndTest {
             var id = context.baseRequest()
                     .contentType(JSON)
                     .body(requestJson)
-                    .post("/v4alpha/contractnegotiations")
+                    .post("/v4beta/contractnegotiations")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -197,7 +197,7 @@ public class ContractNegotiationApiV4EndToEndTest {
             context.baseRequest()
                     .body(requestBody)
                     .contentType(JSON)
-                    .post("/v4alpha/contractnegotiations/cn1/terminate")
+                    .post("/v4beta/contractnegotiations/cn1/terminate")
                     .then()
                     .log().ifError()
                     .statusCode(204);
@@ -210,7 +210,7 @@ public class ContractNegotiationApiV4EndToEndTest {
 
             context.baseRequest()
                     .contentType(JSON)
-                    .delete("/v4alpha/contractnegotiations/cn1")
+                    .delete("/v4beta/contractnegotiations/cn1")
                     .then()
                     .statusCode(204);
 
@@ -224,7 +224,7 @@ public class ContractNegotiationApiV4EndToEndTest {
 
             context.baseRequest()
                     .contentType(JSON)
-                    .delete("/v4alpha/contractnegotiations/cn1")
+                    .delete("/v4beta/contractnegotiations/cn1")
                     .then()
                     .statusCode(409);
 

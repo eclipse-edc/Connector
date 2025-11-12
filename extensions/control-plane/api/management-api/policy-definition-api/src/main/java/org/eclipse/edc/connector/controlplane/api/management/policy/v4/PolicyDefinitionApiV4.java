@@ -26,10 +26,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
-import org.eclipse.edc.api.model.ApiCoreSchema;
 
-@OpenAPIDefinition(info = @Info(version = "v4alpha"))
-@Tag(name = "Policy Definition v4alpha")
+@OpenAPIDefinition(info = @Info(version = "v4beta"))
+@Tag(name = "Policy Definition v4beta")
 public interface PolicyDefinitionApiV4 {
 
     @Operation(description = "Returns all policy definitions according to a query",
@@ -38,7 +37,7 @@ public interface PolicyDefinitionApiV4 {
                     @ApiResponse(responseCode = "200", description = "The policy definitions matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.POLICY_DEFINITION)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))}
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))}
     )
     JsonArray queryPolicyDefinitionsV4(JsonObject querySpecJson);
 
@@ -47,9 +46,9 @@ public interface PolicyDefinitionApiV4 {
                     @ApiResponse(responseCode = "200", description = "The  policy definition",
                             content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.POLICY_DEFINITION))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "404", description = "An  policy definition with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
             }
     )
     JsonObject getPolicyDefinitionV4(String id);
@@ -60,9 +59,9 @@ public interface PolicyDefinitionApiV4 {
                     @ApiResponse(responseCode = "200", description = "policy definition was created successfully. Returns the Policy Definition Id and created timestamp",
                             content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.ID_RESPONSE))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "409", description = "Could not create policy definition, because a contract definition with that ID already exists",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))}
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))}
     )
     JsonObject createPolicyDefinitionV4(JsonObject policyDefinition);
 
@@ -72,11 +71,11 @@ public interface PolicyDefinitionApiV4 {
             responses = {
                     @ApiResponse(responseCode = "204", description = "Policy definition was deleted successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "404", description = "An policy definition with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "409", description = "The policy definition cannot be deleted, because it is referenced by a contract definition",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
             }
     )
     void deletePolicyDefinitionV4(String id);
@@ -86,9 +85,9 @@ public interface PolicyDefinitionApiV4 {
             responses = {
                     @ApiResponse(responseCode = "204", description = "policy definition was updated successfully."),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "404", description = "policy definition could not be updated, because it does not exists",
-                            content = @Content(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))
+                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))
             }
     )
     void updatePolicyDefinitionV4(String id, JsonObject policyDefinition);
@@ -97,7 +96,7 @@ public interface PolicyDefinitionApiV4 {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Returns the validation result", content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.POLICY_VALIDATION_RESULT))),
                     @ApiResponse(responseCode = "404", description = "policy definition could not be validated, because it does not exists",
-                            content = @Content(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))
+                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))
             }
     )
     JsonObject validatePolicyDefinitionV4(String id);
@@ -108,7 +107,7 @@ public interface PolicyDefinitionApiV4 {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Returns the evaluation plan", content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.POLICY_EVALUATION_PLAN))),
                     @ApiResponse(responseCode = "404", description = "An evaluation plan could not be created, because the policy definition does not exists",
-                            content = @Content(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))
+                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))
             }
     )
     JsonObject createExecutionPlanV4(String id, JsonObject input);

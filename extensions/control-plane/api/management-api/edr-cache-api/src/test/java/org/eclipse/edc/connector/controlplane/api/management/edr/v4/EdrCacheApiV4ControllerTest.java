@@ -33,7 +33,7 @@ public class EdrCacheApiV4ControllerTest extends BaseEdrCacheApiControllerTest {
 
     protected RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:" + port + "/v4alpha")
+                .baseUri("http://localhost:" + port + "/v4beta")
                 .when();
     }
 }

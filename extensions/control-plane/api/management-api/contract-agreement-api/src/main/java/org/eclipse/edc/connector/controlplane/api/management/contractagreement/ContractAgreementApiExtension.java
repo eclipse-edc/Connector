@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.controlplane.api.management.contractagreement;
 
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.api.management.contractagreement.v3.ContractAgreementApiV3Controller;
-import org.eclipse.edc.connector.controlplane.api.management.contractagreement.v4alpha.ContractAgreementApiV4AlphaController;
+import org.eclipse.edc.connector.controlplane.api.management.contractagreement.v4.ContractAgreementApiV4Controller;
 import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -32,7 +32,7 @@ import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_CONTEXT;
-import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_V_4_ALPHA;
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_V_4;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
@@ -69,13 +69,13 @@ public class ContractAgreementApiExtension implements ServiceExtension {
         var monitor = context.getMonitor();
 
         var managementApiTransformerRegistry = transformerRegistry.forContext(MANAGEMENT_API_CONTEXT);
-        var managementApiTransformerRegistryV4Alpha = managementApiTransformerRegistry.forContext(MANAGEMENT_API_V_4_ALPHA);
+        var managementApiTransformerRegistryV4 = managementApiTransformerRegistry.forContext(MANAGEMENT_API_V_4);
 
         webService.registerResource(ApiContext.MANAGEMENT, new ContractAgreementApiV3Controller(service, managementApiTransformerRegistry, monitor, validatorRegistry));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractAgreementApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
 
-        webService.registerResource(ApiContext.MANAGEMENT, new ContractAgreementApiV4AlphaController(service, managementApiTransformerRegistryV4Alpha, monitor, validatorRegistry));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractAgreementApiV4AlphaController.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerResource(ApiContext.MANAGEMENT, new ContractAgreementApiV4Controller(service, managementApiTransformerRegistryV4, monitor, validatorRegistry));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractAgreementApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
 
     }
 }

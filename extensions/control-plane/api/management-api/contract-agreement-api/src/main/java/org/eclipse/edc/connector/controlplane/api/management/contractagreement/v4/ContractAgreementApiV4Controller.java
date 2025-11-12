@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.contractagreement.v4alpha;
+package org.eclipse.edc.connector.controlplane.api.management.contractagreement.v4;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
@@ -34,30 +34,30 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v4alpha/contractagreements")
-public class ContractAgreementApiV4AlphaController extends BaseContractAgreementApiController implements ContractAgreementApiV4Alpha {
-    public ContractAgreementApiV4AlphaController(ContractAgreementService service, TypeTransformerRegistry transformerRegistry, Monitor monitor, JsonObjectValidatorRegistry validatorRegistry) {
+@Path("/v4beta/contractagreements")
+public class ContractAgreementApiV4Controller extends BaseContractAgreementApiController implements ContractAgreementApiV4 {
+    public ContractAgreementApiV4Controller(ContractAgreementService service, TypeTransformerRegistry transformerRegistry, Monitor monitor, JsonObjectValidatorRegistry validatorRegistry) {
         super(service, transformerRegistry, monitor, validatorRegistry);
     }
 
     @POST
     @Path("/request")
     @Override
-    public JsonArray queryAgreementsV4Alpha(@SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson) {
+    public JsonArray queryAgreementsV4(@SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson) {
         return queryAgreements(querySpecJson);
     }
 
     @GET
     @Path("{id}")
     @Override
-    public JsonObject getAgreementByIdV4Alpha(@PathParam("id") String id) {
+    public JsonObject getAgreementByIdV4(@PathParam("id") String id) {
         return getAgreementById(id);
     }
 
     @GET
     @Path("{id}/negotiation")
     @Override
-    public JsonObject getNegotiationByAgreementIdV4Alpha(@PathParam("id") String id) {
+    public JsonObject getNegotiationByAgreementIdV4(@PathParam("id") String id) {
         return getNegotiationByAgreementId(id);
     }
 }

@@ -38,7 +38,7 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v4alpha/transferprocesses")
+@Path("/v4beta/transferprocesses")
 public class TransferProcessApiV4Controller extends BaseTransferProcessApiController implements TransferProcessApiV4 {
 
     public TransferProcessApiV4Controller(Monitor monitor, TransferProcessService service, TypeTransformerRegistry transformerRegistry,

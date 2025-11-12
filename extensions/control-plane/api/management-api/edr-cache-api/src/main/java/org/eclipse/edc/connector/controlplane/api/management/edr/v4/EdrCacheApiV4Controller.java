@@ -36,7 +36,7 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v4alpha/edrs")
+@Path("/v4beta/edrs")
 public class EdrCacheApiV4Controller extends BaseEdrCacheApiController implements EdrCacheApiV4 {
     public EdrCacheApiV4Controller(EndpointDataReferenceStore edrStore, TypeTransformerRegistry transformerRegistry, JsonObjectValidatorRegistry validator, Monitor monitor) {
         super(edrStore, transformerRegistry, validator, monitor);

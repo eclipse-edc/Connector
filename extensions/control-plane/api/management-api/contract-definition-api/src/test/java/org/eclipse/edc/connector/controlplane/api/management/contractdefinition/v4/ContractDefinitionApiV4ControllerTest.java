@@ -23,7 +23,7 @@ class ContractDefinitionApiV4ControllerTest extends BaseContractDefinitionApiCon
     @Override
     protected RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:" + port + "/v4alpha/contractdefinitions")
+                .baseUri("http://localhost:" + port + "/v4beta/contractdefinitions")
                 .when();
 
     }

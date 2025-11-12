@@ -70,7 +70,7 @@ public class EdrApiV4EndToEndTest {
 
             context.baseRequest()
                     .contentType(JSON)
-                    .post("/v4alpha/edrs/request")
+                    .post("/v4beta/edrs/request")
                     .then()
                     .statusCode(200)
                     .body("size()", equalTo(1))
@@ -102,7 +102,7 @@ public class EdrApiV4EndToEndTest {
             var result = context.baseRequest()
                     .contentType(JSON)
                     .body(query)
-                    .post("/v4alpha/edrs/request")
+                    .post("/v4beta/edrs/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -127,7 +127,7 @@ public class EdrApiV4EndToEndTest {
 
             context.baseRequest()
                     .contentType(JSON)
-                    .get("/v4alpha/edrs/%s/dataaddress".formatted(id))
+                    .get("/v4beta/edrs/%s/dataaddress".formatted(id))
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -143,7 +143,7 @@ public class EdrApiV4EndToEndTest {
             store.save(entity, createDataAddress());
 
             context.baseRequest()
-                    .delete("/v4alpha/edrs/" + id)
+                    .delete("/v4beta/edrs/" + id)
                     .then()
                     .statusCode(204);
 

@@ -28,7 +28,7 @@ class AssetApiV4ControllerTest extends BaseAssetApiControllerTest {
 
     @Override
     protected String versionPath() {
-        return "v4alpha";
+        return "v4beta";
     }
 
 }

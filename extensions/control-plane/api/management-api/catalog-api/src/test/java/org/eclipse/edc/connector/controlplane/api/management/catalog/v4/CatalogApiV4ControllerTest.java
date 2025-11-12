@@ -20,7 +20,7 @@ class CatalogApiV4ControllerTest extends BaseCatalogApiControllerTest {
 
     @Override
     protected String baseUrl() {
-        return "/v4alpha/catalog";
+        return "/v4beta/catalog";
     }
 
     @Override

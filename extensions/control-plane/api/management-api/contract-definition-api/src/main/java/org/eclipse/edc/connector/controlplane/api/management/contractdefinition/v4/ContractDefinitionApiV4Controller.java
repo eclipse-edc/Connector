@@ -38,7 +38,7 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v4alpha/contractdefinitions")
+@Path("/v4beta/contractdefinitions")
 public class ContractDefinitionApiV4Controller extends BaseContractDefinitionApiController implements ContractDefinitionApiV4 {
     public ContractDefinitionApiV4Controller(TypeTransformerRegistry transformerRegistry, ContractDefinitionService service, Monitor monitor,
                                              JsonObjectValidatorRegistry validatorRegistry, SingleParticipantContextSupplier participantContextSupplier) {
