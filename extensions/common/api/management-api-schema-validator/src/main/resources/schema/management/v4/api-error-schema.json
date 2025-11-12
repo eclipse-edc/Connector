@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "ApiErrorSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/ApiError"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/api-error-schema.json",
+  "definitions": {
+    "ApiError": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "invalidValue": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "message",
+        "type"
+      ]
+    }
+  }
+}

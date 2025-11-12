@@ -39,7 +39,7 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v4alpha/policydefinitions")
+@Path("/v4beta/policydefinitions")
 public class PolicyDefinitionApiV4Controller extends BasePolicyDefinitionApiController implements PolicyDefinitionApiV4 {
 
     public PolicyDefinitionApiV4Controller(Monitor monitor, TypeTransformerRegistry transformerRegistry, PolicyDefinitionService service,

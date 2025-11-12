@@ -20,6 +20,7 @@ public interface ManagementApiJsonSchema {
     String DSPACE_2025_SCHEMA_PREFIX = "https://w3id.org/dspace/2025/1";
 
     interface V4 {
+        String API_ERROR = EDC_MGMT_V4_SCHEMA_PREFIX + "/api-error-schema.json";
         String ID_RESPONSE = EDC_MGMT_V4_SCHEMA_PREFIX + "/id-response-schema.json";
         String ASSET = EDC_MGMT_V4_SCHEMA_PREFIX + "/asset-schema.json";
         String CATALOG_ASSET = EDC_MGMT_V4_SCHEMA_PREFIX + "/catalog-asset-schema.json";

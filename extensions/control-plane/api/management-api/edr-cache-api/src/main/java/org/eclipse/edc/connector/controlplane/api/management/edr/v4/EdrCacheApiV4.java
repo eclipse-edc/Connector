@@ -26,10 +26,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
-import org.eclipse.edc.api.model.ApiCoreSchema;
 
-@OpenAPIDefinition(info = @Info(version = "v4alpha"))
-@Tag(name = "EDR Cache v4alpha")
+@OpenAPIDefinition(info = @Info(version = "v4beta"))
+@Tag(name = "EDR Cache v4beta")
 public interface EdrCacheApiV4 {
 
     @Operation(description = "Request all Edr entries according to a particular query",
@@ -40,7 +39,7 @@ public interface EdrCacheApiV4 {
                     @ApiResponse(responseCode = "200", description = "The edr entries matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.EDR_ENTRY)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
             })
     JsonArray requestEdrEntriesV4(JsonObject querySpecJson);
 
@@ -49,9 +48,9 @@ public interface EdrCacheApiV4 {
                     @ApiResponse(responseCode = "200", description = "The data address",
                             content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.DATA_ADDRESS))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "404", description = "An EDR data address with the given transfer process ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
             }
     )
     JsonObject getEdrEntryDataAddressV4(String transferProcessId);
@@ -60,9 +59,9 @@ public interface EdrCacheApiV4 {
             responses = {
                     @ApiResponse(responseCode = "204", description = "EDR entry was deleted successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "404", description = "An EDR entry with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
             })
     void removeEdrEntryV4(String transferProcessId);
 

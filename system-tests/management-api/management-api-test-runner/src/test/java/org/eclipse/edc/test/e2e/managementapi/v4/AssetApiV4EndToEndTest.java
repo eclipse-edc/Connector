@@ -52,7 +52,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
 /**
- * Asset V4alpha endpoints end-to-end tests
+ * Asset V4 endpoints end-to-end tests
  */
 public class AssetApiV4EndToEndTest {
 
@@ -72,7 +72,7 @@ public class AssetApiV4EndToEndTest {
             assetIndex.create(asset);
 
             var body = context.baseRequest()
-                    .get("/v4alpha/assets/" + id)
+                    .get("/v4beta/assets/" + id)
                     .then()
                     .statusCode(200)
                     .extract().body().jsonPath();
@@ -122,7 +122,7 @@ public class AssetApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .post("/v4alpha/assets")
+                    .post("/v4beta/assets")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -150,7 +150,7 @@ public class AssetApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .post("/v4alpha/assets")
+                    .post("/v4beta/assets")
                     .then()
                     .log().ifError()
                     .statusCode(400);
@@ -175,7 +175,7 @@ public class AssetApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .post("/v4alpha/assets")
+                    .post("/v4beta/assets")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -212,7 +212,7 @@ public class AssetApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .post("/v4alpha/assets")
+                    .post("/v4beta/assets")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -241,7 +241,7 @@ public class AssetApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .post("/v4alpha/assets")
+                    .post("/v4beta/assets")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -254,8 +254,8 @@ public class AssetApiV4EndToEndTest {
             // query the asset, assert that @type: CatalogAsset
             var assets = context.baseRequest()
                     .contentType(ContentType.JSON)
-                    .body(context.query(criterion("id", "=", id)))
-                    .post("/v3/assets/request")
+                    .body(context.queryV2(criterion("id", "=", id)))
+                    .post("/v4beta/assets/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -297,7 +297,7 @@ public class AssetApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(ContentType.JSON)
                     .body(query)
-                    .post("/v4alpha/assets/request")
+                    .post("/v4beta/assets/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -317,7 +317,7 @@ public class AssetApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(ContentType.JSON)
                     .body(context.queryV2(criterion("myProp", "=", "myVal")))
-                    .post("/v4alpha/assets/request")
+                    .post("/v4beta/assets/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -344,7 +344,7 @@ public class AssetApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .post("/v4alpha/assets")
+                    .post("/v4beta/assets")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -358,7 +358,7 @@ public class AssetApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(ContentType.JSON)
                     .body(query)
-                    .post("/v4alpha/assets/request")
+                    .post("/v4beta/assets/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -381,7 +381,7 @@ public class AssetApiV4EndToEndTest {
                     .body(context.queryV2(
                             criterion(EDC_NAMESPACE + "isCatalog", "=", "true"),
                             criterion("id", "=", id)))
-                    .post("/v4alpha/assets/request")
+                    .post("/v4beta/assets/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -412,7 +412,7 @@ public class AssetApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(ContentType.JSON)
                     .body(assetJson)
-                    .put("/v4alpha/assets")
+                    .put("/v4beta/assets")
                     .then()
                     .log().all()
                     .statusCode(204)

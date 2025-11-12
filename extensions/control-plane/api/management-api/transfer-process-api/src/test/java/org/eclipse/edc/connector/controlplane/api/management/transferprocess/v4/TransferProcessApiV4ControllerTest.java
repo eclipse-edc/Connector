@@ -29,6 +29,6 @@ public class TransferProcessApiV4ControllerTest extends BaseTransferProcessApiCo
     protected RequestSpecification baseRequest() {
         return given()
                 .port(port)
-                .baseUri("http://localhost:" + port + "/v4alpha/transferprocesses");
+                .baseUri("http://localhost:" + port + "/v4beta/transferprocesses");
     }
 }

@@ -12,22 +12,22 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.contractagreement.v4alpha;
+package org.eclipse.edc.connector.controlplane.api.management.contractagreement.v4;
 
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.connector.controlplane.api.management.contractagreement.BaseContractAgreementApiControllerTest;
 
 import static io.restassured.RestAssured.given;
 
-class ContractAgreementApiV4AlphaControllerTest extends BaseContractAgreementApiControllerTest {
+class ContractAgreementApiV4ControllerTest extends BaseContractAgreementApiControllerTest {
     @Override
     protected Object controller() {
-        return new ContractAgreementApiV4AlphaController(service, transformerRegistry, monitor, validatorRegistry);
+        return new ContractAgreementApiV4Controller(service, transformerRegistry, monitor, validatorRegistry);
     }
 
     protected RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:" + port + "/v4alpha/contractagreements")
+                .baseUri("http://localhost:" + port + "/v4beta/contractagreements")
                 .when();
     }
 }

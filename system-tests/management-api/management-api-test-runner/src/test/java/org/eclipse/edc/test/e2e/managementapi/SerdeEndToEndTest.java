@@ -667,12 +667,12 @@ public class SerdeEndToEndTest {
 
         @Override
         protected List<String> transformerScope() {
-            return List.of(MANAGEMENT_API_CONTEXT, "v4alpha");
+            return List.of(MANAGEMENT_API_CONTEXT, "v4");
         }
 
         @Override
         protected String jsonLdScope() {
-            return MANAGEMENT_API_SCOPE + ":v4alpha";
+            return MANAGEMENT_API_SCOPE + ":v4";
         }
 
         @Override

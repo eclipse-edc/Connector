@@ -34,7 +34,7 @@ import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE_TER
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v4alpha/secrets")
+@Path("/v4beta/secrets")
 public class SecretsApiV4Controller extends BaseSecretsApiController implements SecretsApiV4 {
 
     public SecretsApiV4Controller(SecretService service, TypeTransformerRegistry transformerRegistry, JsonObjectValidatorRegistry validator) {
