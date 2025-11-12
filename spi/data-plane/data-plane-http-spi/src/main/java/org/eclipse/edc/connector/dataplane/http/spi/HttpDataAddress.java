@@ -46,13 +46,13 @@ public class HttpDataAddress extends DataAddress {
     private static final String AUTH_KEY = "authKey";
     private static final String AUTH_CODE = "authCode";
     private static final String SECRET_NAME = "secretName";
-    @Deprecated(since = "0.12.0")
+    @Deprecated(since = "0.14.0")
     private static final String PROXY_BODY = "proxyBody";
-    @Deprecated(since = "0.12.0")
+    @Deprecated(since = "0.14.0")
     private static final String PROXY_PATH = "proxyPath";
-    @Deprecated(since = "0.12.0")
+    @Deprecated(since = "0.14.0")
     private static final String PROXY_QUERY_PARAMS = "proxyQueryParams";
-    @Deprecated(since = "0.12.0")
+    @Deprecated(since = "0.14.0")
     private static final String PROXY_METHOD = "proxyMethod";
     public static final String ADDITIONAL_HEADER = "header:";
     public static final String CONTENT_TYPE = "contentType";
@@ -106,25 +106,25 @@ public class HttpDataAddress extends DataAddress {
     }
 
     @JsonIgnore
-    @Deprecated(since = "0.12.0")
+    @Deprecated(since = "0.14.0")
     public String getProxyBody() {
         return getStringProperty(PROXY_BODY);
     }
 
     @JsonIgnore
-    @Deprecated(since = "0.12.0")
+    @Deprecated(since = "0.14.0")
     public String getProxyPath() {
         return getStringProperty(PROXY_PATH);
     }
 
     @JsonIgnore
-    @Deprecated(since = "0.12.0")
+    @Deprecated(since = "0.14.0")
     public String getProxyQueryParams() {
         return getStringProperty(PROXY_QUERY_PARAMS);
     }
 
     @JsonIgnore
-    @Deprecated(since = "0.12.0")
+    @Deprecated(since = "0.14.0")
     public String getProxyMethod() {
         return getStringProperty(PROXY_METHOD);
     }
@@ -201,25 +201,25 @@ public class HttpDataAddress extends DataAddress {
             return this;
         }
 
-        @Deprecated(since = "0.12.0")
+        @Deprecated(since = "0.14.0")
         public Builder proxyBody(String proxyBody) {
             this.property(PROXY_BODY, proxyBody);
             return this;
         }
 
-        @Deprecated(since = "0.12.0")
+        @Deprecated(since = "0.14.0")
         public Builder proxyPath(String proxyPath) {
             this.property(PROXY_PATH, proxyPath);
             return this;
         }
 
-        @Deprecated(since = "0.12.0")
+        @Deprecated(since = "0.14.0")
         public Builder proxyQueryParams(String proxyQueryParams) {
             this.property(PROXY_QUERY_PARAMS, proxyQueryParams);
             return this;
         }
 
-        @Deprecated(since = "0.12.0")
+        @Deprecated(since = "0.14.0")
         public Builder proxyMethod(String proxyMethod) {
             this.property(PROXY_METHOD, proxyMethod);
             return this;
