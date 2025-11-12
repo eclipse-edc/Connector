@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.policy.transform;
+package org.eclipse.edc.connector.controlplane.transform.edc.policy.from;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
@@ -24,6 +24,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_POLICY;
+import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES;
+import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.EDC_CREATED_AT;
@@ -45,7 +47,7 @@ public class JsonObjectFromPolicyDefinitionTransformer extends AbstractJsonLdTra
     public @Nullable JsonObject transform(@NotNull PolicyDefinition input, @NotNull TransformerContext context) {
         var objectBuilder = jsonFactory.createObjectBuilder();
         objectBuilder.add(ID, input.getId());
-        objectBuilder.add(TYPE, PolicyDefinition.EDC_POLICY_DEFINITION_TYPE);
+        objectBuilder.add(TYPE, EDC_POLICY_DEFINITION_TYPE);
 
         objectBuilder.add(EDC_CREATED_AT, input.getCreatedAt());
 
@@ -54,7 +56,7 @@ public class JsonObjectFromPolicyDefinitionTransformer extends AbstractJsonLdTra
         if (!input.getPrivateProperties().isEmpty()) {
             var privatePropBuilder = jsonFactory.createObjectBuilder();
             transformProperties(input.getPrivateProperties(), privatePropBuilder, typeManager.getMapper(typeContext), context);
-            objectBuilder.add(PolicyDefinition.EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES, privatePropBuilder);
+            objectBuilder.add(EDC_POLICY_DEFINITION_PRIVATE_PROPERTIES, privatePropBuilder);
         }
 
         return objectBuilder.build();

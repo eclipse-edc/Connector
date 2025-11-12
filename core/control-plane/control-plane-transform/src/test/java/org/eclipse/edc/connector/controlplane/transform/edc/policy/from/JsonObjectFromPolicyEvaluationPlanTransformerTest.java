@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.policy.transform;
+package org.eclipse.edc.connector.controlplane.transform.edc.policy.from;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
@@ -76,6 +76,20 @@ public class JsonObjectFromPolicyEvaluationPlanTransformerTest {
 
     private final JsonObjectFromPolicyEvaluationPlanTransformer transformer = new JsonObjectFromPolicyEvaluationPlanTransformer(Json.createBuilderFactory(emptyMap()));
     private final TransformerContext context = mock(TransformerContext.class);
+
+    private static AtomicConstraint atomicConstraint(String key, String value) {
+        var left = new LiteralExpression(key);
+        var right = new LiteralExpression(value);
+        return AtomicConstraint.Builder.newInstance()
+                .leftExpression(left)
+                .operator(EQ)
+                .rightExpression(right)
+                .build();
+    }
+
+    private static AtomicConstraintStep atomicConstraintStep(AtomicConstraint atomicConstraint) {
+        return new AtomicConstraintStep(atomicConstraint, List.of("filtered constraint"), mock(), "AtomicConstraintFunction");
+    }
 
     @Test
     void types() {
@@ -150,20 +164,6 @@ public class JsonObjectFromPolicyEvaluationPlanTransformerTest {
         assertThat(constraint.getString(TYPE)).isEqualTo(multiplicityType);
         assertThat(constraint.getJsonArray(EDC_MULTIPLICITY_CONSTRAINT_STEPS)).hasSize(2);
 
-    }
-
-    private static AtomicConstraint atomicConstraint(String key, String value) {
-        var left = new LiteralExpression(key);
-        var right = new LiteralExpression(value);
-        return AtomicConstraint.Builder.newInstance()
-                .leftExpression(left)
-                .operator(EQ)
-                .rightExpression(right)
-                .build();
-    }
-
-    private static AtomicConstraintStep atomicConstraintStep(AtomicConstraint atomicConstraint) {
-        return new AtomicConstraintStep(atomicConstraint, List.of("filtered constraint"), mock(), "AtomicConstraintFunction");
     }
 
     private PolicyEvaluationPlan createPlan() {

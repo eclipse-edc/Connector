@@ -20,8 +20,6 @@ import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState;
-import org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyEvaluationPlanRequest;
-import org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyValidationResult;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.SuspendTransfer;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TerminateTransfer;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TransferState;
@@ -32,6 +30,8 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.command.Termina
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
+import org.eclipse.edc.connector.controlplane.policy.spi.PolicyEvaluationPlanRequest;
+import org.eclipse.edc.connector.controlplane.policy.spi.PolicyValidationResult;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;

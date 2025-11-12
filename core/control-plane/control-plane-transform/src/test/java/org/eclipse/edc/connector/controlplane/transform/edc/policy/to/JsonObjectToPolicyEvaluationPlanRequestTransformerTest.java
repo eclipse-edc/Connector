@@ -12,10 +12,10 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.policy.transform;
+package org.eclipse.edc.connector.controlplane.transform.edc.policy.to;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyEvaluationPlanRequest;
+import org.eclipse.edc.connector.controlplane.policy.spi.PolicyEvaluationPlanRequest;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -23,8 +23,8 @@ import org.junit.jupiter.api.Test;
 
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyEvaluationPlanRequest.EDC_POLICY_EVALUATION_PLAN_REQUEST_POLICY_SCOPE;
-import static org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyEvaluationPlanRequest.EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE;
+import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyEvaluationPlanRequest.EDC_POLICY_EVALUATION_PLAN_REQUEST_POLICY_SCOPE;
+import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyEvaluationPlanRequest.EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.mockito.Mockito.mock;
 
