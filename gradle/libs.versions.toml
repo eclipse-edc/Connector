@@ -40,7 +40,7 @@ testcontainers = "1.21.3"
 tink = "1.19.0"
 dsp-tck = "1.0.0-SNAPSHOT"
 dcp-tck = "1.0.0-SNAPSHOT"
-junit = "6.0.0"
+junit = "6.0.1"
 wiremock = "3.13.1"
 
 [libraries]
