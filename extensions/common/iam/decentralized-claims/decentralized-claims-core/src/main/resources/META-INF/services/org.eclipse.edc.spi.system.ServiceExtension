@@ -9,6 +9,7 @@
 #
 #  Contributors:
 #       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+#       Cofinity-X - extract presentation request service
 #
 #
 
@@ -16,3 +17,4 @@ org.eclipse.edc.iam.decentralizedclaims.core.DcpDefaultServicesExtension
 org.eclipse.edc.iam.decentralizedclaims.core.DcpScopeExtractorExtension
 org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension
 org.eclipse.edc.iam.decentralizedclaims.core.DcpTransformExtension
+org.eclipse.edc.iam.decentralizedclaims.core.DcpPresentationRequestExtension
