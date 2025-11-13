@@ -16,9 +16,9 @@ package org.eclipse.edc.connector.controlplane.api.management.contractnegotiatio
 
 import org.eclipse.edc.api.transformer.JsonObjectToCallbackAddressTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.BaseContractNegotiationApiTest;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToContractOfferTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToContractRequestTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToTerminateNegotiationCommandTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToContractOfferTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToContractRequestTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToTerminateNegotiationCommandTransformer;
 import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.junit.jupiter.api.BeforeEach;

@@ -12,11 +12,11 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform;
+package org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.from;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;

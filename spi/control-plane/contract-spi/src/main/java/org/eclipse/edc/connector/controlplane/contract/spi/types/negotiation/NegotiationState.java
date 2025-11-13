@@ -12,9 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model;
-
-import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
+package org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 

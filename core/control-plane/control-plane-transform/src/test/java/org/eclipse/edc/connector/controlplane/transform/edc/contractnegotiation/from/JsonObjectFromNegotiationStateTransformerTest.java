@@ -12,10 +12,10 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform;
+package org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.from;
 
 import jakarta.json.Json;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,8 +23,8 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState.NEGOTIATION_STATE_STATE;
-import static org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState.NEGOTIATION_STATE_TYPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState.NEGOTIATION_STATE_STATE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState.NEGOTIATION_STATE_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.mockito.Mockito.mock;
 
