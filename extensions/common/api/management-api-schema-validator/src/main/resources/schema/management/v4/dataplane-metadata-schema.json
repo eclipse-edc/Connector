@@ -25,10 +25,7 @@
         "properties": {
           "type": "object"
         }
-      },
-      "required": [
-        "@type"
-      ]
+      }
     }
   }
 }

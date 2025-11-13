@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.schema.TransferProcessStoreStatements;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedResourceSet;
@@ -144,7 +145,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                         entity.getAssetId(),
                         entity.getContractId(),
                         toJson(entity.getDataDestination()),
-                        entity.getParticipantContextId());
+                        entity.getParticipantContextId(),
+                        toJson(entity.getDataplaneMetadata()));
 
                 return leaseContext.withConnection(conn).breakLease(entity.getId());
             } catch (SQLException e) {
@@ -262,6 +264,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .protocolMessages(fromJson(resultSet.getString(statements.getProtocolMessagesColumn()), ProtocolMessages.class))
                 .dataPlaneId(resultSet.getString(statements.getDataPlaneIdColumn()))
                 .participantContextId(resultSet.getString(statements.getParticipantContextIdColumn()))
+                .dataplaneMetadata(fromJson(resultSet.getString(statements.getDataplaneMetadata()), DataplaneMetadata.class))
                 .build();
     }
 

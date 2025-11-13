@@ -25,6 +25,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Supplier;
 
+import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata.EDC_DATAPLANE_METADATA_TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+
 public class JsonObjectFromDataplaneMetadataTransformer extends AbstractJsonLdTransformer<DataplaneMetadata, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
@@ -38,7 +41,8 @@ public class JsonObjectFromDataplaneMetadataTransformer extends AbstractJsonLdTr
 
     @Override
     public @Nullable JsonObject transform(@NotNull DataplaneMetadata dataplaneMetadata, @NotNull TransformerContext context) {
-        var builder = jsonFactory.createObjectBuilder();
+        var builder = jsonFactory.createObjectBuilder()
+                .add(TYPE, EDC_DATAPLANE_METADATA_TYPE);
 
         var labels = dataplaneMetadata.getLabels();
         if (!labels.isEmpty()) {

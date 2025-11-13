@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.eclipse.edc.spi.entity.ProtocolMessages;
 import org.eclipse.edc.spi.entity.StatefulEntity;
@@ -128,6 +129,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     public static final String TRANSFER_PROCESS_ERROR_DETAIL = EDC_NAMESPACE + "errorDetail";
     public static final String TRANSFER_PROCESS_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
     public static final String TRANSFER_PROCESS_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
+    public static final String TRANSFER_PROCESS_DATAPLANE_METADATA = EDC_NAMESPACE + "dataplaneMetadata";
 
     private Type type = CONSUMER;
     private String protocol;
@@ -146,6 +148,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     private String transferType;
     private String dataPlaneId;
     private String participantContextId;
+    private DataplaneMetadata dataplaneMetadata;
 
 
     private TransferProcess() {
@@ -403,6 +406,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
         transition(SUSPENDING_REQUESTED, state -> canBeSuspended());
     }
 
+    @Deprecated(since = "0.15.0")
     public void transitionSuspended(String reason) {
         this.errorDetail = reason;
         transitionSuspended();
@@ -488,6 +492,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     }
 
     @JsonIgnore
+    @Deprecated(since = "0.15.0")
     public String getDestinationType() {
         return dataDestination.getType();
     }
@@ -498,6 +503,10 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
 
     public void setDataPlaneId(String dataPlaneId) {
         this.dataPlaneId = dataPlaneId;
+    }
+
+    public DataplaneMetadata getDataplaneMetadata() {
+        return dataplaneMetadata;
     }
 
     @Override
@@ -519,7 +528,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
                 .type(type)
                 .protocolMessages(protocolMessages)
                 .dataPlaneId(dataPlaneId)
-                .participantContextId(participantContextId);
+                .participantContextId(participantContextId)
+                .dataplaneMetadata(dataplaneMetadata);
         return copy(builder);
     }
 
@@ -692,6 +702,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
 
         public Builder participantContextId(String participantContextId) {
             entity.participantContextId = participantContextId;
+            return this;
+        }
+
+        public Builder dataplaneMetadata(DataplaneMetadata dataplaneMetadata) {
+            entity.dataplaneMetadata = dataplaneMetadata;
             return this;
         }
 

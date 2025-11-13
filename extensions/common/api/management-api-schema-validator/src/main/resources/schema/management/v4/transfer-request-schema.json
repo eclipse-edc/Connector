@@ -45,6 +45,9 @@
           "items": {
             "$ref": "https://w3id.org/edc/connector/management/schema/v4/callback-address-schema.json"
           }
+        },
+        "dataplaneMetadata": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/dataplane-metadata-schema.json"
         }
       },
       "required": [

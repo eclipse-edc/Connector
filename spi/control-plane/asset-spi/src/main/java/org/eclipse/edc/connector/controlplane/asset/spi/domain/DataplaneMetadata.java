@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.asset.spi.domain;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
@@ -29,6 +28,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 @JsonDeserialize(builder = DataplaneMetadata.Builder.class)
 public class DataplaneMetadata {
 
+    public static final String EDC_DATAPLANE_METADATA_TYPE = EDC_NAMESPACE + "DataplaneMetadata";
     public static final String EDC_DATAPLANE_METADATA_LABELS = EDC_NAMESPACE + "labels";
     public static final String EDC_DATAPLANE_METADATA_PROPERTIES = EDC_NAMESPACE + "properties";
 
@@ -45,11 +45,6 @@ public class DataplaneMetadata {
 
     public Map<String, Object> getProperties() {
         return properties;
-    }
-
-    @JsonIgnore
-    public boolean isEmpty() {
-        return labels.isEmpty() && properties.isEmpty();
     }
 
     @JsonPOJOBuilder(withPrefix = "")
