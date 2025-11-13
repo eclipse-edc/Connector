@@ -63,6 +63,10 @@ public class JsonObjectFromAssetTransformer extends AbstractJsonLdTransformer<As
             builder.add(Asset.EDC_ASSET_DATA_ADDRESS, context.transform(asset.getDataAddress(), JsonObject.class));
         }
 
+        if (asset.getDataplaneMetadata() != null && !asset.getDataplaneMetadata().isEmpty()) {
+            builder.add(Asset.EDC_ASSET_DATAPLANE_METADATA, context.transform(asset.getDataplaneMetadata(), JsonObject.class));
+        }
+
         return builder.build();
     }
 }

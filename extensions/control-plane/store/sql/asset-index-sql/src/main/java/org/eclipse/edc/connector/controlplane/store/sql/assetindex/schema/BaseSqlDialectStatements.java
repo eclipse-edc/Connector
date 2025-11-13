@@ -43,6 +43,7 @@ public class BaseSqlDialectStatements implements AssetStatements {
                 .jsonColumn(getPrivatePropertiesColumn())
                 .jsonColumn(getDataAddressColumn())
                 .column(getParticipantContextIdColumn())
+                .jsonColumn(getDataplaneMetadataColumn())
                 .insertInto(getAssetTable());
     }
 
@@ -52,6 +53,7 @@ public class BaseSqlDialectStatements implements AssetStatements {
                 .jsonColumn(getPropertiesColumn())
                 .jsonColumn(getPrivatePropertiesColumn())
                 .jsonColumn(getDataAddressColumn())
+                .jsonColumn(getDataplaneMetadataColumn())
                 .update(getAssetTable(), getAssetIdColumn());
     }
 

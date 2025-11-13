@@ -19,7 +19,9 @@ import jakarta.json.Json;
 import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.connector.api.management.configuration.transform.JsonObjectFromContractAgreementTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.from.JsonObjectFromAssetTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.from.JsonObjectFromDataplaneMetadataTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.to.JsonObjectToAssetTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.to.JsonObjectToDataplaneMetadataTransformer;
 import org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory;
 import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFromPolicyTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -143,6 +145,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         var factory = Json.createBuilderFactory(Map.of());
         managementApiTransformerRegistry.register(new JsonObjectFromContractAgreementTransformer(factory));
         managementApiTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(factory, typeManager, JSON_LD));
+        managementApiTransformerRegistry.register(new JsonObjectFromDataplaneMetadataTransformer(factory, () -> typeManager.getMapper(JSON_LD)));
         managementApiTransformerRegistry.register(new JsonObjectFromAssetTransformer(factory, typeManager, JSON_LD));
         managementApiTransformerRegistry.register(new JsonObjectFromPolicyTransformer(factory, participantIdMapper));
         managementApiTransformerRegistry.register(new JsonObjectFromQuerySpecTransformer(factory));
@@ -153,6 +156,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectToQuerySpecTransformer());
         managementApiTransformerRegistry.register(new JsonObjectToCriterionTransformer());
         managementApiTransformerRegistry.register(new JsonObjectToAssetTransformer());
+        managementApiTransformerRegistry.register(new JsonObjectToDataplaneMetadataTransformer());
         managementApiTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, JSON_LD));
 
         var managementApiTransformerRegistryV4 = managementApiTransformerRegistry.forContext(MANAGEMENT_API_V_4);
