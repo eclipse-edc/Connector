@@ -12,17 +12,17 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.transferprocess.transform;
+package org.eclipse.edc.connector.controlplane.transform.edc.transferprocess.to;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TerminateTransfer;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TerminateTransfer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TerminateTransfer.TERMINATE_TRANSFER_REASON;
-import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TerminateTransfer.TERMINATE_TRANSFER_TYPE;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TerminateTransfer.TERMINATE_TRANSFER_REASON;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TerminateTransfer.TERMINATE_TRANSFER_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.mockito.Mockito.mock;
 

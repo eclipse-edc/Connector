@@ -31,8 +31,8 @@ import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.spi.validation.SchemaType;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.SuspendTransfer.SUSPEND_TRANSFER_TYPE_TERM;
-import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TerminateTransfer.TERMINATE_TRANSFER_TYPE_TERM;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.SuspendTransfer.SUSPEND_TRANSFER_TYPE_TERM;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TerminateTransfer.TERMINATE_TRANSFER_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 

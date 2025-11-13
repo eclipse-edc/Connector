@@ -12,9 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.transferprocess.model;
-
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
+package org.eclipse.edc.connector.controlplane.transfer.spi.types;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 

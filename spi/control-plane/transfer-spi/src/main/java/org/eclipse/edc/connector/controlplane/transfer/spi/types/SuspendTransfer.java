@@ -12,14 +12,14 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.transferprocess.model;
+package org.eclipse.edc.connector.controlplane.transfer.spi.types;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
-public record TerminateTransfer(String reason) {
+public record SuspendTransfer(String reason) {
 
-    public static final String TERMINATE_TRANSFER_TYPE_TERM = "TerminateTransfer";
-    public static final String TERMINATE_TRANSFER_TYPE = EDC_NAMESPACE + TERMINATE_TRANSFER_TYPE_TERM;
-    public static final String TERMINATE_TRANSFER_REASON = EDC_NAMESPACE + "reason";
+    public static final String SUSPEND_TRANSFER_TYPE_TERM = "SuspendTransfer";
+    public static final String SUSPEND_TRANSFER_TYPE = EDC_NAMESPACE + SUSPEND_TRANSFER_TYPE_TERM;
+    public static final String SUSPEND_TRANSFER_REASON = EDC_NAMESPACE + "reason";
 
 }

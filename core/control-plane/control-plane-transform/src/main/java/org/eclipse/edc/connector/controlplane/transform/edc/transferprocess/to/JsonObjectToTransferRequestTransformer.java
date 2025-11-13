@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.transferprocess.transform;
+package org.eclipse.edc.connector.controlplane.transform.edc.transferprocess.to;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;

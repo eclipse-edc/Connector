@@ -29,10 +29,10 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiSchema;
 import org.eclipse.edc.api.model.ApiCoreSchema;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.SuspendTransfer;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TerminateTransfer;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TransferState;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.SuspendTransfer;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TerminateTransfer;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferState;
 
 import java.util.List;
 
@@ -57,7 +57,7 @@ public interface TransferProcessApiV3 {
                     @ApiResponse(responseCode = "200", description = "The transfer processes matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = TransferProcessSchema.class)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))) }
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))}
     )
     JsonArray queryTransferProcessesV3(JsonObject querySpecJson);
 

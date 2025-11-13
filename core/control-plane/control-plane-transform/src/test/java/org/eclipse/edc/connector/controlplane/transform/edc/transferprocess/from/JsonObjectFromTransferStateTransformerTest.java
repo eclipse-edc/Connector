@@ -12,18 +12,18 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.transferprocess.transform;
+package org.eclipse.edc.connector.controlplane.transform.edc.transferprocess.from;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TransferState;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferState;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TransferState.TRANSFER_STATE_STATE;
-import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TransferState.TRANSFER_STATE_TYPE;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferState.TRANSFER_STATE_STATE;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferState.TRANSFER_STATE_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.mockito.Mockito.mock;
 
