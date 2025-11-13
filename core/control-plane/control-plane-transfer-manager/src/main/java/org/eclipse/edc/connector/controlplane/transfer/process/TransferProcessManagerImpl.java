@@ -159,6 +159,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .callbackAddresses(transferRequest.getCallbackAddresses())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .participantContextId(participantContext.getParticipantContextId())
+                .dataplaneMetadata(transferRequest.getDataplaneMetadata())
                 .build();
 
         observable.invokeForEach(l -> l.preCreated(process));

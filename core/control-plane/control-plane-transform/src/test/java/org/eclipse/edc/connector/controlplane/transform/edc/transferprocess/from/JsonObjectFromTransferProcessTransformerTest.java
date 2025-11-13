@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.transform.edc.transferprocess.fro
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -32,6 +33,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CALLBACK_ADDRESSES;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CONTRACT_ID;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_CORRELATION_ID;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_DATAPLANE_METADATA;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_DATA_DESTINATION;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_ERROR_DETAIL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_STATE;
@@ -63,8 +65,10 @@ class JsonObjectFromTransferProcessTransformerTest {
     void transform() {
         var dataDestinationJson = Json.createObjectBuilder().build();
         var callbackAddressJson = Json.createObjectBuilder().build();
+        var dataplaneMetadataJson = Json.createObjectBuilder().build();
         when(context.transform(isA(DataAddress.class), any())).thenReturn(dataDestinationJson);
         when(context.transform(isA(CallbackAddress.class), any())).thenReturn(callbackAddressJson);
+        when(context.transform(isA(DataplaneMetadata.class), any())).thenReturn(dataplaneMetadataJson);
         var input = TransferProcess.Builder.newInstance()
                 .id("transferProcessId")
                 .state(STARTED.code())
@@ -78,6 +82,7 @@ class JsonObjectFromTransferProcessTransformerTest {
                 .dataDestination(DataAddress.Builder.newInstance().type("any").properties(Map.of("bar", "foo")).build())
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("http://any").events(emptySet()).build()))
                 .errorDetail("an error")
+                .dataplaneMetadata(DataplaneMetadata.Builder.newInstance().label("label").build())
                 .build();
 
         var result = transformer.transform(input, context);
@@ -95,6 +100,7 @@ class JsonObjectFromTransferProcessTransformerTest {
         assertThat(result.getJsonObject(TRANSFER_PROCESS_DATA_DESTINATION)).isSameAs(dataDestinationJson);
         assertThat(result.getJsonArray(TRANSFER_PROCESS_CALLBACK_ADDRESSES).get(0)).isSameAs(callbackAddressJson);
         assertThat(result.getString(TRANSFER_PROCESS_ERROR_DETAIL)).isEqualTo("an error");
+        assertThat(result.getJsonObject(TRANSFER_PROCESS_DATAPLANE_METADATA)).isSameAs(dataplaneMetadataJson);
     }
 
     @Test

@@ -16,6 +16,7 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.process;
 
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
@@ -703,24 +704,26 @@ class TransferProcessManagerImplTest {
             when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().target("assetId").build());
             when(transferProcessStore.findForCorrelationId("1")).thenReturn(null);
             var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
-
+            var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().label("label").build();
             var transferRequest = TransferRequest.Builder.newInstance()
                     .id("1")
                     .dataDestination(DataAddress.Builder.newInstance().type("test").build())
                     .callbackAddresses(List.of(callback))
+                    .dataplaneMetadata(dataplaneMetadata)
                     .build();
+            var participantContext = ParticipantContext.Builder.newInstance().participantContextId("id").build();
 
-            var captor = ArgumentCaptor.forClass(TransferProcess.class);
-
-            var result = manager.initiateConsumerRequest(new ParticipantContext("id"), transferRequest);
+            var result = manager.initiateConsumerRequest(participantContext, transferRequest);
 
             assertThat(result).isSucceeded().isNotNull();
+            var captor = ArgumentCaptor.forClass(TransferProcess.class);
             verify(transferProcessStore, times(RETRY_LIMIT)).save(captor.capture());
             var transferProcess = captor.getValue();
             assertThat(transferProcess.getId()).isEqualTo("1");
             assertThat(transferProcess.getCorrelationId()).isNull();
             assertThat(transferProcess.getCallbackAddresses()).usingRecursiveFieldByFieldElementComparator().contains(callback);
             assertThat(transferProcess.getAssetId()).isEqualTo("assetId");
+            assertThat(transferProcess.getDataplaneMetadata()).isSameAs(dataplaneMetadata);
             verify(listener).initiated(any());
         }
 

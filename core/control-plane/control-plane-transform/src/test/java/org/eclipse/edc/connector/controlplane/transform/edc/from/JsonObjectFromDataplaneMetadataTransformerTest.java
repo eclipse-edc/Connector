@@ -25,6 +25,8 @@ import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata.EDC_DATAPLANE_METADATA_LABELS;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata.EDC_DATAPLANE_METADATA_PROPERTIES;
+import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata.EDC_DATAPLANE_METADATA_TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.mockito.Mockito.mock;
 
 class JsonObjectFromDataplaneMetadataTransformerTest {
@@ -41,6 +43,8 @@ class JsonObjectFromDataplaneMetadataTransformerTest {
 
         var result = transformer.transform(dataplaneMetadata, context);
 
+        assertThat(result).isNotNull();
+        assertThat(result.getString(TYPE)).isEqualTo(EDC_DATAPLANE_METADATA_TYPE);
         assertThat(result.getJsonArray(EDC_DATAPLANE_METADATA_LABELS)).hasSize(1).first()
                 .extracting(JsonString.class::cast).extracting(JsonString::getString).isEqualTo("label");
         assertThat(result.getJsonObject(EDC_DATAPLANE_METADATA_PROPERTIES)).hasSize(1)

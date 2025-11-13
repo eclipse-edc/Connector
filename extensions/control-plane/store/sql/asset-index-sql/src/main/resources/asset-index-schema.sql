@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS edc_asset
     private_properties      JSON    DEFAULT '{}',
     data_address            JSON    DEFAULT '{}',
     participant_context_id  VARCHAR NOT NULL,
-    dataplane_metadata      JSON    DEFAULT '{}'
+    dataplane_metadata      JSON
 );
 
 COMMENT ON COLUMN edc_asset.properties IS 'Asset properties serialized as JSON';
