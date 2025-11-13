@@ -23,6 +23,7 @@ dependencies {
     api(project(":spi:common:transform-spi"))
     api(project(":spi:control-plane:asset-spi"))
     api(project(":spi:control-plane:policy-spi"))
+    api(project(":spi:control-plane:contract-spi"))
 
     testImplementation(project(":tests:junit-base"));
     testImplementation(project(":core:common:lib:json-ld-lib"))

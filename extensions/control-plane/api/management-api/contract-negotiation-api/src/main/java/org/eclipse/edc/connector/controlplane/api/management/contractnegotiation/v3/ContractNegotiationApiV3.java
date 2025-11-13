@@ -29,7 +29,7 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiSchema;
 import org.eclipse.edc.api.model.ApiCoreSchema;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState;
 
 import java.util.List;
 
