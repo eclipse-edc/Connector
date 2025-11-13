@@ -20,6 +20,7 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
@@ -64,6 +65,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.hamcrest.CoreMatchers.anyOf;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 
@@ -91,7 +93,6 @@ public class TransferProcessApiV4EndToEndTest {
                     .body("[0].@context", contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .body("[1].@id", anyOf(is(id1), is(id2)))
                     .body("[1].@context", contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2));
-
         }
 
         @Test
@@ -103,9 +104,11 @@ public class TransferProcessApiV4EndToEndTest {
                     .get("/v4beta/transferprocesses/tp2")
                     .then()
                     .statusCode(200)
+                    .log().ifValidationFails()
                     .body(TYPE, is("TransferProcess"))
                     .body(ID, is("tp2"))
-                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2));
+                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .body("dataplaneMetadata", notNullValue());
         }
 
         @Test
@@ -153,6 +156,10 @@ public class TransferProcessApiV4EndToEndTest {
                     .add("counterPartyAddress", "http://connector-address")
                     .add("contractId", contractId)
                     .add("assetId", assetId)
+                    .add("dataplaneMetadata", createObjectBuilder()
+                            .add("labels", createArrayBuilder().add("label"))
+                            .add("properties", createObjectBuilder().add("key", "value"))
+                    )
                     .build();
 
             var id = context.baseRequest()
@@ -164,7 +171,9 @@ public class TransferProcessApiV4EndToEndTest {
                     .statusCode(200)
                     .extract().jsonPath().getString(ID);
 
-            assertThat(transferProcessStore.findById(id)).isNotNull();
+            assertThat(transferProcessStore.findById(id)).isNotNull().satisfies(transferProcess -> {
+                assertThat(transferProcess.getDataplaneMetadata()).isNotNull();
+            });
         }
 
         @Test
@@ -296,7 +305,8 @@ public class TransferProcessApiV4EndToEndTest {
                     .assetId("asset-id")
                     .contractId("contractId")
                     .participantContextId("participantContextId")
-                    .counterPartyAddress("http://connector/address");
+                    .counterPartyAddress("http://connector/address")
+                    .dataplaneMetadata(DataplaneMetadata.Builder.newInstance().label("label").property("key", "value").build());
         }
 
         private JsonArrayBuilder createCallbackAddress() {

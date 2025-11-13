@@ -16,6 +16,7 @@
 package org.eclipse.edc.connector.controlplane.transfer.spi.testfixtures.store;
 
 import org.awaitility.Awaitility;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DeprovisionedResource;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedResourceSet;
@@ -82,51 +83,26 @@ public abstract class TransferProcessStoreTestBase {
     class Create {
         @Test
         void shouldCreateTheEntity() {
+            var callbacks = List.of(CallbackAddress.Builder.newInstance().uri("test").events(Set.of("event")).build());
+            var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().label("label").property("key", "value").build();
             var transferProcess = TestFunctions.createTransferProcessBuilder("test-id")
                     .correlationId("data-request-id")
-                    .privateProperties(Map.of("key", "value")).build();
+                    .privateProperties(Map.of("key", "value"))
+                    .transferType("transferType")
+                    .dataPlaneId("dataPlaneId")
+                    .callbackAddresses(callbacks)
+                    .dataplaneMetadata(dataplaneMetadata)
+                    .build();
             getTransferProcessStore().save(transferProcess);
 
             var retrieved = getTransferProcessStore().findById("test-id");
 
             assertThat(retrieved).isNotNull().usingRecursiveComparison().isEqualTo(transferProcess);
             assertThat(retrieved.getCreatedAt()).isNotEqualTo(0L);
-        }
-
-        @Test
-        void verifyCallbacks() {
-
-            var callbacks = List.of(CallbackAddress.Builder.newInstance().uri("test").events(Set.of("event")).build());
-
-            var t = TestFunctions.createTransferProcessBuilder("test-id").privateProperties(Map.of("key", "value")).callbackAddresses(callbacks).build();
-            getTransferProcessStore().save(t);
-
-            var all = getTransferProcessStore().findAll(QuerySpec.none()).toList();
-            assertThat(all).containsExactly(t);
-            assertThat(all.get(0)).usingRecursiveComparison().isEqualTo(t);
-            assertThat(all.get(0).getCallbackAddresses()).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsAll(callbacks);
-        }
-
-        @Test
-        void verifyTransferType() {
-            var t = TestFunctions.createTransferProcessBuilder("test-id").transferType("transferType").build();
-            getTransferProcessStore().save(t);
-
-            var all = getTransferProcessStore().findAll(QuerySpec.none()).toList();
-            assertThat(all).containsExactly(t);
-            assertThat(all.get(0)).usingRecursiveComparison().isEqualTo(t);
-            assertThat(all.get(0).getTransferType()).isEqualTo("transferType");
-        }
-
-        @Test
-        void verifyDataPlaneId() {
-            var t = TestFunctions.createTransferProcessBuilder("test-id").dataPlaneId("dataPlaneId").build();
-            getTransferProcessStore().save(t);
-
-            var all = getTransferProcessStore().findAll(QuerySpec.none()).toList();
-            assertThat(all).containsExactly(t);
-            assertThat(all.get(0)).usingRecursiveComparison().isEqualTo(t);
-            assertThat(all.get(0).getDataPlaneId()).isEqualTo("dataPlaneId");
+            assertThat(retrieved.getTransferType()).isEqualTo("transferType");
+            assertThat(retrieved.getDataPlaneId()).isEqualTo("dataPlaneId");
+            assertThat(retrieved.getDataplaneMetadata()).usingRecursiveComparison().isEqualTo(dataplaneMetadata);
+            assertThat(retrieved.getCallbackAddresses()).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsAll(callbacks);
         }
 
         @Test
