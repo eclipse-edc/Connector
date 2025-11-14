@@ -27,6 +27,7 @@ dependencies {
     testImplementation(project(":spi:data-plane-selector:data-plane-selector-spi"))
     testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:edr-store-core"))
+    testImplementation(project(":core:control-plane:control-plane-transform"))
 
     //useful for generic DTOs etc.
     testImplementation(project(":spi:control-plane:policy-spi"))

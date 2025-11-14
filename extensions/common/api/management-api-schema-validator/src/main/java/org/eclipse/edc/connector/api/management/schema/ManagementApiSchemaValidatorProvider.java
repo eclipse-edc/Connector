@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.api.management.schema;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.schema.Error;
 import com.networknt.schema.SchemaLocation;
 import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.dialect.Dialects;
@@ -48,8 +47,7 @@ public class ManagementApiSchemaValidatorProvider {
             }
 
             var violations = response.stream()
-                    .map(Error::getMessage)
-                    .map(msg -> Violation.violation(msg, null))
+                    .map(error -> Violation.violation(error.getMessage(), error.getInstanceLocation().toString()))
                     .toList();
 
             return ValidationResult.failure(violations);

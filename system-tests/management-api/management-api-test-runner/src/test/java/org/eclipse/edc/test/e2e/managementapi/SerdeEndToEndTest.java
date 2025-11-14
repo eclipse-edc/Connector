@@ -34,12 +34,15 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TerminateTransf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferState;
+import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.from.JsonObjectFromParticipantContextTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.to.JsonObjectToParticipantContextTransformer;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
@@ -51,6 +54,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -68,6 +72,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -101,6 +106,7 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dataAddressOb
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dataPaneInstanceObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.datasetRequestObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.inForceDatePermission;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.participantContextObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.policyDefinitionObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.policyEvaluationPlanRequest;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.querySpecObject;
@@ -575,7 +581,8 @@ public class SerdeEndToEndTest {
                         Arguments.of(querySpecObject(jsonLdContext), QuerySpec.class, null),
                         Arguments.of(policyDefinitionObject(jsonLdContext, strictSchema), PolicyDefinition.class, mapper),
                         Arguments.of(dataAddressObject(jsonLdContext), DataAddress.class, null),
-                        Arguments.of(dataPaneInstanceObject(jsonLdContext), DataPlaneInstance.class, null)
+                        Arguments.of(dataPaneInstanceObject(jsonLdContext), DataPlaneInstance.class, null),
+                        Arguments.of(participantContextObject(jsonLdContext), ParticipantContext.class, null)
                 );
             }
 
@@ -621,7 +628,7 @@ public class SerdeEndToEndTest {
         void serde(JsonObject inputObject, Class<?> klass, Function<JsonObject, JsonObject> mapper,
                    JsonLd jsonLd, JsonObjectValidatorRegistry validatorRegistry,
                    TypeTransformerRegistry typeTransformerRegistry) {
-            if (!klass.equals(DataPlaneInstance.class) && !inputObject.getString(TYPE).equals("CatalogAsset")) {
+            if (!klass.equals(DataPlaneInstance.class) && !klass.equals(ParticipantContext.class) && !inputObject.getString(TYPE).equals("CatalogAsset")) {
                 verifySerde(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, klass, mapper);
             }
         }
@@ -664,6 +671,12 @@ public class SerdeEndToEndTest {
                 .configurationProvider(SerdeEndToEndTest::config)
                 .build();
 
+        @BeforeAll
+        static void beforeAll(TypeTransformerRegistry registry) {
+            registry.register(new JsonObjectFromParticipantContextTransformer(Json.createBuilderFactory(Map.of())));
+            registry.register(new JsonObjectToParticipantContextTransformer());
+        }
+
         @Override
         protected List<String> transformerScope() {
             return List.of(MANAGEMENT_API_CONTEXT, "v4");
@@ -683,7 +696,6 @@ public class SerdeEndToEndTest {
         protected String jsonLdContext() {
             return EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
         }
-
 
         @Override
         protected boolean strictSchema() {
