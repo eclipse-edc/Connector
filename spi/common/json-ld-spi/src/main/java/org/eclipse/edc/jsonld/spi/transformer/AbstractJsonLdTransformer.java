@@ -492,6 +492,17 @@ public abstract class AbstractJsonLdTransformer<INPUT, OUTPUT> implements JsonLd
     }
 
     /**
+     * Returns the @value of the JSON object of type @json.
+     */
+    protected JsonValue nodeJsonValue(JsonValue object) {
+        if (object instanceof JsonArray) {
+            return nodeJsonValue(object.asJsonArray().get(0));
+        } else {
+            return object.asJsonObject().get(JsonLdKeywords.VALUE);
+        }
+    }
+
+    /**
      * Tries to return the instance given by a supplier (a builder's build method). If this fails due to validation errors, e.g. a required property is missing,
      * reports a problem to the context.
      *

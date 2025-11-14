@@ -21,7 +21,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  */
 public record NegotiationState(String state) {
 
-    public static final String NEGOTIATION_STATE_TYPE = EDC_NAMESPACE + "NegotiationState";
+    public static final String NEGOTIATION_STATE_TYPE_TERM = "NegotiationState";
+    public static final String NEGOTIATION_STATE_TYPE = EDC_NAMESPACE + NEGOTIATION_STATE_TYPE_TERM;
     public static final String NEGOTIATION_STATE_STATE = EDC_NAMESPACE + "state";
 
 }
