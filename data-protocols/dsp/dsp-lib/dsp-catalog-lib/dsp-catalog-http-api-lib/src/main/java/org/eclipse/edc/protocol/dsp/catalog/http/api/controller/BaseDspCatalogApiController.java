@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Schaeffler AG
  *
  */
 
@@ -29,6 +30,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogError;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
+import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequestMessage;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
@@ -92,10 +94,10 @@ public abstract class BaseDspCatalogApiController {
     @GET
     @Path(DATASET_REQUEST + "/{id}")
     public Response getDataset(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
-        var request = GetDspRequest.Builder.newInstance(Dataset.class, CatalogError.class)
+        var request = GetDspRequest.Builder.newInstance(DatasetRequestMessage.class, Dataset.class, CatalogError.class)
                 .token(token)
                 .id(id)
-                .serviceCall((ctx, datasetId, tokenRepresentation) -> service.getDataset(ctx, datasetId, tokenRepresentation, protocol))
+                .serviceCall((ctx, dataset, tokenRepresentation) -> service.getDataset(ctx, dataset.getDatasetId(), tokenRepresentation, protocol))
                 .errorProvider(CatalogError.Builder::newInstance)
                 .participantContextProvider(participantContextSupplier)
                 .protocol(protocol)
