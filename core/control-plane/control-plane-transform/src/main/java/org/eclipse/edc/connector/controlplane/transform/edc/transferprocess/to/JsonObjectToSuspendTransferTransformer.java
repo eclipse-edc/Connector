@@ -12,16 +12,16 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.transferprocess.transform;
+package org.eclipse.edc.connector.controlplane.transform.edc.transferprocess.to;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.SuspendTransfer;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.SuspendTransfer;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.SuspendTransfer.SUSPEND_TRANSFER_REASON;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.SuspendTransfer.SUSPEND_TRANSFER_REASON;
 
 public class JsonObjectToSuspendTransferTransformer extends AbstractJsonLdTransformer<JsonObject, SuspendTransfer> {
 

@@ -12,18 +12,18 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.transferprocess.transform;
+package org.eclipse.edc.connector.controlplane.transform.edc.transferprocess.from;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TransferState;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferState;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TransferState.TRANSFER_STATE_STATE;
-import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TransferState.TRANSFER_STATE_TYPE;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferState.TRANSFER_STATE_STATE;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferState.TRANSFER_STATE_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 public class JsonObjectFromTransferStateTransformer extends AbstractJsonLdTransformer<TransferState, JsonObject> {
