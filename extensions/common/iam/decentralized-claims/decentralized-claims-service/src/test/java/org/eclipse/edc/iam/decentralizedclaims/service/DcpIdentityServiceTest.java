@@ -17,8 +17,7 @@ package org.eclipse.edc.iam.decentralizedclaims.service;
 
 
 import com.nimbusds.jwt.JWTClaimsSet;
-import org.eclipse.edc.iam.decentralizedclaims.spi.CredentialServiceClient;
-import org.eclipse.edc.iam.decentralizedclaims.spi.CredentialServiceUrlResolver;
+import org.eclipse.edc.iam.decentralizedclaims.spi.PresentationRequestService;
 import org.eclipse.edc.iam.decentralizedclaims.spi.SecureTokenService;
 import org.eclipse.edc.iam.decentralizedclaims.spi.TestFunctions;
 import org.eclipse.edc.iam.decentralizedclaims.spi.validation.TokenValidationAction;
@@ -71,18 +70,16 @@ class DcpIdentityServiceTest {
     public static final String CONSUMER_DID = "did:web:consumer";
     private static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
     private final SecureTokenService mockedSts = mock();
-    private final CredentialServiceClient mockedClient = mock();
-    private final CredentialServiceUrlResolver credentialServiceUrlResolverMock = mock();
+    private final PresentationRequestService presentationRequestServiceMock = mock();
     private final TokenValidationAction actionMock = mock();
     private final VerifiableCredentialValidationService credentialValidationServiceMock = mock();
-    private final DcpIdentityService service = new DcpIdentityService(mockedSts, (it) -> EXPECTED_OWN_DID, mockedClient,
-            actionMock, credentialServiceUrlResolverMock, vcs -> Result.success(ClaimToken.Builder.newInstance().claim("vc", vcs).build()),
+    private final DcpIdentityService service = new DcpIdentityService(mockedSts, (it) -> EXPECTED_OWN_DID, actionMock,
+            presentationRequestServiceMock, vcs -> Result.success(ClaimToken.Builder.newInstance().claim("vc", vcs).build()),
             credentialValidationServiceMock
     );
 
     @BeforeEach
     void setup() {
-        when(credentialServiceUrlResolverMock.resolve(any())).thenReturn(success("foobar"));
         var jwt = TestFunctions.createToken(new JWTClaimsSet.Builder().claim("scope", "foo-scope").build());
 
         when(actionMock.validate(any(), any())).thenReturn(success(ClaimToken.Builder.newInstance()
@@ -157,24 +154,22 @@ class DcpIdentityServiceTest {
 
         @Test
         void presentationRequestFails() {
-            when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(failure("test-failure"));
+            when(presentationRequestServiceMock.requestPresentation(any(), any(), any(), any(), isA(List.class))).thenReturn(failure("test-failure"));
             var token = TestFunctions.createToken();
             var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, verificationContext());
             assertThat(result).isFailed().detail().isEqualTo("test-failure");
             verifyNoInteractions(credentialValidationServiceMock);
-            verify(mockedClient).requestPresentation(any(), any(), isA(List.class));
-
+            verify(presentationRequestServiceMock).requestPresentation(any(), any(), any(), any(), isA(List.class));
         }
 
         @Test
         void credentialValidationServiceFails() {
             when(credentialValidationServiceMock.validate(anyList(), anyString(), anyCollection()))
                     .thenReturn(Result.failure("test error"));
-            when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(success(List.of(createPresentationContainer())));
+            when(presentationRequestServiceMock.requestPresentation(any(), any(), any(), any(), isA(List.class))).thenReturn(success(List.of(createPresentationContainer())));
             var token = TestFunctions.createToken();
             var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, verificationContext());
             assertThat(result).isFailed().detail().isEqualTo("test error");
-
         }
 
         @Test
@@ -199,17 +194,6 @@ class DcpIdentityServiceTest {
         }
 
         @Test
-        void cannotResolveCredentialServiceUrl() {
-            when(credentialServiceUrlResolverMock.resolve(any())).thenReturn(Result.failure("test-failure"));
-            assertThat(service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, TestFunctions.createToken(), verificationContext()))
-                    .isFailed()
-                    .detail()
-                    .isEqualTo("test-failure");
-
-            verifyNoInteractions(mockedClient);
-        }
-
-        @Test
         void verify_failsWithWrongHolder() {
             var presentation = createPresentationBuilder()
                     .holder("did:web:wrong")
@@ -222,7 +206,7 @@ class DcpIdentityServiceTest {
                             .build()))
                     .build();
             var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
-            when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer)));
+            when(presentationRequestServiceMock.requestPresentation(any(), any(), any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer)));
             when(credentialValidationServiceMock.validate(anyList(), anyString(), anyCollection())).thenReturn(success());
             var token = TestFunctions.createToken(CONSUMER_DID, EXPECTED_OWN_DID);
             var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, verificationContext());
@@ -244,7 +228,7 @@ class DcpIdentityServiceTest {
                             .build()))
                     .build();
             var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
-            when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer)));
+            when(presentationRequestServiceMock.requestPresentation(any(), any(), any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer)));
             when(credentialValidationServiceMock.validate(anyList(), anyString(), anyCollection())).thenReturn(success());
             var token = TestFunctions.createToken(CONSUMER_DID, EXPECTED_OWN_DID);
             var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, verificationContext());
@@ -275,7 +259,7 @@ class DcpIdentityServiceTest {
                                     .build()))
                     .build();
             var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
-            when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer)));
+            when(presentationRequestServiceMock.requestPresentation(any(), any(), any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer)));
             when(credentialValidationServiceMock.validate(anyList(), anyString(), anyCollection())).thenReturn(success());
             var token = TestFunctions.createToken(CONSUMER_DID, EXPECTED_OWN_DID);
             var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, verificationContext());
@@ -326,7 +310,7 @@ class DcpIdentityServiceTest {
                     .build();
             var vpContainer2 = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation2);
 
-            when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer1, vpContainer2)));
+            when(presentationRequestServiceMock.requestPresentation(any(), any(), any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer1, vpContainer2)));
             when(credentialValidationServiceMock.validate(anyList(), anyString(), anyCollection())).thenReturn(success());
 
             var token = TestFunctions.createToken(CONSUMER_DID, EXPECTED_OWN_DID);
@@ -355,7 +339,7 @@ class DcpIdentityServiceTest {
                             .build()))
                     .build();
             var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
-            when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer)));
+            when(presentationRequestServiceMock.requestPresentation(any(), any(), any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer)));
             when(credentialValidationServiceMock.validate(anyList(), anyString(), anyCollection())).thenReturn(success());
             var token = TestFunctions.createToken(CONSUMER_DID, EXPECTED_OWN_DID);
 
@@ -386,7 +370,7 @@ class DcpIdentityServiceTest {
                             .build()))
                     .build();
             var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
-            when(mockedClient.requestPresentation(any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer)));
+            when(presentationRequestServiceMock.requestPresentation(any(), any(), any(), any(), isA(List.class))).thenReturn(success(List.of(vpContainer)));
             when(credentialValidationServiceMock.validate(anyList(), anyString(), anyCollection())).thenReturn(success());
             var token = TestFunctions.createToken(CONSUMER_DID, EXPECTED_OWN_DID);
 

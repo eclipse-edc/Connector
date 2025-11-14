@@ -9,14 +9,14 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Cofinity-X - extract presentation request service
  *
  */
 
 package org.eclipse.edc.iam.decentralizedclaims.service;
 
 import org.eclipse.edc.iam.decentralizedclaims.spi.ClaimTokenCreatorFunction;
-import org.eclipse.edc.iam.decentralizedclaims.spi.CredentialServiceClient;
-import org.eclipse.edc.iam.decentralizedclaims.spi.CredentialServiceUrlResolver;
+import org.eclipse.edc.iam.decentralizedclaims.spi.PresentationRequestService;
 import org.eclipse.edc.iam.decentralizedclaims.spi.SecureTokenService;
 import org.eclipse.edc.iam.decentralizedclaims.spi.validation.TokenValidationAction;
 import org.eclipse.edc.iam.verifiablecredentials.spi.VerifiableCredentialValidationService;
@@ -32,8 +32,6 @@ import org.eclipse.edc.spi.iam.VerificationContext;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.string.StringUtils;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -44,8 +42,6 @@ import java.util.stream.Stream;
 
 import static org.eclipse.edc.iam.decentralizedclaims.spi.SelfIssuedTokenConstants.PRESENTATION_TOKEN_CLAIM;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.EXPIRATION_TIME;
-import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUED_AT;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SCOPE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
@@ -65,12 +61,11 @@ import static org.eclipse.edc.spi.result.Result.success;
  */
 public class DcpIdentityService implements IdentityService {
     private static final String SCOPE_STRING_REGEX = "(.+):(.+):(read|write|\\*)";
+
     private final SecureTokenService secureTokenService;
     private final Function<String, String> didResolver;
-    private final CredentialServiceClient credentialServiceClient;
     private final TokenValidationAction tokenValidationAction;
-
-    private final CredentialServiceUrlResolver credentialServiceUrlResolver;
+    private final PresentationRequestService presentationRequestService;
     private final ClaimTokenCreatorFunction claimTokenCreatorFunction;
     private final VerifiableCredentialValidationService verifiableCredentialValidationService;
 
@@ -81,16 +76,14 @@ public class DcpIdentityService implements IdentityService {
      * @param didResolver        Function that resolves the DID for a given participant context id
      */
     public DcpIdentityService(SecureTokenService secureTokenService, Function<String, String> didResolver,
-                              CredentialServiceClient credentialServiceClient,
                               TokenValidationAction tokenValidationAction,
-                              CredentialServiceUrlResolver csUrlResolver,
+                              PresentationRequestService presentationRequestService,
                               ClaimTokenCreatorFunction claimTokenCreatorFunction,
                               VerifiableCredentialValidationService verifiableCredentialValidationService) {
         this.secureTokenService = secureTokenService;
         this.didResolver = didResolver;
-        this.credentialServiceClient = credentialServiceClient;
         this.tokenValidationAction = tokenValidationAction;
-        this.credentialServiceUrlResolver = csUrlResolver;
+        this.presentationRequestService = presentationRequestService;
         this.claimTokenCreatorFunction = claimTokenCreatorFunction;
         this.verifiableCredentialValidationService = verifiableCredentialValidationService;
     }
@@ -143,30 +136,14 @@ public class DcpIdentityService implements IdentityService {
             return claimTokenResult.mapEmpty();
         }
 
-        // create our own SI token, to request the VPs
         var claimToken = claimTokenResult.getContent();
         var accessToken = claimToken.getStringClaim(PRESENTATION_TOKEN_CLAIM);
         var issuer = claimToken.getStringClaim(ISSUER);
 
         var myOwnDid = didResolver.apply(participantContextId);
-
-        Map<String, Object> siTokenClaims = Map.of(PRESENTATION_TOKEN_CLAIM, accessToken,
-                ISSUED_AT, Instant.now().getEpochSecond(),
-                AUDIENCE, issuer,
-                ISSUER, myOwnDid,
-                SUBJECT, myOwnDid,
-                EXPIRATION_TIME, Instant.now().plus(5, ChronoUnit.MINUTES).getEpochSecond());
-        var siToken = secureTokenService.createToken(participantContextId, siTokenClaims, null);
-        if (siToken.failed()) {
-            return siToken.mapFailure();
-        }
-        var siTokenString = siToken.getContent().getToken();
-
-        // get CS Url, execute VP request
         var requestedScopes = context.getScopes().stream().toList();
-        var vpResponse = credentialServiceUrlResolver.resolve(issuer)
-                .compose(url -> credentialServiceClient.requestPresentation(url, siTokenString, requestedScopes));
 
+        var vpResponse = presentationRequestService.requestPresentation(participantContextId, myOwnDid, issuer, accessToken, requestedScopes);
         if (vpResponse.failed()) {
             return vpResponse.mapEmpty();
         }
@@ -174,7 +151,6 @@ public class DcpIdentityService implements IdentityService {
         var presentations = vpResponse.getContent();
 
         // check all requested credentials are present
-
         var result = validateRequestedCredentials(presentations, requestedScopes)
                 .compose(unused -> verifiableCredentialValidationService.validate(presentations, myOwnDid, getAdditionalValidations()));
 

@@ -21,6 +21,7 @@ dependencies {
     implementation(project(":extensions:common:iam:decentralized-claims:decentralized-claims-service"))
     implementation(project(":extensions:common:iam:decentralized-claims:decentralized-claims-transform"))
     implementation(project(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:decentralized-claims-sts-remote-client"))
+    implementation(project(":extensions:common:iam:decentralized-claims:lib:decentralized-claims-lib"))
     implementation(project(":extensions:common:iam:verifiable-credentials"))
     implementation(libs.nimbus.jwt)
 

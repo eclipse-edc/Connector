@@ -45,7 +45,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.DCP_CLIENT_CONTEXT;
 import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.DCP_SELF_ISSUED_TOKEN_CONTEXT;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -76,7 +75,6 @@ class DcpCoreExtensionTest {
 
         ));
         when(context.getConfig()).thenReturn(config);
-        when(transformerRegistry.forContext(DCP_CLIENT_CONTEXT)).thenReturn(transformerRegistry);
     }
 
     @Test

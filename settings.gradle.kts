@@ -181,6 +181,8 @@ include(":extensions:common:iam:decentralized-claims:decentralized-claims-transf
 include(":extensions:common:iam:decentralized-claims:decentralized-claims-service")
 include(":extensions:common:iam:decentralized-claims:decentralized-claims-core")
 include(":extensions:common:iam:decentralized-claims:decentralized-claims-sts")
+include(":extensions:common:iam:decentralized-claims:lib")
+include(":extensions:common:iam:decentralized-claims:lib:decentralized-claims-lib")
 include(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:decentralized-claims-sts-remote-client")
 include(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:lib:decentralized-claims-sts-remote-lib")
 include(":extensions:common:iam:decentralized-claims:decentralized-claims-issuers-configuration")
