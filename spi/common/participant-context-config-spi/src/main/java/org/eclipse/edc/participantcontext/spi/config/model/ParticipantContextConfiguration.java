@@ -18,6 +18,7 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Clock;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -34,7 +35,7 @@ public class ParticipantContextConfiguration implements ParticipantResource {
     protected Clock clock;
     protected long createdAt;
     private long lastModified;
-    private Map<String, String> entries = Map.of();
+    private Map<String, String> entries = new HashMap<>();
 
     @Override
     public String getParticipantContextId() {
@@ -52,6 +53,15 @@ public class ParticipantContextConfiguration implements ParticipantResource {
 
     public long getLastModified() {
         return lastModified;
+    }
+
+    public Builder toBuilder() {
+        return Builder.newInstance()
+                .participantContextId(participantContextId)
+                .clock(clock)
+                .createdAt(createdAt)
+                .lastModified(lastModified)
+                .entries(entries);
     }
 
     public static class Builder {
@@ -90,8 +100,12 @@ public class ParticipantContextConfiguration implements ParticipantResource {
             return this;
         }
 
+        public Builder entry(String key, String value) {
+            configuration.entries.put(key, value);
+            return this;
+        }
+
         public ParticipantContextConfiguration build() {
-            Objects.requireNonNull(configuration.participantContextId, "participantContextId must not be null");
             Objects.requireNonNull(configuration.entries, "config must not be null");
             configuration.clock = Objects.requireNonNullElse(configuration.clock, Clock.systemUTC());
 

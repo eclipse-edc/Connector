@@ -34,6 +34,8 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TerminateTransf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferState;
+import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.config.from.JsonObjectFromParticipantContextConfigurationTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.config.to.JsonObjectToParticipantContextConfigurationTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.from.JsonObjectFromParticipantContextTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.to.JsonObjectToParticipantContextTransformer;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
@@ -42,6 +44,7 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
@@ -106,6 +109,7 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dataAddressOb
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dataPaneInstanceObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.datasetRequestObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.inForceDatePermission;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.participantContextConfigObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.participantContextObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.policyDefinitionObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.policyEvaluationPlanRequest;
@@ -582,7 +586,8 @@ public class SerdeEndToEndTest {
                         Arguments.of(policyDefinitionObject(jsonLdContext, strictSchema), PolicyDefinition.class, mapper),
                         Arguments.of(dataAddressObject(jsonLdContext), DataAddress.class, null),
                         Arguments.of(dataPaneInstanceObject(jsonLdContext), DataPlaneInstance.class, null),
-                        Arguments.of(participantContextObject(jsonLdContext), ParticipantContext.class, null)
+                        Arguments.of(participantContextObject(jsonLdContext), ParticipantContext.class, null),
+                        Arguments.of(participantContextConfigObject(jsonLdContext), ParticipantContextConfiguration.class, null)
                 );
             }
 
@@ -628,7 +633,8 @@ public class SerdeEndToEndTest {
         void serde(JsonObject inputObject, Class<?> klass, Function<JsonObject, JsonObject> mapper,
                    JsonLd jsonLd, JsonObjectValidatorRegistry validatorRegistry,
                    TypeTransformerRegistry typeTransformerRegistry) {
-            if (!klass.equals(DataPlaneInstance.class) && !klass.equals(ParticipantContext.class) && !inputObject.getString(TYPE).equals("CatalogAsset")) {
+            if (!klass.equals(DataPlaneInstance.class) && !klass.equals(ParticipantContext.class) &&
+                    !klass.equals(ParticipantContextConfiguration.class) && !inputObject.getString(TYPE).equals("CatalogAsset")) {
                 verifySerde(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, klass, mapper);
             }
         }
@@ -673,8 +679,11 @@ public class SerdeEndToEndTest {
 
         @BeforeAll
         static void beforeAll(TypeTransformerRegistry registry) {
-            registry.register(new JsonObjectFromParticipantContextTransformer(Json.createBuilderFactory(Map.of())));
+            var factory = Json.createBuilderFactory(Map.of());
+            registry.register(new JsonObjectFromParticipantContextTransformer(factory));
             registry.register(new JsonObjectToParticipantContextTransformer());
+            registry.register(new JsonObjectFromParticipantContextConfigurationTransformer(factory));
+            registry.register(new JsonObjectToParticipantContextConfigurationTransformer());
         }
 
         @Override
