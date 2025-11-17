@@ -18,8 +18,7 @@ import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextCon
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStoreTestBase;
 
 public class InMemoryParticipantContextConfigStoreTest extends ParticipantContextConfigStoreTestBase {
-
-
+    
     private final InMemoryParticipantContextConfigStore store = new InMemoryParticipantContextConfigStore();
 
     @Override
