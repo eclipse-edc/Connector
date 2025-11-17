@@ -444,6 +444,22 @@
         "createdAt": "edc:createdAt"
       }
     },
+    "ParticipantContext": {
+      "@id": "edc:ParticipantContext",
+      "@context": {
+        "properties": {
+          "@id": "edc:properties",
+          "@type": "@json"
+        },
+        "state": {
+          "@id": "edc:state",
+          "@type": "@vocab"
+        },
+        "CREATED": "edc:CREATED",
+        "ACTIVATED": "edc:ACTIVATED",
+        "DEACTIVATED": "edc:DEACTIVATED"
+      }
+    },
     "inForceDate": "edc:inForceDate",
     "ruleFunctions": {
       "@id": "edc:ruleFunctions",
