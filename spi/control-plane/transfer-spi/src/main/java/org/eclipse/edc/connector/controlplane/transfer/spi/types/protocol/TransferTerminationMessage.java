@@ -49,13 +49,17 @@ public class TransferTerminationMessage extends TransferRemoteMessage {
 
         public Builder code(String code) {
             message.code = code;
-            return this;
+            return self();
         }
 
         public Builder reason(String reason) {
             message.reason = reason;
-            return this;
+            return self();
         }
 
+        @Override
+        public Builder self() {
+            return this;
+        }
     }
 }

@@ -15,44 +15,25 @@
 package org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.spi.types.domain.message.ProtocolRemoteMessage;
 
 import java.util.Objects;
 
 /**
  * A message for requesting information about an existing transfer process from the counter-party.
  */
-public class TransferProcessRequestMessage implements RemoteMessage {
+public class TransferProcessRequestMessage extends ProtocolRemoteMessage {
     
     private String transferProcessId;
-    private String protocol;
-    private String counterPartyAddress;
-    private String counterPartyId;
-    
+
     public String getTransferProcessId() {
         return transferProcessId;
     }
-    
-    @Override
-    public String getProtocol() {
-        return protocol;
-    }
-    
-    @Override
-    public String getCounterPartyAddress() {
-        return counterPartyAddress;
-    }
-    
-    @Override
-    public String getCounterPartyId() {
-        return counterPartyId;
-    }
-    
-    public static class Builder {
-        private final TransferProcessRequestMessage message;
-        
+
+    public static class Builder extends ProtocolRemoteMessage.Builder<TransferProcessRequestMessage, Builder> {
+
         private Builder() {
-            this.message = new TransferProcessRequestMessage();
+            super(new TransferProcessRequestMessage());
         }
         
         @JsonCreator
@@ -61,29 +42,19 @@ public class TransferProcessRequestMessage implements RemoteMessage {
         }
         
         public Builder transferProcessId(String transferProcessId) {
-            this.message.transferProcessId = transferProcessId;
+            message.transferProcessId = transferProcessId;
             return this;
         }
-        
-        public Builder protocol(String protocol) {
-            this.message.protocol = protocol;
+
+        @Override
+        public Builder self() {
             return this;
         }
-        
-        public Builder counterPartyAddress(String counterPartyAddress) {
-            this.message.counterPartyAddress = counterPartyAddress;
-            return this;
-        }
-        
-        public Builder counterPartyId(String counterPartyId) {
-            this.message.counterPartyId = counterPartyId;
-            return this;
-        }
-        
+
+        @Override
         public TransferProcessRequestMessage build() {
             Objects.requireNonNull(message.transferProcessId, "transferProcessId");
-            Objects.requireNonNull(message.protocol, "protocol");
-            
+
             return message;
         }
     }

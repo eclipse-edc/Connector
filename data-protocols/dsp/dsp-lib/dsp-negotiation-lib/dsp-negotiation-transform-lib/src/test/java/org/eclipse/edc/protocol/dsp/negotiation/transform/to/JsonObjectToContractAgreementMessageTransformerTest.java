@@ -114,7 +114,6 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getClass()).isEqualTo(ContractAgreementMessage.class);
-        assertThat(result.getProtocol()).isNotEmpty();
         assertThat(result.getConsumerPid()).isEqualTo("consumerPid");
         assertThat(result.getProviderPid()).isEqualTo("providerPid");
 

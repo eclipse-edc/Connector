@@ -14,19 +14,31 @@
 
 package org.eclipse.edc.spi.types.domain.message;
 
-import java.util.Objects;
+/**
+ * Envelope that represent a message that is sent through the Dataspace Protocol
+ */
+public abstract class ProtocolRemoteMessage extends RemoteMessage {
 
-public abstract class ProtocolRemoteMessage implements RemoteMessage {
+    protected String counterPartyId;
 
-    protected String protocol = "unknown";
-    
-    @Override
-    public String getProtocol() {
-        return protocol;
+    /**
+     * Returns the recipient's id.
+     */
+    public String getCounterPartyId() {
+        return counterPartyId;
     }
 
-    public void setProtocol(String protocol) {
-        Objects.requireNonNull(protocol);
-        this.protocol = protocol;
+    public abstract static class Builder<RM extends ProtocolRemoteMessage, B extends Builder<RM, B>> extends RemoteMessage.Builder<RM, B> {
+
+        protected Builder(RM message) {
+            super(message);
+        }
+
+        public B counterPartyId(String counterPartyId) {
+            message.counterPartyId = counterPartyId;
+            return self();
+        }
+
     }
+
 }

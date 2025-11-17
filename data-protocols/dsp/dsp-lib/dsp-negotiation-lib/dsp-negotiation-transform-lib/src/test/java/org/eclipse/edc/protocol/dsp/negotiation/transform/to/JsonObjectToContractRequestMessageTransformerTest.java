@@ -82,7 +82,6 @@ class JsonObjectToContractRequestMessageTransformerTest {
         var result = transformer.transform(getExpanded(message), context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getProtocol()).isNotEmpty();
         assertThat(result.getConsumerPid()).isEqualTo("consumerPid");
         assertThat(result.getProviderPid()).isEqualTo("providerPid");
         assertThat(result.getCallbackAddress()).isEqualTo(CALLBACK);

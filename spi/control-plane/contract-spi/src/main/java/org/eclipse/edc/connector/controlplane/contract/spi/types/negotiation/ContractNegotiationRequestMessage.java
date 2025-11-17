@@ -15,44 +15,25 @@
 package org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.spi.types.domain.message.ProtocolRemoteMessage;
 
 import java.util.Objects;
 
 /**
  * A message for requesting information about an existing negotiation from the counter-party.
  */
-public class ContractNegotiationRequestMessage implements RemoteMessage {
+public class ContractNegotiationRequestMessage extends ProtocolRemoteMessage {
     
     private String negotiationId;
-    private String protocol;
-    private String counterPartyAddress;
-    private String counterPartyId;
-    
+
     public String getNegotiationId() {
         return negotiationId;
     }
-    
-    @Override
-    public String getProtocol() {
-        return protocol;
-    }
-    
-    @Override
-    public String getCounterPartyAddress() {
-        return counterPartyAddress;
-    }
-    
-    @Override
-    public String getCounterPartyId() {
-        return counterPartyId;
-    }
-    
-    public static class Builder {
-        private final ContractNegotiationRequestMessage message;
-        
+
+    public static class Builder extends ProtocolRemoteMessage.Builder<ContractNegotiationRequestMessage, Builder> {
+
         private Builder() {
-            this.message = new ContractNegotiationRequestMessage();
+            super(new ContractNegotiationRequestMessage());
         }
         
         @JsonCreator
@@ -60,31 +41,20 @@ public class ContractNegotiationRequestMessage implements RemoteMessage {
             return new Builder();
         }
         
+        @Override
+        public Builder self() {
+            return this;
+        }
+
+        @Override
+        public ContractNegotiationRequestMessage build() {
+            Objects.requireNonNull(message.negotiationId, "negotiationId");
+            return super.build();
+        }
+
         public Builder negotiationId(String negotiationId) {
             this.message.negotiationId = negotiationId;
             return this;
-        }
-        
-        public Builder protocol(String protocol) {
-            this.message.protocol = protocol;
-            return this;
-        }
-        
-        public Builder counterPartyAddress(String counterPartyAddress) {
-            this.message.counterPartyAddress = counterPartyAddress;
-            return this;
-        }
-        
-        public Builder counterPartyId(String counterPartyId) {
-            this.message.counterPartyId = counterPartyId;
-            return this;
-        }
-        
-        public ContractNegotiationRequestMessage build() {
-            Objects.requireNonNull(message.negotiationId, "negotiationId");
-            Objects.requireNonNull(message.protocol, "protocol");
-            
-            return message;
         }
     }
 }

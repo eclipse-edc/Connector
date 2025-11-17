@@ -36,7 +36,7 @@ import org.eclipse.edc.spi.iam.RequestScope;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.spi.types.domain.message.ProtocolRemoteMessage;
 import org.eclipse.edc.token.spi.TokenDecorator;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -340,21 +340,13 @@ class DspHttpRemoteMessageDispatcherImplTest {
         });
     }
 
-    static class TestMessage implements RemoteMessage {
-        @Override
-        public String getProtocol() {
-            return null;
-        }
+    static class TestMessage extends ProtocolRemoteMessage {
 
         @Override
         public String getCounterPartyAddress() {
             return "http://connector";
         }
 
-        @Override
-        public String getCounterPartyId() {
-            return null;
-        }
     }
 
     static class TestPolicyContext extends RequestPolicyContext {

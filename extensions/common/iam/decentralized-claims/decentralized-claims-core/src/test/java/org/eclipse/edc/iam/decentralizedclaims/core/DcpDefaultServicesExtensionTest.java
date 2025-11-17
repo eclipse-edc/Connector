@@ -26,7 +26,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.spi.types.domain.message.ProtocolRemoteMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -82,10 +83,23 @@ class DcpDefaultServicesExtensionTest {
     @Test
     void verify_defaultAudienceResolver(DcpDefaultServicesExtension ext) {
         var id = "counterPartyId";
-        var remoteMessage = mock(RemoteMessage.class);
-        when(remoteMessage.getCounterPartyId()).thenReturn(id);
-        assertThat(ext.defaultAudienceResolver().resolve(remoteMessage))
-                .extracting(Result::getContent)
-                .isEqualTo(id);
+        var message = new TestMessage(id);
+
+        var result = ext.defaultAudienceResolver().resolve(message);
+
+        assertThat(result).isSucceeded().isEqualTo(id);
+    }
+
+    private static class TestMessage extends ProtocolRemoteMessage {
+        private final String counterPartyId;
+
+        TestMessage(String counterPartyId) {
+            this.counterPartyId = counterPartyId;
+        }
+
+        @Override
+        public String getCounterPartyId() {
+            return counterPartyId;
+        }
     }
 }
