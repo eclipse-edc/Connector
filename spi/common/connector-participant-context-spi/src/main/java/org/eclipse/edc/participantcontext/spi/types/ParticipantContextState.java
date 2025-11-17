@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.participantcontext.spi.types;
 
+import java.util.Arrays;
+
 /**
  * The state a {@link ParticipantContext} entry is in.
  */
@@ -21,13 +23,27 @@ public enum ParticipantContextState {
     /**
      * The {@link ParticipantContext} was created in the database, but is not yet operational.
      */
-    CREATED,
+    CREATED(100),
     /**
      * The {@link ParticipantContext} is operational and can be used.
      */
-    ACTIVATED,
+    ACTIVATED(200),
     /**
      * The {@link ParticipantContext} is disabled and cannot be used currently.
      */
-    DEACTIVATED
+    DEACTIVATED(300);
+
+    private final int code;
+
+    ParticipantContextState(int code) {
+        this.code = code;
+    }
+
+    public static ParticipantContextState from(int code) {
+        return Arrays.stream(values()).filter(pcs -> pcs.code == code).findFirst().orElse(null);
+    }
+
+    public int code() {
+        return code;
+    }
 }

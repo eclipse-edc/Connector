@@ -148,6 +148,22 @@ public class TestFunctions {
                 .build();
     }
 
+    public static JsonObject participantContextObject(String context) {
+        return createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "ParticipantContext")
+                .add(ID, "participant-context-id")
+                .add("properties", createObjectBuilder()
+                        .add("name", TEST_ASSET_NAME)
+                        .add("id", TEST_ASSET_ID)
+                        .add("description", TEST_ASSET_DESCRIPTION)
+                        .add("version", TEST_ASSET_VERSION)
+                        .add("contenttype", TEST_ASSET_CONTENTTYPE)
+                        .build())
+                .add("state", "CREATED")
+                .build();
+    }
+
     public static JsonObject contractDefinitionObject(String context) {
         var criterion = Json.createObjectBuilder()
                 .add(TYPE, "Criterion")
