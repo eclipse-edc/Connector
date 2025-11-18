@@ -460,6 +460,15 @@
         "DEACTIVATED": "edc:DEACTIVATED"
       }
     },
+    "ParticipantContextConfig": {
+      "@id": "edc:ParticipantContextConfig",
+      "@context": {
+        "entries": {
+          "@id": "edc:entries",
+          "@type": "@json"
+        }
+      }
+    },
     "inForceDate": "edc:inForceDate",
     "ruleFunctions": {
       "@id": "edc:ruleFunctions",
