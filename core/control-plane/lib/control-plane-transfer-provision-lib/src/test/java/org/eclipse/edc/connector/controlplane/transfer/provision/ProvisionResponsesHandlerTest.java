@@ -28,7 +28,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.security.ParticipantVault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +48,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -57,7 +58,7 @@ class ProvisionResponsesHandlerTest {
 
     private final TransferProcessListener listener = mock();
     private final TransferProcessObservableImpl observable = new TransferProcessObservableImpl();
-    private final Vault vault = mock();
+    private final ParticipantVault vault = mock();
     private final ProvisionResponsesHandler handler = new ProvisionResponsesHandler(observable, mock(), vault, mock());
 
     @BeforeEach
@@ -68,11 +69,11 @@ class ProvisionResponsesHandlerTest {
     @Test
     void shouldNotHandle_whenTransferProcessHasBeenAlreadyProvisioned() {
         var entity = createTransferProcessBuilder(REQUESTING)
-                .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
-                .build();
+                             .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
+                             .build();
         var provisionResponse = ProvisionResponse.Builder.newInstance()
-                .resource(provisionedDataDestinationResource())
-                .build();
+                                        .resource(provisionedDataDestinationResource())
+                                        .build();
 
         var result = handler.handle(entity, List.of(StatusResult.success(provisionResponse)));
 
@@ -84,11 +85,11 @@ class ProvisionResponsesHandlerTest {
     @Test
     void shouldTransitionToProvisioned_whenResourceIsDataDestination() {
         var entity = createTransferProcessBuilder(PROVISIONING)
-                .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
-                .build();
+                             .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
+                             .build();
         var provisionResponse = ProvisionResponse.Builder.newInstance()
-                .resource(provisionedDataDestinationResource())
-                .build();
+                                        .resource(provisionedDataDestinationResource())
+                                        .build();
 
         var result = handler.handle(entity, List.of(StatusResult.success(provisionResponse)));
 
@@ -106,19 +107,19 @@ class ProvisionResponsesHandlerTest {
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id("3").build();
 
         var entity = createTransferProcessBuilder(PROVISIONING)
-                .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(resourceDefinition)).build())
-                .build();
+                             .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(resourceDefinition)).build())
+                             .build();
         var provisionResponse = ProvisionResponse.Builder.newInstance()
-                .resource(createTestProvisionedContentResource(resourceDefinition.getId()))
-                .secretToken(new TestToken())
-                .build();
-        when(vault.storeSecret(any(), any())).thenReturn(Result.success());
+                                        .resource(createTestProvisionedContentResource(resourceDefinition.getId()))
+                                        .secretToken(new TestToken())
+                                        .build();
+        when(vault.storeSecret(anyString(), any(), any())).thenReturn(Result.success());
 
         var result = handler.handle(entity, List.of(StatusResult.success(provisionResponse)));
 
         assertThat(result).isTrue();
         assertThat(entity.getState()).isEqualTo(PROVISIONED.code());
-        verify(vault).storeSecret(any(), any());
+        verify(vault).storeSecret(anyString(), any(), any());
 
         handler.postActions(entity);
 
@@ -129,11 +130,11 @@ class ProvisionResponsesHandlerTest {
     void shouldTransitionToProvisioningRequest_whenResponseIsInProcess() {
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id("3").build();
         var entity = createTransferProcessBuilder(PROVISIONING)
-                .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(resourceDefinition)).build())
-                .build();
+                             .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(resourceDefinition)).build())
+                             .build();
         var provisionResponse = ProvisionResponse.Builder.newInstance()
-                .inProcess(true)
-                .build();
+                                        .inProcess(true)
+                                        .build();
 
         var result = handler.handle(entity, List.of(StatusResult.success(provisionResponse)));
 
@@ -150,9 +151,9 @@ class ProvisionResponsesHandlerTest {
     void shouldTransitionToTerminating_whenProviderAndResponseIsFatalError() {
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id("3").build();
         var entity = createTransferProcessBuilder(PROVISIONING)
-                .type(PROVIDER)
-                .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(resourceDefinition)).build())
-                .build();
+                             .type(PROVIDER)
+                             .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(resourceDefinition)).build())
+                             .build();
 
         var result = handler.handle(entity, List.of(StatusResult.failure(FATAL_ERROR)));
 
@@ -169,9 +170,9 @@ class ProvisionResponsesHandlerTest {
     void shouldTransitionToTerminated_whenConsumerAndResponseIsFatalError() {
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id("3").build();
         var entity = createTransferProcessBuilder(PROVISIONING)
-                .type(CONSUMER)
-                .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(resourceDefinition)).build())
-                .build();
+                             .type(CONSUMER)
+                             .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(resourceDefinition)).build())
+                             .build();
 
         var result = handler.handle(entity, List.of(StatusResult.failure(FATAL_ERROR)));
 
@@ -188,9 +189,9 @@ class ProvisionResponsesHandlerTest {
     void shouldNotChangeStatus_whenErrorRetry() {
         var resourceDefinition = TestResourceDefinition.Builder.newInstance().id("3").build();
         var entity = createTransferProcessBuilder(PROVISIONING)
-                .type(CONSUMER)
-                .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(resourceDefinition)).build())
-                .build();
+                             .type(CONSUMER)
+                             .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(resourceDefinition)).build())
+                             .build();
 
         var result = handler.handle(entity, List.of(StatusResult.failure(ERROR_RETRY)));
 
@@ -207,17 +208,18 @@ class ProvisionResponsesHandlerTest {
         var processId = UUID.randomUUID().toString();
 
         return TransferProcess.Builder.newInstance()
-                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
-                .type(CONSUMER)
-                .id("test-process-" + processId)
-                .state(inState.code())
-                .protocol("protocol")
-                .counterPartyAddress("http://an/address")
-                .correlationId(UUID.randomUUID().toString())
-                .contractId(UUID.randomUUID().toString())
-                .assetId(UUID.randomUUID().toString())
-                .dataDestination(DataAddress.Builder.newInstance().type("type")
-                        .build());
+                       .participantContextId("test-participant-id")
+                       .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
+                       .type(CONSUMER)
+                       .id("test-process-" + processId)
+                       .state(inState.code())
+                       .protocol("protocol")
+                       .counterPartyAddress("http://an/address")
+                       .correlationId(UUID.randomUUID().toString())
+                       .contractId(UUID.randomUUID().toString())
+                       .assetId(UUID.randomUUID().toString())
+                       .dataDestination(DataAddress.Builder.newInstance().type("type")
+                                                .build());
     }
 
     private ProvisionedDataDestinationResource provisionedDataDestinationResource() {
@@ -227,13 +229,13 @@ class ProvisionResponsesHandlerTest {
 
     private TestProvisionedContentResource createTestProvisionedContentResource(String resourceDefinitionId) {
         return TestProvisionedContentResource.Builder.newInstance()
-                .resourceName("test")
-                .id("1")
-                .transferProcessId("2")
-                .resourceDefinitionId(resourceDefinitionId)
-                .dataAddress(DataAddress.Builder.newInstance().type("test").build())
-                .hasToken(true)
-                .build();
+                       .resourceName("test")
+                       .id("1")
+                       .transferProcessId("2")
+                       .resourceDefinitionId(resourceDefinitionId)
+                       .dataAddress(DataAddress.Builder.newInstance().type("test").build())
+                       .hasToken(true)
+                       .build();
     }
 
 }

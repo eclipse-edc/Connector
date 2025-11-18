@@ -32,7 +32,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.event.EventRouter;
-import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.security.ParticipantVault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -67,7 +67,7 @@ public class TransferCoreExtension implements ServiceExtension {
     private DataAddressResolver addressResolver;
 
     @Inject
-    private Vault vault;
+    private ParticipantVault vault;
 
     @Inject
     private EventRouter eventRouter;

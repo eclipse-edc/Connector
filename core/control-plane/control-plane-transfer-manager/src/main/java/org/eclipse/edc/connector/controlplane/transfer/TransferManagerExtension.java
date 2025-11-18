@@ -34,7 +34,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.security.ParticipantVault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -82,7 +82,7 @@ public class TransferManagerExtension implements ServiceExtension {
     private DataAddressResolver addressResolver;
 
     @Inject
-    private Vault vault;
+    private ParticipantVault participantVault;
 
     @Inject
     private Clock clock;
@@ -116,31 +116,31 @@ public class TransferManagerExtension implements ServiceExtension {
         var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : stateMachineConfiguration.iterationWaitExponentialWaitStrategy();
 
         var entityRetryProcessConfiguration = stateMachineConfiguration.entityRetryProcessConfiguration();
-        var provisionResponsesHandler = new ProvisionResponsesHandler(observable, monitor, vault, typeManager);
-        var deprovisionResponsesHandler = new DeprovisionResponsesHandler(observable, monitor, vault);
+        var provisionResponsesHandler = new ProvisionResponsesHandler(observable, monitor, participantVault, typeManager);
+        var deprovisionResponsesHandler = new DeprovisionResponsesHandler(observable, monitor, participantVault);
 
         processManager = TransferProcessManagerImpl.Builder.newInstance()
-                .waitStrategy(waitStrategy)
-                .manifestGenerator(resourceManifestGenerator)
-                .dataFlowManager(dataFlowManager)
-                .provisionManager(provisionManager)
-                .dispatcherRegistry(dispatcherRegistry)
-                .monitor(monitor)
-                .telemetry(telemetry)
-                .executorInstrumentation(executorInstrumentation)
-                .vault(vault)
-                .clock(clock)
-                .observable(observable)
-                .store(transferProcessStore)
-                .policyArchive(policyArchive)
-                .batchSize(stateMachineConfiguration.batchSize())
-                .addressResolver(addressResolver)
-                .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
-                .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
-                .provisionResponsesHandler(provisionResponsesHandler)
-                .deprovisionResponsesHandler(deprovisionResponsesHandler)
-                .pendingGuard(pendingGuard)
-                .build();
+                                 .waitStrategy(waitStrategy)
+                                 .manifestGenerator(resourceManifestGenerator)
+                                 .dataFlowManager(dataFlowManager)
+                                 .provisionManager(provisionManager)
+                                 .dispatcherRegistry(dispatcherRegistry)
+                                 .monitor(monitor)
+                                 .telemetry(telemetry)
+                                 .executorInstrumentation(executorInstrumentation)
+                                 .vault(participantVault)
+                                 .clock(clock)
+                                 .observable(observable)
+                                 .store(transferProcessStore)
+                                 .policyArchive(policyArchive)
+                                 .batchSize(stateMachineConfiguration.batchSize())
+                                 .addressResolver(addressResolver)
+                                 .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
+                                 .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
+                                 .provisionResponsesHandler(provisionResponsesHandler)
+                                 .deprovisionResponsesHandler(deprovisionResponsesHandler)
+                                 .pendingGuard(pendingGuard)
+                                 .build();
 
         context.registerService(TransferProcessManager.class, processManager);
 

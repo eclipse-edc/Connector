@@ -16,6 +16,7 @@ package org.eclipse.edc.token;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jose.jwk.KeyUse;
@@ -23,6 +24,7 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
 import org.eclipse.edc.security.token.jwt.CryptoConverter;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenDecorator;
@@ -48,16 +50,24 @@ class JwtGenerationServiceTest {
     @BeforeEach
     void setUp() throws JOSEException {
         keys = testKey();
-        tokenGenerationService = new JwtGenerationService(keyId -> {
-            if (TEST_KEY_ID.equals(keyId)) {
-                try {
-                    var pk = keys.toPrivateKey();
-                    return Result.success(CryptoConverter.createSignerFor(pk));
-                } catch (JOSEException e) {
-                    return Result.failure(e.getMessage());
-                }
+        tokenGenerationService = new JwtGenerationService(new JwsSignerProvider() {
+            @Override
+            public Result<JWSSigner> createJwsSigner(String privateKeyId) {
+                throw new AssertionError("deprecated method: should not be used anymore");
             }
-            return Result.failure("key not found");
+
+            @Override
+            public Result<JWSSigner> createJwsSigner(String participantContextId, String privateKeyId) {
+                if (TEST_KEY_ID.equals(privateKeyId)) {
+                    try {
+                        var pk = keys.toPrivateKey();
+                        return Result.success(CryptoConverter.createSignerFor(pk));
+                    } catch (JOSEException e) {
+                        return Result.failure(e.getMessage());
+                    }
+                }
+                return Result.failure("key not found");
+            }
         });
     }
 
@@ -65,7 +75,7 @@ class JwtGenerationServiceTest {
     void verifyTokenGeneration() throws ParseException, JOSEException {
         var decorator = testDecorator();
 
-        var result = tokenGenerationService.generate(TEST_KEY_ID, decorator);
+        var result = tokenGenerationService.generate("test-participant", TEST_KEY_ID, decorator);
 
         assertThat(result.succeeded()).isTrue();
         var token = result.getContent().getToken();
@@ -91,7 +101,7 @@ class JwtGenerationServiceTest {
     void shouldFail_whenPrivateKeyCannotBeResolved() {
         var decorator = testDecorator();
 
-        var result = tokenGenerationService.generate("not-exist-key", decorator);
+        var result = tokenGenerationService.generate("test-participant", "not-exist-key", decorator);
 
         assertThat(result.failed()).isTrue();
     }
@@ -102,14 +112,14 @@ class JwtGenerationServiceTest {
 
     private RSAKey testKey() throws JOSEException {
         return new RSAKeyGenerator(2048)
-                .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
-                .keyID(UUID.randomUUID().toString()) // give the key a unique ID
-                .generate();
+                       .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
+                       .keyID(UUID.randomUUID().toString()) // give the key a unique ID
+                       .generate();
     }
 
     private TokenDecorator testDecorator() {
         return (tokenParameters) -> tokenParameters.claims("foo", "bar")
-                .claims(EXPIRATION_TIME, Date.from(Instant.now().plusSeconds(60)))
-                .header("x5t", "some x509CertThumbprint thing");
+                                            .claims(EXPIRATION_TIME, Date.from(Instant.now().plusSeconds(60)))
+                                            .header("x5t", "some x509CertThumbprint thing");
     }
 }

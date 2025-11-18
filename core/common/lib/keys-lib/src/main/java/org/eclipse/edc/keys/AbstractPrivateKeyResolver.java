@@ -41,22 +41,27 @@ public abstract class AbstractPrivateKeyResolver implements PrivateKeyResolver {
 
     @Override
     public Result<PrivateKey> resolvePrivateKey(String id) {
-        var encodedKeyResult = resolveInternal(id);
+        return resolvePrivateKey(null, id);
+    }
+
+    @Override
+    public Result<PrivateKey> resolvePrivateKey(String participantContextId, String id) {
+        var encodedKeyResult = resolveInternal(participantContextId, id);
 
         return encodedKeyResult
-                .recover(failure -> {
-                    monitor.debug("Public key not found, fallback to config. Error: %s".formatted(failure.getFailureDetail()));
-                    return resolveFromConfig(id);
-                })
-                .compose(encodedKey -> registry.parse(encodedKey).compose(pk -> {
-                    if (pk instanceof PrivateKey privateKey) {
-                        return Result.success(privateKey);
-                    } else {
-                        var msg = "The specified resource did not contain private key material.";
-                        monitor.warning(msg);
-                        return Result.failure(msg);
-                    }
-                }));
+                       .recover(failure -> {
+                           monitor.debug("Public key not found, fallback to config. Error: %s".formatted(failure.getFailureDetail()));
+                           return resolveFromConfig(id);
+                       })
+                       .compose(encodedKey -> registry.parse(encodedKey).compose(pk -> {
+                           if (pk instanceof PrivateKey privateKey) {
+                               return Result.success(privateKey);
+                           } else {
+                               var msg = "The specified resource did not contain private key material.";
+                               monitor.warning(msg);
+                               return Result.failure(msg);
+                           }
+                       }));
     }
 
     /**
@@ -66,12 +71,12 @@ public abstract class AbstractPrivateKeyResolver implements PrivateKeyResolver {
      * @return {@link Result#success()} if the key was found, {@link Result#failure(String)} if not found or other error.
      */
     @NotNull
-    protected abstract Result<String> resolveInternal(String keyId);
+    protected abstract Result<String> resolveInternal(String participantContextId, String keyId);
 
     private Result<String> resolveFromConfig(String keyId) {
         var value = config.getString(keyId, null);
         return value == null ?
-                Result.failure("Private key with ID '%s' not found in Config".formatted(keyId)) :
-                Result.success(value);
+                       Result.failure("Private key with ID '%s' not found in Config".formatted(keyId)) :
+                       Result.success(value);
     }
 }
