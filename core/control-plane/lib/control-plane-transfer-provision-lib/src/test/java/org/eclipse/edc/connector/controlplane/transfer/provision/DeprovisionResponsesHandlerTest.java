@@ -62,18 +62,18 @@ class DeprovisionResponsesHandlerTest {
     void shouldTransitionToDeprovisioned() {
         var provisionedResourceId = "provisioned-resource-id";
         var manifest = ResourceManifest.Builder.newInstance()
-                               .definitions(List.of(new TestResourceDefinition()))
-                               .build();
+                .definitions(List.of(new TestResourceDefinition()))
+                .build();
         var resourceSet = ProvisionedResourceSet.Builder.newInstance()
-                                  .resources(List.of(new TokenTestProvisionResource("test-resource", provisionedResourceId)))
-                                  .build();
+                .resources(List.of(new TokenTestProvisionResource("test-resource", provisionedResourceId)))
+                .build();
         var process = createTransferProcessBuilder(DEPROVISIONING)
-                              .resourceManifest(manifest)
-                              .provisionedResourceSet(resourceSet)
-                              .build();
+                .resourceManifest(manifest)
+                .provisionedResourceSet(resourceSet)
+                .build();
         var deprovisionedResource = DeprovisionedResource.Builder.newInstance()
-                                            .provisionedResourceId(provisionedResourceId)
-                                            .build();
+                .provisionedResourceId(provisionedResourceId)
+                .build();
         when(vault.deleteSecret(any(), any())).thenReturn(Result.success());
 
         var result = handler.handle(process, List.of(StatusResult.success(deprovisionedResource)));
@@ -91,19 +91,19 @@ class DeprovisionResponsesHandlerTest {
     void shouldTransitionToDeprovisionRequestedOnResponseStarted() {
         var provisionedResourceId = "provisioned-resource-id";
         var manifest = ResourceManifest.Builder.newInstance()
-                               .definitions(List.of(new TestResourceDefinition()))
-                               .build();
+                .definitions(List.of(new TestResourceDefinition()))
+                .build();
         var resourceSet = ProvisionedResourceSet.Builder.newInstance()
-                                  .resources(List.of(new TokenTestProvisionResource("test-resource", provisionedResourceId)))
-                                  .build();
+                .resources(List.of(new TokenTestProvisionResource("test-resource", provisionedResourceId)))
+                .build();
         var process = createTransferProcessBuilder(DEPROVISIONING)
-                              .resourceManifest(manifest)
-                              .provisionedResourceSet(resourceSet)
-                              .build();
+                .resourceManifest(manifest)
+                .provisionedResourceSet(resourceSet)
+                .build();
         var deprovisionedResponse = DeprovisionedResource.Builder.newInstance()
-                                            .provisionedResourceId("any")
-                                            .inProcess(true)
-                                            .build();
+                .provisionedResourceId("any")
+                .inProcess(true)
+                .build();
 
         var result = handler.handle(process, List.of(StatusResult.success(deprovisionedResponse)));
 
@@ -120,15 +120,15 @@ class DeprovisionResponsesHandlerTest {
     void shouldTransitionToDeprovisionedWithErrorOnFatalDeprovisionError() {
         var provisionedResourceId = "provisioned-resource-id";
         var manifest = ResourceManifest.Builder.newInstance()
-                               .definitions(List.of(new TestResourceDefinition()))
-                               .build();
+                .definitions(List.of(new TestResourceDefinition()))
+                .build();
         var resourceSet = ProvisionedResourceSet.Builder.newInstance()
-                                  .resources(List.of(new TokenTestProvisionResource("test-resource", provisionedResourceId)))
-                                  .build();
+                .resources(List.of(new TokenTestProvisionResource("test-resource", provisionedResourceId)))
+                .build();
         var process = createTransferProcessBuilder(DEPROVISIONING)
-                              .resourceManifest(manifest)
-                              .provisionedResourceSet(resourceSet)
-                              .build();
+                .resourceManifest(manifest)
+                .provisionedResourceSet(resourceSet)
+                .build();
 
         var result = handler.handle(process, List.of(StatusResult.failure(FATAL_ERROR)));
 
@@ -146,15 +146,15 @@ class DeprovisionResponsesHandlerTest {
     void shouldNotChangeStateOnErrorRetry() {
         var provisionedResourceId = "provisioned-resource-id";
         var manifest = ResourceManifest.Builder.newInstance()
-                               .definitions(List.of(new TestResourceDefinition()))
-                               .build();
+                .definitions(List.of(new TestResourceDefinition()))
+                .build();
         var resourceSet = ProvisionedResourceSet.Builder.newInstance()
-                                  .resources(List.of(new TokenTestProvisionResource("test-resource", provisionedResourceId)))
-                                  .build();
+                .resources(List.of(new TokenTestProvisionResource("test-resource", provisionedResourceId)))
+                .build();
         var process = createTransferProcessBuilder(DEPROVISIONING)
-                              .resourceManifest(manifest)
-                              .provisionedResourceSet(resourceSet)
-                              .build();
+                .resourceManifest(manifest)
+                .provisionedResourceSet(resourceSet)
+                .build();
 
         var result = handler.handle(process, List.of(StatusResult.failure(ERROR_RETRY)));
 
@@ -171,13 +171,13 @@ class DeprovisionResponsesHandlerTest {
         var processId = UUID.randomUUID().toString();
 
         return TransferProcess.Builder.newInstance()
-                       .participantContextId("test-participant-id")
-                       .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
-                       .type(CONSUMER)
-                       .id("test-process-" + processId)
-                       .state(inState.code())
-                       .protocol("protocol")
-                       .counterPartyAddress("http://an/address");
+                .participantContextId("test-participant-id")
+                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
+                .type(CONSUMER)
+                .id("test-process-" + processId)
+                .state(inState.code())
+                .protocol("protocol")
+                .counterPartyAddress("http://an/address");
     }
 
 }

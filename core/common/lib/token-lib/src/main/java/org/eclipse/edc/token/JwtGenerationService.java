@@ -56,6 +56,16 @@ public class JwtGenerationService implements TokenGenerationService {
         return signTokenWithDecorators(decorators, tokenSignerResult.getContent());
     }
 
+    @Override
+    public Result<TokenRepresentation> generate(String participantContextId, String privateKeyId, TokenDecorator... decorators) {
+        var tokenSignerResult = jwsGeneratorFunction.createJwsSigner(participantContextId, privateKeyId);
+        if (tokenSignerResult.failed()) {
+            return Result.failure("JWSSigner cannot be generated for private key '%s': %s".formatted(privateKeyId, tokenSignerResult.getFailureDetail()));
+        }
+
+        return signTokenWithDecorators(decorators, tokenSignerResult.getContent());
+    }
+
     private @NotNull Result<TokenRepresentation> signTokenWithDecorators(@NotNull TokenDecorator[] decorators, JWSSigner tokenSigner) {
         var jwsAlgorithm = CryptoConverter.getRecommendedAlgorithm(tokenSigner);
 
@@ -75,16 +85,6 @@ public class JwtGenerationService implements TokenGenerationService {
             return Result.failure("Failed to sign token: " + e.getMessage());
         }
         return Result.success(TokenRepresentation.Builder.newInstance().token(token.serialize()).build());
-    }
-
-    @Override
-    public Result<TokenRepresentation> generate(String participantContextId, String privateKeyId, TokenDecorator... decorators) {
-        var tokenSignerResult = jwsGeneratorFunction.createJwsSigner(participantContextId, privateKeyId);
-        if (tokenSignerResult.failed()) {
-            return Result.failure("JWSSigner cannot be generated for private key '%s': %s".formatted(privateKeyId, tokenSignerResult.getFailureDetail()));
-        }
-
-        return signTokenWithDecorators(decorators, tokenSignerResult.getContent());
     }
 
     private JWSHeader createHeader(Map<String, Object> headers) {

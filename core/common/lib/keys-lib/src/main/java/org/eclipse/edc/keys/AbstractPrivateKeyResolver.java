@@ -49,19 +49,19 @@ public abstract class AbstractPrivateKeyResolver implements PrivateKeyResolver {
         var encodedKeyResult = resolveInternal(participantContextId, id);
 
         return encodedKeyResult
-                       .recover(failure -> {
-                           monitor.debug("Public key not found, fallback to config. Error: %s".formatted(failure.getFailureDetail()));
-                           return resolveFromConfig(id);
-                       })
-                       .compose(encodedKey -> registry.parse(encodedKey).compose(pk -> {
-                           if (pk instanceof PrivateKey privateKey) {
-                               return Result.success(privateKey);
-                           } else {
-                               var msg = "The specified resource did not contain private key material.";
-                               monitor.warning(msg);
-                               return Result.failure(msg);
-                           }
-                       }));
+                .recover(failure -> {
+                    monitor.debug("Public key not found, fallback to config. Error: %s".formatted(failure.getFailureDetail()));
+                    return resolveFromConfig(id);
+                })
+                .compose(encodedKey -> registry.parse(encodedKey).compose(pk -> {
+                    if (pk instanceof PrivateKey privateKey) {
+                        return Result.success(privateKey);
+                    } else {
+                        var msg = "The specified resource did not contain private key material.";
+                        monitor.warning(msg);
+                        return Result.failure(msg);
+                    }
+                }));
     }
 
     /**
@@ -76,7 +76,7 @@ public abstract class AbstractPrivateKeyResolver implements PrivateKeyResolver {
     private Result<String> resolveFromConfig(String keyId) {
         var value = config.getString(keyId, null);
         return value == null ?
-                       Result.failure("Private key with ID '%s' not found in Config".formatted(keyId)) :
-                       Result.success(value);
+                Result.failure("Private key with ID '%s' not found in Config".formatted(keyId)) :
+                Result.success(value);
     }
 }

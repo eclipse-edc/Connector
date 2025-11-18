@@ -53,7 +53,7 @@ public class VaultPrivateKeyResolver extends AbstractPrivateKeyResolver {
         }
 
         return ofNullable(key)
-                       .map(Result::success)
-                       .orElseGet(() -> Result.failure("Private key with ID '%s' not found in Vault".formatted(keyId)));
+                .map(Result::success)
+                .orElseGet(() -> Result.failure("Private key with ID '%s' not found in Vault".formatted(keyId)));
     }
 }

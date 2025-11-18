@@ -65,17 +65,17 @@ public class ProvisionResponsesHandler implements ResponsesHandler<StatusResult<
 
         responses.stream()
                 .map(result -> result.succeeded()
-                                       ? storeProvisionedSecrets(transferProcess.getParticipantContextId(), transferProcess.getId(), result.getContent())
-                                       : toFatalError(result)
+                        ? storeProvisionedSecrets(transferProcess.getParticipantContextId(), transferProcess.getId(), result.getContent())
+                        : toFatalError(result)
                 )
                 .filter(AbstractResult::failed)
                 .reduce(Result::merge)
                 .orElse(Result.success())
                 .onSuccess(v -> {
                     var provisionResponses = responses.stream()
-                                                     .filter(AbstractResult::succeeded)
-                                                     .map(AbstractResult::getContent)
-                                                     .collect(Collectors.toList());
+                            .filter(AbstractResult::succeeded)
+                            .map(AbstractResult::getContent)
+                            .collect(Collectors.toList());
 
                     handleProvisionResponses(transferProcess, provisionResponses);
                 })

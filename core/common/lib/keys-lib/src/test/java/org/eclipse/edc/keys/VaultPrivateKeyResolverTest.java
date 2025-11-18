@@ -41,10 +41,10 @@ class VaultPrivateKeyResolverTest {
     private static final String TEST_SECRET_ALIAS = "test-secret";
     private final Vault vault = mock();
     private final ParticipantVault participantVault = mock();
+    private final String participantContextId = "test-participant";
     private VaultPrivateKeyResolver resolver;
     private Config config;
     private KeyParserRegistry registry;
-    private final String participantContextId = "test-participant";
 
     @BeforeEach
     void setUp() {

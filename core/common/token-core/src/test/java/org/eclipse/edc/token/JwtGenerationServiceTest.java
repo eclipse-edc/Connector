@@ -112,14 +112,14 @@ class JwtGenerationServiceTest {
 
     private RSAKey testKey() throws JOSEException {
         return new RSAKeyGenerator(2048)
-                       .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
-                       .keyID(UUID.randomUUID().toString()) // give the key a unique ID
-                       .generate();
+                .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
+                .keyID(UUID.randomUUID().toString()) // give the key a unique ID
+                .generate();
     }
 
     private TokenDecorator testDecorator() {
         return (tokenParameters) -> tokenParameters.claims("foo", "bar")
-                                            .claims(EXPIRATION_TIME, Date.from(Instant.now().plusSeconds(60)))
-                                            .header("x5t", "some x509CertThumbprint thing");
+                .claims(EXPIRATION_TIME, Date.from(Instant.now().plusSeconds(60)))
+                .header("x5t", "some x509CertThumbprint thing");
     }
 }

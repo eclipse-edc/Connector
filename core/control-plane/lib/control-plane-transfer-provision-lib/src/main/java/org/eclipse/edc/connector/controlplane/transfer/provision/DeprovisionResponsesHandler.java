@@ -48,11 +48,11 @@ public class DeprovisionResponsesHandler implements ResponsesHandler<StatusResul
     @Override
     public boolean handle(TransferProcess transferProcess, List<StatusResult<DeprovisionedResource>> responses) {
         var validationResult = responses.stream()
-                                       .filter(AbstractResult::failed)
-                                       .map(this::toFatalError)
-                                       .filter(AbstractResult::failed)
-                                       .reduce(Result::merge)
-                                       .orElse(Result.success());
+                .filter(AbstractResult::failed)
+                .map(this::toFatalError)
+                .filter(AbstractResult::failed)
+                .reduce(Result::merge)
+                .orElse(Result.success());
 
         if (validationResult.failed()) {
             var message = format("Transitioning transfer process %s failed to deprovision. Errors: \n%s", transferProcess.getId(), validationResult.getFailureDetail());
@@ -61,9 +61,9 @@ public class DeprovisionResponsesHandler implements ResponsesHandler<StatusResul
         }
 
         var deprovisionResponses = responses.stream()
-                                           .filter(AbstractResult::succeeded)
-                                           .map(AbstractResult::getContent)
-                                           .collect(Collectors.toList());
+                .filter(AbstractResult::succeeded)
+                .map(AbstractResult::getContent)
+                .collect(Collectors.toList());
 
         handleDeprovisionResponses(transferProcess, deprovisionResponses);
 
