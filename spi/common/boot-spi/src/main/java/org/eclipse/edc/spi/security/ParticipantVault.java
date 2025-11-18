@@ -18,9 +18,9 @@ import org.eclipse.edc.spi.result.Result;
 
 public interface ParticipantVault {
 
-    String resolveSecret(String participantContextId, String key);
+    String resolveSecret(String vaultPartition, String key);
 
-    Result<Void> storeSecret(String participantContextId, String key, String value);
+    Result<Void> storeSecret(String vaultPartition, String key, String value);
 
-    Result<Void> deleteSecret(String participantContextId, String key);
+    Result<Void> deleteSecret(String vaultPartition, String key);
 }

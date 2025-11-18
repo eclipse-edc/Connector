@@ -20,19 +20,19 @@ import org.eclipse.edc.spi.result.Result;
 public record DefaultParticipantVaultImpl(Vault vault, Monitor monitor) implements ParticipantVault {
 
     @Override
-    public String resolveSecret(String participantContextId, String key) {
+    public String resolveSecret(String vaultPartition, String key) {
         warn("resolve");
         return vault.resolveSecret(key);
     }
 
     @Override
-    public Result<Void> storeSecret(String participantContextId, String key, String value) {
+    public Result<Void> storeSecret(String vaultPartition, String key, String value) {
         warn("store");
         return vault.storeSecret(key, value);
     }
 
     @Override
-    public Result<Void> deleteSecret(String participantContextId, String key) {
+    public Result<Void> deleteSecret(String vaultPartition, String key) {
         warn("delete");
         return vault.deleteSecret(key);
     }
