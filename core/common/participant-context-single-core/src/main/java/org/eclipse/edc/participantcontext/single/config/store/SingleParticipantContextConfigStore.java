@@ -14,28 +14,26 @@
 
 package org.eclipse.edc.participantcontext.single.config.store;
 
+import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
-import org.eclipse.edc.spi.system.configuration.Config;
 import org.jetbrains.annotations.Nullable;
 
 public class SingleParticipantContextConfigStore implements ParticipantContextConfigStore {
 
-    private final String participantContextId;
-    private final Config config;
+    private final ParticipantContextConfiguration config;
 
-    public SingleParticipantContextConfigStore(String participantContextId, Config config) {
-        this.participantContextId = participantContextId;
+    public SingleParticipantContextConfigStore(ParticipantContextConfiguration config) {
         this.config = config;
     }
 
     @Override
-    public void save(String participantContextId, Config config) {
+    public void save(ParticipantContextConfiguration config) {
         throw new UnsupportedOperationException("SingleParticipantContextConfigStore is read-only");
     }
 
     @Override
-    public @Nullable Config get(String participantContextId) {
-        if (this.participantContextId.equals(participantContextId)) {
+    public @Nullable ParticipantContextConfiguration get(String participantContextId) {
+        if (this.config.getParticipantContextId().equals(participantContextId)) {
             return config;
         } else {
             return null;

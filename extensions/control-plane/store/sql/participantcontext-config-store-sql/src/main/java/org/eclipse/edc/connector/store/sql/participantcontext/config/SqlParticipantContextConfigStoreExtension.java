@@ -28,8 +28,6 @@ import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
-import java.time.Clock;
-
 import static org.eclipse.edc.connector.store.sql.participantcontext.config.SqlParticipantContextConfigStoreExtension.NAME;
 
 @Extension(value = NAME)
@@ -52,9 +50,6 @@ public class SqlParticipantContextConfigStoreExtension implements ServiceExtensi
     @Inject
     private SqlSchemaBootstrapper sqlSchemaBootstrapper;
 
-    @Inject
-    private Clock clock;
-
     @Override
     public void initialize(ServiceExtensionContext context) {
         sqlSchemaBootstrapper.addStatementFromResource(dataSourceName, "participant-context-config-schema.sql");
@@ -62,7 +57,7 @@ public class SqlParticipantContextConfigStoreExtension implements ServiceExtensi
 
     @Provider
     public ParticipantContextConfigStore createSqlStore() {
-        return new SqlParticipantContextConfigStore(dataSourceRegistry, dataSourceName, transactionContext, typemanager.getMapper(), queryExecutor, getStatementImpl(), clock);
+        return new SqlParticipantContextConfigStore(dataSourceRegistry, dataSourceName, transactionContext, typemanager.getMapper(), queryExecutor, getStatementImpl());
     }
 
     private ParticipantContextConfigStoreStatements getStatementImpl() {

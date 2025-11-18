@@ -39,6 +39,7 @@ import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.D
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.EDR_ENTRY;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.ID_RESPONSE;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.PARTICIPANT_CONTEXT;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.PARTICIPANT_CONTEXT_CONFIG;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.POLICY_DEFINITION;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.POLICY_EVALUATION_PLAN;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.POLICY_EVALUATION_REQUEST;
@@ -67,6 +68,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE_TERM;
 import static org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry.EDR_ENTRY_TYPE_TERM;
+import static org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration.PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_TYPE_TERM;
 import static org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan.EDC_POLICY_EVALUATION_PLAN_TYPE_TERM;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
@@ -109,6 +111,7 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
             put("TerminateTransfer", TERMINATE_TRANSFER);
             put("SuspendTransfer", SUSPEND_TRANSFER);
             put(PARTICIPANT_CONTEXT_TYPE_TERM, PARTICIPANT_CONTEXT);
+            put(PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM, PARTICIPANT_CONTEXT_CONFIG);
 
 
         }

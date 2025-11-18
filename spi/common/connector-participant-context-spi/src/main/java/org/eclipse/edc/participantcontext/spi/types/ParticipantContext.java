@@ -35,7 +35,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 @JsonDeserialize(builder = ParticipantContext.Builder.class)
 public class ParticipantContext extends AbstractParticipantResource {
     public static final String PARTICIPANT_CONTEXT_TYPE_TERM = "ParticipantContext";
-    public static final String PARTICIPANT_CONTEXT_TYPE_IRI = EDC_NAMESPACE + "ParticipantContext";
+    public static final String PARTICIPANT_CONTEXT_TYPE_IRI = EDC_NAMESPACE + PARTICIPANT_CONTEXT_TYPE_TERM;
     public static final String PARTICIPANT_CONTEXT_PROPERTIES_TERM = "properties";
     public static final String PARTICIPANT_CONTEXT_PROPERTIES_IRI = EDC_NAMESPACE + PARTICIPANT_CONTEXT_PROPERTIES_TERM;
     public static final String PARTICIPANT_CONTEXT_STATE_TERM = "state";

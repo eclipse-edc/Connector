@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.participantcontext.spi.config.store;
 
-import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -28,9 +28,9 @@ public abstract class ParticipantContextConfigStoreTestBase {
     @Test
     protected void save() {
 
-        var config = ConfigFactory.fromMap(Map.of("key1", "value1", "key2", "2"));
+        var config = config();
 
-        getStore().save("participant1", config);
+        getStore().save(config);
 
         assertThat(getStore().get("participant1"))
                 .isNotNull()
@@ -43,27 +43,41 @@ public abstract class ParticipantContextConfigStoreTestBase {
     @Test
     protected void update() {
 
-        var config = ConfigFactory.fromMap(Map.of("key1", "value1", "key2", "2"));
+        var config = config();
 
-        getStore().save("participant1", config);
-
-        assertThat(getStore().get("participant1"))
-                .isNotNull()
-                .satisfies(cfg -> {
-                    assertThat(cfg.getEntries()).containsAllEntriesOf(cfg.getEntries());
-                });
-
-        config = ConfigFactory.fromMap(Map.of("key1", "value1", "key2", "2", "key3", "value3"));
-
-
-        getStore().save("participant1", config);
+        getStore().save(config);
 
         assertThat(getStore().get("participant1"))
                 .isNotNull()
                 .satisfies(cfg -> {
-                    assertThat(cfg.getEntries()).containsAllEntriesOf(cfg.getEntries());
+                    assertThat(config.getEntries()).containsAllEntriesOf(cfg.getEntries());
                 });
 
+        var newConfig = config(Map.of("key1", "value1", "key2", "2", "key3", "value3"));
+
+
+        getStore().save(newConfig);
+
+        assertThat(getStore().get("participant1"))
+                .isNotNull()
+                .satisfies(cfg -> {
+                    assertThat(newConfig.getEntries()).containsAllEntriesOf(cfg.getEntries());
+                });
+
+    }
+
+    private ParticipantContextConfiguration config() {
+        return ParticipantContextConfiguration.Builder.newInstance()
+                .participantContextId("participant1")
+                .entries(Map.of("key1", "value1", "key2", "2", "key3", "value3"))
+                .build();
+    }
+
+    private ParticipantContextConfiguration config(Map<String, String> cfg) {
+        return ParticipantContextConfiguration.Builder.newInstance()
+                .participantContextId("participant1")
+                .entries(cfg)
+                .build();
     }
 
     @Test

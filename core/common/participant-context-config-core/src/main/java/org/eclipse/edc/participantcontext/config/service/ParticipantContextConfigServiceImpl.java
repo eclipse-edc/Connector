@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.participantcontext.config.service;
 
+import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 public class ParticipantContextConfigServiceImpl implements ParticipantContextConfigService {
@@ -31,15 +31,15 @@ public class ParticipantContextConfigServiceImpl implements ParticipantContextCo
     }
 
     @Override
-    public ServiceResult<Void> save(String participantContextId, Config config) {
+    public ServiceResult<Void> save(ParticipantContextConfiguration config) {
         return transactionContext.execute(() -> {
-            configStore.save(participantContextId, config);
+            configStore.save(config);
             return ServiceResult.success();
         });
     }
 
     @Override
-    public ServiceResult<Config> get(String participantContextId) {
+    public ServiceResult<ParticipantContextConfiguration> get(String participantContextId) {
         return transactionContext.execute(() -> {
             var config = configStore.get(participantContextId);
             if (config == null) {

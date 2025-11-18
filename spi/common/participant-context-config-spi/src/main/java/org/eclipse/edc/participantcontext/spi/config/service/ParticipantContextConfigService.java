@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.participantcontext.spi.config.service;
 
+import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.system.configuration.Config;
 
 /**
  * Service for managing participant context configurations.
@@ -25,11 +25,10 @@ public interface ParticipantContextConfigService {
     /**
      * Saves the configuration for a given participant context.
      *
-     * @param participantContextId the participant context identifier
-     * @param config               the configuration to save
+     * @param config the configuration to save
      * @return a ServiceResult indicating success or failure
      */
-    ServiceResult<Void> save(String participantContextId, Config config);
+    ServiceResult<Void> save(ParticipantContextConfiguration config);
 
     /**
      * Retrieves the configuration for a given participant context.
@@ -37,5 +36,5 @@ public interface ParticipantContextConfigService {
      * @param participantContextId the participant context identifier
      * @return a ServiceResult containing the configuration or an error if not found
      */
-    ServiceResult<Config> get(String participantContextId);
+    ServiceResult<ParticipantContextConfiguration> get(String participantContextId);
 }

@@ -26,8 +26,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.time.Clock;
-
 @ComponentTest
 @ExtendWith(PostgresqlStoreSetupExtension.class)
 class SqlParticipantContextConfigStoreTest extends ParticipantContextConfigStoreTestBase {
@@ -39,7 +37,7 @@ class SqlParticipantContextConfigStoreTest extends ParticipantContextConfigStore
     void setup(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) {
         var typeManager = new JacksonTypeManager();
         store = new SqlParticipantContextConfigStore(extension.getDataSourceRegistry(), extension.getDatasourceName(),
-                extension.getTransactionContext(), typeManager.getMapper(), queryExecutor, statements, Clock.systemUTC());
+                extension.getTransactionContext(), typeManager.getMapper(), queryExecutor, statements);
 
         var schema = TestUtils.getResourceFileContentAsString("participant-context-config-schema.sql");
         extension.runQuery(schema);
