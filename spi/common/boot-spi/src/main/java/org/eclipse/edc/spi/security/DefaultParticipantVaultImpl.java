@@ -17,6 +17,13 @@ package org.eclipse.edc.spi.security;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 
+/**
+ * Default implementation of {@link ParticipantVault}, that doesn't actually implement a multi-tenant vault, instead it delegates down
+ * to a {@link Vault} instance. The {@code vaultPartition} parameter is ignored.
+ *
+ * @param vault   The {@link Vault} that is used as backing secret store.
+ * @param monitor The {@link Monitor} that is used to log debug messages, whenever an operation is executed on it.
+ */
 public record DefaultParticipantVaultImpl(Vault vault, Monitor monitor) implements ParticipantVault {
 
     @Override
@@ -38,7 +45,7 @@ public record DefaultParticipantVaultImpl(Vault vault, Monitor monitor) implemen
     }
 
     private void warn(String operation) {
-        monitor.warning("A '%s' operation was executed on the default ParticipantVault. Please consider using an actual multi-user-capable implementation!".formatted(operation));
+        monitor.debug("A '%s' operation was executed on the default ParticipantVault. Please consider using an actual multi-user-capable implementation!".formatted(operation));
     }
 
 }
