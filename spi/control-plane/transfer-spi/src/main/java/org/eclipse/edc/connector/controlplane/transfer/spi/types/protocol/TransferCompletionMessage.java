@@ -36,5 +36,9 @@ public class TransferCompletionMessage extends TransferRemoteMessage {
             return new Builder();
         }
 
+        @Override
+        public Builder self() {
+            return this;
+        }
     }
 }

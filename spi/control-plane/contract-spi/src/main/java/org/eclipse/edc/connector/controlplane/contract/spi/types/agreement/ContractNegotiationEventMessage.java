@@ -55,6 +55,11 @@ public class ContractNegotiationEventMessage extends ContractRemoteMessage {
             return this;
         }
 
+        @Override
+        public Builder self() {
+            return this;
+        }
+
         public ContractNegotiationEventMessage build() {
             Objects.requireNonNull(message.type, "type");
             return super.build();

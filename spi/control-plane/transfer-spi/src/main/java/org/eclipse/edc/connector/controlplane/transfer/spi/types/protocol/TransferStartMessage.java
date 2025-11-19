@@ -43,8 +43,12 @@ public class TransferStartMessage extends TransferRemoteMessage {
 
         public Builder dataAddress(DataAddress dataAddress) {
             message.dataAddress = dataAddress;
-            return this;
+            return self();
         }
 
+        @Override
+        public Builder self() {
+            return this;
+        }
     }
 }

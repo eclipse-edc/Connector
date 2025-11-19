@@ -16,6 +16,7 @@ package org.eclipse.edc.spi.iam;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.types.domain.message.ProtocolRemoteMessage;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 /**
@@ -28,6 +29,6 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 @ExtensionPoint
 public interface AudienceResolver {
 
-    Result<String> resolve(RemoteMessage remoteMessage);
+    Result<String> resolve(ProtocolRemoteMessage remoteMessage);
 
 }

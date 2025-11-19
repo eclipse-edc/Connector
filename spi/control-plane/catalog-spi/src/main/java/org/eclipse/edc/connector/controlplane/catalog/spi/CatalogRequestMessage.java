@@ -19,12 +19,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.message.ProtocolRemoteMessage;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * A request for a participant's {@link Catalog}.
@@ -34,9 +32,6 @@ public class CatalogRequestMessage extends ProtocolRemoteMessage {
 
     private final Policy policy;
     private List<String> additionalScopes = new ArrayList<>();
-    private String protocol = "unknown";
-    private String counterPartyAddress;
-    private String counterPartyId;
     private QuerySpec querySpec;
 
 
@@ -44,29 +39,6 @@ public class CatalogRequestMessage extends ProtocolRemoteMessage {
         // at this time, this is just a placeholder.
         policy = Policy.Builder.newInstance().build();
     }
-
-    @NotNull
-    @Override
-    public String getProtocol() {
-        return protocol;
-    }
-
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
-    }
-
-    @NotNull
-    @Override
-    public String getCounterPartyAddress() {
-        return counterPartyAddress;
-    }
-
-    @NotNull
-    @Override
-    public String getCounterPartyId() {
-        return counterPartyId;
-    }
-
 
     public QuerySpec getQuerySpec() {
         return querySpec;
@@ -85,11 +57,10 @@ public class CatalogRequestMessage extends ProtocolRemoteMessage {
         return additionalScopes;
     }
 
-    public static class Builder {
-        private final CatalogRequestMessage message;
+    public static class Builder extends ProtocolRemoteMessage.Builder<CatalogRequestMessage, Builder> {
 
         private Builder() {
-            message = new CatalogRequestMessage();
+            super(new CatalogRequestMessage());
         }
 
         @JsonCreator
@@ -97,19 +68,18 @@ public class CatalogRequestMessage extends ProtocolRemoteMessage {
             return new CatalogRequestMessage.Builder();
         }
 
-        public CatalogRequestMessage.Builder protocol(String protocol) {
-            this.message.protocol = protocol;
+        @Override
+        public Builder self() {
             return this;
         }
 
-        public CatalogRequestMessage.Builder counterPartyAddress(String callbackAddress) {
-            this.message.counterPartyAddress = callbackAddress;
-            return this;
-        }
+        @Override
+        public CatalogRequestMessage build() {
+            if (message.querySpec == null) {
+                message.querySpec = QuerySpec.none();
+            }
 
-        public CatalogRequestMessage.Builder counterPartyId(String counterPartyId) {
-            this.message.counterPartyId = counterPartyId;
-            return this;
+            return super.build();
         }
 
         public CatalogRequestMessage.Builder querySpec(QuerySpec querySpec) {
@@ -120,16 +90,6 @@ public class CatalogRequestMessage extends ProtocolRemoteMessage {
         public CatalogRequestMessage.Builder additionalScopes(String... additionalScopes) {
             this.message.additionalScopes = Arrays.asList(additionalScopes);
             return this;
-        }
-
-        public CatalogRequestMessage build() {
-            Objects.requireNonNull(message.protocol, "protocol");
-
-            if (message.querySpec == null) {
-                message.querySpec = QuerySpec.none();
-            }
-
-            return message;
         }
 
     }

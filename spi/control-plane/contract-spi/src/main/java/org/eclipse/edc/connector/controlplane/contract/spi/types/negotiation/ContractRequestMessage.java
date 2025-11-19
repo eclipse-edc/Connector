@@ -81,6 +81,11 @@ public class ContractRequestMessage extends ContractRemoteMessage {
             return this;
         }
 
+        @Override
+        public Builder self() {
+            return this;
+        }
+
         public ContractRequestMessage build() {
             if (message.type == Type.INITIAL) {
                 requireNonNull(message.callbackAddress, "callbackAddress");

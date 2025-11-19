@@ -104,7 +104,7 @@ class ProtocolTokenValidatorImplTest {
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
     }
 
-    static class TestMessage implements RemoteMessage {
+    static class TestMessage extends RemoteMessage {
         @Override
         public String getProtocol() {
             return "protocol";
@@ -115,10 +115,6 @@ class ProtocolTokenValidatorImplTest {
             return "http://connector";
         }
 
-        @Override
-        public String getCounterPartyId() {
-            return null;
-        }
     }
 
     private static class TestRequestPolicyContext extends RequestPolicyContext {

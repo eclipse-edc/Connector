@@ -101,6 +101,11 @@ class DspRequestHandlerImplTest {
             public static Builder newInstance() {
                 return new Builder();
             }
+
+            @Override
+            public Builder self() {
+                return this;
+            }
         }
     }
 
