@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.transform.edc.transferprocess.to;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
@@ -24,9 +25,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
+import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATAPLANE_METADATA;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROTOCOL;
@@ -54,14 +57,15 @@ class JsonObjectToTransferRequestTransformerTest {
 
     @Test
     void transform() {
-        var dataDestinationJson = Json.createObjectBuilder().build();
-        var privatePropertiesJson = Json.createObjectBuilder().add("fooPrivate", "bar").build();
+        var dataDestinationJson = createObjectBuilder().build();
+        var privatePropertiesJson = createObjectBuilder().add("fooPrivate", "bar").build();
         var dataDestination = DataAddress.Builder.newInstance().type("type").build();
         var privateProperties = Map.of("fooPrivate", "bar");
-
         when(context.transform(any(), eq(DataAddress.class))).thenReturn(dataDestination);
+        var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().label("label").build();
+        when(context.transform(any(), eq(DataplaneMetadata.class))).thenReturn(dataplaneMetadata);
 
-        var json = Json.createObjectBuilder()
+        var json = createObjectBuilder()
                 .add(TYPE, TRANSFER_REQUEST_TYPE)
                 .add(ID, "id")
                 .add(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS, "address")
@@ -70,6 +74,8 @@ class JsonObjectToTransferRequestTransformerTest {
                 .add(TRANSFER_REQUEST_PRIVATE_PROPERTIES, privatePropertiesJson)
                 .add(TRANSFER_REQUEST_TRANSFER_TYPE, "Http-Pull")
                 .add(TRANSFER_REQUEST_PROTOCOL, "protocol")
+                .add(TRANSFER_REQUEST_DATAPLANE_METADATA, createObjectBuilder()
+                        .add("labels", Json.createArrayBuilder().add("label")))
                 .build();
 
         var result = transformer.transform(json, context);
@@ -82,6 +88,7 @@ class JsonObjectToTransferRequestTransformerTest {
         assertThat(result.getPrivateProperties()).containsAllEntriesOf(privateProperties);
         assertThat(result.getProtocol()).isEqualTo("protocol");
         assertThat(result.getTransferType()).isEqualTo("Http-Pull");
+        assertThat(result.getDataplaneMetadata()).isSameAs(dataplaneMetadata);
     }
 
     @Test
@@ -89,7 +96,7 @@ class JsonObjectToTransferRequestTransformerTest {
 
         when(context.problem()).thenReturn(new ProblemBuilder(context));
 
-        var json = Json.createObjectBuilder()
+        var json = createObjectBuilder()
                 .add(TYPE, TRANSFER_REQUEST_TYPE)
                 .add(ID, "id")
                 .add(TRANSFER_REQUEST_PRIVATE_PROPERTIES, 1)

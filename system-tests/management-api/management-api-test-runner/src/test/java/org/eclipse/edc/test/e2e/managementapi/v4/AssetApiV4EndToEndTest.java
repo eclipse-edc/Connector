@@ -93,8 +93,8 @@ public class AssetApiV4EndToEndTest {
             assertThat(body.getMap("'dataAddress'.'complex'.'nested'"))
                     .containsEntry("innerValue", "value");
             assertThat(body.getMap("'dataplaneMetadata'"))
-                    .containsEntry("labels", "label")
-                    .containsEntry("properties", Map.of("property", "value"));
+                    .containsEntry("labels", List.of("label"))
+                    .containsEntry("properties", Map.of("edc:property", "value"));
         }
 
         @Test

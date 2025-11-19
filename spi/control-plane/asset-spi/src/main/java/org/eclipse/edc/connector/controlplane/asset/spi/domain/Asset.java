@@ -55,7 +55,7 @@ public class Asset extends AbstractParticipantResource {
     public static final String EDC_ASSET_DATAPLANE_METADATA = EDC_NAMESPACE + "dataplaneMetadata";
     private final Map<String, Object> properties = new HashMap<>();
     private final Map<String, Object> privateProperties = new HashMap<>();
-    private DataplaneMetadata dataplaneMetadata = DataplaneMetadata.Builder.newInstance().build();
+    private DataplaneMetadata dataplaneMetadata;
     private DataAddress dataAddress;
 
     private Asset() {
