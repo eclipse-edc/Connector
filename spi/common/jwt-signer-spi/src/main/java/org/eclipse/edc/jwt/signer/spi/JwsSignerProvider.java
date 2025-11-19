@@ -22,7 +22,21 @@ import org.eclipse.edc.spi.result.Result;
  * A JwsSignerProvider provides a {@link JWSSigner} for a given private key ID.
  */
 @ExtensionPoint
-@FunctionalInterface
 public interface JwsSignerProvider {
+    /**
+     * Creates a {@link JWSSigner} for the given private key ID.
+     *
+     * @param privateKeyId The ID of the private key, used for key lookup, e.g., in a secure vault
+     * @deprecated Please use {@link #createJwsSigner(String, String)} instead.
+     */
+    @Deprecated
     Result<JWSSigner> createJwsSigner(String privateKeyId);
+
+    /**
+     * Creates a {@link JWSSigner} for the given private key ID.
+     *
+     * @param participantContextId The ID of the participant context. Might be used to determine the lookup path or location
+     * @param privateKeyId         The ID of the private key, used for key lookup, e.g., in a secure vault
+     */
+    Result<JWSSigner> createJwsSigner(String participantContextId, String privateKeyId);
 }

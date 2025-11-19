@@ -55,7 +55,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
-import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.security.ParticipantVault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
@@ -144,7 +144,7 @@ class TransferProcessManagerImplTest {
     private final TransferProcessStore transferProcessStore = mock();
     private final PolicyArchive policyArchive = mock();
     private final DataFlowManager dataFlowManager = mock();
-    private final Vault vault = mock();
+    private final ParticipantVault vault = mock();
     private final Clock clock = Clock.systemUTC();
     private final TransferProcessListener listener = mock();
     private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
@@ -414,15 +414,15 @@ class TransferProcessManagerImplTest {
     }
 
     private Criterion[] consumerStateIs(int state) {
-        return aryEq(new Criterion[]{hasState(state), isNotPending(), criterion("type", "=", CONSUMER.name())});
+        return aryEq(new Criterion[]{ hasState(state), isNotPending(), criterion("type", "=", CONSUMER.name()) });
     }
 
     private Criterion[] providerStateIs(int state) {
-        return aryEq(new Criterion[]{hasState(state), isNotPending(), criterion("type", "=", PROVIDER.name())});
+        return aryEq(new Criterion[]{ hasState(state), isNotPending(), criterion("type", "=", PROVIDER.name()) });
     }
 
     private Criterion[] stateIs(int state) {
-        return aryEq(new Criterion[]{hasState(state), isNotPending()});
+        return aryEq(new Criterion[]{ hasState(state), isNotPending() });
     }
 
     private TransferProcess createTransferProcess(TransferProcessStates inState) {
@@ -913,7 +913,7 @@ class TransferProcessManagerImplTest {
             manager.start();
 
             await().untilAsserted(() -> {
-                verify(vault).storeSecret("keyName", "secret");
+                verify(vault).storeSecret(anyString(), eq("keyName"), eq("secret"));
                 verify(transferProcessStore).save(any());
             });
         }
@@ -948,7 +948,7 @@ class TransferProcessManagerImplTest {
             when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
             when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
-            when(vault.resolveSecret(any())).thenReturn(null);
+            when(vault.resolveSecret(anyString(), any())).thenReturn(null);
 
             manager.start();
 
@@ -978,7 +978,7 @@ class TransferProcessManagerImplTest {
             when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
             when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
-            when(vault.resolveSecret(any())).thenReturn("secret");
+            when(vault.resolveSecret(anyString(), any())).thenReturn("secret");
 
             manager.start();
 
@@ -987,7 +987,7 @@ class TransferProcessManagerImplTest {
                 verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(TransferProcessAck.class), captor.capture());
                 verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == REQUESTED.code()));
                 verify(listener).requested(process);
-                verify(vault).resolveSecret("keyName");
+                verify(vault).resolveSecret(anyString(), eq("keyName"));
                 var requestMessage = captor.getValue();
                 assertThat(requestMessage.getDataDestination().getStringProperty(EDC_DATA_ADDRESS_SECRET)).isEqualTo("secret");
             });

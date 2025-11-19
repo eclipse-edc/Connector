@@ -24,7 +24,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.security.ParticipantVault;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,10 +47,10 @@ public class ProvisionResponsesHandler implements ResponsesHandler<StatusResult<
 
     private final TransferProcessObservable observable;
     private final Monitor monitor;
-    private final Vault vault;
+    private final ParticipantVault vault;
     private final TypeManager typeManager;
 
-    public ProvisionResponsesHandler(TransferProcessObservable observable, Monitor monitor, Vault vault, TypeManager typeManager) {
+    public ProvisionResponsesHandler(TransferProcessObservable observable, Monitor monitor, ParticipantVault vault, TypeManager typeManager) {
         this.observable = observable;
         this.monitor = monitor;
         this.vault = vault;
@@ -65,7 +65,7 @@ public class ProvisionResponsesHandler implements ResponsesHandler<StatusResult<
 
         responses.stream()
                 .map(result -> result.succeeded()
-                        ? storeProvisionedSecrets(transferProcess.getId(), result.getContent())
+                        ? storeProvisionedSecrets(transferProcess.getParticipantContextId(), transferProcess.getId(), result.getContent())
                         : toFatalError(result)
                 )
                 .filter(AbstractResult::failed)
@@ -140,14 +140,14 @@ public class ProvisionResponsesHandler implements ResponsesHandler<StatusResult<
     }
 
     @NotNull
-    private Result<Void> storeProvisionedSecrets(String transferProcessId, ProvisionResponse response) {
+    private Result<Void> storeProvisionedSecrets(String participantContextId, String transferProcessId, ProvisionResponse response) {
         var resource = response.getResource();
 
         if (resource instanceof ProvisionedDataAddressResource dataAddressResource) {
             var secretToken = response.getSecretToken();
             if (secretToken != null) {
                 var keyName = dataAddressResource.getResourceName();
-                var secretResult = vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
+                var secretResult = vault.storeSecret(participantContextId, keyName, typeManager.writeValueAsString(secretToken));
                 if (secretResult.failed()) {
                     return Result.failure(format("Error storing secret in vault with key %s for transfer process %s: \n %s",
                             keyName, transferProcessId, join("\n", secretResult.getFailureMessages())));
