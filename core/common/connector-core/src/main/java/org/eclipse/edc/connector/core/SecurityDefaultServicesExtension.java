@@ -58,7 +58,7 @@ public class SecurityDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public PrivateKeyResolver privateKeyResolver(ServiceExtensionContext context) {
         if (privateKeyResolver == null) {
-            privateKeyResolver = new VaultPrivateKeyResolver(keyParserRegistry(context), participantVault, context.getMonitor().withPrefix("PrivateKeyResolution"), context.getConfig(), vault);
+            privateKeyResolver = new VaultPrivateKeyResolver(keyParserRegistry(context), participantVault, context.getMonitor().withPrefix("PrivateKeyResolution"), context.getConfig());
         }
         return privateKeyResolver;
     }

@@ -15,6 +15,7 @@
 package org.eclipse.edc.spi.security;
 
 import org.eclipse.edc.spi.result.Result;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Provides secure storage for secrets. Each secret is identified by a key and must be provided in serialized form.
@@ -26,29 +27,32 @@ public interface ParticipantVault {
     /**
      * Get the secret from the vault.s
      *
-     * @param vaultPartition The vault partition to use, for example, a participant context ID.
+     * @param vaultPartition The vault partition to use, for example, a participant context ID. This might be null, which
+     *                       indicates that the secret is supposed to be stored in a "default partition".
      * @param key            The name of the secret. Must be unique within a vault partition.
      * @return The (serialized) secret value or null if not found.
      */
-    String resolveSecret(String vaultPartition, String key);
+    String resolveSecret(@Nullable String vaultPartition, String key);
 
     /**
      * Store a secret in the vault within the given vault partition.
      *
-     * @param vaultPartition The vault partition to use, for example, a participant context ID.
+     * @param vaultPartition The vault partition to use, for example, a participant context ID. This might be null, which
+     *                       indicates that the secret is supposed to be stored in a "default partition".
      * @param key            The name of the secret. Must be unique within a vault partition.
      * @param value          The (serialized) secret value.
      * @return A {@link Result} indicating success or failure.
      */
-    Result<Void> storeSecret(String vaultPartition, String key, String value);
+    Result<Void> storeSecret(@Nullable String vaultPartition, String key, String value);
 
     /**
      * Delete a secret from the vault from the given vault partition. Note that in some vaults, deletion is a long-running asynchronous operation.
      * This method call must return immediately and not wait for the async operation.
      *
-     * @param vaultPartition The vault partition to use, for example, a participant context ID.
+     * @param vaultPartition The vault partition to use, for example, a participant context ID. This might be null, which
+     *                       indicates that the secret is supposed to be stored in a "default partition".
      * @param key            The name of the secret. Must be unique within a vault partition.
      * @return A {@link Result} indicating success or failure.
      */
-    Result<Void> deleteSecret(String vaultPartition, String key);
+    Result<Void> deleteSecret(@Nullable String vaultPartition, String key);
 }

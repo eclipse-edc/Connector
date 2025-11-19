@@ -17,7 +17,6 @@ package org.eclipse.edc.keys;
 import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.ParticipantVault;
-import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,7 +38,6 @@ import static org.mockito.Mockito.when;
 class VaultPrivateKeyResolverTest {
 
     private static final String TEST_SECRET_ALIAS = "test-secret";
-    private final Vault vault = mock();
     private final ParticipantVault participantVault = mock();
     private final String participantContextId = "test-participant";
     private VaultPrivateKeyResolver resolver;
@@ -51,7 +49,7 @@ class VaultPrivateKeyResolverTest {
         config = mock();
         registry = mock();
         when(registry.parse(any())).thenReturn(Result.failure("foo"));
-        resolver = new VaultPrivateKeyResolver(registry, participantVault, mock(), config, vault);
+        resolver = new VaultPrivateKeyResolver(registry, participantVault, mock(), config);
     }
 
     @Test
@@ -62,7 +60,7 @@ class VaultPrivateKeyResolverTest {
 
         assertThat(result).isNotNull();
         verify(participantVault, atLeastOnce()).resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS));
-        verifyNoMoreInteractions(participantVault, vault);
+        verifyNoMoreInteractions(participantVault);
     }
 
     @Test
@@ -84,7 +82,7 @@ class VaultPrivateKeyResolverTest {
         assertThat(result).isSucceeded().isNotNull().isInstanceOf(RSAPrivateKey.class);
 
         verify(participantVault, atLeastOnce()).resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS));
-        verifyNoMoreInteractions(participantVault, vault);
+        verifyNoMoreInteractions(participantVault);
     }
 
 
@@ -97,7 +95,7 @@ class VaultPrivateKeyResolverTest {
                 .detail()
                 .isEqualTo("foo");
         verify(participantVault, atLeastOnce()).resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS));
-        verifyNoMoreInteractions(participantVault, vault);
+        verifyNoMoreInteractions(participantVault);
     }
 
     @Test

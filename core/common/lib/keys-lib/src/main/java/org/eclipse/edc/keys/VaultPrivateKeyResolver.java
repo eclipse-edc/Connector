@@ -18,7 +18,6 @@ import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.ParticipantVault;
-import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,24 +32,17 @@ import static java.util.Optional.ofNullable;
 public class VaultPrivateKeyResolver extends AbstractPrivateKeyResolver {
 
     private final ParticipantVault participantVault;
-    private final Vault fallbackVault;
 
-    public VaultPrivateKeyResolver(KeyParserRegistry registry, ParticipantVault participantVault, Monitor monitor, Config config, Vault fallbackVault) {
+    public VaultPrivateKeyResolver(KeyParserRegistry registry, ParticipantVault participantVault, Monitor monitor, Config config) {
         super(registry, config, monitor);
         this.participantVault = participantVault;
-        this.fallbackVault = fallbackVault;
     }
 
     @NotNull
     @Override
     protected Result<String> resolveInternal(String participantContextId, String keyId) {
 
-        String key;
-        if (participantContextId == null) {
-            key = fallbackVault.resolveSecret(keyId);
-        } else {
-            key = participantVault.resolveSecret(participantContextId, keyId);
-        }
+        var key = participantVault.resolveSecret(participantContextId, keyId);
 
         return ofNullable(key)
                 .map(Result::success)
