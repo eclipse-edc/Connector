@@ -3467,8 +3467,6 @@ components:
       allOf:
       - $ref: "#/components/schemas/DataplaneMetadata"
     DataplaneMetadata:
-      required:
-      - '@type'
       type: object
       properties:
         '@type':
@@ -4496,6 +4494,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/callback-address-schema"
+        dataplaneMetadata:
+          $ref: "#/components/schemas/dataplane-metadata-schema"
     callback-address-schema:
       title: CallbackAddressSchema
       type: object
@@ -4601,6 +4601,12 @@ components:
         type: CONSUMER
         '@context': {}
         assetId: assetId
+        dataplaneMetadata:
+          '@type': '@type'
+          properties: "{}"
+          labels:
+          - labels
+          - labels
         callbackAddresses:
         - authKey: authKey
           '@type': '@type'
@@ -4674,6 +4680,8 @@ components:
           type: string
         dataDestination:
           $ref: "#/components/schemas/data-address-schema"
+        dataplaneMetadata:
+          $ref: "#/components/schemas/dataplane-metadata-schema"
     secret-schema:
       title: SecretSchema
       type: object
