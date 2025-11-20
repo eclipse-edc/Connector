@@ -76,6 +76,8 @@ include(":core:data-plane-selector:data-plane-selector-core")
 
 include(":core:policy-monitor:policy-monitor-core")
 
+// data plane signaling
+include(":data-protocols:data-plane-signaling")
 
 // modules that provide implementations for data ingress/egress ------------------------------------
 include(":data-protocols:dsp:dsp-spi")
@@ -314,24 +316,25 @@ include(":spi:policy-monitor:policy-monitor-spi")
 include(":tests:junit-base")
 
 // modules for system tests ------------------------------------------------------------------------
+include(":system-tests:bom-tests")
+include(":system-tests:dcp-tck-tests:presentation")
+include(":system-tests:dsp-compatibility-tests:compatibility-test-runner")
+include(":system-tests:dsp-compatibility-tests:connector-under-test")
+include(":system-tests:e2e-dataplane-tests:runtimes:data-plane")
+include(":system-tests:e2e-dataplane-tests:tests")
 include(":system-tests:e2e-transfer-test:control-plane")
 include(":system-tests:e2e-transfer-test:data-plane")
 include(":system-tests:e2e-transfer-test:runner")
-include(":system-tests:e2e-dataplane-tests:runtimes:data-plane")
-include(":system-tests:e2e-dataplane-tests:tests")
+include(":system-tests:e2e-transfer-test:signaling-data-plane")
 include(":system-tests:management-api:management-api-test-runner")
 include(":system-tests:management-api:management-api-test-runtime")
-include(":system-tests:version-api:version-api-test-runtime")
-include(":system-tests:version-api:version-api-test-runner")
-include(":system-tests:protocol-test")
 include(":system-tests:protocol-2025-test")
+include(":system-tests:protocol-tck:tck-extension")
+include(":system-tests:protocol-test")
 include(":system-tests:telemetry:telemetry-test-runner")
 include(":system-tests:telemetry:telemetry-test-runtime")
-include(":system-tests:bom-tests")
-include(":system-tests:dsp-compatibility-tests:connector-under-test")
-include(":system-tests:dsp-compatibility-tests:compatibility-test-runner")
-include(":system-tests:protocol-tck:tck-extension")
-include(":system-tests:dcp-tck-tests:presentation")
+include(":system-tests:version-api:version-api-test-runner")
+include(":system-tests:version-api:version-api-test-runtime")
 
 // BOM modules ----------------------------------------------------------------
 include(":dist:bom:controlplane-base-bom")

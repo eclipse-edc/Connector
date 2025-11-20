@@ -165,12 +165,12 @@ public class EmbeddedDataPlaneSelectorServiceTest {
     }
 
     @Nested
-    class AddInstance {
+    class Register {
         @Test
         void shouldSaveRegisteredInstance() {
             var instance = DataPlaneInstance.Builder.newInstance().url("http://any").build();
 
-            var result = service.addInstance(instance);
+            var result = service.register(instance);
 
             assertThat(result).isSucceeded();
             verify(store).save(argThat(it -> it.getState() == REGISTERED.code()));
@@ -197,6 +197,35 @@ public class EmbeddedDataPlaneSelectorServiceTest {
             var result = service.unregister(UUID.randomUUID().toString());
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            verify(store, never()).save(any());
+        }
+    }
+
+    @Nested
+    class Update {
+        @Test
+        void shouldUpdateInstance() {
+            var id = UUID.randomUUID().toString();
+            var storedInstance = DataPlaneInstance.Builder.newInstance().id(id).url("http://any").build();
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(storedInstance));
+            when(store.save(any())).thenReturn(StoreResult.success());
+            var instance = DataPlaneInstance.Builder.newInstance().id(id).url("http://new-endpoint").build();
+
+            var result = service.update(instance);
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(i -> i.getUrl().toString().equals("http://new-endpoint")));
+        }
+
+        @Test
+        void shouldFail_whenFindByFails() {
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.notFound("not found"));
+            var id = UUID.randomUUID().toString();
+            var instance = DataPlaneInstance.Builder.newInstance().id(id).url("http://any").build();
+
+            var result = service.update(instance);
+
+            assertThat(result).isFailed();
             verify(store, never()).save(any());
         }
     }
