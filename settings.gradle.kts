@@ -265,6 +265,7 @@ include(":launchers:dpf-selector")
 
 // extension points for a connector ----------------------------------------------------------------
 include(":spi:common:auth-spi")
+include(":spi:common:encryption-spi")
 include(":spi:common:boot-spi")
 include(":spi:common:core-spi")
 include(":spi:common:connector-participant-context-spi")

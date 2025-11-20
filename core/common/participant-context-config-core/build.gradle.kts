@@ -19,6 +19,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:participant-context-config-spi"))
+    implementation(project(":spi:common:encryption-spi"))
     implementation(project(":spi:common:transaction-spi"))
     implementation(project(":core:common:lib:store-lib"))
 

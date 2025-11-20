@@ -27,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration.PARTICIPANT_CONTEXT_CONFIG_ENTRIES_IRI;
+import static org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration.PARTICIPANT_CONTEXT_CONFIG_PRIVATE_ENTRIES_IRI;
 import static org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration.PARTICIPANT_CONTEXT_CONFIG_TYPE_IRI;
 import static org.mockito.Mockito.mock;
 
@@ -47,6 +48,7 @@ class JsonObjectFromParticipantContextConfigurationTransformerTest {
         var config = ParticipantContextConfiguration.Builder.newInstance()
                 .participantContextId("participant-1")
                 .entries(Map.of("key1", "value1", "key2", "value2"))
+                .privateEntries(Map.of("key1", "privateValue1", "key2", "privateValue2"))
                 .build();
 
         var result = transformer.transform(config, context);
@@ -58,6 +60,11 @@ class JsonObjectFromParticipantContextConfigurationTransformerTest {
         assertThat(properties).isNotNull();
         assertThat(properties.getString("key1")).isEqualTo("value1");
         assertThat(properties.getString("key2")).isEqualTo("value2");
+
+        var privateProperties = result.getJsonObject(PARTICIPANT_CONTEXT_CONFIG_PRIVATE_ENTRIES_IRI).getJsonObject(VALUE);
+        assertThat(privateProperties).isNotNull();
+        assertThat(privateProperties.getString("key1")).isEqualTo("privateValue1");
+        assertThat(privateProperties.getString("key2")).isEqualTo("privateValue2");
     }
 
     @Test

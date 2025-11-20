@@ -30,12 +30,15 @@ public class ParticipantContextConfiguration implements ParticipantResource {
     public static final String PARTICIPANT_CONTEXT_CONFIG_TYPE_IRI = EDC_NAMESPACE + PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM;
     public static final String PARTICIPANT_CONTEXT_CONFIG_ENTRIES_TERM = "entries";
     public static final String PARTICIPANT_CONTEXT_CONFIG_ENTRIES_IRI = EDC_NAMESPACE + PARTICIPANT_CONTEXT_CONFIG_ENTRIES_TERM;
+    public static final String PARTICIPANT_CONTEXT_CONFIG_PRIVATE_ENTRIES_TERM = "privateEntries";
+    public static final String PARTICIPANT_CONTEXT_CONFIG_PRIVATE_ENTRIES_IRI = EDC_NAMESPACE + PARTICIPANT_CONTEXT_CONFIG_PRIVATE_ENTRIES_TERM;
 
     protected String participantContextId;
     protected Clock clock;
     protected long createdAt;
     private long lastModified;
     private Map<String, String> entries = new HashMap<>();
+    private Map<String, String> privateEntries = new HashMap<>();
 
     @Override
     public String getParticipantContextId() {
@@ -45,6 +48,10 @@ public class ParticipantContextConfiguration implements ParticipantResource {
     @NotNull
     public Map<String, String> getEntries() {
         return entries;
+    }
+
+    public Map<String, String> getPrivateEntries() {
+        return privateEntries;
     }
 
     public long getCreatedAt() {
@@ -97,6 +104,16 @@ public class ParticipantContextConfiguration implements ParticipantResource {
 
         public Builder entries(Map<String, String> entries) {
             configuration.entries = entries;
+            return this;
+        }
+
+        public Builder privateEntries(Map<String, String> privateEntries) {
+            configuration.privateEntries = privateEntries;
+            return this;
+        }
+
+        public Builder privateEntry(String key, String value) {
+            configuration.privateEntries.put(key, value);
             return this;
         }
 

@@ -175,6 +175,13 @@ public class TestFunctions {
                         .add("version", TEST_ASSET_VERSION)
                         .add("contenttype", TEST_ASSET_CONTENTTYPE)
                         .build())
+                .add("privateEntries", createObjectBuilder()
+                        .add("name", TEST_ASSET_NAME)
+                        .add("id", TEST_ASSET_ID)
+                        .add("description", TEST_ASSET_DESCRIPTION)
+                        .add("version", TEST_ASSET_VERSION)
+                        .add("contenttype", TEST_ASSET_CONTENTTYPE)
+                        .build())
                 .build();
     }
 

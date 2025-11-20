@@ -14,20 +14,30 @@
 
 package org.eclipse.edc.participantcontext.config;
 
+import org.eclipse.edc.encryption.EncryptionService;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
+import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
+import java.util.Map;
+import java.util.function.Function;
+
+import static java.lang.String.format;
+
 public class ParticipantContextConfigImpl implements ParticipantContextConfig {
 
 
+    private final EncryptionService encryptionService;
     private final ParticipantContextConfigStore configStore;
     private final TransactionContext transactionContext;
 
-    public ParticipantContextConfigImpl(ParticipantContextConfigStore configStore, TransactionContext transactionContext) {
+
+    public ParticipantContextConfigImpl(EncryptionService encryptionService, ParticipantContextConfigStore configStore, TransactionContext transactionContext) {
+        this.encryptionService = encryptionService;
         this.configStore = configStore;
         this.transactionContext = transactionContext;
     }
@@ -73,13 +83,29 @@ public class ParticipantContextConfigImpl implements ParticipantContextConfig {
         return config(participantContextId).getBoolean(key, defaultValue);
     }
 
+    @Override
+    public String getStringSensitive(String participantContextId, String key) {
+        var encryptedValue = privateConfig(participantContextId).getString(key);
+        return encryptionService.decrypt(encryptedValue)
+                .orElseThrow(f -> new EdcException(format("Failed to decrypt sensitive config value for key %s and participant context %s", key, participantContextId)));
+    }
+
     private Config config(String participantContextId) {
+        return fetchConfig(participantContextId, ParticipantContextConfiguration::getEntries);
+
+    }
+
+    private Config privateConfig(String participantContextId) {
+        return fetchConfig(participantContextId, ParticipantContextConfiguration::getPrivateEntries);
+    }
+
+    private Config fetchConfig(String participantContextId, Function<ParticipantContextConfiguration, Map<String, String>> supplier) {
         return transactionContext.execute(() -> {
             var cfg = configStore.get(participantContextId);
             if (cfg == null) {
                 throw new EdcException("No configuration found for participant context " + participantContextId);
             }
-            return ConfigFactory.fromMap(cfg.getEntries());
+            return ConfigFactory.fromMap(supplier.apply(cfg));
         });
     }
 
