@@ -479,6 +479,10 @@
         "entries": {
           "@id": "edc:entries",
           "@type": "@json"
+        },
+        "privateEntries": {
+          "@id": "edc:privateEntries",
+          "@type": "@json"
         }
       }
     },
