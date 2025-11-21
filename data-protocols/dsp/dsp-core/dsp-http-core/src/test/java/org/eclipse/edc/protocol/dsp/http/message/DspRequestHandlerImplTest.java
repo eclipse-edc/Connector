@@ -141,7 +141,7 @@ class DspRequestHandlerImplTest {
             when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
             var request = GetDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class, TestError.class)
                     .token("token")
-                    .id("id")
+                    .processId("id")
                     .serviceCall(serviceCall)
                     .protocol(protocol)
                     .errorProvider(TestError.Builder::newInstance)
@@ -257,7 +257,7 @@ class DspRequestHandlerImplTest {
         private GetDspRequest.Builder<TestProcessRemoteMessage, Object, TestError> getDspRequestBuilder() {
             return GetDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class, TestError.class)
                     .token("token")
-                    .id("id")
+                    .processId("id")
                     .serviceCall((ctx, i, c) -> ServiceResult.success())
                     .errorProvider(TestError.Builder::newInstance)
                     .participantContextProvider(participantContextSupplier)

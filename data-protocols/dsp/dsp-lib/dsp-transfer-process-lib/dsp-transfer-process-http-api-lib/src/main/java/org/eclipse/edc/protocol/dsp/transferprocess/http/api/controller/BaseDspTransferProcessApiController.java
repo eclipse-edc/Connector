@@ -78,10 +78,11 @@ public abstract class BaseDspTransferProcessApiController {
     @GET
     @Path("/{id}")
     public Response getTransferProcess(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
+        var message = TransferRequestMessage.Builder.newInstance().protocol(protocol).processId(id).build();
         var request = GetDspRequest.Builder.newInstance(TransferRequestMessage.class, TransferProcess.class, TransferError.class)
-                .id(id)
+                .message(message)
                 .token(token)
-                .serviceCall((ctx, tp, tr) -> protocolService.findById(ctx, tp.getId(), tr, protocol))
+                .serviceCall(protocolService::findById)
                 .protocol(protocol)
                 .errorProvider(TransferError.Builder::newInstance)
                 .participantContextProvider(participantContextSupplier)

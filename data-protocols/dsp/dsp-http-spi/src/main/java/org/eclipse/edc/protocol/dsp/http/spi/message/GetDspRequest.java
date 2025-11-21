@@ -21,15 +21,25 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 public class GetDspRequest<I extends RemoteMessage, R, E extends ErrorMessage> extends DspRequest<I, R, E> {
 
-    private String id;
+    private I message;
+    private String processId;
+    private String expectedMessageType;
     private boolean authRequired = true;
 
     private GetDspRequest(Class<I> messageClass, Class<R> resultClass, Class<E> errorClass) {
         super(messageClass, resultClass, errorClass);
     }
 
-    public String getId() {
-        return id;
+    public I getMessage() {
+        return message;
+    }
+
+    public String getProcessId() {
+        return processId;
+    }
+
+    public String getExpectedMessageType() {
+        return expectedMessageType;
     }
     
     public boolean isAuthRequired() {
@@ -46,8 +56,18 @@ public class GetDspRequest<I extends RemoteMessage, R, E extends ErrorMessage> e
             return new Builder<>(inputClass, resultClass, errorClass);
         }
 
-        public Builder<I, R, E> id(String id) {
-            super.message.id = id;
+        public Builder<I, R, E> message(I message) {
+            super.message.message = message;
+            return this;
+        }
+
+        public Builder<I, R, E> processId(String processId) {
+            super.message.processId = processId;
+            return this;
+        }
+
+        public Builder<I, R, E> expectedMessageType(String expectedMessageType) {
+            super.message.expectedMessageType = expectedMessageType;
             return this;
         }
         

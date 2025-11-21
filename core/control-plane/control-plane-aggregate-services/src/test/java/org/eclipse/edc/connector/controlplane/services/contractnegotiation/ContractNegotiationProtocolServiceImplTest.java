@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Schaeffler AG
  *
  */
 
@@ -295,7 +296,18 @@ class ContractNegotiationProtocolServiceImplTest {
         when(store.findById(id)).thenReturn(negotiation);
         when(validationService.validateRequest(participantAgent, negotiation)).thenReturn(Result.success());
 
-        var result = service.findById(participantContext, id, tokenRepresentation, "protocol");
+        var message = ContractRequestMessage.Builder.newInstance()
+                .protocol("protocol")
+                .id(id)
+                .contractOffer(
+                        ContractOffer.Builder.newInstance()
+                                .policy(
+                                        Policy.Builder.newInstance().build()
+                                ).assetId("assetID")
+                                .id("offerID")
+                        .build())
+                .build();
+        var result = service.findById(participantContext, message, tokenRepresentation);
 
         assertThat(result)
                 .isSucceeded()
@@ -309,7 +321,18 @@ class ContractNegotiationProtocolServiceImplTest {
                 .thenReturn(ServiceResult.success(participantAgent()));
         when(store.findById(any())).thenReturn(null);
 
-        var result = service.findById(participantContext, "invalidId", tokenRepresentation, "protocol");
+        var message = ContractRequestMessage.Builder.newInstance()
+                .protocol("protocol")
+                .id("invalidId")
+                .contractOffer(
+                        ContractOffer.Builder.newInstance()
+                                .policy(
+                                        Policy.Builder.newInstance().build()
+                                ).assetId("assetID")
+                                .id("offerID")
+                                .build())
+                .build();
+        var result = service.findById(participantContext, message, tokenRepresentation);
 
         assertThat(result)
                 .isFailed()
@@ -331,7 +354,11 @@ class ContractNegotiationProtocolServiceImplTest {
         when(store.findById(id)).thenReturn(negotiation);
         when(validationService.validateRequest(participantAgent, negotiation)).thenReturn(Result.failure("validation error"));
 
-        var result = service.findById(participantContext, id, tokenRepresentation, "protocol");
+        var message = ContractRequestMessage.Builder.newInstance().id(id).protocol("protocol")
+                .contractOffer(ContractOffer.Builder.newInstance().assetId("assetId").policy(Policy.Builder.newInstance().build()).id("offerId").build())
+                .build();
+
+        var result = service.findById(participantContext, message, tokenRepresentation);
 
         assertThat(result)
                 .isFailed()

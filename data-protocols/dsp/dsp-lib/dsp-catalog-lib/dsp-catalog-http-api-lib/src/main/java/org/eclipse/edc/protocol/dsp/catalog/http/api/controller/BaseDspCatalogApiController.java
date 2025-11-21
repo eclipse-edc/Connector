@@ -94,10 +94,11 @@ public abstract class BaseDspCatalogApiController {
     @GET
     @Path(DATASET_REQUEST + "/{id}")
     public Response getDataset(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
+        var message = DatasetRequestMessage.Builder.newInstance().datasetId(id).protocol(protocol).build();
         var request = GetDspRequest.Builder.newInstance(DatasetRequestMessage.class, Dataset.class, CatalogError.class)
                 .token(token)
-                .id(id)
-                .serviceCall((ctx, dataset, tokenRepresentation) -> service.getDataset(ctx, dataset.getDatasetId(), tokenRepresentation, protocol))
+                .message(message)
+                .serviceCall(service::getDataset)
                 .errorProvider(CatalogError.Builder::newInstance)
                 .participantContextProvider(participantContextSupplier)
                 .protocol(protocol)

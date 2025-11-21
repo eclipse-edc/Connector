@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Schaeffler AG
  *
  */
 
@@ -86,7 +87,8 @@ public abstract class DspTransferProcessApiControllerBaseTest extends RestContro
         var captor = ArgumentCaptor.forClass(GetDspRequest.class);
         verify(dspRequestHandler).getResource(captor.capture());
         var dspRequest = captor.getValue();
-        assertThat(dspRequest.getId()).isEqualTo("transferProcessId");
+        var message = (TransferRequestMessage) dspRequest.getMessage();
+        assertThat(message.getProcessId()).isEqualTo("transferProcessId");
         assertThat(dspRequest.getResultClass()).isEqualTo(TransferProcess.class);
         assertThat(dspRequest.getToken()).isEqualTo("auth");
     }

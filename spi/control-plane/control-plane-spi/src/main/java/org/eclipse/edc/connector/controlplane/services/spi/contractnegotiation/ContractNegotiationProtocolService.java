@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Schaeffler AG
  *
  */
 
@@ -111,10 +112,10 @@ public interface ContractNegotiationProtocolService {
      * Finds a contract negotiation that has been requested by the counter-part. An existing
      * negotiation, for which the counter-part is not authorized, is treated as non-existent.
      *
-     * @param id                  id of the negotiation
+     * @param message                  the incoming message
      * @param tokenRepresentation the counter-party claim token
      * @return a succeeded result containing the negotiation if it was found, a failed one otherwise
      */
     @NotNull
-    ServiceResult<ContractNegotiation> findById(ParticipantContext participantContext, String id, TokenRepresentation tokenRepresentation, String protocol);
+    ServiceResult<ContractNegotiation> findById(ParticipantContext participantContext, ContractRequestMessage message, TokenRepresentation tokenRepresentation);
 }

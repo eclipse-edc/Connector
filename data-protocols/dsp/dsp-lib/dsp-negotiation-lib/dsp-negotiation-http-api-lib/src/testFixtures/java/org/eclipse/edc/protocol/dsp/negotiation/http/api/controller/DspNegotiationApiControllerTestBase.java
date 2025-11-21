@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Schaeffler AG
  *
  */
 
@@ -88,7 +89,7 @@ public abstract class DspNegotiationApiControllerTestBase extends RestController
         verify(dspRequestHandler).getResource(captor.capture());
         var dspMessage = captor.getValue();
         assertThat(dspMessage.getToken()).isEqualTo("auth");
-        assertThat(dspMessage.getId()).isEqualTo("negotiationId");
+        assertThat(dspMessage.getMessage()).isEqualTo("negotiationId");
         assertThat(dspMessage.getResultClass()).isEqualTo(ContractNegotiation.class);
     }
 

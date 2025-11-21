@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Schaeffler AG
  *
  */
 
@@ -22,6 +23,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
+import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequestMessage;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
@@ -82,7 +84,8 @@ public abstract class DspCatalogApiControllerTestBase extends RestControllerTest
         var request = captor.getValue();
         assertThat(request.getToken()).isEqualTo("auth");
         assertThat(request.getResultClass()).isEqualTo(Dataset.class);
-        assertThat(request.getId()).isEqualTo("datasetId");
+        var message = (DatasetRequestMessage) request.getMessage();
+        assertThat(message.getDatasetId()).isEqualTo("datasetId");
     }
 
 

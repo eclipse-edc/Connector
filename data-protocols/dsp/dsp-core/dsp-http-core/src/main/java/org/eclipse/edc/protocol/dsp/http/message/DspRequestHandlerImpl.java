@@ -56,7 +56,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
 
     @Override
     public <I extends RemoteMessage, R, E extends ErrorMessage> Response getResource(GetDspRequest<I, R, E> request) {
-        monitor.debug(() -> "DSP: Incoming resource request for %s id %s".formatted(request.getResultClass(), request.getId()));
+        monitor.debug(() -> "DSP: Incoming resource request for %s id %s".formatted(request.getResultClass(), request.getProcessId()));
 
         var token = request.getToken();
         if (token == null && request.isAuthRequired()) {
@@ -249,7 +249,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
     }
 
     private <I extends RemoteMessage, R, E extends ErrorMessage> Response forFailure(ServiceFailure failure, GetDspRequest<I, R, E> request) {
-        return forFailure(failure, request.getProtocol(), request.getErrorProvider().get().processId(request.getId()));
+        return forFailure(failure, request.getProtocol(), request.getErrorProvider().get().processId(request.getProcessId()));
     }
 
     private <E extends ErrorMessage> Response forFailure(ServiceFailure failure, String protocol, ErrorMessage.Builder<E, ?> builder) {
@@ -286,7 +286,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
     }
 
     private <I extends RemoteMessage, R, E extends ErrorMessage> Response forStatus(Response.Status status, List<String> messages, GetDspRequest<I, R, E> request) {
-        return forStatus(status, request.getProtocol(), messages, request.getErrorProvider().get().processId(request.getId()));
+        return forStatus(status, request.getProtocol(), messages, request.getErrorProvider().get().processId(request.getProcessId()));
     }
 
     private <E extends ErrorMessage> Response forStatus(Response.Status statusCode, String protocol,

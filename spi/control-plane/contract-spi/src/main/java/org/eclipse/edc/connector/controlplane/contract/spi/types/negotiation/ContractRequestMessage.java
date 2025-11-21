@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initial API and implementation
+ *       Schaeffler AG
  *
  */
 
@@ -49,6 +50,11 @@ public class ContractRequestMessage extends ContractRemoteMessage {
     @Override
     public Policy getPolicy() {
         return contractOffer.getPolicy();
+    }
+
+    @Override
+    public @NotNull String getId() {
+        return super.getId();
     }
 
     public enum Type {
