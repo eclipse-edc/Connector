@@ -24,6 +24,7 @@ import org.eclipse.edc.sql.translation.TranslationMapping;
 public class ParticipantContextMapping extends TranslationMapping {
 
     public static final String FIELD_ID = "participantContextId";
+    public static final String FIELD_IDENTITY = "identity";
     public static final String FIELD_CREATE_TIMESTAMP = "createdAt";
     public static final String FIELD_LASTMODIFIED_TIMESTAMP = "lastModified";
     public static final String FIELD_STATE = "state";
@@ -32,6 +33,7 @@ public class ParticipantContextMapping extends TranslationMapping {
         add(FIELD_ID, statements.getIdColumn());
         add(FIELD_CREATE_TIMESTAMP, statements.getCreateTimestampColumn());
         add(FIELD_STATE, statements.getStateColumn());
+        add(FIELD_IDENTITY, statements.getIdentityColumn());
         add(FIELD_LASTMODIFIED_TIMESTAMP, statements.getLastModifiedTimestampColumn());
     }
 }

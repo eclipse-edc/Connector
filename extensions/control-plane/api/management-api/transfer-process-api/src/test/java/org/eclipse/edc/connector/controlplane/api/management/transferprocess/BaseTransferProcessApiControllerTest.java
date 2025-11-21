@@ -66,7 +66,11 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
     protected final TypeTransformerRegistry transformerRegistry = mock();
     protected final TransferProcessService service = mock();
     protected final JsonObjectValidatorRegistry validatorRegistry = mock();
-    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(new ParticipantContext("participantId"));
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(participantContext);
 
     protected abstract RequestSpecification baseRequest();
 

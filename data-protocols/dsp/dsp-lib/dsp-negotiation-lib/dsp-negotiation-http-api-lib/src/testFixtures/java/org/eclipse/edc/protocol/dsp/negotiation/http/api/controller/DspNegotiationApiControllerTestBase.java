@@ -71,7 +71,11 @@ public abstract class DspNegotiationApiControllerTestBase extends RestController
 
     protected final ContractNegotiationProtocolService protocolService = mock();
     protected final DspRequestHandler dspRequestHandler = mock();
-    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(new ParticipantContext("id"));
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(participantContext);
 
     @Test
     void getNegotiation_shouldGetResource() {

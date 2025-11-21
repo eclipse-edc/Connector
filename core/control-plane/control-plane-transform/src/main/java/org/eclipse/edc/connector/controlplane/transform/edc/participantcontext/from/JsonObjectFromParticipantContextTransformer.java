@@ -27,6 +27,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.JSON;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_IDENTITY_IRI;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_PROPERTIES_IRI;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_STATE_IRI;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_TYPE_IRI;
@@ -45,6 +46,7 @@ public class JsonObjectFromParticipantContextTransformer extends AbstractJsonLdT
         return jsonFactory.createObjectBuilder()
                 .add(TYPE, PARTICIPANT_CONTEXT_TYPE_IRI)
                 .add(ID, participantContext.getParticipantContextId())
+                .add(PARTICIPANT_CONTEXT_IDENTITY_IRI, participantContext.getIdentity())
                 .add(PARTICIPANT_CONTEXT_PROPERTIES_IRI, createProperties(participantContext))
                 .add(PARTICIPANT_CONTEXT_STATE_IRI, createId(jsonFactory, ParticipantContextState.from(participantContext.getState()).name()))
                 .build();

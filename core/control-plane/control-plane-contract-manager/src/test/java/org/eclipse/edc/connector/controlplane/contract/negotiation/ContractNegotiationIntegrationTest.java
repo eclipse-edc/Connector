@@ -127,7 +127,10 @@ class ContractNegotiationIntegrationTest {
     private final ParticipantIdentityResolver identityResolver = mock();
     private final AtomicReference<String> providerNegotiationId = new AtomicReference<>(null);
     private final NoopTransactionContext transactionContext = new NoopTransactionContext();
-    private final ParticipantContext participantContext = new ParticipantContext("participantContextId");
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("identifier")
+            .build();
     protected ParticipantAgent participantAgent = new ParticipantAgent(Collections.emptyMap(), Collections.emptyMap());
     protected TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
     private String consumerNegotiationId;
@@ -212,7 +215,7 @@ class ContractNegotiationIntegrationTest {
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build()))
                 .build();
 
-        consumerManager.initiate(new ParticipantContext("participantContextId"), request);
+        consumerManager.initiate(participantContext, request);
 
         await().atMost(DEFAULT_TEST_TIMEOUT).pollInterval(DEFAULT_POLL_INTERVAL).untilAsserted(() -> {
             assertThat(consumerNegotiationId).isNotNull();
@@ -264,7 +267,7 @@ class ContractNegotiationIntegrationTest {
                 .protocol("protocol")
                 .build();
 
-        consumerManager.initiate(new ParticipantContext("participantContextId"), request);
+        consumerManager.initiate(participantContext, request);
 
         await().atMost(DEFAULT_TEST_TIMEOUT)
                 .pollInterval(DEFAULT_POLL_INTERVAL)
@@ -301,7 +304,7 @@ class ContractNegotiationIntegrationTest {
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build()))
                 .build();
 
-        consumerManager.initiate(new ParticipantContext("participantContextId"), request);
+        consumerManager.initiate(participantContext, request);
 
         await().atMost(DEFAULT_TEST_TIMEOUT).pollInterval(DEFAULT_POLL_INTERVAL).untilAsserted(() -> {
             assertThat(consumerNegotiationId).isNotNull();

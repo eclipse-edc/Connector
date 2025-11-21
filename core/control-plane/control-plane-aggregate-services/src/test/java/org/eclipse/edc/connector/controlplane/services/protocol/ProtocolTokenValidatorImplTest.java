@@ -55,7 +55,10 @@ class ProtocolTokenValidatorImplTest {
     private final ProtocolTokenValidatorImpl validator = new ProtocolTokenValidatorImpl(identityService,
             policyEngine, mock(), agentService, dataspaceProfileContextRegistry);
 
-    private final ParticipantContext participantContext = new ParticipantContext("participantContextId");
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
 
     @Test
     void shouldVerifyToken() {

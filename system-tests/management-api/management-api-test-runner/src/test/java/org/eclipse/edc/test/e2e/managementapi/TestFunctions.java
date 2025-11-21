@@ -153,6 +153,7 @@ public class TestFunctions {
                 .add(CONTEXT, createContextBuilder(context).build())
                 .add(TYPE, "ParticipantContext")
                 .add(ID, "participant-context-id")
+                .add("identity", "did:example:123456789")
                 .add("properties", createObjectBuilder()
                         .add("name", TEST_ASSET_NAME)
                         .add("id", TEST_ASSET_ID)

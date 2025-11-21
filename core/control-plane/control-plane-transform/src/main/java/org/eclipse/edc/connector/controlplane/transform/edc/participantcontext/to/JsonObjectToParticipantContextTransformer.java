@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_IDENTITY_IRI;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_PROPERTIES_IRI;
 
 public class JsonObjectToParticipantContextTransformer extends AbstractJsonLdTransformer<JsonObject, ParticipantContext> {
@@ -37,6 +38,8 @@ public class JsonObjectToParticipantContextTransformer extends AbstractJsonLdTra
         var id = nodeId != null ? nodeId : UUID.randomUUID().toString();
         participantContext.participantContextId(id);
         participantContext.id(id);
+
+        transformString(jsonObject.get(PARTICIPANT_CONTEXT_IDENTITY_IRI), participantContext::identity, context);
 
         var properties = jsonObject.get(PARTICIPANT_CONTEXT_PROPERTIES_IRI);
         if (properties != null) {

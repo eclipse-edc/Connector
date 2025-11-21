@@ -86,7 +86,6 @@ public class TransferProcessEventDispatchTest {
 
     public static final Duration TIMEOUT = Duration.ofSeconds(30);
     private static final DataspaceProfileContextRegistry DATASPACE_PROFILE_CONTEXT_REGISTRY = mock(DataspaceProfileContextRegistry.class);
-
     @RegisterExtension
     static final RuntimeExtension RUNTIME = new RuntimePerClassExtension()
             .setConfiguration(Map.of(
@@ -100,8 +99,10 @@ public class TransferProcessEventDispatchTest {
             .registerServiceMock(ContractNegotiationStore.class, mock())
             .registerServiceMock(ParticipantAgentService.class, mock())
             .registerServiceMock(DataPlaneClientFactory.class, mock());
-
-
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
     private final EventSubscriber eventSubscriber = mock();
 
     @BeforeEach
@@ -144,7 +145,7 @@ public class TransferProcessEventDispatchTest {
         when(agentService.createFor(eq(token), any())).thenReturn(agent);
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
-        var initiateResult = service.initiateTransfer(new ParticipantContext("participantContextId"), transferRequest);
+        var initiateResult = service.initiateTransfer(participantContext, transferRequest);
 
         assertThat(initiateResult).isSucceeded();
         await().atMost(TIMEOUT).untilAsserted(() -> {
@@ -161,7 +162,7 @@ public class TransferProcessEventDispatchTest {
                 .dataAddress(dataAddress)
                 .build();
 
-        var startedResult = protocolService.notifyStarted(new ParticipantContext("participantContextId"), startMessage, tokenRepresentation);
+        var startedResult = protocolService.notifyStarted(participantContext, startMessage, tokenRepresentation);
 
         assertThat(startedResult).isSucceeded();
         await().atMost(TIMEOUT).untilAsserted(() -> {
@@ -207,7 +208,7 @@ public class TransferProcessEventDispatchTest {
         dispatcherRegistry.register("test", getTestDispatcher());
         eventRouter.register(TransferProcessEvent.class, eventSubscriber);
 
-        var initiateResult = service.initiateTransfer(new ParticipantContext("participantContextId"), transferRequest);
+        var initiateResult = service.initiateTransfer(participantContext, transferRequest);
 
         await().atMost(TIMEOUT).untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessInitiated.class)));
@@ -235,7 +236,7 @@ public class TransferProcessEventDispatchTest {
         when(negotiationStore.findContractAgreement(transferRequest.getContractId())).thenReturn(agreement);
         when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().build());
 
-        service.initiateTransfer(new ParticipantContext("participantContextId"), transferRequest);
+        service.initiateTransfer(participantContext, transferRequest);
 
         await().atMost(TIMEOUT).untilAsserted(() -> verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessTerminated.class))));
     }

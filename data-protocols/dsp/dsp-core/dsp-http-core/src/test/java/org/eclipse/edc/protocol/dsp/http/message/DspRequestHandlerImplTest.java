@@ -63,7 +63,11 @@ class DspRequestHandlerImplTest {
 
     private final DspRequestHandlerImpl handler = new DspRequestHandlerImpl(mock(), validatorRegistry, dspTransformerRegistry);
     private final String protocol = DATASPACE_PROTOCOL_HTTP;
-    private final ParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(new ParticipantContext("participantContextId"));
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
+    private final ParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(participantContext);
 
     private static JsonObject error(String code, String reason, String processId) {
         var json = Json.createObjectBuilder()
