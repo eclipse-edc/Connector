@@ -25,11 +25,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
-import org.eclipse.edc.api.model.ApiCoreSchema;
 
 @OpenAPIDefinition(
-        info = @Info(description = "This contains the secret management API, which allows to add, remove and update secrets in the Vault.", title = "Secret API", version = "v4alpha"))
-@Tag(name = "Secret v4alpha")
+        info = @Info(description = "This contains the secret management API, which allows to add, remove and update secrets in the Vault.", title = "Secret API", version = "v4beta"))
+@Tag(name = "Secret v4beta")
 public interface SecretsApiV4 {
 
     @Operation(description = "Creates a new secret.",
@@ -38,9 +37,9 @@ public interface SecretsApiV4 {
                     @ApiResponse(responseCode = "200", description = "Secret was created successfully. Returns the secret Id and created timestamp",
                             content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.ID_RESPONSE))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "409", description = "Could not create secret, because a secret with that ID already exists",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))}
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))}
     )
     JsonObject createSecretV4(JsonObject secret);
 
@@ -49,9 +48,9 @@ public interface SecretsApiV4 {
                     @ApiResponse(responseCode = "200", description = "The secret",
                             content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.SECRET))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "404", description = "A secret with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
             }
     )
     JsonObject getSecretV4(String id);
@@ -60,9 +59,9 @@ public interface SecretsApiV4 {
             responses = {
                     @ApiResponse(responseCode = "204", description = "Secret was deleted successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "404", description = "A secret with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
             })
     void removeSecretV4(String id);
 
@@ -71,7 +70,7 @@ public interface SecretsApiV4 {
             responses = {
                     @ApiResponse(responseCode = "204", description = "Secret was updated successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "404", description = "Secret could not be updated, because it does not exist.")
             })
     void updateSecretV4(JsonObject secret);

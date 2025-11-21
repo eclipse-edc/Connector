@@ -28,7 +28,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.security.ParticipantVault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +48,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -57,7 +58,7 @@ class ProvisionResponsesHandlerTest {
 
     private final TransferProcessListener listener = mock();
     private final TransferProcessObservableImpl observable = new TransferProcessObservableImpl();
-    private final Vault vault = mock();
+    private final ParticipantVault vault = mock();
     private final ProvisionResponsesHandler handler = new ProvisionResponsesHandler(observable, mock(), vault, mock());
 
     @BeforeEach
@@ -112,13 +113,13 @@ class ProvisionResponsesHandlerTest {
                 .resource(createTestProvisionedContentResource(resourceDefinition.getId()))
                 .secretToken(new TestToken())
                 .build();
-        when(vault.storeSecret(any(), any())).thenReturn(Result.success());
+        when(vault.storeSecret(anyString(), any(), any())).thenReturn(Result.success());
 
         var result = handler.handle(entity, List.of(StatusResult.success(provisionResponse)));
 
         assertThat(result).isTrue();
         assertThat(entity.getState()).isEqualTo(PROVISIONED.code());
-        verify(vault).storeSecret(any(), any());
+        verify(vault).storeSecret(anyString(), any(), any());
 
         handler.postActions(entity);
 
@@ -207,6 +208,7 @@ class ProvisionResponsesHandlerTest {
         var processId = UUID.randomUUID().toString();
 
         return TransferProcess.Builder.newInstance()
+                .participantContextId("test-participant-id")
                 .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
                 .type(CONSUMER)
                 .id("test-process-" + processId)

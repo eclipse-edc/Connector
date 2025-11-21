@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.controlplane.store.sql.assetindex;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.store.sql.assetindex.schema.AssetStatements;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
@@ -101,7 +102,8 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                         toJson(asset.getProperties()),
                         toJson(asset.getPrivateProperties()),
                         toJson(asset.getDataAddress().getProperties()),
-                        asset.getParticipantContextId()
+                        asset.getParticipantContextId(),
+                        toJson(asset.getDataplaneMetadata())
                 );
 
                 return StoreResult.success();
@@ -155,6 +157,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                             toJson(asset.getProperties()),
                             toJson(asset.getPrivateProperties()),
                             toJson(asset.getDataAddress().getProperties()),
+                            toJson(asset.getDataplaneMetadata()),
                             assetId
                     );
 
@@ -194,6 +197,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                         .properties(fromJson(resultSet.getString(assetStatements.getDataAddressColumn()), getTypeRef()))
                         .build())
                 .participantContextId(resultSet.getString(assetStatements.getParticipantContextIdColumn()))
+                .dataplaneMetadata(fromJson(resultSet.getString(assetStatements.getDataplaneMetadataColumn()), DataplaneMetadata.class))
                 .build();
     }
 

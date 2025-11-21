@@ -38,8 +38,8 @@ public interface ParticipantContextConfigStoreStatements extends SqlStatements {
         return "last_modified_date";
     }
 
-    default String getConfigColumn() {
-        return "config";
+    default String getEntriesColumn() {
+        return "entries";
     }
 
     String getUpsertTemplate();

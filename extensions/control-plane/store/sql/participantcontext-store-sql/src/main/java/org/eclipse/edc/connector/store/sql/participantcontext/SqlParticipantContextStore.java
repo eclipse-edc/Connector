@@ -150,11 +150,11 @@ public class SqlParticipantContextStore extends AbstractSqlStore implements Part
         Map<String, Object> props = fromJson(resultSet.getString(statements.getPropertiesColumn()), getTypeRef());
 
         return ParticipantContext.Builder.newInstance()
-                       .participantContextId(id)
-                       .createdAt(created)
-                       .lastModified(lastmodified)
-                       .state(ParticipantContextState.values()[state])
-                       .properties(props)
-                       .build();
+                .participantContextId(id)
+                .createdAt(created)
+                .lastModified(lastmodified)
+                .state(ParticipantContextState.from(state))
+                .properties(props)
+                .build();
     }
 }

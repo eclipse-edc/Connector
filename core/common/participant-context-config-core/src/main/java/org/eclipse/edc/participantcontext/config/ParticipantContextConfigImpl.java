@@ -18,6 +18,7 @@ import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 public class ParticipantContextConfigImpl implements ParticipantContextConfig {
@@ -78,7 +79,7 @@ public class ParticipantContextConfigImpl implements ParticipantContextConfig {
             if (cfg == null) {
                 throw new EdcException("No configuration found for participant context " + participantContextId);
             }
-            return cfg;
+            return ConfigFactory.fromMap(cfg.getEntries());
         });
     }
 

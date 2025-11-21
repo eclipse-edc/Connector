@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.participantcontext.spi.config.store;
 
-import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -25,10 +25,9 @@ public interface ParticipantContextConfigStore {
     /**
      * Saves the configuration for a given participant context.
      *
-     * @param participantContextId the participant context identifier
-     * @param config               the configuration to save
+     * @param config the configuration to save
      */
-    void save(String participantContextId, Config config);
+    void save(ParticipantContextConfiguration config);
 
     /**
      * Retrieves the configuration for a given participant context.
@@ -37,5 +36,5 @@ public interface ParticipantContextConfigStore {
      * @return the configuration, or null if not found
      */
     @Nullable
-    Config get(String participantContextId);
+    ParticipantContextConfiguration get(String participantContextId);
 }

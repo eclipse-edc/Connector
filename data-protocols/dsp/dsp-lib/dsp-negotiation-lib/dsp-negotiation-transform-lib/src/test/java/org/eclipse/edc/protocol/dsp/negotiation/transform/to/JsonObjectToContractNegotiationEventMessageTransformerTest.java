@@ -68,7 +68,6 @@ class JsonObjectToContractNegotiationEventMessageTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getClass()).isEqualTo(ContractNegotiationEventMessage.class);
-        assertThat(result.getProtocol()).isNotEmpty();
         assertThat(result.getConsumerPid()).isEqualTo("consumerPid");
         assertThat(result.getProviderPid()).isEqualTo("providerPid");
         assertThat(result.getType()).isEqualTo(ContractNegotiationEventMessage.Type.ACCEPTED);

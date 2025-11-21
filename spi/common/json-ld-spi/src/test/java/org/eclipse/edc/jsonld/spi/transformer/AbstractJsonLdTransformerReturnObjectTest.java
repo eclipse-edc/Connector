@@ -16,6 +16,7 @@ package org.eclipse.edc.jsonld.spi.transformer;
 
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,7 @@ import java.util.Map;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -113,6 +115,18 @@ class AbstractJsonLdTransformerReturnObjectTest {
 
         assertThat(result).isNull();
         verify(context, times(1)).reportProblem(eq(format("Property '%s' contains an empty array", TEST_PROPERTY)));
+    }
+
+    @Test
+    void verify_nodeJsonValue() {
+
+        var object = jsonFactory.createObjectBuilder().add("name", "value").build();
+        var array = jsonFactory.createObjectBuilder().add(VALUE, object).build();
+
+        var result = transformer.nodeJsonValue(array);
+
+        assertThat(result).isInstanceOf(JsonObject.class)
+                .isEqualTo(object);
     }
 
 }

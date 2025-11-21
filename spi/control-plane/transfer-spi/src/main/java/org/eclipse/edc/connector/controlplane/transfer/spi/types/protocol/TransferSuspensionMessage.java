@@ -60,5 +60,9 @@ public class TransferSuspensionMessage extends TransferRemoteMessage {
             return this;
         }
 
+        @Override
+        public Builder self() {
+            return this;
+        }
     }
 }

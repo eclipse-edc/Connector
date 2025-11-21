@@ -63,7 +63,6 @@ class JsonObjectToContractNegotiationTerminationMessageTransformerTest {
 
         assertThat(result).isNotNull();
 
-        assertThat(result.getProtocol()).isNotNull();
         assertThat(result.getCounterPartyAddress()).isNull();
         assertThat(result.getConsumerPid()).isEqualTo("consumerPid");
         assertThat(result.getProviderPid()).isEqualTo("providerPid");
@@ -87,7 +86,6 @@ class JsonObjectToContractNegotiationTerminationMessageTransformerTest {
 
         assertThat(result).isNotNull();
 
-        assertThat(result.getProtocol()).isNotNull();
         assertThat(result.getCounterPartyAddress()).isNull();
         assertThat(result.getCode()).isNull();
         assertThat(result.getRejectionReason()).isNull();

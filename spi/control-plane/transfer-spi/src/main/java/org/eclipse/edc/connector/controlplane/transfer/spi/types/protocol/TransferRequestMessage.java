@@ -79,6 +79,11 @@ public class TransferRequestMessage extends TransferRemoteMessage {
         }
 
         @Override
+        public Builder self() {
+            return this;
+        }
+
+        @Override
         public TransferRequestMessage build() {
             Objects.requireNonNull(message.callbackAddress, "The callbackAddress must be specified");
             return super.build();

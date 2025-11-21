@@ -22,7 +22,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.security.ParticipantVault;
 
 import java.util.List;
 import java.util.Objects;
@@ -37,9 +37,9 @@ public class DeprovisionResponsesHandler implements ResponsesHandler<StatusResul
 
     private final TransferProcessObservable observable;
     private final Monitor monitor;
-    private final Vault vault;
+    private final ParticipantVault vault;
 
-    public DeprovisionResponsesHandler(TransferProcessObservable observable, Monitor monitor, Vault vault) {
+    public DeprovisionResponsesHandler(TransferProcessObservable observable, Monitor monitor, ParticipantVault vault) {
         this.observable = observable;
         this.monitor = monitor;
         this.vault = vault;
@@ -89,7 +89,7 @@ public class DeprovisionResponsesHandler implements ResponsesHandler<StatusResul
                     }
 
                     if (provisionedResource.hasToken() && provisionedResource instanceof ProvisionedDataAddressResource) {
-                        removeDeprovisionedSecrets((ProvisionedDataAddressResource) provisionedResource, transferProcess.getId());
+                        removeDeprovisionedSecrets(transferProcess.getParticipantContextId(), (ProvisionedDataAddressResource) provisionedResource, transferProcess.getId());
                     }
                     return deprovisionedResource;
                 })
@@ -104,9 +104,9 @@ public class DeprovisionResponsesHandler implements ResponsesHandler<StatusResul
         }
     }
 
-    private void removeDeprovisionedSecrets(ProvisionedDataAddressResource provisionedResource, String transferProcessId) {
+    private void removeDeprovisionedSecrets(String participantContextId, ProvisionedDataAddressResource provisionedResource, String transferProcessId) {
         var keyName = provisionedResource.getResourceName();
-        var result = vault.deleteSecret(keyName);
+        var result = vault.deleteSecret(participantContextId, keyName);
         if (result.failed()) {
             monitor.severe(format("Error deleting secret from vault with key %s for transfer process %s: \n %s",
                     keyName, transferProcessId, join("\n", result.getFailureMessages())));

@@ -25,7 +25,7 @@ public interface NegotiationApiPaths {
     String INITIAL_CONTRACT_OFFER = "offer";
     String INITIAL_CONTRACT_OFFERS = "offers";
     String CONTRACT_REQUEST = "/" + INITIAL_CONTRACT_REQUEST;
-    @Deprecated(since = "0.13.0")
+    @Deprecated(since = "0.14.0")
     String CONTRACT_OFFER = "/" + INITIAL_CONTRACT_OFFER;
     String CONTRACT_OFFERS = "/" + INITIAL_CONTRACT_OFFERS;
     String EVENT = "/events";

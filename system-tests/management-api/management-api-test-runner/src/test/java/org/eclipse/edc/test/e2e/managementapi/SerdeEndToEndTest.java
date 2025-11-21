@@ -19,28 +19,33 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.api.model.IdResponse;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState;
-import org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyEvaluationPlanRequest;
-import org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyValidationResult;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.SuspendTransfer;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TerminateTransfer;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TransferState;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
+import org.eclipse.edc.connector.controlplane.policy.spi.PolicyEvaluationPlanRequest;
+import org.eclipse.edc.connector.controlplane.policy.spi.PolicyValidationResult;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.SuspendTransfer;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TerminateTransfer;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferState;
+import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.config.from.JsonObjectFromParticipantContextConfigurationTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.config.to.JsonObjectToParticipantContextConfigurationTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.from.JsonObjectFromParticipantContextTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.to.JsonObjectToParticipantContextTransformer;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
-import org.eclipse.edc.junit.assertions.AbstractResultAssert;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
+import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
@@ -52,6 +57,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -69,6 +75,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -82,6 +89,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -101,6 +109,8 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dataAddressOb
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dataPaneInstanceObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.datasetRequestObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.inForceDatePermission;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.participantContextConfigObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.participantContextObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.policyDefinitionObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.policyEvaluationPlanRequest;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.querySpecObject;
@@ -502,7 +512,7 @@ public class SerdeEndToEndTest {
             var compactResult = jsonLd.compact(object, jsonLdScope());
 
             // checks that the compacted == inputObject
-            AbstractResultAssert.assertThat(compactResult).isSucceeded().satisfies(compacted -> {
+            assertThat(compactResult).isSucceeded().satisfies(compacted -> {
                 var mapped = Optional.ofNullable(mapper).map(m -> m.apply(compacted)).orElse(compacted);
                 assertThat(mapped).isEqualTo(inputObject);
             });
@@ -575,7 +585,9 @@ public class SerdeEndToEndTest {
                         Arguments.of(querySpecObject(jsonLdContext), QuerySpec.class, null),
                         Arguments.of(policyDefinitionObject(jsonLdContext, strictSchema), PolicyDefinition.class, mapper),
                         Arguments.of(dataAddressObject(jsonLdContext), DataAddress.class, null),
-                        Arguments.of(dataPaneInstanceObject(jsonLdContext), DataPlaneInstance.class, null)
+                        Arguments.of(dataPaneInstanceObject(jsonLdContext), DataPlaneInstance.class, null),
+                        Arguments.of(participantContextObject(jsonLdContext), ParticipantContext.class, null),
+                        Arguments.of(participantContextConfigObject(jsonLdContext), ParticipantContextConfiguration.class, null)
                 );
             }
 
@@ -621,7 +633,8 @@ public class SerdeEndToEndTest {
         void serde(JsonObject inputObject, Class<?> klass, Function<JsonObject, JsonObject> mapper,
                    JsonLd jsonLd, JsonObjectValidatorRegistry validatorRegistry,
                    TypeTransformerRegistry typeTransformerRegistry) {
-            if (!klass.equals(DataPlaneInstance.class) && !inputObject.getString(TYPE).equals("CatalogAsset")) {
+            if (!klass.equals(DataPlaneInstance.class) && !klass.equals(ParticipantContext.class) &&
+                    !klass.equals(ParticipantContextConfiguration.class) && !inputObject.getString(TYPE).equals("CatalogAsset")) {
                 verifySerde(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, klass, mapper);
             }
         }
@@ -664,14 +677,23 @@ public class SerdeEndToEndTest {
                 .configurationProvider(SerdeEndToEndTest::config)
                 .build();
 
+        @BeforeAll
+        static void beforeAll(TypeTransformerRegistry registry) {
+            var factory = Json.createBuilderFactory(Map.of());
+            registry.register(new JsonObjectFromParticipantContextTransformer(factory));
+            registry.register(new JsonObjectToParticipantContextTransformer());
+            registry.register(new JsonObjectFromParticipantContextConfigurationTransformer(factory));
+            registry.register(new JsonObjectToParticipantContextConfigurationTransformer());
+        }
+
         @Override
         protected List<String> transformerScope() {
-            return List.of(MANAGEMENT_API_CONTEXT, "v4alpha");
+            return List.of(MANAGEMENT_API_CONTEXT, "v4");
         }
 
         @Override
         protected String jsonLdScope() {
-            return MANAGEMENT_API_SCOPE + ":v4alpha";
+            return MANAGEMENT_API_SCOPE + ":v4";
         }
 
         @Override
@@ -683,7 +705,6 @@ public class SerdeEndToEndTest {
         protected String jsonLdContext() {
             return EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
         }
-
 
         @Override
         protected boolean strictSchema() {

@@ -18,6 +18,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
+    api(project(":spi:common:participant-context-config-spi"))
     api(project(":spi:common:edr-store-spi"))
     api(project(":spi:common:validator-spi"))
     api(project(":spi:control-plane:transfer-spi"))

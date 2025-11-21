@@ -22,7 +22,20 @@
           "@context": {
             "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
           }
+        },
+        "dataplaneMetadata": {
+          "@id": "edc:dataplaneMetadata"
         }
+      }
+    },
+    "DataplaneMetadata": {
+      "@id": "edc:DataplaneMetadata",
+      "@context": {
+        "labels": {
+          "@id": "edc:labels",
+          "@container": "@set"
+        },
+        "properties": "edc:properties"
       }
     },
     "CatalogAsset": {
@@ -220,7 +233,10 @@
         "transferType": "edc:transferType",
         "dataDestination": "edc:dataDestination",
         "contractId": "edc:contractId",
-        "protocol": "edc:protocol"
+        "protocol": "edc:protocol",
+        "dataplaneMetadata": {
+          "@id": "edc:dataplaneMetadata"
+        }
       }
     },
     "TransferState": {
@@ -244,7 +260,10 @@
         "dataDestination": "edc:dataDestination",
         "correlationId": "edc:correlationId",
         "errorDetail": "edc:errorDetail",
-        "state": "edc:state"
+        "state": "edc:state",
+        "dataplaneMetadata": {
+          "@id": "edc:dataplaneMetadata"
+        }
       }
     },
     "TerminateTransfer": {
@@ -436,6 +455,31 @@
       "@id": "edc:IdResponse",
       "@context": {
         "createdAt": "edc:createdAt"
+      }
+    },
+    "ParticipantContext": {
+      "@id": "edc:ParticipantContext",
+      "@context": {
+        "properties": {
+          "@id": "edc:properties",
+          "@type": "@json"
+        },
+        "state": {
+          "@id": "edc:state",
+          "@type": "@vocab"
+        },
+        "CREATED": "edc:CREATED",
+        "ACTIVATED": "edc:ACTIVATED",
+        "DEACTIVATED": "edc:DEACTIVATED"
+      }
+    },
+    "ParticipantContextConfig": {
+      "@id": "edc:ParticipantContextConfig",
+      "@context": {
+        "entries": {
+          "@id": "edc:entries",
+          "@type": "@json"
+        }
       }
     },
     "inForceDate": "edc:inForceDate",

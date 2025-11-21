@@ -24,7 +24,10 @@ import java.util.logging.Logger;
 
 /**
  * Logging monitor using java.util.logging.
+ *
+ * @deprecated will be removed soon.
  */
+@Deprecated(since = "0.15.0")
 public class LoggerMonitor implements Monitor {
 
     /**

@@ -18,6 +18,7 @@ package org.eclipse.edc.token;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
@@ -40,11 +41,11 @@ public class JwtGenerationService implements TokenGenerationService {
     private final JwsSignerProvider jwsGeneratorFunction;
 
     public JwtGenerationService(JwsSignerProvider jwsSignerProvider) {
-
         this.jwsGeneratorFunction = jwsSignerProvider;
     }
 
     @Override
+    @Deprecated
     public Result<TokenRepresentation> generate(String privateKeyId, @NotNull TokenDecorator... decorators) {
 
         var tokenSignerResult = jwsGeneratorFunction.createJwsSigner(privateKeyId);
@@ -52,7 +53,20 @@ public class JwtGenerationService implements TokenGenerationService {
             return Result.failure("JWSSigner cannot be generated for private key '%s': %s".formatted(privateKeyId, tokenSignerResult.getFailureDetail()));
         }
 
-        var tokenSigner = tokenSignerResult.getContent();
+        return signTokenWithDecorators(decorators, tokenSignerResult.getContent());
+    }
+
+    @Override
+    public Result<TokenRepresentation> generate(String participantContextId, String privateKeyId, TokenDecorator... decorators) {
+        var tokenSignerResult = jwsGeneratorFunction.createJwsSigner(participantContextId, privateKeyId);
+        if (tokenSignerResult.failed()) {
+            return Result.failure("JWSSigner cannot be generated for private key '%s': %s".formatted(privateKeyId, tokenSignerResult.getFailureDetail()));
+        }
+
+        return signTokenWithDecorators(decorators, tokenSignerResult.getContent());
+    }
+
+    private @NotNull Result<TokenRepresentation> signTokenWithDecorators(@NotNull TokenDecorator[] decorators, JWSSigner tokenSigner) {
         var jwsAlgorithm = CryptoConverter.getRecommendedAlgorithm(tokenSigner);
 
         var bldr = TokenParameters.Builder.newInstance();

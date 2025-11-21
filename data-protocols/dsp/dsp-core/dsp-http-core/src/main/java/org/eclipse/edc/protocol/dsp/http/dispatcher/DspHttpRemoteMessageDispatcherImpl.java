@@ -31,6 +31,7 @@ import org.eclipse.edc.spi.iam.RequestContext;
 import org.eclipse.edc.spi.iam.RequestScope;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.types.domain.message.ProtocolRemoteMessage;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.token.spi.TokenDecorator;
 import org.jetbrains.annotations.NotNull;
@@ -77,7 +78,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
     }
 
     @Override
-    public <T, M extends RemoteMessage> CompletableFuture<StatusResult<T>> dispatch(String participantContextId, Class<T> responseType, M message) {
+    public <T, M extends ProtocolRemoteMessage> CompletableFuture<StatusResult<T>> dispatch(String participantContextId, Class<T> responseType, M message) {
         var handler = (MessageHandler<M, T>) this.handlers.get(message.getClass());
         if (handler == null) {
             return failedFuture(new EdcException(format("No DSP message dispatcher found for message type %s", message.getClass())));
@@ -127,13 +128,13 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
     }
 
     @Override
-    public <M extends RemoteMessage, R> void registerMessage(Class<M> clazz, DspHttpRequestFactory<M> requestFactory,
+    public <M extends ProtocolRemoteMessage, R> void registerMessage(Class<M> clazz, DspHttpRequestFactory<M> requestFactory,
                                                              DspHttpResponseBodyExtractor<R> bodyExtractor) {
         handlers.put(clazz, new MessageHandler<>(requestFactory, bodyExtractor));
     }
 
     @Override
-    public <M extends RemoteMessage> void registerPolicyScope(Class<M> messageClass,
+    public <M extends ProtocolRemoteMessage> void registerPolicyScope(Class<M> messageClass,
                                                               Function<M, Policy> policyProvider,
                                                               RequestPolicyContext.Provider contextProvider) {
         policyScopes.put(messageClass, new PolicyScope<>(messageClass, policyProvider, contextProvider));
