@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration.PARTICIPANT_CONTEXT_CONFIG_ENTRIES_IRI;
+import static org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration.PARTICIPANT_CONTEXT_CONFIG_PRIVATE_ENTRIES_IRI;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -38,6 +39,11 @@ class JsonObjectToParticipantContextConfigurationTransformerTest {
                         .add(VALUE, createObjectBuilder()
                                 .add("key1", "value1")
                                 .add("key2", "value2")))
+
+                .add(PARTICIPANT_CONTEXT_CONFIG_PRIVATE_ENTRIES_IRI, createObjectBuilder()
+                        .add(VALUE, createObjectBuilder()
+                                .add("key1", "privateValue1")
+                                .add("key2", "privateValue2")))
                 .build();
 
         var result = transformer.transform(jsonObject, context);
@@ -45,6 +51,10 @@ class JsonObjectToParticipantContextConfigurationTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getEntries()).containsEntry("key1", "value1")
                 .containsEntry("key2", "value2");
+
+        assertThat(result).isNotNull();
+        assertThat(result.getPrivateEntries()).containsEntry("key1", "privateValue1")
+                .containsEntry("key2", "privateValue2");
 
     }
 

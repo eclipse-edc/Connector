@@ -205,6 +205,7 @@ include(":extensions:common:validator:validator-data-address-kafka")
 include(":extensions:common:vault:vault-hashicorp")
 include(":extensions:common:store:sql:edr-index-sql")
 include(":extensions:common:store:sql:jti-validation-store-sql")
+include(":extensions:common:encryption:aes-encryption")
 
 include(":extensions:common:api:control-api-configuration")
 include(":extensions:common:api:management-api-configuration")
@@ -265,6 +266,7 @@ include(":launchers:dpf-selector")
 
 // extension points for a connector ----------------------------------------------------------------
 include(":spi:common:auth-spi")
+include(":spi:common:encryption-spi")
 include(":spi:common:boot-spi")
 include(":spi:common:core-spi")
 include(":spi:common:connector-participant-context-spi")

@@ -22,10 +22,13 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.JSON;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration.PARTICIPANT_CONTEXT_CONFIG_ENTRIES_IRI;
+import static org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration.PARTICIPANT_CONTEXT_CONFIG_PRIVATE_ENTRIES_IRI;
 import static org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration.PARTICIPANT_CONTEXT_CONFIG_TYPE_IRI;
 
 public class JsonObjectFromParticipantContextConfigurationTransformer extends AbstractJsonLdTransformer<ParticipantContextConfiguration, JsonObject> {
@@ -41,13 +44,14 @@ public class JsonObjectFromParticipantContextConfigurationTransformer extends Ab
     public @Nullable JsonObject transform(@NotNull ParticipantContextConfiguration config, @NotNull TransformerContext context) {
         return jsonFactory.createObjectBuilder()
                 .add(TYPE, PARTICIPANT_CONTEXT_CONFIG_TYPE_IRI)
-                .add(PARTICIPANT_CONTEXT_CONFIG_ENTRIES_IRI, createProperties(config))
+                .add(PARTICIPANT_CONTEXT_CONFIG_ENTRIES_IRI, createProperties(config.getEntries()))
+                .add(PARTICIPANT_CONTEXT_CONFIG_PRIVATE_ENTRIES_IRI, createProperties(config.getPrivateEntries()))
                 .build();
     }
 
-    private JsonObject createProperties(ParticipantContextConfiguration config) {
+    private JsonObject createProperties(Map<String, String> config) {
         var entries = jsonFactory.createObjectBuilder();
-        config.getEntries().forEach(entries::add);
+        config.forEach(entries::add);
 
         return jsonFactory.createObjectBuilder()
                 .add(VALUE, entries)

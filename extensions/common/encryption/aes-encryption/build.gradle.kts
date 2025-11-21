@@ -18,14 +18,9 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:participant-context-config-spi"))
-    implementation(project(":spi:common:encryption-spi"))
-    implementation(project(":spi:common:transaction-spi"))
-    implementation(project(":core:common:lib:store-lib"))
-
-    testImplementation(project(":tests:junit-base"))
-    testImplementation(testFixtures(project(":spi:common:participant-context-config-spi")))
-    testImplementation(project(":core:common:lib:query-lib"))
+    api(project(":spi:common:encryption-spi"))
+    
     testImplementation(project(":core:common:junit"))
-
 }
+
+

@@ -14,11 +14,14 @@
 
 package org.eclipse.edc.participantcontext.config;
 
+import org.eclipse.edc.encryption.EncryptionService;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -37,7 +40,8 @@ public class ParticipantContextConfigImplTest {
 
     private static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
     private final ParticipantContextConfigStore store = mock();
-    private final ParticipantContextConfig contextConfig = new ParticipantContextConfigImpl(store, new NoopTransactionContext());
+    private final EncryptionService encryptionService = mock();
+    private final ParticipantContextConfig contextConfig = new ParticipantContextConfigImpl(encryptionService, store, new NoopTransactionContext());
 
     @ParameterizedTest
     @ArgumentsSource(SettingProvider.class)
@@ -81,6 +85,24 @@ public class ParticipantContextConfigImplTest {
 
     }
 
+    @Test
+    void shouldGetPrivateSetting() {
+
+        var cfg = ParticipantContextConfiguration.Builder.newInstance().participantContextId(PARTICIPANT_CONTEXT_ID)
+                .entries(Map.of("key", "value"))
+                .privateEntries(Map.of("private.key", "encryptedValue"))
+                .build();
+
+        when(encryptionService.decrypt("encryptedValue")).thenReturn(Result.success("decryptedValue"));
+        when(store.get(PARTICIPANT_CONTEXT_ID)).thenReturn(cfg);
+
+        var result = contextConfig.getSensitiveString(PARTICIPANT_CONTEXT_ID, "private.key");
+
+
+        assertThat(result).isNotNull()
+                .isEqualTo("decryptedValue");
+
+    }
 
     @FunctionalInterface
     private interface SettingCall {
