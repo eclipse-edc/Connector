@@ -22,6 +22,9 @@
         "@id": {
           "type": "string"
         },
+        "identity": {
+          "type": "string"
+        },
         "properties": {
           "type": "object"
         },
@@ -36,7 +39,8 @@
       },
       "required": [
         "@context",
-        "@type"
+        "@type",
+        "identity"
       ]
     }
   }
