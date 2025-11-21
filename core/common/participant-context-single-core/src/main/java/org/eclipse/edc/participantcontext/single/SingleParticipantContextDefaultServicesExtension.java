@@ -54,7 +54,8 @@ public class SingleParticipantContextDefaultServicesExtension implements Service
     @Provider(isDefault = true)
     public SingleParticipantContextSupplier participantContextSupplier() {
         var contextId = participantContextId != null ? participantContextId : participantId;
-        var participantContext = new ParticipantContext(contextId);
+        var participantContext = ParticipantContext.Builder.newInstance().participantContextId(contextId)
+                .identity(participantId).build();
         return () -> ServiceResult.success(participantContext);
     }
 

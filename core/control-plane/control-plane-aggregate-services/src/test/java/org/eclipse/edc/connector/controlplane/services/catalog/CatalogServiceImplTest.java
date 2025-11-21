@@ -38,7 +38,10 @@ class CatalogServiceImplTest {
 
     private final RemoteMessageDispatcherRegistry dispatcher = mock(RemoteMessageDispatcherRegistry.class);
     private final CatalogService service = new CatalogServiceImpl(dispatcher);
-    private final ParticipantContext participantContext = new ParticipantContext("participantContextId");
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
 
     @Test
     void requestCatalog_shouldDispatchRequestAndReturnResult() {

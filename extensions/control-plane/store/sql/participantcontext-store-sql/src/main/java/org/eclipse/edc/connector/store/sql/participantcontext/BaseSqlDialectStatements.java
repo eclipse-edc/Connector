@@ -25,23 +25,25 @@ public class BaseSqlDialectStatements implements ParticipantContextStoreStatemen
     @Override
     public String getInsertTemplate() {
         return executeStatement()
-                       .column(getIdColumn())
-                       .column(getCreateTimestampColumn())
-                       .column(getLastModifiedTimestampColumn())
-                       .column(getStateColumn())
-                       .jsonColumn(getPropertiesColumn())
-                       .insertInto(getParticipantContextTable());
+                .column(getIdColumn())
+                .column(getIdentityColumn())
+                .column(getCreateTimestampColumn())
+                .column(getLastModifiedTimestampColumn())
+                .column(getStateColumn())
+                .jsonColumn(getPropertiesColumn())
+                .insertInto(getParticipantContextTable());
     }
 
     @Override
     public String getUpdateTemplate() {
         return executeStatement()
-                       .column(getIdColumn())
-                       .column(getCreateTimestampColumn())
-                       .column(getLastModifiedTimestampColumn())
-                       .column(getStateColumn())
-                       .jsonColumn(getPropertiesColumn())
-                       .update(getParticipantContextTable(), getIdColumn());
+                .column(getIdColumn())
+                .column(getIdentityColumn())
+                .column(getCreateTimestampColumn())
+                .column(getLastModifiedTimestampColumn())
+                .column(getStateColumn())
+                .jsonColumn(getPropertiesColumn())
+                .update(getParticipantContextTable(), getIdColumn());
     }
 
     @Override

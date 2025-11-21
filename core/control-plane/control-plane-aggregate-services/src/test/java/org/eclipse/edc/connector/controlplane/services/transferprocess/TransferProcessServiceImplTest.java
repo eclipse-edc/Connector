@@ -89,6 +89,11 @@ class TransferProcessServiceImplTest {
     private final TransferProcessService service = new TransferProcessServiceImpl(store, manager, transactionContext,
             dataAddressValidator, commandHandlerRegistry, transferTypeParser, contractNegotiationStore, queryValidator);
 
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
+
     @Test
     void findById_whenFound() {
         when(store.findById(id)).thenReturn(process1);
@@ -241,7 +246,7 @@ class TransferProcessServiceImplTest {
             when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             when(manager.initiateConsumerRequest(any(), eq(transferRequest))).thenReturn(StatusResult.success(transferProcess));
 
-            var result = service.initiateTransfer(new ParticipantContext("participantContextId"), transferRequest);
+            var result = service.initiateTransfer(participantContext, transferRequest);
 
             assertThat(result).isSucceeded().isEqualTo(transferProcess);
             verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
@@ -251,7 +256,7 @@ class TransferProcessServiceImplTest {
         void shouldFail_whenTransferTypeIsNotValid() {
             when(transferTypeParser.parse(any())).thenReturn(Result.failure("cannot parse"));
 
-            var result = service.initiateTransfer(new ParticipantContext("participantContextId"), transferRequest());
+            var result = service.initiateTransfer(participantContext, transferRequest());
 
             assertThat(result).isFailed()
                     .extracting(ServiceFailure::getReason)
@@ -265,7 +270,7 @@ class TransferProcessServiceImplTest {
             when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
             when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
 
-            var result = service.initiateTransfer(new ParticipantContext("participantContextId"), transferRequest());
+            var result = service.initiateTransfer(participantContext, transferRequest());
 
             assertThat(result).isFailed()
                     .extracting(ServiceFailure::getReason)
@@ -282,7 +287,7 @@ class TransferProcessServiceImplTest {
             when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
             when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
 
-            var result = service.initiateTransfer(new ParticipantContext("participantContextId"), transferRequest);
+            var result = service.initiateTransfer(participantContext, transferRequest);
 
             assertThat(result).isFailed()
                     .extracting(ServiceFailure::getReason)
@@ -300,7 +305,7 @@ class TransferProcessServiceImplTest {
                     .thenReturn(createContractAgreement(transferRequest.getContractId(), "assetId"));
             when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
 
-            var result = service.initiateTransfer(new ParticipantContext("participantContextId"), transferRequest);
+            var result = service.initiateTransfer(participantContext, transferRequest);
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
             assertThat(result.getFailureMessages()).containsExactly("For PUSH transfers dataDestination must be defined");

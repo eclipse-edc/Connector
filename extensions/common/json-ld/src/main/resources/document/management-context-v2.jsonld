@@ -464,6 +464,7 @@
           "@id": "edc:properties",
           "@type": "@json"
         },
+        "identity": "edc:identity",
         "state": {
           "@id": "edc:state",
           "@type": "@vocab"

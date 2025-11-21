@@ -60,7 +60,11 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
     protected final CatalogService service = mock();
     protected final TypeTransformerRegistry transformerRegistry = mock();
     protected final JsonObjectValidatorRegistry validatorRegistry = mock();
-    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(new ParticipantContext("participantContext"));
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(participantContext);
 
     @Test
     void requestCatalog() {

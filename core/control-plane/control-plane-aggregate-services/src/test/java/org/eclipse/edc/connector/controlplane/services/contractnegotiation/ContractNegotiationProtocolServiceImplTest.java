@@ -99,7 +99,10 @@ import static org.mockito.Mockito.when;
 class ContractNegotiationProtocolServiceImplTest {
 
     private static final String CONSUMER_ID = "consumer";
-    protected final ParticipantContext participantContext = new ParticipantContext("participantContextId");
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
     private final ContractNegotiationStore store = mock();
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
     private final ContractValidationService validationService = mock();
@@ -408,7 +411,10 @@ class ContractNegotiationProtocolServiceImplTest {
         var cn = createContractNegotiationOffered();
         when(store.findById(any())).thenReturn(cn);
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(cn));
-        var wrongParticipantContext = new ParticipantContext("wrongParticipantContext");
+        var wrongParticipantContext = ParticipantContext.Builder.newInstance()
+                .participantContextId("wrongParticipantContext")
+                .identity("wrongParticipantId")
+                .build();
         when(protocolTokenValidator.verify(eq(wrongParticipantContext), eq(tokenRepresentation), any(), any(), eq(message)))
                 .thenReturn(ServiceResult.success(participantAgent()));
         if (!(message instanceof ContractRequestMessage)) {

@@ -63,10 +63,9 @@ import static org.mockito.Mockito.when;
 class DatasetResolverImplIntegrationTest {
 
     private final ContractDefinitionResolver contractDefinitionResolver = mock();
+
     private AssetIndex assetIndex;
-
     private DatasetResolver resolver;
-
 
     @BeforeEach
     void setUp() {
@@ -176,7 +175,10 @@ class DatasetResolverImplIntegrationTest {
     }
 
     private ParticipantContext createParticipantContext() {
-        return new ParticipantContext("participantContextId");
+        return ParticipantContext.Builder.newInstance()
+                .participantContextId("participantContextId")
+                .identity("participantId")
+                .build();
     }
 
     private List<Criterion> selectorFrom(Collection<Asset> assets1) {

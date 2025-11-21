@@ -71,6 +71,10 @@ class ContractNegotiationServiceImplTest {
     private final QueryValidator queryValidator = mock();
 
     private final ContractNegotiationService service = new ContractNegotiationServiceImpl(store, consumerManager, transactionContext, commandHandlerRegistry, queryValidator);
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
 
     @Test
     void findById_filtersById() {
@@ -190,7 +194,7 @@ class ContractNegotiationServiceImplTest {
                 .contractOffer(createContractOffer())
                 .build();
 
-        var result = service.initiateNegotiation(new ParticipantContext("participantContextId"), request);
+        var result = service.initiateNegotiation(participantContext, request);
 
         assertThat(result).matches(it -> it.getId().equals("negotiationId"));
     }

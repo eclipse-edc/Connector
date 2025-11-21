@@ -72,7 +72,11 @@ public abstract class BaseAssetApiControllerTest extends RestControllerTestBase 
     protected final AssetService service = mock(AssetService.class);
     protected final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
     protected final JsonObjectValidatorRegistry validator = mock(JsonObjectValidatorRegistry.class);
-    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(new ParticipantContext("participantId"));
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(participantContext);
 
     @BeforeEach
     void setup() {

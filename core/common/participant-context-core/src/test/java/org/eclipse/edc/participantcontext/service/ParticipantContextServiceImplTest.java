@@ -168,7 +168,7 @@ class ParticipantContextServiceImplTest {
     }
 
     private ParticipantContext createParticipantContextContext() {
-        return new ParticipantContext("test-id");
+        return ParticipantContext.Builder.newInstance().participantContextId("test-id").identity("test-id").build();
     }
 
 }

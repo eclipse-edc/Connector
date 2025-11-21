@@ -79,7 +79,10 @@ class DspHttpRemoteMessageDispatcherImplTest {
     private final AudienceResolver audienceResolver = mock();
     private final Duration timeout = Duration.of(5, SECONDS);
 
-    private final ParticipantContext participantContext = new ParticipantContext("id");
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
 
     private final DspHttpRemoteMessageDispatcher dispatcher =
             new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecorator, policyEngine, audienceResolver);

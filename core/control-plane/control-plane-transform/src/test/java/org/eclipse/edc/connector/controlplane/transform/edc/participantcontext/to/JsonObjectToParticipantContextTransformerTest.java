@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_IDENTITY_IRI;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_PROPERTIES_IRI;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -54,6 +55,7 @@ class JsonObjectToParticipantContextTransformerTest {
     void transform_shouldConvertJsonObjectToParticipantContext() {
         var jsonObject = createObjectBuilder()
                 .add(ID, "participant-1")
+                .add(PARTICIPANT_CONTEXT_IDENTITY_IRI, "did:example:123")
                 .add(PARTICIPANT_CONTEXT_PROPERTIES_IRI, createObjectBuilder()
                         .add(VALUE, createObjectBuilder()
                                 .add("key1", "value1")
@@ -65,6 +67,7 @@ class JsonObjectToParticipantContextTransformerTest {
         assertThat(result).isSucceeded()
                 .satisfies(participantContext -> {
                     assertThat(participantContext.getParticipantContextId()).isEqualTo("participant-1");
+                    assertThat(participantContext.getIdentity()).isEqualTo("did:example:123");
                     assertThat(participantContext.getProperties()).containsEntry("key1", "value1")
                             .containsEntry("key2", "value2");
                 });
@@ -75,6 +78,7 @@ class JsonObjectToParticipantContextTransformerTest {
         var jsonObject = createObjectBuilder()
                 .add(PARTICIPANT_CONTEXT_PROPERTIES_IRI, createObjectBuilder().add(VALUE, createObjectBuilder()
                         .add("key1", "value1")))
+                .add(PARTICIPANT_CONTEXT_IDENTITY_IRI, "did:example:123")
                 .build();
 
         var result = typeTransformerRegistry.transform(jsonObject, ParticipantContext.class);
@@ -89,6 +93,7 @@ class JsonObjectToParticipantContextTransformerTest {
     void transform_withEmptyProperties_shouldReturnParticipantContextWithEmptyProperties() {
         var jsonObject = createObjectBuilder()
                 .add(ID, "participant-2")
+                .add(PARTICIPANT_CONTEXT_IDENTITY_IRI, "did:example:123")
                 .add(PARTICIPANT_CONTEXT_PROPERTIES_IRI, createObjectBuilder().add(VALUE, createObjectBuilder()))
                 .build();
 
@@ -104,6 +109,7 @@ class JsonObjectToParticipantContextTransformerTest {
     void transform_withoutProperties_shouldReturnParticipantContext() {
         var jsonObject = createObjectBuilder()
                 .add(ID, "participant-3")
+                .add(PARTICIPANT_CONTEXT_IDENTITY_IRI, "did:example:123")
                 .build();
 
         var result = typeTransformerRegistry.transform(jsonObject, ParticipantContext.class);
@@ -119,6 +125,7 @@ class JsonObjectToParticipantContextTransformerTest {
     void transform_withInvalidProperties_shouldReportProblemAndReturnNull() {
         var jsonObject = createObjectBuilder()
                 .add(ID, "participant-4")
+                .add(PARTICIPANT_CONTEXT_IDENTITY_IRI, "did:example:123")
                 .add(PARTICIPANT_CONTEXT_PROPERTIES_IRI, createObjectBuilder().add(VALUE, "invalid-string"))
                 .build();
 
@@ -131,6 +138,7 @@ class JsonObjectToParticipantContextTransformerTest {
     void transform_withNestedProperties_shouldHandleComplexValues() {
         var jsonObject = createObjectBuilder()
                 .add(ID, "participant-5")
+                .add(PARTICIPANT_CONTEXT_IDENTITY_IRI, "did:example:123")
                 .add(PARTICIPANT_CONTEXT_PROPERTIES_IRI, createObjectBuilder()
                         .add(VALUE, createObjectBuilder()
                                 .add("simpleKey", "simpleValue")

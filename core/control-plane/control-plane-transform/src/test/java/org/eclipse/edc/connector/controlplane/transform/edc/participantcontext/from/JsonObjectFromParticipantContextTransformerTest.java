@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_IDENTITY_IRI;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_PROPERTIES_IRI;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_STATE_IRI;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_TYPE_IRI;
@@ -50,6 +51,7 @@ class JsonObjectFromParticipantContextTransformerTest {
         var participantContext = ParticipantContext.Builder.newInstance()
                 .participantContextId("participant-1")
                 .state(ParticipantContextState.ACTIVATED)
+                .identity("did:example:123")
                 .properties(Map.of("key1", "value1", "key2", "value2"))
                 .build();
 
@@ -57,6 +59,7 @@ class JsonObjectFromParticipantContextTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getString(ID)).isEqualTo("participant-1");
+        assertThat(result.getString(PARTICIPANT_CONTEXT_IDENTITY_IRI)).isEqualTo("did:example:123");
         assertThat(result.getString(TYPE)).isEqualTo(PARTICIPANT_CONTEXT_TYPE_IRI);
         assertThat(result.getJsonObject(PARTICIPANT_CONTEXT_STATE_IRI).getString(ID)).isEqualTo("ACTIVATED");
 
@@ -71,6 +74,7 @@ class JsonObjectFromParticipantContextTransformerTest {
         var participantContext = ParticipantContext.Builder.newInstance()
                 .participantContextId("participant-2")
                 .state(ParticipantContextState.ACTIVATED)
+                .identity("did:example:123")
                 .properties(Map.of())
                 .build();
 
@@ -87,6 +91,7 @@ class JsonObjectFromParticipantContextTransformerTest {
         var participantContext = ParticipantContext.Builder.newInstance()
                 .participantContextId("participant-3")
                 .state(ParticipantContextState.DEACTIVATED)
+                .identity("did:example:123")
                 .build();
 
         var result = transformer.transform(participantContext, context);

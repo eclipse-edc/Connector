@@ -65,7 +65,11 @@ public abstract class DspCatalogApiControllerTestBase extends RestControllerTest
     protected final CatalogProtocolService service = mock();
     protected final DspRequestHandler dspRequestHandler = mock();
     protected final ContinuationTokenManager continuationTokenManager = mock();
-    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(new ParticipantContext("id"));
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(participantContext);
 
     @Test
     void getDataset_shouldGetResource() {

@@ -414,15 +414,15 @@ class TransferProcessManagerImplTest {
     }
 
     private Criterion[] consumerStateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state), isNotPending(), criterion("type", "=", CONSUMER.name()) });
+        return aryEq(new Criterion[]{hasState(state), isNotPending(), criterion("type", "=", CONSUMER.name())});
     }
 
     private Criterion[] providerStateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state), isNotPending(), criterion("type", "=", PROVIDER.name()) });
+        return aryEq(new Criterion[]{hasState(state), isNotPending(), criterion("type", "=", PROVIDER.name())});
     }
 
     private Criterion[] stateIs(int state) {
-        return aryEq(new Criterion[]{ hasState(state), isNotPending() });
+        return aryEq(new Criterion[]{hasState(state), isNotPending()});
     }
 
     private TransferProcess createTransferProcess(TransferProcessStates inState) {
@@ -711,7 +711,9 @@ class TransferProcessManagerImplTest {
                     .callbackAddresses(List.of(callback))
                     .dataplaneMetadata(dataplaneMetadata)
                     .build();
-            var participantContext = ParticipantContext.Builder.newInstance().participantContextId("id").build();
+            var participantContext = ParticipantContext.Builder.newInstance().participantContextId("id")
+                    .identity("identity")
+                    .build();
 
             var result = manager.initiateConsumerRequest(participantContext, transferRequest);
 
@@ -738,7 +740,9 @@ class TransferProcessManagerImplTest {
                     .dataDestination(DataAddress.Builder.newInstance().type("test").build())
                     .build();
 
-            var result = manager.initiateConsumerRequest(new ParticipantContext("id"), transferRequest);
+            var participantContext = ParticipantContext.Builder.newInstance()
+                    .participantContextId("participantContextId").identity("id").build();
+            var result = manager.initiateConsumerRequest(participantContext, transferRequest);
 
             assertThat(result).isFailed();
         }

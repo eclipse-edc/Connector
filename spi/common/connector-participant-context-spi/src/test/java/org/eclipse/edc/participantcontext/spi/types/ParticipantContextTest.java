@@ -29,12 +29,14 @@ class ParticipantContextTest {
     void verifyCreateTimestamp() {
         var context = ParticipantContext.Builder.newInstance()
                 .participantContextId("test-id")
+                .identity("test-identity")
                 .build();
 
         assertThat(context.getCreatedAt()).isNotZero().isLessThanOrEqualTo(Instant.now().toEpochMilli());
 
         var context2 = ParticipantContext.Builder.newInstance()
                 .participantContextId("test-id")
+                .identity("test-identity")
                 .createdAt(42)
                 .build();
 
@@ -45,12 +47,14 @@ class ParticipantContextTest {
     void verifyLastModifiedTimestamp() {
         var context = ParticipantContext.Builder.newInstance()
                 .participantContextId("test-id")
+                .identity("test-identity")
                 .build();
 
         assertThat(context.getLastModified()).isNotZero().isEqualTo(context.getCreatedAt());
 
         var context2 = ParticipantContext.Builder.newInstance()
                 .participantContextId("test-id")
+                .identity("test-identity")
                 .lastModified(42)
                 .build();
 
@@ -61,6 +65,7 @@ class ParticipantContextTest {
     void verifyState() {
         var context = ParticipantContext.Builder.newInstance()
                 .participantContextId("test-id")
+                .identity("test-identity")
                 .state(CREATED);
 
         assertThat(context.build().getState()).isEqualTo(CREATED.code());
