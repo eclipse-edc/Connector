@@ -10,7 +10,8 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initiate provider process
- *
+ *       Schaeffler AG
+ * 
  */
 
 package org.eclipse.edc.connector.controlplane.services.transferprocess;
@@ -236,7 +237,9 @@ class TransferProcessProtocolServiceImplTest {
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
         when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
 
-        var result = service.findById(participantContext, processId, tokenRepresentation, "protocol");
+        var message = TransferRequestMessage.Builder.newInstance().processId(processId).protocol("protocol").callbackAddress("Callback").build();
+
+        var result = service.findById(participantContext, message, tokenRepresentation);
 
         assertThat(result)
                 .isSucceeded()
@@ -251,7 +254,9 @@ class TransferProcessProtocolServiceImplTest {
         when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), any())).thenReturn(ServiceResult.success(participantAgent));
         when(store.findById(any())).thenReturn(null);
 
-        var result = service.findById(participantContext, "invalidId", tokenRepresentation, "protocol");
+        var message = TransferRequestMessage.Builder.newInstance().processId("invalidId").protocol("protocol").callbackAddress("Callback").build();
+
+        var result = service.findById(participantContext, message, tokenRepresentation);
 
         assertThat(result)
                 .isFailed()
@@ -272,7 +277,9 @@ class TransferProcessProtocolServiceImplTest {
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
         when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
 
-        var result = service.findById(participantContext, processId, tokenRepresentation, "protocol");
+        var message = TransferRequestMessage.Builder.newInstance().processId(processId).protocol("protocol").callbackAddress("Callback").build();
+
+        var result = service.findById(participantContext, message, tokenRepresentation);
 
         assertThat(result)
                 .isFailed()

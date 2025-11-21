@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Schaeffler AG
  *
  */
 
@@ -88,10 +89,15 @@ public abstract class BaseDspNegotiationApiController {
     @GET
     @Path("{id}")
     public Response getNegotiation(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
-        var request = GetDspRequest.Builder.newInstance(ContractNegotiation.class, ContractNegotiationError.class)
+        var message = ContractRequestMessage.Builder.newInstance()
                 .id(id)
+                .protocol(protocol)
+                .build();
+
+        var request = GetDspRequest.Builder.newInstance(ContractRequestMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
+                .message(message)
                 .token(token)
-                .serviceCall((ctx, cnId, tr) -> protocolService.findById(ctx, cnId, tr, protocol))
+                .serviceCall(protocolService::findById)
                 .errorProvider(ContractNegotiationError.Builder::newInstance)
                 .protocol(protocol)
                 .participantContextProvider(participantContextSupplier)
