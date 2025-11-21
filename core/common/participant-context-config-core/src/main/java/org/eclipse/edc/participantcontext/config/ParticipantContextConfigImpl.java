@@ -84,7 +84,7 @@ public class ParticipantContextConfigImpl implements ParticipantContextConfig {
     }
 
     @Override
-    public String getStringSensitive(String participantContextId, String key) {
+    public String getSensitiveString(String participantContextId, String key) {
         var encryptedValue = privateConfig(participantContextId).getString(key);
         return encryptionService.decrypt(encryptedValue)
                 .orElseThrow(f -> new EdcException(format("Failed to decrypt sensitive config value for key %s and participant context %s", key, participantContextId)));

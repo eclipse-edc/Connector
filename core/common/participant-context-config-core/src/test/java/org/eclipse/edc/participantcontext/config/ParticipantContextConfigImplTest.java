@@ -96,7 +96,7 @@ public class ParticipantContextConfigImplTest {
         when(encryptionService.decrypt("encryptedValue")).thenReturn(Result.success("decryptedValue"));
         when(store.get(PARTICIPANT_CONTEXT_ID)).thenReturn(cfg);
 
-        var result = contextConfig.getStringSensitive(PARTICIPANT_CONTEXT_ID, "private.key");
+        var result = contextConfig.getSensitiveString(PARTICIPANT_CONTEXT_ID, "private.key");
 
 
         assertThat(result).isNotNull()

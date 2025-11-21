@@ -109,5 +109,5 @@ public interface ParticipantContextConfig {
      * @return a String representation of the setting
      * @throws EdcException if no setting is found
      */
-    String getStringSensitive(String participantContextId, String key);
+    String getSensitiveString(String participantContextId, String key);
 }

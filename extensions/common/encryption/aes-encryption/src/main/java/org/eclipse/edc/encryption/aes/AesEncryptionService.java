@@ -50,6 +50,12 @@ public class AesEncryptionService implements EncryptionService {
 
     }
 
+    @Override
+    public Result<String> decrypt(String cipherText) {
+        return getKey(aesKeyAlias)
+                .compose(key -> doDecrypt(cipherText, key));
+    }
+
     private Result<String> doEncrypt(String plainText, SecretKey key) {
         try {
             var iv = generateIv(IV_SIZE_BYTES);
@@ -65,13 +71,7 @@ public class AesEncryptionService implements EncryptionService {
             return Result.failure("Error while encrypting: %s".formatted(e.getMessage()));
         }
     }
-
-    @Override
-    public Result<String> decrypt(String cipherText) {
-        return getKey(aesKeyAlias)
-                .compose(key -> doDecrypt(cipherText, key));
-    }
-
+    
     private Result<String> doDecrypt(String cipherText, SecretKey key) {
         try {
             var decodedCipher = decoder.decode(cipherText);
