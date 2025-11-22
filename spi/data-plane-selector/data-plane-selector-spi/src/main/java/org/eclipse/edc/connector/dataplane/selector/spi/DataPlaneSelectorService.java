@@ -46,17 +46,14 @@ public interface DataPlaneSelectorService {
     ServiceResult<DataPlaneInstance> select(@Nullable String selectionStrategy, Predicate<DataPlaneInstance> filter);
 
     /**
-     * Add a data plane instance
+     * Register a data plane instance
      */
-    ServiceResult<Void> addInstance(DataPlaneInstance instance);
+    ServiceResult<Void> register(DataPlaneInstance instance);
 
-    /**
-     * Delete a Data Plane instance.
-     *
-     * @param instanceId the instance id.
-     * @return successful result if operation completed, failure otherwise.
-     */
-    ServiceResult<Void> delete(String instanceId);
+    @Deprecated(since = "0.15.0")
+    default ServiceResult<Void> addInstance(DataPlaneInstance instance) {
+        return register(instance);
+    }
 
     /**
      * Unregister a Data Plane instance. The state will transition to {@link DataPlaneInstanceStates#UNREGISTERED}.
@@ -65,6 +62,22 @@ public interface DataPlaneSelectorService {
      * @return successful result if operation completed, failure otherwise.
      */
     ServiceResult<Void> unregister(String instanceId);
+
+    /**
+     * Update a Data Plane instance.
+     *
+     * @param instance the updated instance;
+     * @return successful result if operation completed, failure otherwise
+     */
+    ServiceResult<Void> update(DataPlaneInstance instance);
+
+    /**
+     * Delete a Data Plane instance.
+     *
+     * @param instanceId the instance id.
+     * @return successful result if operation completed, failure otherwise.
+     */
+    ServiceResult<Void> delete(String instanceId);
 
     /**
      * Find a Data Plane instance by id.

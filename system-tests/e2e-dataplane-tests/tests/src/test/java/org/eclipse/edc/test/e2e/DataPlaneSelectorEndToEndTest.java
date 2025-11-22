@@ -97,8 +97,8 @@ public class DataPlaneSelectorEndToEndTest {
         controlPlane.getService(SelectionStrategyRegistry.class).add(new SelectFirst());
 
         var selectorService = controlPlane.getService(DataPlaneSelectorService.class);
-        selectorService.addInstance(createDataPlaneInstance("not-available", "http://localhost:" + getFreePort()));
-        selectorService.addInstance(createDataPlaneInstance("available", "http://localhost:" + dataPlaneControlPort + "/control/v1/dataflows"));
+        selectorService.register(createDataPlaneInstance("not-available", "http://localhost:" + getFreePort()));
+        selectorService.register(createDataPlaneInstance("available", "http://localhost:" + dataPlaneControlPort + "/control/v1/dataflows"));
 
         await().atMost(30, SECONDS).untilAsserted(() -> {
             var start = controlPlane.getService(DataFlowManager.class).start(transferProcess, policy);

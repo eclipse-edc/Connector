@@ -76,7 +76,7 @@ class DataplaneSelectorControlApiControllerTest extends RestControllerTestBase {
             var response = Json.createObjectBuilder().add(ID, "id").build();
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(typeTransformerRegistry.transform(any(), eq(DataPlaneInstance.class))).thenReturn(Result.success(dataplaneInstance));
-            when(service.addInstance(any())).thenReturn(ServiceResult.success());
+            when(service.register(any())).thenReturn(ServiceResult.success());
             when(typeTransformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(response));
 
             given()
@@ -89,7 +89,7 @@ class DataplaneSelectorControlApiControllerTest extends RestControllerTestBase {
                     .body(ID, is("id"));
 
             var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
-            verify(service).addInstance(captor.capture());
+            verify(service).register(captor.capture());
 
             assertThat(captor.getValue()).usingRecursiveComparison()
                     .isEqualTo(dataplaneInstance);
@@ -131,7 +131,7 @@ class DataplaneSelectorControlApiControllerTest extends RestControllerTestBase {
             var dataplaneInstance = DataPlaneInstance.Builder.newInstance().url("http://url").build();
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(typeTransformerRegistry.transform(any(), eq(DataPlaneInstance.class))).thenReturn(Result.success(dataplaneInstance));
-            when(service.addInstance(any())).thenReturn(ServiceResult.conflict("conflict"));
+            when(service.register(any())).thenReturn(ServiceResult.conflict("conflict"));
 
             given()
                     .port(port)
@@ -147,7 +147,7 @@ class DataplaneSelectorControlApiControllerTest extends RestControllerTestBase {
             var dataplaneInstance = DataPlaneInstance.Builder.newInstance().url("http://url").build();
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(typeTransformerRegistry.transform(any(), eq(DataPlaneInstance.class))).thenReturn(Result.success(dataplaneInstance));
-            when(service.addInstance(any())).thenReturn(ServiceResult.success());
+            when(service.register(any())).thenReturn(ServiceResult.success());
             when(typeTransformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.failure("error"));
 
             given()

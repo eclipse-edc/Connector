@@ -102,7 +102,7 @@ public class DataplaneSelfRegistrationExtension implements ServiceExtension {
 
         var monitor = context.getMonitor().withPrefix("DataPlaneSelfRegistration");
         monitor.debug("Initiate data plane registration.");
-        dataPlaneSelectorService.addInstance(instance)
+        dataPlaneSelectorService.register(instance)
                 .onSuccess(it -> {
                     monitor.debug("data plane registered to control plane");
                     isRegistered.set(true);

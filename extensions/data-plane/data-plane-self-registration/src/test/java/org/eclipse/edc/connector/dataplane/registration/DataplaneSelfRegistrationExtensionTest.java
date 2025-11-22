@@ -81,13 +81,13 @@ class DataplaneSelfRegistrationExtensionTest {
         when(endpointDataReferenceServiceRegistry.supportedResponseTypes()).thenReturn(Set.of("responseType", "anotherResponseType"));
         when(resourceDefinitionGeneratorManager.sourceTypes()).thenReturn(Set.of("supportedSourceProvisionType"));
         when(resourceDefinitionGeneratorManager.destinationTypes()).thenReturn(Set.of("supportedDestinationProvisionType"));
-        when(dataPlaneSelectorService.addInstance(any())).thenReturn(ServiceResult.success());
+        when(dataPlaneSelectorService.register(any())).thenReturn(ServiceResult.success());
 
         extension.initialize(context);
         extension.start();
 
         var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
-        verify(dataPlaneSelectorService).addInstance(captor.capture());
+        verify(dataPlaneSelectorService).register(captor.capture());
         var dataPlaneInstance = captor.getValue();
         assertThat(dataPlaneInstance.getId()).isEqualTo("componentId");
         assertThat(dataPlaneInstance.getUrl()).isEqualTo(new URL("http://control/api/url/v1/dataflows"));
@@ -115,7 +115,7 @@ class DataplaneSelfRegistrationExtensionTest {
     @Test
     void shouldNotStart_whenRegistrationFails(DataplaneSelfRegistrationExtension extension, ServiceExtensionContext context) {
         when(controlApiUrl.get()).thenReturn(URI.create("http://control/api/url"));
-        when(dataPlaneSelectorService.addInstance(any())).thenReturn(ServiceResult.conflict("cannot register"));
+        when(dataPlaneSelectorService.register(any())).thenReturn(ServiceResult.conflict("cannot register"));
 
         extension.initialize(context);
 
