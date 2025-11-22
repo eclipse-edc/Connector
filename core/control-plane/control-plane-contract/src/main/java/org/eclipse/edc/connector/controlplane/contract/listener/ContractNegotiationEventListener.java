@@ -60,7 +60,9 @@ public class ContractNegotiationEventListener implements ContractNegotiationList
 
     @Override
     public void terminated(ContractNegotiation negotiation) {
-        var event = baseBuilder(ContractNegotiationTerminated.Builder.newInstance(), negotiation).build();
+        var event = baseBuilder(ContractNegotiationTerminated.Builder.newInstance(), negotiation)
+                .reason(negotiation.getErrorDetail())
+                .build();
         eventRouter.publish(event);
     }
 
