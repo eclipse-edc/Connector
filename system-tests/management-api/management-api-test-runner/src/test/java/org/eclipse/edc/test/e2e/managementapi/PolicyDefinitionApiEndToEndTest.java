@@ -19,6 +19,8 @@ import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
@@ -52,6 +54,7 @@ import static org.hamcrest.Matchers.startsWith;
 
 public class PolicyDefinitionApiEndToEndTest {
 
+    @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
 
         @Test
@@ -401,8 +404,13 @@ public class PolicyDefinitionApiEndToEndTest {
     class InMemory extends Tests {
 
         @RegisterExtension
-        static ManagementEndToEndExtension runtime = new ManagementEndToEndExtension.InMemory()
-                .withConfig(() -> ConfigFactory.fromMap(Map.of("edc.policy.validation.enabled", "false")));
+        static final RuntimeExtension RUNTIME = ComponentRuntimeExtension.Builder.newInstance()
+                .name(Runtimes.ControlPlane.NAME)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.policy.validation.enabled", "false")))
+                .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
+                .build();
 
     }
 
@@ -410,13 +418,21 @@ public class PolicyDefinitionApiEndToEndTest {
     @PostgresqlIntegrationTest
     class Postgres extends Tests {
 
+
         @RegisterExtension
         @Order(0)
         static PostgresqlEndToEndExtension postgres = new PostgresqlEndToEndExtension();
 
         @RegisterExtension
-        static ManagementEndToEndExtension runtime = new ManagementEndToEndExtension.Postgres(postgres)
-                .withConfig(() -> ConfigFactory.fromMap(Map.of("edc.policy.validation.enabled", "false")));
+        static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
+                .name(Runtimes.ControlPlane.NAME)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.SQL_MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(postgres::config)
+                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.policy.validation.enabled", "false")))
+                .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
+                .build();
 
     }
 
@@ -425,8 +441,13 @@ public class PolicyDefinitionApiEndToEndTest {
     class ValidationTests {
 
         @RegisterExtension
-        static ManagementEndToEndExtension runtime = new ManagementEndToEndExtension.InMemory()
-                .withConfig(() -> ConfigFactory.fromMap(Map.of("edc.policy.validation.enabled", "true")));
+        static final RuntimeExtension RUNTIME = ComponentRuntimeExtension.Builder.newInstance()
+                .name(Runtimes.ControlPlane.NAME)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.policy.validation.enabled", "true")))
+                .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
+                .build();
 
         @Test
         void shouldNotStorePolicyDefinition_whenValidationFails(ManagementEndToEndTestContext context) {

@@ -20,6 +20,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
+    api(project(":spi:common:connector-participant-context-spi"))
     api(project(":spi:common:validator-spi"))
 
     testImplementation(project(":tests:junit-base"))

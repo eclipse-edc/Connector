@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.participantcontext.config.defaults.store;
 
+import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
-import org.eclipse.edc.spi.system.configuration.Config;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -23,15 +23,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class InMemoryParticipantContextConfigStore implements ParticipantContextConfigStore {
 
-    private final Map<String, Config> store = new ConcurrentHashMap<>();
+    private final Map<String, ParticipantContextConfiguration> store = new ConcurrentHashMap<>();
 
     @Override
-    public void save(String participantContextId, Config config) {
-        store.put(participantContextId, config);
+    public void save(ParticipantContextConfiguration config) {
+        store.put(config.getParticipantContextId(), config);
     }
 
     @Override
-    public @Nullable Config get(String participantContextId) {
+    public @Nullable ParticipantContextConfiguration get(String participantContextId) {
         return store.get(participantContextId);
     }
 }

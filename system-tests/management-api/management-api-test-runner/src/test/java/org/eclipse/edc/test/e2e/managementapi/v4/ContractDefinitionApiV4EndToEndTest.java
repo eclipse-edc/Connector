@@ -21,13 +21,14 @@ import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractD
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
-import org.eclipse.edc.test.e2e.managementapi.ManagementEndToEndExtension;
 import org.eclipse.edc.test.e2e.managementapi.ManagementEndToEndTestContext;
+import org.eclipse.edc.test.e2e.managementapi.Runtimes;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.LinkedHashMap;
@@ -53,6 +54,7 @@ import static org.hamcrest.Matchers.is;
 
 public class ContractDefinitionApiV4EndToEndTest {
 
+    @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
 
         @Test
@@ -62,7 +64,7 @@ public class ContractDefinitionApiV4EndToEndTest {
 
             var body = context.baseRequest()
                     .contentType(JSON)
-                    .post("/v4alpha/contractdefinitions/request")
+                    .post("/v4beta/contractdefinitions/request")
                     .then()
                     .statusCode(200)
                     .body("size()", greaterThan(0))
@@ -88,7 +90,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(JSON)
                     .body(requestJson)
-                    .post("/v4alpha/contractdefinitions")
+                    .post("/v4beta/contractdefinitions")
                     .then()
                     .statusCode(200)
                     .body("@id", equalTo(id));
@@ -101,7 +103,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             context.baseRequest()
                     .body(matchingQuery)
                     .contentType(JSON)
-                    .post("/v4alpha/contractdefinitions/request")
+                    .post("/v4beta/contractdefinitions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -116,7 +118,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             context.baseRequest()
                     .body(nonMatchingQuery)
                     .contentType(JSON)
-                    .post("/v4alpha/contractdefinitions/request")
+                    .post("/v4beta/contractdefinitions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -143,7 +145,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             var result = context.baseRequest()
                     .contentType(JSON)
                     .body(query)
-                    .post("/v4alpha/contractdefinitions/request")
+                    .post("/v4beta/contractdefinitions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -165,7 +167,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(JSON)
                     .body(requestJson)
-                    .post("/v4alpha/contractdefinitions")
+                    .post("/v4beta/contractdefinitions")
                     .then()
                     .statusCode(200)
                     .body("@id", equalTo(id));
@@ -182,7 +184,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             store.save(entity);
 
             context.baseRequest()
-                    .delete("/v4alpha/contractdefinitions/" + id)
+                    .delete("/v4beta/contractdefinitions/" + id)
                     .then()
                     .statusCode(204);
 
@@ -204,7 +206,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(JSON)
                     .body(updated)
-                    .put("/v4alpha/contractdefinitions")
+                    .put("/v4beta/contractdefinitions")
                     .then()
                     .statusCode(204);
 
@@ -222,7 +224,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(JSON)
                     .body(updated)
-                    .put("/v4alpha/contractdefinitions")
+                    .put("/v4beta/contractdefinitions")
                     .then()
                     .statusCode(404);
         }
@@ -266,9 +268,15 @@ public class ContractDefinitionApiV4EndToEndTest {
 
     @Nested
     @EndToEndTest
-    @ExtendWith(ManagementEndToEndExtension.InMemory.class)
     class InMemory extends Tests {
 
+        @RegisterExtension
+        static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
+                .name(Runtimes.ControlPlane.NAME)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
+                .build();
     }
 
     @Nested
@@ -280,7 +288,14 @@ public class ContractDefinitionApiV4EndToEndTest {
         static PostgresqlEndToEndExtension postgres = new PostgresqlEndToEndExtension();
 
         @RegisterExtension
-        static ManagementEndToEndExtension runtime = new ManagementEndToEndExtension.Postgres(postgres);
+        static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
+                .name(Runtimes.ControlPlane.NAME)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.SQL_MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(postgres::config)
+                .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
+                .build();
 
     }
 

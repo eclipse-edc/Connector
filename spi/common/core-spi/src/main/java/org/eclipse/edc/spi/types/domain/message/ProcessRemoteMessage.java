@@ -33,8 +33,6 @@ public abstract class ProcessRemoteMessage extends ProtocolRemoteMessage {
     protected String processId;
     protected String consumerPid;
     protected String providerPid;
-    protected String counterPartyAddress;
-    protected String counterPartyId;
 
     /**
      * Returns the {@link Policy} associated with the process.
@@ -74,16 +72,6 @@ public abstract class ProcessRemoteMessage extends ProtocolRemoteMessage {
         return providerPid;
     }
 
-    @Override
-    public String getCounterPartyAddress() {
-        return counterPartyAddress;
-    }
-
-    @Override
-    public String getCounterPartyId() {
-        return counterPartyId;
-    }
-
     /**
      * Verifies if the passed processId can be considered a valid one.
      *
@@ -98,31 +86,25 @@ public abstract class ProcessRemoteMessage extends ProtocolRemoteMessage {
         }
     }
 
-    public static class Builder<M extends ProcessRemoteMessage, B extends Builder<M, B>> {
-        protected final M message;
+    public abstract static class Builder<M extends ProcessRemoteMessage, B extends Builder<M, B>> extends ProtocolRemoteMessage.Builder<M, B> {
 
         protected Builder(M message) {
-            this.message = message;
+            super(message);
         }
 
         public B id(String id) {
             message.id = id;
-            return (B) this;
+            return self();
         }
 
         public B consumerPid(String consumerPid) {
             message.consumerPid = consumerPid;
-            return (B) this;
+            return self();
         }
 
         public B providerPid(String providerPid) {
             message.providerPid = providerPid;
-            return (B) this;
-        }
-
-        public B protocol(String protocol) {
-            this.message.protocol = protocol;
-            return (B) this;
+            return self();
         }
 
         /**
@@ -132,25 +114,16 @@ public abstract class ProcessRemoteMessage extends ProtocolRemoteMessage {
          * @return the builder.
          */
         public B processId(String processId) {
-            this.message.processId = processId;
-            return (B) this;
+            message.processId = processId;
+            return self();
         }
 
-        public B counterPartyAddress(String counterPartyAddress) {
-            this.message.counterPartyAddress = counterPartyAddress;
-            return (B) this;
-        }
-
-        public B counterPartyId(String counterPartyId) {
-            this.message.counterPartyId = counterPartyId;
-            return (B) this;
-        }
-
+        @Override
         public M build() {
             if (message.id == null) {
                 message.id = randomUUID().toString();
             }
-            return message;
+            return super.build();
         }
     }
 }

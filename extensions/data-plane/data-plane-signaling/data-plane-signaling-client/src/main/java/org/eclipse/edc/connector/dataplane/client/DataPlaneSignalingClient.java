@@ -70,7 +70,7 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
     }
 
     @Override
-    public StatusResult<DataFlowResponseMessage> provision(DataFlowProvisionMessage message) {
+    public StatusResult<DataFlowResponseMessage> prepare(DataFlowProvisionMessage message) {
         var url = "%s/prepare".formatted(dataPlane.getUrl());
         return createRequestBuilder(message, url)
                 .compose(builder -> httpClient.request(builder)

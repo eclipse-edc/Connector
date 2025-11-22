@@ -33,16 +33,14 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.InstanceOfAssertFactories.map;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_PROPERTIES;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_TYPE;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_CATALOG_ASSET_TYPE;
-import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROPERTY_CONTENT_TYPE;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROPERTY_DESCRIPTION;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROPERTY_ID;
-import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROPERTY_NAME;
-import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROPERTY_VERSION;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -74,6 +72,7 @@ class JsonObjectToAssetTransformerTest {
         typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
         typeTransformerRegistry.register(transformer);
         typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
+        typeTransformerRegistry.register(new JsonObjectToDataplaneMetadataTransformer());
         
         when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
     }
@@ -86,6 +85,10 @@ class JsonObjectToAssetTransformerTest {
                 .add(ID, TEST_ASSET_ID)
                 .add("properties", createPropertiesBuilder().build())
                 .add("dataAddress", jsonFactory.createObjectBuilder().add("type", "address-type"))
+                .add("dataplaneMetadata", jsonFactory.createObjectBuilder()
+                        .add("labels", jsonFactory.createArrayBuilder().add("label"))
+                        .add("properties", jsonFactory.createObjectBuilder().add("property", "value"))
+                )
                 .build();
 
         var result = typeTransformerRegistry.transform(TestInput.getExpanded(jsonObj), Asset.class);
@@ -95,11 +98,10 @@ class JsonObjectToAssetTransformerTest {
                     .hasSize(5)
                     .containsEntry(PROPERTY_ID, TEST_ASSET_ID)
                     .containsEntry(PROPERTY_ID, result.getContent().getId())
-                    .containsEntry(PROPERTY_NAME, TEST_ASSET_NAME)
-                    .containsEntry(PROPERTY_DESCRIPTION, TEST_ASSET_DESCRIPTION)
-                    .containsEntry(PROPERTY_CONTENT_TYPE, TEST_ASSET_CONTENTTYPE)
-                    .containsEntry(PROPERTY_VERSION, TEST_ASSET_VERSION);
+                    .containsEntry(PROPERTY_DESCRIPTION, TEST_ASSET_DESCRIPTION);
             assertThat(asset.getDataAddress()).isNotNull().extracting(DataAddress::getType).isEqualTo("address-type");
+            assertThat(asset.getDataplaneMetadata().getLabels()).containsExactly("label");
+            assertThat(asset.getDataplaneMetadata().getProperties()).containsExactly(entry(EDC_NAMESPACE + "property", "value"));
         });
 
     }
@@ -121,10 +123,7 @@ class JsonObjectToAssetTransformerTest {
                 .hasSize(5)
                 .containsEntry(PROPERTY_ID, TEST_ASSET_ID)
                 .containsEntry(PROPERTY_ID, asset.getContent().getId())
-                .containsEntry(PROPERTY_NAME, TEST_ASSET_NAME)
-                .containsEntry(PROPERTY_DESCRIPTION, TEST_ASSET_DESCRIPTION)
-                .containsEntry(PROPERTY_CONTENT_TYPE, TEST_ASSET_CONTENTTYPE)
-                .containsEntry(PROPERTY_VERSION, TEST_ASSET_VERSION);
+                .containsEntry(PROPERTY_DESCRIPTION, TEST_ASSET_DESCRIPTION);
         assertThat(asset.getContent().getPrivateProperties())
                 .hasSize(1)
                 .containsEntry(EDC_NAMESPACE + "test-prop", "test-val");
@@ -166,7 +165,7 @@ class JsonObjectToAssetTransformerTest {
 
         assertThat(asset.getContent().getProperties()).hasSize(2)
                 .containsEntry(PROPERTY_ID, TEST_ASSET_ID)
-                .containsEntry(PROPERTY_VERSION, TEST_ASSET_VERSION);
+                .containsEntry(EDC_NAMESPACE + "version", TEST_ASSET_VERSION);
 
         assertThat(asset.getContent().getProperties().get(PROPERTY_ID)).isEqualTo(asset.getContent().getId());
     }
@@ -183,7 +182,6 @@ class JsonObjectToAssetTransformerTest {
         var asset = typeTransformerRegistry.transform(TestInput.getExpanded(jsonObj), Asset.class);
 
         assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
-        assertThat(asset.getContent().getVersion()).isNull();
         assertThat(asset.getContent().getProperties())
                 .containsEntry("edc:version", TEST_ASSET_VERSION);
     }

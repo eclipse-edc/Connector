@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.transform.edc.to;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -25,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiConsumer;
 
+import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_DATAPLANE_METADATA;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_DATA_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_PROPERTIES;
@@ -45,12 +47,14 @@ public class JsonObjectToAssetTransformer extends AbstractJsonLdTransformer<Json
                 .id(nodeId(jsonObject));
 
         visitProperties(jsonObject, key -> switch (key) {
-            case EDC_ASSET_PROPERTIES ->
-                    value -> visitProperties(value.asJsonArray().getJsonObject(0), property(context, builder));
-            case EDC_ASSET_PRIVATE_PROPERTIES ->
-                    value -> visitProperties(value.asJsonArray().getJsonObject(0), privateProperty(context, builder));
-            case EDC_ASSET_DATA_ADDRESS ->
-                    value -> builder.dataAddress(transformObject(value, DataAddress.class, context));
+            case EDC_ASSET_PROPERTIES -> value ->
+                    visitProperties(value.asJsonArray().getJsonObject(0), property(context, builder));
+            case EDC_ASSET_PRIVATE_PROPERTIES -> value ->
+                    visitProperties(value.asJsonArray().getJsonObject(0), privateProperty(context, builder));
+            case EDC_ASSET_DATA_ADDRESS -> value ->
+                    builder.dataAddress(transformObject(value, DataAddress.class, context));
+            case EDC_ASSET_DATAPLANE_METADATA -> value ->
+                    builder.dataplaneMetadata(transformObject(value, DataplaneMetadata.class, context));
             default -> doNothing();
         });
 

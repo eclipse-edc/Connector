@@ -48,7 +48,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.retry.WaitStrategy;
-import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.security.ParticipantVault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.statemachine.AbstractStateEntityManager;
 import org.eclipse.edc.statemachine.Processor;
@@ -116,7 +116,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     private ProvisionManager provisionManager;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private DataFlowManager dataFlowManager;
-    private Vault vault;
+    private ParticipantVault vault;
     private TransferProcessObservable observable;
     private DataAddressResolver addressResolver;
     private PolicyArchive policyArchive;
@@ -159,6 +159,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .callbackAddresses(transferRequest.getCallbackAddresses())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .participantContextId(participantContext.getParticipantContextId())
+                .dataplaneMetadata(transferRequest.getDataplaneMetadata())
                 .build();
 
         observable.invokeForEach(l -> l.preCreated(process));
@@ -212,7 +213,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             var manifest = manifestResult.getContent();
 
             if (manifest.empty()) {
-                var provisioning = dataFlowManager.provision(process, policy);
+                var provisioning = dataFlowManager.prepare(process, policy);
                 if (provisioning.succeeded()) {
                     var response = provisioning.getContent();
                     if (response.isProvisioning()) {
@@ -246,7 +247,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             if (dataDestination != null) {
                 var secret = dataDestination.getStringProperty(EDC_DATA_ADDRESS_SECRET);
                 if (secret != null) {
-                    vault.storeSecret(dataDestination.getKeyName(), secret);
+                    vault.storeSecret(process.getParticipantContextId(), dataDestination.getKeyName(), secret);
                 }
             }
 
@@ -329,7 +330,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
             var dataDestination = Optional.ofNullable(originalDestination)
                     .map(DataAddress::getKeyName)
-                    .map(key -> vault.resolveSecret(key))
+                    .map(key -> vault.resolveSecret(process.getParticipantContextId(), key))
                     .map(secret -> DataAddress.Builder.newInstance().properties(originalDestination.getProperties()).property(EDC_DATA_ADDRESS_SECRET, secret).build())
                     .orElse(originalDestination);
 
@@ -607,17 +608,17 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     }
 
     private Processor processConsumerTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
-        var filter = new Criterion[]{hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", CONSUMER.name())};
+        var filter = new Criterion[]{ hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", CONSUMER.name()) };
         return createProcessor(function, filter);
     }
 
     private Processor processProviderTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
-        var filter = new Criterion[]{hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", PROVIDER.name())};
+        var filter = new Criterion[]{ hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", PROVIDER.name()) };
         return createProcessor(function, filter);
     }
 
     private Processor processTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
-        var filter = new Criterion[]{hasState(state.code()), isNotPending()};
+        var filter = new Criterion[]{ hasState(state.code()), isNotPending() };
         return createProcessor(function, filter);
     }
 
@@ -793,7 +794,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             return this;
         }
 
-        public Builder vault(Vault vault) {
+        public Builder vault(ParticipantVault vault) {
             manager.vault = vault;
             return this;
         }

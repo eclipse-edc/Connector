@@ -26,16 +26,13 @@ import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import org.apache.http.HttpStatus;
-import org.eclipse.edc.connector.dataplane.http.spi.HttpDataAddress;
 import org.eclipse.edc.connector.dataplane.spi.DataFlowStates;
 import org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -61,15 +58,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.okForContentType;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.put;
-import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.github.tomakehurst.wiremock.http.Fault.CONNECTION_RESET_BY_PEER;
 import static io.restassured.RestAssured.given;
-import static java.lang.Boolean.TRUE;
-import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static java.util.Collections.emptyMap;
 import static org.awaitility.Awaitility.await;
@@ -78,23 +71,18 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TYPE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.hamcrest.Matchers.containsString;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 
 @ComponentTest
 public class DataPlaneHttpIntegrationTests {
 
-    private static final int PUBLIC_API_PORT = getFreePort();
     private static final int CONTROL_API_PORT = getFreePort();
     private static final int HTTP_SOURCE_API_PORT = getFreePort();
     private static final int HTTP_SINK_API_PORT = getFreePort();
     private static final String HTTP_SOURCE_API_HOST = "http://localhost:" + HTTP_SOURCE_API_PORT;
     private static final String HTTP_SINK_API_HOST = "http://localhost:" + HTTP_SINK_API_PORT;
     private static final String CONTROL_PATH = "/control";
-    private static final String PUBLIC_PATH = "/public";
-    private static final String PUBLIC_API_HOST = "http://localhost:" + PUBLIC_API_PORT;
     private static final String AUTH_HEADER_KEY = "Authorization";
     private static final String CONTENT_TYPE_HEADER = "Content-Type";
     private static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
@@ -114,12 +102,9 @@ public class DataPlaneHttpIntegrationTests {
             ":extensions:common:configuration:configuration-filesystem",
             ":extensions:control-plane:api:control-plane-api-client",
             ":extensions:data-plane:data-plane-http",
-            ":extensions:data-plane:data-plane-public-api-v2",
             ":extensions:data-plane:data-plane-signaling:data-plane-signaling-api")
             .registerServiceMock(DataPlaneAuthorizationService.class, DATA_PLANE_AUTHORIZATION_SERVICE)
             .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
-                    "web.http.public.port", valueOf(PUBLIC_API_PORT),
-                    "web.http.public.path", PUBLIC_PATH,
                     "web.http.control.port", valueOf(CONTROL_API_PORT),
                     "web.http.control.path", CONTROL_PATH,
                     "edc.core.retry.retries.max", "0"
@@ -141,84 +126,6 @@ public class DataPlaneHttpIntegrationTests {
     @BeforeEach
     void beforeEach() {
         fakeControlPlane.stubFor(any(anyUrl()).willReturn(ok()));
-    }
-
-    @Nested
-    @Deprecated(since = "0.12.0")
-    class Pull {
-
-        private static final String HTTP_API_PATH = "sample";
-
-        @RegisterExtension
-        static RuntimeExtension dataPlane = new RuntimePerClassExtension(RUNTIME);
-
-        @Test
-        void transfer_pull_withSourceQueryParamsAndPath_success(DataPlaneAuthorizationService dataPlaneAuthorizationService) {
-            var token = UUID.randomUUID().toString();
-            var responseBody = "some info";
-            var queryParams = Map.of(
-                    "param1", "foo",
-                    "param2", "bar"
-            );
-            var sourceDataAddress = sourceDataAddress();
-
-            httpSourceMockServer.stubFor(get(anyUrl()).willReturn(okForContentType(TEXT_PLAIN, responseBody)));
-
-            when(dataPlaneAuthorizationService.authorize(any(), any())).thenReturn(Result.success(sourceDataAddress));
-
-            given()
-                    .baseUri(PUBLIC_API_HOST)
-                    .contentType(ContentType.JSON)
-                    .when()
-                    .queryParams(queryParams)
-                    .header(AUTH_HEADER_KEY, token)
-                    .get(format("%s/%s", PUBLIC_PATH, HTTP_API_PATH))
-                    .then()
-                    .assertThat()
-                    .statusCode(HttpStatus.SC_OK)
-                    .body(CoreMatchers.equalTo(responseBody));
-
-            httpSourceMockServer.verify(getRequestedFor(urlMatching("/" + HTTP_API_PATH + "?.*"))
-                    .withQueryParam("param1", equalTo("foo"))
-                    .withQueryParam("param2", equalTo("bar"))
-                    .withHeader(AUTH_HEADER_KEY, equalTo(SOURCE_AUTH_VALUE)));
-        }
-
-        @Test
-        void shouldProxyMethodAndBody_whenSet(DataPlaneAuthorizationService dataPlaneAuthorizationService) {
-            var sourceAddress = HttpDataAddress.Builder.newInstance()
-                    .baseUrl(HTTP_SOURCE_API_HOST)
-                    .proxyMethod(TRUE.toString())
-                    .proxyPath(TRUE.toString())
-                    .proxyBody(TRUE.toString())
-                    .build();
-
-            httpSourceMockServer.stubFor(put(anyUrl()).willReturn(okForContentType(TEXT_PLAIN, "any")));
-            when(dataPlaneAuthorizationService.authorize(any(), any())).thenReturn(Result.success(sourceAddress));
-
-            given()
-                    .baseUri(PUBLIC_API_HOST)
-                    .contentType(ContentType.JSON)
-                    .when()
-                    .header(AUTH_HEADER_KEY, "any")
-                    .body("body")
-                    .put(format("%s/%s", PUBLIC_PATH, HTTP_API_PATH))
-                    .then()
-                    .log().ifError()
-                    .statusCode(HttpStatus.SC_OK);
-
-            httpSourceMockServer.verify(putRequestedFor(anyUrl()).withRequestBody(equalTo("body")));
-        }
-
-        private HttpDataAddress sourceDataAddress() {
-            return HttpDataAddress.Builder.newInstance()
-                    .baseUrl(HTTP_SOURCE_API_HOST)
-                    .proxyPath(TRUE.toString())
-                    .proxyQueryParams(TRUE.toString())
-                    .authKey(AUTH_HEADER_KEY)
-                    .authCode(SOURCE_AUTH_VALUE)
-                    .build();
-        }
     }
 
     @Nested

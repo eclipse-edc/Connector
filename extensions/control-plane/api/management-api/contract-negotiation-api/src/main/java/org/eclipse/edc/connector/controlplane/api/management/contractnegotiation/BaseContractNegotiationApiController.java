@@ -17,10 +17,10 @@ package org.eclipse.edc.connector.controlplane.api.management.contractnegotiatio
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponse;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.model.NegotiationState;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
@@ -113,7 +113,7 @@ public class BaseContractNegotiationApiController {
 
         var contractRequest = transformerRegistry.transform(requestObject, ContractRequest.class)
                 .orElseThrow(InvalidRequestException::new);
-        
+
         var contractNegotiation = service.initiateNegotiation(participantContext, contractRequest);
 
         var responseDto = IdResponse.Builder.newInstance()

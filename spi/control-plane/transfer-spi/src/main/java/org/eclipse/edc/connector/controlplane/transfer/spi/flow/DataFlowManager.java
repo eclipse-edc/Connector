@@ -50,10 +50,10 @@ public interface DataFlowManager {
      *
      * @param transferProcess the transfer process
      * @param policy          the contract agreement usage policy for the asset being transferred
-     * @return succeeded StatusResult if flow has been initiated correctly, failed one otherwise.
+     * @return succeeded StatusResult if preparation has been initiated/completed correctly, failed one otherwise.
      */
     @NotNull
-    StatusResult<DataFlowResponse> provision(TransferProcess transferProcess, Policy policy);
+    StatusResult<DataFlowResponse> prepare(TransferProcess transferProcess, Policy policy);
 
     /**
      * Starts a provider data flow.

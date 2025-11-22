@@ -112,7 +112,7 @@ public class DspCatalogApi2025Extension implements ServiceExtension {
     private void registerDataService() {
 
         var endpointUrl = Objects.requireNonNull(dataspaceProfileContextRegistry.getWebhook(DATASPACE_PROTOCOL_HTTP_V_2025_1)).url();
-        dataServiceRegistry.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, DataService.Builder.newInstance()
+        dataServiceRegistry.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, (ctx, protocol) -> DataService.Builder.newInstance()
                 .endpointDescription("dspace:connector")
                 .endpointUrl(endpointUrl)
                 .build());

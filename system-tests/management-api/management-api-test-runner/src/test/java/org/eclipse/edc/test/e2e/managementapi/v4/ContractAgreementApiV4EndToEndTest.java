@@ -20,15 +20,16 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
-import org.eclipse.edc.test.e2e.managementapi.ManagementEndToEndExtension;
 import org.eclipse.edc.test.e2e.managementapi.ManagementEndToEndTestContext;
+import org.eclipse.edc.test.e2e.managementapi.Runtimes;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.List;
@@ -49,6 +50,7 @@ import static org.hamcrest.Matchers.notNullValue;
 
 public class ContractAgreementApiV4EndToEndTest {
 
+    @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
 
         @Test
@@ -58,7 +60,7 @@ public class ContractAgreementApiV4EndToEndTest {
 
             var jsonPath = context.baseRequest()
                     .contentType(JSON)
-                    .post("/v4alpha/contractagreements/request")
+                    .post("/v4beta/contractagreements/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -81,7 +83,7 @@ public class ContractAgreementApiV4EndToEndTest {
 
             context.baseRequest()
                     .contentType(JSON)
-                    .get("/v4alpha/contractagreements/cn1")
+                    .get("/v4beta/contractagreements/cn1")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -103,7 +105,7 @@ public class ContractAgreementApiV4EndToEndTest {
 
             context.baseRequest()
                     .contentType(JSON)
-                    .get("/v4alpha/contractagreements/agreement-id/negotiation")
+                    .get("/v4beta/contractagreements/agreement-id/negotiation")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -149,8 +151,15 @@ public class ContractAgreementApiV4EndToEndTest {
 
     @Nested
     @EndToEndTest
-    @ExtendWith(ManagementEndToEndExtension.InMemory.class)
     class InMemory extends Tests {
+
+        @RegisterExtension
+        static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
+                .name(Runtimes.ControlPlane.NAME)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
+                .build();
     }
 
     @Nested
@@ -162,7 +171,14 @@ public class ContractAgreementApiV4EndToEndTest {
         static PostgresqlEndToEndExtension postgres = new PostgresqlEndToEndExtension();
 
         @RegisterExtension
-        static ManagementEndToEndExtension runtime = new ManagementEndToEndExtension.Postgres(postgres);
+        static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
+                .name(Runtimes.ControlPlane.NAME)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.SQL_MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(postgres::config)
+                .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
+                .build();
 
     }
 }

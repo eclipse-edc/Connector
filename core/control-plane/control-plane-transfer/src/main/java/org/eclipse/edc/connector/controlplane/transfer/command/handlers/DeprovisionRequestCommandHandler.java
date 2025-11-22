@@ -23,7 +23,10 @@ import org.eclipse.edc.spi.command.EntityCommandHandler;
 
 /**
  * Transitions a transfer process to the {@link TransferProcessStates#DEPROVISIONING DEPROVISIONING} state.
+ *
+ * @deprecated provisioning will be fully managed by the data-plane
  */
+@Deprecated(since = "0.14.1")
 public class DeprovisionRequestCommandHandler extends EntityCommandHandler<DeprovisionRequest, TransferProcess> {
 
     public DeprovisionRequestCommandHandler(TransferProcessStore store) {

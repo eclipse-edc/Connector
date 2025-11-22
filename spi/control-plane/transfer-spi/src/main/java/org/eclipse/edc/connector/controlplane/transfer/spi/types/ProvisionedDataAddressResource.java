@@ -21,7 +21,10 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * A provisioned resource that is referenced using a {@link DataAddress}.
+ *
+ * @deprecated provisioning will be fully managed by the data-plane
  */
+@Deprecated(since = "0.14.1")
 public abstract class ProvisionedDataAddressResource extends ProvisionedResource {
     protected String resourceName;
     protected DataAddress dataAddress;

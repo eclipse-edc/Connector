@@ -20,6 +20,7 @@ public interface ManagementApiJsonSchema {
     String DSPACE_2025_SCHEMA_PREFIX = "https://w3id.org/dspace/2025/1";
 
     interface V4 {
+        String API_ERROR = EDC_MGMT_V4_SCHEMA_PREFIX + "/api-error-schema.json";
         String ID_RESPONSE = EDC_MGMT_V4_SCHEMA_PREFIX + "/id-response-schema.json";
         String ASSET = EDC_MGMT_V4_SCHEMA_PREFIX + "/asset-schema.json";
         String CATALOG_ASSET = EDC_MGMT_V4_SCHEMA_PREFIX + "/catalog-asset-schema.json";
@@ -45,6 +46,9 @@ public interface ManagementApiJsonSchema {
         String TRANSFER_PROCESS_STATE = EDC_MGMT_V4_SCHEMA_PREFIX + "/transfer-process-schema.json#/definitions/TransferState";
         String TERMINATE_TRANSFER = EDC_MGMT_V4_SCHEMA_PREFIX + "/transfer-terminate-schema.json";
         String SUSPEND_TRANSFER = EDC_MGMT_V4_SCHEMA_PREFIX + "/transfer-suspend-schema.json";
+        String PARTICIPANT_CONTEXT = EDC_MGMT_V4_SCHEMA_PREFIX + "/participant-context-schema.json";
+        String PARTICIPANT_CONTEXT_CONFIG = EDC_MGMT_V4_SCHEMA_PREFIX + "/participant-context-config-schema.json";
+
 
         static String version() {
             return "v4";

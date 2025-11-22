@@ -57,6 +57,11 @@ public class ContractAgreementMessage extends ContractRemoteMessage {
             return this;
         }
 
+        @Override
+        public Builder self() {
+            return this;
+        }
+
         public ContractAgreementMessage build() {
             Objects.requireNonNull(message.contractAgreement, "contractAgreement");
             return super.build();

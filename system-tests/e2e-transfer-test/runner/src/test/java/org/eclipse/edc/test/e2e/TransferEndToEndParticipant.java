@@ -17,89 +17,33 @@ package org.eclipse.edc.test.e2e;
 import io.restassured.common.mapper.TypeRef;
 import org.assertj.core.api.ThrowingConsumer;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participant;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.utils.LazySupplier;
-import org.eclipse.edc.spi.system.configuration.Config;
-import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.util.io.Ports;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
-import java.util.HashMap;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
-import static java.io.File.separator;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.boot.BootServicesExtension.PARTICIPANT_ID;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static org.eclipse.edc.web.spi.configuration.ApiContext.MANAGEMENT;
+import static org.eclipse.edc.web.spi.configuration.ApiContext.PROTOCOL;
 
 public class TransferEndToEndParticipant extends Participant {
-
-    private final LazySupplier<URI> controlPlaneControl = new LazySupplier<>(() -> URI.create("http://localhost:" + getFreePort() + "/control"));
-    private final LazySupplier<URI> dataPlaneControl = new LazySupplier<>(() -> URI.create("http://localhost:" + getFreePort() + "/control"));
-    private final LazySupplier<Integer> httpProvisionerPort = new LazySupplier<>(Ports::getFreePort);
 
     protected TransferEndToEndParticipant() {
         super();
     }
 
-    public Config controlPlaneConfig() {
-        var settings = new HashMap<String, String>() {
-            {
-                put(PARTICIPANT_ID, id);
-                put("web.http.port", String.valueOf(getFreePort()));
-                put("web.http.path", "/api");
-                put("web.http.protocol.port", String.valueOf(controlPlaneProtocol.get().getPort()));
-                put("web.http.protocol.path", controlPlaneProtocol.get().getPath());
-                put("web.http.management.port", String.valueOf(controlPlaneManagement.get().getPort()));
-                put("web.http.management.path", controlPlaneManagement.get().getPath());
-                put("web.http.control.port", String.valueOf(controlPlaneControl.get().getPort()));
-                put("web.http.control.path", controlPlaneControl.get().getPath());
-                put("edc.dsp.callback.address", controlPlaneProtocol.get().toString());
-                put("edc.transfer.send.retry.limit", "1");
-                put("edc.transfer.send.retry.base-delay.ms", "100");
-                put("edc.negotiation.consumer.send.retry.limit", "1");
-                put("edc.negotiation.provider.send.retry.limit", "1");
-                put("edc.negotiation.consumer.send.retry.base-delay.ms", "100");
-                put("edc.negotiation.provider.send.retry.base-delay.ms", "100");
-                put("edc.negotiation.consumer.state-machine.iteration-wait-millis", "50");
-                put("edc.negotiation.provider.state-machine.iteration-wait-millis", "50");
-                put("edc.transfer.state-machine.iteration-wait-millis", "50");
-                put("edc.data.plane.selector.state-machine.iteration-wait-millis", "100");
-            }
-        };
-
-        return ConfigFactory.fromMap(settings);
-    }
-
-    public Config dataPlaneConfig() {
-        var settings = new HashMap<String, String>() {
-            {
-                put("web.http.port", String.valueOf(getFreePort()));
-                put("web.http.path", "/api");
-                put("web.http.control.port", String.valueOf(dataPlaneControl.get().getPort()));
-                put("web.http.control.path", dataPlaneControl.get().getPath());
-                put("web.http.provision.port", String.valueOf(getFreePort()));
-                put("web.http.provision.path", "/provision-callback");
-                put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");
-                put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
-                put("edc.dataplane.http.sink.partition.size", "1");
-                put("edc.dataplane.send.retry.limit", "1");
-                put("edc.dataplane.state-machine.iteration-wait-millis", "50");
-                put("edc.dpf.selector.url", controlPlaneControl.get() + "/v1/dataplanes");
-            }
-        };
-        return ConfigFactory.fromMap(settings);
-    }
-
-    public Config controlPlaneEmbeddedDataPlaneConfig() {
-        return controlPlaneConfig().merge(dataPlaneConfig());
-    }
-
-    public int getHttpProvisionerPort() {
-        return httpProvisionerPort.get();
+    public static TransferEndToEndParticipant forContext(ComponentRuntimeContext ctx) {
+        var id = ctx.getConfig().getString("edc.participant.id");
+        return TransferEndToEndParticipant.Builder.newInstance()
+                .id(id)
+                .name(ctx.getName())
+                .managementUrl(ctx.getEndpoint(MANAGEMENT))
+                .protocolUrl(ctx.getEndpoint(PROTOCOL))
+                .build();
     }
 
     /**
@@ -162,11 +106,6 @@ public class TransferEndToEndParticipant extends Participant {
         assertThat(data).satisfies(bodyAssertion);
     }
 
-    @NotNull
-    private String resourceAbsolutePath(String filename) {
-        return System.getProperty("user.dir") + separator + "build" + separator + "resources" + separator + "test" + separator + filename;
-    }
-
     public static class Builder extends Participant.Builder<TransferEndToEndParticipant, Builder> {
 
         protected Builder() {
@@ -175,6 +114,16 @@ public class TransferEndToEndParticipant extends Participant {
 
         public static Builder newInstance() {
             return new Builder();
+        }
+
+        public Builder managementUrl(LazySupplier<URI> managementUrl) {
+            participant.controlPlaneManagement = managementUrl;
+            return this;
+        }
+
+        public Builder protocolUrl(LazySupplier<URI> managementUrl) {
+            participant.controlPlaneProtocol = managementUrl;
+            return this;
         }
 
     }

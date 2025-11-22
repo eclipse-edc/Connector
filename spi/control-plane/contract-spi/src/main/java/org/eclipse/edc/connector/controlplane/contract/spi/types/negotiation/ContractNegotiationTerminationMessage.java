@@ -65,8 +65,9 @@ public class ContractNegotiationTerminationMessage extends ContractRemoteMessage
             return this;
         }
 
-        public ContractNegotiationTerminationMessage build() {
-            return super.build();
+        @Override
+        public Builder self() {
+            return this;
         }
     }
 }

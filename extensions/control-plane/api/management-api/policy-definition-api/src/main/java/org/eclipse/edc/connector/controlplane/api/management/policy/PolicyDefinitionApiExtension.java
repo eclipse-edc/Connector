@@ -16,16 +16,16 @@ package org.eclipse.edc.connector.controlplane.api.management.policy;
 
 import jakarta.json.Json;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
-import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectFromPolicyDefinitionTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectFromPolicyEvaluationPlanTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectFromPolicyValidationResultTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectToPolicyDefinitionTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.policy.transform.JsonObjectToPolicyEvaluationPlanRequestTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3Controller;
 import org.eclipse.edc.connector.controlplane.api.management.policy.v4.PolicyDefinitionApiV4Controller;
 import org.eclipse.edc.connector.controlplane.api.management.policy.validation.PolicyDefinitionValidator;
 import org.eclipse.edc.connector.controlplane.api.management.policy.validation.PolicyEvaluationPlanRequestValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
+import org.eclipse.edc.connector.controlplane.transform.edc.policy.from.JsonObjectFromPolicyDefinitionTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.policy.from.JsonObjectFromPolicyEvaluationPlanTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.policy.from.JsonObjectFromPolicyValidationResultTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.policy.to.JsonObjectToPolicyDefinitionTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.policy.to.JsonObjectToPolicyEvaluationPlanRequestTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -43,8 +43,8 @@ import java.util.Map;
 
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
-import static org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyEvaluationPlanRequest.EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
+import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyEvaluationPlanRequest.EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 

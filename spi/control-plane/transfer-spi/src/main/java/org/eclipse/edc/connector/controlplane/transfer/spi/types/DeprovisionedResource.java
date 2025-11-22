@@ -25,7 +25,10 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * A response for a deprovision operation.
+ *
+ * @deprecated provisioning will be fully managed by the data-plane
  */
+@Deprecated(since = "0.14.1")
 @JsonTypeName("dataspaceconnector:deprovisionedresource")
 @JsonDeserialize(builder = DeprovisionedResource.Builder.class)
 public class DeprovisionedResource {

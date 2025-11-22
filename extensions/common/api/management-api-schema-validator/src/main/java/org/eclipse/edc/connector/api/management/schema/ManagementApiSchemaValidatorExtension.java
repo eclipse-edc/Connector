@@ -38,6 +38,8 @@ import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.D
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.DATASET_REQUEST;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.EDR_ENTRY;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.ID_RESPONSE;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.PARTICIPANT_CONTEXT;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.PARTICIPANT_CONTEXT_CONFIG;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.POLICY_DEFINITION;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.POLICY_EVALUATION_PLAN;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.POLICY_EVALUATION_REQUEST;
@@ -59,12 +61,15 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreemen
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand.TERMINATE_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE_TERM;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState.NEGOTIATION_STATE_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE_TERM;
 import static org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry.EDR_ENTRY_TYPE_TERM;
+import static org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration.PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_TYPE_TERM;
 import static org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan.EDC_POLICY_EVALUATION_PLAN_TYPE_TERM;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
@@ -97,7 +102,7 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
             put(DATASET_REQUEST_TYPE_TERM, DATASET_REQUEST);
             put(CONTRACT_REQUEST_TYPE_TERM, CONTRACT_REQUEST);
             put(CONTRACT_NEGOTIATION_TYPE_TERM, CONTRACT_NEGOTIATION);
-            put("NegotiationState", CONTRACT_NEGOTIATION_STATE);
+            put(NEGOTIATION_STATE_TYPE_TERM, CONTRACT_NEGOTIATION_STATE);
             put(TERMINATE_NEGOTIATION_TYPE_TERM, TERMINATE_NEGOTIATION);
             put(CONTRACT_AGREEMENT_TYPE_TERM, CONTRACT_AGREEMENT);
             put(TRANSFER_REQUEST_TYPE_TERM, TRANSFER_REQUEST);
@@ -105,6 +110,8 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
             put("TransferState", TRANSFER_PROCESS_STATE);
             put("TerminateTransfer", TERMINATE_TRANSFER);
             put("SuspendTransfer", SUSPEND_TRANSFER);
+            put(PARTICIPANT_CONTEXT_TYPE_TERM, PARTICIPANT_CONTEXT);
+            put(PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM, PARTICIPANT_CONTEXT_CONFIG);
 
 
         }

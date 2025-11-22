@@ -113,16 +113,16 @@ public class DataPlaneSignalingFlowControllerTest {
                     .dataAddress(newDestinationAddress)
                     .provisioning(true)
                     .build();
-            when(dataPlaneClient.provision(any())).thenReturn(StatusResult.success(flowResponseMessage));
+            when(dataPlaneClient.prepare(any())).thenReturn(StatusResult.success(flowResponseMessage));
 
-            var result = flowController.provision(transferProcess, policyBuilder().build());
+            var result = flowController.prepare(transferProcess, policyBuilder().build());
 
             assertThat(result).isSucceeded().satisfies(dataFlowResponse -> {
                 assertThat(dataFlowResponse.getDataPlaneId()).isEqualTo(dataPlaneInstance.getId());
                 assertThat(dataFlowResponse.getDataAddress()).isSameAs(newDestinationAddress);
                 assertThat(dataFlowResponse.isProvisioning()).isTrue();
             });
-            verify(dataPlaneClient).provision(isA(DataFlowProvisionMessage.class));
+            verify(dataPlaneClient).prepare(isA(DataFlowProvisionMessage.class));
         }
 
         @Test
@@ -130,7 +130,7 @@ public class DataPlaneSignalingFlowControllerTest {
             var transferProcess = transferProcessBuilder().build();
             when(selectorService.select(any(), any())).thenReturn(ServiceResult.notFound("no data plane can provision this"));
 
-            var result = flowController.provision(transferProcess, policyBuilder().build());
+            var result = flowController.prepare(transferProcess, policyBuilder().build());
 
             assertThat(result).isFailed();
             verifyNoInteractions(dataPlaneClientFactory);
@@ -141,7 +141,7 @@ public class DataPlaneSignalingFlowControllerTest {
             var transferProcess = transferProcessBuilder().build();
             when(selectorService.select(any(), any())).thenReturn(ServiceResult.unexpected("unexpected error"));
 
-            var result = flowController.provision(transferProcess, policyBuilder().build());
+            var result = flowController.prepare(transferProcess, policyBuilder().build());
 
             assertThat(result).isFailed();
         }
@@ -152,7 +152,7 @@ public class DataPlaneSignalingFlowControllerTest {
             when(selectorService.select(any(), any())).thenReturn(ServiceResult.success(createDataPlaneInstance()));
             when(transferTypeParser.parse(any())).thenReturn(Result.failure("transferType error"));
 
-            var result = flowController.provision(transferProcess, policyBuilder().build());
+            var result = flowController.prepare(transferProcess, policyBuilder().build());
 
             assertThat(result).isFailed().detail().isEqualTo("transferType error");
         }
@@ -164,7 +164,7 @@ public class DataPlaneSignalingFlowControllerTest {
             when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("any", FlowType.PUSH)));
             when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, "propertiesProvider error"));
 
-            var result = flowController.provision(transferProcess, policyBuilder().build());
+            var result = flowController.prepare(transferProcess, policyBuilder().build());
 
             assertThat(result).isFailed().detail().isEqualTo("propertiesProvider error");
         }

@@ -104,7 +104,10 @@ class TransferProcessProtocolServiceImplTest {
     private final DataAddressValidatorRegistry dataAddressValidator = mock();
     private final TransferProcessListener listener = mock();
     private final ProtocolTokenValidator protocolTokenValidator = mock();
-    private final ParticipantContext participantContext = new ParticipantContext("participantContextId");
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
     private TransferProcessProtocolService service;
 
     @BeforeEach
@@ -928,7 +931,10 @@ class TransferProcessProtocolServiceImplTest {
             var transferProcess = transferProcessBuilder().state(COMPLETED.code()).type(type).build();
 
 
-            var wrongParticipantContext = new ParticipantContext("wrongParticipantContext");
+            var wrongParticipantContext = ParticipantContext.Builder.newInstance()
+                    .participantContextId("wrongParticipantContext")
+                    .identity("wrongParticipantId")
+                    .build();
 
             when(protocolTokenValidator.verify(any(), any(), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent()));
             when(store.findById(any())).thenReturn(transferProcess);

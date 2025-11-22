@@ -15,10 +15,9 @@
 package org.eclipse.edc.participantcontext.config.store;
 
 import org.eclipse.edc.participantcontext.single.config.store.SingleParticipantContextConfigStore;
+import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStoreTestBase;
-import org.eclipse.edc.spi.system.configuration.Config;
-import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -30,8 +29,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class SingleParticipantContextConfigStoreTest extends ParticipantContextConfigStoreTestBase {
 
     public static final String PARTICIPANT_CONTEXT_ID = "configuredId";
-    private final Config config = ConfigFactory.fromMap(Map.of("key", "value"));
-    private final SingleParticipantContextConfigStore store = new SingleParticipantContextConfigStore(PARTICIPANT_CONTEXT_ID, config);
+    private final ParticipantContextConfiguration config = ParticipantContextConfiguration.Builder.newInstance()
+            .participantContextId(PARTICIPANT_CONTEXT_ID)
+            .entries(Map.of("key", "value"))
+            .build();
+
+    private final SingleParticipantContextConfigStore store = new SingleParticipantContextConfigStore(config);
 
     @Override
     protected ParticipantContextConfigStore getStore() {
@@ -43,6 +46,13 @@ public class SingleParticipantContextConfigStoreTest extends ParticipantContextC
     @Disabled
     protected void save() {
         super.save();
+    }
+
+    // SingleParticipantContextConfigStore is read-only
+    @Override
+    @Disabled
+    protected void update() {
+        super.update();
     }
 
     @Test
@@ -57,7 +67,7 @@ public class SingleParticipantContextConfigStoreTest extends ParticipantContextC
     @Test
     void save_unsupported() {
 
-        assertThatThrownBy(() -> getStore().save("participant1", config))
+        assertThatThrownBy(() -> getStore().save(config))
                 .isInstanceOf(UnsupportedOperationException.class);
     }
 

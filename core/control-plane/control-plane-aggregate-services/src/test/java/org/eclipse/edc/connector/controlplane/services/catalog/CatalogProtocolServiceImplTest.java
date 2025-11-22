@@ -23,9 +23,9 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
+import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceFailure;
@@ -56,12 +56,15 @@ class CatalogProtocolServiceImplTest {
     private final DatasetResolver datasetResolver = mock();
     private final DataServiceRegistry dataServiceRegistry = mock();
     private final ProtocolTokenValidator protocolTokenValidator = mock();
-    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
+    private final ParticipantIdentityResolver identityResolver = mock();
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
-    private final ParticipantContext participantContext = new ParticipantContext("participantContextId");
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
 
     private final CatalogProtocolServiceImpl service = new CatalogProtocolServiceImpl(datasetResolver,
-            dataServiceRegistry, protocolTokenValidator, dataspaceProfileContextRegistry, transactionContext);
+            dataServiceRegistry, protocolTokenValidator, identityResolver, transactionContext);
 
     private ParticipantAgent createParticipantAgent() {
         return new ParticipantAgent(emptyMap(), emptyMap());
@@ -93,9 +96,9 @@ class CatalogProtocolServiceImplTest {
             var participantId = "participantId";
 
             when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-            when(dataServiceRegistry.getDataServices(any())).thenReturn(List.of(dataService));
+            when(dataServiceRegistry.getDataServices(any(), any())).thenReturn(List.of(dataService));
             when(datasetResolver.query(eq(participantContext), any(), any(), any())).thenReturn(Stream.of(createDataset()));
-            when(dataspaceProfileContextRegistry.getParticipantId(any())).thenReturn(participantId);
+            when(identityResolver.getParticipantId(any(), any())).thenReturn(participantId);
 
             var result = service.getCatalog(participantContext, message, tokenRepresentation);
 

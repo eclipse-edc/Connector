@@ -100,4 +100,14 @@ public interface ParticipantContextConfig {
      * @throws EdcException if the value it's not parsable
      */
     Boolean getBoolean(String participantContextId, String key, Boolean defaultValue);
+
+    /**
+     * Returns the sensitive String representation of the value
+     *
+     * @param participantContextId the participant context identifier
+     * @param key                  of the setting
+     * @return a String representation of the setting
+     * @throws EdcException if no setting is found
+     */
+    String getSensitiveString(String participantContextId, String key);
 }

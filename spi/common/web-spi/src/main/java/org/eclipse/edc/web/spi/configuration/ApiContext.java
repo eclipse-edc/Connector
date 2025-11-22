@@ -22,6 +22,5 @@ public interface ApiContext {
     String MANAGEMENT = "management";
     String CONTROL = "control";
     String PROTOCOL = "protocol";
-    String PUBLIC = "public";
 
 }

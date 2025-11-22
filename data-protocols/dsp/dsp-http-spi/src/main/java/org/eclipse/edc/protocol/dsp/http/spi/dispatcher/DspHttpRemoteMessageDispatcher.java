@@ -18,14 +18,14 @@ import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.response.DspHttpResponseBodyExtractor;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.spi.types.domain.message.ProtocolRemoteMessage;
 
 import java.util.function.Function;
 
 /**
  * {@link RemoteMessageDispatcher} for sending dataspace protocol messages.
  */
-public interface DspHttpRemoteMessageDispatcher extends RemoteMessageDispatcher {
+public interface DspHttpRemoteMessageDispatcher extends RemoteMessageDispatcher<ProtocolRemoteMessage> {
 
     /**
      * Registers a message request factory and response parser
@@ -36,7 +36,7 @@ public interface DspHttpRemoteMessageDispatcher extends RemoteMessageDispatcher 
      * @param requestFactory the request factory.
      * @param bodyExtractor  the body extractor function.
      */
-    <M extends RemoteMessage, R> void registerMessage(Class<M> clazz, DspHttpRequestFactory<M> requestFactory,
+    <M extends ProtocolRemoteMessage, R> void registerMessage(Class<M> clazz, DspHttpRequestFactory<M> requestFactory,
                                                       DspHttpResponseBodyExtractor<R> bodyExtractor);
 
     /**
@@ -46,6 +46,6 @@ public interface DspHttpRemoteMessageDispatcher extends RemoteMessageDispatcher 
      * @param messageClass   the message type for which evaluate the policy.
      * @param policyProvider function that extracts the Policy from the message.
      */
-    <M extends RemoteMessage> void registerPolicyScope(Class<M> messageClass, Function<M, Policy> policyProvider,
+    <M extends ProtocolRemoteMessage> void registerPolicyScope(Class<M> messageClass, Function<M, Policy> policyProvider,
                                                        RequestPolicyContext.Provider contextProvider);
 }

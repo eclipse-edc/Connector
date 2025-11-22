@@ -19,12 +19,12 @@ public interface ManagementApi {
     // Transformer scope for management API
     String MANAGEMENT_API_CONTEXT = "management-api";
 
-    String MANAGEMENT_API_V_4_ALPHA = "v4alpha";
+    String MANAGEMENT_API_V_4 = "v4";
 
     // JSON-LD scope for management API
     String MANAGEMENT_SCOPE = "MANAGEMENT_API";
 
     // JSON-LD scope for management API version 4 alpha
-    String MANAGEMENT_SCOPE_V4 = MANAGEMENT_SCOPE + ":" + MANAGEMENT_API_V_4_ALPHA;
+    String MANAGEMENT_SCOPE_V4 = MANAGEMENT_SCOPE + ":" + MANAGEMENT_API_V_4;
 
 }

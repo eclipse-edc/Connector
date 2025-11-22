@@ -37,7 +37,14 @@ public interface DataFlowController {
      */
     boolean canHandle(TransferProcess transferProcess);
 
-    StatusResult<DataFlowResponse> provision(TransferProcess transferProcess, Policy policy);
+    /**
+     * Prepare a DataFlow
+     *
+     * @param transferProcess the transfer process.
+     * @param policy the contract agreement policy.
+     * @return success if the preparation initialize/completes correctly, failure otherwise.
+     */
+    StatusResult<DataFlowResponse> prepare(TransferProcess transferProcess, Policy policy);
 
     /**
      * Initiate a data flow.

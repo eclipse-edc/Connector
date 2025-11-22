@@ -66,9 +66,17 @@ public interface ParticipantContextStore {
         var res = query(queryByParticipantContextId(participantContextId).build());
         if (res.succeeded()) {
             return res.getContent().stream().findFirst()
-                    .map(StoreResult::success)
-                    .orElse(StoreResult.notFound("ParticipantContext with ID '%s' does not exist.".formatted(participantContextId)));
+                           .map(StoreResult::success)
+                           .orElse(StoreResult.notFound("ParticipantContext with ID '%s' does not exist.".formatted(participantContextId)));
         }
         return StoreResult.generalError(res.getFailureDetail());
+    }
+
+    default String alreadyExistsErrorMessage(String id) {
+        return "A ParticipantContext with ID '%s' already exists.".formatted(id);
+    }
+
+    default String notFoundErrorMessage(String id) {
+        return "A ParticipantContext with ID '%s' does not exist.".formatted(id);
     }
 }

@@ -15,7 +15,6 @@
 
 package org.eclipse.edc.boot.system;
 
-import org.eclipse.edc.boot.BootServicesExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -39,7 +38,6 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     private final Map<Class<?>, Object> services = new HashMap<>();
     private final Config config;
     private boolean isReadOnly = false;
-    private String participantId;
     private String runtimeId;
     private String componentId;
 
@@ -57,11 +55,6 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     @Override
     public void freeze() {
         isReadOnly = true;
-    }
-
-    @Override
-    public String getParticipantId() {
-        return participantId;
     }
 
     @Override
@@ -109,11 +102,6 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
 
     @Override
     public void initialize() {
-        participantId = getSetting(BootServicesExtension.PARTICIPANT_ID, ANONYMOUS_PARTICIPANT);
-        if (ANONYMOUS_PARTICIPANT.equals(participantId)) {
-            getMonitor().warning("The runtime is configured as an anonymous participant. DO NOT DO THIS IN PRODUCTION.");
-        }
-
         runtimeId = getSetting(RUNTIME_ID, null);
         if (runtimeId != null) {
             getMonitor().warning("A configuration value for '%s' was found. Explicitly configuring this is not supported anymore and may get removed in the future. A random value will be assigned.".formatted(RUNTIME_ID));

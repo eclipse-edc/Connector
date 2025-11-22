@@ -18,6 +18,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
+    api(project(":spi:common:participant-context-config-spi"))
     api(project(":spi:common:protocol-spi"))
 }
 

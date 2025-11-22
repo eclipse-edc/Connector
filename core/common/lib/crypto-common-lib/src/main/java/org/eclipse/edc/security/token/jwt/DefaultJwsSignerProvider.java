@@ -36,4 +36,10 @@ public class DefaultJwsSignerProvider implements JwsSignerProvider {
         return privateKeyResolver.resolvePrivateKey(privateKeyId)
                 .compose(pk -> Result.ofThrowable(() -> CryptoConverter.createSignerFor(pk)));
     }
+
+    @Override
+    public Result<JWSSigner> createJwsSigner(String participantContextId, String privateKeyId) {
+        return privateKeyResolver.resolvePrivateKey(participantContextId, privateKeyId)
+                .compose(pk -> Result.ofThrowable(() -> CryptoConverter.createSignerFor(pk)));
+    }
 }

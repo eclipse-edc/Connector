@@ -18,10 +18,13 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
+import org.eclipse.edc.junit.annotations.Runtime;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
-import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
+import org.eclipse.edc.junit.utils.Endpoints;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
@@ -76,7 +79,8 @@ class TransferPushEndToEndTest {
         }
 
         @Test
-        void httpPushDataTransfer() {
+        void httpPushDataTransfer(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                  @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
             providerDataSource.stubFor(get(anyUrl()).willReturn(ok("data")));
             var assetId = UUID.randomUUID().toString();
             var dataAddressProperties = Map.<String, Object>of(
@@ -85,13 +89,13 @@ class TransferPushEndToEndTest {
                     "type", "HttpData",
                     "proxyQueryParams", "true"
             );
-            createResourcesOnProvider(assetId, dataAddressProperties);
+            createResourcesOnProvider(provider, assetId, dataAddressProperties);
 
-            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+            var transferProcessId = consumer.requestAssetFrom(assetId, provider)
                     .withDestination(httpDataAddress("http://localhost:" + consumerDataDestination.getPort() + "/destination"))
                     .withTransferType("HttpData-PUSH").execute();
 
-            CONSUMER.awaitTransferToBeInState(transferProcessId, COMPLETED);
+            consumer.awaitTransferToBeInState(transferProcessId, COMPLETED);
 
             providerDataSource.verify(getRequestedFor(urlEqualTo("/source")));
             consumerDataDestination.verify(postRequestedFor(urlEqualTo("/destination"))
@@ -100,11 +104,14 @@ class TransferPushEndToEndTest {
         }
 
         @Test
-        void httpToHttp_oauth2Provisioning() {
+        void httpToHttp_oauth2Provisioning(
+                @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
+                @Runtime(PROVIDER_DP) Vault vault) {
 
             oauth2server.stubFor(post(anyUrl()).willReturn(okJson("{\"access_token\": \"token\"}")));
             providerDataSource.stubFor(get(anyUrl()).willReturn(ok("data")));
-            getDataplaneVault().storeSecret("provision-oauth-secret", "supersecret");
+            vault.storeSecret("provision-oauth-secret", "supersecret");
             var assetId = UUID.randomUUID().toString();
             var sourceDataAddressProperties = Map.<String, Object>of(
                     "type", "HttpData",
@@ -114,13 +121,13 @@ class TransferPushEndToEndTest {
                     "oauth2:tokenUrl", "http://localhost:" + oauth2server.getPort() + "/token"
             );
 
-            createResourcesOnProvider(assetId, sourceDataAddressProperties);
+            createResourcesOnProvider(provider, assetId, sourceDataAddressProperties);
 
-            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+            var transferProcessId = consumer.requestAssetFrom(assetId, provider)
                     .withDestination(httpDataAddress("http://localhost:" + consumerDataDestination.getPort() + "/destination"))
                     .withTransferType("HttpData-PUSH").execute();
 
-            CONSUMER.awaitTransferToBeInState(transferProcessId, COMPLETED);
+            consumer.awaitTransferToBeInState(transferProcessId, COMPLETED);
 
             oauth2server.verify(postRequestedFor(urlEqualTo("/token"))
                     .withRequestBody(equalTo("grant_type=client_credentials&client_secret=supersecret&client_id=clientId")));
@@ -147,54 +154,88 @@ class TransferPushEndToEndTest {
     class InMemory extends Tests {
 
         @RegisterExtension
-        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane")
-                        .configurationProvider(CONSUMER::controlPlaneConfig)
-        );
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(CONSUMER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
+
+        static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
 
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE.create("provider-control-plane")
-                        .configurationProvider(PROVIDER::controlPlaneConfig)
-        );
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(PROVIDER_ENDPOINTS)
+                .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
 
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane")
-                        .configurationProvider(PROVIDER::dataPlaneConfig)
-        );
+        static final RuntimeExtension PROVIDER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_DP)
+                .modules(Runtimes.DataPlane.IN_MEM_MODULES)
+                .endpoints(Runtimes.DataPlane.ENDPOINTS.build())
+                .configurationProvider(Runtimes.DataPlane::config)
+                .configurationProvider(() -> Runtimes.ControlPlane.dataPlaneSelectorFor(PROVIDER_ENDPOINTS))
+                .build();
 
-        @Override
-        protected Vault getDataplaneVault() {
-            return PROVIDER_DATA_PLANE.getService(Vault.class);
-        }
     }
 
     @Nested
     @EndToEndTest
     class EmbeddedDataPlane extends Tests {
 
-        @RegisterExtension
-        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane")
-                        .configurationProvider(CONSUMER::controlPlaneConfig)
-        );
 
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("provider-control-plane")
-                        .configurationProvider(PROVIDER::controlPlaneEmbeddedDataPlaneConfig)
-        );
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(CONSUMER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
 
-        @Override
-        protected Vault getDataplaneVault() {
-            return PROVIDER_CONTROL_PLANE.getService(Vault.class);
+        static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
+
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_CP)
+                .modules(Runtimes.ControlPlane.EMBEDDED_DP_MODULES)
+                .endpoints(PROVIDER_ENDPOINTS)
+                .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
+                .configurationProvider(Runtimes.DataPlane::config)
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
+
+        // This is only for satisfying the @Runtime(PROVIDER_DP) in the Tests class,
+        // and it's going away eventually
+        @RegisterExtension
+        static final RuntimeExtension MOCK_DP = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_DP)
+                .modules(Runtimes.DataPlane.IN_MEM_MODULES)
+                .endpoints(Runtimes.DataPlane.ENDPOINTS.build())
+                .configurationProvider(Runtimes.DataPlane::config)
+                .configurationProvider(() -> Runtimes.ControlPlane.dataPlaneSelectorFor(PROVIDER_ENDPOINTS))
+                .build();
+
+        @BeforeAll
+        static void setup(@Runtime(PROVIDER_CP) Vault vault) {
+            vault.storeSecret("provision-oauth-secret", "supersecret");
+
         }
+
     }
 
     @Nested
     @PostgresqlIntegrationTest
     class Postgres extends Tests {
+
+
+        static final String CONSUMER_DB = "consumer";
+        static final String PROVIDER_DB = "provider";
 
         @Order(0)
         @RegisterExtension
@@ -203,35 +244,44 @@ class TransferPushEndToEndTest {
         @Order(1)
         @RegisterExtension
         static final BeforeAllCallback CREATE_DATABASES = context -> {
-            POSTGRESQL_EXTENSION.createDatabase(CONSUMER.getName());
-            POSTGRESQL_EXTENSION.createDatabase(PROVIDER.getName());
+            POSTGRESQL_EXTENSION.createDatabase(CONSUMER_DB);
+            POSTGRESQL_EXTENSION.createDatabase(PROVIDER_DB);
         };
 
         @RegisterExtension
-        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.POSTGRES_CONTROL_PLANE.create("consumer-control-plane")
-                        .configurationProvider(CONSUMER::controlPlaneConfig)
-                        .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONSUMER.getName()))
-        );
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(CONSUMER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.SQL_MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
+                .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONSUMER_DB))
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
+
+        static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
 
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.POSTGRES_CONTROL_PLANE.create("provider-control-plane")
-                        .configurationProvider(PROVIDER::controlPlaneConfig)
-                        .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()))
-        );
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.SQL_MODULES)
+                .endpoints(PROVIDER_ENDPOINTS)
+                .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
+                .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER_DB))
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
 
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
-                Runtimes.POSTGRES_DATA_PLANE.create("provider-data-plane")
-                        .configurationProvider(PROVIDER::dataPlaneConfig)
-                        .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()))
-        );
+        static final RuntimeExtension PROVIDER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_DP)
+                .modules(Runtimes.DataPlane.SQL_MODULES)
+                .endpoints(Runtimes.DataPlane.ENDPOINTS.build())
+                .configurationProvider(Runtimes.DataPlane::config)
+                .configurationProvider(() -> Runtimes.ControlPlane.dataPlaneSelectorFor(PROVIDER_ENDPOINTS))
+                .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER_DB))
+                .build();
 
-        @Override
-        protected Vault getDataplaneVault() {
-            return PROVIDER_DATA_PLANE.getService(Vault.class);
-        }
     }
 
 }

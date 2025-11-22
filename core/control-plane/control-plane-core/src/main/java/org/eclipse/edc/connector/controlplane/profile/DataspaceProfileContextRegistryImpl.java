@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.profile;
 
+
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.protocol.spi.ParticipantIdExtractionFunction;
@@ -58,17 +59,7 @@ public class DataspaceProfileContextRegistryImpl implements DataspaceProfileCont
         return profiles().stream().filter(it -> it.name().equals(protocol))
                 .map(DataspaceProfileContext::protocolVersion).findAny().orElse(null);
     }
-    
-    @Override
-    public @Nullable String getParticipantId(String protocol) {
-        return profiles().stream()
-                .filter(it -> it.name().equals(protocol))
-                .map(DataspaceProfileContext::participantId)
-                .findAny()
-                .orElse(null);
-    }
-    
-    
+
     @Override
     public @Nullable ParticipantIdExtractionFunction getIdExtractionFunction(String protocol) {
         return profiles().stream()
@@ -77,7 +68,7 @@ public class DataspaceProfileContextRegistryImpl implements DataspaceProfileCont
                 .findAny()
                 .orElse(null);
     }
-    
+
     private List<DataspaceProfileContext> profiles() {
         return standardProfiles.isEmpty() ? defaultProfiles : standardProfiles;
     }

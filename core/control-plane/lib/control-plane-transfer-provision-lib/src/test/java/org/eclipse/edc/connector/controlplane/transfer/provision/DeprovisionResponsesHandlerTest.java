@@ -25,7 +25,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.security.ParticipantVault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -40,6 +40,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -47,7 +48,7 @@ import static org.mockito.Mockito.when;
 
 class DeprovisionResponsesHandlerTest {
 
-    private final Vault vault = mock();
+    private final ParticipantVault vault = mock();
     private final TransferProcessObservableImpl observable = new TransferProcessObservableImpl();
     private final DeprovisionResponsesHandler handler = new DeprovisionResponsesHandler(observable, mock(), vault);
     private final TransferProcessListener listener = mock();
@@ -73,13 +74,13 @@ class DeprovisionResponsesHandlerTest {
         var deprovisionedResource = DeprovisionedResource.Builder.newInstance()
                 .provisionedResourceId(provisionedResourceId)
                 .build();
-        when(vault.deleteSecret(any())).thenReturn(Result.success());
+        when(vault.deleteSecret(any(), any())).thenReturn(Result.success());
 
         var result = handler.handle(process, List.of(StatusResult.success(deprovisionedResource)));
 
         assertThat(result).isTrue();
         assertThat(process.getState()).isEqualTo(DEPROVISIONED.code());
-        verify(vault).deleteSecret("test-resource");
+        verify(vault).deleteSecret(any(), eq("test-resource"));
 
         handler.postActions(process);
 
@@ -170,6 +171,7 @@ class DeprovisionResponsesHandlerTest {
         var processId = UUID.randomUUID().toString();
 
         return TransferProcess.Builder.newInstance()
+                .participantContextId("test-participant-id")
                 .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
                 .type(CONSUMER)
                 .id("test-process-" + processId)

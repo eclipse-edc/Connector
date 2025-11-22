@@ -27,6 +27,17 @@ public interface TokenGenerationService {
      *
      * @param privateKeyId A String that identifies the private key, e.g. a secret alias in a {@link org.eclipse.edc.spi.security.Vault}
      * @param decorators   an optional list of {@code JwtDecorator} objects to determine the shape of the token, i.e. headers and claims
+     * @deprecated Please {@link #generate(String, String, TokenDecorator...)} instead.
      */
+    @Deprecated
     Result<TokenRepresentation> generate(String privateKeyId, TokenDecorator... decorators);
+
+    /**
+     * Generate a signed token using the private key as specified.
+     *
+     * @param participantContextId the context id of the participant generating the token.
+     * @param privateKeyId         A String that identifies the private key, e.g. a secret alias in a {@link org.eclipse.edc.spi.security.Vault}
+     * @param decorators           an optional list of {@code JwtDecorator} objects to determine the shape of the token, i.e., headers and claims
+     */
+    Result<TokenRepresentation> generate(String participantContextId, String privateKeyId, TokenDecorator... decorators);
 }

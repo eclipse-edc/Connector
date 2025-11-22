@@ -28,9 +28,10 @@ class DataServiceRegistryImplTest {
         var dataService = DataService.Builder.newInstance().build();
 
         var protocol = "protocol";
+        var participantContextId = "participantContextId";
 
-        registry.register(protocol, dataService);
-        var dataServices = registry.getDataServices(protocol);
+        registry.register(protocol, (ctx, proto) -> dataService);
+        var dataServices = registry.getDataServices(participantContextId, protocol);
 
         assertThat(dataServices).containsExactly(dataService);
     }
@@ -40,9 +41,10 @@ class DataServiceRegistryImplTest {
         var dataService = DataService.Builder.newInstance().build();
 
         var protocol = "protocol";
+        var participantContextId = "participantContextId";
 
-        registry.register(protocol, dataService);
-        var dataServices = registry.getDataServices("unknownProtocol");
+        registry.register(protocol, (ctx, proto) -> dataService);
+        var dataServices = registry.getDataServices(participantContextId, "unknownProtocol");
 
         assertThat(dataServices).isEmpty();
     }

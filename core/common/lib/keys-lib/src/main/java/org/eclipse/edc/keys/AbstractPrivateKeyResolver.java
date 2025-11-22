@@ -41,7 +41,12 @@ public abstract class AbstractPrivateKeyResolver implements PrivateKeyResolver {
 
     @Override
     public Result<PrivateKey> resolvePrivateKey(String id) {
-        var encodedKeyResult = resolveInternal(id);
+        return resolvePrivateKey(null, id);
+    }
+
+    @Override
+    public Result<PrivateKey> resolvePrivateKey(String participantContextId, String id) {
+        var encodedKeyResult = resolveInternal(participantContextId, id);
 
         return encodedKeyResult
                 .recover(failure -> {
@@ -66,7 +71,7 @@ public abstract class AbstractPrivateKeyResolver implements PrivateKeyResolver {
      * @return {@link Result#success()} if the key was found, {@link Result#failure(String)} if not found or other error.
      */
     @NotNull
-    protected abstract Result<String> resolveInternal(String keyId);
+    protected abstract Result<String> resolveInternal(String participantContextId, String keyId);
 
     private Result<String> resolveFromConfig(String keyId) {
         var value = config.getString(keyId, null);

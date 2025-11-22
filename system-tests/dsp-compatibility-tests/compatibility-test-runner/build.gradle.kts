@@ -30,6 +30,8 @@ dependencies {
     testImplementation(libs.junit.platform.launcher)
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
     runtimeOnly(libs.parsson)
+
+    testCompileOnly(project(":system-tests:dsp-compatibility-tests:connector-under-test"))
 }
 
 edcBuild {

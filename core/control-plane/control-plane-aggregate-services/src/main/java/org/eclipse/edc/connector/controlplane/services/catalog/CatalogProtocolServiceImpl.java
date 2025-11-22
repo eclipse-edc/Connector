@@ -24,9 +24,9 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
+import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.context.request.spi.RequestCatalogPolicyContext;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -38,7 +38,7 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
 
     private final DatasetResolver datasetResolver;
     private final DataServiceRegistry dataServiceRegistry;
-    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
+    private final ParticipantIdentityResolver identityResolver;
     private final TransactionContext transactionContext;
 
     private final ProtocolTokenValidator protocolTokenValidator;
@@ -46,12 +46,12 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
     public CatalogProtocolServiceImpl(DatasetResolver datasetResolver,
                                       DataServiceRegistry dataServiceRegistry,
                                       ProtocolTokenValidator protocolTokenValidator,
-                                      DataspaceProfileContextRegistry dataspaceProfileContextRegistry,
+                                      ParticipantIdentityResolver identityResolver,
                                       TransactionContext transactionContext) {
         this.datasetResolver = datasetResolver;
         this.dataServiceRegistry = dataServiceRegistry;
         this.protocolTokenValidator = protocolTokenValidator;
-        this.dataspaceProfileContextRegistry = dataspaceProfileContextRegistry;
+        this.identityResolver = identityResolver;
         this.transactionContext = transactionContext;
     }
 
@@ -61,14 +61,12 @@ public class CatalogProtocolServiceImpl implements CatalogProtocolService {
         return transactionContext.execute(() -> protocolTokenValidator.verify(participantContext, tokenRepresentation, RequestCatalogPolicyContext::new, message)
                 .map(agent -> {
                     try (var datasets = datasetResolver.query(participantContext, agent, message.getQuerySpec(), message.getProtocol())) {
-                        // TODO data services should be based on the participant context
-                        var dataServices = dataServiceRegistry.getDataServices(message.getProtocol());
+                        var dataServices = dataServiceRegistry.getDataServices(participantContext.getParticipantContextId(), message.getProtocol());
 
                         return Catalog.Builder.newInstance()
                                 .dataServices(dataServices)
                                 .datasets(datasets.toList())
-                                // TODO it should be dynamic based on the participant context
-                                .participantId(dataspaceProfileContextRegistry.getParticipantId(message.getProtocol()))
+                                .participantId(identityResolver.getParticipantId(participantContext.getParticipantContextId(), message.getProtocol()))
                                 .build();
                     }
                 })

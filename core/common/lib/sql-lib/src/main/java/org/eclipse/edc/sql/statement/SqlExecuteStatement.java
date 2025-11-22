@@ -18,8 +18,8 @@ import org.eclipse.edc.spi.query.Criterion;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
@@ -168,7 +168,7 @@ public class SqlExecuteStatement {
      * @return sql upsert statement.
      */
     public String upsertInto(String tableName, String idColumn) {
-        return upsertInto(tableName, idColumn, null);
+        return upsertInto(tableName, idColumn, List.of(), null);
     }
 
     /**
@@ -180,13 +180,40 @@ public class SqlExecuteStatement {
      * @return sql upsert statement.
      */
     public String upsertInto(String tableName, String idColumn, String whereFilter) {
+        return upsertInto(tableName, idColumn, List.of(), whereFilter);
+    }
+
+    /**
+     * Gives a SQL upsert statement based on the "ON CONFLICT" semantic
+     *
+     * @param tableName   the table name.
+     * @param idColumn    the id column.
+     * @param skipColumns the columns to skip during update.
+     * @return sql upsert statement.
+     */
+    public String upsertInto(String tableName, String idColumn, List<String> skipColumns) {
+        return upsertInto(tableName, idColumn, skipColumns, null);
+    }
+
+    /**
+     * Gives a SQL upsert statement based on the "ON CONFLICT" semantic
+     *
+     * @param tableName   the table name.
+     * @param idColumn    the id column.
+     * @param skipColumns the columns to skip during update.
+     * @param whereFilter additional filter to add to the update on conflict clause
+     * @return sql upsert statement.
+     */
+    public String upsertInto(String tableName, String idColumn, List<String> skipColumns, String whereFilter) {
+        var toSkip = new HashSet<>(skipColumns);
+        toSkip.add(idColumn);
         if (columnEntries.isEmpty()) {
             throw new IllegalArgumentException(format("Cannot create UPSERT statement on %s because no columns are registered", tableName));
         }
 
         var updateFields = columnEntries.stream()
                 .map(ColumnEntry::columnName)
-                .filter(it -> !Objects.equals(it, idColumn))
+                .filter(it -> !toSkip.contains(it))
                 .map(it -> it + " = EXCLUDED." + it)
                 .collect(joining(", "));
 

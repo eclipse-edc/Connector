@@ -60,6 +60,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -97,7 +98,8 @@ class DatasetResolverImplTest {
     }
 
     private ParticipantContext createParticipantContext() {
-        return new ParticipantContext("participantContextId");
+        return ParticipantContext.Builder.newInstance().participantContextId("participantContextId")
+                .identity("id").build();
     }
 
     private DataService createDataService() {
@@ -346,7 +348,7 @@ class DatasetResolverImplTest {
                         assertThat(policy.getInheritsFrom()).isEqualTo("inherits2");
                     });
             verify(assetIndex).findById("datasetId");
-            verify(definitionResolver).resolveFor(createParticipantContext(), participantAgent);
+            verify(definitionResolver).resolveFor(argThat(argument -> argument.getParticipantContextId().equals("participantContextId")), eq(participantAgent));
         }
 
         @Test

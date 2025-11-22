@@ -39,9 +39,11 @@ import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.AGREEMENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.CONTRACT_OFFER;
+import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.CONTRACT_OFFERS;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.EVENT;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.INITIAL_CONTRACT_OFFER;
+import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.INITIAL_CONTRACT_OFFERS;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.INITIAL_CONTRACT_REQUEST;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.TERMINATION;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.VERIFICATION;
@@ -129,8 +131,33 @@ public abstract class BaseDspNegotiationApiController {
      * @return the created contract negotiation or an error.
      */
     @POST
-    @Path(INITIAL_CONTRACT_OFFER)
+    @Path(INITIAL_CONTRACT_OFFERS)
     public Response initialContractOffer(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        var request = PostDspRequest.Builder.newInstance(ContractOfferMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
+                .expectedMessageType(namespace.toIri(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM))
+                .message(jsonObject)
+                .token(token)
+                .serviceCall(protocolService::notifyOffered)
+                .errorProvider(ContractNegotiationError.Builder::newInstance)
+                .protocol(protocol)
+                .participantContextProvider(participantContextSupplier)
+                .build();
+
+        return dspRequestHandler.createResource(request);
+    }
+
+    /**
+     * Consumer-specific endpoint.
+     *
+     * @param jsonObject dspace:ContractOfferMessage sent by a consumer.
+     * @param token      identity token.
+     * @return the created contract negotiation or an error.
+     * @deprecated use {@link #initialContractOffer(JsonObject, String)}
+     */
+    @Deprecated(since = "0.14.0")
+    @POST
+    @Path(INITIAL_CONTRACT_OFFER)
+    public Response deprecatedInitialContractOffer(JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(ContractOfferMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
                 .expectedMessageType(namespace.toIri(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM))
                 .message(jsonObject)
@@ -264,8 +291,37 @@ public abstract class BaseDspNegotiationApiController {
      * @return empty response or error.
      */
     @POST
-    @Path("{id}" + CONTRACT_OFFER)
+    @Path("{id}" + CONTRACT_OFFERS)
     public Response providerOffer(@PathParam("id") String id,
+                                  JsonObject body,
+                                  @HeaderParam(AUTHORIZATION) String token) {
+        var request = PostDspRequest.Builder.newInstance(ContractOfferMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
+                .expectedMessageType(namespace.toIri(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM))
+                .processId(id)
+                .message(body)
+                .token(token)
+                .serviceCall(protocolService::notifyOffered)
+                .errorProvider(ContractNegotiationError.Builder::newInstance)
+                .protocol(protocol)
+                .participantContextProvider(participantContextSupplier)
+                .build();
+
+        return dspRequestHandler.updateResource(request);
+    }
+
+    /**
+     * Consumer-specific endpoint.
+     *
+     * @param id    of contract negotiation.
+     * @param body  dspace:ContractOfferMessage sent by a provider.
+     * @param token identity token.
+     * @return empty response or error.
+     * @deprecated use {@link #providerOffer(String, JsonObject, String)}
+     */
+    @Deprecated(since = "0.14.0")
+    @POST
+    @Path("{id}" + CONTRACT_OFFER)
+    public Response deprecatedProviderOffer(@PathParam("id") String id,
                                   JsonObject body,
                                   @HeaderParam(AUTHORIZATION) String token) {
         var request = PostDspRequest.Builder.newInstance(ContractOfferMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
