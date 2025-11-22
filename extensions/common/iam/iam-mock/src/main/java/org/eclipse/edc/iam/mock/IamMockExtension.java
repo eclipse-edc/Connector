@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.iam.mock;
 
+import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -28,8 +29,6 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 
-import static org.eclipse.edc.spi.system.ServiceExtensionContext.ANONYMOUS_PARTICIPANT;
-
 /**
  * An IAM provider mock used for testing.
  */
@@ -39,13 +38,26 @@ public class IamMockExtension implements ServiceExtension {
 
     public static final String NAME = "Mock IAM";
 
+    public static final String DEFAULT_MOCK_REGION = "eu";
+    @Setting(description = "Configures the region to be used in the mock tokens", defaultValue = DEFAULT_MOCK_REGION)
+    public static final String EDC_MOCK_REGION = "edc.mock.region";
+
+    @Setting(description = "Configures the participant id this runtime is operating on behalf of")
+    public static final String PARTICIPANT_ID = "edc.participant.id";
+
+    public static final String DEFAULT_FAULTY_CLIENT_ID = "faultyClientId";
+    @Setting(description = "Configures the faulty participant id that the requests to fail (for testing purposes)", defaultValue = DEFAULT_FAULTY_CLIENT_ID)
+    public static final String EDC_MOCK_FAULTY_CLIENT_ID = "edc.mock.faulty_client_id";
+
     public static final String DEFAULT_IDENTITY_CLAIM_KEY = "client_id";
-    @Setting(description = "Configures the participant id this runtime is operating on behalf of", key = "edc.participant.id", defaultValue = ANONYMOUS_PARTICIPANT)
-    public String participantId;
+
     @Setting(key = "edc.agent.identity.key", description = "The name of the claim key used to determine the participant identity", defaultValue = DEFAULT_IDENTITY_CLAIM_KEY)
     private String agentIdentityKey;
     @Inject
     private TypeManager typeManager;
+
+    @Inject
+    private ParticipantContextConfig contextConfig;
 
     @Override
     public String name() {
@@ -54,9 +66,7 @@ public class IamMockExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var region = context.getSetting("edc.mock.region", "eu");
-        var faultyClientId = context.getSetting("edc.mock.faulty_client_id", "faultyClientId");
-        context.registerService(IdentityService.class, new MockIdentityService(typeManager, region, participantId, faultyClientId));
+        context.registerService(IdentityService.class, new MockIdentityService(contextConfig, typeManager));
     }
 
     @Provider(isDefault = true)

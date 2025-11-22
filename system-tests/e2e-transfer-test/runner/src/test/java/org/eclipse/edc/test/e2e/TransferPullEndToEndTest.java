@@ -25,8 +25,10 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcess
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
+import org.eclipse.edc.junit.annotations.Runtime;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
-import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
+import org.eclipse.edc.junit.utils.Endpoints;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -35,7 +37,6 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
@@ -50,8 +51,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
@@ -73,6 +72,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 class TransferPullEndToEndTest {
 
+
     abstract static class Tests extends TransferEndToEndTestBase {
 
         private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -91,10 +91,18 @@ class TransferPullEndToEndTest {
             ));
         }
 
+        @BeforeAll
+        static void setup(@Runtime(PROVIDER_DP) Vault vault) {
+            vault.storeSecret("private-key", privateKey);
+            vault.storeSecret("public-key", publicKey);
+        }
+
+
         @Test
-        void httpPull_dataTransfer_withCallbacks() throws IOException {
+        void httpPull_dataTransfer_withCallbacks(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                 @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) throws IOException {
             var assetId = UUID.randomUUID().toString();
-            createResourcesOnProvider(assetId, httpSourceDataAddress());
+            createResourcesOnProvider(provider, assetId, httpSourceDataAddress());
 
             var callbackUrl = String.format("http://localhost:%d/hooks", callbacksEndpoint.getPort());
             var callbacks = Json.createArrayBuilder()
@@ -104,12 +112,12 @@ class TransferPullEndToEndTest {
 
             callbacksEndpoint.stubFor(post("/hooks").willReturn(okJson("{}")));
 
-            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+            var transferProcessId = consumer.requestAssetFrom(assetId, provider)
                     .withTransferType("HttpData-PULL")
                     .withCallbacks(callbacks)
                     .execute();
 
-            CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
+            consumer.awaitTransferToBeInState(transferProcessId, STARTED);
 
             await().atMost(timeout).untilAsserted(() -> callbacksEndpoint.verify(postRequestedFor(urlEqualTo("/hooks"))));
 
@@ -121,29 +129,31 @@ class TransferPullEndToEndTest {
             });
 
             var msg = UUID.randomUUID().toString();
-            await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(event.getPayload().getDataAddress(), Map.of("message", msg), body -> assertThat(body).isEqualTo("data")));
+            await().atMost(timeout).untilAsserted(() -> consumer.pullData(event.getPayload().getDataAddress(), Map.of("message", msg), body -> assertThat(body).isEqualTo("data")));
 
         }
 
         @Test
-        void httpPull_dataTransfer_withEdrCache() {
+        void httpPull_dataTransfer_withEdrCache(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
             var assetId = UUID.randomUUID().toString();
             var sourceDataAddress = httpSourceDataAddress();
-            createResourcesOnProvider(assetId, PolicyFixtures.contractExpiresIn("10s"), sourceDataAddress);
+            createResourcesOnProvider(provider, assetId, PolicyFixtures.contractExpiresIn("10s"), sourceDataAddress);
 
-            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+            var transferProcessId = consumer.requestAssetFrom(assetId, provider)
                     .withTransferType("HttpData-PULL")
                     .execute();
 
-            CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
+            consumer.awaitTransferToBeInState(transferProcessId, STARTED);
 
-            var edrEntry = assertConsumerCanAccessData(transferProcessId);
+            var edrEntry = assertConsumerCanAccessData(consumer, transferProcessId);
 
-            assertConsumerCanNotAccessData(transferProcessId, edrEntry);
+            assertConsumerCanNotAccessData(consumer, transferProcessId, edrEntry);
         }
 
         @Test
-        void httpPull_dataTransfer_withHttpResponseChannel() {
+        void httpPull_dataTransfer_withHttpResponseChannel(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                           @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
             var assetId = UUID.randomUUID().toString();
             var responseChannel = Map.of(
                     EDC_NAMESPACE + "name", "transfer-test",
@@ -152,148 +162,154 @@ class TransferPullEndToEndTest {
             );
             var sourceDataAddress = httpSourceDataAddress();
             sourceDataAddress.put(EDC_NAMESPACE + "responseChannel", responseChannel);
-            createResourcesOnProvider(assetId, PolicyFixtures.contractExpiresIn("30s"), sourceDataAddress);
+            createResourcesOnProvider(provider, assetId, PolicyFixtures.contractExpiresIn("30s"), sourceDataAddress);
 
-            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+            var transferProcessId = consumer.requestAssetFrom(assetId, provider)
                     .withTransferType("HttpData-PULL-HttpData")
                     .execute();
 
-            CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
-            assertConsumerCanSendResponse(transferProcessId);
+            consumer.awaitTransferToBeInState(transferProcessId, STARTED);
+            assertConsumerCanSendResponse(consumer, transferProcessId);
 
         }
 
         @Test
-        void suspendAndResumeByConsumer_httpPull_dataTransfer_withEdrCache() {
+        void suspendAndResumeByConsumer_httpPull_dataTransfer_withEdrCache(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                                           @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
             var assetId = UUID.randomUUID().toString();
-            createResourcesOnProvider(assetId, httpSourceDataAddress());
+            createResourcesOnProvider(provider, assetId, httpSourceDataAddress());
 
-            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+            var transferProcessId = consumer.requestAssetFrom(assetId, provider)
                     .withTransferType("HttpData-PULL")
                     .execute();
 
-            CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
+            consumer.awaitTransferToBeInState(transferProcessId, STARTED);
 
-            var edrEntry = assertConsumerCanAccessData(transferProcessId);
+            var edrEntry = assertConsumerCanAccessData(consumer, transferProcessId);
 
-            CONSUMER.suspendTransfer(transferProcessId, "supension");
+            consumer.suspendTransfer(transferProcessId, "supension");
 
-            CONSUMER.awaitTransferToBeInState(transferProcessId, SUSPENDED);
-            assertConsumerCanNotAccessData(transferProcessId, edrEntry);
+            consumer.awaitTransferToBeInState(transferProcessId, SUSPENDED);
+            assertConsumerCanNotAccessData(consumer, transferProcessId, edrEntry);
 
-            CONSUMER.resumeTransfer(transferProcessId);
+            consumer.resumeTransfer(transferProcessId);
 
-            CONSUMER.awaitTransferToBeInState(transferProcessId, STARTED);
-            assertConsumerCanAccessData(transferProcessId);
+            consumer.awaitTransferToBeInState(transferProcessId, STARTED);
+            assertConsumerCanAccessData(consumer, transferProcessId);
         }
 
         @Test
-        void suspendAndResumeByProvider_httpPull_dataTransfer_withEdrCache() {
+        void suspendAndResumeByProvider_httpPull_dataTransfer_withEdrCache(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                                           @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
             var assetId = UUID.randomUUID().toString();
-            createResourcesOnProvider(assetId, httpSourceDataAddress());
+            createResourcesOnProvider(provider, assetId, httpSourceDataAddress());
 
-            var consumerTransferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+            var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
                     .withTransferType("HttpData-PULL")
                     .execute();
 
-            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+            consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
 
-            var edrEntry = assertConsumerCanAccessData(consumerTransferProcessId);
+            var edrEntry = assertConsumerCanAccessData(consumer, consumerTransferProcessId);
 
-            var providerTransferProcessId = PROVIDER.getTransferProcesses().stream()
+            var providerTransferProcessId = provider.getTransferProcesses().stream()
                     .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
                     .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
 
-            PROVIDER.suspendTransfer(providerTransferProcessId, "supension");
+            provider.suspendTransfer(providerTransferProcessId, "supension");
 
-            PROVIDER.awaitTransferToBeInState(providerTransferProcessId, SUSPENDED);
-            assertConsumerCanNotAccessData(consumerTransferProcessId, edrEntry);
+            provider.awaitTransferToBeInState(providerTransferProcessId, SUSPENDED);
+            assertConsumerCanNotAccessData(consumer, consumerTransferProcessId, edrEntry);
 
-            PROVIDER.resumeTransfer(providerTransferProcessId);
+            provider.resumeTransfer(providerTransferProcessId);
 
             // check that transfer is available again
-            PROVIDER.awaitTransferToBeInState(providerTransferProcessId, STARTED);
-            assertConsumerCanAccessData(consumerTransferProcessId);
+            provider.awaitTransferToBeInState(providerTransferProcessId, STARTED);
+            assertConsumerCanAccessData(consumer, consumerTransferProcessId);
         }
 
         @Test
-        void shouldTerminateTransfer_whenContractExpires_fixedInForcePeriod() {
+        void shouldTerminateTransfer_whenContractExpires_fixedInForcePeriod(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                                            @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
             var assetId = UUID.randomUUID().toString();
             var now = Instant.now();
             // contract was valid from t-10d to t-5d, so "now" it is expired
             var contractPolicy = inForceDatePolicy("gteq", now.minus(ofDays(10)), "lteq", now.minus(ofDays(5)));
-            createResourcesOnProvider(assetId, contractPolicy, httpSourceDataAddress());
+            createResourcesOnProvider(provider, assetId, contractPolicy, httpSourceDataAddress());
 
-            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+            var transferProcessId = consumer.requestAssetFrom(assetId, provider)
                     .withTransferType("HttpData-PULL")
                     .execute();
 
-            CONSUMER.awaitTransferToBeInState(transferProcessId, TERMINATED);
+            consumer.awaitTransferToBeInState(transferProcessId, TERMINATED);
         }
 
         @Test
-        void shouldTerminateTransfer_whenContractExpires_durationInForcePeriod() {
+        void shouldTerminateTransfer_whenContractExpires_durationInForcePeriod(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                                               @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
             var assetId = UUID.randomUUID().toString();
             var now = Instant.now();
             // contract was valid from t-10d to t-5d, so "now" it is expired
             var contractPolicy = inForceDatePolicy("gteq", now.minus(ofDays(10)), "lteq", "contractAgreement+1s");
-            createResourcesOnProvider(assetId, contractPolicy, httpSourceDataAddress());
+            createResourcesOnProvider(provider, assetId, contractPolicy, httpSourceDataAddress());
 
-            var transferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+            var transferProcessId = consumer.requestAssetFrom(assetId, provider)
                     .withTransferType("HttpData-PULL")
                     .execute();
 
-            CONSUMER.awaitTransferToBeInState(transferProcessId, TERMINATED);
+            consumer.awaitTransferToBeInState(transferProcessId, TERMINATED);
         }
 
         @Test
-        void shouldTerminateTransfer_whenProviderTerminatesIt() {
+        void shouldTerminateTransfer_whenProviderTerminatesIt(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                              @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
             var assetId = UUID.randomUUID().toString();
-            createResourcesOnProvider(assetId, httpSourceDataAddress());
+            createResourcesOnProvider(provider, assetId, httpSourceDataAddress());
 
-            var consumerTransferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+            var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
                     .withTransferType("HttpData-PULL")
                     .execute();
 
-            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+            consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
 
-            var edrEntry = assertConsumerCanAccessData(consumerTransferProcessId);
+            var edrEntry = assertConsumerCanAccessData(consumer, consumerTransferProcessId);
 
-            var providerTransferProcessId = PROVIDER.getTransferProcesses().stream()
+            var providerTransferProcessId = provider.getTransferProcesses().stream()
                     .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
                     .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
 
-            PROVIDER.terminateTransfer(providerTransferProcessId);
+            provider.terminateTransfer(providerTransferProcessId);
 
-            PROVIDER.awaitTransferToBeInState(providerTransferProcessId, DEPROVISIONED);
-            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
+            provider.awaitTransferToBeInState(providerTransferProcessId, DEPROVISIONED);
+            consumer.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
 
-            assertConsumerCanNotAccessData(consumerTransferProcessId, edrEntry);
+            assertConsumerCanNotAccessData(consumer, consumerTransferProcessId, edrEntry);
         }
 
         @Test
-        void shouldTerminateTransfer_whenConsumerTerminatesIt() {
+        void shouldTerminateTransfer_whenConsumerTerminatesIt(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                              @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
             var assetId = UUID.randomUUID().toString();
-            createResourcesOnProvider(assetId, httpSourceDataAddress());
+            createResourcesOnProvider(provider, assetId, httpSourceDataAddress());
 
-            var consumerTransferProcessId = CONSUMER.requestAssetFrom(assetId, PROVIDER)
+            var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
                     .withTransferType("HttpData-PULL")
                     .execute();
 
-            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+            consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
 
-            var edrEntry = assertConsumerCanAccessData(consumerTransferProcessId);
+            var edrEntry = assertConsumerCanAccessData(consumer, consumerTransferProcessId);
 
-            var providerTransferProcessId = PROVIDER.getTransferProcesses().stream()
+            var providerTransferProcessId = provider.getTransferProcesses().stream()
                     .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
                     .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
 
-            CONSUMER.terminateTransfer(consumerTransferProcessId);
+            consumer.terminateTransfer(consumerTransferProcessId);
 
-            PROVIDER.awaitTransferToBeInState(providerTransferProcessId, DEPROVISIONED);
-            CONSUMER.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
+            provider.awaitTransferToBeInState(providerTransferProcessId, DEPROVISIONED);
+            consumer.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
 
-            assertConsumerCanNotAccessData(consumerTransferProcessId, edrEntry);
+            assertConsumerCanNotAccessData(consumer, consumerTransferProcessId, edrEntry);
         }
 
         public JsonObject createCallback(String url, boolean transactional, Set<String> events) {
@@ -308,26 +324,26 @@ class TransferPullEndToEndTest {
                     .build();
         }
 
-        private EdrMessage assertConsumerCanAccessData(String consumerTransferProcessId) {
-            var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(consumerTransferProcessId), Objects::nonNull);
+        private EdrMessage assertConsumerCanAccessData(TransferEndToEndParticipant consumer, String consumerTransferProcessId) {
+            var edr = await().atMost(timeout).until(() -> consumer.getEdr(consumerTransferProcessId), Objects::nonNull);
             var msg = UUID.randomUUID().toString();
-            await().atMost(timeout).untilAsserted(() -> CONSUMER.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data")));
+            await().atMost(timeout).untilAsserted(() -> consumer.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data")));
 
             return new EdrMessage(edr, msg);
         }
 
-        private void assertConsumerCanNotAccessData(String consumerTransferProcessId, EdrMessage edrMessage) {
-            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> CONSUMER.getEdr(consumerTransferProcessId)));
+        private void assertConsumerCanNotAccessData(TransferEndToEndParticipant consumer, String consumerTransferProcessId, EdrMessage edrMessage) {
+            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> consumer.getEdr(consumerTransferProcessId)));
             await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(
-                            () -> CONSUMER.pullData(edrMessage.address(), Map.of("message", edrMessage.message()),
+                            () -> consumer.pullData(edrMessage.address(), Map.of("message", edrMessage.message()),
                                     body -> assertThat(body).isEqualTo("data"))
                     )
             );
         }
 
-        private void assertConsumerCanSendResponse(String consumerTransferProcessId) {
-            var edr = await().atMost(timeout).until(() -> CONSUMER.getEdr(consumerTransferProcessId), Objects::nonNull);
-            await().atMost(timeout).untilAsserted(() -> CONSUMER.postResponse(edr, body -> assertThat(body).isEqualTo("response received")));
+        private void assertConsumerCanSendResponse(TransferEndToEndParticipant consumer, String consumerTransferProcessId) {
+            var edr = await().atMost(timeout).until(() -> consumer.getEdr(consumerTransferProcessId), Objects::nonNull);
+            await().atMost(timeout).untilAsserted(() -> consumer.postResponse(edr, body -> assertThat(body).isEqualTo("response received")));
         }
 
         private record EdrMessage(DataAddress address, String message) {
@@ -340,28 +356,34 @@ class TransferPullEndToEndTest {
     class InMemory extends Tests {
 
         @RegisterExtension
-        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane")
-                        .configurationProvider(CONSUMER::controlPlaneConfig)
-        );
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(CONSUMER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
+
+        static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
 
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE.create("provider-control-plane")
-                        .configurationProvider(PROVIDER::controlPlaneConfig)
-        );
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(PROVIDER_ENDPOINTS)
+                .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
 
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane")
-                        .configurationProvider(PROVIDER::dataPlaneConfig)
-                        .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension())
-        );
-
-        @Override
-        protected Vault getDataplaneVault() {
-            return PROVIDER_DATA_PLANE.getService(Vault.class);
-        }
+        static final RuntimeExtension PROVIDER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_DP)
+                .modules(Runtimes.DataPlane.IN_MEM_MODULES)
+                .endpoints(Runtimes.DataPlane.ENDPOINTS.build())
+                .configurationProvider(Runtimes.DataPlane::config)
+                .configurationProvider(() -> Runtimes.ControlPlane.dataPlaneSelectorFor(PROVIDER_ENDPOINTS))
+                .build()
+                .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension());
 
     }
 
@@ -370,88 +392,93 @@ class TransferPullEndToEndTest {
     class InMemoryV2024Rev1 extends Tests {
 
         @RegisterExtension
-        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane")
-                        .configurationProvider(CONSUMER::controlPlaneConfig)
-        );
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(CONSUMER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
+
+        static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
 
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE.create("provider-control-plane")
-                        .configurationProvider(PROVIDER::controlPlaneConfig)
-        );
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(PROVIDER_ENDPOINTS)
+                .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
 
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane")
-                        .configurationProvider(PROVIDER::dataPlaneConfig)
-                        .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension())
-        );
+        static final RuntimeExtension PROVIDER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_DP)
+                .modules(Runtimes.DataPlane.IN_MEM_MODULES)
+                .endpoints(Runtimes.DataPlane.ENDPOINTS.build())
+                .configurationProvider(Runtimes.DataPlane::config)
+                .configurationProvider(() -> Runtimes.ControlPlane.dataPlaneSelectorFor(PROVIDER_ENDPOINTS))
+                .build()
+                .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension());
 
-        // TODO: replace with something better. Temporary hack
         @BeforeAll
-        static void beforeAll() {
-            CONSUMER.setProtocol("dataspace-protocol-http:2024/1", "/2024/1");
-            PROVIDER.setProtocol("dataspace-protocol-http:2024/1", "/2024/1");
+        static void beforeAll(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                              @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
+            consumer.setProtocol("dataspace-protocol-http:2024/1", "/2024/1");
+            provider.setProtocol("dataspace-protocol-http:2024/1", "/2024/1");
         }
 
-        @AfterAll
-        static void afterAll() {
-            CONSUMER.setProtocol("dataspace-protocol-http");
-            PROVIDER.setProtocol("dataspace-protocol-http");
-        }
-
-        @Override
-        protected Vault getDataplaneVault() {
-            return PROVIDER_DATA_PLANE.getService(Vault.class);
-        }
     }
 
     @Nested
     @EndToEndTest
     class InMemoryV2024Rev1WellKnownPath extends Tests {
 
+        @RegisterExtension
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(CONSUMER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
+                .configurationProvider(InMemoryV2024Rev1WellKnownPath::config)
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+
+                .build();
+
+        static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
 
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane")
-                        .configurationProvider(PROVIDER::dataPlaneConfig)
-                        .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension())
-        );
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(PROVIDER_ENDPOINTS)
+                .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
+                .configurationProvider(InMemoryV2024Rev1WellKnownPath::config)
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
 
-        private static final Function<Supplier<Config>, Supplier<Config>> CONFIG_SUPPLIER = supplier -> () -> {
+        @RegisterExtension
+        static final RuntimeExtension PROVIDER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_DP)
+                .modules(Runtimes.DataPlane.IN_MEM_MODULES)
+                .endpoints(Runtimes.DataPlane.ENDPOINTS.build())
+                .configurationProvider(Runtimes.DataPlane::config)
+                .configurationProvider(() -> Runtimes.ControlPlane.dataPlaneSelectorFor(PROVIDER_ENDPOINTS))
+                .build()
+                .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension());
+
+        private static Config config() {
             var settings = Map.of("edc.dsp.well-known-path.enabled", "true");
-            return ConfigFactory.fromMap(settings).merge(supplier.get());
-        };
+            return ConfigFactory.fromMap(settings);
+        }
 
-        @RegisterExtension
-        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE.create("provider-control-plane")
-                        .configurationProvider(CONFIG_SUPPLIER.apply(PROVIDER::controlPlaneConfig))
-        );
-        @RegisterExtension
-        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane")
-                        .configurationProvider(CONFIG_SUPPLIER.apply(CONSUMER::controlPlaneConfig))
-        );
-
-        // TODO: replace with something better. Temporary hack
         @BeforeAll
-        static void beforeAll() {
-            CONSUMER.setProtocol("dataspace-protocol-http:2024/1");
-            PROVIDER.setProtocol("dataspace-protocol-http:2024/1");
+        static void beforeAll(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                              @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
+            consumer.setProtocol("dataspace-protocol-http:2024/1");
+            provider.setProtocol("dataspace-protocol-http:2024/1");
         }
 
-        @AfterAll
-        static void afterAll() {
-            CONSUMER.setProtocol("dataspace-protocol-http");
-            PROVIDER.setProtocol("dataspace-protocol-http");
-        }
-
-        @Override
-        protected Vault getDataplaneVault() {
-            return PROVIDER_DATA_PLANE.getService(Vault.class);
-        }
     }
 
     @Nested
@@ -459,42 +486,45 @@ class TransferPullEndToEndTest {
     class InMemoryV2025Rev1 extends Tests {
 
         @RegisterExtension
-        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE.create("consumer-control-plane")
-                        .configurationProvider(CONSUMER::controlPlaneConfig));
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(CONSUMER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
+
+        static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
 
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE.create("provider-control-plane")
-                        .configurationProvider(PROVIDER::controlPlaneConfig));
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(PROVIDER_ENDPOINTS)
+                .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
+
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_DATA_PLANE.create("provider-data-plane")
-                        .configurationProvider(PROVIDER::dataPlaneConfig)
-                        .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension()));
+        static final RuntimeExtension PROVIDER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_DP)
+                .modules(Runtimes.DataPlane.IN_MEM_MODULES)
+                .endpoints(Runtimes.DataPlane.ENDPOINTS.build())
+                .configurationProvider(Runtimes.DataPlane::config)
+                .configurationProvider(() -> Runtimes.ControlPlane.dataPlaneSelectorFor(PROVIDER_ENDPOINTS))
+                .build()
+                .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension());
 
-        private static JsonLd jsonLd;
 
-        // TODO: replace with something better. Temporary hack
         @BeforeAll
-        static void beforeAll() {
-            jsonLd = CONSUMER.getJsonLd();
-            CONSUMER.setJsonLd(CONSUMER_CONTROL_PLANE.getService(JsonLd.class));
-            CONSUMER.setProtocol("dataspace-protocol-http:2025-1", "/2025-1");
-            PROVIDER.setProtocol("dataspace-protocol-http:2025-1", "/2025-1");
+        static void beforeAll(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                              @Runtime(CONSUMER_CP) JsonLd jsonLd,
+                              @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
+            consumer.setJsonLd(jsonLd);
+            consumer.setProtocol("dataspace-protocol-http:2025-1", "/2025-1");
+            provider.setProtocol("dataspace-protocol-http:2025-1", "/2025-1");
         }
 
-        @AfterAll
-        static void afterAll() {
-            CONSUMER.setJsonLd(jsonLd);
-            CONSUMER.setProtocol("dataspace-protocol-http");
-            PROVIDER.setProtocol("dataspace-protocol-http");
-        }
-
-        @Override
-        protected Vault getDataplaneVault() {
-            return PROVIDER_DATA_PLANE.getService(Vault.class);
-        }
     }
 
     @Nested
@@ -502,27 +532,53 @@ class TransferPullEndToEndTest {
     class EmbeddedDataPlane extends Tests {
 
         @RegisterExtension
-        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("consumer-control-plane")
-                        .configurationProvider(CONSUMER::controlPlaneEmbeddedDataPlaneConfig)
-        );
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(CONSUMER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
+
+        static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
 
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE.create("provider-control-plane")
-                        .configurationProvider(PROVIDER::controlPlaneEmbeddedDataPlaneConfig)
-                        .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension())
-        );
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_CP)
+                .modules(Runtimes.ControlPlane.EMBEDDED_DP_MODULES)
+                .endpoints(PROVIDER_ENDPOINTS)
+                .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
+                .configurationProvider(Runtimes.DataPlane::config)
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build()
+                .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension());
 
-        @Override
-        protected Vault getDataplaneVault() {
-            return PROVIDER_CONTROL_PLANE.getService(Vault.class);
+
+        // This is only for satisfying the @Runtime(PROVIDER_DP) in the Tests class,
+        // and it's going away eventually
+        @RegisterExtension
+        static final RuntimeExtension MOCK_DP = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_DP)
+                .modules(Runtimes.DataPlane.IN_MEM_MODULES)
+                .endpoints(Runtimes.DataPlane.ENDPOINTS.build())
+                .configurationProvider(Runtimes.DataPlane::config)
+                .configurationProvider(() -> Runtimes.ControlPlane.dataPlaneSelectorFor(PROVIDER_ENDPOINTS))
+                .build()
+                .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension());
+
+        @BeforeAll
+        static void setup(@Runtime(PROVIDER_CP) Vault vault) {
+            vault.storeSecret("private-key", privateKey);
+            vault.storeSecret("public-key", publicKey);
         }
     }
 
     @Nested
     @PostgresqlIntegrationTest
     class Postgres extends Tests {
+
+        static final String CONSUMER_DB = "consumer";
+        static final String PROVIDER_DB = "provider";
 
         @Order(0)
         @RegisterExtension
@@ -531,36 +587,45 @@ class TransferPullEndToEndTest {
         @Order(1)
         @RegisterExtension
         static final BeforeAllCallback CREATE_DATABASES = context -> {
-            POSTGRESQL_EXTENSION.createDatabase(CONSUMER.getName());
-            POSTGRESQL_EXTENSION.createDatabase(PROVIDER.getName());
+            POSTGRESQL_EXTENSION.createDatabase(CONSUMER_DB);
+            POSTGRESQL_EXTENSION.createDatabase(PROVIDER_DB);
         };
 
         @RegisterExtension
-        static final RuntimeExtension CONSUMER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.POSTGRES_CONTROL_PLANE.create("consumer-control-plane")
-                        .configurationProvider(CONSUMER::controlPlaneConfig)
-                        .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONSUMER.getName()))
-        );
+        static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(CONSUMER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.SQL_MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
+                .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONSUMER_DB))
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
+
+        static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
 
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_CONTROL_PLANE = new RuntimePerClassExtension(
-                Runtimes.POSTGRES_CONTROL_PLANE.create("provider-control-plane")
-                        .configurationProvider(PROVIDER::controlPlaneConfig)
-                        .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()))
-        );
+        static final RuntimeExtension PROVIDER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_CP)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.SQL_MODULES)
+                .endpoints(PROVIDER_ENDPOINTS)
+                .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
+                .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER_DB))
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .build();
 
         @RegisterExtension
-        static final RuntimeExtension PROVIDER_DATA_PLANE = new RuntimePerClassExtension(
-                Runtimes.POSTGRES_DATA_PLANE.create("provider-data-plane")
-                        .configurationProvider(PROVIDER::dataPlaneConfig)
-                        .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER.getName()))
-                        .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension())
-        );
+        static final RuntimeExtension PROVIDER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(PROVIDER_DP)
+                .modules(Runtimes.DataPlane.SQL_MODULES)
+                .endpoints(Runtimes.DataPlane.ENDPOINTS.build())
+                .configurationProvider(Runtimes.DataPlane::config)
+                .configurationProvider(() -> Runtimes.ControlPlane.dataPlaneSelectorFor(PROVIDER_ENDPOINTS))
+                .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER_DB))
+                .build()
+                .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension());
 
-        @Override
-        protected Vault getDataplaneVault() {
-            return PROVIDER_DATA_PLANE.getService(Vault.class);
-        }
     }
 
 }

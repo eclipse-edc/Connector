@@ -18,9 +18,9 @@ import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponse;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.SuspendTransfer;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TerminateTransfer;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.SuspendTransfer;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TerminateTransfer;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.ResumeTransferCommand;
@@ -45,8 +45,8 @@ import java.util.UUID;
 
 import static io.restassured.http.ContentType.JSON;
 import static java.util.Collections.emptyList;
-import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.SuspendTransfer.SUSPEND_TRANSFER_TYPE;
-import static org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TerminateTransfer.TERMINATE_TRANSFER_TYPE;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.SuspendTransfer.SUSPEND_TRANSFER_TYPE;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TerminateTransfer.TERMINATE_TRANSFER_TYPE;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
@@ -66,7 +66,11 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
     protected final TypeTransformerRegistry transformerRegistry = mock();
     protected final TransferProcessService service = mock();
     protected final JsonObjectValidatorRegistry validatorRegistry = mock();
-    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(new ParticipantContext("participantId"));
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(participantContext);
 
     protected abstract RequestSpecification baseRequest();
 

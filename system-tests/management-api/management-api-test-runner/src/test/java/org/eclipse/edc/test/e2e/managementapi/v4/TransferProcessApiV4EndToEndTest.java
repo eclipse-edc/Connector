@@ -20,6 +20,7 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
@@ -28,16 +29,17 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
-import org.eclipse.edc.test.e2e.managementapi.ManagementEndToEndExtension;
 import org.eclipse.edc.test.e2e.managementapi.ManagementEndToEndTestContext;
+import org.eclipse.edc.test.e2e.managementapi.Runtimes;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -63,11 +65,13 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.hamcrest.CoreMatchers.anyOf;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.is;
 
 public class TransferProcessApiV4EndToEndTest {
 
+    @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
 
         @Test
@@ -80,7 +84,7 @@ public class TransferProcessApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(JSON)
                     .body(context.queryV2(criterion("id", "in", List.of(id1, id2))))
-                    .post("/v4alpha/transferprocesses/request")
+                    .post("/v4beta/transferprocesses/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -89,7 +93,6 @@ public class TransferProcessApiV4EndToEndTest {
                     .body("[0].@context", contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .body("[1].@id", anyOf(is(id1), is(id2)))
                     .body("[1].@context", contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2));
-
         }
 
         @Test
@@ -98,12 +101,14 @@ public class TransferProcessApiV4EndToEndTest {
             store.save(createTransferProcess("tp2"));
 
             context.baseRequest()
-                    .get("/v4alpha/transferprocesses/tp2")
+                    .get("/v4beta/transferprocesses/tp2")
                     .then()
                     .statusCode(200)
+                    .log().ifValidationFails()
                     .body(TYPE, is("TransferProcess"))
                     .body(ID, is("tp2"))
-                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2));
+                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .body("dataplaneMetadata", notNullValue());
         }
 
         @Test
@@ -111,7 +116,7 @@ public class TransferProcessApiV4EndToEndTest {
             store.save(createTransferProcessBuilder("tp2").state(COMPLETED.code()).build());
 
             context.baseRequest()
-                    .get("/v4alpha/transferprocesses/tp2/state")
+                    .get("/v4beta/transferprocesses/tp2/state")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -151,18 +156,24 @@ public class TransferProcessApiV4EndToEndTest {
                     .add("counterPartyAddress", "http://connector-address")
                     .add("contractId", contractId)
                     .add("assetId", assetId)
+                    .add("dataplaneMetadata", createObjectBuilder()
+                            .add("labels", createArrayBuilder().add("label"))
+                            .add("properties", createObjectBuilder().add("key", "value"))
+                    )
                     .build();
 
             var id = context.baseRequest()
                     .contentType(JSON)
                     .body(requestBody)
-                    .post("/v4alpha/transferprocesses/")
+                    .post("/v4beta/transferprocesses/")
                     .then()
                     .log().ifError()
                     .statusCode(200)
                     .extract().jsonPath().getString(ID);
 
-            assertThat(transferProcessStore.findById(id)).isNotNull();
+            assertThat(transferProcessStore.findById(id)).isNotNull().satisfies(transferProcess -> {
+                assertThat(transferProcess.getDataplaneMetadata()).isNotNull();
+            });
         }
 
         @Test
@@ -172,7 +183,7 @@ public class TransferProcessApiV4EndToEndTest {
 
             context.baseRequest()
                     .contentType(JSON)
-                    .post("/v4alpha/transferprocesses/" + id + "/deprovision")
+                    .post("/v4beta/transferprocesses/" + id + "/deprovision")
                     .then()
                     .statusCode(204);
         }
@@ -190,7 +201,7 @@ public class TransferProcessApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(JSON)
                     .body(requestBody)
-                    .post("/v4alpha/transferprocesses/" + id + "/terminate")
+                    .post("/v4beta/transferprocesses/" + id + "/terminate")
                     .then()
                     .log().ifError()
                     .statusCode(204);
@@ -228,7 +239,7 @@ public class TransferProcessApiV4EndToEndTest {
             var result = context.baseRequest()
                     .contentType(JSON)
                     .body(requestBody)
-                    .post("/v4alpha/transferprocesses/request")
+                    .post("/v4beta/transferprocesses/request")
                     .then()
                     .statusCode(200)
                     .extract().body().as(JsonArray.class);
@@ -264,7 +275,7 @@ public class TransferProcessApiV4EndToEndTest {
             var result = context.baseRequest()
                     .contentType(JSON)
                     .body(query)
-                    .post("/v4alpha/transferprocesses/request")
+                    .post("/v4beta/transferprocesses/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -294,7 +305,8 @@ public class TransferProcessApiV4EndToEndTest {
                     .assetId("asset-id")
                     .contractId("contractId")
                     .participantContextId("participantContextId")
-                    .counterPartyAddress("http://connector/address");
+                    .counterPartyAddress("http://connector/address")
+                    .dataplaneMetadata(DataplaneMetadata.Builder.newInstance().label("label").property("key", "value").build());
         }
 
         private JsonArrayBuilder createCallbackAddress() {
@@ -319,8 +331,15 @@ public class TransferProcessApiV4EndToEndTest {
 
     @Nested
     @EndToEndTest
-    @ExtendWith(ManagementEndToEndExtension.InMemory.class)
     class InMemory extends Tests {
+
+        @RegisterExtension
+        static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
+                .name(Runtimes.ControlPlane.NAME)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
+                .build();
     }
 
     @Nested
@@ -332,7 +351,14 @@ public class TransferProcessApiV4EndToEndTest {
         static PostgresqlEndToEndExtension postgres = new PostgresqlEndToEndExtension();
 
         @RegisterExtension
-        static ManagementEndToEndExtension runtime = new ManagementEndToEndExtension.Postgres(postgres);
+        static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
+                .name(Runtimes.ControlPlane.NAME)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.SQL_MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(postgres::config)
+                .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
+                .build();
 
     }
 

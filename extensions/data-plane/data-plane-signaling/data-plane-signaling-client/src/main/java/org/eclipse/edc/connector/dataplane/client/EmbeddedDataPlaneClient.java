@@ -38,7 +38,7 @@ public class EmbeddedDataPlaneClient implements DataPlaneClient {
     }
 
     @Override
-    public StatusResult<DataFlowResponseMessage> provision(DataFlowProvisionMessage request) {
+    public StatusResult<DataFlowResponseMessage> prepare(DataFlowProvisionMessage request) {
         var provisioning = dataPlaneManager.provision(request);
         if (provisioning.failed()) {
             return StatusResult.failure(ResponseStatus.FATAL_ERROR, provisioning.getFailureDetail());

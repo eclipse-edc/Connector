@@ -55,7 +55,10 @@ class ProtocolTokenValidatorImplTest {
     private final ProtocolTokenValidatorImpl validator = new ProtocolTokenValidatorImpl(identityService,
             policyEngine, mock(), agentService, dataspaceProfileContextRegistry);
 
-    private final ParticipantContext participantContext = new ParticipantContext("participantContextId");
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
 
     @Test
     void shouldVerifyToken() {
@@ -104,7 +107,7 @@ class ProtocolTokenValidatorImplTest {
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
     }
 
-    static class TestMessage implements RemoteMessage {
+    static class TestMessage extends RemoteMessage {
         @Override
         public String getProtocol() {
             return "protocol";
@@ -115,10 +118,6 @@ class ProtocolTokenValidatorImplTest {
             return "http://connector";
         }
 
-        @Override
-        public String getCounterPartyId() {
-            return null;
-        }
     }
 
     private static class TestRequestPolicyContext extends RequestPolicyContext {

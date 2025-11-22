@@ -99,6 +99,10 @@ class ConsumerContractNegotiationManagerImplTest {
     private final ParticipantIdentityResolver identityResolver = mock();
     private final String protocolWebhookUrl = "http://protocol.webhook/url";
     private final ContractNegotiationPendingGuard pendingGuard = mock();
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId(PARTICIPANT_CONTEXT_ID)
+            .identity("participantId")
+            .build();
     private ConsumerContractNegotiationManagerImpl manager;
 
     @BeforeEach
@@ -132,7 +136,7 @@ class ConsumerContractNegotiationManagerImplTest {
                         .build()))
                 .build();
 
-        var result = manager.initiate(new ParticipantContext(PARTICIPANT_CONTEXT_ID), request);
+        var result = manager.initiate(participantContext, request);
 
         assertThat(result.succeeded()).isTrue();
         verify(store).save(argThat(negotiation ->

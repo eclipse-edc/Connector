@@ -78,6 +78,10 @@ class ContractNegotiationEventDispatchTest {
     private final IdentityService identityService = mock();
     private final ClaimToken token = ClaimToken.Builder.newInstance().claim("client_id", CONSUMER).build();
     private final TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance().token(UUID.randomUUID().toString()).build();
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
     protected DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
     protected ParticipantIdentityResolver identityResolver = mock();
 
@@ -124,7 +128,7 @@ class ContractNegotiationEventDispatchTest {
         policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().id("policyId").policy(policy).build());
         assetIndex.create(Asset.Builder.newInstance().id("assetId").dataAddress(DataAddress.Builder.newInstance().type("any").build()).build());
 
-        service.notifyRequested(new ParticipantContext("participantContextId"), createContractOfferRequest(policy, "assetId"), tokenRepresentation);
+        service.notifyRequested(participantContext, createContractOfferRequest(policy, "assetId"), tokenRepresentation);
 
         await().untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(ContractNegotiationRequested.class)));

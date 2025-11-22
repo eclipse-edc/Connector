@@ -37,9 +37,12 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class Asset extends AbstractParticipantResource {
 
     public static final String PROPERTY_ID = EDC_NAMESPACE + "id";
+    @Deprecated(since = "0.15.0")
     public static final String PROPERTY_NAME = EDC_NAMESPACE + "name";
     public static final String PROPERTY_DESCRIPTION = EDC_NAMESPACE + "description";
+    @Deprecated(since = "0.15.0")
     public static final String PROPERTY_VERSION = EDC_NAMESPACE + "version";
+    @Deprecated(since = "0.15.0")
     public static final String PROPERTY_CONTENT_TYPE = EDC_NAMESPACE + "contenttype";
     public static final String PROPERTY_IS_CATALOG = EDC_NAMESPACE + "isCatalog";
     public static final String EDC_ASSET_TYPE_TERM = "Asset";
@@ -49,8 +52,10 @@ public class Asset extends AbstractParticipantResource {
     public static final String EDC_ASSET_PROPERTIES = EDC_NAMESPACE + "properties";
     public static final String EDC_ASSET_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
     public static final String EDC_ASSET_DATA_ADDRESS = EDC_NAMESPACE + "dataAddress";
+    public static final String EDC_ASSET_DATAPLANE_METADATA = EDC_NAMESPACE + "dataplaneMetadata";
     private final Map<String, Object> properties = new HashMap<>();
     private final Map<String, Object> privateProperties = new HashMap<>();
+    private DataplaneMetadata dataplaneMetadata;
     private DataAddress dataAddress;
 
     private Asset() {
@@ -62,6 +67,7 @@ public class Asset extends AbstractParticipantResource {
     }
 
     @JsonIgnore
+    @Deprecated(since = "0.15.0")
     public String getName() {
         return ofNullable(getPropertyAsString(PROPERTY_NAME))
                 .orElse(getPropertyAsString("name"));
@@ -73,11 +79,13 @@ public class Asset extends AbstractParticipantResource {
     }
 
     @JsonIgnore
+    @Deprecated(since = "0.15.0")
     public String getVersion() {
         return ofNullable(getPropertyAsString(PROPERTY_VERSION)).orElse(getPropertyAsString("version"));
     }
 
     @JsonIgnore
+    @Deprecated(since = "0.15.0")
     public String getContentType() {
         return ofNullable(getPropertyAsString(PROPERTY_CONTENT_TYPE)).orElse(getPropertyAsString("contenttype"));
     }
@@ -121,7 +129,8 @@ public class Asset extends AbstractParticipantResource {
                 .properties(properties)
                 .privateProperties(privateProperties)
                 .dataAddress(dataAddress)
-                .createdAt(createdAt);
+                .createdAt(createdAt)
+                .dataplaneMetadata(dataplaneMetadata);
     }
 
     @JsonIgnore
@@ -137,6 +146,10 @@ public class Asset extends AbstractParticipantResource {
     private String getPropertyAsString(String key) {
         var val = getProperty(key);
         return val != null ? val.toString() : null;
+    }
+
+    public DataplaneMetadata getDataplaneMetadata() {
+        return dataplaneMetadata;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -180,6 +193,7 @@ public class Asset extends AbstractParticipantResource {
             return entity;
         }
 
+        @Deprecated(since = "0.15.0")
         public Builder name(String title) {
             entity.properties.put(PROPERTY_NAME, title);
             return self();
@@ -190,11 +204,13 @@ public class Asset extends AbstractParticipantResource {
             return self();
         }
 
+        @Deprecated(since = "0.15.0")
         public Builder version(String version) {
             entity.properties.put(PROPERTY_VERSION, version);
             return self();
         }
 
+        @Deprecated(since = "0.15.0")
         public Builder contentType(String contentType) {
             entity.properties.put(PROPERTY_CONTENT_TYPE, contentType);
             return self();
@@ -224,6 +240,11 @@ public class Asset extends AbstractParticipantResource {
 
         public Builder privateProperty(String key, Object value) {
             entity.privateProperties.put(key, value);
+            return self();
+        }
+
+        public Builder dataplaneMetadata(DataplaneMetadata dataplaneMetadata) {
+            entity.dataplaneMetadata = dataplaneMetadata;
             return self();
         }
     }

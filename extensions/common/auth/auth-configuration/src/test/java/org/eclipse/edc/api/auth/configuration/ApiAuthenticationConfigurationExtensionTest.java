@@ -27,11 +27,9 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -42,7 +40,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 class ApiAuthenticationConfigurationExtensionTest {
 
-    private final Monitor monitor = mock(Monitor.class);
+    private final Monitor monitor = mock();
     private final ApiAuthenticationRegistry authenticationRegistry = mock();
     private final ApiAuthenticationProviderRegistry providerRegistry = mock();
 
@@ -69,12 +67,6 @@ class ApiAuthenticationConfigurationExtensionTest {
         verify(providerRegistry).resolve(authType);
         verify(provider).provide(any());
         verify(authenticationRegistry).register("test", authentication);
-
-        var captor = ArgumentCaptor.forClass(String.class);
-        verify(monitor).warning(captor.capture());
-
-        assertThat(captor.getValue()).contains("Setting web.http.test.auth.context has been removed");
-
     }
 
     @Test
@@ -93,7 +85,6 @@ class ApiAuthenticationConfigurationExtensionTest {
         verifyNoMoreInteractions(providerRegistry);
         verifyNoMoreInteractions(provider);
         verifyNoMoreInteractions(authenticationRegistry);
-
     }
 
     @Test
@@ -111,7 +102,6 @@ class ApiAuthenticationConfigurationExtensionTest {
         verify(providerRegistry).resolve(authType);
         verifyNoMoreInteractions(provider);
         verifyNoMoreInteractions(authenticationRegistry);
-
     }
 
     @Test
@@ -130,7 +120,6 @@ class ApiAuthenticationConfigurationExtensionTest {
         verify(providerRegistry).resolve(authType);
         verify(provider).provide(any());
         verifyNoMoreInteractions(authenticationRegistry);
-
     }
 
 }

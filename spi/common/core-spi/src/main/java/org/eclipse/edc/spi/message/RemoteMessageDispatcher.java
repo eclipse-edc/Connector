@@ -22,7 +22,7 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Dispatches remote messages to a destination.
  */
-public interface RemoteMessageDispatcher {
+public interface RemoteMessageDispatcher<RM extends RemoteMessage> {
 
 
     /**
@@ -32,6 +32,6 @@ public interface RemoteMessageDispatcher {
      * @param message      the message
      * @return a future that can be used to retrieve the response when the operation has completed
      */
-    <T, M extends RemoteMessage> CompletableFuture<StatusResult<T>> dispatch(String participantContextId, Class<T> responseType, M message);
+    <T, M extends RM> CompletableFuture<StatusResult<T>> dispatch(String participantContextId, Class<T> responseType, M message);
 
 }

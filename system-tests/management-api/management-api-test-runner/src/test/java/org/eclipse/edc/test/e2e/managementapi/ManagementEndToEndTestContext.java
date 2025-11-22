@@ -18,10 +18,11 @@ import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
+import org.eclipse.edc.junit.utils.LazySupplier;
 import org.eclipse.edc.spi.query.Criterion;
-import org.eclipse.edc.spi.system.configuration.Config;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -34,14 +35,18 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.web.spi.configuration.ApiContext.MANAGEMENT;
+import static org.eclipse.edc.web.spi.configuration.ApiContext.PROTOCOL;
 
-public record ManagementEndToEndTestContext(EmbeddedRuntime runtime) {
+public record ManagementEndToEndTestContext(LazySupplier<URI> managementApiUri, LazySupplier<URI> protocolApiUri) {
+
+    public static ManagementEndToEndTestContext forContext(ComponentRuntimeContext ctx) {
+        return new ManagementEndToEndTestContext(ctx.getEndpoint(MANAGEMENT), ctx.getEndpoint(PROTOCOL));
+    }
 
     public RequestSpecification baseRequest() {
-        var managementPort = getConfig().getString("web.http.management.port");
-        var managementPath = getConfig().getString("web.http.management.path");
         return given()
-                .baseUri("http://localhost:" + managementPort + managementPath)
+                .baseUri(managementApiUri.get().toString())
                 .when();
     }
 
@@ -50,9 +55,7 @@ public record ManagementEndToEndTestContext(EmbeddedRuntime runtime) {
     }
 
     public String providerProtocolUrl(String versionPath) {
-        var protocolPort = getConfig().getString("web.http.protocol.port");
-        var protocolPath = getConfig().getString("web.http.protocol.path");
-        return "http://localhost:" + protocolPort + protocolPath + versionPath;
+        return protocolApiUri.get() + versionPath;
     }
 
     public JsonObject query(Criterion... criteria) {
@@ -87,10 +90,6 @@ public record ManagementEndToEndTestContext(EmbeddedRuntime runtime) {
     public JsonObject queryV2(Criterion... criteria) {
         return query(createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2).build(), criteria);
 
-    }
-
-    private Config getConfig() {
-        return runtime.getContext().getConfig();
     }
 
 }

@@ -138,7 +138,7 @@ class TransferProcessManagerImplIntegrationTest {
     @DisplayName("Verify that no process 'starves' during two consecutive runs, when the batch size > number of processes")
     void verifyProvision_shouldNotStarve() {
         var numProcesses = TRANSFER_MANAGER_BATCH_SIZE * 2;
-        when(dataFlowManager.provision(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+        when(dataFlowManager.prepare(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
         when(provisionManager.provision(any(), any(Policy.class))).thenAnswer(i -> completedFuture(List.of(
                 ProvisionResponse.Builder.newInstance()
                         .resource(new TestProvisionedDataDestinationResource("any", "1"))

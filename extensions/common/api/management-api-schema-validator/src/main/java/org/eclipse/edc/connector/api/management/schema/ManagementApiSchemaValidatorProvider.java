@@ -16,10 +16,9 @@ package org.eclipse.edc.connector.api.management.schema;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SchemaLocation;
-import com.networknt.schema.ValidationMessage;
-import com.networknt.schema.resource.ClasspathSchemaLoader;
+import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.dialect.Dialects;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
@@ -30,11 +29,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import static com.networknt.schema.SpecVersion.VersionFlag.V201909;
-
 public class ManagementApiSchemaValidatorProvider {
-    
-    private JsonSchemaFactory schemaFactory;
+
+    private SchemaRegistry schemaFactory;
     private Supplier<ObjectMapper> objectMapperSupplier;
 
     private ManagementApiSchemaValidatorProvider() {
@@ -50,8 +47,7 @@ public class ManagementApiSchemaValidatorProvider {
             }
 
             var violations = response.stream()
-                    .map(ValidationMessage::getMessage)
-                    .map(msg -> Violation.violation(msg, null))
+                    .map(error -> Violation.violation(error.getMessage(), error.getInstanceLocation().toString()))
                     .toList();
 
             return ValidationResult.failure(violations);
@@ -87,9 +83,8 @@ public class ManagementApiSchemaValidatorProvider {
 
         public ManagementApiSchemaValidatorProvider build() {
             Objects.requireNonNull(provider.objectMapperSupplier);
-            provider.schemaFactory = JsonSchemaFactory.getInstance(V201909, builder ->
-                    builder.schemaLoaders(loader -> loader.add(new ClasspathSchemaLoader()))
-                            .schemaMappers(schemaMappers -> prefixMappings.forEach(schemaMappers::mapPrefix)));
+            provider.schemaFactory = SchemaRegistry.withDialect(Dialects.getDraft201909(), builder ->
+                    builder.schemaIdResolvers(schemaIdResolvers -> prefixMappings.forEach(schemaIdResolvers::mapPrefix)));
             return provider;
         }
 

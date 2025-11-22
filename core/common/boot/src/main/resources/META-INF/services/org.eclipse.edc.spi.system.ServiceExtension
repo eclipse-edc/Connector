@@ -13,3 +13,4 @@
 #
 
 org.eclipse.edc.boot.BootServicesExtension
+org.eclipse.edc.boot.VaultCompatibilityExtension

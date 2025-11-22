@@ -25,7 +25,10 @@ import java.util.Objects;
 
 /**
  * A collection of resources to be provisioned to support a data transfer, e.g. a data destination such as an object storage container.
+ *
+ * @deprecated provisioning will be fully managed by the data-plane
  */
+@Deprecated(since = "0.14.1")
 @JsonTypeName("dataspaceconnector:resourcemanifest")
 @JsonDeserialize(builder = ResourceManifest.Builder.class)
 public class ResourceManifest {

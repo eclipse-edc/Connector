@@ -29,7 +29,7 @@ public abstract class TransferRemoteMessage extends ProcessRemoteMessage {
         return policy;
     }
 
-    public static class Builder<M extends TransferRemoteMessage, B extends TransferRemoteMessage.Builder<M, B>> extends ProcessRemoteMessage.Builder<M, B> {
+    public abstract static class Builder<M extends TransferRemoteMessage, B extends Builder<M, B>> extends ProcessRemoteMessage.Builder<M, B> {
 
         protected Builder(M message) {
             super(message);
@@ -37,7 +37,7 @@ public abstract class TransferRemoteMessage extends ProcessRemoteMessage {
 
         public B policy(Policy policy) {
             message.policy = policy;
-            return (B) this;
+            return self();
         }
     }
 

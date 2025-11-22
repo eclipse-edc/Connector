@@ -16,16 +16,16 @@ package org.eclipse.edc.connector.controlplane.api.management.contractnegotiatio
 
 import jakarta.json.Json;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectFromContractNegotiationTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectFromNegotiationStateTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToContractOfferTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToContractRequestTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToTerminateNegotiationCommandTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v3.ContractNegotiationApiV3Controller;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v4.ContractNegotiationApiV4Controller;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.validation.ContractRequestValidator;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.validation.TerminateNegotiationValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
+import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.from.JsonObjectFromContractNegotiationTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.from.JsonObjectFromNegotiationStateTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToContractOfferTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToContractRequestTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToTerminateNegotiationCommandTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;

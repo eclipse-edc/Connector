@@ -24,7 +24,10 @@ import org.eclipse.edc.spi.command.EntityCommand;
  * a provisioner that delegates to an external system may receive a response on an asynchronous callback channel. The response therefore cannot be returned using the
  * provisioner's future as there is no guarantee the response from the external system will be routed to the originating EDC runtime.
  * <p>
+ *
+ * @deprecated provisioning will be fully managed by the data-plane
  */
+@Deprecated(since = "0.14.1")
 public class AddProvisionedResourceCommand extends EntityCommand {
     private final ProvisionResponse provisionResponse;
 

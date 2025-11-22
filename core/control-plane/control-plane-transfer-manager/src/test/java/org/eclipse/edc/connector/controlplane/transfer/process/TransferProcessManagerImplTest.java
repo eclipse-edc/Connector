@@ -16,6 +16,7 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.process;
 
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
@@ -54,7 +55,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
-import org.eclipse.edc.spi.security.Vault;
+import org.eclipse.edc.spi.security.ParticipantVault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
@@ -143,7 +144,7 @@ class TransferProcessManagerImplTest {
     private final TransferProcessStore transferProcessStore = mock();
     private final PolicyArchive policyArchive = mock();
     private final DataFlowManager dataFlowManager = mock();
-    private final Vault vault = mock();
+    private final ParticipantVault vault = mock();
     private final Clock clock = Clock.systemUTC();
     private final TransferProcessListener listener = mock();
     private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
@@ -703,24 +704,28 @@ class TransferProcessManagerImplTest {
             when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().target("assetId").build());
             when(transferProcessStore.findForCorrelationId("1")).thenReturn(null);
             var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
-
+            var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().label("label").build();
             var transferRequest = TransferRequest.Builder.newInstance()
                     .id("1")
                     .dataDestination(DataAddress.Builder.newInstance().type("test").build())
                     .callbackAddresses(List.of(callback))
+                    .dataplaneMetadata(dataplaneMetadata)
+                    .build();
+            var participantContext = ParticipantContext.Builder.newInstance().participantContextId("id")
+                    .identity("identity")
                     .build();
 
-            var captor = ArgumentCaptor.forClass(TransferProcess.class);
-
-            var result = manager.initiateConsumerRequest(new ParticipantContext("id"), transferRequest);
+            var result = manager.initiateConsumerRequest(participantContext, transferRequest);
 
             assertThat(result).isSucceeded().isNotNull();
+            var captor = ArgumentCaptor.forClass(TransferProcess.class);
             verify(transferProcessStore, times(RETRY_LIMIT)).save(captor.capture());
             var transferProcess = captor.getValue();
             assertThat(transferProcess.getId()).isEqualTo("1");
             assertThat(transferProcess.getCorrelationId()).isNull();
             assertThat(transferProcess.getCallbackAddresses()).usingRecursiveFieldByFieldElementComparator().contains(callback);
             assertThat(transferProcess.getAssetId()).isEqualTo("assetId");
+            assertThat(transferProcess.getDataplaneMetadata()).isSameAs(dataplaneMetadata);
             verify(listener).initiated(any());
         }
 
@@ -735,7 +740,9 @@ class TransferProcessManagerImplTest {
                     .dataDestination(DataAddress.Builder.newInstance().type("test").build())
                     .build();
 
-            var result = manager.initiateConsumerRequest(new ParticipantContext("id"), transferRequest);
+            var participantContext = ParticipantContext.Builder.newInstance()
+                    .participantContextId("participantContextId").identity("id").build();
+            var result = manager.initiateConsumerRequest(participantContext, transferRequest);
 
             assertThat(result).isFailed();
         }
@@ -747,7 +754,7 @@ class TransferProcessManagerImplTest {
         @Test
         void shouldTransitionToTerminated_whenNoPolicyFound() {
             var transferProcess = createTransferProcess(INITIAL);
-            when(dataFlowManager.provision(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+            when(dataFlowManager.prepare(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
                     .thenReturn(List.of(transferProcess))
                     .thenReturn(emptyList());
@@ -765,7 +772,7 @@ class TransferProcessManagerImplTest {
         @Test
         void shouldTransitionToProvisioning_whenLegacyControlPaneProvisioning() {
             var transferProcess = createTransferProcess(INITIAL);
-            when(dataFlowManager.provision(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+            when(dataFlowManager.prepare(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
                     .thenReturn(List.of(transferProcess))
@@ -780,14 +787,14 @@ class TransferProcessManagerImplTest {
                 verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
                 verifyNoInteractions(provisionManager);
                 verify(transferProcessStore).save(argThat(p -> p.getState() == PROVISIONING.code()));
-                verify(dataFlowManager, never()).provision(any(), any());
+                verify(dataFlowManager, never()).prepare(any(), any());
             });
         }
 
         @Test
         void shouldTransitionToTerminated_whenLegacyManifestEvaluationFailed() {
             var transferProcess = createTransferProcess(INITIAL);
-            when(dataFlowManager.provision(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+            when(dataFlowManager.prepare(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
                     .thenReturn(List.of(transferProcess))
@@ -817,7 +824,7 @@ class TransferProcessManagerImplTest {
                     .thenReturn(emptyList());
             when(manifestGenerator.generateConsumerResourceManifest(any(TransferProcess.class), any(Policy.class)))
                     .thenReturn(Result.success(ResourceManifest.Builder.newInstance().build()));
-            when(dataFlowManager.provision(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
+            when(dataFlowManager.prepare(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
 
             manager.start();
 
@@ -845,7 +852,7 @@ class TransferProcessManagerImplTest {
                     .thenReturn(emptyList());
             when(manifestGenerator.generateConsumerResourceManifest(any(TransferProcess.class), any(Policy.class)))
                     .thenReturn(Result.success(ResourceManifest.Builder.newInstance().build()));
-            when(dataFlowManager.provision(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
+            when(dataFlowManager.prepare(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
 
             manager.start();
 
@@ -910,7 +917,7 @@ class TransferProcessManagerImplTest {
             manager.start();
 
             await().untilAsserted(() -> {
-                verify(vault).storeSecret("keyName", "secret");
+                verify(vault).storeSecret(anyString(), eq("keyName"), eq("secret"));
                 verify(transferProcessStore).save(any());
             });
         }
@@ -945,7 +952,7 @@ class TransferProcessManagerImplTest {
             when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
             when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
-            when(vault.resolveSecret(any())).thenReturn(null);
+            when(vault.resolveSecret(anyString(), any())).thenReturn(null);
 
             manager.start();
 
@@ -975,7 +982,7 @@ class TransferProcessManagerImplTest {
             when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
             when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
-            when(vault.resolveSecret(any())).thenReturn("secret");
+            when(vault.resolveSecret(anyString(), any())).thenReturn("secret");
 
             manager.start();
 
@@ -984,7 +991,7 @@ class TransferProcessManagerImplTest {
                 verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(TransferProcessAck.class), captor.capture());
                 verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == REQUESTED.code()));
                 verify(listener).requested(process);
-                verify(vault).resolveSecret("keyName");
+                verify(vault).resolveSecret(anyString(), eq("keyName"));
                 var requestMessage = captor.getValue();
                 assertThat(requestMessage.getDataDestination().getStringProperty(EDC_DATA_ADDRESS_SECRET)).isEqualTo("secret");
             });

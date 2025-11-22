@@ -21,7 +21,7 @@ dependencies {
 
     implementation(project(":spi:common:json-ld-spi"))
     implementation(project(":spi:common:jwt-spi"))
-    implementation(project(":spi:common:identity-trust-spi"))
+    implementation(project(":spi:common:decentralized-claims-spi"))
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:token-lib"))
 

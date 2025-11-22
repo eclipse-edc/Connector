@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.contractnegotiation;
 
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectFromContractNegotiationTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectFromNegotiationStateTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToContractOfferTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.transform.JsonObjectToTerminateNegotiationCommandTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v3.ContractNegotiationApiV3Controller;
+import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.from.JsonObjectFromContractNegotiationTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.from.JsonObjectFromNegotiationStateTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToContractOfferTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToTerminateNegotiationCommandTransformer;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;

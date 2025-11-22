@@ -20,17 +20,29 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
-import java.time.Clock;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantContextState.CREATED;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Representation of a participant in Identity Hub.
  */
 @JsonDeserialize(builder = ParticipantContext.Builder.class)
 public class ParticipantContext extends AbstractParticipantResource {
+    public static final String PARTICIPANT_CONTEXT_TYPE_TERM = "ParticipantContext";
+    public static final String PARTICIPANT_CONTEXT_TYPE_IRI = EDC_NAMESPACE + PARTICIPANT_CONTEXT_TYPE_TERM;
+    public static final String PARTICIPANT_CONTEXT_IDENTITY_TERM = "identity";
+    public static final String PARTICIPANT_CONTEXT_IDENTITY_IRI = EDC_NAMESPACE + PARTICIPANT_CONTEXT_IDENTITY_TERM;
+    public static final String PARTICIPANT_CONTEXT_PROPERTIES_TERM = "properties";
+    public static final String PARTICIPANT_CONTEXT_PROPERTIES_IRI = EDC_NAMESPACE + PARTICIPANT_CONTEXT_PROPERTIES_TERM;
+    public static final String PARTICIPANT_CONTEXT_STATE_TERM = "state";
+    public static final String PARTICIPANT_CONTEXT_STATE_IRI = EDC_NAMESPACE + PARTICIPANT_CONTEXT_STATE_TERM;
+
+    private String identity;
     private Map<String, Object> properties = new HashMap<>();
     private long lastModified;
     private int state; // CREATED, ACTIVATED, DEACTIVATED
@@ -39,22 +51,10 @@ public class ParticipantContext extends AbstractParticipantResource {
     }
 
     /**
-     * Construct a new ParticipantContext
-     *
-     * @deprecated use {@link ParticipantContext.Builder} instead.
+     * The unique identity for this ParticipantContext
      */
-    @Deprecated
-    public ParticipantContext(String participantContextId) {
-        this.participantContextId = participantContextId;
-        createdAt = Instant.now().toEpochMilli();
-
-        if (getLastModified() == 0L) {
-            lastModified = getCreatedAt();
-        }
-
-        clock = Objects.requireNonNullElse(clock, Clock.systemUTC());
-
-
+    public String getIdentity() {
+        return identity;
     }
 
     /**
@@ -73,7 +73,7 @@ public class ParticipantContext extends AbstractParticipantResource {
 
     @JsonIgnore
     public ParticipantContextState getStateAsEnum() {
-        return ParticipantContextState.values()[state];
+        return ParticipantContextState.from(state);
     }
 
     /**
@@ -87,18 +87,28 @@ public class ParticipantContext extends AbstractParticipantResource {
      * Transitions this participant context to the {@link ParticipantContextState#ACTIVATED} state.
      */
     public void activate() {
-        this.state = ParticipantContextState.ACTIVATED.ordinal();
+        this.state = ParticipantContextState.ACTIVATED.code();
     }
 
     /**
      * Transitions this participant context to the {@link ParticipantContextState#DEACTIVATED} state.
      */
     public void deactivate() {
-        this.state = ParticipantContextState.DEACTIVATED.ordinal();
+        this.state = ParticipantContextState.DEACTIVATED.code();
     }
 
     public Map<String, Object> getProperties() {
         return properties;
+    }
+
+    public ParticipantContext.Builder toBuilder() {
+        return Builder.newInstance()
+                .id(getId())
+                .participantContextId(participantContextId)
+                .createdAt(createdAt)
+                .lastModified(lastModified)
+                .state(getStateAsEnum())
+                .properties(properties);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -126,8 +136,12 @@ public class ParticipantContext extends AbstractParticipantResource {
 
         @Override
         public ParticipantContext build() {
-            Objects.requireNonNull(entity.participantContextId, "Participant ID cannot be null");
+            Objects.requireNonNull(entity.participantContextId, "Participant Context ID cannot be null");
+            Objects.requireNonNull(entity.identity, "identity cannot be null");
 
+            if (entity.state == 0) {
+                entity.state = CREATED.code();
+            }
             if (entity.getLastModified() == 0L) {
                 entity.lastModified = entity.getCreatedAt();
             }
@@ -135,7 +149,12 @@ public class ParticipantContext extends AbstractParticipantResource {
         }
 
         public Builder state(ParticipantContextState state) {
-            this.entity.state = state.ordinal();
+            this.entity.state = state.code();
+            return this;
+        }
+
+        public Builder identity(String identity) {
+            entity.identity = identity;
             return this;
         }
 

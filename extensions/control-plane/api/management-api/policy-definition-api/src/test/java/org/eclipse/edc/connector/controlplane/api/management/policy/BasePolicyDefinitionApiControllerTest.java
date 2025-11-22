@@ -18,9 +18,9 @@ import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponse;
-import org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyEvaluationPlanRequest;
-import org.eclipse.edc.connector.controlplane.api.management.policy.model.PolicyValidationResult;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
+import org.eclipse.edc.connector.controlplane.policy.spi.PolicyEvaluationPlanRequest;
+import org.eclipse.edc.connector.controlplane.policy.spi.PolicyValidationResult;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
@@ -61,7 +61,11 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
     protected final TypeTransformerRegistry transformerRegistry = mock();
     protected final PolicyDefinitionService service = mock();
     protected final JsonObjectValidatorRegistry validatorRegistry = mock();
-    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(new ParticipantContext("participantId"));
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(participantContext);
 
     @Test
     void create_shouldReturnDefinitionId() {

@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.utils.LazySupplier;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.Criterion;
@@ -69,6 +70,13 @@ public class ManagementApiClientV4 {
         super();
     }
 
+    public static ManagementApiClientV4 forContext(ComponentRuntimeContext context) {
+        var participantId = context.getConfig().getString("edc.participant.id");
+        return ManagementApiClientV4.Builder.newInstance().participantId(participantId)
+                .controlPlaneManagement(context.getEndpoint("management"))
+                .controlPlaneProtocol(context.getEndpoint("protocol"))
+                .build();
+    }
 
     public Duration getTimeout() {
         return timeout;
@@ -125,7 +133,7 @@ public class ManagementApiClientV4 {
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
-                .post("/v4alpha/assets")
+                .post("/v4beta/assets")
                 .then()
                 .log().ifError()
                 .statusCode(200)
@@ -150,7 +158,7 @@ public class ManagementApiClientV4 {
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
-                .post("/v4alpha/policydefinitions")
+                .post("/v4beta/policydefinitions")
                 .then()
                 .log().ifValidationFails()
                 .statusCode(200)
@@ -188,7 +196,7 @@ public class ManagementApiClientV4 {
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
-                .post("/v4alpha/contractdefinitions")
+                .post("/v4beta/contractdefinitions")
                 .then()
                 .statusCode(200)
                 .extract().jsonPath().getString(ID);
@@ -215,7 +223,7 @@ public class ManagementApiClientV4 {
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
-                .post("/v4alpha/catalog/dataset/request")
+                .post("/v4beta/catalog/dataset/request")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
@@ -271,7 +279,6 @@ public class ManagementApiClientV4 {
                 .extract().body().jsonPath().getString(ID);
     }
 
-
     /**
      * Get current state of a contract negotiation.
      *
@@ -291,7 +298,7 @@ public class ManagementApiClientV4 {
         return baseManagementRequest()
                 .contentType(JSON)
                 .when()
-                .get("/v4alpha/contractnegotiations/{id}", negotiationId)
+                .get("/v4beta/contractnegotiations/{id}", negotiationId)
                 .then()
                 .statusCode(200)
                 .extract().body().jsonPath()
@@ -364,7 +371,7 @@ public class ManagementApiClientV4 {
         var response = baseManagementRequest()
                 .contentType(JSON)
                 .when()
-                .get("/v4alpha/contractagreements/{id}", contractAgreementId)
+                .get("/v4beta/contractagreements/{id}", contractAgreementId)
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
@@ -388,7 +395,7 @@ public class ManagementApiClientV4 {
                 .contentType(JSON)
                 .body(querySpec)
                 .when()
-                .post("/v4alpha/contractagreements/request")
+                .post("/v4beta/contractagreements/request")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)

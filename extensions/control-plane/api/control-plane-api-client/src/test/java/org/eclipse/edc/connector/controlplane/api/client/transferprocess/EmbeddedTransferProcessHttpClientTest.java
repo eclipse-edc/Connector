@@ -69,12 +69,12 @@ class EmbeddedTransferProcessHttpClientTest {
         @Test
         void shouldCallService() {
             var serviceResult = ServiceResult.<Void>success();
-            when(service.completeProvision(any())).thenReturn(serviceResult);
+            when(service.notifyPrepared(any())).thenReturn(serviceResult);
 
             var result = client.provisioned(DataFlow.Builder.newInstance().id("anyId").build());
 
             assertThat(result).isSucceeded();
-            verify(service).completeProvision(any());
+            verify(service).notifyPrepared(any());
         }
     }
 

@@ -23,7 +23,10 @@ import java.util.List;
 
 /**
  * A collection of provisioned resources that support a data transfer.
+ *
+ * @deprecated provisioning will be fully managed by the data-plane
  */
+@Deprecated(since = "0.14.1")
 @JsonTypeName("dataspaceconnector:provisionedresourceset")
 @JsonDeserialize(builder = ProvisionedResourceSet.Builder.class)
 public class ProvisionedResourceSet {

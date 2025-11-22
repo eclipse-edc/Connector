@@ -19,21 +19,26 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantContextState.ACTIVATED;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantContextState.CREATED;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantContextState.DEACTIVATED;
 
 class ParticipantContextTest {
 
     @Test
     void verifyCreateTimestamp() {
         var context = ParticipantContext.Builder.newInstance()
-                              .participantContextId("test-id")
-                              .build();
+                .participantContextId("test-id")
+                .identity("test-identity")
+                .build();
 
         assertThat(context.getCreatedAt()).isNotZero().isLessThanOrEqualTo(Instant.now().toEpochMilli());
 
         var context2 = ParticipantContext.Builder.newInstance()
-                               .participantContextId("test-id")
-                               .createdAt(42)
-                               .build();
+                .participantContextId("test-id")
+                .identity("test-identity")
+                .createdAt(42)
+                .build();
 
         assertThat(context2.getCreatedAt()).isEqualTo(42);
     }
@@ -41,15 +46,17 @@ class ParticipantContextTest {
     @Test
     void verifyLastModifiedTimestamp() {
         var context = ParticipantContext.Builder.newInstance()
-                              .participantContextId("test-id")
-                              .build();
+                .participantContextId("test-id")
+                .identity("test-identity")
+                .build();
 
         assertThat(context.getLastModified()).isNotZero().isEqualTo(context.getCreatedAt());
 
         var context2 = ParticipantContext.Builder.newInstance()
-                               .participantContextId("test-id")
-                               .lastModified(42)
-                               .build();
+                .participantContextId("test-id")
+                .identity("test-identity")
+                .lastModified(42)
+                .build();
 
         assertThat(context2.getLastModified()).isEqualTo(42);
     }
@@ -57,12 +64,13 @@ class ParticipantContextTest {
     @Test
     void verifyState() {
         var context = ParticipantContext.Builder.newInstance()
-                              .participantContextId("test-id")
-                              .state(ParticipantContextState.CREATED);
+                .participantContextId("test-id")
+                .identity("test-identity")
+                .state(CREATED);
 
-        assertThat(context.build().getState()).isEqualTo(0);
-        assertThat(context.state(ParticipantContextState.ACTIVATED).build().getState()).isEqualTo(1);
-        assertThat(context.state(ParticipantContextState.DEACTIVATED).build().getState()).isEqualTo(2);
+        assertThat(context.build().getState()).isEqualTo(CREATED.code());
+        assertThat(context.state(ACTIVATED).build().getState()).isEqualTo(ACTIVATED.code());
+        assertThat(context.state(DEACTIVATED).build().getState()).isEqualTo(DEACTIVATED.code());
 
     }
 

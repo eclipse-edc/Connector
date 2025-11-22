@@ -14,21 +14,39 @@
 
 package org.eclipse.edc.protocol.dsp.http;
 
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.eclipse.edc.spi.types.domain.message.ProtocolRemoteMessage;
 
-public record TestMessage(String protocol, String counterPartyAddress, String counterPartyId) implements RemoteMessage {
-    @Override
-    public String getProtocol() {
-        return protocol;
+import java.util.Objects;
+
+public final class TestMessage extends ProtocolRemoteMessage {
+
+    public TestMessage(String protocol, String counterPartyAddress, String counterPartyId) {
+        this.protocol = protocol;
+        this.counterPartyAddress = counterPartyAddress;
+        this.counterPartyId = counterPartyId;
     }
 
     @Override
-    public String getCounterPartyAddress() {
-        return counterPartyAddress;
+    public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null || obj.getClass() != this.getClass()) return false;
+        var that = (TestMessage) obj;
+        return Objects.equals(this.protocol, that.protocol) &&
+                Objects.equals(this.counterPartyAddress, that.counterPartyAddress) &&
+                Objects.equals(this.counterPartyId, that.counterPartyId);
     }
 
     @Override
-    public String getCounterPartyId() {
-        return counterPartyId;
+    public int hashCode() {
+        return Objects.hash(protocol, counterPartyAddress, counterPartyId);
     }
+
+    @Override
+    public String toString() {
+        return "TestMessage[" +
+                "protocol=" + protocol + ", " +
+                "counterPartyAddress=" + counterPartyAddress + ", " +
+                "counterPartyId=" + counterPartyId + ']';
+    }
+
 }

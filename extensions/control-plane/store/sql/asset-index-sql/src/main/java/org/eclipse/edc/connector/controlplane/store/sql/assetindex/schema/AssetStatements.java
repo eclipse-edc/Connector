@@ -59,61 +59,8 @@ public interface AssetStatements extends SqlStatements {
         return "participant_context_id";
     }
 
-    /**
-     * The data address table name.
-     */
-    default String getDataAddressTable() {
-        return "edc_asset_dataaddress";
-    }
-
-    /**
-     * The data address table properties column.
-     */
-    default String getDataAddressPropertiesColumn() {
-        return "properties";
-    }
-
-    /**
-     * The asset property table name.
-     */
-    default String getAssetPropertyTable() {
-        return "edc_asset_property";
-    }
-
-    /**
-     * The asset property name column.
-     */
-    default String getAssetPropertyNameColumn() {
-        return "property_name";
-    }
-
-    /**
-     * The asset property value column.
-     */
-    default String getAssetPropertyValueColumn() {
-        return "property_value";
-    }
-
-    /**
-     * The asset property type column.
-     */
-    default String getAssetPropertyTypeColumn() {
-        return "property_type";
-    }
-
-    /**
-     * The asset property is private column.
-     */
-    default String getAssetPropertyIsPrivateColumn() {
-        return "property_is_private";
-    }
-
-    default String getDataAddressAssetIdFkColumn() {
-        return "asset_id_fk";
-    }
-
-    default String getPropertyAssetIdFkColumn() {
-        return "asset_id_fk";
+    default String getDataplaneMetadataColumn() {
+        return "dataplane_metadata";
     }
 
     default String getCreatedAtColumn() {

@@ -19,7 +19,10 @@ import org.eclipse.edc.spi.types.domain.Polymorphic;
 
 /**
  * A temporary token with write privileges to the data destination.
+ *
+ * @deprecated provisioning will be fully managed by the data-plane
  */
+@Deprecated(since = "0.14.1")
 @JsonTypeName("dataspaceconnector:secrettoken")
 public interface SecretToken extends Polymorphic {
 

@@ -16,20 +16,16 @@ package org.eclipse.edc.connector.controlplane.catalog.spi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
-import org.jetbrains.annotations.NotNull;
+import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 
 import java.util.Objects;
 
 /**
  * A request for a participant's {@link Dataset}.
  */
-public class DatasetRequestMessage implements RemoteMessage {
+public class DatasetRequestMessage extends ProcessRemoteMessage {
 
     private String datasetId;
-    private String protocol;
-    private String counterPartyAddress;
-    private String counterPartyId;
     private final Policy policy;
 
     private DatasetRequestMessage() {
@@ -39,28 +35,6 @@ public class DatasetRequestMessage implements RemoteMessage {
 
     public String getDatasetId() {
         return datasetId;
-    }
-
-    @NotNull
-    @Override
-    public String getProtocol() {
-        return protocol;
-    }
-
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
-    }
-
-    @NotNull
-    @Override
-    public String getCounterPartyAddress() {
-        return counterPartyAddress;
-    }
-
-    @NotNull
-    @Override
-    public String getCounterPartyId() {
-        return counterPartyId;
     }
 
     /**
@@ -73,11 +47,10 @@ public class DatasetRequestMessage implements RemoteMessage {
         return policy;
     }
 
-    public static class Builder {
-        private final DatasetRequestMessage message;
+    public static class Builder extends ProcessRemoteMessage.Builder<DatasetRequestMessage, Builder> {
 
         private Builder() {
-            message = new DatasetRequestMessage();
+            super(new DatasetRequestMessage());
         }
 
         @JsonCreator
@@ -90,18 +63,8 @@ public class DatasetRequestMessage implements RemoteMessage {
             return this;
         }
 
-        public DatasetRequestMessage.Builder protocol(String protocol) {
-            this.message.protocol = protocol;
-            return this;
-        }
-
-        public DatasetRequestMessage.Builder counterPartyAddress(String callbackAddress) {
-            this.message.counterPartyAddress = callbackAddress;
-            return this;
-        }
-
-        public DatasetRequestMessage.Builder counterPartyId(String counterPartyId) {
-            this.message.counterPartyId = counterPartyId;
+        @Override
+        public Builder self() {
             return this;
         }
 

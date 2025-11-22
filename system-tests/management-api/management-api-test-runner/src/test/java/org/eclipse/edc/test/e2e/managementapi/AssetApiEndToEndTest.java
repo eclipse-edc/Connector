@@ -21,12 +21,13 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
+import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.List;
@@ -52,6 +53,7 @@ import static org.hamcrest.Matchers.notNullValue;
  */
 public class AssetApiEndToEndTest {
 
+    @SuppressWarnings("JUnitMalformedDeclaration")
     abstract static class Tests {
 
         @Test
@@ -420,10 +422,10 @@ public class AssetApiEndToEndTest {
         private Asset.Builder createAsset() {
             return Asset.Builder.newInstance()
                     .id(UUID.randomUUID().toString())
-                    .name("test-asset")
                     .description("test description")
-                    .contentType("application/json")
-                    .version("0.4.2")
+                    .property(EDC_NAMESPACE + "name", "test-asset")
+                    .property(EDC_NAMESPACE + "contenttype", "application/json")
+                    .property(EDC_NAMESPACE + "version", "0.4.2")
                     .dataAddress(createDataAddress().build())
                     .participantContextId("participantContextId");
         }
@@ -440,8 +442,15 @@ public class AssetApiEndToEndTest {
 
     @Nested
     @EndToEndTest
-    @ExtendWith(ManagementEndToEndExtension.InMemory.class)
     class InMemory extends Tests {
+
+        @RegisterExtension
+        static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
+                .name(Runtimes.ControlPlane.NAME)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
+                .build();
     }
 
     @Nested
@@ -453,7 +462,14 @@ public class AssetApiEndToEndTest {
         static PostgresqlEndToEndExtension postgres = new PostgresqlEndToEndExtension();
 
         @RegisterExtension
-        static ManagementEndToEndExtension runtime = new ManagementEndToEndExtension.Postgres(postgres);
+        static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
+                .name(Runtimes.ControlPlane.NAME)
+                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.SQL_MODULES)
+                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .configurationProvider(postgres::config)
+                .paramProvider(ManagementEndToEndTestContext.class, ManagementEndToEndTestContext::forContext)
+                .build();
 
     }
 

@@ -53,7 +53,10 @@ class ContractDefinitionResolverImplTest {
     private final PolicyDefinitionStore policyStore = mock();
     private final ContractDefinitionStore definitionStore = mock();
 
-    private final ParticipantContext participantContext = new ParticipantContext("participantContextId");
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
 
     private final ContractDefinitionResolverImpl resolver = new ContractDefinitionResolverImpl(definitionStore,
             policyEngine, policyStore);

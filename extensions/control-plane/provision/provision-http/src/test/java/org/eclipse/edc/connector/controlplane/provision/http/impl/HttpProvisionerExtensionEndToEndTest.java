@@ -88,6 +88,10 @@ public class HttpProvisionerExtensionEndToEndTest {
     private final ContractValidationService contractValidationService = mock();
     private final IdentityService identityService = mock();
     private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock(DataspaceProfileContextRegistry.class);
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId(PARTICIPANT_CONTEXT_ID)
+            .identity("participantId")
+            .build();
 
     @BeforeEach
     void setup(RuntimeExtension extension) {
@@ -137,7 +141,7 @@ public class HttpProvisionerExtensionEndToEndTest {
         when(identityService.verifyJwtToken(any(), any(), isA(VerificationContext.class))).thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
         when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> "id");
 
-        var result = protocolService.notifyRequested(new ParticipantContext(PARTICIPANT_CONTEXT_ID), createTransferRequestMessage(), TokenRepresentation.Builder.newInstance().build());
+        var result = protocolService.notifyRequested(participantContext, createTransferRequestMessage(), TokenRepresentation.Builder.newInstance().build());
 
         assertThat(result).isSucceeded();
         await().untilAsserted(() -> {

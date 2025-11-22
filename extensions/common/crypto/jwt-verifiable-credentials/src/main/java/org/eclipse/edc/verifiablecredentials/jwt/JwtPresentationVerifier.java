@@ -16,8 +16,8 @@ package org.eclipse.edc.verifiablecredentials.jwt;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.edc.iam.identitytrust.spi.verification.CredentialVerifier;
-import org.eclipse.edc.iam.identitytrust.spi.verification.VerifierContext;
+import org.eclipse.edc.iam.decentralizedclaims.spi.verification.CredentialVerifier;
+import org.eclipse.edc.iam.decentralizedclaims.spi.verification.VerifierContext;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;

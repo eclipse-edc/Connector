@@ -16,6 +16,7 @@
 CREATE TABLE IF NOT EXISTS participant_context
 (
     participant_context_id VARCHAR PRIMARY KEY NOT NULL, -- ID of the ParticipantContext
+    identity               VARCHAR UNIQUE NOT NULL,      -- identity of the Participant
     created_date           BIGINT              NOT NULL, -- POSIX timestamp of the creation of the PC
     last_modified_date     BIGINT,                       -- POSIX timestamp of the last modified date
     state                  INTEGER             NOT NULL, -- 0 = CREATED, 1 = ACTIVE, 2 = DEACTIVATED

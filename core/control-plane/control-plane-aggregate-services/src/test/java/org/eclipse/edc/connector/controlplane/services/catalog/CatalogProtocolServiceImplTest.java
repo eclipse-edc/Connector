@@ -58,7 +58,10 @@ class CatalogProtocolServiceImplTest {
     private final ProtocolTokenValidator protocolTokenValidator = mock();
     private final ParticipantIdentityResolver identityResolver = mock();
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
-    private final ParticipantContext participantContext = new ParticipantContext("participantContextId");
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
 
     private final CatalogProtocolServiceImpl service = new CatalogProtocolServiceImpl(datasetResolver,
             dataServiceRegistry, protocolTokenValidator, identityResolver, transactionContext);
@@ -93,7 +96,7 @@ class CatalogProtocolServiceImplTest {
             var participantId = "participantId";
 
             when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-            when(dataServiceRegistry.getDataServices(any())).thenReturn(List.of(dataService));
+            when(dataServiceRegistry.getDataServices(any(), any())).thenReturn(List.of(dataService));
             when(datasetResolver.query(eq(participantContext), any(), any(), any())).thenReturn(Stream.of(createDataset()));
             when(identityResolver.getParticipantId(any(), any())).thenReturn(participantId);
 

@@ -26,10 +26,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
-import org.eclipse.edc.api.model.ApiCoreSchema;
 
-@OpenAPIDefinition(info = @Info(version = "v4alpha"))
-@Tag(name = "Contract Definition v4alpha")
+@OpenAPIDefinition(info = @Info(version = "v4beta"))
+@Tag(name = "Contract Definition v4beta")
 public interface ContractDefinitionApiV4 {
 
     @Operation(description = "Returns all contract definitions according to a query",
@@ -38,7 +37,7 @@ public interface ContractDefinitionApiV4 {
                     @ApiResponse(responseCode = "200", description = "The contract definitions matching the query",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.CONTRACT_DEFINITION)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
             }
     )
     JsonArray queryContractDefinitionsV4(JsonObject querySpecJson);
@@ -48,9 +47,9 @@ public interface ContractDefinitionApiV4 {
                     @ApiResponse(responseCode = "200", description = "The contract definition",
                             content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.CONTRACT_DEFINITION))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "404", description = "An contract agreement with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
             }
     )
     JsonObject getContractDefinitionV4(String id);
@@ -61,9 +60,9 @@ public interface ContractDefinitionApiV4 {
                     @ApiResponse(responseCode = "200", description = "contract definition was created successfully. Returns the Contract Definition Id and created timestamp",
                             content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.ID_RESPONSE))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "409", description = "Could not create contract definition, because a contract definition with that ID already exists",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))}
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))}
     )
     JsonObject createContractDefinitionV4(JsonObject createObject);
 
@@ -72,9 +71,9 @@ public interface ContractDefinitionApiV4 {
             responses = {
                     @ApiResponse(responseCode = "204", description = "Contract definition was deleted successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "404", description = "A contract definition with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
             }
     )
     void deleteContractDefinitionV4(String id);
@@ -84,9 +83,9 @@ public interface ContractDefinitionApiV4 {
             responses = {
                     @ApiResponse(responseCode = "204", description = "Contract definition was updated successfully"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed, e.g. id was null",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)))),
                     @ApiResponse(responseCode = "404", description = "A contract definition with the given ID does not exist",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))
             }
     )
     void updateContractDefinitionV4(JsonObject updateObject);

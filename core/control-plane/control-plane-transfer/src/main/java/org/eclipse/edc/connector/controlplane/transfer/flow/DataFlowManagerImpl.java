@@ -59,9 +59,9 @@ public class DataFlowManagerImpl implements DataFlowManager {
     }
 
     @Override
-    public @NotNull StatusResult<DataFlowResponse> provision(TransferProcess transferProcess, Policy policy) {
+    public @NotNull StatusResult<DataFlowResponse> prepare(TransferProcess transferProcess, Policy policy) {
         try {
-            return chooseControllerAndApply(transferProcess, controller -> controller.provision(transferProcess, policy));
+            return chooseControllerAndApply(transferProcess, controller -> controller.prepare(transferProcess, policy));
         } catch (Exception e) {
             var message = runtimeException(transferProcess.getId(), e.getMessage());
             monitor.severe(message, e);

@@ -24,7 +24,10 @@ import java.util.Objects;
 
 /**
  * A provisioned resource that supports a data transfer request.
+ *
+ * @deprecated provisioning will be fully managed by the data-plane
  */
+@Deprecated(since = "0.14.1")
 @JsonTypeName("dataspaceconnector:provisionedresource")
 @JsonDeserialize(builder = ProvisionedResource.Builder.class)
 public abstract class ProvisionedResource implements Polymorphic {

@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.api.client.transferprocess;
 
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.CompleteProvisionCommand;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyPreparedCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.connector.dataplane.spi.port.TransferProcessApiClient;
@@ -49,7 +49,7 @@ public class EmbeddedTransferProcessHttpClient implements TransferProcessApiClie
 
     @Override
     public StatusResult<Void> provisioned(DataFlow dataFlow) {
-        return transferProcessService.completeProvision(new CompleteProvisionCommand(dataFlow.getId(), dataFlow.provisionedDataAddress()))
+        return transferProcessService.notifyPrepared(new NotifyPreparedCommand(dataFlow.getId(), dataFlow.provisionedDataAddress()))
                 .flatMap(toStatusResult());
     }
 

@@ -31,6 +31,10 @@ public interface ParticipantContextStoreStatements extends SqlStatements {
         return "participant_context_id";
     }
 
+    default String getIdentityColumn() {
+        return "identity";
+    }
+
     default String getCreateTimestampColumn() {
         return "created_date";
     }

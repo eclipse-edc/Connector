@@ -17,6 +17,8 @@ package org.eclipse.edc.runtime.core;
 import dev.failsafe.RetryPolicy;
 import okhttp3.EventListener;
 import okhttp3.OkHttpClient;
+import org.eclipse.edc.encryption.EncryptionService;
+import org.eclipse.edc.encryption.NoopEncryptionService;
 import org.eclipse.edc.runtime.core.http.OkHttpClientConfiguration;
 import org.eclipse.edc.runtime.core.http.OkHttpClientFactory;
 import org.eclipse.edc.runtime.core.retry.RetryPolicyConfiguration;
@@ -75,6 +77,12 @@ public class RuntimeDefaultCoreServicesExtension implements ServiceExtension {
     @Provider
     public OkHttpClient okHttpClient(ServiceExtensionContext context) {
         return OkHttpClientFactory.create(configuration, okHttpEventListener, context.getMonitor());
+    }
+
+    @Provider(isDefault = true)
+    public EncryptionService encryptionService(ServiceExtensionContext context) {
+        context.getMonitor().warning("No EncryptionService registered, a no-op implementation will be used");
+        return new NoopEncryptionService();
     }
 
 }

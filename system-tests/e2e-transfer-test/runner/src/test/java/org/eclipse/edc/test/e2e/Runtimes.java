@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2025 Metaform Systems, Inc.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,62 +8,100 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Metaform Systems, Inc. - initial API and implementation
  *
  */
 
 package org.eclipse.edc.test.e2e;
 
-import org.eclipse.edc.junit.extensions.ClasspathReader;
-import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
+import org.eclipse.edc.junit.utils.Endpoints;
+import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 
-import java.net.URL;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
-/**
- * Runtimes for E2E transfer test.
- * The usage of this pattern permits to initialize the classpath once for runtime in a lazy manner.
- * Tests will be quite faster this way because classpath loading (that requires interaction with gradlew) is a pretty slow activity.
- */
-public enum Runtimes {
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 
-    IN_MEMORY_CONTROL_PLANE(
-            ":system-tests:e2e-transfer-test:control-plane",
-            ":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"
-    ),
+public interface Runtimes {
 
-    IN_MEMORY_CONTROL_PLANE_EMBEDDED_DATA_PLANE(
-            ":system-tests:e2e-transfer-test:control-plane",
-            ":system-tests:e2e-transfer-test:data-plane"
-    ),
+    interface ControlPlane {
 
-    IN_MEMORY_DATA_PLANE(
-            ":system-tests:e2e-transfer-test:data-plane",
-            ":extensions:data-plane-selector:data-plane-selector-client"
-    ),
+        String[] MODULES = new String[]{
+                ":system-tests:e2e-transfer-test:control-plane",
+                ":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"
+        };
 
-    POSTGRES_CONTROL_PLANE(
-            ":system-tests:e2e-transfer-test:control-plane",
-            ":dist:bom:controlplane-feature-sql-bom"
-    ),
+        String[] EMBEDDED_DP_MODULES = new String[]{
+                ":system-tests:e2e-transfer-test:control-plane",
+                ":system-tests:e2e-transfer-test:data-plane"
+        };
 
-    POSTGRES_DATA_PLANE(
-            ":system-tests:e2e-transfer-test:data-plane",
-            ":dist:bom:dataplane-feature-sql-bom",
-            ":extensions:data-plane-selector:data-plane-selector-client"
-    );
+        String[] SQL_MODULES = new String[]{
+                ":dist:bom:controlplane-feature-sql-bom",
+        };
 
-    private URL[] classpathEntries;
-    private final String[] modules;
+        Endpoints.Builder ENDPOINTS = Endpoints.Builder.newInstance()
+                .endpoint("management", () -> URI.create("http://localhost:" + getFreePort() + "/management"))
+                .endpoint("control", () -> URI.create("http://localhost:" + getFreePort() + "/control"))
+                .endpoint("protocol", () -> URI.create("http://localhost:" + getFreePort() + "/protocol"));
 
-    Runtimes(String... modules) {
-        this.modules = modules;
-    }
 
-    public EmbeddedRuntime create(String name) {
-        if (classpathEntries == null) {
-            classpathEntries = ClasspathReader.classpathFor(modules);
+        static Config config(String participantId) {
+            return ConfigFactory.fromMap(new HashMap<>() {
+                {
+                    put("edc.participant.id", participantId);
+                    put("edc.transfer.send.retry.limit", "1");
+                    put("edc.transfer.send.retry.base-delay.ms", "100");
+                    put("edc.negotiation.consumer.send.retry.limit", "1");
+                    put("edc.negotiation.provider.send.retry.limit", "1");
+                    put("edc.negotiation.consumer.send.retry.base-delay.ms", "100");
+                    put("edc.negotiation.provider.send.retry.base-delay.ms", "100");
+                    put("edc.negotiation.consumer.state-machine.iteration-wait-millis", "50");
+                    put("edc.negotiation.provider.state-machine.iteration-wait-millis", "50");
+                    put("edc.transfer.state-machine.iteration-wait-millis", "50");
+                    put("edc.data.plane.selector.state-machine.iteration-wait-millis", "100");
+                }
+            });
         }
-        return new EmbeddedRuntime(name, classpathEntries);
+
+        static Config dataPlaneSelectorFor(Endpoints endpoints) {
+            var controlEndpoint = Objects.requireNonNull(endpoints.getEndpoint("control"));
+            return ConfigFactory.fromMap(Map.of(
+                    "edc.dpf.selector.url", controlEndpoint.get() + "/v1/dataplanes"
+            ));
+        }
     }
 
+    interface DataPlane {
+
+        String[] IN_MEM_MODULES = new String[]{
+                ":system-tests:e2e-transfer-test:data-plane",
+                ":extensions:data-plane-selector:data-plane-selector-client"
+        };
+
+        String[] SQL_MODULES = new String[]{
+                ":system-tests:e2e-transfer-test:data-plane",
+                ":dist:bom:dataplane-feature-sql-bom",
+                ":extensions:data-plane-selector:data-plane-selector-client"
+        };
+
+        Endpoints.Builder ENDPOINTS = Endpoints.Builder.newInstance()
+                .endpoint("control", () -> URI.create("http://localhost:" + getFreePort() + "/control"));
+
+        static Config config() {
+            return ConfigFactory.fromMap(new HashMap<>() {
+                {
+                    put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");
+                    put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
+                    put("edc.dataplane.http.sink.partition.size", "1");
+                    put("edc.dataplane.send.retry.limit", "1");
+                    put("edc.dataplane.state-machine.iteration-wait-millis", "50");
+                }
+            });
+        }
+
+    }
 }

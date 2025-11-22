@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.participantcontext.config;
 
+import org.eclipse.edc.encryption.EncryptionService;
 import org.eclipse.edc.participantcontext.config.service.ParticipantContextConfigServiceImpl;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
@@ -37,14 +38,17 @@ public class ParticipantContextConfigServicesExtension implements ServiceExtensi
     @Inject
     private TransactionContext transactionContext;
 
+    @Inject
+    private EncryptionService encryptionService;
+
     @Provider
     public ParticipantContextConfigService participantContextConfigService() {
-        return new ParticipantContextConfigServiceImpl(configStore, transactionContext);
+        return new ParticipantContextConfigServiceImpl(encryptionService, configStore, transactionContext);
     }
 
     @Provider
     public ParticipantContextConfig participantContextConfig() {
-        return new ParticipantContextConfigImpl(configStore, transactionContext);
+        return new ParticipantContextConfigImpl(encryptionService, configStore, transactionContext);
     }
 
 }

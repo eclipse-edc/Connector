@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.api.management.transferprocess.validation;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.model.TerminateTransfer;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TerminateTransfer;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.spi.Validator;

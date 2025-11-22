@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "ParticipantContextSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/ParticipantContext"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/participant-context-schema.json",
+  "definitions": {
+    "ParticipantContext": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "ParticipantContext"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "identity": {
+          "type": "string"
+        },
+        "properties": {
+          "type": "object"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "CREATED",
+            "ACTIVATED",
+            "DEACTIVATED"
+          ]
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "identity"
+      ]
+    }
+  }
+}

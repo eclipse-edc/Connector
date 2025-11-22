@@ -66,6 +66,7 @@ public class SqlParticipantContextStore extends AbstractSqlStore implements Part
                 var stmt = statements.getInsertTemplate();
                 queryExecutor.execute(connection, stmt,
                         participantContext.getParticipantContextId(),
+                        participantContext.getIdentity(),
                         participantContext.getCreatedAt(),
                         participantContext.getLastModified(),
                         participantContext.getState(),
@@ -103,6 +104,7 @@ public class SqlParticipantContextStore extends AbstractSqlStore implements Part
                     queryExecutor.execute(connection,
                             statements.getUpdateTemplate(),
                             id,
+                            participantContext.getIdentity(),
                             participantContext.getCreatedAt(),
                             participantContext.getLastModified(),
                             participantContext.getState(),
@@ -143,18 +145,20 @@ public class SqlParticipantContextStore extends AbstractSqlStore implements Part
 
     private ParticipantContext mapResultSet(ResultSet resultSet) throws Exception {
 
-        var id = resultSet.getString(statements.getIdColumn());
+        var participantContextId = resultSet.getString(statements.getIdColumn());
+        var identity = resultSet.getString(statements.getIdentityColumn());
         var created = resultSet.getLong(statements.getCreateTimestampColumn());
         var lastmodified = resultSet.getLong(statements.getLastModifiedTimestampColumn());
         var state = resultSet.getInt(statements.getStateColumn());
         Map<String, Object> props = fromJson(resultSet.getString(statements.getPropertiesColumn()), getTypeRef());
 
         return ParticipantContext.Builder.newInstance()
-                       .participantContextId(id)
-                       .createdAt(created)
-                       .lastModified(lastmodified)
-                       .state(ParticipantContextState.values()[state])
-                       .properties(props)
-                       .build();
+                .participantContextId(participantContextId)
+                .identity(identity)
+                .createdAt(created)
+                .lastModified(lastmodified)
+                .state(ParticipantContextState.from(state))
+                .properties(props)
+                .build();
     }
 }

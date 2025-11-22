@@ -34,6 +34,7 @@ public abstract class BaseTelemetryEndToEndTest {
     protected static final int DEFAULT_PORT = getFreePort();
 
     private static final Supplier<Config> CONFIGURATION_PROVIDER = () -> ConfigFactory.fromMap(Map.ofEntries(
+            entry("edc.participant.id", "test-participant"),
             entry("web.http.path", "/"),
             entry("web.http.port", String.valueOf(DEFAULT_PORT)),
             entry("web.http.control.port", String.valueOf(getFreePort())),

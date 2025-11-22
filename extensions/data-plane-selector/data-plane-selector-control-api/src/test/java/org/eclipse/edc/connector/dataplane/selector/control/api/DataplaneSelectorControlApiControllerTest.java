@@ -55,9 +55,14 @@ class DataplaneSelectorControlApiControllerTest extends RestControllerTestBase {
     private final DataPlaneSelectorService service = mock();
     private final Clock clock = mock();
 
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
+
     @Override
     protected Object controller() {
-        return new DataplaneSelectorControlApiController(validatorRegistry, typeTransformerRegistry, service, () -> ServiceResult.success(new ParticipantContext("participantContextId")), clock);
+        return new DataplaneSelectorControlApiController(validatorRegistry, typeTransformerRegistry, service, () -> ServiceResult.success(participantContext), clock);
     }
 
     @Nested

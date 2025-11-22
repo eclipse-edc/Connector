@@ -24,16 +24,17 @@ public interface DataServiceRegistry {
     /**
      * Register a {@link DataService} with its {@link DistributionResolver}.
      *
-     * @param protocol    the protocol
-     * @param dataService the Data Service
+     * @param protocol the protocol
+     * @param resolver the Data Service resolver
      */
-    void register(String protocol, DataService dataService);
+    void register(String protocol, DataServiceResolver resolver);
 
     /**
      * Returns all the {@link DataService}s
      *
-     * @param protocol the protocol
+     * @param participantContextId the participant context
+     * @param protocol             the protocol
      * @return a list of Data Services. Always not null
      */
-    List<DataService> getDataServices(String protocol);
+    List<DataService> getDataServices(String participantContextId, String protocol);
 }

@@ -69,7 +69,11 @@ public abstract class DspTransferProcessApiControllerBaseTest extends RestContro
     private static final String PROCESS_ID = "testId";
     protected final TransferProcessProtocolService protocolService = mock();
     protected final DspRequestHandler dspRequestHandler = mock();
-    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(new ParticipantContext("id"));
+    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
+            .participantContextId("participantContextId")
+            .identity("participantId")
+            .build();
+    protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(participantContext);
 
     @Test
     void getTransferProcess_shouldGetResource() {
