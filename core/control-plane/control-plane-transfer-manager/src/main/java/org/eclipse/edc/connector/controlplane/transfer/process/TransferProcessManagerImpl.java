@@ -48,7 +48,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.retry.WaitStrategy;
-import org.eclipse.edc.spi.security.ParticipantVault;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.statemachine.AbstractStateEntityManager;
 import org.eclipse.edc.statemachine.Processor;
@@ -116,7 +116,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     private ProvisionManager provisionManager;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private DataFlowManager dataFlowManager;
-    private ParticipantVault vault;
+    private Vault vault;
     private TransferProcessObservable observable;
     private DataAddressResolver addressResolver;
     private PolicyArchive policyArchive;
@@ -794,7 +794,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             return this;
         }
 
-        public Builder vault(ParticipantVault vault) {
+        public Builder vault(Vault vault) {
             manager.vault = vault;
             return this;
         }

@@ -47,4 +47,42 @@ public interface Vault {
      * @param key the secret's key
      */
     Result<Void> deleteSecret(String key);
+
+    /**
+     * Get the secret from the vault.s
+     *
+     * @param vaultPartition The vault partition to use, for example, a participant context ID. This might be null, which
+     *                       indicates that the secret is supposed to be stored in a "default partition".
+     * @param key            The name of the secret. Must be unique within a vault partition.
+     * @return The (serialized) secret value or null if not found.
+     */
+    default String resolveSecret(@Nullable String vaultPartition, String key) {
+        return resolveSecret(key);
+    }
+
+    /**
+     * Store a secret in the vault within the given vault partition.
+     *
+     * @param vaultPartition The vault partition to use, for example, a participant context ID. This might be null, which
+     *                       indicates that the secret is supposed to be stored in a "default partition".
+     * @param key            The name of the secret. Must be unique within a vault partition.
+     * @param value          The (serialized) secret value.
+     * @return A {@link Result} indicating success or failure.
+     */
+    default Result<Void> storeSecret(@Nullable String vaultPartition, String key, String value) {
+        return storeSecret(key, value);
+    }
+
+    /**
+     * Delete a secret from the vault from the given vault partition. Note that in some vaults, deletion is a long-running asynchronous operation.
+     * This method call must return immediately and not wait for the async operation.
+     *
+     * @param vaultPartition The vault partition to use, for example, a participant context ID. This might be null, which
+     *                       indicates that the secret is supposed to be stored in a "default partition".
+     * @param key            The name of the secret. Must be unique within a vault partition.
+     * @return A {@link Result} indicating success or failure.
+     */
+    default Result<Void> deleteSecret(@Nullable String vaultPartition, String key) {
+        return deleteSecret(key);
+    }
 }

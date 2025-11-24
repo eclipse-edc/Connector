@@ -55,7 +55,7 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
-import org.eclipse.edc.spi.security.ParticipantVault;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
@@ -144,7 +144,7 @@ class TransferProcessManagerImplTest {
     private final TransferProcessStore transferProcessStore = mock();
     private final PolicyArchive policyArchive = mock();
     private final DataFlowManager dataFlowManager = mock();
-    private final ParticipantVault vault = mock();
+    private final Vault vault = mock();
     private final Clock clock = Clock.systemUTC();
     private final TransferProcessListener listener = mock();
     private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();

@@ -16,7 +16,7 @@ package org.eclipse.edc.keys;
 
 import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.ParticipantVault;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
 class VaultPrivateKeyResolverTest {
 
     private static final String TEST_SECRET_ALIAS = "test-secret";
-    private final ParticipantVault participantVault = mock();
+    private final Vault vault = mock();
     private final String participantContextId = "test-participant";
     private VaultPrivateKeyResolver resolver;
     private Config config;
@@ -49,18 +49,18 @@ class VaultPrivateKeyResolverTest {
         config = mock();
         registry = mock();
         when(registry.parse(any())).thenReturn(Result.failure("foo"));
-        resolver = new VaultPrivateKeyResolver(registry, participantVault, mock(), config);
+        resolver = new VaultPrivateKeyResolver(registry, vault, mock(), config);
     }
 
     @Test
     void resolvePrivateKey() {
-        when(participantVault.resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS))).thenReturn(PrivateTestKeys.ENCODED_PRIVATE_KEY_HEADER);
+        when(vault.resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS))).thenReturn(PrivateTestKeys.ENCODED_PRIVATE_KEY_HEADER);
         when(registry.parse(any())).thenReturn(Result.success(createKey()));
         var result = resolver.resolvePrivateKey(participantContextId, TEST_SECRET_ALIAS);
 
         assertThat(result).isNotNull();
-        verify(participantVault, atLeastOnce()).resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS));
-        verifyNoMoreInteractions(participantVault);
+        verify(vault, atLeastOnce()).resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS));
+        verifyNoMoreInteractions(vault);
     }
 
     @Test
@@ -73,7 +73,7 @@ class VaultPrivateKeyResolverTest {
 
     @Test
     void resolvePrivateKey_notFoundInVault_fallbackToConfig() {
-        when(participantVault.resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS))).thenReturn(null);
+        when(vault.resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS))).thenReturn(null);
         when(config.getString(eq(TEST_SECRET_ALIAS), any())).thenReturn("{}");
         when(registry.parse(eq("{}"))).thenReturn(Result.success(createKey()));
 
@@ -81,32 +81,32 @@ class VaultPrivateKeyResolverTest {
         assertThat(result).isNotNull();
         assertThat(result).isSucceeded().isNotNull().isInstanceOf(RSAPrivateKey.class);
 
-        verify(participantVault, atLeastOnce()).resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS));
-        verifyNoMoreInteractions(participantVault);
+        verify(vault, atLeastOnce()).resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS));
+        verifyNoMoreInteractions(vault);
     }
 
 
     @Test
     void resolvePrivateKey_noParserCanHandle() {
-        when(participantVault.resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS))).thenReturn(PrivateTestKeys.ENCODED_PRIVATE_KEY_NOPEM);
+        when(vault.resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS))).thenReturn(PrivateTestKeys.ENCODED_PRIVATE_KEY_NOPEM);
 
         var result = resolver.resolvePrivateKey(participantContextId, TEST_SECRET_ALIAS);
         assertThat(result).isFailed()
                 .detail()
                 .isEqualTo("foo");
-        verify(participantVault, atLeastOnce()).resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS));
-        verifyNoMoreInteractions(participantVault);
+        verify(vault, atLeastOnce()).resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS));
+        verifyNoMoreInteractions(vault);
     }
 
     @Test
     void resolvePrivateKey_noParserFound() {
-        when(participantVault.resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS))).thenReturn(PrivateTestKeys.ENCODED_PRIVATE_KEY_NOPEM);
+        when(vault.resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS))).thenReturn(PrivateTestKeys.ENCODED_PRIVATE_KEY_NOPEM);
 
         var result = resolver.resolvePrivateKey(participantContextId, TEST_SECRET_ALIAS);
         assertThat(result).isFailed()
                 .detail()
                 .isEqualTo("foo");
-        verify(participantVault, atLeastOnce()).resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS));
+        verify(vault, atLeastOnce()).resolveSecret(eq(participantContextId), eq(TEST_SECRET_ALIAS));
     }
 
     private PrivateKey createKey() {

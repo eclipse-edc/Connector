@@ -24,7 +24,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.ParticipantVault;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,10 +47,10 @@ public class ProvisionResponsesHandler implements ResponsesHandler<StatusResult<
 
     private final TransferProcessObservable observable;
     private final Monitor monitor;
-    private final ParticipantVault vault;
+    private final Vault vault;
     private final TypeManager typeManager;
 
-    public ProvisionResponsesHandler(TransferProcessObservable observable, Monitor monitor, ParticipantVault vault, TypeManager typeManager) {
+    public ProvisionResponsesHandler(TransferProcessObservable observable, Monitor monitor, Vault vault, TypeManager typeManager) {
         this.observable = observable;
         this.monitor = monitor;
         this.vault = vault;

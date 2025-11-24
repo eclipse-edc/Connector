@@ -22,7 +22,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.ParticipantVault;
+import org.eclipse.edc.spi.security.Vault;
 
 import java.util.List;
 import java.util.Objects;
@@ -37,9 +37,9 @@ public class DeprovisionResponsesHandler implements ResponsesHandler<StatusResul
 
     private final TransferProcessObservable observable;
     private final Monitor monitor;
-    private final ParticipantVault vault;
+    private final Vault vault;
 
-    public DeprovisionResponsesHandler(TransferProcessObservable observable, Monitor monitor, ParticipantVault vault) {
+    public DeprovisionResponsesHandler(TransferProcessObservable observable, Monitor monitor, Vault vault) {
         this.observable = observable;
         this.monitor = monitor;
         this.vault = vault;
