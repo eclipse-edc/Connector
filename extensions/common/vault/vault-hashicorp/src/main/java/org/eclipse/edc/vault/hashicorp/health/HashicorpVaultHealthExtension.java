@@ -22,8 +22,8 @@ import org.eclipse.edc.runtime.metamodel.annotation.Requires;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService;
-import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
 
 
 @Requires(HealthCheckService.class)
@@ -39,7 +39,7 @@ public class HashicorpVaultHealthExtension implements ServiceExtension {
     private HashicorpVaultHealthService client;
 
     @Configuration
-    private HashicorpVaultSettings settings;
+    private HashicorpVaultConfig settings;
 
     @Override
     public String name() {
@@ -49,7 +49,7 @@ public class HashicorpVaultHealthExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor().withPrefix(NAME);
-        if (settings.healthCheckEnabled()) {
+        if (settings.getHealthCheckEnabled()) {
             var healthCheck = new HashicorpVaultHealthCheck(client, monitor);
             healthCheckService.addLivenessProvider(healthCheck);
             healthCheckService.addReadinessProvider(healthCheck);

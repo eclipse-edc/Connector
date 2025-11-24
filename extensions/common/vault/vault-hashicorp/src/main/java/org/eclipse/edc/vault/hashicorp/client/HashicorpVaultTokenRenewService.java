@@ -58,7 +58,7 @@ public class HashicorpVaultTokenRenewService {
     
     private final EdcHttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private final HashicorpVaultSettings settings;
+    private final HashicorpVaultConfig settings;
     private final HashicorpVaultTokenProvider tokenProvider;
     private final Monitor monitor;
     
@@ -73,7 +73,7 @@ public class HashicorpVaultTokenRenewService {
      */
     public HashicorpVaultTokenRenewService(@NotNull EdcHttpClient httpClient,
                                            @NotNull ObjectMapper objectMapper,
-                                           @NotNull HashicorpVaultSettings settings,
+                                           @NotNull HashicorpVaultConfig settings,
                                            @NotNull HashicorpVaultTokenProvider tokenProvider,
                                            @NotNull Monitor monitor) {
         this.httpClient = httpClient;
@@ -92,7 +92,7 @@ public class HashicorpVaultTokenRenewService {
      * @return boolean indicating if the token is renewable
      */
     public Result<Boolean> isTokenRenewable() {
-        var uri = HttpUrl.parse(settings.url())
+        var uri = HttpUrl.parse(settings.getVaultUrl())
                 .newBuilder()
                 .addPathSegments(TOKEN_LOOK_UP_SELF_PATH)
                 .build();
@@ -129,7 +129,7 @@ public class HashicorpVaultTokenRenewService {
      * @return long representing the remaining ttl of the token in seconds
      */
     public Result<Long> renewToken() {
-        var uri = HttpUrl.parse(settings.url())
+        var uri = HttpUrl.parse(settings.getVaultUrl())
                 .newBuilder()
                 .addPathSegments(TOKEN_RENEW_SELF_PATH)
                 .build();
@@ -192,7 +192,7 @@ public class HashicorpVaultTokenRenewService {
     }
     
     private Map<String, String> getTokenRenewRequestPayload() {
-        return Map.of(INCREMENT_KEY, INCREMENT_SECONDS_FORMAT.formatted(settings.ttl()));
+        return Map.of(INCREMENT_KEY, INCREMENT_SECONDS_FORMAT.formatted(settings.getTtl()));
     }
     
     private Result<Boolean> parseRenewable(Map<String, Object> map) {

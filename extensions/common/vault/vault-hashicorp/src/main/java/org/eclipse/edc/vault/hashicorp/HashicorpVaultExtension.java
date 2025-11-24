@@ -18,6 +18,7 @@ package org.eclipse.edc.vault.hashicorp;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -28,8 +29,8 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService;
-import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultTokenRenewService;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultTokenRenewTask;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
@@ -51,8 +52,14 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @Inject
     private HashicorpVaultTokenProvider tokenProvider;
 
+    @Inject
+    private ParticipantContextConfig participantContextConfig;
+
+    /**
+     * this is the vault config for the default vault partition, which is used if no other vault partition is given.
+     */
     @Configuration
-    private HashicorpVaultSettings config;
+    private HashicorpVaultConfig defaultVaultConfig;
 
     private HashicorpVaultTokenRenewTask tokenRenewalTask;
     private Monitor monitor;
@@ -65,38 +72,38 @@ public class HashicorpVaultExtension implements ServiceExtension {
 
     @Provider
     public Vault hashicorpVault() {
-        return new HashicorpVault(monitor, config, httpClient, MAPPER, tokenProvider);
+        return new HashicorpVault(participantContextConfig, monitor, defaultVaultConfig, tokenProvider, httpClient);
     }
 
     @Provider
     public SignatureService signatureService() {
-        return new HashicorpVaultSignatureService(monitor, config, httpClient, MAPPER, tokenProvider);
+        return new HashicorpVaultSignatureService(monitor, defaultVaultConfig, httpClient, MAPPER, tokenProvider);
     }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor().withPrefix(NAME);
         
-        var tokenRenewService = new HashicorpVaultTokenRenewService(httpClient, MAPPER, config, tokenProvider, monitor);
+        var tokenRenewService = new HashicorpVaultTokenRenewService(httpClient, MAPPER, defaultVaultConfig, tokenProvider, monitor);
         tokenRenewalTask = new HashicorpVaultTokenRenewTask(
                 NAME,
                 executorInstrumentation,
                 tokenRenewService,
-                config.renewBuffer(),
+                defaultVaultConfig.getRenewBuffer(),
                 monitor);
     }
 
     @Provider
     public @NotNull HashicorpVaultHealthService createHealthService() {
         if (healthService == null) {
-            healthService = new HashicorpVaultHealthService(httpClient, config, tokenProvider);
+            healthService = new HashicorpVaultHealthService(httpClient, defaultVaultConfig, tokenProvider);
         }
         return healthService;
     }
 
     @Override
     public void start() {
-        if (config.scheduledTokenRenewEnabled()) {
+        if (defaultVaultConfig.getScheduledTokenRenewEnabled()) {
             tokenRenewalTask.start();
         }
     }

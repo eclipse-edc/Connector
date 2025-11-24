@@ -26,8 +26,7 @@ public class HashicorpVaultTokenProviderImpl implements HashicorpVaultTokenProvi
     private final String token;
 
     public HashicorpVaultTokenProviderImpl(String token) {
-        requireNonNull(token, "Vault token must not be null");
-        this.token = token;
+        this.token = requireNonNull(token, "Vault token must not be null");
     }
 
     @Override

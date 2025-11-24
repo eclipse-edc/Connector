@@ -36,12 +36,12 @@ public class HashicorpVaultHealthService {
     private static final String VAULT_REQUEST_HEADER = "X-Vault-Request";
 
     private final EdcHttpClient httpClient;
-    private final HashicorpVaultSettings settings;
+    private final HashicorpVaultConfig settings;
     private final HttpUrl healthCheckUrl;
     private final HashicorpVaultTokenProvider tokenProvider;
 
     public HashicorpVaultHealthService(@NotNull EdcHttpClient httpClient,
-                                       @NotNull HashicorpVaultSettings settings,
+                                       @NotNull HashicorpVaultConfig settings,
                                        @NotNull HashicorpVaultTokenProvider tokenProvider
                                        ) {
         this.httpClient = httpClient;
@@ -79,14 +79,14 @@ public class HashicorpVaultHealthService {
 
     @NotNull
     private HttpUrl getHealthCheckUrl() {
-        var vaultHealthPath = settings.healthCheckPath();
-        var isVaultHealthStandbyOk = settings.healthStandbyOk();
+        var vaultHealthPath = settings.getHealthCheckPath();
+        var isVaultHealthStandbyOk = settings.getHealthStandbyOk();
 
         // by setting 'standbyok' and/or 'perfstandbyok' the vault will return an active
         // status
         // code instead of the standby status codes
 
-        return HttpUrl.parse(settings.url())
+        return HttpUrl.parse(settings.getVaultUrl())
                 .newBuilder()
                 .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultHealthPath))
                 .addQueryParameter("standbyok", isVaultHealthStandbyOk ? "true" : "false")

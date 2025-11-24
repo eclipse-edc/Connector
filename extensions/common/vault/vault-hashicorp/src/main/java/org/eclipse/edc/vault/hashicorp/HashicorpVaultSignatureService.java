@@ -24,7 +24,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.SignatureService;
-import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
 
 import java.io.IOException;
@@ -40,13 +40,13 @@ import static java.util.Optional.ofNullable;
 public class HashicorpVaultSignatureService implements SignatureService {
 
     private final Monitor monitor;
-    private final HashicorpVaultSettings settings;
+    private final HashicorpVaultConfig settings;
     private final EdcHttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final HashicorpVaultTokenProvider tokenProvider;
 
 
-    public HashicorpVaultSignatureService(Monitor monitor, HashicorpVaultSettings settings, EdcHttpClient httpClient, ObjectMapper objectMapper, HashicorpVaultTokenProvider tokenProvider) {
+    public HashicorpVaultSignatureService(Monitor monitor, HashicorpVaultConfig settings, EdcHttpClient httpClient, ObjectMapper objectMapper, HashicorpVaultTokenProvider tokenProvider) {
         this.monitor = monitor;
         this.settings = settings;
         this.httpClient = httpClient;
@@ -70,7 +70,7 @@ public class HashicorpVaultSignatureService implements SignatureService {
     public Result<byte[]> sign(String key, byte[] payload, String signatureAlgorithm) {
         Objects.requireNonNull(key, "key cannot be null");
         Objects.requireNonNull(payload, "payload cannot be null");
-        var url = settings.url() + settings.secretsEnginePath() + "/sign/" + key;
+        var url = settings.getVaultUrl() + settings.getSecretsEnginePath() + "/sign/" + key;
 
         // omit key version from request body -> we'll always sign with the latest one
         var body = Map.of("input", Base64.getEncoder().encodeToString(payload));
@@ -120,7 +120,7 @@ public class HashicorpVaultSignatureService implements SignatureService {
         Objects.requireNonNull(signingInput, "signingInput cannot be null");
         Objects.requireNonNull(signature, "signature cannot be null");
 
-        var url = settings.url() + settings.secretsEnginePath() + "/verify/" + key;
+        var url = settings.getVaultUrl() + settings.getSecretsEnginePath() + "/verify/" + key;
 
         // omit key version from request body -> we'll always sign with the latest one
         var body = Map.of("input", Base64.getEncoder().encodeToString(signingInput),
@@ -165,7 +165,7 @@ public class HashicorpVaultSignatureService implements SignatureService {
 
         Objects.requireNonNull(key, "key cannot be null");
 
-        var url = settings.url() + settings.secretsEnginePath() + "/keys/" + key + "/rotate";
+        var url = settings.getVaultUrl() + settings.getSecretsEnginePath() + "/keys/" + key + "/rotate";
 
         var request = new Request.Builder()
                 .url(url)

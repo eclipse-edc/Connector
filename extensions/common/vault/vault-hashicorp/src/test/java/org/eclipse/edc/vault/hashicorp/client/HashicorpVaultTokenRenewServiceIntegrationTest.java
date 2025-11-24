@@ -128,8 +128,8 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
                     .asJsonObject();
             var clientToken = auth.getString(CLIENT_TOKEN_KEY);
             
-            var settings = HashicorpVaultSettings.Builder.newInstance()
-                    .url(HTTP_URL_FORMAT.formatted(VAULT_CONTAINER.getHost(), VAULT_CONTAINER.getFirstMappedPort()))
+            var settings = HashicorpVaultConfig.Builder.newInstance()
+                    .vaultUrl(HTTP_URL_FORMAT.formatted(VAULT_CONTAINER.getHost(), VAULT_CONTAINER.getFirstMappedPort()))
                     .healthCheckPath(HEALTH_CHECK_PATH)
                     .ttl(TTL)
                     .renewBuffer(RENEW_BUFFER)
@@ -172,8 +172,8 @@ class HashicorpVaultTokenRenewServiceIntegrationTest {
                     .asJsonObject();
             var clientToken = auth.getString(CLIENT_TOKEN_KEY);
             
-            var settings = HashicorpVaultSettings.Builder.newInstance()
-                    .url(HTTP_URL_FORMAT.formatted(VAULT_CONTAINER.getHost(), VAULT_CONTAINER.getFirstMappedPort()))
+            var settings = HashicorpVaultConfig.Builder.newInstance()
+                    .vaultUrl(HTTP_URL_FORMAT.formatted(VAULT_CONTAINER.getHost(), VAULT_CONTAINER.getFirstMappedPort()))
                     .healthCheckPath(HEALTH_CHECK_PATH)
                     .ttl(TTL)
                     .renewBuffer(RENEW_BUFFER)

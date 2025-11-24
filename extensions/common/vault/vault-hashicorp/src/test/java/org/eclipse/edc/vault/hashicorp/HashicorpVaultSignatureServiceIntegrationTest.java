@@ -24,7 +24,7 @@ import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
-import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +40,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings.VAULT_API_HEALTH_PATH_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig.VAULT_API_HEALTH_PATH_DEFAULT;
 import static org.mockito.Mockito.mock;
 
 @ComponentTest
@@ -52,7 +52,7 @@ class HashicorpVaultSignatureServiceIntegrationTest {
     private static final VaultContainer<?> VAULTCONTAINER = new VaultContainer<>(DOCKER_IMAGE_NAME)
             .withVaultToken(TOKEN);
     private static Monitor monitor;
-    private static HashicorpVaultSettings settings;
+    private static HashicorpVaultConfig settings;
     private static EdcHttpClientImpl httpClient;
     private static HashicorpVaultTokenProvider tokenProvider;
     private final byte[] testPayload = "test signing input // *    ".getBytes();
@@ -72,8 +72,8 @@ class HashicorpVaultSignatureServiceIntegrationTest {
     static void prepare() throws IOException {
 
         monitor = mock(Monitor.class);
-        settings = org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings.Builder.newInstance()
-                .url("http://localhost:%s".formatted(getPort()))
+        settings = HashicorpVaultConfig.Builder.newInstance()
+                .vaultUrl("http://localhost:%s".formatted(getPort()))
                 .healthCheckPath(VAULT_API_HEALTH_PATH_DEFAULT)
                 .ttl(24 * 60)
                 .build();
