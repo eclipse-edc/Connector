@@ -61,6 +61,6 @@ public class HashicorpVaultAuthenticationExtension implements ServiceExtension {
         }
 
         requireNonNull(edcHttpClient, "EdcHttpClient must be provided to use OAuth2 authentication");
-        return OauthTokenProvider.Builder.newInstance().clientId(clientId).clientSecret(clientSecret).tokenUrl(tokenUrl).httpClient(edcHttpClient).build();
+        return HashicorpJwtTokenProvider.Builder.newInstance().clientId(clientId).clientSecret(clientSecret).tokenUrl(tokenUrl).httpClient(edcHttpClient).build();
     }
 }

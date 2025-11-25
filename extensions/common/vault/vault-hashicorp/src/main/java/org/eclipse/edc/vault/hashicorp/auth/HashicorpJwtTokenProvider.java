@@ -30,14 +30,20 @@ import java.io.IOException;
 
 import static java.util.Objects.requireNonNull;
 
-public class OauthTokenProvider implements HashicorpVaultTokenProvider {
+/**
+ * This implementation takes a client-ID and client-secret and uses them to obtain a vault token from Hashicorp Vault.
+ */
+public class HashicorpJwtTokenProvider implements HashicorpVaultTokenProvider {
+    private static final String DEFAULT_ROLE = "participant";
+    public static final String JWT_LOGIN_PATH = "v1/auth/jwt/login";
     private String clientId;
     private String clientSecret;
     private String tokenUrl;
+    private String role = DEFAULT_ROLE;
     private ObjectMapper objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     private EdcHttpClient httpClient;
 
-    private OauthTokenProvider() {
+    private HashicorpJwtTokenProvider() {
     }
 
     /**
@@ -52,30 +58,31 @@ public class OauthTokenProvider implements HashicorpVaultTokenProvider {
 
         // use JWT to get vault token
 
-        var requestUri = HttpUrl.parse(tokenUrl).newBuilder("v1/auth/jwt/login").build();
+        var parsedUrl = HttpUrl.parse(tokenUrl);
+        if (parsedUrl == null) {
+            throw new EdcException("Failed to parse vault url '%s'".formatted(tokenUrl));
+        }
+        var requestUri = parsedUrl.newBuilder(JWT_LOGIN_PATH).build();
+
         var request = new Request.Builder()
                 .url(requestUri)
                 .post(RequestBody.create("""
                         {
-                            "role": "participant",
+                            "role": "%s",
                             "jwt": "%s"
                         }
-                        """.formatted(accessToken).getBytes()))
+                        """.formatted(role, accessToken).getBytes()))
                 .build();
 
         try (var response = httpClient.execute(request)) {
-            if (!response.isSuccessful() || response.body() == null) {
-                throw new EdcException("Failed to obtain vault token");
+            if (!response.isSuccessful()) {
+                throw new EdcException("Failed to obtain vault token, Vault responded with code '%s', message: '%s'".formatted(response.code(), response.body().string()));
             }
             var json = objectMapper.readValue(response.body().string(), JsonNode.class);
             return json.path("auth").path("client_token").asText();
         } catch (IOException e) {
             throw new EdcException(e);
         }
-    }
-
-    public Builder toBuilder() {
-        return new Builder(this);
     }
 
     /**
@@ -86,6 +93,9 @@ public class OauthTokenProvider implements HashicorpVaultTokenProvider {
 
         // OAuth Credentials are provided
         var requestUri = HttpUrl.parse(tokenUrl);
+        if (requestUri == null) {
+            throw new EdcException("Failed to parse vault url '%s'".formatted(tokenUrl));
+        }
         var request = new Request.Builder()
                 .url(requestUri)
                 .header("Content-Type", "application/x-www-form-urlencoded")
@@ -108,14 +118,14 @@ public class OauthTokenProvider implements HashicorpVaultTokenProvider {
     }
 
     public static final class Builder {
-        private final OauthTokenProvider tokenProvider;
+        private final HashicorpJwtTokenProvider tokenProvider;
 
-        private Builder(OauthTokenProvider instance) {
+        private Builder(HashicorpJwtTokenProvider instance) {
             tokenProvider = instance;
         }
 
         public static Builder newInstance() {
-            return new Builder(new OauthTokenProvider());
+            return new Builder(new HashicorpJwtTokenProvider());
         }
 
         public Builder clientId(String clientId) {
@@ -143,12 +153,18 @@ public class OauthTokenProvider implements HashicorpVaultTokenProvider {
             return this;
         }
 
-        public OauthTokenProvider build() {
+        public Builder role(String role) {
+            this.tokenProvider.role = role;
+            return this;
+        }
+
+        public HashicorpJwtTokenProvider build() {
             requireNonNull(tokenProvider.httpClient, "HttpClient must be provided to use OAuth2 authentication");
             requireNonNull(tokenProvider.clientId, "clientId must be provided to use OAuth2 authentication");
             requireNonNull(tokenProvider.clientSecret, "clientSecret must be provided to use OAuth2 authentication");
             requireNonNull(tokenProvider.tokenUrl, "tokenUrl must be provided to use OAuth2 authentication");
             requireNonNull(tokenProvider.objectMapper, "objectMapper cannot be 'null' with OAuth2 authentication");
+            requireNonNull(tokenProvider.role, "'role' cannot be 'null' with OAuth2 authentication");
             return tokenProvider;
         }
     }
