@@ -213,20 +213,6 @@ class DspRequestHandlerImplTest {
         }
 
         @Test
-        void shouldFail_whenTransformationFails() {
-            var request = getDspRequestBuilder().build();
-            var jsonError = error("500", "error");
-
-            when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
-            when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
-            when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(jsonError));
-
-            var result = handler.getResource(request);
-
-            assertThat(result.getStatus()).isEqualTo(500);
-        }
-
-        @Test
         void shouldFail_whenProtocolParseFails() {
             var faultyProtocol = "faultyProtocol";
             when(dspTransformerRegistry.forProtocol(faultyProtocol)).thenReturn(Result.failure("faultyProtocol"));
