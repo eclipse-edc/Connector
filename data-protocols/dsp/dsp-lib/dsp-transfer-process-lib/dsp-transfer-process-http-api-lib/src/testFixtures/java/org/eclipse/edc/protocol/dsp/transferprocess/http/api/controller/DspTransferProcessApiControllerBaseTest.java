@@ -23,6 +23,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
@@ -87,8 +88,8 @@ public abstract class DspTransferProcessApiControllerBaseTest extends RestContro
         var captor = ArgumentCaptor.forClass(GetDspRequest.class);
         verify(dspRequestHandler).getResource(captor.capture());
         var dspRequest = captor.getValue();
-        var message = (TransferRequestMessage) dspRequest.getMessage();
-        assertThat(message.getProcessId()).isEqualTo("transferProcessId");
+        var message = (TransferProcessRequestMessage) dspRequest.getMessage();
+        assertThat(message.getTransferProcessId()).isEqualTo("transferProcessId");
         assertThat(dspRequest.getResultClass()).isEqualTo(TransferProcess.class);
         assertThat(dspRequest.getToken()).isEqualTo("auth");
     }
