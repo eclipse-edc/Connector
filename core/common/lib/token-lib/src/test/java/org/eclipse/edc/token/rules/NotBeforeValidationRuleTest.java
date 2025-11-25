@@ -11,6 +11,7 @@
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
+
 package org.eclipse.edc.token.rules;
 
 import org.eclipse.edc.spi.iam.ClaimToken;

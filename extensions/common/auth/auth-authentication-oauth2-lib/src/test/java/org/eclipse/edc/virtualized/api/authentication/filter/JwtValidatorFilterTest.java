@@ -12,7 +12,6 @@
  *
  */
 
-
 package org.eclipse.edc.virtualized.api.authentication.filter;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
