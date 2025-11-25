@@ -78,20 +78,8 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
 
         var registry = registryResult.getContent();
 
-        var inputTransformation = registry.transform(new Object(), request.getInputClass())
-                .compose(message -> {
-                    if (message instanceof ProtocolRemoteMessage protocolRemoteMessage) {
-                        protocolRemoteMessage.setProtocol(request.getProtocol());
-                    }
-                    return Result.success(message);
-                });
+        var serviceResult = request.getServiceCall().apply(supplierResult.getContent(), request.getMessage(), tokenRepresentation);
 
-        if (inputTransformation.failed()) {
-            monitor.debug(() -> "DSP: Transformation failed: %s".formatted(inputTransformation.getFailureMessages()));
-            return badRequest(request);
-        }
-
-        var serviceResult = request.getServiceCall().apply(supplierResult.getContent(), inputTransformation.getContent(), tokenRepresentation);
         if (serviceResult.failed()) {
             monitor.debug(() -> "DSP: Service call failed: %s".formatted(serviceResult.getFailureDetail()));
             return forFailure(serviceResult.getFailure(), request);

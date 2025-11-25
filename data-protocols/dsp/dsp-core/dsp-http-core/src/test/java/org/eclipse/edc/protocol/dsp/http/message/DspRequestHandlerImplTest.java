@@ -223,7 +223,7 @@ class DspRequestHandlerImplTest {
 
             var result = handler.getResource(request);
 
-            assertThat(result.getStatus()).isEqualTo(400);
+            assertThat(result.getStatus()).isEqualTo(500);
         }
 
         @Test
