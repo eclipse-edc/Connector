@@ -34,6 +34,21 @@ public class InMemoryVault implements Vault {
     }
 
     @Override
+    public @Nullable String resolveSecret(String key) {
+        return resolveSecret(DEFAULT_PARTITION, key);
+    }
+
+    @Override
+    public Result<Void> storeSecret(String key, String value) {
+        return storeSecret(DEFAULT_PARTITION, key, value);
+    }
+
+    @Override
+    public Result<Void> deleteSecret(String key) {
+        return deleteSecret(DEFAULT_PARTITION, key);
+    }
+
+    @Override
     public @Nullable String resolveSecret(String vaultPartition, String s) {
         vaultPartition = ofNullable(vaultPartition).orElse(DEFAULT_PARTITION);
 

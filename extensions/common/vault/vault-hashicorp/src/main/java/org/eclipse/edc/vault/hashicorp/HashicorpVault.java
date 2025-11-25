@@ -23,6 +23,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
+import org.jetbrains.annotations.Nullable;
 
 import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultSettings.forParticipant;
@@ -49,6 +50,21 @@ final class HashicorpVault implements Vault {
         this.edcHttpClient = edcHttpClient;
         this.mapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
+    }
+
+    @Override
+    public @Nullable String resolveSecret(String key) {
+        return resolveSecret(null, key);
+    }
+
+    @Override
+    public Result<Void> storeSecret(String key, String value) {
+        return storeSecret(null, key, value);
+    }
+
+    @Override
+    public Result<Void> deleteSecret(String key) {
+        return deleteSecret(null, key);
     }
 
     @Override

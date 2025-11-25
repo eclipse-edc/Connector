@@ -38,11 +38,29 @@ class InMemoryVaultTest {
     }
 
     @Test
+    void resolveSecret_partitioned() {
+        assertThat(vault.resolveSecret("key")).isNull();
+        vault.storeSecret("partition", "key", "secret");
+        assertThat(vault.resolveSecret("partition", "key")).isEqualTo("secret");
+        assertThat(vault.resolveSecret("another", "key")).isNull();
+    }
+
+    @Test
     void storeSecret() {
         assertThat(vault.storeSecret("key", "value1").succeeded()).isTrue();
         assertThat(vault.resolveSecret("key")).isEqualTo("value1");
         assertThat(vault.storeSecret("key", "value2").succeeded()).isTrue();
         assertThat(vault.resolveSecret("key")).isEqualTo("value2");
+    }
+
+    @Test
+    void storeSecret_partitioned() {
+        assertThat(vault.storeSecret("partition", "key", "value1").succeeded()).isTrue();
+        assertThat(vault.resolveSecret("partition", "key")).isEqualTo("value1");
+        assertThat(vault.storeSecret("partition", "key", "value2").succeeded()).isTrue();
+        assertThat(vault.resolveSecret("partition", "key")).isEqualTo("value2");
+
+        assertThat(vault.storeSecret("partition", "key", "value2").succeeded()).isTrue();
     }
 
     @Test
@@ -52,5 +70,16 @@ class InMemoryVaultTest {
         assertThat(vault.deleteSecret("key").succeeded()).isTrue();
         assertThat(vault.resolveSecret("key")).isNull();
 
+    }
+
+    @Test
+    void deleteSecret_partitioned() {
+        assertThat(vault.deleteSecret("partition", "key").succeeded()).isFalse();
+        assertThat(vault.storeSecret("partition", "key", "value1").succeeded()).isTrue();
+        assertThat(vault.deleteSecret("partition", "key").succeeded()).isTrue();
+        assertThat(vault.resolveSecret("partition", "key")).isNull();
+
+        assertThat(vault.storeSecret("partition", "key", "value1").succeeded()).isTrue();
+        assertThat(vault.deleteSecret("another", "key").succeeded()).isFalse();
     }
 }
