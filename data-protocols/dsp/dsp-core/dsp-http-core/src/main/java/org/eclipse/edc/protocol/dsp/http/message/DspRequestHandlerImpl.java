@@ -87,7 +87,14 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
 
         var resource = serviceResult.getContent();
 
-        return Response.ok().type(MediaType.APPLICATION_JSON).entity(resource).build();
+        var transformation = registry.transform(resource, JsonObject.class);
+        if (transformation.failed()) {
+            var errorCode = UUID.randomUUID();
+            monitor.warning("Error transforming %s, error id %s: %s".formatted(request.getResultClass().getSimpleName(), errorCode, transformation.getFailureDetail()));
+            return internalServerError(request, errorCode.toString());
+        }
+
+        return Response.ok().type(MediaType.APPLICATION_JSON).entity(transformation.getContent()).build();
     }
 
     @Override

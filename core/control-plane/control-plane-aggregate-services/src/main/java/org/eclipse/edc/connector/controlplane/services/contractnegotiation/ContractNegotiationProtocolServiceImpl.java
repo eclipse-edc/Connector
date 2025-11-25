@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
@@ -199,9 +200,9 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<ContractNegotiation> findById(ParticipantContext participantContext, ContractRequestMessage message, TokenRepresentation tokenRepresentation) {
+    public ServiceResult<ContractNegotiation> findById(ParticipantContext participantContext, ContractNegotiationRequestMessage message, TokenRepresentation tokenRepresentation) {
 
-        return transactionContext.execute(() -> getNegotiation(participantContext, message.getId())
+        return transactionContext.execute(() -> getNegotiation(participantContext, message.getNegotiationId())
                 .compose(contractNegotiation -> verifyRequest(participantContext, tokenRepresentation, contractNegotiation.getLastContractOffer().getPolicy(), message)
                         .compose(agent -> validateRequest(agent, contractNegotiation)
                                 .map(it -> contractNegotiation))));

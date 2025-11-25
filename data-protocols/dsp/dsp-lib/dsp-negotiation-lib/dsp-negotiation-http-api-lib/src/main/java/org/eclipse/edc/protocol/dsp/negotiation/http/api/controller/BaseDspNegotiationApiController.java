@@ -27,6 +27,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationError;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
@@ -89,12 +90,13 @@ public abstract class BaseDspNegotiationApiController {
     @GET
     @Path("{id}")
     public Response getNegotiation(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
-        var message = ContractRequestMessage.Builder.newInstance()
-                .id(id)
+
+        var message = ContractNegotiationRequestMessage.Builder.newInstance()
+                .negotiationId(id)
                 .protocol(protocol)
                 .build();
 
-        var request = GetDspRequest.Builder.newInstance(ContractRequestMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
+        var request = GetDspRequest.Builder.newInstance(ContractNegotiationRequestMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
                 .message(message)
                 .token(token)
                 .serviceCall(protocolService::findById)

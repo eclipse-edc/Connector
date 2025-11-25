@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.services.spi.transferprocess;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
@@ -90,5 +91,5 @@ public interface TransferProcessProtocolService {
      * @return a succeeded result containing the transfer process if it was found, a failed one otherwise
      */
     @NotNull
-    ServiceResult<TransferProcess> findById(ParticipantContext participantContext, TransferRequestMessage message, TokenRepresentation tokenRepresentation);
+    ServiceResult<TransferProcess> findById(ParticipantContext participantContext, TransferProcessRequestMessage message, TokenRepresentation tokenRepresentation);
 }

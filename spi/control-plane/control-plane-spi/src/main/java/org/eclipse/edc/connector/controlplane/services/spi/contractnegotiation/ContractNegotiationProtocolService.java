@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
@@ -117,5 +118,5 @@ public interface ContractNegotiationProtocolService {
      * @return a succeeded result containing the negotiation if it was found, a failed one otherwise
      */
     @NotNull
-    ServiceResult<ContractNegotiation> findById(ParticipantContext participantContext, ContractRequestMessage message, TokenRepresentation tokenRepresentation);
+    ServiceResult<ContractNegotiation> findById(ParticipantContext participantContext, ContractNegotiationRequestMessage message, TokenRepresentation tokenRepresentation);
 }

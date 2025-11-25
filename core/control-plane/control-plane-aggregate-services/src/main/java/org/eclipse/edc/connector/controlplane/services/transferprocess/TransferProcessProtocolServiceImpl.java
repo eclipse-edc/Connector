@@ -29,6 +29,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
@@ -143,9 +144,9 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<TransferProcess> findById(ParticipantContext participantContext, TransferRequestMessage message, TokenRepresentation tokenRepresentation) {
+    public ServiceResult<TransferProcess> findById(ParticipantContext participantContext, TransferProcessRequestMessage message, TokenRepresentation tokenRepresentation) {
 
-        return transactionContext.execute(() -> fetchRequestContext(participantContext, message.getProcessId(), this::findTransferProcessById)
+        return transactionContext.execute(() -> fetchRequestContext(participantContext, message.getTransferProcessId(), this::findTransferProcessById)
                 .compose(context -> verifyRequest(participantContext, tokenRepresentation, context, message))
                 .compose(context -> validateCounterParty(context.participantAgent(), context.agreement(), context.transferProcess())));
     }

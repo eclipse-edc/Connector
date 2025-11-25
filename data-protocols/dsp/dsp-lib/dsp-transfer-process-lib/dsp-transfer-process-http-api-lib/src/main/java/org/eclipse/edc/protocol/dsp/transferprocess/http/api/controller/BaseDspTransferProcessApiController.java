@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.Trans
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferError;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
@@ -78,8 +79,8 @@ public abstract class BaseDspTransferProcessApiController {
     @GET
     @Path("/{id}")
     public Response getTransferProcess(@PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
-        var message = TransferRequestMessage.Builder.newInstance().protocol(protocol).processId(id).build();
-        var request = GetDspRequest.Builder.newInstance(TransferRequestMessage.class, TransferProcess.class, TransferError.class)
+        var message = TransferProcessRequestMessage.Builder.newInstance().protocol(protocol).transferProcessId(id).build();
+        var request = GetDspRequest.Builder.newInstance(TransferProcessRequestMessage.class, TransferProcess.class, TransferError.class)
                 .message(message)
                 .token(token)
                 .serviceCall(protocolService::findById)

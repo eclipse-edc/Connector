@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
@@ -296,17 +297,7 @@ class ContractNegotiationProtocolServiceImplTest {
         when(store.findById(id)).thenReturn(negotiation);
         when(validationService.validateRequest(participantAgent, negotiation)).thenReturn(Result.success());
 
-        var message = ContractRequestMessage.Builder.newInstance()
-                .protocol("protocol")
-                .id(id)
-                .contractOffer(
-                        ContractOffer.Builder.newInstance()
-                                .policy(
-                                        Policy.Builder.newInstance().build()
-                                ).assetId("assetID")
-                                .id("offerID")
-                        .build())
-                .build();
+        var message = ContractNegotiationRequestMessage.Builder.newInstance().negotiationId(id).protocol("protocol").build();
         var result = service.findById(participantContext, message, tokenRepresentation);
 
         assertThat(result)
@@ -321,17 +312,7 @@ class ContractNegotiationProtocolServiceImplTest {
                 .thenReturn(ServiceResult.success(participantAgent()));
         when(store.findById(any())).thenReturn(null);
 
-        var message = ContractRequestMessage.Builder.newInstance()
-                .protocol("protocol")
-                .id("invalidId")
-                .contractOffer(
-                        ContractOffer.Builder.newInstance()
-                                .policy(
-                                        Policy.Builder.newInstance().build()
-                                ).assetId("assetID")
-                                .id("offerID")
-                                .build())
-                .build();
+        var message = ContractNegotiationRequestMessage.Builder.newInstance().negotiationId("invalidId").protocol("protocol").build();
         var result = service.findById(participantContext, message, tokenRepresentation);
 
         assertThat(result)
@@ -354,9 +335,7 @@ class ContractNegotiationProtocolServiceImplTest {
         when(store.findById(id)).thenReturn(negotiation);
         when(validationService.validateRequest(participantAgent, negotiation)).thenReturn(Result.failure("validation error"));
 
-        var message = ContractRequestMessage.Builder.newInstance().id(id).protocol("protocol")
-                .contractOffer(ContractOffer.Builder.newInstance().assetId("assetId").policy(Policy.Builder.newInstance().build()).id("offerId").build())
-                .build();
+        var message = ContractNegotiationRequestMessage.Builder.newInstance().negotiationId(id).protocol("protocol").build();
 
         var result = service.findById(participantContext, message, tokenRepresentation);
 
