@@ -25,7 +25,6 @@ import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.spi.security.ParticipantVault;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -45,9 +44,6 @@ public class SecurityDefaultServicesExtension implements ServiceExtension {
     private KeyParserRegistry keyParserRegistry;
 
     @Inject
-    private ParticipantVault participantVault;
-
-    @Inject
     private Vault vault;
 
     @Inject
@@ -58,7 +54,7 @@ public class SecurityDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public PrivateKeyResolver privateKeyResolver(ServiceExtensionContext context) {
         if (privateKeyResolver == null) {
-            privateKeyResolver = new VaultPrivateKeyResolver(keyParserRegistry(context), participantVault, context.getMonitor().withPrefix("PrivateKeyResolution"), context.getConfig());
+            privateKeyResolver = new VaultPrivateKeyResolver(keyParserRegistry(context), vault, context.getMonitor().withPrefix("PrivateKeyResolution"), context.getConfig());
         }
         return privateKeyResolver;
     }

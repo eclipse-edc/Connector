@@ -28,7 +28,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.ParticipantVault;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,7 +58,7 @@ class ProvisionResponsesHandlerTest {
 
     private final TransferProcessListener listener = mock();
     private final TransferProcessObservableImpl observable = new TransferProcessObservableImpl();
-    private final ParticipantVault vault = mock();
+    private final Vault vault = mock();
     private final ProvisionResponsesHandler handler = new ProvisionResponsesHandler(observable, mock(), vault, mock());
 
     @BeforeEach

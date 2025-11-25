@@ -25,7 +25,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.security.ParticipantVault;
+import org.eclipse.edc.spi.security.Vault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,7 +48,7 @@ import static org.mockito.Mockito.when;
 
 class DeprovisionResponsesHandlerTest {
 
-    private final ParticipantVault vault = mock();
+    private final Vault vault = mock();
     private final TransferProcessObservableImpl observable = new TransferProcessObservableImpl();
     private final DeprovisionResponsesHandler handler = new DeprovisionResponsesHandler(observable, mock(), vault);
     private final TransferProcessListener listener = mock();
