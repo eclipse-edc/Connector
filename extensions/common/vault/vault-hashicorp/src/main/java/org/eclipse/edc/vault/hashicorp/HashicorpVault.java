@@ -29,9 +29,11 @@ import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultSettings.forParticipant;
 
 /**
- * Vault implementation that delegates vault access to a {@link HashicorpVaultClient} via HTTP.
+ * Vault implementation for Hashicorp Vault. The actual interaction with the vault is delegated to a {@link HashicorpVaultClient} via HTTP.
+ * Each vault partition is mapped to its own {@link HashicorpVaultClient} instance with specific configuration / authentication settings, taken
+ * from a {@link ParticipantContextConfig}. So theoretically, each participant context's vault could be a separate instance.
  */
-final class HashicorpVault implements Vault {
+class HashicorpVault implements Vault {
     private final ParticipantContextConfig participantContextConfig;
     private final Monitor monitor;
     private final HashicorpVaultConfig vaultConfig;

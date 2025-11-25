@@ -25,7 +25,7 @@ import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultCredentials;
 import static org.eclipse.edc.vault.hashicorp.VaultConstants.VAULT_CONFIG;
 
 /**
- * POJO that contains a config object and a credentials object. This is intended to be used as DTO.
+ * POJO that contains a config object and a credentials object. This is intended to be serialized, e.g., as DTO in API calls.
  */
 public record HashicorpVaultSettings(HashicorpVaultConfig config, HashicorpVaultCredentials credentials) {
 

@@ -20,7 +20,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import static java.util.Objects.requireNonNull;
 
 /**
- * Settings for the {@link HashicorpVaultHealthService}. This object is not intended to be constructed manually, instead
+ * Configuration parameters for the {@link HashicorpVaultHealthService}. This object is not intended to be constructed manually, instead
  * it is constructed via the configuration injection mechanism.
  */
 @Settings

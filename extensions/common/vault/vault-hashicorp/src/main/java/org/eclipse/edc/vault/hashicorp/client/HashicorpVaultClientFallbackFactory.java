@@ -22,7 +22,7 @@ import org.eclipse.edc.http.spi.FallbackFactory;
 import static org.eclipse.edc.http.spi.FallbackFactories.retryWhenStatusIsNotIn;
 
 /**
- * Implements a {@link Fallback}factory for requests executed against the Hashicorp Vault.
+ * Implements a {@link FallbackFactory} for requests executed against the Hashicorp Vault.
  *
  * @see <a href="https://developer.hashicorp.com/vault/api-docs">Hashicorp Vault Api</a> for more information on retryable error codes.
  */

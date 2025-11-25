@@ -41,7 +41,8 @@ import static org.eclipse.edc.vault.hashicorp.VaultConstants.VAULT_SECRET_METADA
 import static org.eclipse.edc.vault.hashicorp.VaultConstants.VAULT_TOKEN_HEADER;
 
 /**
- * Implements HTTP requests used to interact with a Hashicorp Vault instance.
+ * Client for Hashicorp Vault's REST API that implements HTTP requests for storing, deleting and retrieving secrets.
+ * Do not use this class directly, use {@link HashicorpVault} instead.
  */
 class HashicorpVaultClient {
     private static final String VAULT_SECRET_DATA_PATH = "data";
