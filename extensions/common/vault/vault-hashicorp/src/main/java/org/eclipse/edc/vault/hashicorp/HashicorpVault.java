@@ -94,7 +94,7 @@ class HashicorpVault implements Vault {
      */
     private HashicorpVaultClient createForPartition(String vaultPartition) {
         var settings = forParticipant(vaultPartition, participantContextConfig);
-        return new HashicorpVaultClient(monitor, settings.config(), edcHttpClient, mapper, settings.credentials().tokenProvider(edcHttpClient));
+        return new HashicorpVaultClient(monitor, settings.config(), edcHttpClient, mapper, settings.tokenProvider(edcHttpClient));
     }
 
     /**

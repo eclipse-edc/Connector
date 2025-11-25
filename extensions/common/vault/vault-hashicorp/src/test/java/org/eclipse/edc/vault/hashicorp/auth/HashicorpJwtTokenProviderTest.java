@@ -15,194 +15,184 @@
 package org.eclipse.edc.vault.hashicorp.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.MediaType;
-import okhttp3.Protocol;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
-import okio.Buffer;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import dev.failsafe.RetryPolicy;
+import okhttp3.OkHttpClient;
+import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.unauthorized;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
 class HashicorpJwtTokenProviderTest {
     private static final String CLIENT_ID = "test-client-id";
     private static final String CLIENT_SECRET = "test-client-secret";
 
-    private final EdcHttpClient httpClient = mock();
+    @RegisterExtension
+    static WireMockExtension wireMock = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
+
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final EdcHttpClient httpClient = new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), mock(Monitor.class));
+    private final HashicorpJwtTokenProvider.Builder providerBuilder = HashicorpJwtTokenProvider.Builder.newInstance()
+            .clientId(CLIENT_ID)
+            .clientSecret(CLIENT_SECRET)
 
-    @Test
-    void vaultToken_usesProvidedRoleInJwtLoginRequest() throws Exception {
-        var accessTokenBody = """
-                { "access_token": "jwt-token" }
-                """;
-        var accessTokenResponse = new Response.Builder()
-                .code(200)
-                .message("OK")
-                .body(ResponseBody.create(accessTokenBody, MediaType.get("application/json")))
-                .protocol(Protocol.HTTP_1_1)
-                .request(new Request.Builder().url("http://idp/token").build())
-                .build();
+            .httpClient(httpClient)
+            .objectMapper(objectMapper)
+            .role("custom-role");
 
-        var vaultTokenBody = """
-                { "auth": { "client_token": "vault-token" } }
-                """;
-        var vaultTokenResponse = new Response.Builder()
-                .code(200)
-                .message("OK")
-                .body(ResponseBody.create(vaultTokenBody, MediaType.get("application/json")))
-                .protocol(Protocol.HTTP_1_1)
-                .request(new Request.Builder().url("http://vault/v1/auth/jwt/login").build())
-                .build();
-
-        when(httpClient.execute(any(Request.class))).thenReturn(accessTokenResponse, vaultTokenResponse);
-
-        var tokenProvider = HashicorpJwtTokenProvider.Builder.newInstance()
-                .clientId(CLIENT_ID)
-                .clientSecret(CLIENT_SECRET)
-                .tokenUrl("http://vault/token")
-                .httpClient(httpClient)
-                .objectMapper(objectMapper)
-                .role("custom-role")
-                .build();
-
-        var requestCaptor = ArgumentCaptor.forClass(Request.class);
-
-        var vaultToken = tokenProvider.vaultToken();
-
-        assertThat(vaultToken).isEqualTo("vault-token");
-
-        verify(httpClient, times(2)).execute(requestCaptor.capture());
-        var requests = requestCaptor.getAllValues();
-        var loginRequest = requests.get(1);
-
-        var copy = loginRequest.newBuilder().build();
-        var buffer = new Buffer();
-        copy.body().writeTo(buffer);
-        var bodyJson = buffer.readUtf8();
-
-        var jsonNode = objectMapper.readTree(bodyJson);
-        assertThat(jsonNode.get("role").asText()).isEqualTo("custom-role");
-        assertThat(jsonNode.get("jwt").asText()).isEqualTo("jwt-token");
+    @BeforeEach
+    void setUp() {
     }
 
+
     @Test
-    void vaultToken_unsuccessfulVaultResponse_throwsEdcExceptionWithDetails() throws Exception {
-        var accessTokenBody = """
-                { "access_token": "jwt-token" }
-                """;
-        var accessTokenResponse = new Response.Builder()
-                .code(200)
-                .message("OK")
-                .body(ResponseBody.create(accessTokenBody, MediaType.get("application/json")))
-                .protocol(Protocol.HTTP_1_1)
-                .request(new Request.Builder().url("http://idp/token").build())
-                .build();
+    void vaultToken_accessTokenFails_throwsEdcException() {
+        wireMock.stubFor(post(urlEqualTo("/token"))
+                .willReturn(aResponse()
+                        .withStatus(401)
+                        .withBody("Unauthorized")));
 
-        var errorBody = "Something went wrong";
-        var errorResponse = new Response.Builder()
-                .code(500)
-                .message("Internal Server Error")
-                .body(ResponseBody.create(errorBody, MediaType.get("text/plain")))
-                .protocol(Protocol.HTTP_1_1)
-                .request(new Request.Builder().url("http://vault/v1/auth/jwt/login").build())
-                .build();
-
-        when(httpClient.execute(any(Request.class))).thenReturn(accessTokenResponse, errorResponse);
-
-        var tokenProvider = HashicorpJwtTokenProvider.Builder.newInstance()
-                .clientId(CLIENT_ID)
-                .clientSecret(CLIENT_SECRET)
-                .tokenUrl("http://vault/token")
-                .httpClient(httpClient)
-                .objectMapper(objectMapper)
-                .role("custom-role")
+        var tokenProvider = providerBuilder
+                .tokenUrl(wireMock.baseUrl() + "/token")
+                .vaultUrl(wireMock.baseUrl())
                 .build();
 
         assertThatThrownBy(tokenProvider::vaultToken)
                 .isInstanceOf(EdcException.class)
-                .hasMessage("Failed to obtain vault token, Vault responded with code '%s', message: '%s'".formatted(500, errorBody));
+                .hasMessageContaining("Failed to obtain JWT access token");
+
+        wireMock.verify(1, postRequestedFor(urlEqualTo("/token")));
     }
 
     @Test
-    void vaultToken_invalidTokenUrlDuringTokenRetrieval_throwsEdcException() {
-        var tokenProvider = HashicorpJwtTokenProvider.Builder.newInstance()
-                .clientId(CLIENT_ID)
-                .clientSecret(CLIENT_SECRET)
+    void vaultToken_tokenUrlNotValid_throwsEdcException() {
+        var tokenProvider = providerBuilder
                 .tokenUrl("://invalid-url")
-                .httpClient(httpClient)
-                .objectMapper(objectMapper)
+                .vaultUrl(wireMock.baseUrl())
                 .build();
 
         assertThatThrownBy(tokenProvider::vaultToken)
                 .isInstanceOf(EdcException.class)
-                .hasMessage("Failed to parse vault url '%s'".formatted("://invalid-url"));
-
-        verifyNoInteractions(httpClient);
+                .hasMessageContaining("Failed to parse vault url");
     }
 
     @Test
-    void vaultToken_usesDefaultRoleWhenNoneSpecified() throws Exception {
-        var accessTokenBody = """
-                { "access_token": "jwt-token" }
-                """;
-        var accessTokenResponse = new Response.Builder()
-                .code(200)
-                .message("OK")
-                .body(ResponseBody.create(accessTokenBody, MediaType.get("application/json")))
-                .protocol(Protocol.HTTP_1_1)
-                .request(new Request.Builder().url("http://idp/token").build())
+    void vaultToken_vaultUrlNotValid_throwsEdcException() {
+        wireMock.stubFor(post(urlEqualTo("/token"))
+                .willReturn(okJson("""
+                        { "access_token": "jwt-token" }
+                        """)));
+        var tokenProvider = providerBuilder
+                .tokenUrl(wireMock.baseUrl() + "/token")
+                .vaultUrl("://invalid-url")
                 .build();
 
-        var vaultTokenBody = """
-                { "auth": { "client_token": "vault-token" } }
-                """;
-        var vaultTokenResponse = new Response.Builder()
-                .code(200)
-                .message("OK")
-                .body(ResponseBody.create(vaultTokenBody, MediaType.get("application/json")))
-                .protocol(Protocol.HTTP_1_1)
-                .request(new Request.Builder().url("http://vault/v1/auth/jwt/login").build())
+        assertThatThrownBy(tokenProvider::vaultToken)
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining("Failed to parse vault url");
+    }
+
+    @Test
+    void vaultToken_tokenRequestSuccessful() {
+        wireMock.stubFor(post(urlEqualTo("/token"))
+                .willReturn(okJson("""
+                        { "access_token": "jwt-token" }
+                        """)));
+
+        wireMock.stubFor(post(urlEqualTo("/v1/auth/jwt/login"))
+                .willReturn(okJson("""
+                        { "auth": { "client_token": "vault-token" } }
+                        """)));
+
+        var tokenProvider = providerBuilder
+                .tokenUrl(wireMock.baseUrl() + "/token")
+                .vaultUrl(wireMock.baseUrl())
                 .build();
-
-        when(httpClient.execute(any(Request.class))).thenReturn(accessTokenResponse, vaultTokenResponse);
-
-        var tokenProvider = HashicorpJwtTokenProvider.Builder.newInstance()
-                .clientId(CLIENT_ID)
-                .clientSecret(CLIENT_SECRET)
-                .tokenUrl("http://vault/token")
-                .httpClient(httpClient)
-                .objectMapper(objectMapper)
-                .build();
-
-        var requestCaptor = ArgumentCaptor.forClass(Request.class);
 
         var vaultToken = tokenProvider.vaultToken();
 
         assertThat(vaultToken).isEqualTo("vault-token");
 
-        verify(httpClient, times(2)).execute(requestCaptor.capture());
-        var requests = requestCaptor.getAllValues();
-        var loginRequest = requests.get(1);
+        wireMock.verify(postRequestedFor(urlEqualTo("/v1/auth/jwt/login"))
+                .withRequestBody(equalToJson("""
+                        {
+                            "role": "custom-role",
+                            "jwt": "jwt-token"
+                        }
+                        """)));
+    }
 
-        var copy = loginRequest.newBuilder().build();
-        var buffer = new Buffer();
-        copy.body().writeTo(buffer);
-        var bodyJson = buffer.readUtf8();
+    @Test
+    void vaultToken_usesDefaultRoleWhenNoneSpecified() {
+        wireMock.stubFor(post(urlEqualTo("/token"))
+                .willReturn(okJson("""
+                        { "access_token": "jwt-token" }
+                        """)));
 
-        var jsonNode = objectMapper.readTree(bodyJson);
-        assertThat(jsonNode.get("role").asText()).isEqualTo("participant");
+        wireMock.stubFor(post(urlEqualTo("/v1/auth/jwt/login"))
+                .willReturn(okJson("""
+                        { "auth": { "client_token": "vault-token" } }
+                        """)));
+
+        var tokenProvider = HashicorpJwtTokenProvider.Builder.newInstance()
+                .clientId(CLIENT_ID)
+                .clientSecret(CLIENT_SECRET)
+                .tokenUrl(wireMock.baseUrl() + "/token")
+                .vaultUrl(wireMock.baseUrl())
+                .httpClient(httpClient)
+                .objectMapper(objectMapper)
+                .build();
+
+        var vaultToken = tokenProvider.vaultToken();
+
+        assertThat(vaultToken).isEqualTo("vault-token");
+
+        wireMock.verify(postRequestedFor(urlEqualTo("/v1/auth/jwt/login"))
+                .withRequestBody(equalToJson("""
+                        {
+                            "role": "participant",
+                            "jwt": "jwt-token"
+                        }
+                        """)));
+    }
+
+    @Test
+    void vaultToken_tokenRequestFails_throwsEdcException() {
+        wireMock.stubFor(post(urlEqualTo("/token"))
+                .willReturn(okJson("""
+                        { "access_token": "jwt-token" }
+                        """)));
+
+        wireMock.stubFor(post(urlEqualTo("/v1/auth/jwt/login"))
+                .willReturn(unauthorized()));
+
+        var tokenProvider = providerBuilder
+                .tokenUrl(wireMock.baseUrl() + "/token")
+                .vaultUrl(wireMock.baseUrl())
+                .build();
+
+        assertThatThrownBy(tokenProvider::vaultToken)
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining("Failed to obtain vault token");
+
+        wireMock.verify(postRequestedFor(urlEqualTo("/v1/auth/jwt/login")));
     }
 
     @Test
@@ -211,6 +201,7 @@ class HashicorpJwtTokenProviderTest {
                 .clientId(CLIENT_ID)
                 .clientSecret(CLIENT_SECRET)
                 .tokenUrl("http://vault/token")
+                .vaultUrl(wireMock.baseUrl())
                 .httpClient(httpClient)
                 .objectMapper(objectMapper)
                 .role(null);

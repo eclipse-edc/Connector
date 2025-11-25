@@ -17,10 +17,14 @@ package org.eclipse.edc.vault.hashicorp;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.vault.hashicorp.auth.HashicorpJwtTokenProvider;
+import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultCredentials;
+import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
 
 import static org.eclipse.edc.vault.hashicorp.VaultConstants.VAULT_CONFIG;
 
@@ -39,4 +43,19 @@ public record HashicorpVaultSettings(HashicorpVaultConfig config, HashicorpVault
             throw new EdcException(e);
         }
     }
+
+    public HashicorpVaultTokenProvider tokenProvider(EdcHttpClient edcHttpClient) {
+        if (credentials.getToken() != null) {
+            return new HashicorpVaultTokenProviderImpl(credentials.getToken());
+        }
+
+        return HashicorpJwtTokenProvider.Builder.newInstance()
+                .clientId(credentials.getClientId())
+                .clientSecret(credentials.getClientSecret())
+                .tokenUrl(credentials.getTokenUrl())
+                .vaultUrl(config.getVaultUrl())
+                .httpClient(edcHttpClient)
+                .build();
+    }
+
 }

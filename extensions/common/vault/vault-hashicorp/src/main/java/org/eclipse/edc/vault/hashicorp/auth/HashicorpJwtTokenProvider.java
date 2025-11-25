@@ -39,6 +39,8 @@ public class HashicorpJwtTokenProvider implements HashicorpVaultTokenProvider {
     private String clientId;
     private String clientSecret;
     private String tokenUrl;
+    private String vaultUrl;
+
     private String role = DEFAULT_ROLE;
     private ObjectMapper objectMapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     private EdcHttpClient httpClient;
@@ -58,7 +60,7 @@ public class HashicorpJwtTokenProvider implements HashicorpVaultTokenProvider {
 
         // use JWT to get vault token
 
-        var parsedUrl = HttpUrl.parse(tokenUrl);
+        var parsedUrl = HttpUrl.parse(vaultUrl);
         if (parsedUrl == null) {
             throw new EdcException("Failed to parse vault url '%s'".formatted(tokenUrl));
         }
@@ -107,8 +109,8 @@ public class HashicorpJwtTokenProvider implements HashicorpVaultTokenProvider {
                 .build();
 
         try (var response = httpClient.execute(request)) {
-            if (!response.isSuccessful() || response.body() == null) {
-                throw new EdcException("Failed to obtain vault token");
+            if (!response.isSuccessful()) {
+                throw new EdcException("Failed to obtain JWT access token");
             }
             var json = objectMapper.readValue(response.body().string(), JsonNode.class);
             return json.path("access_token").asText();
@@ -158,6 +160,11 @@ public class HashicorpJwtTokenProvider implements HashicorpVaultTokenProvider {
             return this;
         }
 
+        public Builder vaultUrl(String vaultUrl) {
+            this.tokenProvider.vaultUrl = vaultUrl;
+            return this;
+        }
+
         public HashicorpJwtTokenProvider build() {
             requireNonNull(tokenProvider.httpClient, "HttpClient must be provided to use OAuth2 authentication");
             requireNonNull(tokenProvider.clientId, "clientId must be provided to use OAuth2 authentication");
@@ -165,6 +172,7 @@ public class HashicorpJwtTokenProvider implements HashicorpVaultTokenProvider {
             requireNonNull(tokenProvider.tokenUrl, "tokenUrl must be provided to use OAuth2 authentication");
             requireNonNull(tokenProvider.objectMapper, "objectMapper cannot be 'null' with OAuth2 authentication");
             requireNonNull(tokenProvider.role, "'role' cannot be 'null' with OAuth2 authentication");
+            requireNonNull(tokenProvider.vaultUrl, "'vaultUrl' cannot be 'null' with OAuth2 authentication");
             return tokenProvider;
         }
     }

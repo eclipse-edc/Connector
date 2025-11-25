@@ -17,10 +17,6 @@ package org.eclipse.edc.vault.hashicorp.client;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.edc.http.spi.EdcHttpClient;
-import org.eclipse.edc.vault.hashicorp.auth.HashicorpJwtTokenProvider;
-import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
-import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
 
 import static org.eclipse.edc.util.string.StringUtils.isNullOrEmpty;
 
@@ -52,19 +48,6 @@ public final class HashicorpVaultCredentials {
 
     public String getToken() {
         return token;
-    }
-
-    public HashicorpVaultTokenProvider tokenProvider(EdcHttpClient edcHttpClient) {
-        if (token != null) {
-            return new HashicorpVaultTokenProviderImpl(token);
-        }
-
-        return HashicorpJwtTokenProvider.Builder.newInstance()
-                .clientId(clientId)
-                .clientSecret(clientSecret)
-                .tokenUrl(tokenUrl)
-                .httpClient(edcHttpClient)
-                .build();
     }
 
     @JsonPOJOBuilder(withPrefix = "")
