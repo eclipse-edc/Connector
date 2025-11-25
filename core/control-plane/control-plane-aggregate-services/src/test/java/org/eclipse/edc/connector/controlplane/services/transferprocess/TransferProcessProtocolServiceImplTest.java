@@ -10,7 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initiate provider process
- *       Schaeffler AG
+ *       Schaeffler AG - GetDspRequest refactor
  *
  */
 

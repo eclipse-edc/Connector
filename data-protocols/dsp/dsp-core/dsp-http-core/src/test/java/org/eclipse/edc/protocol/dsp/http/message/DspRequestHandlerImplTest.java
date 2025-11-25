@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
- *       Schaeffler AG
+ *       Schaeffler AG - GetDspRequest refactor
  *
  */
 
@@ -135,10 +135,11 @@ class DspRequestHandlerImplTest {
         @Test
         void shouldSucceed() {
             var content = new Object();
-            var message = new TestProcessRemoteMessage();
+            var resourceJson = Json.createObjectBuilder().build();
             ServiceCall<TestProcessRemoteMessage, Object> serviceCall = (ctx, m, t) -> ServiceResult.success(content);
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
-            when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
+            when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(resourceJson));
+
             var request = GetDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class, TestError.class)
                     .token("token")
                     .processId("id")
@@ -180,7 +181,6 @@ class DspRequestHandlerImplTest {
             var jsonError = error("401", "unauthorized");
             var message = new TestProcessRemoteMessage();
 
-            when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
             when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(jsonError));
 
@@ -192,6 +192,20 @@ class DspRequestHandlerImplTest {
                 assertThat(error.getString(DSPACE_PROPERTY_CODE_IRI)).isEqualTo("401");
                 assertThat(error.get(DSPACE_PROPERTY_REASON_IRI)).isNotNull();
             });
+        }
+
+        @Test
+        void shouldFail_whenTransformationFails() {
+            var request = getDspRequestBuilder().build();
+            var jsonError = error("500", "error");
+
+            when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
+            when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
+            when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(jsonError));
+
+            var result = handler.getResource(request);
+
+            assertThat(result.getStatus()).isEqualTo(500);
         }
 
         @Test

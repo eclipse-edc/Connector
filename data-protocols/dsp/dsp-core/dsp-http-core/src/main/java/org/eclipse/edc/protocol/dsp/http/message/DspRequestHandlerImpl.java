@@ -10,7 +10,7 @@
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       Cofinity-X - unauthenticated DSP version endpoint
- *       Schaeffler AG
+ *       Schaeffler AG - GetDspRequest refactor
  *
  */
 
@@ -56,7 +56,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
 
     @Override
     public <I extends RemoteMessage, R, E extends ErrorMessage> Response getResource(GetDspRequest<I, R, E> request) {
-        monitor.debug(() -> "DSP: Incoming resource request for %s id %s".formatted(request.getResultClass(), request.getProcessId()));
+        monitor.debug(() -> "DSP: Incoming resource request for %s id %s".formatted(request.getResultClass(), request.getId()));
 
         var token = request.getToken();
         if (token == null && request.isAuthRequired()) {
@@ -69,14 +69,6 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
             monitor.debug(() -> "DSP: Participant context retrieval failed: %s".formatted(supplierResult.getFailureMessages()));
             return unauthorized(request);
         }
-        var registryResult = dspTransformerRegistry.forProtocol(request.getProtocol());
-
-        if (registryResult.failed()) {
-            monitor.debug(() -> "DSP: Unsupported protocol %s: %s".formatted(request.getProtocol(), registryResult.getFailureMessages()));
-            return badRequest(request);
-        }
-
-        var registry = registryResult.getContent();
 
         var serviceResult = request.getServiceCall().apply(supplierResult.getContent(), request.getMessage(), tokenRepresentation);
 
@@ -86,6 +78,13 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
         }
 
         var resource = serviceResult.getContent();
+
+        var registryResult = dspTransformerRegistry.forProtocol(request.getProtocol());
+        if (registryResult.failed()) {
+            monitor.debug(() -> "DSP: Unsupported protocol %s: %s".formatted(request.getProtocol(), registryResult.getFailureMessages()));
+            return badRequest(request);
+        }
+        var registry = registryResult.getContent();
 
         var transformation = registry.transform(resource, JsonObject.class);
         if (transformation.failed()) {
@@ -237,7 +236,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
     }
 
     private <I extends RemoteMessage, R, E extends ErrorMessage> Response forFailure(ServiceFailure failure, GetDspRequest<I, R, E> request) {
-        return forFailure(failure, request.getProtocol(), request.getErrorProvider().get().processId(request.getProcessId()));
+        return forFailure(failure, request.getProtocol(), request.getErrorProvider().get().processId(request.getId()));
     }
 
     private <E extends ErrorMessage> Response forFailure(ServiceFailure failure, String protocol, ErrorMessage.Builder<E, ?> builder) {
@@ -274,7 +273,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
     }
 
     private <I extends RemoteMessage, R, E extends ErrorMessage> Response forStatus(Response.Status status, List<String> messages, GetDspRequest<I, R, E> request) {
-        return forStatus(status, request.getProtocol(), messages, request.getErrorProvider().get().processId(request.getProcessId()));
+        return forStatus(status, request.getProtocol(), messages, request.getErrorProvider().get().processId(request.getId()));
     }
 
     private <E extends ErrorMessage> Response forStatus(Response.Status statusCode, String protocol,

@@ -11,7 +11,7 @@
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       Cofinity-X - add participantId to DataspaceProfileContext
  *       Cofinity-X - make participant id extraction dependent on dataspace profile context
- *       Schaeffler AG
+ *       Schaeffler AG - GetDspRequest refactor
  *
  */
 

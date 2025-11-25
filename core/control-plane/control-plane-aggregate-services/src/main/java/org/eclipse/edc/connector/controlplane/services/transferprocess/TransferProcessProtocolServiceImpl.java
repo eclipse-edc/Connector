@@ -11,7 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initiate provider process
  *       Cofinity-X - make participant id extraction dependent on dataspace profile context
- *       Schaeffler AG
+ *       Schaeffler AG - GetDspRequest refactor
  *
  */
 

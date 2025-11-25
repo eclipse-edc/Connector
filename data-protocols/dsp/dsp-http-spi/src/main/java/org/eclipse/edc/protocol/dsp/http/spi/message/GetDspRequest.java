@@ -10,7 +10,7 @@
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       Cofinity-X - unauthenticated DSP version endpoint
- *       Schaeffler AG
+ *       Schaeffler AG - GetDspRequest refactor
  *
  */
 
@@ -22,8 +22,7 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 public class GetDspRequest<I extends RemoteMessage, R, E extends ErrorMessage> extends DspRequest<I, R, E> {
 
     private I message;
-    private String processId;
-    private String expectedMessageType;
+    private String id;
     private boolean authRequired = true;
 
     private GetDspRequest(Class<I> messageClass, Class<R> resultClass, Class<E> errorClass) {
@@ -34,14 +33,10 @@ public class GetDspRequest<I extends RemoteMessage, R, E extends ErrorMessage> e
         return message;
     }
 
-    public String getProcessId() {
-        return processId;
+    public String getId() {
+        return id;
     }
 
-    public String getExpectedMessageType() {
-        return expectedMessageType;
-    }
-    
     public boolean isAuthRequired() {
         return authRequired;
     }
@@ -62,12 +57,7 @@ public class GetDspRequest<I extends RemoteMessage, R, E extends ErrorMessage> e
         }
 
         public Builder<I, R, E> processId(String processId) {
-            super.message.processId = processId;
-            return this;
-        }
-
-        public Builder<I, R, E> expectedMessageType(String expectedMessageType) {
-            super.message.expectedMessageType = expectedMessageType;
+            super.message.id = processId;
             return this;
         }
         
