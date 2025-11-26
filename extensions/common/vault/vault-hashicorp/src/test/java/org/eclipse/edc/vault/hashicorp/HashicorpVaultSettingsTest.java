@@ -42,7 +42,7 @@ class HashicorpVaultSettingsTest {
     @Test
     void forParticipant_whenParticipantNotFound_shouldReturnFailure() {
 
-        when(participantContextConfig.getString(anyString(), anyString())).thenThrow(new EdcException("test exception"));
+        when(participantContextConfig.getSensitiveString(anyString(), anyString())).thenThrow(new EdcException("test exception"));
         assertThatThrownBy(() -> HashicorpVaultSettings.forParticipant("participant1", participantContextConfig))
                 .isInstanceOf(EdcException.class)
                 .hasMessage("test exception");
@@ -51,17 +51,14 @@ class HashicorpVaultSettingsTest {
     @ParameterizedTest
     @ValueSource(strings = { "  ", "\t", "\n" })
     @NullAndEmptySource
-    void anyRequest_whenVaultConfigInvalid_returnsFailure(String vaultConfig) {
-        when(participantContextConfig.getString(anyString(), anyString())).thenReturn(vaultConfig);
-
-        assertThatThrownBy(() -> HashicorpVaultSettings.forParticipant("participant1", participantContextConfig))
-                .isInstanceOf(EdcException.class)
-                .hasMessageContaining("No vault configuration found for participant context 'participant1'");
+    void forParticipant_whenVaultConfigInvalid_returnsFailure(String vaultConfig) {
+        when(participantContextConfig.getSensitiveString(anyString(), anyString())).thenReturn(vaultConfig);
+        assertThat(HashicorpVaultSettings.forParticipant("participant1", participantContextConfig)).isNull();
     }
 
     @Test
-    void anyRequest_whenVaultConfigEmpty_returnsEmptyConfig() {
-        when(participantContextConfig.getString(anyString(), anyString())).thenReturn("{}");
+    void forParticipant_whenVaultConfigEmpty_returnsEmptyConfig() {
+        when(participantContextConfig.getSensitiveString(anyString(), anyString())).thenReturn("{}");
 
         assertThat(HashicorpVaultSettings.forParticipant("participant1", participantContextConfig))
                 .isNotNull()

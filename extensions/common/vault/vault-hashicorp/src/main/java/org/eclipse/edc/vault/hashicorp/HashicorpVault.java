@@ -73,27 +73,36 @@ class HashicorpVault implements Vault {
     public String resolveSecret(String vaultPartition, String key) {
 
         return ofNullable(vaultPartition)
-                .map(pcId -> createForPartition(pcId).resolveSecret(key))
-                .orElseGet(() -> createDefault().resolveSecret(key));
+                .map(this::createForPartition)
+                .orElseGet(this::createDefault)
+                .resolveSecret(key);
     }
 
     @Override
     public Result<Void> storeSecret(String vaultPartition, String key, String value) {
-        return ofNullable(vaultPartition).map(pcId -> createForPartition(pcId).storeSecret(key, value))
-                .orElseGet(() -> createDefault().storeSecret(key, value));
+        return ofNullable(vaultPartition)
+                .map(this::createForPartition)
+                .orElseGet(this::createDefault)
+                .storeSecret(key, value);
     }
 
     @Override
     public Result<Void> deleteSecret(String vaultPartition, String key) {
-        return ofNullable(vaultPartition).map(pcId -> createForPartition(pcId).deleteSecret(key))
-                .orElseGet(() -> createDefault().deleteSecret(key));
+        return ofNullable(vaultPartition)
+                .map(this::createForPartition)
+                .orElseGet(this::createDefault)
+                .deleteSecret(key);
     }
 
     /**
      * creates a new HashicorpVaultClient specific configuration / auth settings for the given vault partition.
+     * If no vault config is found for the given partition, null is returned.
      */
-    private HashicorpVaultClient createForPartition(String vaultPartition) {
+    private @Nullable HashicorpVaultClient createForPartition(String vaultPartition) {
         var settings = forParticipant(vaultPartition, participantContextConfig);
+        if (settings == null) {
+            return null;
+        }
         return new HashicorpVaultClient(monitor, settings.config(), edcHttpClient, mapper, settings.tokenProvider(edcHttpClient));
     }
 

@@ -26,6 +26,7 @@ import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultCredentials;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
+import org.jetbrains.annotations.Nullable;
 
 import static org.eclipse.edc.vault.hashicorp.VaultConstants.VAULT_CONFIG;
 
@@ -36,10 +37,18 @@ public record HashicorpVaultSettings(HashicorpVaultConfig config, HashicorpVault
 
     private static final ObjectMapper MAPPER = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-    public static HashicorpVaultSettings forParticipant(String participantContextId, ParticipantContextConfig config) {
-        var vaultConfigJson = config.getString(participantContextId, VAULT_CONFIG);
+    /**
+     * Resolves the vault configuration from the {@link ParticipantContextConfig}. If no config is found for that participant, an exception is thrown.
+     * If the participant context config is found, but does not contain a vault config, null is returned.
+     *
+     * @param participantContextId The participant context id.
+     * @param config               The participant context config.
+     * @return The vault configuration for the given participant context id, or null if not found.
+     */
+    public static @Nullable HashicorpVaultSettings forParticipant(String participantContextId, ParticipantContextConfig config) {
+        var vaultConfigJson = config.getSensitiveString(participantContextId, VAULT_CONFIG);
         if (StringUtils.isNullOrBlank(vaultConfigJson)) {
-            throw new EdcException("No vault configuration found for participant context '%s'".formatted(participantContextId));
+            return null;
         }
         try {
             return MAPPER.readValue(vaultConfigJson, HashicorpVaultSettings.class);
@@ -48,6 +57,13 @@ public record HashicorpVaultSettings(HashicorpVaultConfig config, HashicorpVault
         }
     }
 
+    /**
+     * Generates a {@link HashicorpJwtTokenProvider} for the given settings. If a static token is provided in the credentials,
+     * a simple token provider is returned. If client credentials are provided, a JWT token provider is returned.
+     *
+     * @param edcHttpClient An {@link EdcHttpClient} instance to be used for HTTP requests. This is only needed for the JWT token provider.
+     * @return A {@link HashicorpVaultTokenProvider} instance.
+     */
     public HashicorpVaultTokenProvider tokenProvider(EdcHttpClient edcHttpClient) {
         if (credentials.getToken() != null) {
             return new HashicorpVaultTokenProviderImpl(credentials.getToken());
