@@ -118,3 +118,27 @@ Examples of settings that are relevant for a participant are:
 
 - `edc.iam.issuer.id`
 - `edc.iam.sts.oauth.*`
+
+### Migration
+
+The classic EDC will only support a single participant context, and users have
+to configure and apply migrations to the EDC schema in order to support the new participant context aware entities.
+
+When starting from scratch a new EDC instance the default participant context id will be taken from configuration
+(e.g. `edc.participant.id`), but it's recommended to use a specific configuration `edc.participant.context.id` to avoid
+confusion and assign a randomly generated UUID/String as participant context id.
+
+When migrating an existing EDC instance to a participant context aware EDC instance, users also should provide a
+migration script that updates all the existing entities to associate them with the default participant context id taken
+from configuration (e.g. `edc.participant.context.id`).
+
+It's important that the value set in configuration for the participant context id
+is stable and doesn't change between restarts, and matches the one used in the migration script.
+
+Since the value of the participant context id is arbitrary, hardcoding a specific value in the migration script is not
+recommended.
+If users are providing a distribution of the EDC, they should provide a
+migration script that uses that specific configured value and apply it during the migration process.
+
+For example when using Flyway this can be done with
+migration [placeholders](https://documentation.red-gate.com/flyway/flyway-concepts/migrations/migration-placeholders).
