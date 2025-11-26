@@ -160,7 +160,7 @@ maven/mavencentral/org.apache.httpcomponents/httpclient/4.5.13, Apache-2.0, appr
 maven/mavencentral/org.apache.httpcomponents/httpcore/4.4.13, Apache-2.0, approved, CQ23528
 maven/mavencentral/org.apache.httpcomponents/httpcore/4.4.14, Apache-2.0, approved, CQ23528
 maven/mavencentral/org.apache.httpcomponents/httpmime/4.5.13, Apache-2.0, approved, CQ11718
-maven/mavencentral/org.apache.kafka/kafka-clients/4.1.0, Apache-2.0 AND CDDL-1.0 AND EPL-2.0, approved, clearlydefined
+maven/mavencentral/org.apache.kafka/kafka-clients/4.1.1, , restricted, clearlydefined
 maven/mavencentral/org.apache.maven.doxia/doxia-core/1.12.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.maven.doxia/doxia-logging-api/1.12.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.maven.doxia/doxia-module-xdoc/1.12.0, Apache-2.0, approved, clearlydefined
