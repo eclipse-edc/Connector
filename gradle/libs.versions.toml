@@ -36,7 +36,7 @@ rsApi = "4.0.0"
 swagger = "2.2.40"
 titanium = "1.7.0"
 kafkaClients = "4.1.1"
-testcontainers = "1.21.3"
+testcontainers = "2.0.2"
 tink = "1.19.0"
 dsp-tck = "1.0.0-SNAPSHOT"
 dcp-tck = "1.0.0-SNAPSHOT"
@@ -91,10 +91,10 @@ parsson = { module = "org.eclipse.parsson:parsson", version.ref = "parsson" }
 restAssured = { module = "io.rest-assured:rest-assured", version.ref = "restAssured" }
 swagger-annotations-jakarta = { module = "io.swagger.core.v3:swagger-annotations-jakarta", version.ref = "swagger" }
 titaniumJsonLd = { module = "com.apicatalog:titanium-json-ld", version.ref = "titanium" }
-testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
-testcontainers-kafka = { module = "org.testcontainers:kafka", version.ref = "testcontainers" }
-testcontainers-postgres = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
-testcontainers-vault = { module = "org.testcontainers:vault", version.ref = "testcontainers" }
+testcontainers-junit = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers" }
+testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka", version.ref = "testcontainers" }
+testcontainers-postgres = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
+testcontainers-vault = { module = "org.testcontainers:testcontainers-vault", version.ref = "testcontainers" }
 tink = { module = "com.google.crypto.tink:tink", version.ref = "tink" }
 
 
