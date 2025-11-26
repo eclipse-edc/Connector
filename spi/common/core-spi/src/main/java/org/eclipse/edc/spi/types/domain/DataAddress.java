@@ -103,6 +103,10 @@ public class DataAddress {
         properties.put(EDC_DATA_ADDRESS_KEY_NAME, keyName);
     }
 
+    public DataAddress.Builder toBuilder() {
+        return DataAddress.Builder.newInstance().properties(properties);
+    }
+
     /**
      * Returns true if there's a property with the specified key
      *

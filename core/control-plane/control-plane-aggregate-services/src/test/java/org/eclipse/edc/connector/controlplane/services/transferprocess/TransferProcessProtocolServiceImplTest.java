@@ -41,6 +41,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
@@ -80,6 +81,7 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
+import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNEXPECTED;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
@@ -104,6 +106,7 @@ class TransferProcessProtocolServiceImplTest {
     private final DataAddressValidatorRegistry dataAddressValidator = mock();
     private final TransferProcessListener listener = mock();
     private final ProtocolTokenValidator protocolTokenValidator = mock();
+    private final Vault vault = mock();
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
             .participantContextId("participantContextId")
             .identity("participantId")
@@ -115,112 +118,186 @@ class TransferProcessProtocolServiceImplTest {
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
         service = new TransferProcessProtocolServiceImpl(store, transactionContext, negotiationStore, validationService,
-                protocolTokenValidator, dataAddressValidator, observable, mock(), mock(), mock());
+                protocolTokenValidator, dataAddressValidator, observable, mock(), mock(), mock(), vault);
 
     }
 
-    @Test
-    void notifyRequested_validAgreement_shouldInitiateTransfer() {
-        var participantAgent = participantAgent();
-        var tokenRepresentation = tokenRepresentation();
-        var message = TransferRequestMessage.Builder.newInstance()
-                .consumerPid("consumerPid")
-                .processId("consumerPid")
-                .contractId("agreementId")
-                .protocol("protocol")
-                .callbackAddress("http://any")
-                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
-                .build();
+    @Nested
+    class NotifyRequested {
 
-        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-        when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
-        when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
-        when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
+        @Test
+        void validAgreement_shouldInitiateTransfer() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferRequestMessage.Builder.newInstance()
+                    .consumerPid("consumerPid")
+                    .processId("consumerPid")
+                    .contractId("agreementId")
+                    .protocol("protocol")
+                    .callbackAddress("http://any")
+                    .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                    .build();
 
-        var result = service.notifyRequested(participantContext, message, tokenRepresentation);
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
+            when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
+            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
 
-        assertThat(result).isSucceeded().satisfies(tp -> {
-            assertThat(tp.getCorrelationId()).isEqualTo("consumerPid");
-            assertThat(tp.getCounterPartyAddress()).isEqualTo("http://any");
-            assertThat(tp.getAssetId()).isEqualTo("assetId");
-        });
-        verify(listener).preCreated(any());
-        verify(store).save(argThat(t -> t.getState() == INITIAL.code()));
-        verify(listener).initiated(any());
-        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
-    }
+            var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
-    @Test
-    void notifyRequested_doNothingIfProcessAlreadyExist() {
-        var message = TransferRequestMessage.Builder.newInstance()
-                .processId("correlationId")
-                .consumerPid("consumerPid")
-                .contractId("agreementId")
-                .protocol("protocol")
-                .callbackAddress("http://any")
-                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
-                .build();
-        var participantAgent = participantAgent();
-        var tokenRepresentation = tokenRepresentation();
+            assertThat(result).isSucceeded().satisfies(tp -> {
+                assertThat(tp.getCorrelationId()).isEqualTo("consumerPid");
+                assertThat(tp.getCounterPartyAddress()).isEqualTo("http://any");
+                assertThat(tp.getAssetId()).isEqualTo("assetId");
+            });
+            verify(listener).preCreated(any());
+            verify(store).save(argThat(t -> t.getState() == INITIAL.code()));
+            verify(listener).initiated(any());
+            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+            verifyNoInteractions(vault);
+        }
 
-        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-        when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
-        when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
-        when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
-        when(store.findForCorrelationId(any())).thenReturn(transferProcess(REQUESTED, "transferProcessId"));
+        @Test
+        void shouldStoreEventualSecretInTheVault() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var dataDestination = DataAddress.Builder.newInstance().type("any")
+                    .keyName("consumer-key-name")
+                    .property(DataAddress.EDC_DATA_ADDRESS_SECRET, "the secret").build();
+            var message = TransferRequestMessage.Builder.newInstance()
+                    .consumerPid("consumerPid")
+                    .processId("consumerPid")
+                    .contractId("agreementId")
+                    .protocol("protocol")
+                    .callbackAddress("http://any")
+                    .dataDestination(dataDestination)
+                    .build();
 
-        var result = service.notifyRequested(participantContext, message, tokenRepresentation);
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
+            when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
+            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
+            when(vault.storeSecret(any(), any(), any())).thenReturn(Result.success());
 
-        assertThat(result).isSucceeded().extracting(TransferProcess::getId).isEqualTo("transferProcessId");
-        verify(store, never()).save(any());
-        verifyNoInteractions(listener);
-    }
+            var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
-    @Test
-    void notifyRequested_invalidAgreement_shouldNotInitiateTransfer() {
-        var message = TransferRequestMessage.Builder.newInstance()
-                .consumerPid("consumerPid")
-                .protocol("protocol")
-                .callbackAddress("http://any")
-                .contractId("agreementId")
-                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
-                .build();
-        var participantAgent = participantAgent();
-        var tokenRepresentation = tokenRepresentation();
+            assertThat(result).isSucceeded().satisfies(tp -> {
+                assertThat(tp.getCorrelationId()).isEqualTo("consumerPid");
+                assertThat(tp.getCounterPartyAddress()).isEqualTo("http://any");
+                assertThat(tp.getAssetId()).isEqualTo("assetId");
+            });
+            var captor = ArgumentCaptor.forClass(TransferProcess.class);
+            verify(store).save(captor.capture());
+            var stored = captor.getValue();
+            assertThat(stored.stateAsString()).isEqualTo(INITIAL.name());
+            assertThat(stored.getDataDestination().getStringProperty(DataAddress.EDC_DATA_ADDRESS_SECRET)).isNull();
+            assertThat(stored.getDataDestination().getKeyName()).isNotEqualTo("consumer-key-name");
+            verify(vault).storeSecret(eq("participantContextId"), any(), eq("the secret"));
+            verify(listener).initiated(any());
+        }
 
-        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-        when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
-        when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.failure("error"));
-        when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
+        @Test
+        void shouldReturnError_whenSecretStorageFails() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var dataDestination = DataAddress.Builder.newInstance().type("any")
+                    .keyName("consumer-key-name")
+                    .property(DataAddress.EDC_DATA_ADDRESS_SECRET, "the secret").build();
+            var message = TransferRequestMessage.Builder.newInstance()
+                    .consumerPid("consumerPid")
+                    .processId("consumerPid")
+                    .contractId("agreementId")
+                    .protocol("protocol")
+                    .callbackAddress("http://any")
+                    .dataDestination(dataDestination)
+                    .build();
 
-        var result = service.notifyRequested(participantContext, message, tokenRepresentation);
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
+            when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
+            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
+            when(vault.storeSecret(any(), any(), any())).thenReturn(Result.failure("cannot store secret"));
 
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-        verify(store, never()).save(any());
-        verifyNoInteractions(listener);
-    }
+            var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
-    @Test
-    void notifyRequested_invalidDestination_shouldNotInitiateTransfer() {
-        var participantAgent = participantAgent();
-        var tokenRepresentation = tokenRepresentation();
-        var message = TransferRequestMessage.Builder.newInstance()
-                .consumerPid("consumerPid")
-                .protocol("protocol")
-                .contractId("agreementId")
-                .callbackAddress("http://any")
-                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
-                .build();
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNEXPECTED);
+            verify(store, never()).save(any());
+            verify(listener, never()).initiated(any());
+        }
 
-        when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
-        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-        when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
+        @Test
+        void doNothingIfProcessAlreadyExist() {
+            var message = TransferRequestMessage.Builder.newInstance()
+                    .processId("correlationId")
+                    .consumerPid("consumerPid")
+                    .contractId("agreementId")
+                    .protocol("protocol")
+                    .callbackAddress("http://any")
+                    .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                    .build();
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
 
-        var result = service.notifyRequested(participantContext, message, tokenRepresentation);
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
+            when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
+            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
+            when(store.findForCorrelationId(any())).thenReturn(transferProcess(REQUESTED, "transferProcessId"));
 
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
-        verify(store, never()).save(any());
-        verifyNoInteractions(listener);
+            var result = service.notifyRequested(participantContext, message, tokenRepresentation);
+
+            assertThat(result).isSucceeded().extracting(TransferProcess::getId).isEqualTo("transferProcessId");
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
+        }
+
+        @Test
+        void invalidAgreement_shouldNotInitiateTransfer() {
+            var message = TransferRequestMessage.Builder.newInstance()
+                    .consumerPid("consumerPid")
+                    .protocol("protocol")
+                    .callbackAddress("http://any")
+                    .contractId("agreementId")
+                    .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                    .build();
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
+            when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.failure("error"));
+            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
+
+            var result = service.notifyRequested(participantContext, message, tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
+        }
+
+        @Test
+        void invalidDestination_shouldNotInitiateTransfer() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferRequestMessage.Builder.newInstance()
+                    .consumerPid("consumerPid")
+                    .protocol("protocol")
+                    .contractId("agreementId")
+                    .callbackAddress("http://any")
+                    .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                    .build();
+
+            when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
+
+            var result = service.notifyRequested(participantContext, message, tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+            verify(store, never()).save(any());
+            verifyNoInteractions(listener);
+        }
+
     }
 
     @Test
