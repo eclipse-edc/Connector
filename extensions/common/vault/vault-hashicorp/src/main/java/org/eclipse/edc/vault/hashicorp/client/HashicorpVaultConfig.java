@@ -62,6 +62,13 @@ public class HashicorpVaultConfig {
     @Setting(description = "The path of the folder that the secret is stored in, relative to VAULT_FOLDER_PATH", required = false, key = "edc.vault.hashicorp.folder")
     private String folderPath;
 
+    public boolean isAllowFallback() {
+        return allowFallback;
+    }
+
+    @Setting(description = "Allow fallback to default vault partition if vault partitioning is not set up", defaultValue = "true", key = "edc.vault.hashicorp.allow-fallback")
+    private boolean allowFallback = true;
+
     private HashicorpVaultConfig() {
     }
 
@@ -164,6 +171,11 @@ public class HashicorpVaultConfig {
 
         public Builder folderPath(String folderPath) {
             config.folderPath = folderPath;
+            return this;
+        }
+
+        public Builder allowFallback(boolean allowFallback) {
+            config.allowFallback = allowFallback;
             return this;
         }
 

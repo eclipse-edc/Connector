@@ -23,9 +23,9 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.vault.hashicorp.HashicorpVaultSettings.forParticipant;
 
 /**
@@ -72,26 +72,34 @@ class HashicorpVault implements Vault {
     @Override
     public String resolveSecret(String vaultPartition, String key) {
 
-        return ofNullable(vaultPartition)
-                .map(this::createForPartition)
-                .orElseGet(this::createDefault)
+        return getVaultClient(vaultPartition)
                 .resolveSecret(key);
     }
 
     @Override
     public Result<Void> storeSecret(String vaultPartition, String key, String value) {
-        return ofNullable(vaultPartition)
-                .map(this::createForPartition)
-                .orElseGet(this::createDefault)
+        return getVaultClient(vaultPartition)
                 .storeSecret(key, value);
     }
 
     @Override
     public Result<Void> deleteSecret(String vaultPartition, String key) {
-        return ofNullable(vaultPartition)
-                .map(this::createForPartition)
-                .orElseGet(this::createDefault)
+        return getVaultClient(vaultPartition)
                 .deleteSecret(key);
+    }
+
+    private @NotNull HashicorpVaultClient getVaultClient(String vaultPartition) {
+        if (vaultPartition == null) {
+            return createDefault();
+        }
+        var client = createForPartition(vaultPartition);
+        if (client == null) {
+            if (vaultConfig.isAllowFallback()) {
+                return createDefault();
+            }
+            throw new IllegalArgumentException("No vault config found for partition '%s' and falling back to the default vault is not allowed".formatted(vaultPartition));
+        }
+        return client;
     }
 
     /**

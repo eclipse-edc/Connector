@@ -80,9 +80,7 @@ class HashicorpVaultTest {
                 .build();
 
         when(tokenProvider.vaultToken()).thenReturn("root");
-
         vault = new HashicorpVault(participantContextConfig, mock(), vaultConfig, tokenProvider, httpClient);
-
     }
 
     @Test
@@ -306,6 +304,30 @@ class HashicorpVaultTest {
         assertThat(vault.deleteSecret("participant1", "foo")).isSucceeded();
 
         wireMock.verify(deleteRequestedFor(urlPathMatching("/v1/secret/metadata/baz/foo.*")));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "  ", "\t", "\n" })
+    @NullAndEmptySource
+    void anyRequest_whenVaultConfigEmptyAndNoFallback_shouldRaiseException(String vaultConfig) {
+
+        var defaultVaultConfig = HashicorpVaultConfig.Builder.newInstance()
+                .vaultUrl(wireMock.baseUrl())
+                .folderPath(DEFAULT_FOLDERPATH)
+                .secretPath("v1/secret")
+                .allowFallback(false) // should trigger the exception
+                .healthCheckPath("/healthcheck")
+                .ttl(10)
+                .build();
+
+        vault = new HashicorpVault(participantContextConfig, mock(), defaultVaultConfig, tokenProvider, httpClient);
+
+        when(participantContextConfig.getSensitiveString(anyString(), anyString())).thenReturn(vaultConfig);
+        assertThatThrownBy(() -> vault.deleteSecret("participant1", "foo"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("falling back to the default vault is not allowed");
+
+        wireMock.verify(0, deleteRequestedFor(urlPathMatching("/v1/secret/metadata/baz/foo.*")));
     }
 
     private String asJson(Object obj) {
