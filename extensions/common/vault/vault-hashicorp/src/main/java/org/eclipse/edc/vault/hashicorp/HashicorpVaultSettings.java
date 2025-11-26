@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.util.string.StringUtils;
 import org.eclipse.edc.vault.hashicorp.auth.HashicorpJwtTokenProvider;
 import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
@@ -37,6 +38,9 @@ public record HashicorpVaultSettings(HashicorpVaultConfig config, HashicorpVault
 
     public static HashicorpVaultSettings forParticipant(String participantContextId, ParticipantContextConfig config) {
         var vaultConfigJson = config.getString(participantContextId, VAULT_CONFIG);
+        if (StringUtils.isNullOrBlank(vaultConfigJson)) {
+            throw new EdcException("No vault configuration found for participant context '%s'".formatted(participantContextId));
+        }
         try {
             return MAPPER.readValue(vaultConfigJson, HashicorpVaultSettings.class);
         } catch (JsonProcessingException e) {

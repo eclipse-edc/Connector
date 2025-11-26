@@ -106,10 +106,15 @@ public class HashicorpVaultConfig {
     }
 
     public static class Builder {
-        private final HashicorpVaultConfig values;
+        private final HashicorpVaultConfig config;
 
         private Builder() {
-            values = new HashicorpVaultConfig();
+            config = new HashicorpVaultConfig();
+            // those default values are helpful, e.g., when deserializing the config from JSON
+            config.ttl = VAULT_TOKEN_TTL_DEFAULT;
+            config.healthCheckPath = VAULT_API_HEALTH_PATH_DEFAULT;
+            config.secretPath = VAULT_API_SECRET_PATH_DEFAULT;
+            config.healthStandbyOk = VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT;
         }
 
         public static Builder newInstance() {
@@ -118,63 +123,63 @@ public class HashicorpVaultConfig {
 
         public Builder vaultUrl(String url) {
             requireNonNull(url, "Vault url must not be null");
-            values.vaultUrl = url;
+            config.vaultUrl = url;
             return this;
         }
 
         public Builder healthCheckEnabled(boolean healthCheckEnabled) {
-            values.healthCheckEnabled = healthCheckEnabled;
+            config.healthCheckEnabled = healthCheckEnabled;
             return this;
         }
 
         public Builder healthCheckPath(String healthCheckPath) {
-            values.healthCheckPath = healthCheckPath;
+            config.healthCheckPath = healthCheckPath;
             return this;
         }
 
         public Builder healthStandbyOk(boolean healthStandbyOk) {
-            values.healthStandbyOk = healthStandbyOk;
+            config.healthStandbyOk = healthStandbyOk;
             return this;
         }
 
         public Builder scheduledTokenRenewEnabled(boolean scheduledTokenRenewEnabled) {
-            values.scheduledTokenRenewEnabled = scheduledTokenRenewEnabled;
+            config.scheduledTokenRenewEnabled = scheduledTokenRenewEnabled;
             return this;
         }
 
         public Builder ttl(long ttl) {
-            values.ttl = ttl;
+            config.ttl = ttl;
             return this;
         }
 
         public Builder renewBuffer(long renewBuffer) {
-            values.renewBuffer = renewBuffer;
+            config.renewBuffer = renewBuffer;
             return this;
         }
 
         public Builder secretPath(String secretPath) {
-            values.secretPath = secretPath;
+            config.secretPath = secretPath;
             return this;
         }
 
         public Builder folderPath(String folderPath) {
-            values.folderPath = folderPath;
+            config.folderPath = folderPath;
             return this;
         }
 
         public HashicorpVaultConfig build() {
-            requireNonNull(values.vaultUrl, "Vault url must be valid");
-            requireNonNull(values.healthCheckPath, "Vault health check path must not be null");
+            requireNonNull(config.vaultUrl, "Vault url must be valid");
+            requireNonNull(config.healthCheckPath, "Vault health check path must not be null");
 
-            if (values.ttl < 5) {
+            if (config.ttl < 5) {
                 throw new IllegalArgumentException("Vault token ttl minimum value is 5");
             }
 
-            if (values.renewBuffer >= values.ttl) {
+            if (config.renewBuffer >= config.ttl) {
                 throw new IllegalArgumentException("Vault token renew buffer value must be less than ttl value");
             }
 
-            return values;
+            return config;
         }
     }
 }

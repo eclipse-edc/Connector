@@ -30,6 +30,9 @@ import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -260,6 +263,19 @@ class HashicorpVaultTest {
                 .willReturn(status(204)));
 
         assertThatThrownBy(() -> vault.deleteSecret("participant1", "foo")).isInstanceOf(EdcException.class).hasMessage("test exception");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "  ", "\t", "\n" })
+    @NullAndEmptySource
+    void anyRequest_whenVaultConfigEmpty_returnsFailure(String vaultConfig) {
+        when(participantContextConfig.getString(anyString(), anyString())).thenReturn(vaultConfig);
+        wireMock.stubFor(delete(urlPathMatching("/v1/participants/data/participant1/foo.*"))
+                .willReturn(status(204)));
+
+        assertThatThrownBy(() -> vault.storeSecret("participant1", "foo", "bar"))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining("No vault configuration found for participant context 'participant1'");
     }
 
     private String asJson(Object obj) {
