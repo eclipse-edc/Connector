@@ -77,7 +77,7 @@ public class DataplaneSelectorControlApiController implements DataplaneSelectorC
                 .participantContextId(participantContext.getParticipantContextId())
                 .build();
 
-        service.addInstance(dataplane)
+        service.register(dataplane)
                 .orElseThrow(exceptionMapper(DataPlaneInstance.class, dataplane.getId()));
 
         var idResponse = IdResponse.Builder.newInstance()

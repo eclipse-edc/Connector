@@ -87,15 +87,15 @@ class RemoteDataPlaneSelectorServiceTest {
     );
 
     @Test
-    void addInstance() {
+    void register() {
         when(validator.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(serverService.addInstance(any())).thenReturn(ServiceResult.success());
+        when(serverService.register(any())).thenReturn(ServiceResult.success());
         var instance = createInstance("dataPlaneId");
 
-        var result = service().addInstance(instance);
+        var result = service().register(instance);
 
         assertThat(result).isSucceeded();
-        verify(serverService).addInstance(any());
+        verify(serverService).register(any());
     }
 
     private DataPlaneSelectorService service() {

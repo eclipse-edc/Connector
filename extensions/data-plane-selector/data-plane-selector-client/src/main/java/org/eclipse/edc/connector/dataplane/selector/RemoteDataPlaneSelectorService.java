@@ -82,7 +82,7 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
     }
 
     @Override
-    public ServiceResult<Void> addInstance(DataPlaneInstance instance) {
+    public ServiceResult<Void> register(DataPlaneInstance instance) {
         var transform = typeTransformerRegistry.transform(instance, JsonObject.class);
         if (transform.failed()) {
             return ServiceResult.badRequest(transform.getFailureDetail());
@@ -110,6 +110,11 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
         var requestBuilder = new Request.Builder().put(RequestBody.create(new byte[0])).url("%s/%s/unregister".formatted(url, instanceId));
 
         return httpClient.request(requestBuilder).mapEmpty();
+    }
+
+    @Override
+    public ServiceResult<Void> update(DataPlaneInstance instance) {
+        return ServiceResult.unexpected("DataPlaneSelectorService.update can only be called as embedded in the control-plane");
     }
 
     @Override

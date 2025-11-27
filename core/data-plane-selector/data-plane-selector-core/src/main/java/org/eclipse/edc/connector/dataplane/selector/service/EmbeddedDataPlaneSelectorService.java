@@ -75,7 +75,7 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
     }
 
     @Override
-    public ServiceResult<Void> addInstance(DataPlaneInstance instance) {
+    public ServiceResult<Void> register(DataPlaneInstance instance) {
         return transactionContext.execute(() -> {
             instance.transitionToRegistered();
             store.save(instance);
@@ -100,6 +100,17 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
 
             return ServiceResult.from(operation);
         });
+    }
+
+    @Override
+    public ServiceResult<Void> update(DataPlaneInstance instance) {
+        return transactionContext.execute(() -> store.findByIdAndLease(instance.getId())
+                .map(stored -> stored.toBuilder()
+                        .url(instance.getUrl())
+                        .allowedTransferType(instance.getAllowedTransferTypes())
+                        .build())
+                .compose(store::save)
+                .flatMap(ServiceResult::from));
     }
 
     @Override
