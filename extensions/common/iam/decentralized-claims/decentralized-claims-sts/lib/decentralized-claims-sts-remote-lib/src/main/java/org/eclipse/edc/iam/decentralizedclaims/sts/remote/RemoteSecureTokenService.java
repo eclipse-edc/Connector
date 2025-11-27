@@ -62,7 +62,7 @@ public class RemoteSecureTokenService implements SecureTokenService {
 
         var config = configResolver.apply(participantContextId);
 
-        var secret = vault.resolveSecret(config.clientSecretAlias());
+        var secret = vault.resolveSecret(participantContextId, config.clientSecretAlias());
         if (secret != null) {
             var builder = SharedSecretOauth2CredentialsRequest.Builder.newInstance()
                     .url(config.tokenUrl())
