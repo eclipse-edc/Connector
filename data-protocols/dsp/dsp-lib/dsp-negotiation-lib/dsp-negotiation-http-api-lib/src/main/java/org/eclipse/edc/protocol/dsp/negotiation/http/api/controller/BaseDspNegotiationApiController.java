@@ -99,6 +99,7 @@ public abstract class BaseDspNegotiationApiController {
         var request = GetDspRequest.Builder.newInstance(ContractNegotiationRequestMessage.class, ContractNegotiation.class, ContractNegotiationError.class)
                 .message(message)
                 .token(token)
+                .id(id)
                 .serviceCall(protocolService::findById)
                 .errorProvider(ContractNegotiationError.Builder::newInstance)
                 .protocol(protocol)

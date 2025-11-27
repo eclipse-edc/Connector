@@ -56,8 +56,8 @@ public class GetDspRequest<I extends RemoteMessage, R, E extends ErrorMessage> e
             return this;
         }
 
-        public Builder<I, R, E> processId(String processId) {
-            super.message.id = processId;
+        public Builder<I, R, E> id(String id) {
+            super.message.id = id;
             return this;
         }
         

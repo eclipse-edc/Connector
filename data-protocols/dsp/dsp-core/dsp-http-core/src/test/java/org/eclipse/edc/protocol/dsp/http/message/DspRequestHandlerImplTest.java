@@ -142,7 +142,7 @@ class DspRequestHandlerImplTest {
 
             var request = GetDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class, TestError.class)
                     .token("token")
-                    .processId("id")
+                    .id("id")
                     .serviceCall(serviceCall)
                     .protocol(protocol)
                     .errorProvider(TestError.Builder::newInstance)
@@ -215,9 +215,7 @@ class DspRequestHandlerImplTest {
                     .serviceCall(serviceCall)
                     .build();
             var jsonError = error("404", "error");
-            var message = new TestProcessRemoteMessage();
 
-            when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(message));
             when(dspTransformerRegistry.forProtocol(protocol)).thenReturn(Result.success(transformerRegistry));
             when(transformerRegistry.transform(isA(TestError.class), eq(JsonObject.class))).thenReturn(Result.success(jsonError));
 
@@ -258,7 +256,7 @@ class DspRequestHandlerImplTest {
         private GetDspRequest.Builder<TestProcessRemoteMessage, Object, TestError> getDspRequestBuilder() {
             return GetDspRequest.Builder.newInstance(TestProcessRemoteMessage.class, Object.class, TestError.class)
                     .token("token")
-                    .processId("id")
+                    .id("id")
                     .serviceCall((ctx, i, c) -> ServiceResult.success())
                     .errorProvider(TestError.Builder::newInstance)
                     .participantContextProvider(participantContextSupplier)

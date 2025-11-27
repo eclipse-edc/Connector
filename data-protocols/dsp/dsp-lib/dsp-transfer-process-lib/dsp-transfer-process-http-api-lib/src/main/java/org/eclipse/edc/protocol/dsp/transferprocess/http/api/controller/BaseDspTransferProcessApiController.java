@@ -87,6 +87,7 @@ public abstract class BaseDspTransferProcessApiController {
         var request = GetDspRequest.Builder.newInstance(TransferProcessRequestMessage.class, TransferProcess.class, TransferError.class)
                 .message(message)
                 .token(token)
+                .id(id)
                 .serviceCall(protocolService::findById)
                 .protocol(protocol)
                 .errorProvider(TransferError.Builder::newInstance)
