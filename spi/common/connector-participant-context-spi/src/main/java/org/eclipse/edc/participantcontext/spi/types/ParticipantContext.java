@@ -42,12 +42,12 @@ public class ParticipantContext extends AbstractParticipantResource {
     public static final String PARTICIPANT_CONTEXT_STATE_TERM = "state";
     public static final String PARTICIPANT_CONTEXT_STATE_IRI = EDC_NAMESPACE + PARTICIPANT_CONTEXT_STATE_TERM;
 
-    private String identity;
-    private Map<String, Object> properties = new HashMap<>();
-    private long lastModified;
-    private int state; // CREATED, ACTIVATED, DEACTIVATED
+    protected String identity;
+    protected Map<String, Object> properties = new HashMap<>();
+    protected long lastModified;
+    protected int state; // CREATED, ACTIVATED, DEACTIVATED
 
-    private ParticipantContext() {
+    protected ParticipantContext() {
     }
 
     /**
