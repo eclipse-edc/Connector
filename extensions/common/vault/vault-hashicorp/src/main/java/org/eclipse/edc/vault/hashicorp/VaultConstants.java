@@ -26,4 +26,6 @@ public interface VaultConstants {
     String VAULT_REQUEST_HEADER = "X-Vault-Request";
     String VAULT_SECRET_METADATA_PATH = "metadata";
     MediaType MEDIA_TYPE_APPLICATION_JSON = MediaType.get("application/json");
+    String VAULT_CONFIG = "edc.vault.hashicorp.config";
+
 }

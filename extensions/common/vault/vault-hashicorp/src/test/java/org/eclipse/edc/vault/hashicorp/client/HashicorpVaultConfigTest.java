@@ -19,12 +19,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings.VAULT_TOKEN_RENEW_BUFFER_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings.VAULT_TOKEN_TTL_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig.VAULT_TOKEN_RENEW_BUFFER_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig.VAULT_TOKEN_TTL_DEFAULT;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class HashicorpVaultSettingsTest {
+class HashicorpVaultConfigTest {
 
     private static final String TOKEN = "token";
     private static final String URL = "https://test.com/vault";
@@ -37,13 +37,13 @@ class HashicorpVaultSettingsTest {
                 URL,
                 HEALTH_CHECK_PATH, VAULT_TOKEN_TTL_DEFAULT,
                 VAULT_TOKEN_RENEW_BUFFER_DEFAULT));
-        assertThat(settings.url()).isEqualTo(URL);
-        assertThat(settings.healthCheckEnabled()).isEqualTo(true);
-        assertThat(settings.healthCheckPath()).isEqualTo(HEALTH_CHECK_PATH);
-        assertThat(settings.healthStandbyOk()).isEqualTo(true);
-        assertThat(settings.ttl()).isEqualTo(VAULT_TOKEN_TTL_DEFAULT);
-        assertThat(settings.renewBuffer()).isEqualTo(VAULT_TOKEN_RENEW_BUFFER_DEFAULT);
-        assertThat(settings.secretPath()).isEqualTo(SECRET_PATH);
+        assertThat(settings.getVaultUrl()).isEqualTo(URL);
+        assertThat(settings.getHealthCheckEnabled()).isEqualTo(true);
+        assertThat(settings.getHealthCheckPath()).isEqualTo(HEALTH_CHECK_PATH);
+        assertThat(settings.getHealthStandbyOk()).isEqualTo(true);
+        assertThat(settings.getTtl()).isEqualTo(VAULT_TOKEN_TTL_DEFAULT);
+        assertThat(settings.getRenewBuffer()).isEqualTo(VAULT_TOKEN_RENEW_BUFFER_DEFAULT);
+        assertThat(settings.getSecretPath()).isEqualTo(SECRET_PATH);
         assertThat(settings.getFolderPath()).isNull();
     }
 
@@ -87,12 +87,12 @@ class HashicorpVaultSettingsTest {
         assertThat(throwable.getMessage()).isEqualTo("Vault token renew buffer value must be less than ttl value");
     }
 
-    private HashicorpVaultSettings createSettings(String url,
-                                                  String healthCheckPath,
-                                                  long ttl,
-                                                  long renewBuffer) {
-        return HashicorpVaultSettings.Builder.newInstance()
-                .url(url)
+    private HashicorpVaultConfig createSettings(String url,
+                                                String healthCheckPath,
+                                                long ttl,
+                                                long renewBuffer) {
+        return HashicorpVaultConfig.Builder.newInstance()
+                .vaultUrl(url)
                 .healthCheckEnabled(true)
                 .healthCheckPath(healthCheckPath)
                 .healthStandbyOk(true)

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Mercedes-Benz Tech Innovation GmbH
+ *  Copyright (c) 2025 Metaform Systems, Inc.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,169 +8,117 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Mercedes-Benz Tech Innovation GmbH - Initial API and Implementation
- *       Materna Information & Communications SE - Refactoring
- *       Cofinity-X - implement extensible authentication
+ *       Metaform Systems, Inc. - initial API and implementation
  *
  */
 
 package org.eclipse.edc.vault.hashicorp;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.HttpUrl;
-import okhttp3.Request;
-import okhttp3.RequestBody;
 import org.eclipse.edc.http.spi.EdcHttpClient;
-import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
-import org.eclipse.edc.vault.hashicorp.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-
-import static org.eclipse.edc.vault.hashicorp.VaultConstants.VAULT_SECRET_METADATA_PATH;
-import static org.eclipse.edc.vault.hashicorp.VaultConstants.VAULT_TOKEN_HEADER;
+import static org.eclipse.edc.vault.hashicorp.HashicorpVaultSettings.forParticipant;
 
 /**
- * Implements a vault backed by Hashicorp Vault.
+ * Vault implementation for Hashicorp Vault. The actual interaction with the vault is delegated to a {@link HashicorpVaultClient} via HTTP.
+ * Each vault partition is mapped to its own {@link HashicorpVaultClient} instance with specific configuration / authentication settings, taken
+ * from a {@link ParticipantContextConfig}. So theoretically, each participant context's vault could be a separate instance.
  */
-public class HashicorpVault implements Vault {
-    private static final String VAULT_SECRET_DATA_PATH = "data";
-    private static final String VAULT_DATA_ENTRY_NAME = "content";
-
+class HashicorpVault implements Vault {
+    private final ParticipantContextConfig participantContextConfig;
     private final Monitor monitor;
+    private final HashicorpVaultConfig vaultConfig;
+    private final HashicorpVaultTokenProvider defaultTokenProvider;
+    private final EdcHttpClient edcHttpClient;
+    private final ObjectMapper mapper;
 
-    private final HashicorpVaultSettings settings;
-    private final EdcHttpClient httpClient;
-    private final ObjectMapper objectMapper;
-    private final HashicorpVaultTokenProvider tokenProvider;
-
-    public HashicorpVault(@NotNull Monitor monitor,
-                          HashicorpVaultSettings settings,
-                          EdcHttpClient httpClient,
-                          ObjectMapper objectMapper,
-                          HashicorpVaultTokenProvider tokenProvider) {
+    HashicorpVault(ParticipantContextConfig participantContextConfig,
+                   Monitor monitor,
+                   HashicorpVaultConfig vaultConfig, HashicorpVaultTokenProvider defaultTokenProvider,
+                   EdcHttpClient edcHttpClient) {
+        this.participantContextConfig = participantContextConfig;
         this.monitor = monitor;
-        this.settings = settings;
-        this.httpClient = httpClient;
-        this.objectMapper = objectMapper;
-        this.tokenProvider = tokenProvider;
+        this.vaultConfig = vaultConfig;
+        this.defaultTokenProvider = defaultTokenProvider;
+        this.edcHttpClient = edcHttpClient;
+        this.mapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+
     }
 
     @Override
     public @Nullable String resolveSecret(String key) {
-
-        var requestUri = getSecretUrl(key, VAULT_SECRET_DATA_PATH);
-        var request = new Request.Builder()
-                .url(requestUri)
-                .header(VAULT_TOKEN_HEADER, tokenProvider.vaultToken())
-                .get()
-                .build();
-
-        try (var response = httpClient.execute(request)) {
-
-            if (response.isSuccessful()) {
-
-                var responseBody = response.body();
-                if (responseBody != null) {
-                    // using JsonNode here because it makes traversing down the tree null-safe
-                    var payload = objectMapper.readValue(responseBody.string(), JsonNode.class);
-                    return payload.path("data").path("data").get(VAULT_DATA_ENTRY_NAME).asText();
-                }
-                monitor.debug("Secret response body is empty");
-
-            } else {
-                if (response.code() == 404) {
-                    monitor.debug("Secret not found");
-                } else {
-                    monitor.debug("Failed to get secret with status %d".formatted(response.code()));
-                }
-            }
-        } catch (IOException e) {
-            monitor.warning("Failed to get secret with reason: %s".formatted(e.getMessage()));
-        }
-        return null;
+        return resolveSecret(null, key);
     }
 
     @Override
     public Result<Void> storeSecret(String key, String value) {
-
-        var requestUri = getSecretUrl(key, VAULT_SECRET_DATA_PATH);
-
-        var requestPayload = Map.of("data", Map.of(VAULT_DATA_ENTRY_NAME, value));
-        var request = new Request.Builder()
-                .url(requestUri)
-                .header(VAULT_TOKEN_HEADER, tokenProvider.vaultToken())
-                .post(jsonBody(requestPayload))
-                .build();
-
-        try (var response = httpClient.execute(request)) {
-            if (response.isSuccessful()) {
-                return response.body() == null ? Result.failure("Setting secret returned empty body") : Result.success();
-            } else {
-                return Result.failure("Failed to set secret with status %d".formatted(response.code()));
-            }
-        } catch (IOException e) {
-            return Result.failure("Failed to set secret with reason: %s".formatted(e.getMessage()));
-        }
+        return storeSecret(null, key, value);
     }
 
     @Override
     public Result<Void> deleteSecret(String key) {
-        var requestUri = getSecretUrl(key, VAULT_SECRET_METADATA_PATH);
-        var request = new Request.Builder()
-                .url(requestUri)
-                .header(VAULT_TOKEN_HEADER, tokenProvider.vaultToken())
-                .delete()
-                .build();
-
-        try (var response = httpClient.execute(request)) {
-            return response.isSuccessful() || response.code() == 404 ? Result.success() : Result.failure("Failed to destroy secret with status %d".formatted(response.code()));
-        } catch (IOException e) {
-            return Result.failure("Failed to destroy secret with reason: %s".formatted(e.getMessage()));
-        }
+        return deleteSecret(null, key);
     }
 
-    private HttpUrl getSecretUrl(String key, String entryType) {
-        key = URLEncoder.encode(key, StandardCharsets.UTF_8);
+    @Override
+    public String resolveSecret(String vaultPartition, String key) {
 
-        // restore '/' characters to allow subdirectories
-        var sanitizedKey = key.replace("%2F", "/");
-
-        var vaultApiPath = settings.secretPath();
-        var folderPath = settings.getFolderPath();
-
-        var builder = HttpUrl.parse(settings.url())
-                .newBuilder()
-                .addPathSegments(PathUtil.trimLeadingOrEndingSlash(vaultApiPath))
-                .addPathSegment(entryType);
-
-        if (folderPath != null) {
-            builder.addPathSegments(PathUtil.trimLeadingOrEndingSlash(folderPath));
-        }
-
-        return builder
-                .addPathSegments(sanitizedKey)
-                .build();
+        return getVaultClient(vaultPartition)
+                .resolveSecret(key);
     }
 
-    private RequestBody jsonBody(Object body) {
-        String jsonRepresentation;
-        try {
-            jsonRepresentation = objectMapper.writeValueAsString(body);
-        } catch (JsonProcessingException e) {
-            throw new EdcException(e);
-        }
-        return RequestBody.create(jsonRepresentation, VaultConstants.MEDIA_TYPE_APPLICATION_JSON);
+    @Override
+    public Result<Void> storeSecret(String vaultPartition, String key, String value) {
+        return getVaultClient(vaultPartition)
+                .storeSecret(key, value);
     }
+
+    @Override
+    public Result<Void> deleteSecret(String vaultPartition, String key) {
+        return getVaultClient(vaultPartition)
+                .deleteSecret(key);
+    }
+
+    private @NotNull HashicorpVaultClient getVaultClient(String vaultPartition) {
+        if (vaultPartition == null) {
+            return createDefault();
+        }
+        var client = createForPartition(vaultPartition);
+        if (client == null) {
+            if (vaultConfig.isAllowFallback()) {
+                return createDefault();
+            }
+            throw new IllegalArgumentException("No vault config found for partition '%s' and falling back to the default vault is not allowed".formatted(vaultPartition));
+        }
+        return client;
+    }
+
+    /**
+     * creates a new HashicorpVaultClient specific configuration / auth settings for the given vault partition.
+     * If no vault config is found for the given partition, null is returned.
+     */
+    private @Nullable HashicorpVaultClient createForPartition(String vaultPartition) {
+        var settings = forParticipant(vaultPartition, participantContextConfig);
+        if (settings == null) {
+            return null;
+        }
+        return new HashicorpVaultClient(monitor, settings.config(), edcHttpClient, mapper, settings.tokenProvider(edcHttpClient));
+    }
+
+    /**
+     * creates a new HashicorpVaultClient with the "global" configuration / auth-settings taken from the runtime configuration.
+     */
+    private HashicorpVaultClient createDefault() {
+        return new HashicorpVaultClient(monitor, vaultConfig, edcHttpClient, mapper, defaultTokenProvider);
+    }
+
 }

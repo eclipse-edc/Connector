@@ -22,7 +22,7 @@ import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
-import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,8 +39,8 @@ import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKN
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings.VAULT_API_HEALTH_PATH_DEFAULT;
-import static org.eclipse.edc.vault.hashicorp.client.HashicorpVaultSettings.VAULT_API_SECRET_PATH_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig.VAULT_API_HEALTH_PATH_DEFAULT;
+import static org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig.VAULT_API_SECRET_PATH_DEFAULT;
 import static org.mockito.Mockito.mock;
 
 @ComponentTest
@@ -57,20 +57,20 @@ class HashicorpVaultIntegrationTest {
             .withSecretInVault("secret/" + VAULT_ENTRY_KEY, format("%s=%s", VAULT_DATA_ENTRY_NAME, VAULT_ENTRY_VALUE));
     public final Monitor monitor = mock();
     private final ObjectMapper objectMapper = new ObjectMapper().configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
-    private HashicorpVault vault;
+    private HashicorpVaultClient vault;
 
 
     @BeforeEach
     void setUp() {
-        var settings = HashicorpVaultSettings.Builder.newInstance()
-                .url("http://localhost:%d".formatted(getPort()))
+        var settings = HashicorpVaultConfig.Builder.newInstance()
+                .vaultUrl("http://localhost:%d".formatted(getPort()))
                 .ttl(100)
                 .healthCheckPath(VAULT_API_HEALTH_PATH_DEFAULT)
                 .secretPath(VAULT_API_SECRET_PATH_DEFAULT)
                 .build();
         var httpClient = new EdcHttpClientImpl(new OkHttpClient.Builder().build(), RetryPolicy.ofDefaults(), monitor);
         var tokenProvider = new HashicorpVaultTokenProviderImpl(TOKEN);
-        vault = new HashicorpVault(monitor, settings, httpClient, objectMapper, tokenProvider);
+        vault = new HashicorpVaultClient(monitor, settings, httpClient, objectMapper, tokenProvider);
     }
 
     @Test

@@ -21,6 +21,7 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:http-spi"))
     api(project(":spi:common:vault-hashicorp-spi"))
+    api(project(":spi:common:participant-context-config-spi"))
 
     implementation(project(":core:common:lib:util-lib"))
 
@@ -28,6 +29,7 @@ dependencies {
     testImplementation(testFixtures(project(":core:common:lib:http-lib")))
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.jakarta.json.api)
+    testImplementation(libs.wiremock)
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.vault)
     implementation(libs.bouncyCastle.bcpkixJdk18on)

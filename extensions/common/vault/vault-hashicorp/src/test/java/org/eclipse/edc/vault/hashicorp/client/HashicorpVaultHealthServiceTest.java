@@ -50,8 +50,8 @@ class HashicorpVaultHealthServiceTest {
     private static final long RENEW_BUFFER = 4L;
     private static final String CUSTOM_SECRET_PATH = "v1/test/secret";
     
-    private static final HashicorpVaultSettings HASHICORP_VAULT_CLIENT_CONFIG_VALUES = HashicorpVaultSettings.Builder.newInstance()
-            .url(VAULT_URL)
+    private static final HashicorpVaultConfig HASHICORP_VAULT_CLIENT_CONFIG_VALUES = HashicorpVaultConfig.Builder.newInstance()
+            .vaultUrl(VAULT_URL)
             .healthCheckPath(HEALTH_PATH)
             .healthStandbyOk(false)
             .ttl(VAULT_TOKEN_TTL)

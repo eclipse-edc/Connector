@@ -42,14 +42,16 @@ public interface Vault {
     Result<Void> storeSecret(String key, String value);
 
     /**
-     * Deletes a secret. Depending on the vault implementation, this might mean a soft delete, or no be even permissible.
+     * Deletes a secret. Depending on the vault implementation, this might mean a soft delete or not be even permissible.
      *
      * @param key the secret's key
      */
     Result<Void> deleteSecret(String key);
 
     /**
-     * Get the secret from the vault.s
+     * Get the secret from the vault.
+     * <p>
+     * If vault partitioning is not set up, the implementation must fall back to the default vault partition.
      *
      * @param vaultPartition The vault partition to use, for example, a participant context ID. This might be null, which
      *                       indicates that the secret is supposed to be stored in a "default partition".
@@ -62,6 +64,8 @@ public interface Vault {
 
     /**
      * Store a secret in the vault within the given vault partition.
+     * <p>
+     * If vault partitioning is not set up, the implementation must fall back to the default vault partition.
      *
      * @param vaultPartition The vault partition to use, for example, a participant context ID. This might be null, which
      *                       indicates that the secret is supposed to be stored in a "default partition".
@@ -76,6 +80,8 @@ public interface Vault {
     /**
      * Delete a secret from the vault from the given vault partition. Note that in some vaults, deletion is a long-running asynchronous operation.
      * This method call must return immediately and not wait for the async operation.
+     * <p>
+     * If vault partitioning is not set up, the implementation must fall back to the default vault partition.
      *
      * @param vaultPartition The vault partition to use, for example, a participant context ID. This might be null, which
      *                       indicates that the secret is supposed to be stored in a "default partition".

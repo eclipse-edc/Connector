@@ -22,8 +22,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static java.util.Optional.ofNullable;
+
 public class InMemoryVault implements Vault {
-    private final Map<String, String> secrets = new ConcurrentHashMap<>();
+    private static final String DEFAULT_PARTITION = "default";
+    private final Map<String, Map<String, String>> secrets = new ConcurrentHashMap<>();
     private final Monitor monitor;
 
     public InMemoryVault(Monitor monitor) {
@@ -31,26 +34,50 @@ public class InMemoryVault implements Vault {
     }
 
     @Override
-    public @Nullable String resolveSecret(String s) {
+    public @Nullable String resolveSecret(String key) {
+        return resolveSecret(DEFAULT_PARTITION, key);
+    }
+
+    @Override
+    public Result<Void> storeSecret(String key, String value) {
+        return storeSecret(DEFAULT_PARTITION, key, value);
+    }
+
+    @Override
+    public Result<Void> deleteSecret(String key) {
+        return deleteSecret(DEFAULT_PARTITION, key);
+    }
+
+    @Override
+    public @Nullable String resolveSecret(String vaultPartition, String s) {
+        vaultPartition = ofNullable(vaultPartition).orElse(DEFAULT_PARTITION);
+
         monitor.debug("Resolving secret " + s);
         if (s == null) {
             monitor.warning("Secret name is null - skipping");
             return null;
         }
-        return secrets.getOrDefault(s, null);
+        return ofNullable(secrets.get(vaultPartition)).map(map -> map.getOrDefault(s, null)).orElse(null);
     }
 
     @Override
-    public Result<Void> storeSecret(String s, String s1) {
+    public Result<Void> storeSecret(String vaultPartition, String s, String s1) {
+        vaultPartition = ofNullable(vaultPartition).orElse(DEFAULT_PARTITION);
         monitor.debug("Storing secret " + s);
-        secrets.put(s, s1);
+
+        var partition = secrets.computeIfAbsent(vaultPartition, k -> new ConcurrentHashMap<>());
+        partition.put(s, s1);
         return Result.success();
     }
 
     @Override
-    public Result<Void> deleteSecret(String s) {
+    public Result<Void> deleteSecret(String vaultPartition, String s) {
+        vaultPartition = ofNullable(vaultPartition).orElse(DEFAULT_PARTITION);
         monitor.debug("Deleting secret " + s);
-        return secrets.remove(s) == null ?
+
+        var result = ofNullable(secrets.get(vaultPartition)).map(map -> map.remove(s)).orElse(null);
+
+        return result == null ?
                 Result.failure("Secret with key " + s + " does not exist") :
                 Result.success();
     }

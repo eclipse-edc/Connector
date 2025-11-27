@@ -1,0 +1,340 @@
+/*
+ *  Copyright (c) 2025 Metaform Systems, Inc.
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Metaform Systems, Inc. - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.vault.hashicorp;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import dev.failsafe.RetryPolicy;
+import okhttp3.OkHttpClient;
+import org.eclipse.edc.http.client.EdcHttpClientImpl;
+import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.junit.annotations.ComponentTest;
+import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
+import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
+import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultCredentials;
+import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.delete;
+import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.notFound;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.status;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.vault.hashicorp.VaultConstants.VAULT_CONFIG;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+@ComponentTest
+class HashicorpVaultTest {
+
+    public static final String DEFAULT_FOLDERPATH = "baz";
+    @RegisterExtension
+    static WireMockExtension wireMock = WireMockExtension.newInstance()
+            .options(wireMockConfig().dynamicPort())
+            .build();
+
+    private final ParticipantContextConfig participantContextConfig = mock();
+    private final HashicorpVaultTokenProvider tokenProvider = mock();
+    private final EdcHttpClient httpClient = new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), mock());
+    private final ObjectMapper mapper = new ObjectMapper();
+    private HashicorpVault vault;
+
+    @BeforeEach
+    void setup() {
+        var vaultConfig = HashicorpVaultConfig.Builder.newInstance()
+                .vaultUrl(wireMock.baseUrl())
+                .folderPath(DEFAULT_FOLDERPATH)
+                .secretPath("v1/secret")
+                .healthCheckPath("/healthcheck")
+                .ttl(10)
+                .build();
+
+        when(tokenProvider.vaultToken()).thenReturn("root");
+        vault = new HashicorpVault(participantContextConfig, mock(), vaultConfig, tokenProvider, httpClient);
+    }
+
+    @Test
+    void resolveSecret_forDefault() {
+        wireMock.stubFor(get(urlPathMatching("/v1/secret/data/baz/foo"))
+                .willReturn(okJson("""
+                        {
+                            "data": {
+                                "data": {
+                                    "content": "bar"
+                                }
+                            }
+                        }
+                        """)));
+        var secret = vault.resolveSecret("foo");
+        assertThat(secret).isEqualTo("bar");
+        verifyNoInteractions(participantContextConfig);
+    }
+
+    @Test
+    void resolveSecret_forDefault_notFound() {
+        wireMock.stubFor(get(urlPathMatching("/v1/secret/data/baz/bizz"))
+                .willReturn(notFound()));
+        var secret = vault.resolveSecret("bizz");
+        assertThat(secret).isNull();
+        verifyNoInteractions(participantContextConfig);
+    }
+
+    @Test
+    void resolveSecret_forPartition() {
+        wireMock.stubFor(get(urlPathMatching("/v1/participants/data/participant1/quizz"))
+                .willReturn(okJson("""
+                        {
+                            "data": {
+                                "data": {
+                                    "content": "bar"
+                                }
+                            }
+                        }
+                        """)));
+
+        var vaultConfig = HashicorpVaultConfig.Builder.newInstance()
+                .vaultUrl(wireMock.baseUrl())
+                .folderPath("participant1/")
+                .secretPath("v1/participants")
+                .healthCheckPath("/healthcheck")
+                .ttl(10)
+                .build();
+
+        var creds = HashicorpVaultCredentials.Builder.newInstance()
+                .token("foo-token")
+                .build();
+        when(participantContextConfig.getSensitiveString("partition1", VAULT_CONFIG)).thenReturn(asJson(new HashicorpVaultSettings(vaultConfig, creds)));
+
+
+        var secret = vault.resolveSecret("partition1", "quizz");
+        assertThat(secret).isEqualTo("bar");
+        verify(participantContextConfig).getSensitiveString("partition1", VAULT_CONFIG);
+    }
+
+    @Test
+    void resolveSecret_forPartition_notFound() {
+        wireMock.stubFor(get(urlPathMatching("/v1/participants/data/participant1/bizz"))
+                .willReturn(notFound()));
+        var vaultConfig = HashicorpVaultConfig.Builder.newInstance()
+                .vaultUrl(wireMock.baseUrl())
+                .folderPath("participant1/")
+                .secretPath("v1/participants")
+                .healthCheckPath("/healthcheck")
+                .ttl(10)
+                .build();
+
+        var creds = HashicorpVaultCredentials.Builder.newInstance()
+                .token("foo-token")
+                .build();
+        when(participantContextConfig.getSensitiveString("partition1", VAULT_CONFIG)).thenReturn(asJson(new HashicorpVaultSettings(vaultConfig, creds)));
+
+
+        var secret = vault.resolveSecret("partition1", "bizz");
+        assertThat(secret).isNull();
+        verify(participantContextConfig).getSensitiveString("partition1", VAULT_CONFIG);
+    }
+
+    @Test
+    void resolveSecret_forPartition_vaultConfigNotFound() {
+        wireMock.stubFor(get(urlPathMatching("/v1/secret/data/" + DEFAULT_FOLDERPATH + "/bizz.*"))
+                .willReturn(okJson("""
+                        {
+                            "data": {
+                                "data": {
+                                    "content": "bar"
+                                }
+                            }
+                        }
+                        """)));
+
+        when(participantContextConfig.getSensitiveString("partition1", VAULT_CONFIG)).thenReturn(null);
+
+
+        var secret = vault.resolveSecret("partition1", "bizz");
+        assertThat(secret).isEqualTo("bar");
+        verify(participantContextConfig).getSensitiveString("partition1", VAULT_CONFIG);
+        wireMock.verify(getRequestedFor(urlPathMatching("/v1/secret/data/" + DEFAULT_FOLDERPATH + "/bizz.*")));
+    }
+
+    @Test
+    void storeSecret_forDefault() {
+        wireMock.stubFor(post(urlPathMatching("/v1/secret/data/baz/foo.*"))
+                .willReturn(okJson("{}")));
+
+        assertThat(vault.storeSecret("foo", "bar").succeeded()).isTrue();
+        verifyNoInteractions(participantContextConfig);
+    }
+
+    @Test
+    void storeSecret_forPartition() {
+        var vaultConfig = HashicorpVaultConfig.Builder.newInstance()
+                .vaultUrl(wireMock.baseUrl())
+                .folderPath("participant1/")
+                .secretPath("v1/participants")
+                .healthCheckPath("/healthcheck")
+                .ttl(10)
+                .build();
+
+        var creds = HashicorpVaultCredentials.Builder.newInstance()
+                .token("foo-token")
+                .build();
+        when(participantContextConfig.getSensitiveString("partition1", VAULT_CONFIG)).thenReturn(asJson(new HashicorpVaultSettings(vaultConfig, creds)));
+
+        wireMock.stubFor(post(urlPathMatching("/v1/participants/data/participant1.*"))
+                .willReturn(okJson("{}")));
+
+        assertThat(vault.storeSecret("partition1", "foo", "bar")).isSucceeded();
+        verify(participantContextConfig).getSensitiveString("partition1", VAULT_CONFIG);
+    }
+
+    @Test
+    void deleteSecret_forDefault() {
+        wireMock.stubFor(delete(urlPathMatching("/v1/secret/data/baz/foo.*"))
+                .willReturn(status(204)));
+
+        assertThat(vault.deleteSecret("foo")).isSucceeded();
+        verifyNoInteractions(participantContextConfig);
+        wireMock.verify(deleteRequestedFor(urlPathMatching("/v1/secret/metadata/baz/foo.*")));
+    }
+
+    @Test
+    void deleteSecret_forDefault_notFound() {
+        wireMock.stubFor(delete(urlPathMatching("/v1/secret/data/foo.*"))
+                .willReturn(notFound()));
+
+        assertThat(vault.deleteSecret("foo")).isSucceeded();
+        verifyNoInteractions(participantContextConfig);
+        wireMock.verify(deleteRequestedFor(urlPathMatching("/v1/secret/metadata/baz/foo.*")));
+
+    }
+
+    @Test
+    void deleteSecret_forPartition() {
+        var vaultConfig = HashicorpVaultConfig.Builder.newInstance()
+                .vaultUrl(wireMock.baseUrl())
+                .folderPath("participant1/")
+                .secretPath("v1/participants")
+                .healthCheckPath("/healthcheck")
+                .ttl(10)
+                .build();
+
+        var creds = HashicorpVaultCredentials.Builder.newInstance()
+                .token("foo-token")
+                .build();
+        when(participantContextConfig.getSensitiveString("participant1", VAULT_CONFIG)).thenReturn(asJson(new HashicorpVaultSettings(vaultConfig, creds)));
+
+        wireMock.stubFor(delete(urlPathMatching("/v1/participants/data/participant1/foo.*"))
+                .willReturn(status(204)));
+
+        assertThat(vault.deleteSecret("participant1", "foo")).isSucceeded();
+        verify(participantContextConfig).getSensitiveString("participant1", VAULT_CONFIG);
+        wireMock.verify(deleteRequestedFor(urlPathMatching("/v1/participants/metadata/participant1/foo.*")));
+
+    }
+
+    @Test
+    void deleteSecret_forPartition_notFound() {
+        var vaultConfig = HashicorpVaultConfig.Builder.newInstance()
+                .vaultUrl(wireMock.baseUrl())
+                .folderPath("participant1/")
+                .secretPath("v1/participants")
+                .healthCheckPath("/healthcheck")
+                .ttl(10)
+                .build();
+
+        var creds = HashicorpVaultCredentials.Builder.newInstance()
+                .token("foo-token")
+                .build();
+        when(participantContextConfig.getSensitiveString("participant1", VAULT_CONFIG)).thenReturn(asJson(new HashicorpVaultSettings(vaultConfig, creds)));
+
+        wireMock.stubFor(delete(urlPathMatching("/v1/participants/data/participant1/foo.*"))
+                .willReturn(notFound()));
+
+        assertThat(vault.deleteSecret("participant1", "foo")).isSucceeded();
+        verify(participantContextConfig).getSensitiveString("participant1", VAULT_CONFIG);
+    }
+
+    @Test
+    void anyRequest_whenPartitionNotFound_shouldReturnFailure() {
+        when(participantContextConfig.getSensitiveString(anyString(), anyString())).thenThrow(new EdcException("test exception"));
+        wireMock.stubFor(delete(urlPathMatching("/v1/participants/data/participant1/foo.*"))
+                .willReturn(status(204)));
+
+        assertThatThrownBy(() -> vault.deleteSecret("participant1", "foo")).isInstanceOf(EdcException.class).hasMessage("test exception");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "  ", "\t", "\n" })
+    @NullAndEmptySource
+    void anyRequest_whenVaultConfigEmpty_shouldFallBackToDefault(String vaultConfig) {
+        wireMock.stubFor(delete(urlPathMatching("/v1/secret/data/baz/foo.*"))
+                .willReturn(status(204)));
+
+        when(participantContextConfig.getSensitiveString(anyString(), anyString())).thenReturn(vaultConfig);
+        assertThat(vault.deleteSecret("participant1", "foo")).isSucceeded();
+
+        wireMock.verify(deleteRequestedFor(urlPathMatching("/v1/secret/metadata/baz/foo.*")));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "  ", "\t", "\n" })
+    @NullAndEmptySource
+    void anyRequest_whenVaultConfigEmptyAndNoFallback_shouldRaiseException(String vaultConfig) {
+
+        var defaultVaultConfig = HashicorpVaultConfig.Builder.newInstance()
+                .vaultUrl(wireMock.baseUrl())
+                .folderPath(DEFAULT_FOLDERPATH)
+                .secretPath("v1/secret")
+                .allowFallback(false) // should trigger the exception
+                .healthCheckPath("/healthcheck")
+                .ttl(10)
+                .build();
+
+        vault = new HashicorpVault(participantContextConfig, mock(), defaultVaultConfig, tokenProvider, httpClient);
+
+        when(participantContextConfig.getSensitiveString(anyString(), anyString())).thenReturn(vaultConfig);
+        assertThatThrownBy(() -> vault.deleteSecret("participant1", "foo"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("falling back to the default vault is not allowed");
+
+        wireMock.verify(0, deleteRequestedFor(urlPathMatching("/v1/secret/metadata/baz/foo.*")));
+    }
+
+    private String asJson(Object obj) {
+        try {
+            return mapper.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}

@@ -70,8 +70,8 @@ public class HashicorpVaultTokenRenewServiceTest {
     };
     private static final String INCREMENT_KEY = "increment";
     
-    private static final HashicorpVaultSettings HASHICORP_VAULT_CLIENT_CONFIG_VALUES = HashicorpVaultSettings.Builder.newInstance()
-            .url(VAULT_URL)
+    private static final HashicorpVaultConfig HASHICORP_VAULT_CLIENT_CONFIG_VALUES = HashicorpVaultConfig.Builder.newInstance()
+            .vaultUrl(VAULT_URL)
             .healthCheckPath(HEALTH_PATH)
             .healthStandbyOk(false)
             .ttl(VAULT_TOKEN_TTL)
@@ -188,7 +188,7 @@ public class HashicorpVaultTokenRenewServiceTest {
             Objects.requireNonNull(copy.body()).writeTo(buffer);
             var tokenRenewRequest = OBJECT_MAPPER.readValue(buffer.readUtf8(), MAP_TYPE_REFERENCE);
             // given a configured ttl of 5 this should equal "5s"
-            assertThat(tokenRenewRequest.get(INCREMENT_KEY)).isEqualTo("%ds".formatted(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.ttl()));
+            assertThat(tokenRenewRequest.get(INCREMENT_KEY)).isEqualTo("%ds".formatted(HASHICORP_VAULT_CLIENT_CONFIG_VALUES.getTtl()));
             assertThat(tokenRenewResult).isSucceeded().isEqualTo(1800L);
         }
         
