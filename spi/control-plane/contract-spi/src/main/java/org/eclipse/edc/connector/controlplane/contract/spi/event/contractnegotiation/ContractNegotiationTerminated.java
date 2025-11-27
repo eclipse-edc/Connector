@@ -25,6 +25,8 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 @JsonDeserialize(builder = ContractNegotiationTerminated.Builder.class)
 public class ContractNegotiationTerminated extends ContractNegotiationEvent {
 
+    private String reason;
+
     private ContractNegotiationTerminated() {
     }
 
@@ -44,6 +46,11 @@ public class ContractNegotiationTerminated extends ContractNegotiationEvent {
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
+        }
+
+        public Builder reason(String reason) {
+            event.reason = reason;
+            return this;
         }
 
         @Override

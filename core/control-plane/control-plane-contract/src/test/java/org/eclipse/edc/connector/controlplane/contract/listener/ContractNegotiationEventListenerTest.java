@@ -116,7 +116,7 @@ public class ContractNegotiationEventListenerTest {
     @Test
     void terminated_shouldDispatchEvent() {
         var negotiation = getNegotiation("id");
-
+        negotiation.setErrorDetail("an error");
         listener.terminated(negotiation);
 
         var eventPayload = ContractNegotiationTerminated.Builder.newInstance()
@@ -125,6 +125,7 @@ public class ContractNegotiationEventListenerTest {
                 .protocol(negotiation.getProtocol())
                 .callbackAddresses(negotiation.getCallbackAddresses())
                 .counterPartyId(negotiation.getCounterPartyId())
+                .reason("an error")
                 .build();
 
         assertEvent(eventPayload);
