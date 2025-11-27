@@ -41,6 +41,7 @@ public interface ParticipantContextConfigStoreStatements extends SqlStatements {
     default String getEntriesColumn() {
         return "entries";
     }
+
     default String getPrivateEntriesColumn() {
         return "private_entries";
     }
