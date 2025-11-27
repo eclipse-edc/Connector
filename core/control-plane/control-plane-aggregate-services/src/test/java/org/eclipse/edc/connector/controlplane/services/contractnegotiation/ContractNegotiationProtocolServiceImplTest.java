@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Schaeffler AG - GetDspRequest refactor
  *
  */
 
@@ -24,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
@@ -298,7 +300,8 @@ class ContractNegotiationProtocolServiceImplTest {
         when(store.findById(id)).thenReturn(negotiation);
         when(validationService.validateRequest(participantAgent, negotiation)).thenReturn(Result.success());
 
-        var result = service.findById(participantContext, id, tokenRepresentation, "protocol");
+        var message = ContractNegotiationRequestMessage.Builder.newInstance().negotiationId(id).protocol("protocol").build();
+        var result = service.findById(participantContext, message, tokenRepresentation);
 
         assertThat(result)
                 .isSucceeded()
@@ -312,7 +315,8 @@ class ContractNegotiationProtocolServiceImplTest {
                 .thenReturn(ServiceResult.success(participantAgent()));
         when(store.findById(any())).thenReturn(null);
 
-        var result = service.findById(participantContext, "invalidId", tokenRepresentation, "protocol");
+        var message = ContractNegotiationRequestMessage.Builder.newInstance().negotiationId("invalidId").protocol("protocol").build();
+        var result = service.findById(participantContext, message, tokenRepresentation);
 
         assertThat(result)
                 .isFailed()
@@ -334,7 +338,9 @@ class ContractNegotiationProtocolServiceImplTest {
         when(store.findById(id)).thenReturn(negotiation);
         when(validationService.validateRequest(participantAgent, negotiation)).thenReturn(Result.failure("validation error"));
 
-        var result = service.findById(participantContext, id, tokenRepresentation, "protocol");
+        var message = ContractNegotiationRequestMessage.Builder.newInstance().negotiationId(id).protocol("protocol").build();
+
+        var result = service.findById(participantContext, message, tokenRepresentation);
 
         assertThat(result)
                 .isFailed()

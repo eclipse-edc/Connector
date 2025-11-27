@@ -10,6 +10,7 @@
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       Cofinity-X - add participantId to DataspaceProfileContext
+ *       Schaeffler AG - GetDspRequest refactor
  *
  */
 
@@ -19,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
+import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
@@ -136,8 +138,9 @@ class CatalogProtocolServiceImplTest {
 
             when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any())).thenReturn(ServiceResult.success(participantAgent));
             when(datasetResolver.getById(eq(participantContext), any(), any(), any())).thenReturn(dataset);
+            var message = DatasetRequestMessage.Builder.newInstance().datasetId("datasetId").protocol("protocol").build();
 
-            var result = service.getDataset(participantContext, "datasetId", tokenRepresentation, "protocol");
+            var result = service.getDataset(participantContext, message, tokenRepresentation);
 
             assertThat(result).isSucceeded().isEqualTo(dataset);
             verify(datasetResolver).getById(participantContext, participantAgent, "datasetId", "protocol");
@@ -151,8 +154,9 @@ class CatalogProtocolServiceImplTest {
 
             when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any())).thenReturn(ServiceResult.success(participantAgent));
             when(datasetResolver.getById(eq(participantContext), any(), any(), any())).thenReturn(null);
+            var message = DatasetRequestMessage.Builder.newInstance().datasetId("datasetId").protocol("protocol").build();
 
-            var result = service.getDataset(participantContext, "datasetId", tokenRepresentation, "protocol");
+            var result = service.getDataset(participantContext, message, tokenRepresentation);
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
         }
@@ -163,7 +167,9 @@ class CatalogProtocolServiceImplTest {
 
             when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any())).thenReturn(ServiceResult.unauthorized("unauthorized"));
 
-            var result = service.getDataset(participantContext, "datasetId", tokenRepresentation, "protocol");
+            var message = DatasetRequestMessage.Builder.newInstance().id("datasetId").protocol("protocol").build();
+
+            var result = service.getDataset(participantContext, message, tokenRepresentation);
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
         }

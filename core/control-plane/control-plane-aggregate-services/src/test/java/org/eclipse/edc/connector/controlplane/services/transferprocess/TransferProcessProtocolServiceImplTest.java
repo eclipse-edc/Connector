@@ -10,6 +10,7 @@
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initiate provider process
+ *       Schaeffler AG - GetDspRequest refactor
  *
  */
 
@@ -28,6 +29,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowRespons
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
@@ -236,7 +238,9 @@ class TransferProcessProtocolServiceImplTest {
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
         when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
 
-        var result = service.findById(participantContext, processId, tokenRepresentation, "protocol");
+        var message = TransferProcessRequestMessage.Builder.newInstance().transferProcessId(processId).protocol("protocol").build();
+
+        var result = service.findById(participantContext, message, tokenRepresentation);
 
         assertThat(result)
                 .isSucceeded()
@@ -251,7 +255,9 @@ class TransferProcessProtocolServiceImplTest {
         when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), any())).thenReturn(ServiceResult.success(participantAgent));
         when(store.findById(any())).thenReturn(null);
 
-        var result = service.findById(participantContext, "invalidId", tokenRepresentation, "protocol");
+        var message = TransferProcessRequestMessage.Builder.newInstance().transferProcessId("invalidId").protocol("protocol").build();
+
+        var result = service.findById(participantContext, message, tokenRepresentation);
 
         assertThat(result)
                 .isFailed()
@@ -272,7 +278,9 @@ class TransferProcessProtocolServiceImplTest {
         when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
         when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
 
-        var result = service.findById(participantContext, processId, tokenRepresentation, "protocol");
+        var message = TransferProcessRequestMessage.Builder.newInstance().transferProcessId(processId).protocol("protocol").build();
+
+        var result = service.findById(participantContext, message, tokenRepresentation);
 
         assertThat(result)
                 .isFailed()

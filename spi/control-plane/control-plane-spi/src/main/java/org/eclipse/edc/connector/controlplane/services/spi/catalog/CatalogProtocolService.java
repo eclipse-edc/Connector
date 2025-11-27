@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Schaeffler AG - GetDspRequest refactor
  *
  */
 
@@ -17,6 +18,7 @@ package org.eclipse.edc.connector.controlplane.services.spi.catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
+import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequestMessage;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -41,10 +43,10 @@ public interface CatalogProtocolService {
     /**
      * Returns a dataset given its id and a {@link ClaimToken}
      *
-     * @param datasetId           the dataset id.
+     * @param message           the request message.
      * @param tokenRepresentation the claim token.
      * @return succeeded result with the {@link Dataset}, failed result otherwise.
      */
     @NotNull
-    ServiceResult<Dataset> getDataset(ParticipantContext participantContext, String datasetId, TokenRepresentation tokenRepresentation, String protocol);
+    ServiceResult<Dataset> getDataset(ParticipantContext participantContext, DatasetRequestMessage message, TokenRepresentation tokenRepresentation);
 }

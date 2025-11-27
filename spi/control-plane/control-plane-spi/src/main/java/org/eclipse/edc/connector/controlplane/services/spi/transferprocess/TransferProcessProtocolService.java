@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Schaeffler AG - GetDspRequest refactor
  *
  */
 
@@ -16,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.services.spi.transferprocess;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
@@ -84,10 +86,10 @@ public interface TransferProcessProtocolService {
      * Finds a transfer process that has been requested by the counter-part. An existing
      * process, for which the counter-part is not authorized, is treated as non-existent.
      *
-     * @param id                  id of the transfer process
+     * @param message                  incoming message
      * @param tokenRepresentation the counter-party claim token
      * @return a succeeded result containing the transfer process if it was found, a failed one otherwise
      */
     @NotNull
-    ServiceResult<TransferProcess> findById(ParticipantContext participantContext, String id, TokenRepresentation tokenRepresentation, String protocol);
+    ServiceResult<TransferProcess> findById(ParticipantContext participantContext, TransferProcessRequestMessage message, TokenRepresentation tokenRepresentation);
 }

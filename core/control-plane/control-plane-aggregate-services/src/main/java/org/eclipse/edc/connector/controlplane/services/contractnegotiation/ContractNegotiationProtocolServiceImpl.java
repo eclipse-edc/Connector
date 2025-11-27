@@ -11,6 +11,7 @@
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - implementation for provider offer
  *       Cofinity-X - make participant id extraction dependent on dataspace profile context
+ *       Schaeffler AG - GetDspRequest refactor
  *
  */
 
@@ -199,13 +200,9 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<ContractNegotiation> findById(ParticipantContext participantContext, String id, TokenRepresentation tokenRepresentation, String protocol) {
-        var message = ContractNegotiationRequestMessage.Builder.newInstance()
-                .negotiationId(id)
-                .protocol(protocol)
-                .build();
+    public ServiceResult<ContractNegotiation> findById(ParticipantContext participantContext, ContractNegotiationRequestMessage message, TokenRepresentation tokenRepresentation) {
 
-        return transactionContext.execute(() -> getNegotiation(participantContext, id)
+        return transactionContext.execute(() -> getNegotiation(participantContext, message.getNegotiationId())
                 .compose(contractNegotiation -> verifyRequest(participantContext, tokenRepresentation, contractNegotiation.getLastContractOffer().getPolicy(), message)
                         .compose(agent -> validateRequest(agent, contractNegotiation)
                                 .map(it -> contractNegotiation))));

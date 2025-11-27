@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Schaeffler AG - GetDspRequest refactor
  *
  */
 
@@ -21,6 +22,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementVerificationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
@@ -90,10 +92,11 @@ public abstract class DspNegotiationApiControllerTestBase extends RestController
         assertThat(result).isNotNull();
         var captor = ArgumentCaptor.forClass(GetDspRequest.class);
         verify(dspRequestHandler).getResource(captor.capture());
-        var dspMessage = captor.getValue();
-        assertThat(dspMessage.getToken()).isEqualTo("auth");
-        assertThat(dspMessage.getId()).isEqualTo("negotiationId");
-        assertThat(dspMessage.getResultClass()).isEqualTo(ContractNegotiation.class);
+        var dspResponse = captor.getValue();
+        var dspMessage = (ContractNegotiationRequestMessage) dspResponse.getMessage();
+        assertThat(dspResponse.getToken()).isEqualTo("auth");
+        assertThat(dspMessage.getNegotiationId()).isEqualTo("negotiationId");
+        assertThat(dspResponse.getResultClass()).isEqualTo(ContractNegotiation.class);
     }
 
     @Test

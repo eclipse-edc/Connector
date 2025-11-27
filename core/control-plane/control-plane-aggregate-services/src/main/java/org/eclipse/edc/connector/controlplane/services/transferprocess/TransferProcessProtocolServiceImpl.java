@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initiate provider process
  *       Cofinity-X - make participant id extraction dependent on dataspace profile context
+ *       Schaeffler AG - GetDspRequest refactor
  *
  */
 
@@ -143,13 +144,9 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @Override
     @WithSpan
     @NotNull
-    public ServiceResult<TransferProcess> findById(ParticipantContext participantContext, String id, TokenRepresentation tokenRepresentation, String protocol) {
-        var message = TransferProcessRequestMessage.Builder.newInstance()
-                .transferProcessId(id)
-                .protocol(protocol)
-                .build();
+    public ServiceResult<TransferProcess> findById(ParticipantContext participantContext, TransferProcessRequestMessage message, TokenRepresentation tokenRepresentation) {
 
-        return transactionContext.execute(() -> fetchRequestContext(participantContext, id, this::findTransferProcessById)
+        return transactionContext.execute(() -> fetchRequestContext(participantContext, message.getTransferProcessId(), this::findTransferProcessById)
                 .compose(context -> verifyRequest(participantContext, tokenRepresentation, context, message))
                 .compose(context -> validateCounterParty(context.participantAgent(), context.agreement(), context.transferProcess())));
     }
