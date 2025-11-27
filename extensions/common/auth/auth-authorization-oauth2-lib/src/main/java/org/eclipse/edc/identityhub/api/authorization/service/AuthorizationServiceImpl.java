@@ -46,7 +46,6 @@ public class AuthorizationServiceImpl implements AuthorizationService {
             return ServiceResult.notFound("No Resource of type '%s' with ID '%s' was found for owner '%s'.".formatted(resourceClass, resourceId, resourceOwnerId));
         }
 
-        // for admins, only the owner ID and the participantContextId must match
         if (securityContext.isUserInRole(ParticipantPrincipal.ROLE_ADMIN)) {
             return ServiceResult.success();
         }

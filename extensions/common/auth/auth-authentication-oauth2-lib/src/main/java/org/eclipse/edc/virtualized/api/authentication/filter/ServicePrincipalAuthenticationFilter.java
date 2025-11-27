@@ -48,42 +48,45 @@ class ServicePrincipalAuthenticationFilter implements ContainerRequestFilter {
     public void filter(ContainerRequestContext containerRequestContext) {
 
         var claims = containerRequestContext.getProperty(REQUEST_PROPERTY_CLAIMS);
-        if (claims == null) {
+        if (claims instanceof ClaimToken claimToken) {
+            var participantContextId = claimToken.getStringClaim(TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID);
+            var role = claimToken.getStringClaim(TOKEN_CLAIM_ROLE);
+            var scope = claimToken.getStringClaim(TOKEN_CLAIM_SCOPE);
+
+            if (participantContextId != null) {
+                if (participantContextService.getParticipantContext(participantContextId).failed()) {
+                    containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED.getStatusCode(), "Authorization Header invalid: participant context not found").build());
+                    return;
+                }
+            }
+
+            var servicePrincipal = new ParticipantPrincipal(participantContextId, role, scope);
+            containerRequestContext.setSecurityContext(new SecurityContext() {
+                @Override
+                public Principal getUserPrincipal() {
+                    return servicePrincipal;
+                }
+
+                @Override
+                public boolean isUserInRole(String s) {
+                    return servicePrincipal.getRoles().contains(s);
+                }
+
+                @Override
+                public boolean isSecure() {
+                    return containerRequestContext.getUriInfo().getBaseUri().toString().startsWith("https");
+                }
+
+                @Override
+                public String getAuthenticationScheme() {
+                    return null;
+                }
+            });
+        } else {
             containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED.getStatusCode(), "Authorization failure: no '%s' found".formatted(REQUEST_PROPERTY_CLAIMS)).build());
-            return;
-        }
-        var participantContextId = ((ClaimToken) claims).getStringClaim(TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID);
-        var role = ((ClaimToken) claims).getStringClaim(TOKEN_CLAIM_ROLE);
-        var scope = ((ClaimToken) claims).getStringClaim(TOKEN_CLAIM_SCOPE);
-
-        if (participantContextId != null) {
-            if (participantContextService.getParticipantContext(participantContextId).failed()) {
-                containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED.getStatusCode(), "Authorization Header invalid: participant context not found").build());
-                return;
-            }
         }
 
-        var servicePrincipal = new ParticipantPrincipal(participantContextId, role, scope);
-        containerRequestContext.setSecurityContext(new SecurityContext() {
-            @Override
-            public Principal getUserPrincipal() {
-                return servicePrincipal;
-            }
 
-            @Override
-            public boolean isUserInRole(String s) {
-                return servicePrincipal.getRoles().contains(s);
-            }
 
-            @Override
-            public boolean isSecure() {
-                return containerRequestContext.getUriInfo().getBaseUri().toString().startsWith("https");
-            }
-
-            @Override
-            public String getAuthenticationScheme() {
-                return null;
-            }
-        });
     }
 }
