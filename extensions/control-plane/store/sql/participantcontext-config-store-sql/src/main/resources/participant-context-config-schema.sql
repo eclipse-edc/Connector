@@ -16,8 +16,9 @@
 CREATE TABLE IF NOT EXISTS edc_participant_context_config
 (
     participant_context_id VARCHAR PRIMARY KEY NOT NULL, -- ID of the ParticipantContext
-    created_date           BIGINT              NOT NULL, -- POSIX timestamp of the creation of the PC
+    created_date           BIGINT              NOT NULL, -- POSIX creation timestamp of the PC
     last_modified_date     BIGINT,                       -- POSIX timestamp of the last modified date
-    entries                 JSON DEFAULT '{}'             -- JSON object containing the configuration data
+    entries                JSON DEFAULT '{}',            -- JSON object containing the configuration data
+    private_entries        JSON DEFAULT '{}'             -- JSON object containing sensitive configuration data
 );
 

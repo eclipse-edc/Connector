@@ -42,6 +42,10 @@ public interface ParticipantContextConfigStoreStatements extends SqlStatements {
         return "entries";
     }
 
+    default String getPrivateEntriesColumn() {
+        return "private_entries";
+    }
+
     String getUpsertTemplate();
 
     String getFindByIdTemplate();

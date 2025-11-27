@@ -56,7 +56,8 @@ public class SqlParticipantContextConfigStore extends AbstractSqlStore implement
                         config.getParticipantContextId(),
                         config.getCreatedAt(),
                         config.getLastModified(),
-                        toJson(config.getEntries())
+                        toJson(config.getEntries()),
+                        toJson(config.getPrivateEntries())
                 );
 
             } catch (SQLException e) {
@@ -82,11 +83,13 @@ public class SqlParticipantContextConfigStore extends AbstractSqlStore implement
         var created = resultSet.getLong(statements.getCreateTimestampColumn());
         var lastModified = resultSet.getLong(statements.getLastModifiedTimestampColumn());
         Map<String, String> config = fromJson(resultSet.getString(statements.getEntriesColumn()), getTypeRef());
+        Map<String, String> privateConfig = fromJson(resultSet.getString(statements.getPrivateEntriesColumn()), getTypeRef());
         return ParticipantContextConfiguration.Builder.newInstance()
                 .participantContextId(participantContextId)
                 .createdAt(created)
                 .lastModified(lastModified)
                 .entries(config)
+                .privateEntries(privateConfig)
                 .build();
     }
 }
