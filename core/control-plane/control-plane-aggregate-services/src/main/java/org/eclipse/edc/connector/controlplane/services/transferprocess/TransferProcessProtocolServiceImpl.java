@@ -42,7 +42,9 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.telemetry.Telemetry;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
@@ -73,13 +75,14 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     private final Clock clock;
     private final Monitor monitor;
     private final Telemetry telemetry;
+    private final Vault vault;
 
     public TransferProcessProtocolServiceImpl(TransferProcessStore transferProcessStore,
                                               TransactionContext transactionContext, ContractNegotiationStore negotiationStore,
                                               ContractValidationService contractValidationService,
                                               ProtocolTokenValidator protocolTokenValidator,
                                               DataAddressValidatorRegistry dataAddressValidator, TransferProcessObservable observable,
-                                              Clock clock, Monitor monitor, Telemetry telemetry) {
+                                              Clock clock, Monitor monitor, Telemetry telemetry, Vault vault) {
         this.transferProcessStore = transferProcessStore;
         this.transactionContext = transactionContext;
         this.negotiationStore = negotiationStore;
@@ -90,6 +93,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         this.clock = clock;
         this.monitor = monitor;
         this.telemetry = telemetry;
+        this.vault = vault;
     }
 
     @Override
@@ -157,27 +161,58 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         if (existingTransferProcess != null) {
             return ServiceResult.success(existingTransferProcess);
         }
-        var process = TransferProcess.Builder.newInstance()
-                .id(randomUUID().toString())
-                .protocol(message.getProtocol())
-                .correlationId(message.getConsumerPid())
-                .counterPartyAddress(message.getCallbackAddress())
-                .dataDestination(message.getDataDestination())
-                .assetId(contractAgreement.getAssetId())
-                .contractId(contractAgreement.getId())
-                .transferType(message.getTransferType())
-                .type(PROVIDER)
-                .clock(clock)
-                .traceContext(telemetry.getCurrentTraceContext())
-                .participantContextId(participantContext.getParticipantContextId())
+
+        var id = randomUUID().toString();
+
+        return offloadEventualSecretToVault(id, participantContext, message.getDataDestination())
+                .map(destination -> {
+                    var process = TransferProcess.Builder.newInstance()
+                            .id(id)
+                            .protocol(message.getProtocol())
+                            .correlationId(message.getConsumerPid())
+                            .counterPartyAddress(message.getCallbackAddress())
+                            .dataDestination(destination)
+                            .assetId(contractAgreement.getAssetId())
+                            .contractId(contractAgreement.getId())
+                            .transferType(message.getTransferType())
+                            .type(PROVIDER)
+                            .clock(clock)
+                            .traceContext(telemetry.getCurrentTraceContext())
+                            .participantContextId(participantContext.getParticipantContextId())
+                            .build();
+
+                    observable.invokeForEach(l -> l.preCreated(process));
+                    process.protocolMessageReceived(message.getId());
+                    update(process);
+                    observable.invokeForEach(l -> l.initiated(process));
+
+                    return process;
+                });
+    }
+
+    private ServiceResult<DataAddress> offloadEventualSecretToVault(String id, ParticipantContext participantContext, DataAddress destination) {
+        if (destination == null) {
+            return ServiceResult.success(null);
+        }
+
+        var secret = destination.getStringProperty(DataAddress.EDC_DATA_ADDRESS_SECRET);
+        if (secret == null) {
+            return ServiceResult.success(destination);
+        }
+
+        var keyName = "transfer-process-" + id + "-destination-secret";
+
+        var storeSecret = vault.storeSecret(participantContext.getParticipantContextId(), keyName, secret);
+        if (storeSecret.failed()) {
+            return ServiceResult.unexpected("cannot store destination secret: ", storeSecret.getFailureDetail());
+        }
+
+        var newDestination = destination.toBuilder()
+                .keyName(keyName)
+                .property(DataAddress.EDC_DATA_ADDRESS_SECRET, null)
                 .build();
 
-        observable.invokeForEach(l -> l.preCreated(process));
-        process.protocolMessageReceived(message.getId());
-        update(process);
-        observable.invokeForEach(l -> l.initiated(process));
-
-        return ServiceResult.success(process);
+        return ServiceResult.success(newDestination);
     }
 
     @NotNull

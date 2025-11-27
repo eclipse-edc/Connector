@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.command.Termina
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.spi.EdcException;
@@ -109,7 +108,7 @@ public class BaseContractNegotiationApiController {
                 .orElseThrow(ValidationFailureException::new);
 
         var participantContext = participantContextSupplier.get()
-                .orElseThrow(exceptionMapper(ContractDefinition.class));
+                .orElseThrow(exceptionMapper(ContractNegotiation.class));
 
         var contractRequest = transformerRegistry.transform(requestObject, ContractRequest.class)
                 .orElseThrow(InvalidRequestException::new);

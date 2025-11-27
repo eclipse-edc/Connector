@@ -900,29 +900,6 @@ class TransferProcessManagerImplTest {
         }
 
         @Test
-        void shouldStoreSecret_whenItIsFoundInTheDataAddress() {
-            var destinationDataAddress = DataAddress.Builder.newInstance()
-                    .keyName("keyName")
-                    .type("type")
-                    .property(EDC_DATA_ADDRESS_SECRET, "secret")
-                    .build();
-            var transferProcess = builder.dataDestination(destinationDataAddress).build();
-            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
-            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
-            when(addressResolver.resolveForAsset(any())).thenReturn(DataAddress.Builder.newInstance().type("type").build());
-            var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
-            when(manifestGenerator.generateProviderResourceManifest(any(TransferProcess.class), any(), any()))
-                    .thenReturn(resourceManifest);
-
-            manager.start();
-
-            await().untilAsserted(() -> {
-                verify(vault).storeSecret(anyString(), eq("keyName"), eq("secret"));
-                verify(transferProcessStore).save(any());
-            });
-        }
-
-        @Test
         void shouldTransitionToTerminating_whenAssetIsNotResolved() {
             var transferProcess = builder.build();
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
