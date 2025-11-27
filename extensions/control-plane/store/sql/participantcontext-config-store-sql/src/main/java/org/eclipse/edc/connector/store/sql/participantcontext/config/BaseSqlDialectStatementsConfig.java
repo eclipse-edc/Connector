@@ -27,6 +27,7 @@ public class BaseSqlDialectStatementsConfig implements ParticipantContextConfigS
                 .column(getCreateTimestampColumn())
                 .column(getLastModifiedTimestampColumn())
                 .jsonColumn(getEntriesColumn())
+                .jsonColumn(getPrivateEntriesColumn())
                 .upsertInto(getParticipantContextConfigTable(), getIdColumn(), List.of(getCreateTimestampColumn()));
     }
 

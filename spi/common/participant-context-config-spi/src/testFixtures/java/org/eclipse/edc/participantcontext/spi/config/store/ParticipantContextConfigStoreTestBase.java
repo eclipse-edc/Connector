@@ -36,6 +36,7 @@ public abstract class ParticipantContextConfigStoreTestBase {
                 .isNotNull()
                 .satisfies(cfg -> {
                     assertThat(cfg.getEntries()).containsAllEntriesOf(cfg.getEntries());
+                    assertThat(cfg.getPrivateEntries()).containsAllEntriesOf(cfg.getPrivateEntries());
                 });
 
     }
@@ -50,11 +51,11 @@ public abstract class ParticipantContextConfigStoreTestBase {
         assertThat(getStore().get("participant1"))
                 .isNotNull()
                 .satisfies(cfg -> {
-                    assertThat(config.getEntries()).containsAllEntriesOf(cfg.getEntries());
+                    assertThat(cfg.getEntries()).containsAllEntriesOf(config.getEntries());
+                    assertThat(cfg.getPrivateEntries()).containsAllEntriesOf(config.getPrivateEntries());
                 });
 
         var newConfig = config(Map.of("key1", "value1", "key2", "2", "key3", "value3"));
-
 
         getStore().save(newConfig);
 
@@ -70,6 +71,7 @@ public abstract class ParticipantContextConfigStoreTestBase {
         return ParticipantContextConfiguration.Builder.newInstance()
                 .participantContextId("participant1")
                 .entries(Map.of("key1", "value1", "key2", "2", "key3", "value3"))
+                .privateEntries(Map.of("sensitive1", "supersecret", "sensitive2", "5"))
                 .build();
     }
 

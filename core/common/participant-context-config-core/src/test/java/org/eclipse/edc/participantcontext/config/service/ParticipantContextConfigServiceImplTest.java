@@ -58,6 +58,7 @@ public class ParticipantContextConfigServiceImplTest {
                 saved.getParticipantContextId().equals(cfg.getParticipantContextId()) &&
                         saved.getEntries().equals(cfg.getEntries()) &&
                         saved.getPrivateEntries().equals(cfg.getPrivateEntries())));
+        verify(encryptionService).encrypt(anyString());
     }
 
     @Test
