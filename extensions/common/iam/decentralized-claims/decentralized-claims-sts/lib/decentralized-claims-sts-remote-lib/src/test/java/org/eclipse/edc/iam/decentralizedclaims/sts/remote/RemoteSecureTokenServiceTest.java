@@ -34,6 +34,8 @@ import static org.eclipse.edc.iam.decentralizedclaims.sts.remote.RemoteSecureTok
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -57,7 +59,7 @@ public class RemoteSecureTokenServiceTest {
         var audience = "aud";
         var secret = "secret";
         when(oauth2Client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().build()));
-        when(vault.resolveSecret(configuration.clientSecretAlias())).thenReturn(secret);
+        when(vault.resolveSecret(anyString(), eq(configuration.clientSecretAlias()))).thenReturn(secret);
 
         assertThat(secureTokenService.createToken(participantContextId, Map.of(AUDIENCE, audience), null)).isSucceeded();
 
@@ -81,7 +83,7 @@ public class RemoteSecureTokenServiceTest {
         var secret = "secret";
 
         when(oauth2Client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().build()));
-        when(vault.resolveSecret(configuration.clientSecretAlias())).thenReturn(secret);
+        when(vault.resolveSecret(anyString(), eq(configuration.clientSecretAlias()))).thenReturn(secret);
 
         assertThat(secureTokenService.createToken(participantContextId, Map.of(AUDIENCE, audience), bearerAccessScope)).isSucceeded();
 
@@ -106,7 +108,7 @@ public class RemoteSecureTokenServiceTest {
         var secret = "secret";
 
         when(oauth2Client.requestToken(any())).thenReturn(Result.success(TokenRepresentation.Builder.newInstance().build()));
-        when(vault.resolveSecret(configuration.clientSecretAlias())).thenReturn(secret);
+        when(vault.resolveSecret(anyString(), eq(configuration.clientSecretAlias()))).thenReturn(secret);
 
         assertThat(secureTokenService.createToken(participantContextId, Map.of(AUDIENCE, audience, PRESENTATION_TOKEN_CLAIM, accessToken), null)).isSucceeded();
 
