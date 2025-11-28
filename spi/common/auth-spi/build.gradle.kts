@@ -18,6 +18,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:web-spi"))
+    api(project(":spi:common:connector-participant-context-spi"))
 
     implementation(libs.jakarta.rsApi)
     implementation(libs.jakarta.annotation)

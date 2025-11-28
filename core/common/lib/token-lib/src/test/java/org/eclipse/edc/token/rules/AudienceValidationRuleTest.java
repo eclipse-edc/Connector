@@ -12,10 +12,9 @@
  *
  */
 
-package org.eclipse.edc.jwt.rules;
+package org.eclipse.edc.token.rules;
 
 import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.token.rules.AudienceValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.junit.jupiter.api.Test;
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2022 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,10 +12,9 @@
  *
  */
 
-package org.eclipse.edc.jwt.rules;
+package org.eclipse.edc.token.rules;
 
 import org.eclipse.edc.spi.iam.ClaimToken;
-import org.eclipse.edc.token.rules.NotBeforeValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.junit.jupiter.api.Test;
 
