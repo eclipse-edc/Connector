@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.api.management.configuration.transform;
+package org.eclipse.edc.connector.controlplane.transform.edc.contractagreement.from;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;

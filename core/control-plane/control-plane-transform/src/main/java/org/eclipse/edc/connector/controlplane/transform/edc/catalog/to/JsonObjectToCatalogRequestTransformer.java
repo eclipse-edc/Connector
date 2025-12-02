@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.catalog.transform;
+package org.eclipse.edc.connector.controlplane.transform.edc.catalog.to;
 
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest;

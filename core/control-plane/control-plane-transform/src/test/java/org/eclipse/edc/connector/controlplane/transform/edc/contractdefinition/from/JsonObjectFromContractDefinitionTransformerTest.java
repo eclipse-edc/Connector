@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.contractdefinition.transform;
+package org.eclipse.edc.connector.controlplane.transform.edc.contractdefinition.from;
 
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;

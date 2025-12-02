@@ -15,13 +15,13 @@
 package org.eclipse.edc.connector.controlplane.api.management.catalog;
 
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
-import org.eclipse.edc.connector.controlplane.api.management.catalog.transform.JsonObjectToCatalogRequestTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.catalog.transform.JsonObjectToDatasetRequestTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.v3.CatalogApiV3Controller;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.v4.CatalogApiV4Controller;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.validation.CatalogRequestValidator;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.validation.DatasetRequestValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
+import org.eclipse.edc.connector.controlplane.transform.edc.catalog.to.JsonObjectToCatalogRequestTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.catalog.to.JsonObjectToDatasetRequestTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;

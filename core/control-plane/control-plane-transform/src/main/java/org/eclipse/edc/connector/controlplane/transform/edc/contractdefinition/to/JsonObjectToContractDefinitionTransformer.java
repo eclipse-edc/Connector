@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.api.management.contractdefinition.transform;
+package org.eclipse.edc.connector.controlplane.transform.edc.contractdefinition.to;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
@@ -47,7 +47,8 @@ public class JsonObjectToContractDefinitionTransformer extends AbstractJsonLdTra
         switch (key) {
             case CONTRACT_DEFINITION_ACCESSPOLICY_ID -> builder.accessPolicyId(transformString(jsonValue, context));
             case CONTRACT_DEFINITION_CONTRACTPOLICY_ID -> builder.contractPolicyId(transformString(jsonValue, context));
-            case CONTRACT_DEFINITION_ASSETS_SELECTOR -> builder.assetsSelector(transformArray(jsonValue, Criterion.class, context));
+            case CONTRACT_DEFINITION_ASSETS_SELECTOR ->
+                    builder.assetsSelector(transformArray(jsonValue, Criterion.class, context));
             case CONTRACT_DEFINITION_PRIVATE_PROPERTIES -> {
                 var props = jsonValue.asJsonArray().getJsonObject(0);
                 visitProperties(props, (k, val) -> transformProperties(k, val, builder, context));

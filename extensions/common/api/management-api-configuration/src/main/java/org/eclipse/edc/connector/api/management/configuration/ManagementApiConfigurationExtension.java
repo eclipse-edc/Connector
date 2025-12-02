@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.api.management.configuration;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import jakarta.json.Json;
 import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
-import org.eclipse.edc.connector.api.management.configuration.transform.JsonObjectFromContractAgreementTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.contractagreement.from.JsonObjectFromContractAgreementTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.from.JsonObjectFromAssetTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.from.JsonObjectFromDataplaneMetadataTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.to.JsonObjectToAssetTransformer;
