@@ -33,13 +33,13 @@ import static org.eclipse.edc.virtualized.api.authentication.filter.Constants.RE
  */
 @PreMatching
 @Priority(Priorities.AUTHENTICATION)
-class JwtValidatorFilter implements ContainerRequestFilter {
+public class JwtValidatorFilter implements ContainerRequestFilter {
 
     private final TokenValidationService tokenValidationService;
     private final PublicKeyResolver publicKeyResolver;
     private final List<TokenValidationRule> rules;
 
-    JwtValidatorFilter(TokenValidationService tokenValidationService, PublicKeyResolver publicKeyResolver, List<TokenValidationRule> rules) {
+    public JwtValidatorFilter(TokenValidationService tokenValidationService, PublicKeyResolver publicKeyResolver, List<TokenValidationRule> rules) {
         this.publicKeyResolver = publicKeyResolver;
         this.rules = rules;
         this.tokenValidationService = tokenValidationService;
