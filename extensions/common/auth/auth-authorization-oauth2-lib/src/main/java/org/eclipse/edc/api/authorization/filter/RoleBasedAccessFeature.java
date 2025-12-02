@@ -12,20 +12,25 @@
  *
  */
 
-package org.eclipse.edc.identityhub.api.authorization.filter;
+package org.eclipse.edc.api.authorization.filter;
 
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.ws.rs.container.DynamicFeature;
 import jakarta.ws.rs.container.ResourceInfo;
 import jakarta.ws.rs.core.FeatureContext;
-import org.eclipse.edc.api.auth.spi.RequiredScope;
 
-public class ScopeBasedAccessFeature implements DynamicFeature {
+/**
+ * This feature will inspect the {@link ResourceInfo#getResourceMethod()} of a resolved resource (=endpoint) and check if it is
+ * annotated with the {@link RolesAllowed} annotation, and if so, a {@link RoleBasedAccessFilter} is registered for the specific
+ * request context of that endpoint.
+ */
+public class RoleBasedAccessFeature implements DynamicFeature {
 
     @Override
     public void configure(ResourceInfo resourceInfo, FeatureContext featureContext) {
-        var annotation = resourceInfo.getResourceMethod().getAnnotation(RequiredScope.class);
+        var annotation = resourceInfo.getResourceMethod().getAnnotation(RolesAllowed.class);
         if (annotation != null) {
-            featureContext.register(new ScopeBasedAccessFilter(annotation.value()));
+            featureContext.register(new RoleBasedAccessFilter(annotation.value()));
         }
     }
 }
