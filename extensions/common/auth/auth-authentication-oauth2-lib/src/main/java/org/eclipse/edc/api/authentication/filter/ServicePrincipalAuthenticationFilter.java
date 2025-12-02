@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.virtualized.api.authentication.filter;
+package org.eclipse.edc.api.authentication.filter;
 
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.Priorities;
@@ -26,10 +26,10 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 
 import java.security.Principal;
 
-import static org.eclipse.edc.virtualized.api.authentication.filter.Constants.REQUEST_PROPERTY_CLAIMS;
-import static org.eclipse.edc.virtualized.api.authentication.filter.Constants.TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID;
-import static org.eclipse.edc.virtualized.api.authentication.filter.Constants.TOKEN_CLAIM_ROLE;
-import static org.eclipse.edc.virtualized.api.authentication.filter.Constants.TOKEN_CLAIM_SCOPE;
+import static org.eclipse.edc.api.authentication.filter.Constants.REQUEST_PROPERTY_CLAIMS;
+import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID;
+import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_ROLE;
+import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_SCOPE;
 
 /**
  * A {@link ContainerRequestFilter} that extracts a {@link ParticipantPrincipal} from the Authorization Header, specifically,

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.virtualized.api.authentication.filter;
+package org.eclipse.edc.api.authentication.filter;
 
 public interface Constants {
     String REQUEST_PROPERTY_CLAIMS = "claims";

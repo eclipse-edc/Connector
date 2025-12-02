@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.virtualized.api.authentication.filter;
+package org.eclipse.edc.api.authentication.filter;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
 import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
@@ -23,10 +23,10 @@ import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.eclipse.edc.virtualized.api.authentication.filter.Constants.REQUEST_PROPERTY_CLAIMS;
-import static org.eclipse.edc.virtualized.api.authentication.filter.Constants.TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID;
-import static org.eclipse.edc.virtualized.api.authentication.filter.Constants.TOKEN_CLAIM_ROLE;
-import static org.eclipse.edc.virtualized.api.authentication.filter.Constants.TOKEN_CLAIM_SCOPE;
+import static org.eclipse.edc.api.authentication.filter.Constants.REQUEST_PROPERTY_CLAIMS;
+import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID;
+import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_ROLE;
+import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_SCOPE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
