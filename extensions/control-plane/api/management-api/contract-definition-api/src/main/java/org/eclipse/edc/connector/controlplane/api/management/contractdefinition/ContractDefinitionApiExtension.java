@@ -18,12 +18,12 @@ package org.eclipse.edc.connector.controlplane.api.management.contractdefinition
 
 import jakarta.json.Json;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
-import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.transform.JsonObjectFromContractDefinitionTransformer;
-import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.transform.JsonObjectToContractDefinitionTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.v3.ContractDefinitionApiV3Controller;
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.v4.ContractDefinitionApiV4Controller;
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.validation.ContractDefinitionValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
+import org.eclipse.edc.connector.controlplane.transform.edc.contractdefinition.from.JsonObjectFromContractDefinitionTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.contractdefinition.to.JsonObjectToContractDefinitionTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
