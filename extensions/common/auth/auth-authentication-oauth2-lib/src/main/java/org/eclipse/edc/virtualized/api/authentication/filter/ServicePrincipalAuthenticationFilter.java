@@ -36,11 +36,11 @@ import static org.eclipse.edc.virtualized.api.authentication.filter.Constants.TO
  * the JWT that is contained in the Authorization Header.
  */
 @Priority(Priorities.AUTHENTICATION)
-class ServicePrincipalAuthenticationFilter implements ContainerRequestFilter {
+public class ServicePrincipalAuthenticationFilter implements ContainerRequestFilter {
 
     private final ParticipantContextService participantContextService;
 
-    ServicePrincipalAuthenticationFilter(ParticipantContextService participantContextService) {
+    public ServicePrincipalAuthenticationFilter(ParticipantContextService participantContextService) {
         this.participantContextService = participantContextService;
     }
 
