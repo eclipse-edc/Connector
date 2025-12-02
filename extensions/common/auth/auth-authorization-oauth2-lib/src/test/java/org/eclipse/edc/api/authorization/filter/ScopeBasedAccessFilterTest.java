@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.identityhub.api.authorization.filter;
+package org.eclipse.edc.api.authorization.filter;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.SecurityContext;

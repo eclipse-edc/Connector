@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.virtualized.api.authentication;
+package org.eclipse.edc.api.authentication;
 
 import com.nimbusds.jose.jwk.JWKSet;
 import org.eclipse.edc.keys.spi.KeyParserRegistry;
