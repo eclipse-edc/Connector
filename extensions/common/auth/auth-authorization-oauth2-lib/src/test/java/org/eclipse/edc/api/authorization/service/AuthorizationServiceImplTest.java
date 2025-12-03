@@ -18,12 +18,16 @@ import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.participantcontext.spi.types.AbstractParticipantResource;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.security.Principal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -88,8 +92,9 @@ class AuthorizationServiceImplTest {
                 .isFailed();
     }
 
-    @Test
-    void isAuthorized_whenRoleIsAdmin() {
+    @ParameterizedTest
+    @ValueSource(strings = { "admin", "provisioner" })
+    void isAuthorized_whenRoleIsElevated(String role) {
         authorizationService.addLookupFunction(TestResource.class, (owner, id) -> new AbstractParticipantResource() {
             @Override
             public String getParticipantContextId() {
@@ -100,13 +105,12 @@ class AuthorizationServiceImplTest {
         when(principal.getName()).thenReturn("test-id");
         var securityContext = mock(SecurityContext.class);
         when(securityContext.getUserPrincipal()).thenReturn(principal);
-
-        when(securityContext.isUserInRole(eq("admin"))).thenReturn(true);
+        when(securityContext.isUserInRole(eq(role))).thenReturn(true);
 
         assertThat(authorizationService.authorize(securityContext, "test-id", "test-resource-id", TestResource.class))
                 .isSucceeded();
 
-        verify(securityContext).isUserInRole(eq("admin"));
+        verify(securityContext, atLeastOnce()).isUserInRole(anyString());
         verify(securityContext).getUserPrincipal();
         verifyNoMoreInteractions(securityContext);
     }
