@@ -28,7 +28,7 @@ import static org.mockito.Mockito.mock;
 public class EndpointDataReferenceStoreImplTest extends EndpointDataReferenceStoreTestBase {
 
     private final InMemoryEndpointDataReferenceEntryIndex store = new InMemoryEndpointDataReferenceEntryIndex(CriterionOperatorRegistryImpl.ofDefaults());
-    private final VaultEndpointDataReferenceCache cache = new VaultEndpointDataReferenceCache(new InMemoryVault(mock()), "", new ObjectMapper());
+    private final VaultEndpointDataReferenceCache cache = new VaultEndpointDataReferenceCache(new InMemoryVault(mock(), null), "", new ObjectMapper());
     private final EndpointDataReferenceStoreImpl endpointDataReferenceService = new EndpointDataReferenceStoreImpl(store, cache, new NoopTransactionContext());
 
     @Override

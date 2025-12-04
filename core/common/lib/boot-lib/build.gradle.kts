@@ -19,8 +19,8 @@ plugins {
 }
 
 dependencies {
-
     api(project(":spi:common:boot-spi"))
+    api(project(":spi:common:connector-participant-context-spi"))
 
     testImplementation(libs.awaitility)
 }

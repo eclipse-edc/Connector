@@ -18,7 +18,9 @@ import org.eclipse.edc.boot.apiversion.ApiVersionServiceImpl;
 import org.eclipse.edc.boot.health.HealthCheckServiceImpl;
 import org.eclipse.edc.boot.system.ExtensionLoader;
 import org.eclipse.edc.boot.vault.InMemoryVault;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
+import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.security.Vault;
@@ -43,6 +45,9 @@ public class BootServicesExtension implements ServiceExtension {
     @Setting(description = "Configures this component's ID. This should be a unique, stable and deterministic identifier.", defaultValue = "<random UUID>")
     public static final String COMPONENT_ID = "edc.component.id";
 
+    @Inject(required = false)
+    private SingleParticipantContextSupplier singleParticipantContextSupplier;
+
     private HealthCheckServiceImpl healthCheckService;
 
     @Override
@@ -54,7 +59,6 @@ public class BootServicesExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         healthCheckService = new HealthCheckServiceImpl();
     }
-
 
     @Provider
     public Clock clock() {
@@ -84,7 +88,7 @@ public class BootServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public Vault createInmemVault(ServiceExtensionContext context) {
         context.getMonitor().warning("Using the InMemoryVault is not suitable for production scenarios and should be replaced with an actual Vault!");
-        return new InMemoryVault(context.getMonitor());
+        return new InMemoryVault(context.getMonitor(), singleParticipantContextSupplier);
     }
 
     @Provider
