@@ -21,6 +21,7 @@ import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextCon
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -31,9 +32,11 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class ParticipantContextConfigImplTest {
@@ -85,23 +88,38 @@ public class ParticipantContextConfigImplTest {
 
     }
 
-    @Test
-    void shouldGetPrivateSetting() {
+    @Nested
+    class GetSensitiveString {
 
-        var cfg = ParticipantContextConfiguration.Builder.newInstance().participantContextId(PARTICIPANT_CONTEXT_ID)
-                .entries(Map.of("key", "value"))
-                .privateEntries(Map.of("private.key", "encryptedValue"))
-                .build();
+        @Test
+        void shouldGetPrivateSetting() {
+            var cfg = ParticipantContextConfiguration.Builder.newInstance().participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .entries(Map.of("key", "value"))
+                    .privateEntries(Map.of("private.key", "encryptedValue"))
+                    .build();
 
-        when(encryptionService.decrypt("encryptedValue")).thenReturn(Result.success("decryptedValue"));
-        when(store.get(PARTICIPANT_CONTEXT_ID)).thenReturn(cfg);
+            when(encryptionService.decrypt("encryptedValue")).thenReturn(Result.success("decryptedValue"));
+            when(store.get(PARTICIPANT_CONTEXT_ID)).thenReturn(cfg);
 
-        var result = contextConfig.getSensitiveString(PARTICIPANT_CONTEXT_ID, "private.key");
+            var result = contextConfig.getSensitiveString(PARTICIPANT_CONTEXT_ID, "private.key");
 
+            assertThat(result).isNotNull()
+                    .isEqualTo("decryptedValue");
+        }
 
-        assertThat(result).isNotNull()
-                .isEqualTo("decryptedValue");
+        @Test
+        void shouldReturnNull_whenNoSettingFound() {
+            var cfg = ParticipantContextConfiguration.Builder.newInstance().participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .entries(emptyMap())
+                    .privateEntries(emptyMap())
+                    .build();
+            when(store.get(PARTICIPANT_CONTEXT_ID)).thenReturn(cfg);
 
+            var result = contextConfig.getSensitiveString(PARTICIPANT_CONTEXT_ID, "any");
+
+            assertThat(result).isNull();
+            verifyNoInteractions(encryptionService);
+        }
     }
 
     @FunctionalInterface
