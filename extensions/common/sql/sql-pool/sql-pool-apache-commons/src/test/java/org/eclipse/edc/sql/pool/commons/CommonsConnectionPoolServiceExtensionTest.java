@@ -65,7 +65,7 @@ class CommonsConnectionPoolServiceExtensionTest {
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
         context.registerService(DataSourceRegistry.class, dataSourceRegistry);
-        context.registerService(Vault.class, new InMemoryVault(mock()));
+        context.registerService(Vault.class, new InMemoryVault(mock(), null));
         context.registerService(ConnectionFactory.class, connectionFactory);
     }
 
