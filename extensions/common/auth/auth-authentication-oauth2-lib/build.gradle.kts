@@ -15,6 +15,7 @@
 plugins {
     `java-library`
     `maven-publish`
+    `java-test-fixtures`
 }
 
 dependencies {
@@ -34,4 +35,10 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
     testRuntimeOnly(libs.jersey.common) // needs the RuntimeDelegate
+
+    testFixturesImplementation(libs.wiremock) {
+        exclude("com.networknt", "json-schema-validator")
+    }
+    testFixturesImplementation(libs.jakarta.json.api)
+    testFixturesImplementation(libs.nimbus.jwt)
 }
