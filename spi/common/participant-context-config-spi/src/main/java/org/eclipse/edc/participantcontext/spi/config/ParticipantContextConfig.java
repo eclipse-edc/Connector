@@ -106,8 +106,8 @@ public interface ParticipantContextConfig {
      *
      * @param participantContextId the participant context identifier
      * @param key                  of the setting
-     * @return a String representation of the setting
-     * @throws EdcException if no setting is found
+     * @return a String representation of the setting, null if the setting does not exist
+     * @throws EdcException if the setting cannot be decrypted
      */
     String getSensitiveString(String participantContextId, String key);
 }

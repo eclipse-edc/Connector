@@ -88,30 +88,24 @@ class HashicorpVault implements Vault {
                 .deleteSecret(key);
     }
 
+    /**
+     * creates a new HashicorpVaultClient specific configuration / auth settings for the given vault partition.
+     * If no vault config is found for the given partition, the default is returned.
+     */
     private @NotNull HashicorpVaultClient getVaultClient(String vaultPartition) {
         if (vaultPartition == null) {
             return createDefault();
         }
-        var client = createForPartition(vaultPartition);
-        if (client == null) {
-            if (vaultConfig.isAllowFallback()) {
-                return createDefault();
-            }
-            throw new IllegalArgumentException("No vault config found for partition '%s' and falling back to the default vault is not allowed".formatted(vaultPartition));
-        }
-        return client;
-    }
 
-    /**
-     * creates a new HashicorpVaultClient specific configuration / auth settings for the given vault partition.
-     * If no vault config is found for the given partition, null is returned.
-     */
-    private @Nullable HashicorpVaultClient createForPartition(String vaultPartition) {
         var settings = forParticipant(vaultPartition, participantContextConfig);
-        if (settings == null) {
-            return null;
+        if (settings != null) {
+            return new HashicorpVaultClient(monitor, settings.config(), edcHttpClient, mapper, settings.tokenProvider(edcHttpClient));
         }
-        return new HashicorpVaultClient(monitor, settings.config(), edcHttpClient, mapper, settings.tokenProvider(edcHttpClient));
+
+        if (vaultConfig.isAllowFallback()) {
+            return createDefault();
+        }
+        throw new IllegalArgumentException("No vault config found for partition '%s' and falling back to the default vault is not allowed".formatted(vaultPartition));
     }
 
     /**
