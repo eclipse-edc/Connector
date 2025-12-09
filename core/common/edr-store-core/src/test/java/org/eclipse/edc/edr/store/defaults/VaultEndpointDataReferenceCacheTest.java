@@ -23,7 +23,7 @@ import static org.mockito.Mockito.mock;
 
 public class VaultEndpointDataReferenceCacheTest extends EndpointDataReferenceCacheTestBase {
 
-    private final VaultEndpointDataReferenceCache cache = new VaultEndpointDataReferenceCache(new InMemoryVault(mock()), "", new ObjectMapper());
+    private final VaultEndpointDataReferenceCache cache = new VaultEndpointDataReferenceCache(new InMemoryVault(mock(), null), "", new ObjectMapper());
 
     @Override
     protected EndpointDataReferenceCache getCache() {
