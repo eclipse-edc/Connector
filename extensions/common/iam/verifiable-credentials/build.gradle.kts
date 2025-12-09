@@ -21,7 +21,10 @@ dependencies {
     api(project(":spi:common:verifiable-credentials-spi"))
     api(project(":spi:common:http-spi"))
     implementation(project(":core:common:lib:util-lib"))
+    implementation(project(":spi:common:token-spi"))
+    implementation(project(":spi:common:identity-did-spi"))
     implementation(libs.jsonschema)
+    implementation(libs.jakarta.rsApi)
 
     testImplementation(libs.wiremock)
     testImplementation(testFixtures(project(":spi:common:verifiable-credentials-spi")))

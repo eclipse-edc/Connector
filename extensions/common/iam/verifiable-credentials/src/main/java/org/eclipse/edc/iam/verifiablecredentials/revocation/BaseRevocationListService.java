@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - JWT parsing for status list credential
  *
  */
 
@@ -17,21 +18,26 @@ package org.eclipse.edc.iam.verifiablecredentials.revocation;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Request;
+import okhttp3.Response;
 import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.verifiablecredentials.spi.RevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.util.collection.Cache;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.spi.result.Result.success;
 
 /**
@@ -50,14 +56,20 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
     private final EdcHttpClient httpClient;
     private final Class<C> credentialClass;
     private final ObjectMapper objectMapper;
+    private TokenValidationService tokenValidationService;
+    private DidPublicKeyResolver didPublicKeyResolver;
 
-    protected BaseRevocationListService(ObjectMapper mapper, long cacheValidity, Collection<String> acceptedContentTypes, EdcHttpClient httpClient, Class<C> credentialClass) {
+    protected BaseRevocationListService(ObjectMapper mapper, long cacheValidity, Collection<String> acceptedContentTypes,
+                                        EdcHttpClient httpClient, TokenValidationService tokenValidationService,
+                                        DidPublicKeyResolver didPublicKeyResolver, Class<C> credentialClass) {
         this.objectMapper = mapper.copy()
                                     .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY) // technically, credential subjects and credential status can be objects AND Arrays
                                     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES); // let's make sure this is disabled, because the "@context" would cause problems
         statusListCredentialCache = new Cache<>(this::downloadStatusListCredential, cacheValidity);
         this.acceptedContentTypes = acceptedContentTypes;
         this.httpClient = httpClient;
+        this.tokenValidationService = tokenValidationService;
+        this.didPublicKeyResolver = didPublicKeyResolver;
         this.credentialClass = credentialClass;
     }
 
@@ -160,21 +172,33 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
     protected abstract S getCredentialStatus(CredentialStatus credentialStatus);
 
     private C downloadStatusListCredential(String credentialUrl) {
+        var acceptHeader = String.join(",", acceptedContentTypes);
         var request = new Request.Builder()
                               .url(credentialUrl)
-                              .header("Accept", String.join(",", acceptedContentTypes))
+                              .header("Accept", acceptHeader)
                               .get()
                               .build();
         try (var response = httpClient.execute(request)) {
             if (response.isSuccessful()) {
-                if (response.body() == null) {
-                    throw new EdcException("Response body is null for URL: " + credentialUrl);
-                }
-                return objectMapper.readValue(response.body().byteStream(), credentialClass);
+                return parseStatusListCredentialResponse(response, acceptHeader);
             }
             throw new IllegalArgumentException("Failed to download status list credential from " + credentialUrl + ": " + response.code() + " " + response.message());
         } catch (IOException e) {
             throw new EdcException(e);
         }
+    }
+
+    private C parseStatusListCredentialResponse(Response response, String acceptHeader) throws IOException {
+        if (acceptHeader.equals(APPLICATION_JSON)) {
+            return objectMapper.readValue(response.body().byteStream(), credentialClass);
+        }
+
+        var result = tokenValidationService.validate(response.body().string(), didPublicKeyResolver, List.of());
+        if (result.failed()) {
+            throw new IllegalArgumentException("Validation of status list credential JWT failed.");
+        }
+
+        var vc = result.getContent().getClaim("vc");
+        return objectMapper.convertValue(vc, credentialClass);
     }
 }

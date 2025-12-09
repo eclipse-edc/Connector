@@ -17,15 +17,20 @@ package org.eclipse.edc.iam.verifiablecredentials.revocation.bitstring;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.nimbusds.jose.shaded.gson.internal.LinkedTreeMap;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
+import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.verifiablecredentials.TestData;
 import org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.BitString;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.StatusMessage;
+import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.spi.TokenValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -51,19 +56,30 @@ import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bit
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_PURPOSE;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus.STATUS_LIST_SIZE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class BitstringStatusListRevocationServiceTest {
 
     private static final int REVOKED_INDEX = 10;
     private static final int NOT_REVOKED_INDEX = 15;
+
     @RegisterExtension
     static WireMockExtension server = WireMockExtension.newInstance()
             .options(wireMockConfig().dynamicPort())
             .build();
 
-    private final BitstringStatusListRevocationService revocationService = new BitstringStatusListRevocationService(new ObjectMapper().registerModule(new JavaTimeModule()),
-            5 * 60 * 1000, singleton("application/vc+jwt"), new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), mock()));
+    private final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    private final TokenValidationService tokenValidationService = mock(TokenValidationService.class);
+    private final DidPublicKeyResolver didPublicKeyResolver = mock(DidPublicKeyResolver.class);
+
+    private final BitstringStatusListRevocationService revocationService = new BitstringStatusListRevocationService(mapper,
+            5 * 60 * 1000, singleton("application/json"), new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), mock()),
+            tokenValidationService, didPublicKeyResolver);
 
     @BeforeEach
     void setUp() {
@@ -121,7 +137,7 @@ class BitstringStatusListRevocationServiceTest {
             var bitstring = generateBitstring();
             var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(bitstring);
             server.stubFor(get("/credentials/status/3").willReturn(ok(bitstringCredential)));
-            
+
             var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
                     Map.of(STATUS_LIST_PURPOSE, "revocation",
                             STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
@@ -315,6 +331,56 @@ class BitstringStatusListRevocationServiceTest {
                     .build();
             assertThat(revocationService.getStatusPurpose(credential)).isSucceeded()
                     .isEqualTo("revocation, suspension");
+        }
+    }
+
+    @Nested
+    public class StatusListCredentialAsJwt {
+
+        private final BitstringStatusListRevocationService acceptJwtService = new BitstringStatusListRevocationService(mapper, 5 * 60 * 1000,
+                singleton("application/vc+jwt"), new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), mock()),
+                tokenValidationService, didPublicKeyResolver);
+
+        @Test
+        void downloadStatusListCredential_asJwt_successfulTokenValidation() throws Exception {
+            var jwtCredential = "eyABCDE";
+            server.stubFor(get("/credentials/status/3").willReturn(ok(jwtCredential)));
+
+            var bitstring = generateBitstring();
+            var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(bitstring);
+            when(tokenValidationService.validate(eq(jwtCredential), eq(didPublicKeyResolver), any(List.class)))
+                    .thenReturn(Result.success(ClaimToken.Builder.newInstance()
+                            .claim("vc", mapper.readValue(bitstringCredential, LinkedTreeMap.class))
+                            .build()));
+
+            var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
+                    Map.of(STATUS_LIST_PURPOSE, "revocation",
+                            STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                            STATUS_LIST_SIZE, 1,
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
+
+            assertThat(acceptJwtService.checkValidity(credential)).isSucceeded();
+            verify(tokenValidationService, times(1)).validate(eq(jwtCredential), eq(didPublicKeyResolver), any(List.class));
+        }
+
+        @Test
+        void downloadStatusListCredential_asJwt_failureInTokenValidation() throws Exception {
+            var jwtCredential = "eyABCDE";
+            server.stubFor(get("/credentials/status/3").willReturn(ok(jwtCredential)));
+
+            var bitstring = generateBitstring();
+            var bitstringCredential = TestData.BitstringStatusList.BITSTRING_STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_TEMPLATE.formatted(bitstring);
+            when(tokenValidationService.validate(eq(jwtCredential), eq(didPublicKeyResolver), any(List.class)))
+                    .thenReturn(Result.failure("error validating JWT"));
+
+            var credential = new CredentialStatus("test-id", BITSTRING_STATUSLIST_CREDENTIAL,
+                    Map.of(STATUS_LIST_PURPOSE, "revocation",
+                            STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                            STATUS_LIST_SIZE, 1,
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(server.getPort())));
+
+            assertThat(acceptJwtService.checkValidity(credential)).isFailed();
+            verify(tokenValidationService, times(1)).validate(eq(jwtCredential), eq(didPublicKeyResolver), any(List.class));
         }
     }
 }

@@ -16,6 +16,7 @@ package org.eclipse.edc.iam.verifiablecredentials.revocation.bitstring;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.verifiablecredentials.revocation.BaseRevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.BitString;
@@ -23,6 +24,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstrings
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.StatusMessage;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.spi.TokenValidationService;
 
 import java.util.Collection;
 
@@ -34,8 +36,10 @@ import static org.eclipse.edc.spi.result.Result.success;
  */
 public class BitstringStatusListRevocationService extends BaseRevocationListService<BitstringStatusListCredential, BitstringStatusListStatus> {
 
-    public BitstringStatusListRevocationService(ObjectMapper mapper, long cacheValidity, Collection<String> acceptedContentTypes, EdcHttpClient httpClient) {
-        super(mapper, cacheValidity, acceptedContentTypes, httpClient, BitstringStatusListCredential.class);
+    public BitstringStatusListRevocationService(ObjectMapper mapper, long cacheValidity, Collection<String> acceptedContentTypes,
+                                                EdcHttpClient httpClient, TokenValidationService tokenValidationService,
+                                                DidPublicKeyResolver didPublicKeyResolver) {
+        super(mapper, cacheValidity, acceptedContentTypes, httpClient, tokenValidationService, didPublicKeyResolver, BitstringStatusListCredential.class);
     }
 
     @Override
