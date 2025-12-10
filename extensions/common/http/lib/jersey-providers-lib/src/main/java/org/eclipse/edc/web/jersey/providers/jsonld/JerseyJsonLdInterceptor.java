@@ -16,7 +16,6 @@ package org.eclipse.edc.web.jersey.providers.jsonld;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.ext.Provider;
@@ -27,6 +26,7 @@ import jakarta.ws.rs.ext.WriterInterceptorContext;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import org.eclipse.edc.web.spi.validation.SchemaType;
 
@@ -69,7 +69,7 @@ public class JerseyJsonLdInterceptor implements ReaderInterceptor, WriterInterce
                 validateIfNeeded(context, jsonObject);
 
                 var expanded = jsonLd.expand(jsonObject)
-                        .orElseThrow(f -> new BadRequestException("Failed to expand JsonObject: " + f.getFailureDetail()));
+                        .orElseThrow(f -> new InvalidRequestException("Failed to expand JsonObject: " + f.getFailureDetail()));
 
                 var expandedBytes = typeManager.getMapper(typeContext).writeValueAsBytes(expanded);
                 context.setInputStream(new ByteArrayInputStream(expandedBytes));
@@ -83,21 +83,21 @@ public class JerseyJsonLdInterceptor implements ReaderInterceptor, WriterInterce
         if (validatorRegistry != null && schemaVersion != null) {
             var expectedType = getExpectedType(context);
             if (expectedType == null) {
-                throw new BadRequestException("SchemaType annotation is required for JsonObject validation");
+                throw new InvalidRequestException("SchemaType annotation is required for JsonObject validation");
             }
             var type = jsonObject.getString(TYPE, null);
             if (type != null) {
                 checkExpectedType(type, expectedType);
                 validatorRegistry.validate(schemaVersion + ":" + type, jsonObject).orElseThrow(ValidationFailureException::new);
             } else {
-                throw new BadRequestException("JsonObject is missing required property: " + TYPE);
+                throw new InvalidRequestException("JsonObject is missing required property: " + TYPE);
             }
         }
     }
 
     private void checkExpectedType(String type, SchemaType schemaType) {
         if (!Arrays.asList(schemaType.value()).contains(type)) {
-            throw new BadRequestException("JsonObject type '" + type + "' does not match expected types: " + Arrays.toString(schemaType.value()));
+            throw new InvalidRequestException("JsonObject type '" + type + "' does not match expected types: " + Arrays.toString(schemaType.value()));
         }
     }
 

@@ -40,6 +40,7 @@ import java.util.function.UnaryOperator;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
+import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -52,6 +53,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRI
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
@@ -59,6 +61,9 @@ import static org.eclipse.edc.util.io.Ports.getFreePort;
  * Essentially a wrapper around the management API enabling to test interactions with other participants, eg. catalog, transfer...
  */
 public class Participant {
+
+    public static final String MANAGEMENT_V3 = "/v3";
+    public static final String MANAGEMENT_V4 = "/v4beta";
 
     protected String id;
     protected String name;
@@ -70,6 +75,7 @@ public class Participant {
     protected ObjectMapper objectMapper;
     protected Duration timeout = Duration.ofSeconds(30);
     protected String protocol = "dataspace-protocol-http";
+    protected String managementVersionBasePath = MANAGEMENT_V3;
 
     protected Participant() {
     }
@@ -120,6 +126,19 @@ public class Participant {
         return controlPlaneProtocol.get() + protocolVersionPath;
     }
 
+    public String createAsset(JsonObject requestBody) {
+        return baseManagementRequest()
+                .contentType(JSON)
+                .body(requestBody)
+                .when()
+                .post("/assets")
+                .then()
+                .log().ifValidationFails()
+                .statusCode(200)
+                .contentType(JSON)
+                .extract().jsonPath().getString(ID);
+    }
+
     /**
      * Create a new {@link org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset}.
      *
@@ -140,7 +159,7 @@ public class Participant {
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
-                .post("/v3/assets")
+                .post("/assets")
                 .then()
                 .log().ifError()
                 .statusCode(200)
@@ -165,7 +184,7 @@ public class Participant {
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
-                .post("/v3/policydefinitions")
+                .post("/policydefinitions")
                 .then()
                 .log().ifValidationFails()
                 .statusCode(200)
@@ -184,8 +203,9 @@ public class Participant {
      */
     public String createContractDefinition(String assetId, String definitionId, String accessPolicyId, String contractPolicyId) {
         var requestBody = createObjectBuilder()
+                .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                 .add(ID, definitionId)
-                .add(TYPE, EDC_NAMESPACE + "ContractDefinition")
+                .add(TYPE, "ContractDefinition")
                 .add(EDC_NAMESPACE + "accessPolicyId", accessPolicyId)
                 .add(EDC_NAMESPACE + "contractPolicyId", contractPolicyId)
                 .add(EDC_NAMESPACE + "assetsSelector", Json.createArrayBuilder()
@@ -202,8 +222,9 @@ public class Participant {
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
-                .post("/v3/contractdefinitions")
+                .post("/contractdefinitions")
                 .then()
+                .log().ifValidationFails()
                 .statusCode(200)
                 .extract().jsonPath().getString(ID);
     }
@@ -242,7 +263,7 @@ public class Participant {
                     .contentType(JSON)
                     .when()
                     .body(requestBodyBuilder.build())
-                    .post("/v3/catalog/request")
+                    .post("/catalog/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -282,7 +303,7 @@ public class Participant {
                 .contentType(JSON)
                 .when()
                 .body(requestBody)
-                .post("/v3/catalog/dataset/request")
+                .post("/catalog/dataset/request")
                 .then()
                 .statusCode(200)
                 .contentType(JSON)
@@ -332,7 +353,7 @@ public class Participant {
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
-                .post("/v3/contractnegotiations")
+                .post("/contractnegotiations")
                 .then()
                 .log().ifError()
                 .statusCode(200)
@@ -414,7 +435,7 @@ public class Participant {
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
-                .post("/v3/transferprocesses")
+                .post("/transferprocesses")
                 .then()
                 .log().ifError()
                 .statusCode(200)
@@ -445,7 +466,7 @@ public class Participant {
                 .contentType(JSON)
                 .body(query)
                 .when()
-                .post("/v3/transferprocesses/request")
+                .post("/transferprocesses/request")
                 .then()
                 .statusCode(200)
                 .extract()
@@ -467,7 +488,7 @@ public class Participant {
         return baseManagementRequest()
                 .contentType(JSON)
                 .when()
-                .get("/v3/transferprocesses/{id}/state", id)
+                .get("/transferprocesses/{id}/state", id)
                 .then()
                 .statusCode(200)
                 .extract().body().jsonPath().getString("state");
@@ -488,7 +509,7 @@ public class Participant {
                 .contentType(JSON)
                 .body(requestBodyBuilder.build())
                 .when()
-                .post("/v3/transferprocesses/{id}/suspend", id)
+                .post("/transferprocesses/{id}/suspend", id)
                 .then()
                 .log().ifError()
                 .statusCode(204);
@@ -503,7 +524,7 @@ public class Participant {
         baseManagementRequest()
                 .contentType(JSON)
                 .when()
-                .post("/v3/transferprocesses/{id}/resume", id)
+                .post("/transferprocesses/{id}/resume", id)
                 .then()
                 .log().ifError()
                 .statusCode(204);
@@ -519,7 +540,7 @@ public class Participant {
                 .contentType(JSON)
                 .body(requestBodyBuilder.build())
                 .when()
-                .post("/v3/transferprocesses/{id}/terminate", id)
+                .post("/transferprocesses/{id}/terminate", id)
                 .then()
                 .log().ifError()
                 .statusCode(204);
@@ -542,7 +563,8 @@ public class Participant {
     }
 
     public RequestSpecification baseManagementRequest() {
-        var request = given().baseUri(controlPlaneManagement.get().toString());
+        var request = given().baseUri(controlPlaneManagement.get().toString())
+                .basePath(managementVersionBasePath);
         return enrichManagementRequest.apply(request);
     }
 
@@ -550,7 +572,7 @@ public class Participant {
         return baseManagementRequest()
                 .contentType(JSON)
                 .when()
-                .get("/v3/contractnegotiations/{id}", negotiationId)
+                .get("/contractnegotiations/{id}", negotiationId)
                 .then()
                 .statusCode(200)
                 .extract().body().jsonPath()
@@ -619,6 +641,11 @@ public class Participant {
 
         public B objectMapper(ObjectMapper objectMapper) {
             participant.objectMapper = objectMapper;
+            return self();
+        }
+
+        public B managementVersionBasePath(String managementVersionBasePath) {
+            participant.managementVersionBasePath = managementVersionBasePath;
             return self();
         }
 

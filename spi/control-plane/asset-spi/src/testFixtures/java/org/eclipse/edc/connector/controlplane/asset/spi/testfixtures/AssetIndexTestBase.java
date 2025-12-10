@@ -153,7 +153,7 @@ public abstract class AssetIndexTestBase {
 
             var assetDeleted = getAssetIndex().deleteById("id1");
 
-            Assertions.assertThat(assetDeleted).isNotNull().extracting(StoreResult::succeeded).isEqualTo(true);
+            assertThat(assetDeleted).isNotNull().extracting(StoreResult::succeeded).isEqualTo(true);
             assertThat(assetDeleted.getContent()).usingRecursiveComparison().isEqualTo(asset);
 
             assertThat(getAssetIndex().queryAssets(QuerySpec.none())).isEmpty();

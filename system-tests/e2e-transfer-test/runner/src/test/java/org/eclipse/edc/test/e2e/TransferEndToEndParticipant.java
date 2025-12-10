@@ -46,6 +46,15 @@ public class TransferEndToEndParticipant extends Participant {
                 .build();
     }
 
+    public static TransferEndToEndParticipant.Builder newInstance(ComponentRuntimeContext ctx) {
+        var id = ctx.getConfig().getString("edc.participant.id");
+        return TransferEndToEndParticipant.Builder.newInstance()
+                .id(id)
+                .name(ctx.getName())
+                .managementUrl(ctx.getEndpoint(MANAGEMENT))
+                .protocolUrl(ctx.getEndpoint(PROTOCOL));
+    }
+
     /**
      * Get the EDR from the EDR cache by transfer process id.
      *
@@ -56,7 +65,7 @@ public class TransferEndToEndParticipant extends Participant {
         var dataAddressRaw = baseManagementRequest()
                 .contentType(JSON)
                 .when()
-                .get("/v3/edrs/{id}/dataaddress", transferProcessId)
+                .get("/edrs/{id}/dataaddress", transferProcessId)
                 .then()
                 .log().ifError()
                 .statusCode(200)

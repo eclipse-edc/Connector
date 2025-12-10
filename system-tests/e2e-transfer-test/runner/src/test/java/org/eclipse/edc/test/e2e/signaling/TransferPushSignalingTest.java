@@ -29,6 +29,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import java.util.UUID;
+
+import static jakarta.json.Json.createArrayBuilder;
+import static jakarta.json.Json.createObjectBuilder;
+import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_TYPE_TERM;
+import static org.eclipse.edc.connector.controlplane.test.system.utils.Participant.MANAGEMENT_V4;
+import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.CONSUMER_CP;
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.CONSUMER_ID;
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.PROVIDER_CP;
@@ -42,9 +52,20 @@ interface TransferPushSignalingTest {
     @Test
     default void shouldRegisterDataPlaneThroughSignaling(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
         provider.baseManagementRequest()
-                .get("/v4beta/dataplanes")
+                .get("/dataplanes")
                 .then()
                 .body("size()", greaterThan(0));
+
+        var createAssetRequestBody = createObjectBuilder()
+                .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                .add(TYPE, EDC_ASSET_TYPE_TERM)
+                .add("properties", createObjectBuilder()
+                        .add("name", "test-asset"))
+                .build();
+
+        var noConstraintPolicyId = provider.createPolicyDefinition(noConstraintPolicy());
+        var assetId = provider.createAsset(createAssetRequestBody);
+        provider.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, noConstraintPolicyId);
     }
 
     @Nested
@@ -57,7 +78,9 @@ interface TransferPushSignalingTest {
                 .modules(Runtimes.ControlPlane.SIGNALING_MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
-                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .paramProvider(TransferEndToEndParticipant.class, ctx -> TransferEndToEndParticipant.newInstance(ctx)
+                        .managementVersionBasePath(MANAGEMENT_V4)
+                        .build())
                 .build();
 
         static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
@@ -68,7 +91,9 @@ interface TransferPushSignalingTest {
                 .modules(Runtimes.ControlPlane.SIGNALING_MODULES)
                 .endpoints(PROVIDER_ENDPOINTS)
                 .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
-                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .paramProvider(TransferEndToEndParticipant.class, ctx -> TransferEndToEndParticipant.newInstance(ctx)
+                        .managementVersionBasePath(MANAGEMENT_V4)
+                        .build())
                 .build();
 
         @RegisterExtension
@@ -107,7 +132,9 @@ interface TransferPushSignalingTest {
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONSUMER_DB))
-                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .paramProvider(TransferEndToEndParticipant.class, ctx -> TransferEndToEndParticipant.newInstance(ctx)
+                        .managementVersionBasePath(MANAGEMENT_V4)
+                        .build())
                 .build();
 
         static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
@@ -120,7 +147,9 @@ interface TransferPushSignalingTest {
                 .endpoints(PROVIDER_ENDPOINTS)
                 .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER_DB))
-                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .paramProvider(TransferEndToEndParticipant.class, ctx -> TransferEndToEndParticipant.newInstance(ctx)
+                        .managementVersionBasePath(MANAGEMENT_V4)
+                        .build())
                 .build();
 
         @RegisterExtension

@@ -75,9 +75,11 @@ public class AssetServiceImpl implements AssetService {
             return ServiceResult.badRequest(DUPLICATED_KEYS_MESSAGE);
         }
 
-        var validDataAddress = dataAddressValidator.validateSource(asset.getDataAddress());
-        if (validDataAddress.failed()) {
-            return ServiceResult.badRequest(validDataAddress.getFailureMessages());
+        if (asset.getDataAddress() != null) {
+            var validDataAddress = dataAddressValidator.validateSource(asset.getDataAddress());
+            if (validDataAddress.failed()) {
+                return ServiceResult.badRequest(validDataAddress.getFailureMessages());
+            }
         }
 
         return transactionContext.execute(() -> {
