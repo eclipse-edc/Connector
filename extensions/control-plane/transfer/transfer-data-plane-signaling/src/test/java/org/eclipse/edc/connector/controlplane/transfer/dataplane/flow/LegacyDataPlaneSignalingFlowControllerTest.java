@@ -55,7 +55,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-public class DataPlaneSignalingFlowControllerTest {
+public class LegacyDataPlaneSignalingFlowControllerTest {
 
     private static final String HTTP_DATA_PULL = "HttpData-PULL";
     private final DataPlaneClient dataPlaneClient = mock();
@@ -64,7 +64,7 @@ public class DataPlaneSignalingFlowControllerTest {
     private final DataFlowPropertiesProvider propertiesProvider = mock();
     private final TransferTypeParser transferTypeParser = mock();
 
-    private final DataPlaneSignalingFlowController flowController = new DataPlaneSignalingFlowController(
+    private final LegacyDataPlaneSignalingFlowController flowController = new LegacyDataPlaneSignalingFlowController(
             () -> URI.create("http://localhost"), selectorService, propertiesProvider, dataPlaneClientFactory,
             "random", transferTypeParser);
 

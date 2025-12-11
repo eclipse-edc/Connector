@@ -300,7 +300,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     }
 
     public void transitionStarting() {
-        transition(STARTING, PROVISIONED, STARTING, SUSPENDED, STARTUP_REQUESTED);
+        transition(STARTING, PROVISIONED, INITIAL, STARTING, SUSPENDED, STARTUP_REQUESTED);
     }
 
     public boolean canBeStartedConsumer() {
