@@ -111,53 +111,72 @@ class AssetServiceImplTest {
         verifyNoInteractions(contractNegotiationStore);
     }
 
-    @Test
-    void createAsset_shouldCreateAssetIfItDoesNotAlreadyExist() {
-        when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
-        var assetId = "assetId";
-        var asset = createAsset(assetId);
-        when(index.create(asset)).thenReturn(StoreResult.success());
+    @Nested
+    class CreateAsset {
+        @Test
+        void shouldCreateAssetIfItDoesNotAlreadyExist() {
+            when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
+            var assetId = "assetId";
+            var asset = createAsset(assetId);
+            when(index.create(asset)).thenReturn(StoreResult.success());
 
-        var inserted = service.create(asset);
+            var inserted = service.create(asset);
 
-        assertThat(inserted.succeeded()).isTrue();
-        assertThat(inserted.getContent()).matches(hasId(assetId));
-        verify(index).create(and(isA(Asset.class), argThat(it -> assetId.equals(it.getId()))));
-        verifyNoMoreInteractions(index);
-        verify(observable).invokeForEach(any());
-    }
+            assertThat(inserted.succeeded()).isTrue();
+            assertThat(inserted.getContent()).matches(hasId(assetId));
+            verify(index).create(and(isA(Asset.class), argThat(it -> assetId.equals(it.getId()))));
+            verifyNoMoreInteractions(index);
+            verify(observable).invokeForEach(any());
+        }
 
-    @Test
-    void createAsset_shouldNotCreateAssetIfItAlreadyExists() {
-        when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
-        var asset = createAsset("assetId");
-        when(index.create(asset)).thenReturn(StoreResult.alreadyExists("test"));
+        @Test
+        void shouldCreateAsset_whenDataAddressIsNull() {
+            when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
+            var assetId = "assetId";
+            var asset = createAssetBuilder(assetId).dataAddress(null).build();
+            when(index.create(asset)).thenReturn(StoreResult.success());
 
-        var inserted = service.create(asset);
+            var inserted = service.create(asset);
 
-        assertThat(inserted).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-    }
+            assertThat(inserted).isSucceeded().matches(hasId(assetId));
+            verify(index).create(and(isA(Asset.class), argThat(it -> assetId.equals(it.getId()))));
+            verifyNoMoreInteractions(index);
+            verifyNoInteractions(dataAddressValidator);
+            verify(observable).invokeForEach(any());
+        }
 
-    @Test
-    void createAsset_shouldNotCreateAssetIfDataAddressInvalid() {
-        var asset = createAsset("assetId");
-        when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.failure(violation("Data address is invalid", "path")));
+        @Test
+        void shouldNotCreateAssetIfItAlreadyExists() {
+            when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
+            var asset = createAsset("assetId");
+            when(index.create(asset)).thenReturn(StoreResult.alreadyExists("test"));
 
-        var result = service.create(asset);
+            var inserted = service.create(asset);
 
-        Assertions.assertThat(result).satisfies(ServiceResult::failed).extracting(ServiceResult::reason).isEqualTo(BAD_REQUEST);
-        verifyNoInteractions(index);
-    }
+            assertThat(inserted).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+        }
 
-    @Test
-    void createAsset_shouldFail_whenPropertiesAreDuplicated() {
-        var asset = createAssetBuilder("assetId").property("property", "value").privateProperty("property", "other-value").build();
-        when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
+        @Test
+        void shouldNotCreateAssetIfDataAddressInvalid() {
+            var asset = createAsset("assetId");
+            when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.failure(violation("Data address is invalid", "path")));
 
-        var result = service.create(asset);
+            var result = service.create(asset);
 
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
-        verifyNoInteractions(index);
+            Assertions.assertThat(result).satisfies(ServiceResult::failed).extracting(ServiceResult::reason).isEqualTo(BAD_REQUEST);
+            verifyNoInteractions(index);
+        }
+
+        @Test
+        void shouldFail_whenPropertiesAreDuplicated() {
+            var asset = createAssetBuilder("assetId").property("property", "value").privateProperty("property", "other-value").build();
+            when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
+
+            var result = service.create(asset);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+            verifyNoInteractions(index);
+        }
     }
 
     @Nested

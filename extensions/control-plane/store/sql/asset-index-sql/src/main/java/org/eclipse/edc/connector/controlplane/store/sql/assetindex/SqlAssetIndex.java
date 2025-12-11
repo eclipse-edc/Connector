@@ -84,13 +84,10 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     @Override
     public StoreResult<Void> create(Asset asset) {
         Objects.requireNonNull(asset);
-        var dataAddress = asset.getDataAddress();
 
-        Objects.requireNonNull(dataAddress);
-
-        var assetId = asset.getId();
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
+                var assetId = asset.getId();
                 if (existsById(assetId, connection)) {
                     var msg = format(ASSET_EXISTS_TEMPLATE, assetId);
                     return StoreResult.alreadyExists(msg);
@@ -101,7 +98,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                         asset.getCreatedAt(),
                         toJson(asset.getProperties()),
                         toJson(asset.getPrivateProperties()),
-                        toJson(asset.getDataAddress().getProperties()),
+                        toJson(Optional.ofNullable(asset.getDataAddress()).map(DataAddress::getProperties).orElse(null)),
                         asset.getParticipantContextId(),
                         toJson(asset.getDataplaneMetadata())
                 );

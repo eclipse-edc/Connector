@@ -39,7 +39,6 @@ import static java.lang.String.format;
  */
 public class InMemoryAssetIndex implements AssetIndex {
     private final Map<String, Asset> cache = new ConcurrentHashMap<>();
-    private final Map<String, DataAddress> dataAddresses = new ConcurrentHashMap<>();
     private final CriterionOperatorRegistry criterionOperatorRegistry;
     private final ReentrantReadWriteLock lock;
 
@@ -87,7 +86,7 @@ public class InMemoryAssetIndex implements AssetIndex {
             if (cache.containsKey(id)) {
                 return StoreResult.alreadyExists(format(ASSET_EXISTS_TEMPLATE, id));
             }
-            add(asset, asset.getDataAddress());
+            cache.put(asset.getId(), asset);
         } finally {
             lock.writeLock().unlock();
         }
@@ -98,7 +97,7 @@ public class InMemoryAssetIndex implements AssetIndex {
     public StoreResult<Asset> deleteById(String assetId) {
         lock.writeLock().lock();
         try {
-            return Optional.ofNullable(delete(assetId))
+            return Optional.ofNullable(cache.remove(assetId))
                     .map(StoreResult::success)
                     .orElse(StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, assetId)));
         } finally {
@@ -119,7 +118,7 @@ public class InMemoryAssetIndex implements AssetIndex {
             Objects.requireNonNull(asset, "asset");
             Objects.requireNonNull(id, "assetId");
             if (cache.containsKey(id)) {
-                add(asset, asset.getDataAddress());
+                cache.put(asset.getId(), asset);
                 return StoreResult.success(asset);
             }
             return StoreResult.notFound(format(ASSET_NOT_FOUND_TEMPLATE, id));
@@ -133,7 +132,7 @@ public class InMemoryAssetIndex implements AssetIndex {
         Objects.requireNonNull(assetId, "assetId");
         lock.readLock().lock();
         try {
-            return dataAddresses.get(assetId);
+            return Optional.ofNullable(cache.get(assetId)).map(Asset::getDataAddress).orElse(null);
         } finally {
             lock.readLock().unlock();
         }
@@ -146,22 +145,6 @@ public class InMemoryAssetIndex implements AssetIndex {
 
         return cache.values().stream()
                 .filter(predicate);
-    }
-
-    private Asset delete(String assetId) {
-        dataAddresses.remove(assetId);
-        return cache.remove(assetId);
-    }
-
-    /**
-     * this method is NOT secured with locks, any guarding must take place in the calling method!
-     */
-    private void add(Asset asset, DataAddress address) {
-        var id = asset.getId();
-        Objects.requireNonNull(asset, "asset");
-        Objects.requireNonNull(id, "asset.getId()");
-        cache.put(id, asset);
-        dataAddresses.put(id, address);
     }
 
 }

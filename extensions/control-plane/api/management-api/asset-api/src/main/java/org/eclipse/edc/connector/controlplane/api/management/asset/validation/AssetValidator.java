@@ -36,7 +36,6 @@ public class AssetValidator {
         return JsonObjectValidator.newValidator()
                 .verifyId(OptionalIdNotBlank::new)
                 .verify(EDC_ASSET_PROPERTIES, MandatoryObject::new)
-                .verify(EDC_ASSET_DATA_ADDRESS, MandatoryObject::new)
                 .verify(path -> new AssetPropertiesUniqueness())
                 .verifyObject(EDC_ASSET_DATA_ADDRESS, DataAddressValidator::instance)
                 .build();

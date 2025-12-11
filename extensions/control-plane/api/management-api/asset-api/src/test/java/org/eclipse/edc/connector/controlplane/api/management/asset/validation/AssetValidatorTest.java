@@ -51,7 +51,6 @@ class AssetValidatorTest {
         var input = createObjectBuilder()
                 .add(ID, " ")
                 .add(EDC_ASSET_PROPERTIES, createArrayBuilder().add(createObjectBuilder()))
-                .add(EDC_ASSET_DATA_ADDRESS, validDataAddress())
                 .build();
 
         var result = validator.validate(input);
@@ -114,10 +113,4 @@ class AssetValidatorTest {
         );
     }
 
-    private JsonArrayBuilder validAsset() {
-        return createArrayBuilder()
-                .add(createObjectBuilder()
-                        .add(EDC_ASSET_PROPERTIES, createArrayBuilder().add(createObjectBuilder()))
-                );
-    }
 }

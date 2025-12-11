@@ -38,8 +38,7 @@
       "required": [
         "@context",
         "@type",
-        "properties",
-        "dataAddress"
+        "properties"
       ]
     }
   }
