@@ -900,7 +900,7 @@ class TransferProcessManagerImplTest {
         }
 
         @Test
-        void shouldTransitionToTerminating_whenAssetIsNotResolved() {
+        void shouldTransitionToStarting_whenTransferHasNoDataAddress() {
             var transferProcess = builder.build();
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
@@ -914,7 +914,7 @@ class TransferProcessManagerImplTest {
                 verify(transferProcessStore).save(captor.capture());
                 verifyNoInteractions(manifestGenerator, provisionManager);
                 var actualTransferProcess = captor.getValue();
-                assertThat(actualTransferProcess.getState()).isEqualTo(TERMINATING.code());
+                assertThat(actualTransferProcess.getState()).isEqualTo(STARTING.code());
             });
         }
     }

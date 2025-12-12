@@ -36,6 +36,7 @@ import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.Participant.MANAGEMENT_V4;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
@@ -50,7 +51,8 @@ import static org.hamcrest.Matchers.greaterThan;
 interface TransferPushSignalingTest {
 
     @Test
-    default void shouldRegisterDataPlaneThroughSignaling(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
+    default void shouldRegisterDataPlaneThroughSignaling(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
+                                                         @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer) {
         provider.baseManagementRequest()
                 .get("/dataplanes")
                 .then()
@@ -66,6 +68,11 @@ interface TransferPushSignalingTest {
         var noConstraintPolicyId = provider.createPolicyDefinition(noConstraintPolicy());
         var assetId = provider.createAsset(createAssetRequestBody);
         provider.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, noConstraintPolicyId);
+
+        var transferProcessId = consumer.requestAssetFrom(assetId, provider)
+                .withTransferType("Finite-PUSH").execute();
+
+        consumer.awaitTransferToBeInState(transferProcessId, STARTED);
     }
 
     @Nested

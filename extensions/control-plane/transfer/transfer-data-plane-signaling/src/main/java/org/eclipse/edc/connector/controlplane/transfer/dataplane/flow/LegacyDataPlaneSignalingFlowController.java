@@ -48,11 +48,12 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
  * <p>
  * It handles all the transfer process where the transferType met the criteria defined in the format mapping of the
  * signaling spec
+ * This implementation will soon be replaced by the one supporting the upcoming Data Plane Signaling spec.
  *
  * @see <a href="https://github.com/eclipse-edc/Connector/blob/main/docs/developer/data-plane-signaling/data-plane-signaling.md">Data plane signaling</a>
  * @see <a href="https://github.com/eclipse-edc/Connector/blob/main/docs/developer/data-plane-signaling/data-plane-signaling-mapping.md">Data plane signaling transfer type mapping</a>
  */
-public class DataPlaneSignalingFlowController implements DataFlowController {
+public class LegacyDataPlaneSignalingFlowController implements DataFlowController {
 
     private final ControlApiUrl callbackUrl;
     private final DataPlaneSelectorService selectorClient;
@@ -61,9 +62,9 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
     private final String selectionStrategy;
     private final TransferTypeParser transferTypeParser;
 
-    public DataPlaneSignalingFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient,
-                                            DataFlowPropertiesProvider propertiesProvider, DataPlaneClientFactory clientFactory,
-                                            String selectionStrategy, TransferTypeParser transferTypeParser) {
+    public LegacyDataPlaneSignalingFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient,
+                                                  DataFlowPropertiesProvider propertiesProvider, DataPlaneClientFactory clientFactory,
+                                                  String selectionStrategy, TransferTypeParser transferTypeParser) {
         this.callbackUrl = callbackUrl;
         this.selectorClient = selectorClient;
         this.propertiesProvider = propertiesProvider;
@@ -186,6 +187,12 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
         }
 
         var assetDataAddress = asset.getDataAddress();
+        if (assetDataAddress == null) {
+            return allDataPlanes.getContent().stream()
+                    .flatMap(dataPlane -> dataPlane.getAllowedTransferTypes().stream())
+                    .collect(toSet());
+        }
+
         var expectedResponseChannelType = Optional.ofNullable(assetDataAddress.getResponseChannel())
                 .map(DataAddress::getType)
                 .orElse(null);

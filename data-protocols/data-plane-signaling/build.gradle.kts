@@ -29,3 +29,9 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
     testImplementation(libs.restAssured)
 }
+
+edcBuild {
+    swagger {
+        apiGroup.set("control-api")
+    }
+}

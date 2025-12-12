@@ -237,7 +237,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             var assetId = process.getAssetId();
             var dataAddress = addressResolver.resolveForAsset(assetId);
             if (dataAddress == null) {
-                transitionToTerminating(process, "Asset not found: " + assetId);
+                transitionToStarting(process);
                 return true;
             }
             // default the content address to the asset address; this may be overridden during provisioning

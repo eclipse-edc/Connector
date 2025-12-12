@@ -35,23 +35,26 @@ edcBuild {
     publish.set(false)
 }
 
+val opentelemetryVersion = libs.versions.opentelemetry.asProvider().get()!!
 tasks.withType<Test> {
-    val download = { url: String, destFile: File -> ant.invokeMethod("get", mapOf("src" to url, "dest" to destFile)) }
+    afterEvaluate {
+        val download = { url: String, destFile: File -> ant.invokeMethod("get", mapOf("src" to url, "dest" to destFile)) }
 
-    val agentFile = rootDir.resolve("opentelemetry-javaagent.jar")
+        val agentFile = rootDir.resolve("opentelemetry-javaagent.jar")
 
-    if (!agentFile.exists()) {
-        logger.lifecycle("Downloading OpenTelemetry Agent")
-        download(
-            "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v1.27.0/opentelemetry-javaagent.jar",
-            agentFile
+        if (!agentFile.exists()) {
+            logger.lifecycle("Downloading OpenTelemetry Agent")
+            download(
+                "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v$opentelemetryVersion/opentelemetry-javaagent.jar",
+                agentFile
+            )
+        }
+        jvmArgs(
+            "-javaagent:${agentFile.absolutePath}",
+            "-Dotel.exporter.otlp.protocol=http/protobuf",
+            // Exposes metrics at http://localhost:9464/metrics
+            "-Dotel.metrics.exporter=prometheus"
         )
     }
-    jvmArgs(
-        "-javaagent:${agentFile.absolutePath}",
-        "-Dotel.exporter.otlp.protocol=http/protobuf",
-        // Exposes metrics at http://localhost:9464/metrics
-        "-Dotel.metrics.exporter=prometheus"
-    )
 }
 

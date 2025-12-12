@@ -29,8 +29,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
@@ -61,7 +61,9 @@ public class DataFlowManagerImpl implements DataFlowManager {
     @Override
     public @NotNull StatusResult<DataFlowResponse> prepare(TransferProcess transferProcess, Policy policy) {
         try {
-            return chooseControllerAndApply(transferProcess, controller -> controller.prepare(transferProcess, policy));
+            return chooseController(transferProcess)
+                    .map(controller -> controller.prepare(transferProcess, policy))
+                    .orElseGet(() -> StatusResult.failure(FATAL_ERROR, controllerNotFound(transferProcess.getId())));
         } catch (Exception e) {
             var message = runtimeException(transferProcess.getId(), e.getMessage());
             monitor.severe(message, e);
@@ -73,7 +75,9 @@ public class DataFlowManagerImpl implements DataFlowManager {
     @Override
     public @NotNull StatusResult<DataFlowResponse> start(TransferProcess transferProcess, Policy policy) {
         try {
-            return chooseControllerAndApply(transferProcess, controller -> controller.start(transferProcess, policy));
+            return chooseController(transferProcess)
+                    .map(controller -> controller.start(transferProcess, policy))
+                    .orElseGet(() -> StatusResult.failure(FATAL_ERROR, controllerNotFound(transferProcess.getId())));
         } catch (Exception e) {
             var message = runtimeException(transferProcess.getId(), e.getMessage());
             monitor.severe(message, e);
@@ -83,12 +87,16 @@ public class DataFlowManagerImpl implements DataFlowManager {
 
     @Override
     public @NotNull StatusResult<Void> terminate(TransferProcess transferProcess) {
-        return chooseControllerAndApply(transferProcess, controller -> controller.terminate(transferProcess));
+        return chooseController(transferProcess)
+                .map(controller -> controller.terminate(transferProcess))
+                .orElseGet(() -> StatusResult.failure(FATAL_ERROR, controllerNotFound(transferProcess.getId())));
     }
 
     @Override
     public @NotNull StatusResult<Void> suspend(TransferProcess transferProcess) {
-        return chooseControllerAndApply(transferProcess, controller -> controller.suspend(transferProcess));
+        return chooseController(transferProcess)
+                .map(controller -> controller.suspend(transferProcess))
+                .orElseGet(() -> StatusResult.failure(FATAL_ERROR, controllerNotFound(transferProcess.getId())));
     }
 
     @Override
@@ -100,15 +108,12 @@ public class DataFlowManagerImpl implements DataFlowManager {
                 .collect(toSet());
     }
 
-    @NotNull
-    private <T> StatusResult<T> chooseControllerAndApply(TransferProcess transferProcess, Function<DataFlowController, StatusResult<T>> function) {
+    private Optional<DataFlowController> chooseController(TransferProcess transferProcess) {
         return controllers.stream()
                 .sorted(Comparator.comparingInt(a -> -a.priority))
                 .map(PrioritizedDataFlowController::controller)
                 .filter(controller -> controller.canHandle(transferProcess))
-                .findFirst()
-                .map(function)
-                .orElseGet(() -> StatusResult.failure(FATAL_ERROR, controllerNotFound(transferProcess.getId())));
+                .findFirst();
     }
 
     private String runtimeException(String id, String message) {

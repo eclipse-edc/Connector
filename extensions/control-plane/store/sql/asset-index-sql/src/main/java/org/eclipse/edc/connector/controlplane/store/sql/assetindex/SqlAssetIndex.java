@@ -36,6 +36,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -185,14 +186,16 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
     }
 
     private Asset mapAsset(ResultSet resultSet) throws SQLException {
+        Map<String, Object> dataAddressProperties = fromJson(resultSet.getString(assetStatements.getDataAddressColumn()), getTypeRef());
+        var dataAddress = Optional.ofNullable(dataAddressProperties)
+                .map(it -> DataAddress.Builder.newInstance().properties(dataAddressProperties).build())
+                .orElse(null);
         return Asset.Builder.newInstance()
                 .id(resultSet.getString(assetStatements.getAssetIdColumn()))
                 .createdAt(resultSet.getLong(assetStatements.getCreatedAtColumn()))
                 .properties(fromJson(resultSet.getString(assetStatements.getPropertiesColumn()), getTypeRef()))
                 .privateProperties(fromJson(resultSet.getString(assetStatements.getPrivatePropertiesColumn()), getTypeRef()))
-                .dataAddress(DataAddress.Builder.newInstance()
-                        .properties(fromJson(resultSet.getString(assetStatements.getDataAddressColumn()), getTypeRef()))
-                        .build())
+                .dataAddress(dataAddress)
                 .participantContextId(resultSet.getString(assetStatements.getParticipantContextIdColumn()))
                 .dataplaneMetadata(fromJson(resultSet.getString(assetStatements.getDataplaneMetadataColumn()), DataplaneMetadata.class))
                 .build();

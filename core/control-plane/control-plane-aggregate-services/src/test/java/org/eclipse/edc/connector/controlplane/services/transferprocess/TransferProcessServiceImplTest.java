@@ -44,6 +44,7 @@ import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -197,9 +198,13 @@ class TransferProcessServiceImplTest {
     }
 
     private TransferRequest transferRequest() {
-        return TransferRequest.Builder.newInstance()
-                .dataDestination(DataAddress.Builder.newInstance().type("type").build())
+        return transferRequestBuilder()
                 .build();
+    }
+
+    private TransferRequest.@NonNull Builder transferRequestBuilder() {
+        return TransferRequest.Builder.newInstance()
+                .dataDestination(DataAddress.Builder.newInstance().type("type").build());
     }
 
     private ContractAgreement createContractAgreement(String agreementId, String assetId) {
@@ -297,19 +302,19 @@ class TransferProcessServiceImplTest {
         }
 
         @Test
-        void shouldFail_whenDataDestinationNotPassedAndFlowTypeIsPush() {
-            var transferRequest = TransferRequest.Builder.newInstance()
-                    .transferType("any")
-                    .build();
+        void shouldInitiateTransfer_whenNoDataDestination() {
+            var transferRequest = transferRequestBuilder().dataDestination(null).build();
+            var transferProcess = transferProcess();
             when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
-                    .thenReturn(createContractAgreement(transferRequest.getContractId(), "assetId"));
+                    .thenReturn(createContractAgreement(transferProcess.getContractId(), "assetId"));
             when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
+            when(manager.initiateConsumerRequest(any(), eq(transferRequest))).thenReturn(StatusResult.success(transferProcess));
 
             var result = service.initiateTransfer(participantContext, transferRequest);
 
-            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
-            assertThat(result.getFailureMessages()).containsExactly("For PUSH transfers dataDestination must be defined");
-            verifyNoInteractions(manager);
+            assertThat(result).isSucceeded().isEqualTo(transferProcess);
+            verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+            verifyNoInteractions(dataAddressValidator);
         }
     }
 
