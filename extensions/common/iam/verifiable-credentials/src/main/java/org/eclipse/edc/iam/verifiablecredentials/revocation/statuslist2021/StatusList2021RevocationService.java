@@ -16,12 +16,14 @@ package org.eclipse.edc.iam.verifiablecredentials.revocation.statuslist2021;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.http.spi.EdcHttpClient;
+import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.verifiablecredentials.revocation.BaseRevocationListService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.BitString;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Credential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Status;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.spi.TokenValidationService;
 
 import java.util.Collection;
 
@@ -34,8 +36,10 @@ import static org.eclipse.edc.spi.result.Result.success;
  */
 public class StatusList2021RevocationService extends BaseRevocationListService<StatusList2021Credential, StatusList2021Status> {
 
-    public StatusList2021RevocationService(ObjectMapper objectMapper, long cacheValidity, Collection<String> acceptedContentTypes, EdcHttpClient httpClient) {
-        super(objectMapper, cacheValidity, acceptedContentTypes, httpClient, StatusList2021Credential.class);
+    public StatusList2021RevocationService(ObjectMapper objectMapper, long cacheValidity, Collection<String> acceptedContentTypes,
+                                           EdcHttpClient httpClient, TokenValidationService tokenValidationService,
+                                           DidPublicKeyResolver didPublicKeyResolver) {
+        super(objectMapper, cacheValidity, acceptedContentTypes, httpClient, tokenValidationService, didPublicKeyResolver, StatusList2021Credential.class);
     }
 
     @Override
