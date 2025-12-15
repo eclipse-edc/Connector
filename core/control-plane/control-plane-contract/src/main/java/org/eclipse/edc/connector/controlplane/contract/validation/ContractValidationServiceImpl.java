@@ -40,7 +40,6 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.Optional;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.spi.result.Result.failure;
@@ -72,8 +71,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
     @Override
     public @NotNull Result<ContractAgreement> validateAgreement(ParticipantAgent agent, ContractAgreement agreement) {
-        var consumerIdentity = agent.getIdentity();
-        if (consumerIdentity == null || !consumerIdentity.equals(agreement.getConsumerId())) {
+        if (!Objects.equals(agent.getIdentity(), agreement.getConsumerId())) {
             return failure("Invalid provider credentials");
         }
 
@@ -87,16 +85,20 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
     @Override
     public @NotNull Result<Void> validateRequest(ParticipantAgent agent, ContractAgreement agreement) {
-        return Optional.ofNullable(agent.getIdentity())
-                .filter(id -> id.equals(agreement.getConsumerId()) || id.equals(agreement.getProviderId()))
-                .map(id -> Result.success())
-                .orElse(Result.failure("Invalid counter-party identity"));
+        if (agent.getIdentity().equals(agreement.getConsumerId()) || agent.getIdentity().equals(agreement.getProviderId())) {
+            return Result.success();
+        }
+
+        return Result.failure("Invalid counter-party identity");
     }
 
     @Override
     public @NotNull Result<Void> validateRequest(ParticipantAgent agent, ContractNegotiation negotiation) {
-        var counterPartyIdentity = agent.getIdentity();
-        return counterPartyIdentity != null && counterPartyIdentity.equals(negotiation.getCounterPartyId()) ? success() : failure("Invalid counter-party identity");
+        if (agent.getIdentity().equals(negotiation.getCounterPartyId())) {
+            return success();
+        }
+
+        return failure("Invalid counter-party identity");
     }
 
     @Override
@@ -121,11 +123,6 @@ public class ContractValidationServiceImpl implements ContractValidationService 
      * A sanitized policy definition is returned to avoid clients injecting manipulated policies.
      */
     private Result<Policy> validateInitialOffer(ValidatableConsumerOffer consumerOffer, ParticipantAgent agent) {
-        var consumerIdentity = agent.getIdentity();
-        if (consumerIdentity == null) {
-            return failure("Invalid consumer identity");
-        }
-
         var accessPolicyResult = policyEngine.evaluate(consumerOffer.getAccessPolicy(), new CatalogPolicyContext(agent));
 
         if (accessPolicyResult.failed()) {

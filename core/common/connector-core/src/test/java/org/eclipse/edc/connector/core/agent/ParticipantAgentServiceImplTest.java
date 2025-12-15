@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.participant.spi.ParticipantAgent.PARTICIPANT_IDENTITY;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -35,7 +34,7 @@ class ParticipantAgentServiceImplTest {
 
     @Test
     void verifyRegisteredExtensionIsInvoked() {
-        ParticipantAgentServiceExtension extension = mock(ParticipantAgentServiceExtension.class);
+        var extension = mock(ParticipantAgentServiceExtension.class);
         when(extension.attributesFor(isA(ClaimToken.class))).thenReturn(Map.of("foo", "bar"));
 
         var participantAgentService = new ParticipantAgentServiceImpl();
@@ -64,7 +63,6 @@ class ParticipantAgentServiceImplTest {
         var givenParticipantId = "test-participant";
 
         var extension = mock(ParticipantAgentServiceExtension.class);
-        when(extension.attributesFor(isA(ClaimToken.class))).thenReturn(Map.of(PARTICIPANT_IDENTITY, extensionParticipantId));
         participantAgentService.register(extension);
 
         var agent = participantAgentService.createFor(ClaimToken.Builder.newInstance().build(), givenParticipantId);

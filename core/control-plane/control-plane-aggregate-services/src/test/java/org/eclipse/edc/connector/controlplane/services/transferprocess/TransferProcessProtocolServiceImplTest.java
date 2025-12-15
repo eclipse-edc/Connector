@@ -413,7 +413,7 @@ class TransferProcessProtocolServiceImplTest {
     }
 
     private ParticipantAgent participantAgent() {
-        return new ParticipantAgent(emptyMap(), emptyMap());
+        return new ParticipantAgent("identity", emptyMap(), emptyMap());
     }
 
     private TokenRepresentation tokenRepresentation() {

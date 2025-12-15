@@ -94,7 +94,7 @@ class DatasetResolverImplTest {
     }
 
     private ParticipantAgent createParticipantAgent() {
-        return new ParticipantAgent(emptyMap(), emptyMap());
+        return new ParticipantAgent("identity", emptyMap(), emptyMap());
     }
 
     private ParticipantContext createParticipantContext() {
