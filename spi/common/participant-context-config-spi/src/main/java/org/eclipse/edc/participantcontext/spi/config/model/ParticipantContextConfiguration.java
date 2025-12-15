@@ -68,6 +68,7 @@ public class ParticipantContextConfiguration implements ParticipantResource {
                 .clock(clock)
                 .createdAt(createdAt)
                 .lastModified(lastModified)
+                .privateEntries(privateEntries)
                 .entries(entries);
     }
 
