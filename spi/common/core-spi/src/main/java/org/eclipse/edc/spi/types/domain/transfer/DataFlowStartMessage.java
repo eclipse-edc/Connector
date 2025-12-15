@@ -271,7 +271,6 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
                 request.traceContext = new HashMap<>();
             }
             Objects.requireNonNull(request.processId, "processId");
-            Objects.requireNonNull(request.sourceDataAddress, "sourceDataAddress");
             if (request.transferType == null) {
                 request.transferType = new TransferType(this.transferTypeDestination, this.flowType);
             }

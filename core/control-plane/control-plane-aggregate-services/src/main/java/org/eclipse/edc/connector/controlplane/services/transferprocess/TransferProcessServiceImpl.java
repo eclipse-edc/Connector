@@ -136,11 +136,7 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
         var flowType = transferTypeParse.getContent().flowType();
 
-        if (flowType == FlowType.PUSH) {
-            if (request.getDataDestination() == null) {
-                return ServiceResult.badRequest("For PUSH transfers dataDestination must be defined");
-            }
-
+        if (flowType == FlowType.PUSH && request.getDataDestination() != null) {
             var validDestination = dataAddressValidator.validateDestination(request.getDataDestination());
             if (validDestination.failed()) {
                 return ServiceResult.badRequest(validDestination.getFailureMessages());
