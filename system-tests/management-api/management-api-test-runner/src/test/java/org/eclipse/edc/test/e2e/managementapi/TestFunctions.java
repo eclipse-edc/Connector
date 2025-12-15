@@ -20,6 +20,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry;
 import org.eclipse.edc.policy.engine.spi.PolicyValidatorRule;
@@ -46,6 +47,7 @@ import java.time.Clock;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
@@ -328,6 +330,11 @@ public class TestFunctions {
                 .contractAgreement(createContractAgreement("test-agreement"))
                 .state(REQUESTED.code())
                 .type(ContractNegotiation.Type.PROVIDER)
+                .contractOffer(ContractOffer.Builder.newInstance()
+                        .id(UUID.randomUUID().toString())
+                        .assetId("assetId")
+                        .policy(Policy.Builder.newInstance().build())
+                        .build())
                 .callbackAddresses(List.of(
                         CallbackAddress.Builder.newInstance()
                                 .uri("local://test")

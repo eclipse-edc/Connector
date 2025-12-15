@@ -201,6 +201,8 @@ public class SerdeEndToEndTest {
                 assertThat(events).containsAll(firstCallback.getEvents());
             });
             assertThat(compactResult.getJsonNumber("createdAt").longValue()).isEqualTo(1234);
+            assertThat(compactResult.getString("assetId")).isEqualTo(negotiation.getLastContractOffer().getAssetId());
+            assertThat(compactResult.getString("correlationId")).isEqualTo(negotiation.getCorrelationId());
 
         }
 
