@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.transfer;
 
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.transfer.flow.DataFlowManagerImpl;
 import org.eclipse.edc.connector.controlplane.transfer.flow.TransferTypeParserImpl;
 import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
@@ -42,6 +43,8 @@ public class TransferProcessDefaultServicesExtension implements ServiceExtension
 
     @Inject
     private PolicyEngine policyEngine;
+    @Inject
+    private AssetIndex assetIndex;
 
     @Override
     public String name() {
@@ -55,7 +58,7 @@ public class TransferProcessDefaultServicesExtension implements ServiceExtension
 
     @Provider
     public DataFlowManager dataFlowManager(ServiceExtensionContext context) {
-        return new DataFlowManagerImpl(context.getMonitor());
+        return new DataFlowManagerImpl(context.getMonitor(), assetIndex);
     }
 
     @Provider

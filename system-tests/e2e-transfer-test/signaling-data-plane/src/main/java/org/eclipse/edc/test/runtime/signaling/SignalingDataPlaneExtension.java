@@ -31,6 +31,7 @@ public class SignalingDataPlaneExtension implements ServiceExtension {
 
     private Dataplane dataplane = Dataplane.newInstance()
             .endpoint("http://localhost")
+            .transferType("Finite-PUSH")
             .build();
 
     @Override

@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transfer.flow;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
@@ -38,7 +39,8 @@ import static org.mockito.Mockito.when;
 
 class DataFlowManagerImplTest {
 
-    private final DataFlowManagerImpl manager = new DataFlowManagerImpl(mock());
+    private final AssetIndex assetIndex = mock();
+    private final DataFlowManagerImpl manager = new DataFlowManagerImpl(mock(), assetIndex);
 
     @Nested
     class Initiate {
@@ -195,7 +197,26 @@ class DataFlowManagerImplTest {
             var result = manager.transferTypesFor(asset);
 
             assertThat(result).containsExactlyInAnyOrder("Type1", "Type2", "Type3");
+            verifyNoInteractions(assetIndex);
         }
+
+        @Test
+        void shouldReturnTransferTypesFromControllers_whenIdIsPassed() {
+            var controllerOne = mock(DataFlowController.class);
+            when(controllerOne.transferTypesFor(any())).thenReturn(Set.of("Type1"));
+            var controllerTwo = mock(DataFlowController.class);
+            when(controllerTwo.transferTypesFor(any())).thenReturn(Set.of("Type2", "Type3"));
+            manager.register(controllerOne);
+            manager.register(controllerTwo);
+            var asset = Asset.Builder.newInstance().build();
+            when(assetIndex.findById(any())).thenReturn(asset);
+
+            var result = manager.transferTypesFor("assetId");
+
+            assertThat(result).containsExactlyInAnyOrder("Type1", "Type2", "Type3");
+            verify(assetIndex).findById("assetId");
+        }
+
     }
 
 }

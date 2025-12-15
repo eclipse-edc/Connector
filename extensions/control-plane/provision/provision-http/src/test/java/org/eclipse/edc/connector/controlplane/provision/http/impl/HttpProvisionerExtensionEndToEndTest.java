@@ -27,6 +27,7 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionS
 import org.eclipse.edc.connector.controlplane.provision.http.HttpProvisionerFixtures;
 import org.eclipse.edc.connector.controlplane.provision.http.HttpProvisionerWebhookUrl;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.retry.TransferWaitStrategy;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
@@ -57,10 +58,12 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mockito;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import static java.util.UUID.randomUUID;
@@ -72,6 +75,7 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -87,6 +91,7 @@ public class HttpProvisionerExtensionEndToEndTest {
     private final Interceptor delegate = mock(Interceptor.class);
     private final ContractValidationService contractValidationService = mock();
     private final IdentityService identityService = mock();
+    private final DataFlowManager dataFlowManager = Mockito.mock();
     private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock(DataspaceProfileContextRegistry.class);
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
             .participantContextId(PARTICIPANT_CONTEXT_ID)
@@ -109,6 +114,7 @@ public class HttpProvisionerExtensionEndToEndTest {
         extension.registerServiceMock(IdentityService.class, identityService);
         extension.registerServiceMock(DataspaceProfileContextRegistry.class, dataspaceProfileContextRegistry);
         extension.registerServiceMock(DataPlaneClientFactory.class, mock());
+        extension.registerServiceMock(DataFlowManager.class, dataFlowManager);
         var dataAddressValidatorRegistry = mock(DataAddressValidatorRegistry.class);
         when(dataAddressValidatorRegistry.validateSource(any())).thenReturn(ValidationResult.success());
         when(dataAddressValidatorRegistry.validateDestination(any())).thenReturn(ValidationResult.success());
@@ -140,6 +146,7 @@ public class HttpProvisionerExtensionEndToEndTest {
 
         when(identityService.verifyJwtToken(any(), any(), isA(VerificationContext.class))).thenReturn(Result.success(ClaimToken.Builder.newInstance().build()));
         when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> "id");
+        when(dataFlowManager.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
 
         var result = protocolService.notifyRequested(participantContext, createTransferRequestMessage(), TokenRepresentation.Builder.newInstance().build());
 
@@ -199,6 +206,7 @@ public class HttpProvisionerExtensionEndToEndTest {
                 .counterPartyAddress("http://any")
                 .callbackAddress("http://any")
                 .contractId(CONTRACT_ID)
+                .transferType("transferType")
                 .build();
     }
 

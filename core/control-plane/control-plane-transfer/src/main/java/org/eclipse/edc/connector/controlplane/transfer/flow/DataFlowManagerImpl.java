@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.transfer.flow;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
@@ -27,6 +28,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -43,9 +45,11 @@ public class DataFlowManagerImpl implements DataFlowManager {
 
     private final List<PrioritizedDataFlowController> controllers = new ArrayList<>();
     private final Monitor monitor;
+    private final AssetIndex assetIndex;
 
-    public DataFlowManagerImpl(Monitor monitor) {
+    public DataFlowManagerImpl(Monitor monitor, AssetIndex assetIndex) {
         this.monitor = monitor;
+        this.assetIndex = assetIndex;
     }
 
     @Override
@@ -106,6 +110,13 @@ public class DataFlowManagerImpl implements DataFlowManager {
                 .map(it -> it.transferTypesFor(asset))
                 .flatMap(Collection::stream)
                 .collect(toSet());
+    }
+
+    @Override
+    public Set<String> transferTypesFor(String assetId) {
+        return Optional.ofNullable(assetIndex.findById(assetId))
+                .map(this::transferTypesFor)
+                .orElseGet(Collections::emptySet);
     }
 
     private Optional<DataFlowController> chooseController(TransferProcess transferProcess) {
