@@ -17,15 +17,9 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":dist:bom:controlplane-base-bom"))
-    implementation(project(":core:common:edr-store-core"))
-    implementation(project(":core:common:token-core"))
-    implementation(project(":core:control-plane:control-plane-core"))
-    implementation(project(":data-protocols:dsp"))
-    implementation(project(":data-protocols:dsp:dsp-2025"))
-    implementation(project(":extensions:common:http"))
-    implementation(project(":extensions:common:api:control-api-configuration"))
-    implementation(project(":extensions:common:api:management-api-configuration"))
+    implementation(project(":dist:bom:controlplane-base-bom")) {
+        exclude(group = "org.eclipse.edc", module = "transfer-data-plane-signaling")
+    }
     implementation(project(":extensions:common:iam:iam-mock"))
 }
 

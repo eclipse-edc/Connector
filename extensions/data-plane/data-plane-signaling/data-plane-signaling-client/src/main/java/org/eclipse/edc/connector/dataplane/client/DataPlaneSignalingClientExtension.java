@@ -77,7 +77,7 @@ public class DataPlaneSignalingClientExtension implements ServiceExtension {
         context.getMonitor().debug(() -> "Using remote Data Plane client.");
         Objects.requireNonNull(httpClient, "To use remote Data Plane client, a ControlApiHttpClient instance must be registered");
         var signalingApiTypeTransformerRegistry = transformerRegistry.forContext("signaling-api");
-        return instance -> new DataPlaneSignalingClient(httpClient, signalingApiTypeTransformerRegistry, jsonLd, CONTROL_CLIENT_SCOPE, typeManager, JSON_LD,
+        return instance -> new LegacyDataPlaneSignalingClient(httpClient, signalingApiTypeTransformerRegistry, jsonLd, CONTROL_CLIENT_SCOPE, typeManager, JSON_LD,
                 instance);
     }
 }

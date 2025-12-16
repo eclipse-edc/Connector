@@ -32,7 +32,8 @@ public interface Runtimes {
 
         String[] MODULES = new String[]{
                 ":system-tests:e2e-transfer-test:control-plane",
-                ":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"
+                ":extensions:data-plane:data-plane-signaling:data-plane-signaling-client",
+                ":extensions:control-plane:transfer:transfer-data-plane-signaling"
         };
 
         String[] SIGNALING_MODULES = new String[]{
@@ -42,7 +43,8 @@ public interface Runtimes {
 
         String[] EMBEDDED_DP_MODULES = new String[]{
                 ":system-tests:e2e-transfer-test:control-plane",
-                ":system-tests:e2e-transfer-test:data-plane"
+                ":system-tests:e2e-transfer-test:data-plane",
+                ":extensions:control-plane:transfer:transfer-data-plane-signaling"
         };
 
         String[] SQL_MODULES = new String[]{
@@ -53,7 +55,6 @@ public interface Runtimes {
                 .endpoint("management", () -> URI.create("http://localhost:" + getFreePort() + "/management"))
                 .endpoint("control", () -> URI.create("http://localhost:" + getFreePort() + "/control"))
                 .endpoint("protocol", () -> URI.create("http://localhost:" + getFreePort() + "/protocol"));
-
 
         static Config config(String participantId) {
             return ConfigFactory.fromMap(new HashMap<>() {

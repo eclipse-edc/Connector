@@ -102,7 +102,7 @@ class DataPlaneSignalingClientTest {
     private final DataPlaneInstance instance = DataPlaneInstance.Builder.newInstance().url(DATA_PLANE_API_URI).build();
     private final ControlApiHttpClient httpClient = new ControlApiHttpClientImpl(testHttpClient(), mock());
 
-    private final DataPlaneClient dataPlaneClient = new DataPlaneSignalingClient(httpClient, TRANSFORMER_REGISTRY,
+    private final DataPlaneClient dataPlaneClient = new LegacyDataPlaneSignalingClient(httpClient, TRANSFORMER_REGISTRY,
             JSON_LD, CONTROL_CLIENT_SCOPE, TYPE_MANAGER, "test", instance);
 
     @BeforeAll
@@ -181,7 +181,7 @@ class DataPlaneSignalingClientTest {
         void verifyReturnFatalErrorIfTransformFails() {
             var flowRequest = createDataFlowRequest();
             TypeTransformerRegistry registry = mock();
-            var dataPlaneClient = new DataPlaneSignalingClient(httpClient, registry, JSON_LD, CONTROL_CLIENT_SCOPE, TYPE_MANAGER, "test", instance);
+            var dataPlaneClient = new LegacyDataPlaneSignalingClient(httpClient, registry, JSON_LD, CONTROL_CLIENT_SCOPE, TYPE_MANAGER, "test", instance);
 
             when(registry.transform(any(), any())).thenReturn(Result.failure("Transform Failure"));
 
@@ -331,7 +331,7 @@ class DataPlaneSignalingClientTest {
         void verifyReturnFatalErrorIfTransformFails() {
             var request = createProvisionRequest();
             TypeTransformerRegistry registry = mock();
-            var dataPlaneClient = new DataPlaneSignalingClient(httpClient, registry, JSON_LD, CONTROL_CLIENT_SCOPE, TYPE_MANAGER, "test", instance);
+            var dataPlaneClient = new LegacyDataPlaneSignalingClient(httpClient, registry, JSON_LD, CONTROL_CLIENT_SCOPE, TYPE_MANAGER, "test", instance);
 
             when(registry.transform(any(), any())).thenReturn(Result.failure("Transform Failure"));
 
@@ -457,7 +457,7 @@ class DataPlaneSignalingClientTest {
         @Test
         void verifyReturnFatalErrorIfTransformFails() {
             TypeTransformerRegistry registry = mock();
-            var dataPlaneClient = new DataPlaneSignalingClient(httpClient, registry, JSON_LD, CONTROL_CLIENT_SCOPE, TYPE_MANAGER, "test", instance);
+            var dataPlaneClient = new LegacyDataPlaneSignalingClient(httpClient, registry, JSON_LD, CONTROL_CLIENT_SCOPE, TYPE_MANAGER, "test", instance);
 
             when(registry.transform(any(), any())).thenReturn(Result.failure("Transform Failure"));
 
@@ -500,7 +500,7 @@ class DataPlaneSignalingClientTest {
         @Test
         void verifyReturnFatalErrorIfTransformFails() {
             TypeTransformerRegistry registry = mock();
-            var dataPlaneClient = new DataPlaneSignalingClient(httpClient, registry, JSON_LD, CONTROL_CLIENT_SCOPE, TYPE_MANAGER, "test", instance);
+            var dataPlaneClient = new LegacyDataPlaneSignalingClient(httpClient, registry, JSON_LD, CONTROL_CLIENT_SCOPE, TYPE_MANAGER, "test", instance);
 
             when(registry.transform(any(), any())).thenReturn(Result.failure("Transform Failure"));
 

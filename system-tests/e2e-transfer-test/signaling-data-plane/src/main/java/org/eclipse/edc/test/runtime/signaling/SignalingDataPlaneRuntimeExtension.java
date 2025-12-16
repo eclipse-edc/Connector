@@ -21,7 +21,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
 
-public class SignalingDataPlaneExtension implements ServiceExtension {
+public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
 
     @Setting(key = "signaling.dataplane.controlplane.endpoint")
     private String controlplaneEndpoint;
