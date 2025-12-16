@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractVa
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
@@ -59,8 +60,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.support.ParameterDeclarations;
 import org.mockito.ArgumentCaptor;
 
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -87,6 +90,7 @@ import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNEXPECTED;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -109,6 +113,7 @@ class TransferProcessProtocolServiceImplTest {
     private final TransferProcessListener listener = mock();
     private final ProtocolTokenValidator protocolTokenValidator = mock();
     private final Vault vault = mock();
+    private final DataFlowManager dataFlowManager = mock();
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
             .participantContextId("participantContextId")
             .identity("participantId")
@@ -120,7 +125,7 @@ class TransferProcessProtocolServiceImplTest {
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
         service = new TransferProcessProtocolServiceImpl(store, transactionContext, negotiationStore, validationService,
-                protocolTokenValidator, dataAddressValidator, observable, mock(), mock(), mock(), vault);
+                protocolTokenValidator, dataAddressValidator, observable, mock(), mock(), mock(), vault, dataFlowManager);
 
     }
 
@@ -137,6 +142,7 @@ class TransferProcessProtocolServiceImplTest {
                     .contractId("agreementId")
                     .protocol("protocol")
                     .callbackAddress("http://any")
+                    .transferType("transferType")
                     .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                     .build();
 
@@ -144,6 +150,7 @@ class TransferProcessProtocolServiceImplTest {
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
             when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
+            when(dataFlowManager.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
@@ -172,6 +179,7 @@ class TransferProcessProtocolServiceImplTest {
                     .contractId("agreementId")
                     .protocol("protocol")
                     .callbackAddress("http://any")
+                    .transferType("transferType")
                     .dataDestination(dataDestination)
                     .build();
 
@@ -180,6 +188,7 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
             when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             when(vault.storeSecret(any(), any(), any())).thenReturn(Result.success());
+            when(dataFlowManager.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
@@ -212,6 +221,7 @@ class TransferProcessProtocolServiceImplTest {
                     .protocol("protocol")
                     .callbackAddress("http://any")
                     .dataDestination(dataDestination)
+                    .transferType("transferType")
                     .build();
 
             when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
@@ -219,6 +229,7 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
             when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             when(vault.storeSecret(any(), any(), any())).thenReturn(Result.failure("cannot store secret"));
+            when(dataFlowManager.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
@@ -236,6 +247,7 @@ class TransferProcessProtocolServiceImplTest {
                     .protocol("protocol")
                     .callbackAddress("http://any")
                     .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                    .transferType("transferType")
                     .build();
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
@@ -245,6 +257,7 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
             when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             when(store.findForCorrelationId(any())).thenReturn(transferProcess(REQUESTED, "transferProcessId"));
+            when(dataFlowManager.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
@@ -261,6 +274,7 @@ class TransferProcessProtocolServiceImplTest {
                     .callbackAddress("http://any")
                     .contractId("agreementId")
                     .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                    .transferType("transferType")
                     .build();
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
@@ -269,6 +283,7 @@ class TransferProcessProtocolServiceImplTest {
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.failure("error"));
             when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
+            when(dataFlowManager.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
@@ -300,6 +315,31 @@ class TransferProcessProtocolServiceImplTest {
             verifyNoInteractions(listener);
         }
 
+        @Test
+        void shouldReturnBadRequest_whenTransferTypeNotSupported() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferRequestMessage.Builder.newInstance()
+                    .consumerPid("consumerPid")
+                    .processId("consumerPid")
+                    .contractId("agreementId")
+                    .protocol("protocol")
+                    .callbackAddress("http://any")
+                    .transferType("not-supported")
+                    .build();
+            var contractAgreement = contractAgreementBuilder().assetId("assetId").build();
+
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement));
+            when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(contractAgreement));
+            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
+            when(dataFlowManager.transferTypesFor(anyString())).thenReturn(Set.of("supported-transfer-type"));
+
+            var result = service.notifyRequested(participantContext, message, tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+            verifyNoInteractions(listener, store, vault);
+        }
     }
 
     @Test
@@ -396,79 +436,6 @@ class TransferProcessProtocolServiceImplTest {
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
         verify(store, never()).save(any());
         verifyNoInteractions(listener);
-    }
-
-    private TransferProcess transferProcess(TransferProcessStates state, String id) {
-        return transferProcessBuilder()
-                .id(id)
-                .state(state.code())
-                .build();
-    }
-
-    private TransferProcess.Builder transferProcessBuilder() {
-        return TransferProcess.Builder.newInstance()
-                .contractId("contractId")
-                .dataDestination(DataAddress.Builder.newInstance().type("type").build())
-                .participantContextId(participantContext.getParticipantContextId());
-    }
-
-    private ParticipantAgent participantAgent() {
-        return new ParticipantAgent("identity", emptyMap(), emptyMap());
-    }
-
-    private TokenRepresentation tokenRepresentation() {
-        return TokenRepresentation.Builder.newInstance()
-                .token(UUID.randomUUID().toString())
-                .build();
-    }
-
-    private ContractAgreement contractAgreement() {
-        return ContractAgreement.Builder.newInstance()
-                .id("agreementId")
-                .providerId("provider")
-                .consumerId("consumer")
-                .assetId("assetId")
-                .policy(Policy.Builder.newInstance().build())
-                .participantContextId(participantContext.getParticipantContextId())
-                .build();
-    }
-
-    @FunctionalInterface
-    private interface MethodCall<M extends RemoteMessage> {
-        ServiceResult<?> call(TransferProcessProtocolService service, ParticipantContext participantContext, M message, TokenRepresentation token);
-    }
-
-    private static class NotifyArguments implements ArgumentsProvider {
-
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
-            MethodCall<TransferStartMessage> started = TransferProcessProtocolService::notifyStarted;
-            MethodCall<TransferCompletionMessage> completed = TransferProcessProtocolService::notifyCompleted;
-            MethodCall<TransferSuspensionMessage> suspended = TransferProcessProtocolService::notifySuspended;
-            MethodCall<TransferTerminationMessage> terminated = TransferProcessProtocolService::notifyTerminated;
-            return Stream.of(
-                    arguments(started,
-                            build(TransferStartMessage.Builder.newInstance()),
-                            CONSUMER, REQUESTED
-                    ),
-                    arguments(completed,
-                            build(TransferCompletionMessage.Builder.newInstance()),
-                            CONSUMER, STARTED
-                    ),
-                    arguments(suspended,
-                            build(TransferSuspensionMessage.Builder.newInstance().code("TestCode").reason("TestReason")),
-                            PROVIDER, STARTED
-                    ),
-                    arguments(terminated,
-                            build(TransferTerminationMessage.Builder.newInstance().code("TestCode").reason("TestReason")),
-                            PROVIDER, STARTED
-                    )
-            );
-        }
-
-        private <M extends TransferRemoteMessage> M build(TransferRemoteMessage.Builder<M, ?> builder) {
-            return builder.protocol("protocol").counterPartyAddress("http://any").processId("correlationId").build();
-        }
     }
 
     @Nested
@@ -1034,6 +1001,82 @@ class TransferProcessProtocolServiceImplTest {
                 assertThat(failure.getReason()).isEqualTo(NOT_FOUND);
             });
             verifyNoInteractions(listener);
+        }
+    }
+
+    private TransferProcess transferProcess(TransferProcessStates state, String id) {
+        return transferProcessBuilder()
+                .id(id)
+                .state(state.code())
+                .build();
+    }
+
+    private TransferProcess.Builder transferProcessBuilder() {
+        return TransferProcess.Builder.newInstance()
+                .contractId("contractId")
+                .dataDestination(DataAddress.Builder.newInstance().type("type").build())
+                .participantContextId(participantContext.getParticipantContextId());
+    }
+
+    private ParticipantAgent participantAgent() {
+        return new ParticipantAgent("identity", emptyMap(), emptyMap());
+    }
+
+    private TokenRepresentation tokenRepresentation() {
+        return TokenRepresentation.Builder.newInstance()
+                .token(UUID.randomUUID().toString())
+                .build();
+    }
+
+    private ContractAgreement contractAgreement() {
+        return contractAgreementBuilder().build();
+    }
+
+    private ContractAgreement.Builder contractAgreementBuilder() {
+        return ContractAgreement.Builder.newInstance()
+                .id("agreementId")
+                .providerId("provider")
+                .consumerId("consumer")
+                .assetId("assetId")
+                .policy(Policy.Builder.newInstance().build())
+                .participantContextId(participantContext.getParticipantContextId());
+    }
+
+    @FunctionalInterface
+    private interface MethodCall<M extends RemoteMessage> {
+        ServiceResult<?> call(TransferProcessProtocolService service, ParticipantContext participantContext, M message, TokenRepresentation token);
+    }
+
+    private static class NotifyArguments implements ArgumentsProvider {
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameters, ExtensionContext context) {
+            MethodCall<TransferStartMessage> started = TransferProcessProtocolService::notifyStarted;
+            MethodCall<TransferCompletionMessage> completed = TransferProcessProtocolService::notifyCompleted;
+            MethodCall<TransferSuspensionMessage> suspended = TransferProcessProtocolService::notifySuspended;
+            MethodCall<TransferTerminationMessage> terminated = TransferProcessProtocolService::notifyTerminated;
+            return Stream.of(
+                    arguments(started,
+                            build(TransferStartMessage.Builder.newInstance()),
+                            CONSUMER, REQUESTED
+                    ),
+                    arguments(completed,
+                            build(TransferCompletionMessage.Builder.newInstance()),
+                            CONSUMER, STARTED
+                    ),
+                    arguments(suspended,
+                            build(TransferSuspensionMessage.Builder.newInstance().code("TestCode").reason("TestReason")),
+                            PROVIDER, STARTED
+                    ),
+                    arguments(terminated,
+                            build(TransferTerminationMessage.Builder.newInstance().code("TestCode").reason("TestReason")),
+                            PROVIDER, STARTED
+                    )
+            );
+        }
+
+        private <M extends TransferRemoteMessage> M build(TransferRemoteMessage.Builder<M, ?> builder) {
+            return builder.protocol("protocol").counterPartyAddress("http://any").processId("correlationId").build();
         }
     }
 

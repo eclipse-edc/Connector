@@ -62,6 +62,7 @@ import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.Trans
 import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessProtocolServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessServiceImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
@@ -106,88 +107,64 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Inject
     private Clock clock;
-
     @Inject
     private Monitor monitor;
-
     @Inject
     private EventRouter eventRouter;
-
     @Inject
     private RemoteMessageDispatcherRegistry dispatcher;
-
     @Inject
     private AssetIndex assetIndex;
     @Inject
     private Vault vault;
     @Inject
     private ContractDefinitionStore contractDefinitionStore;
-
     @Inject
     private ContractNegotiationStore contractNegotiationStore;
-
     @Inject
     private ConsumerContractNegotiationManager consumerContractNegotiationManager;
-
     @Inject
     private PolicyDefinitionStore policyDefinitionStore;
-
     @Inject
     private TransferProcessStore transferProcessStore;
-
     @Inject
     private TransferProcessManager transferProcessManager;
-
     @Inject
     private TransactionContext transactionContext;
-
     @Inject
     private ContractValidationService contractValidationService;
-
     @Inject
     private ConsumerOfferResolver consumerOfferResolver;
-
     @Inject
     private ContractNegotiationObservable contractNegotiationObservable;
-
     @Inject
     private TransferProcessObservable transferProcessObservable;
-
     @Inject
     private Telemetry telemetry;
-
     @Inject
     private ParticipantAgentService participantAgentService;
-
     @Inject
     private DataServiceRegistry dataServiceRegistry;
-
     @Inject
     private DatasetResolver datasetResolver;
-
     @Inject
     private CommandHandlerRegistry commandHandlerRegistry;
-
     @Inject
     private DataAddressValidatorRegistry dataAddressValidator;
-
     @Inject
     private IdentityService identityService;
-
     @Inject
     private PolicyEngine policyEngine;
-
     @Inject(required = false)
     private ProtocolTokenValidator protocolTokenValidator;
-
     @Inject
     private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
-
     @Inject
     private TransferTypeParser transferTypeParser;
-
     @Inject
     private ParticipantIdentityResolver identityResolver;
+    @Inject
+    private DataFlowManager dataFlowManager;
 
     @Override
     public String name() {
@@ -271,7 +248,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     public TransferProcessProtocolService transferProcessProtocolService() {
         return new TransferProcessProtocolServiceImpl(transferProcessStore, transactionContext, contractNegotiationStore,
                 contractValidationService, protocolTokenValidator(), dataAddressValidator, transferProcessObservable, clock,
-                monitor, telemetry, vault);
+                monitor, telemetry, vault, dataFlowManager);
     }
 
     @Provider

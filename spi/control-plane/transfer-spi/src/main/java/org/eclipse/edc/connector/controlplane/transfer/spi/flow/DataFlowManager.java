@@ -87,7 +87,15 @@ public interface DataFlowManager {
      * Returns the transfer types available for a specific asset.
      *
      * @param asset the asset.
-     * @return tranfer types list.
+     * @return transfer types list.
      */
     Set<String> transferTypesFor(Asset asset);
+
+    /**
+     * Returns the transfer types available for a specific asset given its id.
+     *
+     * @param assetId the asset id.
+     * @return transfer types list.
+     */
+    Set<String> transferTypesFor(String assetId);
 }

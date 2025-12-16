@@ -41,7 +41,7 @@ class DefaultDistributionResolverTest {
     @Test
     void shouldReturnDistributionsForEveryTransferType() {
         when(dataServiceRegistry.getDataServices(any(), any())).thenReturn(List.of(dataService));
-        when(dataFlowManager.transferTypesFor(any())).thenReturn(Set.of("type1", "type2"));
+        when(dataFlowManager.transferTypesFor(any(Asset.class))).thenReturn(Set.of("type1", "type2"));
 
         var dataAddress = DataAddress.Builder.newInstance().type("any").build();
         var asset = Asset.Builder.newInstance().dataAddress(dataAddress).build();
@@ -62,7 +62,7 @@ class DefaultDistributionResolverTest {
     @Test
     void shouldReturnDistribution_whenAssetIsCatalog() {
         when(dataServiceRegistry.getDataServices(any(), any())).thenReturn(List.of(dataService));
-        when(dataFlowManager.transferTypesFor(any())).thenReturn(Set.of("type1", "type2"));
+        when(dataFlowManager.transferTypesFor(any(Asset.class))).thenReturn(Set.of("type1", "type2"));
 
         var dataAddress = DataAddress.Builder.newInstance()
                 .type("HttpData")
