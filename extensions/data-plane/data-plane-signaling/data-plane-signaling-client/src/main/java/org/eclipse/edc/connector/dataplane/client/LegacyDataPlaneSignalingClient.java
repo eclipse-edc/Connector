@@ -47,7 +47,7 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
  * Implementation of a {@link DataPlaneClient} that uses a remote {@link DataPlaneManager} accessible from a REST API using
  * the data plane signaling protocol.
  */
-public class DataPlaneSignalingClient implements DataPlaneClient {
+public class LegacyDataPlaneSignalingClient implements DataPlaneClient {
     public static final MediaType TYPE_JSON = MediaType.parse("application/json");
     private final ControlApiHttpClient httpClient;
     private final String typeContext;
@@ -58,8 +58,8 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
     private final String jsonLdScope;
     private final TypeManager typeManager;
 
-    public DataPlaneSignalingClient(ControlApiHttpClient httpClient, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd, String jsonLdScope,
-                                    TypeManager typeManager, String typeContext, DataPlaneInstance dataPlane) {
+    public LegacyDataPlaneSignalingClient(ControlApiHttpClient httpClient, TypeTransformerRegistry transformerRegistry, JsonLd jsonLd, String jsonLdScope,
+                                          TypeManager typeManager, String typeContext, DataPlaneInstance dataPlane) {
         this.httpClient = httpClient;
         this.transformerRegistry = transformerRegistry;
         this.jsonLd = jsonLd;

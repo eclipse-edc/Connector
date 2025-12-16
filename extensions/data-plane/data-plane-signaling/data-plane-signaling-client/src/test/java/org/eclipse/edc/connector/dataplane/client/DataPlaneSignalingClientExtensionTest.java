@@ -46,7 +46,7 @@ class DataPlaneSignalingClientExtensionTest {
 
         var client = extension.dataPlaneClientFactory(context).createClient(createDataPlaneInstance());
 
-        assertThat(client).isInstanceOf(DataPlaneSignalingClient.class);
+        assertThat(client).isInstanceOf(LegacyDataPlaneSignalingClient.class);
         verify(jsonLd).registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, CONTROL_CLIENT_SCOPE);
         verify(jsonLd).registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, CONTROL_CLIENT_SCOPE);
         verify(jsonLd).registerNamespace(VOCAB, EDC_NAMESPACE, CONTROL_CLIENT_SCOPE);

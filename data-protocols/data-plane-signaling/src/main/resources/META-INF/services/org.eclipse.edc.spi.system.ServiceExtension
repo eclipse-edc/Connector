@@ -1,1 +1,2 @@
 org.eclipse.edc.signaling.DataPlaneSignalingExtension
+org.eclipse.edc.signaling.DataPlaneSignalingClientExtension

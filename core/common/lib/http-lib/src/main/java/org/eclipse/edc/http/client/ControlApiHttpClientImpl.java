@@ -50,11 +50,10 @@ public class ControlApiHttpClientImpl implements ControlApiHttpClient {
                 var response = httpClient.execute(requestBuilder.build(), List.of(retryWhenStatusIsNotIn(200, 204)));
                 var responseBody = response.body();
         ) {
-            var bodyAsString = responseBody == null ? null : responseBody.string();
             if (response.isSuccessful()) {
-                return ServiceResult.success(bodyAsString);
+                return ServiceResult.success(responseBody.string());
             } else {
-                return mapToFailure(response.code(), bodyAsString);
+                return mapToFailure(response.code(), responseBody.string());
             }
         } catch (IOException exception) {
             return ServiceResult.unexpected("Unexpected IOException. " + exception.getMessage());
