@@ -106,11 +106,11 @@ public class PolicyEngineImplScenariosTest {
         var usePermission = Permission.Builder.newInstance().action(USE_ACTION).constraint(spatialConstraint).build();
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
 
-        var euContext = new TestAgentContext(new ParticipantAgent(Map.of("region", "eu"), emptyMap()));
+        var euContext = new TestAgentContext(new ParticipantAgent("identity", Map.of("region", "eu"), emptyMap()));
         var euResult = policyEngine.evaluate(policy, euContext);
         assertThat(euResult).isSucceeded();
 
-        var noRegionContext = new TestAgentContext(new ParticipantAgent(emptyMap(), emptyMap()));
+        var noRegionContext = new TestAgentContext(new ParticipantAgent("identity", emptyMap(), emptyMap()));
         var noRegionResult = policyEngine.evaluate(policy, noRegionContext);
         assertThat(noRegionResult).isFailed();
     }

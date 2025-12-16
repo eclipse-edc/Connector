@@ -171,7 +171,7 @@ class DatasetResolverImplIntegrationTest {
 
     @NotNull
     private ParticipantAgent createAgent() {
-        return new ParticipantAgent(emptyMap(), emptyMap());
+        return new ParticipantAgent("identity", emptyMap(), emptyMap());
     }
 
     private ParticipantContext createParticipantContext() {

@@ -32,6 +32,8 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
+import java.util.Optional;
+
 /**
  * Implementation of {@link ProtocolTokenValidator} which uses the {@link PolicyEngine} for extracting
  * the scope from the {@link Policy} within a scope
@@ -72,12 +74,19 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
 
         var claimToken = tokenValidation.getContent();
 
-        var idExtractionFunction = dataspaceProfileContextRegistry.getIdExtractionFunction(message.getProtocol());
-        if (idExtractionFunction == null) {
-            return ServiceResult.badRequest("Unsupported protocol: " + message.getProtocol());
+        var id = Optional.of(message.getProtocol())
+                .map(dataspaceProfileContextRegistry::getIdExtractionFunction)
+                .map(extractor -> extractor.apply(claimToken))
+                .orElseGet(() -> {
+                    monitor.debug(() -> "Unauthorized: Cannot extract id on protocol [%s] from claims: %s.".formatted(message.getProtocol(), claimToken.getClaims()));
+                    return null;
+                });
+
+        if (id == null) {
+            return ServiceResult.unauthorized("Unauthorized");
         }
 
-        var participantAgent = agentService.createFor(claimToken, idExtractionFunction.apply(claimToken));
+        var participantAgent = agentService.createFor(claimToken, id);
         return ServiceResult.success(participantAgent);
     }
 

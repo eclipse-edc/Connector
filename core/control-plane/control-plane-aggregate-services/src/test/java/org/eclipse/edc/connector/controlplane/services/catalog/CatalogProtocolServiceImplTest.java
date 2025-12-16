@@ -69,7 +69,7 @@ class CatalogProtocolServiceImplTest {
             dataServiceRegistry, protocolTokenValidator, identityResolver, transactionContext);
 
     private ParticipantAgent createParticipantAgent() {
-        return new ParticipantAgent(emptyMap(), emptyMap());
+        return new ParticipantAgent("identity", emptyMap(), emptyMap());
     }
 
     private Dataset createDataset() {

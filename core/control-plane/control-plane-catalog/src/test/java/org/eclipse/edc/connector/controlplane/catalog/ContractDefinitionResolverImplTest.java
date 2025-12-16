@@ -63,7 +63,7 @@ class ContractDefinitionResolverImplTest {
 
     @Test
     void shouldReturnDefinition_whenAccessPolicySatisfied() {
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        var agent = new ParticipantAgent("identity", emptyMap(), emptyMap());
         var def = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
         when(policyStore.findById(any())).thenReturn(def);
         when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.success());
@@ -84,7 +84,7 @@ class ContractDefinitionResolverImplTest {
 
     @Test
     void shouldNotReturnDefinition_whenAccessPolicyNotSatisfied() {
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        var agent = new ParticipantAgent("identity", emptyMap(), emptyMap());
         var definition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id("access").build();
         when(policyStore.findById(any())).thenReturn(definition);
         var contractDefinition = createContractDefinition();
@@ -100,7 +100,7 @@ class ContractDefinitionResolverImplTest {
 
     @Test
     void shouldNotReturnDefinition_whenAccessPolicyDoesNotExist() {
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        var agent = new ParticipantAgent("identity", emptyMap(), emptyMap());
         when(policyStore.findById(any())).thenReturn(null);
         when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(definitionStore.findAll(QuerySpec.max())).thenReturn(Stream.of(createContractDefinition()));
@@ -122,7 +122,7 @@ class ContractDefinitionResolverImplTest {
         when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.success());
         when(definitionStore.findAll(any())).thenReturn(Stream.of(contractDefinition1, contractDefinition2));
 
-        var result = resolver.resolveFor(participantContext, new ParticipantAgent(emptyMap(), emptyMap()));
+        var result = resolver.resolveFor(participantContext, new ParticipantAgent("identity", emptyMap(), emptyMap()));
 
         assertThat(result.contractDefinitions()).hasSize(2);
         assertThat(result.policies()).hasSize(1).containsOnly(entry("accessPolicyId", policy));

@@ -131,7 +131,7 @@ class ContractNegotiationIntegrationTest {
             .participantContextId("participantContextId")
             .identity("identifier")
             .build();
-    protected ParticipantAgent participantAgent = new ParticipantAgent(Collections.emptyMap(), Collections.emptyMap());
+    protected ParticipantAgent participantAgent = new ParticipantAgent("identity", Collections.emptyMap(), Collections.emptyMap());
     protected TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
     private String consumerNegotiationId;
     private ProviderContractNegotiationManagerImpl providerManager;

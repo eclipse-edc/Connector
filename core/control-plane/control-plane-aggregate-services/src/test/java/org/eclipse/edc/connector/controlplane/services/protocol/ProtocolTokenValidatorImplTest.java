@@ -34,7 +34,6 @@ import org.junit.jupiter.api.Test;
 
 import static java.util.Collections.emptyMap;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,7 +63,7 @@ class ProtocolTokenValidatorImplTest {
     void shouldVerifyToken() {
         var participantId = "participantId";
         var protocol = "protocol";
-        var participantAgent = new ParticipantAgent(emptyMap(), emptyMap());
+        var participantAgent = new ParticipantAgent("identity", emptyMap(), emptyMap());
         var claimToken = ClaimToken.Builder.newInstance().build();
         var policy = Policy.Builder.newInstance().build();
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
@@ -94,7 +93,7 @@ class ProtocolTokenValidatorImplTest {
     }
 
     @Test
-    void shouldReturnBadRequest_whenProtocolIsNotRegistered() {
+    void shouldReturnUnauthorized_whenProtocolIsNotRegistered() {
         var claimToken = ClaimToken.Builder.newInstance().build();
         var policy = Policy.Builder.newInstance().build();
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
@@ -104,7 +103,20 @@ class ProtocolTokenValidatorImplTest {
 
         var result = validator.verify(participantContext, tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
 
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
+    }
+
+    @Test
+    void shouldReturnUnauthorized_whenExtractedIdIsNull() {
+        var claimToken = ClaimToken.Builder.newInstance().build();
+        var policy = Policy.Builder.newInstance().build();
+        var tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
+        when(identityService.verifyJwtToken(any(), any(), any())).thenReturn(Result.success(claimToken));
+        when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> null);
+
+        var result = validator.verify(participantContext, tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
+
+        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
     }
 
     static class TestMessage extends RemoteMessage {

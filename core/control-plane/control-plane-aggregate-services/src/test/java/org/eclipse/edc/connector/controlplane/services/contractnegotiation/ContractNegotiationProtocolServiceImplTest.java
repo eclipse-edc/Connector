@@ -61,7 +61,6 @@ import org.mockito.ArgumentCaptor;
 
 import java.time.Instant;
 import java.util.Collections;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -80,7 +79,6 @@ import static org.eclipse.edc.connector.controlplane.services.contractnegotiatio
 import static org.eclipse.edc.connector.controlplane.services.contractnegotiation.ContractNegotiationProtocolServiceImplTest.TestFunctions.createContractDefinition;
 import static org.eclipse.edc.connector.controlplane.services.contractnegotiation.ContractNegotiationProtocolServiceImplTest.TestFunctions.createPolicy;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.participant.spi.ParticipantAgent.PARTICIPANT_IDENTITY;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
@@ -435,7 +433,7 @@ class ContractNegotiationProtocolServiceImplTest {
 
 
     private ParticipantAgent participantAgent() {
-        return new ParticipantAgent(Collections.emptyMap(), Map.of(PARTICIPANT_IDENTITY, "counterPartyId"));
+        return new ParticipantAgent("counterPartyId", Collections.emptyMap(), Collections.emptyMap());
     }
 
     private ContractNegotiation createContractNegotiationRequested() {

@@ -15,9 +15,9 @@
 package org.eclipse.edc.participant.spi;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Represents a system running on behalf of a dataspace participant.
@@ -28,17 +28,15 @@ import java.util.Map;
  * <p>
  * Claims are verifiable claims presented to the current runtime by the ParticipantAgent system, typically as part of a security token or credential store. Attributes are
  * additional values added by the current system based on.
- * <p>
- * Participant agents must have an {@link #PARTICIPANT_IDENTITY} attribute set. The value of the attribute is determined using a dataspace-specific mechanism, but it must be from
- * a trusted source since the value is used to authorize operations such as contract negotiations and data transfers. For example, the identity value may be based on a claim token
- * or a check against a trusted service. The default behavior is to set the identity using the <code>client_id</code> claim, if present. This behavior can be overridden by using a
- * {@link ParticipantAgentServiceExtension}.
  */
 public class ParticipantAgent {
 
     /**
      * The dataspace participant identity attribute key.
+     *
+     * @deprecated replaced by {@link #id}.
      */
+    @Deprecated(since = "0.14.0")
     public static final String PARTICIPANT_IDENTITY = "edc:identity";
 
     private final String id;
@@ -46,7 +44,7 @@ public class ParticipantAgent {
     private final Map<String, String> attributes;
     
     public ParticipantAgent(String id, Map<String, Object> claims, Map<String, String> attributes) {
-        this.id = id;
+        this.id = Objects.requireNonNull(id, "identity cannot be null");
         this.claims = Map.copyOf(claims);
         this.attributes = Map.copyOf(attributes);
     }
@@ -73,9 +71,9 @@ public class ParticipantAgent {
     }
 
     /**
-     * Returns the verified identity of the participant or null if one is not available.
+     * Returns the identity of the participant.
      */
-    @Nullable
+    @NotNull
     public String getIdentity() {
         return id;
     }

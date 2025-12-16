@@ -33,7 +33,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.validation.Validatabl
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
-import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.result.Result;
@@ -46,14 +45,12 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 
 import java.time.Instant;
-import java.util.Map;
 import java.util.UUID;
 
 import static java.time.Instant.MIN;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.participant.spi.ParticipantAgent.PARTICIPANT_IDENTITY;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -94,7 +91,7 @@ class ContractValidationServiceImplTest {
 
     @Test
     void verifyContractOfferValidation() {
-        var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
+        var participantAgent = new ParticipantAgent(CONSUMER_ID, emptyMap(), emptyMap());
         var originalPolicy = Policy.Builder.newInstance().target("1").build();
         var newPolicy = Policy.Builder.newInstance().target("1").build();
         var asset = Asset.Builder.newInstance().id("1").build();
@@ -127,54 +124,9 @@ class ContractValidationServiceImplTest {
     }
 
     @Test
-    void verifyContractOfferValidation_failedIfNoConsumerIdentity() {
-        var participantAgent = new ParticipantAgent(emptyMap(), emptyMap());
-        var originalPolicy = Policy.Builder.newInstance().target("a").build();
-        var asset = Asset.Builder.newInstance().id("1").build();
-        var validatableOffer = createValidatableConsumerOffer(asset, originalPolicy);
-
-        var result = validationService.validateInitialOffer(participantAgent, validatableOffer);
-
-        assertThat(result).isFailed().detail().isEqualTo("Invalid consumer identity");
-    }
-
-    @Test
-    void validate_failsIfValidityDiscrepancy() {
-        var originalPolicy = Policy.Builder.newInstance().target("a").build();
-        var asset = Asset.Builder.newInstance().id("1").build();
-
-        var participantAgent = new ParticipantAgent(emptyMap(), emptyMap());
-        when(assetIndex.findById("1")).thenReturn(asset);
-        when(policyEquality.test(any(), any())).thenReturn(true);
-        var validatableOffer = createValidatableConsumerOffer(asset, originalPolicy);
-
-        var result = validationService.validateInitialOffer(participantAgent, validatableOffer);
-
-        assertThat(result).isFailed().detail().isEqualTo("Invalid consumer identity");
-        verifyNoInteractions(policyEngine);
-    }
-
-    @Test
-    void validate_failsIfOfferedPolicyIsNotTheEqualToTheStoredOne() {
-        var offeredPolicy = Policy.Builder.newInstance().permission(Permission.Builder.newInstance().build()).build();
-        var asset = Asset.Builder.newInstance().id("1").build();
-
-        var participantAgent = new ParticipantAgent(emptyMap(), emptyMap());
-        when(assetIndex.findById("1")).thenReturn(asset);
-        when(policyEquality.test(any(), any())).thenReturn(false);
-
-        var validatableOffer = createValidatableConsumerOffer(asset, offeredPolicy);
-
-        var result = validationService.validateInitialOffer(participantAgent, validatableOffer);
-
-        assertThat(result.failed()).isTrue();
-        verifyNoInteractions(policyEngine);
-    }
-
-    @Test
     void verifyContractAgreementValidation() {
         var newPolicy = Policy.Builder.newInstance().build();
-        var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
+        var participantAgent = new ParticipantAgent(CONSUMER_ID, emptyMap(), emptyMap());
 
         when(policyEngine.evaluate(any(), any())).thenReturn(Result.success());
 
@@ -197,7 +149,7 @@ class ContractValidationServiceImplTest {
     @ValueSource(strings = {"malicious-actor"})
     @NullSource
     void verifyContractAgreementValidation_failedIfInvalidCredentials(String counterPartyId) {
-        var participantAgent = new ParticipantAgent(emptyMap(), counterPartyId != null ? Map.of(PARTICIPANT_IDENTITY, counterPartyId) : Map.of());
+        var participantAgent = new ParticipantAgent(counterPartyId != null ? counterPartyId : "invalid", emptyMap(), emptyMap());
         var agreement = createContractAgreement()
                 .contractSigningDate(now.getEpochSecond())
                 .consumerId(CONSUMER_ID)
@@ -227,7 +179,7 @@ class ContractValidationServiceImplTest {
         var agreement = createContractAgreement().id("any").build();
         var offer = createContractOffer();
 
-        var participantAgent = new ParticipantAgent(Map.of(), Map.of(PARTICIPANT_IDENTITY, PROVIDER_ID));
+        var participantAgent = new ParticipantAgent(PROVIDER_ID, emptyMap(), emptyMap());
         when(policyEquality.test(any(), any())).thenReturn(true);
 
         var result = validationService.validateConfirmed(participantAgent, agreement, offer);
@@ -239,7 +191,7 @@ class ContractValidationServiceImplTest {
     @Test
     void validateConfirmed_failsIfOfferIsNull() {
         var agreement = createContractAgreement().id("any").build();
-        var participantAgent = new ParticipantAgent(emptyMap(), emptyMap());
+        var participantAgent = new ParticipantAgent("identity", emptyMap(), emptyMap());
 
         var result = validationService.validateConfirmed(participantAgent, agreement, null);
 
@@ -252,7 +204,7 @@ class ContractValidationServiceImplTest {
         var agreement = createContractAgreement().build();
         var offer = createContractOffer();
 
-        var participantAgent = new ParticipantAgent(Map.of(), Map.of(PARTICIPANT_IDENTITY, "not-the-expected-one"));
+        var participantAgent = new ParticipantAgent("not-the-expected-one", emptyMap(), emptyMap());
 
         var result = validationService.validateConfirmed(participantAgent, agreement, offer);
 
@@ -265,7 +217,7 @@ class ContractValidationServiceImplTest {
         var agreement = createContractAgreement().build();
         var offer = createContractOffer();
 
-        var participantAgent = new ParticipantAgent(Map.of(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
+        var participantAgent = new ParticipantAgent(CONSUMER_ID, emptyMap(), emptyMap());
         when(policyEquality.test(any(), any())).thenReturn(false);
 
         var result = validationService.validateConfirmed(participantAgent, agreement, offer);
@@ -277,7 +229,7 @@ class ContractValidationServiceImplTest {
     @Test
     void validateRequest_shouldReturnSuccess_whenRequestingPartyProvider() {
         var agreement = createContractAgreement().build();
-        var participantAgent = new ParticipantAgent(Map.of(), Map.of(PARTICIPANT_IDENTITY, PROVIDER_ID));
+        var participantAgent = new ParticipantAgent(PROVIDER_ID, emptyMap(), emptyMap());
 
         var result = validationService.validateRequest(participantAgent, agreement);
 
@@ -287,7 +239,7 @@ class ContractValidationServiceImplTest {
     @Test
     void validateRequest_shouldReturnSuccess_whenRequestingPartyConsumer() {
         var agreement = createContractAgreement().build();
-        var participantAgent = new ParticipantAgent(Map.of(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
+        var participantAgent = new ParticipantAgent(CONSUMER_ID, emptyMap(), emptyMap());
 
         var result = validationService.validateRequest(participantAgent, agreement);
 
@@ -297,7 +249,7 @@ class ContractValidationServiceImplTest {
     @Test
     void validateRequest_shouldReturnFailure_whenRequestingPartyUnauthorized() {
         var agreement = createContractAgreement().build();
-        var participantAgent = new ParticipantAgent(Map.of(), Map.of(PARTICIPANT_IDENTITY, "invalid"));
+        var participantAgent = new ParticipantAgent("invalid", emptyMap(), emptyMap());
 
         var result = validationService.validateRequest(participantAgent, agreement);
 
@@ -313,7 +265,7 @@ class ContractValidationServiceImplTest {
                 .protocol("test")
                 .build();
 
-        var participantAgent = new ParticipantAgent(Map.of(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
+        var participantAgent = new ParticipantAgent(CONSUMER_ID, emptyMap(), emptyMap());
 
         var result = validationService.validateRequest(participantAgent, negotiation);
 
@@ -324,7 +276,7 @@ class ContractValidationServiceImplTest {
     @Test
     void validateInitialOffer_assetInOfferNotReferencedByDefinition_shouldFail() {
         var validatableOffer = createValidatableConsumerOffer();
-        var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
+        var participantAgent = new ParticipantAgent(CONSUMER_ID, emptyMap(), emptyMap());
 
         when(policyEngine.evaluate(any(), isA(CatalogPolicyContext.class))).thenReturn(Result.success());
         when(assetIndex.findById(anyString())).thenReturn(Asset.Builder.newInstance().build());
@@ -339,7 +291,7 @@ class ContractValidationServiceImplTest {
     void validateInitialOffer_fails_whenContractPolicyEvaluationFails() {
 
         var validatableOffer = createValidatableConsumerOffer();
-        var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
+        var participantAgent = new ParticipantAgent(CONSUMER_ID, emptyMap(), emptyMap());
 
         when(policyEngine.evaluate(any(), isA(CatalogPolicyContext.class))).thenReturn(Result.success());
         when(policyEngine.evaluate(any(), isA(ContractNegotiationPolicyContext.class))).thenReturn(Result.failure("evaluation failure"));
@@ -363,7 +315,7 @@ class ContractValidationServiceImplTest {
                 .protocol("test")
                 .build();
 
-        var participantAgent = new ParticipantAgent(Map.of(), counterPartyId != null ? Map.of(PARTICIPANT_IDENTITY, counterPartyId) : Map.of());
+        var participantAgent = new ParticipantAgent(counterPartyId != null ? counterPartyId : "invalid", emptyMap(), emptyMap());
 
         var result = validationService.validateRequest(participantAgent, negotiation);
 
@@ -373,7 +325,7 @@ class ContractValidationServiceImplTest {
 
     @Test
     void validateAgreement_failWhenOutsideInForcePeriod_fixed() {
-        var participantAgent = new ParticipantAgent(emptyMap(), Map.of(PARTICIPANT_IDENTITY, CONSUMER_ID));
+        var participantAgent = new ParticipantAgent(CONSUMER_ID, emptyMap(), emptyMap());
         when(policyEngine.evaluate(any(), isA(PolicyContext.class))).thenReturn(Result.failure("test-failure"));
 
         var agreement = createContractAgreement()
@@ -393,7 +345,7 @@ class ContractValidationServiceImplTest {
                 .contractSigningDate(signingDate)
                 .build();
 
-        return validationService.validateAgreement(new ParticipantAgent(emptyMap(), emptyMap()), agreement);
+        return validationService.validateAgreement(new ParticipantAgent("identity", emptyMap(), emptyMap()), agreement);
     }
 
     private ContractOffer createContractOffer(Asset asset, Policy policy) {
