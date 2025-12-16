@@ -17,15 +17,21 @@ package org.eclipse.edc.iam.verifiablecredentials.revocation.statuslist;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.nimbusds.jose.shaded.gson.internal.LinkedTreeMap;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
+import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.verifiablecredentials.TestData;
 import org.eclipse.edc.iam.verifiablecredentials.revocation.statuslist2021.StatusList2021RevocationService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.TestFunctions;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
+import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.spi.TokenValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Named;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -34,6 +40,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -49,17 +56,30 @@ import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.sta
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Status.STATUS_LIST_INDEX;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Status.STATUS_LIST_PURPOSE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class StatusList2021RevocationServiceTest {
     private static final int NOT_REVOKED_INDEX = 1;
     private static final int REVOKED_INDEX = 2;
+
     @RegisterExtension
     static WireMockExtension clientAndServer = WireMockExtension.newInstance()
             .options(wireMockConfig().dynamicPort())
             .build();
-    private final StatusList2021RevocationService revocationService = new StatusList2021RevocationService(new ObjectMapper().registerModule(new JavaTimeModule()),
-            5 * 60 * 1000, singleton("application/vc+jwt"), new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), mock()));
+
+    private final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+
+    private final TokenValidationService tokenValidationService = mock(TokenValidationService.class);
+    private final DidPublicKeyResolver didPublicKeyResolver = mock(DidPublicKeyResolver.class);
+
+    private final StatusList2021RevocationService revocationService = new StatusList2021RevocationService(mapper,
+            5 * 60 * 1000, singleton("application/json"), new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), mock()),
+            tokenValidationService, didPublicKeyResolver);
 
     @BeforeEach
     void setup() {
@@ -138,7 +158,6 @@ class StatusList2021RevocationServiceTest {
                 .matches("Failed to download status list credential .* 415 Unsupported Media Type");
     }
 
-
     @ParameterizedTest
     @ArgumentsSource(SingleSubjectProvider.class)
     void getStatusPurposes_whenSingleCredentialStatusRevoked(String testData) {
@@ -192,6 +211,49 @@ class StatusList2021RevocationServiceTest {
                 .isSucceeded();
     }
 
+    @Nested
+    public class StatusListCredentialAsJwt {
+
+        private final StatusList2021RevocationService acceptJwtService = new StatusList2021RevocationService(mapper, 5 * 60 * 1000,
+                singleton("application/vc+jwt"), new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), mock()),
+                tokenValidationService, didPublicKeyResolver);
+
+        @Test
+        void downloadStatusListCredential_asJwt_successfulTokenValidation() throws Exception {
+            var jwtCredential = "eyABCDE";
+            clientAndServer.stubFor(get("/credentials/status/3").willReturn(ok(jwtCredential)));
+
+            when(tokenValidationService.validate(eq(jwtCredential), eq(didPublicKeyResolver), any(List.class)))
+                    .thenReturn(Result.success(ClaimToken.Builder.newInstance()
+                            .claim("vc", mapper.readValue(STATUS_LIST_CREDENTIAL_SINGLE_SUBJECT_INTERMEDIATE, LinkedTreeMap.class))
+                            .build()));
+
+            var credential = new CredentialStatus("test-id", "StatusList2021",
+                    Map.of(STATUS_LIST_PURPOSE, "revocation",
+                            STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort())));
+
+            assertThat(acceptJwtService.checkValidity(credential)).isSucceeded();
+            verify(tokenValidationService, times(1)).validate(eq(jwtCredential), eq(didPublicKeyResolver), any(List.class));
+        }
+
+        @Test
+        void downloadStatusListCredential_asJwt_failureInTokenValidation() throws Exception {
+            var jwtCredential = "eyABCDE";
+            clientAndServer.stubFor(get("/credentials/status/3").willReturn(ok(jwtCredential)));
+
+            when(tokenValidationService.validate(eq(jwtCredential), eq(didPublicKeyResolver), any(List.class)))
+                    .thenReturn(Result.failure("error validating JWT"));
+
+            var credential = new CredentialStatus("test-id", "StatusList2021",
+                    Map.of(STATUS_LIST_PURPOSE, "revocation",
+                            STATUS_LIST_INDEX, NOT_REVOKED_INDEX,
+                            STATUS_LIST_CREDENTIAL, "http://localhost:%d/credentials/status/3".formatted(clientAndServer.getPort())));
+
+            assertThat(acceptJwtService.checkValidity(credential)).isFailed();
+            verify(tokenValidationService, times(1)).validate(eq(jwtCredential), eq(didPublicKeyResolver), any(List.class));
+        }
+    }
 
     private static class SingleSubjectProvider implements ArgumentsProvider {
         @Override
