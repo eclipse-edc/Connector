@@ -55,23 +55,23 @@ public abstract class BaseAssetApiController {
     public JsonObject createAsset(JsonObject assetJson) {
         validator.validate(EDC_ASSET_TYPE, assetJson).orElseThrow(ValidationFailureException::new);
         var participantContext = participantContextSupplier.get()
-                                         .orElseThrow(exceptionMapper(Asset.class));
+                .orElseThrow(exceptionMapper(Asset.class));
 
         var asset = transformerRegistry.transform(assetJson, Asset.class)
-                            .orElseThrow(InvalidRequestException::new)
-                            .toBuilder()
-                            .participantContextId(participantContext.getParticipantContextId())
-                            .build();
+                .orElseThrow(InvalidRequestException::new)
+                .toBuilder()
+                .participantContextId(participantContext.getParticipantContextId())
+                .build();
 
         var idResponse = service.create(asset)
-                                 .map(a -> IdResponse.Builder.newInstance()
-                                                   .id(a.getId())
-                                                   .createdAt(a.getCreatedAt())
-                                                   .build())
-                                 .orElseThrow(exceptionMapper(Asset.class, asset.getId()));
+                .map(a -> IdResponse.Builder.newInstance()
+                        .id(a.getId())
+                        .createdAt(a.getCreatedAt())
+                        .build())
+                .orElseThrow(exceptionMapper(Asset.class, asset.getId()));
 
         return transformerRegistry.transform(idResponse, JsonObject.class)
-                       .orElseThrow(f -> new EdcException(f.getFailureDetail()));
+                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
     }
 
     public JsonArray requestAssets(JsonObject querySpecJson) {
@@ -82,24 +82,24 @@ public abstract class BaseAssetApiController {
             validator.validate(EDC_QUERY_SPEC_TYPE, querySpecJson).orElseThrow(ValidationFailureException::new);
 
             querySpec = transformerRegistry.transform(querySpecJson, QuerySpec.class)
-                                .orElseThrow(InvalidRequestException::new);
+                    .orElseThrow(InvalidRequestException::new);
         }
 
         return service.search(querySpec).orElseThrow(exceptionMapper(QuerySpec.class, null)).stream()
-                       .map(it -> transformerRegistry.transform(it, JsonObject.class))
-                       .peek(r -> r.onFailure(f -> monitor.warning(f.getFailureDetail())))
-                       .filter(Result::succeeded)
-                       .map(Result::getContent)
-                       .collect(toJsonArray());
+                .map(it -> transformerRegistry.transform(it, JsonObject.class))
+                .peek(r -> r.onFailure(f -> monitor.warning(f.getFailureDetail())))
+                .filter(Result::succeeded)
+                .map(Result::getContent)
+                .collect(toJsonArray());
     }
 
     public JsonObject getAsset(String id) {
         var asset = of(id)
-                            .map(it -> service.findById(id))
-                            .orElseThrow(() -> new ObjectNotFoundException(Asset.class, id));
+                .map(it -> service.findById(id))
+                .orElseThrow(() -> new ObjectNotFoundException(Asset.class, id));
 
         return transformerRegistry.transform(asset, JsonObject.class)
-                       .orElseThrow(f -> new EdcException(f.getFailureDetail()));
+                .orElseThrow(f -> new EdcException(f.getFailureDetail()));
 
     }
 
@@ -109,9 +109,14 @@ public abstract class BaseAssetApiController {
 
     public void updateAsset(JsonObject assetJson) {
         validator.validate(EDC_ASSET_TYPE, assetJson).orElseThrow(ValidationFailureException::new);
+        var participantContext = participantContextSupplier.get()
+                .orElseThrow(exceptionMapper(Asset.class));
 
         var assetResult = transformerRegistry.transform(assetJson, Asset.class)
-                                  .orElseThrow(InvalidRequestException::new);
+                .orElseThrow(InvalidRequestException::new)
+                .toBuilder()
+                .participantContextId(participantContext.getParticipantContextId())
+                .build();
 
         service.update(assetResult)
                 .orElseThrow(exceptionMapper(Asset.class, assetResult.getId()));

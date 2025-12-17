@@ -409,6 +409,8 @@ public class AssetApiEndToEndTest {
             assertThat(dbAsset.getDataAddress().getProperty(EDC_NAMESPACE + "complex"))
                     .asInstanceOf(MAP)
                     .containsEntry(EDC_NAMESPACE + "nested", List.of(Map.of(VALUE, "value")));
+
+            assertThat(dbAsset.getParticipantContextId()).isNotNull();
         }
 
         private DataAddress.Builder createDataAddress() {
