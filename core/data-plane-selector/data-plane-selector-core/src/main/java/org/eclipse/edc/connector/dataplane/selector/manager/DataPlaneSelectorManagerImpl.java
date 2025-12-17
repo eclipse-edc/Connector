@@ -61,9 +61,12 @@ public class DataPlaneSelectorManagerImpl extends AbstractStateEntityManager<Dat
 
     private boolean availability(DataPlaneInstance instance) {
         var client = clientFactory.createClient(instance);
-        if (client.checkAvailability().succeeded()) {
+        var availability = client.checkAvailability();
+        if (availability.succeeded()) {
             instance.transitionToAvailable();
         } else {
+            monitor.warning("data-plane %s is unavailable: %s".formatted(instance.getId(), availability.getFailureDetail()));
+            instance.setErrorDetail(availability.getFailureDetail());
             instance.transitionToUnavailable();
         }
         update(instance);

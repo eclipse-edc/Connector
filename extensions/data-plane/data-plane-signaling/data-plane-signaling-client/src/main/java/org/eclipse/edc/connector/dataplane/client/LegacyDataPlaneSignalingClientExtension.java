@@ -40,8 +40,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 /**
  * This extension provides an implementation of {@link DataPlaneClient} compliant with the data plane signaling protocol
  */
-@Extension(value = DataPlaneSignalingClientExtension.NAME)
-public class DataPlaneSignalingClientExtension implements ServiceExtension {
+@Extension(value = LegacyDataPlaneSignalingClientExtension.NAME)
+public class LegacyDataPlaneSignalingClientExtension implements ServiceExtension {
     public static final String NAME = "Data Plane Signaling Client";
     public static final String CONTROL_CLIENT_SCOPE = "CONTROL_CLIENT_SCOPE";
 

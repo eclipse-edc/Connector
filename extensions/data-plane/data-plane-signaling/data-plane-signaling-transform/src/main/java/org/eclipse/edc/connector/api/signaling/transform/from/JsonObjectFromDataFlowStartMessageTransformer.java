@@ -34,6 +34,7 @@ import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_PROPERTIES;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TYPE;
 
@@ -58,6 +59,7 @@ public class JsonObjectFromDataFlowStartMessageTransformer extends AbstractJsonL
         transformProperties(message.getProperties(), propertiesBuilder, typeManager.getMapper(typeContext), context);
         var builder = jsonFactory.createObjectBuilder()
                 .add(TYPE, EDC_DATA_FLOW_START_MESSAGE_TYPE)
+                .add(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE, message.getTransferType().asString())
                 .add(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION, message.getTransferType().destinationType())
                 .add(EDC_DATA_FLOW_START_MESSAGE_FLOW_TYPE, message.getTransferType().flowType().toString())
                 .add(EDC_DATA_FLOW_START_MESSAGE_AGREEMENT_ID, message.getAgreementId())
@@ -65,8 +67,11 @@ public class JsonObjectFromDataFlowStartMessageTransformer extends AbstractJsonL
                 .add(EDC_DATA_FLOW_START_MESSAGE_DATASET_ID, message.getAssetId())
                 .add(EDC_DATA_FLOW_START_MESSAGE_PROPERTIES, propertiesBuilder)
                 .add(EDC_DATA_FLOW_START_MESSAGE_CALLBACK_ADDRESS, message.getCallbackAddress().toString())
-                .add(EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS, context.transform(message.getSourceDataAddress(), JsonObject.class))
                 .add(EDC_DATA_FLOW_START_MESSAGE_PARTICIPANT_ID, message.getParticipantId());
+
+        if (message.getSourceDataAddress() != null) {
+            builder.add(EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS, context.transform(message.getSourceDataAddress(), JsonObject.class));
+        }
 
         if (message.getDestinationDataAddress() != null) {
             builder.add(EDC_DATA_FLOW_START_MESSAGE_DESTINATION_DATA_ADDRESS, context.transform(message.getDestinationDataAddress(), JsonObject.class));

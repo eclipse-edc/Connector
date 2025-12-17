@@ -39,6 +39,7 @@ import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_PROCESS_ID;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL;
+import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TYPE;
 import static org.mockito.ArgumentMatchers.any;
@@ -84,6 +85,7 @@ class JsonObjectFromDataFlowStartMessageTransformerTest {
         assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION).getString()).isEqualTo("HttpData");
         assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_FLOW_TYPE).getString()).isEqualTo(message.getFlowType().toString());
         assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL).getString()).isEqualTo("Websocket");
+        assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE).getString()).isEqualTo("HttpData-PUSH-Websocket");
         assertThat(jsonObject.get(EDC_DATA_FLOW_START_MESSAGE_DESTINATION_DATA_ADDRESS)).isNotNull();
         assertThat(jsonObject.get(EDC_DATA_FLOW_START_MESSAGE_SOURCE_DATA_ADDRESS)).isNotNull();
     }
@@ -107,6 +109,7 @@ class JsonObjectFromDataFlowStartMessageTransformerTest {
         assertThat(jsonObject).isNotNull();
         assertThat(jsonObject.getString(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION)).isEqualTo("DestinationType");
         assertThat(jsonObject.getString(EDC_DATA_FLOW_START_MESSAGE_FLOW_TYPE)).isEqualTo("PULL");
+        assertThat(jsonObject.getJsonString(EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE).getString()).isEqualTo("DestinationType-PULL");
     }
 
 }

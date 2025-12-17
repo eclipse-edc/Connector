@@ -12,5 +12,5 @@
 #
 #
 
-org.eclipse.edc.connector.dataplane.client.DataPlaneSignalingClientExtension
+org.eclipse.edc.connector.dataplane.client.LegacyDataPlaneSignalingClientExtension
 org.eclipse.edc.connector.dataplane.client.DataPlaneSignalingClientTransformExtension

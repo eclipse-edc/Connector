@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.dataplane;
 
-import org.eclipse.edc.connector.controlplane.transfer.dataplane.flow.LegacyDataPlaneSignalingFlowController;
+import org.eclipse.edc.connector.controlplane.transfer.dataplane.flow.DataPlaneSignalingFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -39,6 +39,6 @@ class TransferDataPlaneSignalingExtensionTest {
     @Test
     void initialize(ServiceExtensionContext context, TransferDataPlaneSignalingExtension extension) {
         extension.initialize(context);
-        verify(dataFlowManager).register(isA(LegacyDataPlaneSignalingFlowController.class));
+        verify(dataFlowManager).register(isA(DataPlaneSignalingFlowController.class));
     }
 }
