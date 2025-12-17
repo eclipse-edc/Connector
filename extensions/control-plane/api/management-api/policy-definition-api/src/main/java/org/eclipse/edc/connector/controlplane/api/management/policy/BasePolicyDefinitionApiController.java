@@ -121,8 +121,14 @@ public abstract class BasePolicyDefinitionApiController {
     public void updatePolicyDefinition(String id, JsonObject input) {
         validatorRegistry.validate(EDC_POLICY_DEFINITION_TYPE, input).orElseThrow(ValidationFailureException::new);
 
+        var participantContext = participantContextSupplier.get()
+                .orElseThrow(exceptionMapper(PolicyDefinition.class));
+
         var policyDefinition = transformerRegistry.transform(input, PolicyDefinition.class)
-                .orElseThrow(InvalidRequestException::new);
+                .orElseThrow(InvalidRequestException::new)
+                .toBuilder()
+                .participantContextId(participantContext.getParticipantContextId())
+                .build();
 
         service.update(policyDefinition)
                 .onSuccess(d -> monitor.debug(format("Policy Definition updated %s", d.getId())))

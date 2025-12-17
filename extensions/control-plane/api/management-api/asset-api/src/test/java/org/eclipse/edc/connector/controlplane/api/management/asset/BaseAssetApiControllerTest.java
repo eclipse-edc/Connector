@@ -56,6 +56,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -350,7 +351,9 @@ public abstract class BaseAssetApiControllerTest extends RestControllerTestBase 
 
     @Test
     void updateAsset_whenExists() {
-        var asset = Asset.Builder.newInstance().property("key1", "value1").build();
+        var asset = Asset.Builder.newInstance().property("key1", "value1")
+                .participantContextId(participantContext.getParticipantContextId())
+                .build();
         when(transformerRegistry.transform(isA(JsonObject.class), eq(Asset.class))).thenReturn(Result.success(asset));
         when(service.update(any(Asset.class))).thenReturn(ServiceResult.success());
         when(validator.validate(any(), any())).thenReturn(ValidationResult.success());
@@ -361,7 +364,7 @@ public abstract class BaseAssetApiControllerTest extends RestControllerTestBase 
                 .put("/assets")
                 .then()
                 .statusCode(204);
-        verify(service).update(eq(asset));
+        verify(service).update(refEq(asset));
     }
 
     @Test

@@ -174,6 +174,7 @@ public class ContractDefinitionApiEndToEndTest {
             var actual = store.findById(id);
 
             assertThat(actual.getId()).matches(id);
+            assertThat(actual.getParticipantContextId()).isNotNull();
         }
 
         @Test
@@ -212,6 +213,7 @@ public class ContractDefinitionApiEndToEndTest {
             var actual = store.findById(id);
 
             assertThat(actual.getAccessPolicyId()).isEqualTo("new-policy");
+            assertThat(actual.getParticipantContextId()).isNotNull();
         }
 
         @Test

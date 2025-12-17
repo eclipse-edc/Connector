@@ -116,7 +116,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
             privateProp.put("https://w3id.org/edc/v0.0.1/ns/newKey", "newValue");
             assertThat(result).isNotNull()
                     .extracting(PolicyDefinition::getPrivateProperties).isEqualTo(privateProp);
-
+            assertThat(result.getParticipantContextId()).isNotNull();
             context.baseRequest()
                     .get("/v4beta/policydefinitions/" + id)
                     .then()
@@ -209,10 +209,13 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .then()
                     .statusCode(204);
 
-            assertThat(store.findById(id))
+            var policyDef = store.findById(id);
+            assertThat(policyDef)
                     .extracting(PolicyDefinition::getPrivateProperties)
                     .asInstanceOf(MAP)
                     .isNotEmpty();
+
+            assertThat(policyDef.getParticipantContextId()).isNotNull();
         }
 
         @Test
