@@ -175,6 +175,8 @@ public class ContractDefinitionApiV4EndToEndTest {
             var actual = store.findById(id);
 
             assertThat(actual.getId()).matches(id);
+            assertThat(actual.getParticipantContextId()).isNotNull();
+
         }
 
         @Test

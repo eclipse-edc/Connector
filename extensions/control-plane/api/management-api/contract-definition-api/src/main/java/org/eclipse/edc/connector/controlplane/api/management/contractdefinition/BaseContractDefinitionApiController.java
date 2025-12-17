@@ -112,8 +112,14 @@ public abstract class BaseContractDefinitionApiController {
         validatorRegistry.validate(CONTRACT_DEFINITION_TYPE, updateObject)
                 .orElseThrow(ValidationFailureException::new);
 
+        var participantContext = participantContextSupplier.get()
+                .orElseThrow(exceptionMapper(ContractDefinition.class));
+
         var contractDefinition = transformerRegistry.transform(updateObject, ContractDefinition.class)
-                .orElseThrow(InvalidRequestException::new);
+                .orElseThrow(InvalidRequestException::new)
+                .toBuilder()
+                .participantContextId(participantContext.getParticipantContextId())
+                .build();
 
         service.update(contractDefinition).orElseThrow(exceptionMapper(ContractDefinition.class));
     }

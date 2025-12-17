@@ -136,6 +136,8 @@ public class AssetApiV4EndToEndTest {
                     .asInstanceOf(MAP)
                     .containsEntry(EDC_NAMESPACE + "simple", List.of(Map.of(VALUE, "value")))
                     .containsEntry(EDC_NAMESPACE + "nested", List.of(Map.of(EDC_NAMESPACE + "innerValue", List.of(Map.of(VALUE, "value")))));
+
+            assertThat(asset.getParticipantContextId()).isNotNull();
         }
 
         @Test
@@ -425,6 +427,8 @@ public class AssetApiV4EndToEndTest {
             assertThat(dbAsset.getDataAddress().getProperty(EDC_NAMESPACE + "complex"))
                     .asInstanceOf(MAP)
                     .containsEntry(EDC_NAMESPACE + "nested", List.of(Map.of(VALUE, "value")));
+
+            assertThat(dbAsset.getParticipantContextId()).isNotNull();
         }
 
         private DataAddress.Builder createDataAddress() {

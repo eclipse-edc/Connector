@@ -122,6 +122,9 @@ public class PolicyDefinitionApiEndToEndTest {
             assertThat(result).isNotNull()
                     .extracting(PolicyDefinition::getPrivateProperties).isEqualTo(privateProp);
 
+            assertThat(result.getParticipantContextId()).isNotNull();
+
+
             context.baseRequest()
                     .get("/v3/policydefinitions/" + id)
                     .then()
@@ -219,10 +222,13 @@ public class PolicyDefinitionApiEndToEndTest {
                     .then()
                     .statusCode(204);
 
-            assertThat(store.findById(id))
+            var policyDef = store.findById(id);
+            assertThat(policyDef)
                     .extracting(PolicyDefinition::getPrivateProperties)
                     .asInstanceOf(MAP)
                     .isNotEmpty();
+
+            assertThat(policyDef.getParticipantContextId()).isNotNull();
         }
 
         @Test
