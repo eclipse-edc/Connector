@@ -38,7 +38,7 @@ maven/mavencentral/com.fasterxml.jackson.module/jackson-module-jakarta-xmlbind-a
 maven/mavencentral/com.fasterxml.jackson/jackson-bom/2.16.2, Apache-2.0, approved, #11852
 maven/mavencentral/com.fasterxml.jackson/jackson-bom/2.20.1, , restricted, clearlydefined
 maven/mavencentral/com.github.docker-java/docker-java-api/3.7.0, Apache-2.0, approved, clearlydefined
-maven/mavencentral/com.github.docker-java/docker-java-transport-zerodep/3.7.0, Apache-2.0 AND MIT, restricted, clearlydefined
+maven/mavencentral/com.github.docker-java/docker-java-transport-zerodep/3.7.0, Apache-2.0 AND MPL-2.0, approved, #25269
 maven/mavencentral/com.github.docker-java/docker-java-transport/3.7.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.github.jknack/handlebars-helpers/4.3.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.github.jknack/handlebars/4.3.1, MIT AND Apache-2.0, approved, #3064
@@ -290,13 +290,13 @@ maven/mavencentral/org.slf4j/slf4j-api/1.7.36, MIT, approved, CQ13368
 maven/mavencentral/org.slf4j/slf4j-api/2.0.17, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.9, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-nop/2.0.17, MIT, approved, #10370
-maven/mavencentral/org.testcontainers/testcontainers-database-commons/2.0.2, , restricted, clearlydefined
-maven/mavencentral/org.testcontainers/testcontainers-jdbc/2.0.2, , restricted, clearlydefined
+maven/mavencentral/org.testcontainers/testcontainers-database-commons/2.0.2, Apache-2.0, approved, #25271
+maven/mavencentral/org.testcontainers/testcontainers-jdbc/2.0.2, Apache-2.0, approved, #25272
 maven/mavencentral/org.testcontainers/testcontainers-junit-jupiter/2.0.2, MIT, approved, clearlydefined
 maven/mavencentral/org.testcontainers/testcontainers-kafka/2.0.2, , restricted, clearlydefined
-maven/mavencentral/org.testcontainers/testcontainers-postgresql/2.0.2, , restricted, clearlydefined
+maven/mavencentral/org.testcontainers/testcontainers-postgresql/2.0.2, None, restricted, #25273
 maven/mavencentral/org.testcontainers/testcontainers-vault/2.0.2, , restricted, clearlydefined
-maven/mavencentral/org.testcontainers/testcontainers/2.0.2, , restricted, clearlydefined
+maven/mavencentral/org.testcontainers/testcontainers/2.0.2, None, restricted, #25274
 maven/mavencentral/org.wiremock/wiremock-jetty12/3.13.2, Apache-2.0, approved, #21027
 maven/mavencentral/org.wiremock/wiremock/3.13.2, MIT AND Apache-2.0, approved, #21025
 maven/mavencentral/org.xerial.snappy/snappy-java/1.1.10.7, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #9098
