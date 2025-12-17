@@ -37,9 +37,9 @@ maven/mavencentral/com.fasterxml.jackson.module/jackson-module-jakarta-xmlbind-a
 maven/mavencentral/com.fasterxml.jackson.module/jackson-module-jakarta-xmlbind-annotations/2.20.1, Apache-2.0, approved, #23057
 maven/mavencentral/com.fasterxml.jackson/jackson-bom/2.16.2, Apache-2.0, approved, #11852
 maven/mavencentral/com.fasterxml.jackson/jackson-bom/2.20.1, , restricted, clearlydefined
-maven/mavencentral/com.github.docker-java/docker-java-api/3.7.0, , restricted, clearlydefined
-maven/mavencentral/com.github.docker-java/docker-java-transport-zerodep/3.7.0, , restricted, clearlydefined
-maven/mavencentral/com.github.docker-java/docker-java-transport/3.7.0, , restricted, clearlydefined
+maven/mavencentral/com.github.docker-java/docker-java-api/3.7.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/com.github.docker-java/docker-java-transport-zerodep/3.7.0, Apache-2.0 AND MPL-2.0, approved, #25269
+maven/mavencentral/com.github.docker-java/docker-java-transport/3.7.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.github.jknack/handlebars-helpers/4.3.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.github.jknack/handlebars/4.3.1, MIT AND Apache-2.0, approved, #3064
 maven/mavencentral/com.github.luben/zstd-jni/1.5.6-10, BSD-2-Clause, approved, #19830
@@ -58,6 +58,7 @@ maven/mavencentral/com.h2database/h2/2.4.240, EPL-1.0 AND MPL-2.0 AND LGPL-2.1-o
 maven/mavencentral/com.jayway.jsonpath/json-path/2.10.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.networknt/json-schema-validator/1.5.9, Apache-2.0 AND Unicode-TOU, approved, #15630
 maven/mavencentral/com.networknt/json-schema-validator/2.0.0, , restricted, clearlydefined
+maven/mavencentral/com.networknt/json-schema-validator/2.0.1, , restricted, clearlydefined
 maven/mavencentral/com.nimbusds/nimbus-jose-jwt/10.6, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.puppycrawl.tools/checkstyle/12.1.1, , restricted, clearlydefined
 maven/mavencentral/com.squareup.okhttp3/okhttp-dnsoverhttps/5.3.2, Apache-2.0, approved, clearlydefined
@@ -191,8 +192,8 @@ maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-metadata/1.0.0-SNAPSHOT, Apa
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-system/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-transfer-process/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/tck-runtime/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.edc/autodoc-processor/0.15.0, Apache-2.0, approved, technology.edc
-maven/mavencentral/org.eclipse.edc/runtime-metamodel/0.15.0, Apache-2.0, approved, technology.edc
+maven/mavencentral/org.eclipse.edc/autodoc-processor/0.15.1, Apache-2.0, approved, technology.edc
+maven/mavencentral/org.eclipse.edc/runtime-metamodel/0.15.1, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.jetty.ee10/jetty-ee10-bom/12.0.30, EPL-2.0 OR Apache-2.0, approved, rt.jetty
 maven/mavencentral/org.eclipse.jetty.ee10/jetty-ee10-servlet/12.0.30, EPL-2.0 OR Apache-2.0, approved, rt.jetty
 maven/mavencentral/org.eclipse.jetty.ee10/jetty-ee10-servlet/12.1.4, EPL-2.0 OR Apache-2.0, approved, rt.jetty
@@ -275,6 +276,7 @@ maven/mavencentral/org.latencyutils/LatencyUtils/2.0.3, CC0-1.0, approved, #1528
 maven/mavencentral/org.lz4/lz4-java/1.8.0, Apache-2.0, approved, #20005
 maven/mavencentral/org.mockito/mockito-core/5.2.0, MIT AND (Apache-2.0 AND MIT) AND Apache-2.0, approved, #7401
 maven/mavencentral/org.mockito/mockito-core/5.20.0, MIT AND (Apache-2.0 AND MIT) AND Apache-2.0, approved, #23392
+maven/mavencentral/org.mockito/mockito-core/5.21.0, MIT AND (Apache-2.0 AND MIT) AND Apache-2.0, approved, #25203
 maven/mavencentral/org.mockito/mockito-inline/5.2.0, MIT, approved, clearlydefined
 maven/mavencentral/org.objenesis/objenesis/3.3, Apache-2.0, approved, #19727
 maven/mavencentral/org.opentest4j/opentest4j/1.3.0, Apache-2.0, approved, #9713
@@ -287,13 +289,13 @@ maven/mavencentral/org.slf4j/slf4j-api/1.7.36, MIT, approved, CQ13368
 maven/mavencentral/org.slf4j/slf4j-api/2.0.17, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.9, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-nop/2.0.17, MIT, approved, #10370
-maven/mavencentral/org.testcontainers/testcontainers-database-commons/2.0.2, , restricted, clearlydefined
-maven/mavencentral/org.testcontainers/testcontainers-jdbc/2.0.2, , restricted, clearlydefined
+maven/mavencentral/org.testcontainers/testcontainers-database-commons/2.0.2, Apache-2.0, approved, #25271
+maven/mavencentral/org.testcontainers/testcontainers-jdbc/2.0.2, Apache-2.0, approved, #25272
 maven/mavencentral/org.testcontainers/testcontainers-junit-jupiter/2.0.2, MIT, approved, clearlydefined
 maven/mavencentral/org.testcontainers/testcontainers-kafka/2.0.2, , restricted, clearlydefined
-maven/mavencentral/org.testcontainers/testcontainers-postgresql/2.0.2, , restricted, clearlydefined
+maven/mavencentral/org.testcontainers/testcontainers-postgresql/2.0.2, None, restricted, #25273
 maven/mavencentral/org.testcontainers/testcontainers-vault/2.0.2, , restricted, clearlydefined
-maven/mavencentral/org.testcontainers/testcontainers/2.0.2, , restricted, clearlydefined
+maven/mavencentral/org.testcontainers/testcontainers/2.0.2, None, restricted, #25274
 maven/mavencentral/org.wiremock/wiremock-jetty12/3.13.2, Apache-2.0, approved, #21027
 maven/mavencentral/org.wiremock/wiremock/3.13.2, MIT AND Apache-2.0, approved, #21025
 maven/mavencentral/org.xerial.snappy/snappy-java/1.1.10.7, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #9098
