@@ -20,11 +20,14 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:http-spi"))
+    api(project(":spi:common:json-ld-spi"))
+    api(project(":spi:common:transform-spi"))
     api(project(":spi:common:web-spi"))
     api(project(":spi:control-plane:contract-spi"))
     api(project(":spi:control-plane:transfer-spi"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
     implementation(project(":core:common:lib:api-lib"))
+    implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
 
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))

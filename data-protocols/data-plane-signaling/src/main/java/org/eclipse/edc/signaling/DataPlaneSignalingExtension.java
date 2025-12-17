@@ -14,12 +14,9 @@
 
 package org.eclipse.edc.signaling;
 
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.signaling.logic.DataPlaneSignalingFlowController;
 import org.eclipse.edc.signaling.port.DataPlaneRegistrationApiController;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -37,10 +34,6 @@ public class DataPlaneSignalingExtension implements ServiceExtension {
     private WebService webService;
     @Inject
     private DataPlaneSelectorService dataPlaneSelectorService;
-    @Inject
-    private DataFlowManager dataFlowManager;
-    @Inject
-    private TransferTypeParser transferTypeParser;
 
     @Override
     public String name() {
@@ -50,7 +43,6 @@ public class DataPlaneSignalingExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         webService.registerResource(ApiContext.CONTROL, new DataPlaneRegistrationApiController(dataPlaneSelectorService));
-        dataFlowManager.register(10, new DataPlaneSignalingFlowController(dataPlaneSelectorService, transferTypeParser));
     }
 
 }

@@ -27,4 +27,9 @@ public record TransferType(String destinationType, FlowType flowType, @Nullable 
     public TransferType(String destinationType, FlowType flowType) {
         this(destinationType, flowType, null);
     }
+
+    public String asString() {
+        var responseChannel = responseChannelType == null ? "" : "-" + responseChannelType;
+        return destinationType + "-" + flowType.name() + responseChannel;
+    }
 }

@@ -40,6 +40,7 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
     public static final String EDC_DATA_FLOW_START_MESSAGE_PROCESS_ID = EDC_NAMESPACE + "processId";
     public static final String EDC_DATA_FLOW_START_MESSAGE_SIMPLE_TYPE = "DataFlowStartMessage";
     public static final String EDC_DATA_FLOW_START_MESSAGE_TYPE = EDC_NAMESPACE + EDC_DATA_FLOW_START_MESSAGE_SIMPLE_TYPE;
+    public static final String EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE = EDC_NAMESPACE + "transferType";
     public static final String EDC_DATA_FLOW_START_MESSAGE_FLOW_TYPE = EDC_NAMESPACE + "flowType";
     public static final String EDC_DATA_FLOW_START_MESSAGE_TRANSFER_TYPE_DESTINATION = EDC_NAMESPACE + "transferTypeDestination";
     public static final String EDC_DATA_FLOW_START_MESSAGE_TRANSFER_RESPONSE_CHANNEL = EDC_NAMESPACE + "responseChannel";

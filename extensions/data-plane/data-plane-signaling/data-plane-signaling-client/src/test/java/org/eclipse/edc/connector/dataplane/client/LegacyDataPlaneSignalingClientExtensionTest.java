@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.dataplane.client.DataPlaneSignalingClientExtension.CONTROL_CLIENT_SCOPE;
+import static org.eclipse.edc.connector.dataplane.client.LegacyDataPlaneSignalingClientExtension.CONTROL_CLIENT_SCOPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
@@ -35,14 +35,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(DependencyInjectionExtension.class)
-class DataPlaneSignalingClientExtensionTest {
+class LegacyDataPlaneSignalingClientExtensionTest {
 
     @Test
     void verifyDataPlaneClientFactory(ServiceExtensionContext context, ObjectFactory factory) {
         var jsonLd = mock(JsonLd.class);
         context.registerService(DataPlaneManager.class, null);
         context.registerService(JsonLd.class, jsonLd);
-        var extension = factory.constructInstance(DataPlaneSignalingClientExtension.class);
+        var extension = factory.constructInstance(LegacyDataPlaneSignalingClientExtension.class);
 
         var client = extension.dataPlaneClientFactory(context).createClient(createDataPlaneInstance());
 
@@ -53,7 +53,7 @@ class DataPlaneSignalingClientExtensionTest {
     }
 
     @Test
-    void verifyDataPlaneClientFactory_withEmbedded(ServiceExtensionContext context, DataPlaneSignalingClientExtension extension) {
+    void verifyDataPlaneClientFactory_withEmbedded(ServiceExtensionContext context, LegacyDataPlaneSignalingClientExtension extension) {
         var client = extension.dataPlaneClientFactory(context).createClient(createDataPlaneInstance());
 
         assertThat(client).isInstanceOf(EmbeddedDataPlaneClient.class);

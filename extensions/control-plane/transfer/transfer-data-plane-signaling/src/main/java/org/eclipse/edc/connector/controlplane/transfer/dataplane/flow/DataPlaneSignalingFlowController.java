@@ -53,7 +53,7 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
  * @see <a href="https://github.com/eclipse-edc/Connector/blob/main/docs/developer/data-plane-signaling/data-plane-signaling.md">Data plane signaling</a>
  * @see <a href="https://github.com/eclipse-edc/Connector/blob/main/docs/developer/data-plane-signaling/data-plane-signaling-mapping.md">Data plane signaling transfer type mapping</a>
  */
-public class LegacyDataPlaneSignalingFlowController implements DataFlowController {
+public class DataPlaneSignalingFlowController implements DataFlowController {
 
     private final ControlApiUrl callbackUrl;
     private final DataPlaneSelectorService selectorClient;
@@ -62,9 +62,9 @@ public class LegacyDataPlaneSignalingFlowController implements DataFlowControlle
     private final String selectionStrategy;
     private final TransferTypeParser transferTypeParser;
 
-    public LegacyDataPlaneSignalingFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient,
-                                                  DataFlowPropertiesProvider propertiesProvider, DataPlaneClientFactory clientFactory,
-                                                  String selectionStrategy, TransferTypeParser transferTypeParser) {
+    public DataPlaneSignalingFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient,
+                                            DataFlowPropertiesProvider propertiesProvider, DataPlaneClientFactory clientFactory,
+                                            String selectionStrategy, TransferTypeParser transferTypeParser) {
         this.callbackUrl = callbackUrl;
         this.selectorClient = selectorClient;
         this.propertiesProvider = propertiesProvider;
