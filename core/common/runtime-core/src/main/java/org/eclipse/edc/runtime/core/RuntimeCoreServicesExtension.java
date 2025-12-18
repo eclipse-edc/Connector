@@ -17,6 +17,8 @@ package org.eclipse.edc.runtime.core;
 import dev.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
+import org.eclipse.edc.encryption.EncryptionAlgorithmRegistry;
+import org.eclipse.edc.encryption.EncryptionAlgorithmRegistryImpl;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.json.JacksonTypeManager;
@@ -59,6 +61,13 @@ public class RuntimeCoreServicesExtension implements ServiceExtension {
             warnOnMissingConfig = true
     )
     public String hostname;
+
+    @Setting(
+            description = "Whether to fail when an unsupported encryption algorithm is requested.",
+            defaultValue = "true",
+            key = "edc.encryption.strict"
+    )
+    private boolean failOnUnsupported;
 
     @Inject
     private OkHttpClient okHttpClient;
@@ -115,6 +124,11 @@ public class RuntimeCoreServicesExtension implements ServiceExtension {
     @Provider
     public RemoteMessageDispatcherRegistry remoteMessageDispatcherRegistry() {
         return new RemoteMessageDispatcherRegistryImpl();
+    }
+
+    @Provider
+    public EncryptionAlgorithmRegistry encryptionAlgorithmRegistry() {
+        return new EncryptionAlgorithmRegistryImpl(failOnUnsupported);
     }
 
 }

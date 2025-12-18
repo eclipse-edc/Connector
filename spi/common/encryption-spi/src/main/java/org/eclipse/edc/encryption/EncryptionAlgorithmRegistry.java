@@ -18,24 +18,42 @@ import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.result.Result;
 
 /**
- * Provides encryption and decryption services.
+ * Registry for encryption algorithms.
  */
 @ExtensionPoint
-public interface EncryptionService {
+public interface EncryptionAlgorithmRegistry {
+    
+    /**
+     * Registers an encryption algorithm with the given name.
+     *
+     * @param algorithm the name of the algorithm
+     * @param service   the encryption algorithm service
+     */
+    void register(String algorithm, EncryptionAlgorithm service);
+
+    /**
+     * Checks if the registry supports the given algorithm.
+     *
+     * @param algorithm the algorithm to check
+     * @return true if supported, false otherwise
+     */
+    boolean supports(String algorithm);
 
     /**
      * Encrypts the given plain text.
      *
+     * @param algorithm the algorithm to use for encryption
      * @param plainText the text to encrypt
      * @return the encrypted text if successful, or a failure result
      */
-    Result<String> encrypt(String plainText);
+    Result<String> encrypt(String algorithm, String plainText);
 
     /**
      * Decrypts the given cipher text.
      *
+     * @param algorithm  the algorithm to use for decryption
      * @param cipherText the text to decrypt
      * @return the decrypted text if successful, or a failure result
      */
-    Result<String> decrypt(String cipherText);
+    Result<String> decrypt(String algorithm, String cipherText);
 }

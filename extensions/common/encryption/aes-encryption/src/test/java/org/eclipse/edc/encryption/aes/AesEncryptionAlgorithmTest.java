@@ -24,22 +24,22 @@ import java.security.SecureRandom;
 import java.util.Base64;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.encryption.aes.AesEncryptionService.IV_SIZE_BYTES;
+import static org.eclipse.edc.encryption.aes.AesEncryptionAlgorithm.IV_SIZE_BYTES;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 
-public class AesEncryptionServiceTest {
+public class AesEncryptionAlgorithmTest {
 
     private static final String TEST_ALIAS = "test-alias";
     private final Vault vaultMock = mock();
-    private AesEncryptionService encryptionService;
+    private AesEncryptionAlgorithm encryptionService;
 
     @BeforeEach
     void setup() {
-        encryptionService = new AesEncryptionService(vaultMock, TEST_ALIAS);
+        encryptionService = new AesEncryptionAlgorithm(vaultMock, TEST_ALIAS);
     }
 
 
@@ -135,7 +135,7 @@ public class AesEncryptionServiceTest {
                 .detail()
                 .contains("Decoded ciphertext was shorter than the IV size (12)");
     }
-
+    
     private String generateBase64(int validSize) {
         var bytes = new byte[validSize];
 

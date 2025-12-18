@@ -57,6 +57,7 @@ include(":core:common:lib:token-lib")
 include(":core:common:lib:transform-lib")
 include(":core:common:lib:util-lib")
 include(":core:common:lib:validator-lib")
+include(":core:common:lib:encryption-lib")
 
 include(":core:control-plane:control-plane-catalog")
 include(":core:control-plane:control-plane-contract")

@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.encryption.aes;
 
-import org.eclipse.edc.encryption.EncryptionService;
+import org.eclipse.edc.encryption.EncryptionAlgorithm;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
 
@@ -26,7 +26,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-public class AesEncryptionService implements EncryptionService {
+public class AesEncryptionAlgorithm implements EncryptionAlgorithm {
     public static final int GCM_AUTH_TAG_LENGTH = 128;
     public static final String AES = "AES";
     public static final int IV_SIZE_BYTES = 12; // 12 bytes
@@ -38,7 +38,7 @@ public class AesEncryptionService implements EncryptionService {
     private final Base64.Encoder encoder = Base64.getEncoder();
     private final SecureRandom secureRandom = new SecureRandom();
 
-    public AesEncryptionService(Vault vault, String aesKeyAlias) {
+    public AesEncryptionAlgorithm(Vault vault, String aesKeyAlias) {
         this.vault = vault;
         this.aesKeyAlias = aesKeyAlias;
     }
@@ -71,7 +71,7 @@ public class AesEncryptionService implements EncryptionService {
             return Result.failure("Error while encrypting: %s".formatted(e.getMessage()));
         }
     }
-    
+
     private Result<String> doDecrypt(String cipherText, SecretKey key) {
         try {
             var decodedCipher = decoder.decode(cipherText);

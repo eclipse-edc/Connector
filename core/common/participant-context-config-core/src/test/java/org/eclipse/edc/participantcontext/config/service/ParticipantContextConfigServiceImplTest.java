@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.participantcontext.config.service;
 
-import org.eclipse.edc.encryption.EncryptionService;
+import org.eclipse.edc.encryption.EncryptionAlgorithmRegistry;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
@@ -35,15 +35,15 @@ public class ParticipantContextConfigServiceImplTest {
 
     private final ParticipantContextConfigStore store = mock();
 
-    private final EncryptionService encryptionService = mock();
+    private final EncryptionAlgorithmRegistry registry = mock();
 
-    private final ParticipantContextConfigService service = new ParticipantContextConfigServiceImpl(encryptionService, store, new NoopTransactionContext());
+    private final ParticipantContextConfigService service = new ParticipantContextConfigServiceImpl(registry, "any", store, new NoopTransactionContext());
 
 
     @Test
     void save() {
 
-        when(encryptionService.encrypt(anyString())).then(a -> Result.success(a.getArgument(0)));
+        when(registry.encrypt(anyString(), anyString())).then(a -> Result.success(a.getArgument(1)));
 
         var cfg = ParticipantContextConfiguration.Builder.newInstance()
                 .participantContextId("participantContext")
@@ -58,7 +58,7 @@ public class ParticipantContextConfigServiceImplTest {
                 saved.getParticipantContextId().equals(cfg.getParticipantContextId()) &&
                         saved.getEntries().equals(cfg.getEntries()) &&
                         saved.getPrivateEntries().equals(cfg.getPrivateEntries())));
-        verify(encryptionService).encrypt(anyString());
+        verify(registry).encrypt(anyString(), anyString());
     }
 
     @Test

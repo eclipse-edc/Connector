@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.participantcontext.config.service;
 
-import org.eclipse.edc.encryption.EncryptionService;
+import org.eclipse.edc.encryption.EncryptionAlgorithmRegistry;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
@@ -28,12 +28,14 @@ import java.util.stream.Collectors;
 
 public class ParticipantContextConfigServiceImpl implements ParticipantContextConfigService {
 
-    private final EncryptionService encryptionService;
+    private final EncryptionAlgorithmRegistry encryptionRegistry;
+    private final String encryptionAlgorithm;
     private final ParticipantContextConfigStore configStore;
     private final TransactionContext transactionContext;
 
-    public ParticipantContextConfigServiceImpl(EncryptionService encryptionService, ParticipantContextConfigStore configStore, TransactionContext transactionContext) {
-        this.encryptionService = encryptionService;
+    public ParticipantContextConfigServiceImpl(EncryptionAlgorithmRegistry encryptionRegistry, String encryptionAlgorithm, ParticipantContextConfigStore configStore, TransactionContext transactionContext) {
+        this.encryptionRegistry = encryptionRegistry;
+        this.encryptionAlgorithm = encryptionAlgorithm;
         this.configStore = configStore;
         this.transactionContext = transactionContext;
     }
@@ -68,7 +70,7 @@ public class ParticipantContextConfigServiceImpl implements ParticipantContextCo
     }
 
     private Result<Map.Entry<String, String>> encryptEntryMap(Map.Entry<String, String> entry) {
-        return encryptionService.encrypt(entry.getValue())
+        return encryptionRegistry.encrypt(encryptionAlgorithm, entry.getValue())
                 .map(encrypted -> Map.entry(entry.getKey(), encrypted));
     }
 
