@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.participantcontext.config;
 
-import org.eclipse.edc.encryption.EncryptionService;
+import org.eclipse.edc.encryption.EncryptionAlgorithmRegistry;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
@@ -31,13 +31,15 @@ import static java.lang.String.format;
 public class ParticipantContextConfigImpl implements ParticipantContextConfig {
 
 
-    private final EncryptionService encryptionService;
+    private final EncryptionAlgorithmRegistry registry;
+    private final String encryptionAlgorithm;
     private final ParticipantContextConfigStore configStore;
     private final TransactionContext transactionContext;
 
 
-    public ParticipantContextConfigImpl(EncryptionService encryptionService, ParticipantContextConfigStore configStore, TransactionContext transactionContext) {
-        this.encryptionService = encryptionService;
+    public ParticipantContextConfigImpl(EncryptionAlgorithmRegistry registry, String encryptionAlgorithm, ParticipantContextConfigStore configStore, TransactionContext transactionContext) {
+        this.registry = registry;
+        this.encryptionAlgorithm = encryptionAlgorithm;
         this.configStore = configStore;
         this.transactionContext = transactionContext;
     }
@@ -89,7 +91,7 @@ public class ParticipantContextConfigImpl implements ParticipantContextConfig {
         if (encryptedValue == null) {
             return null;
         }
-        return encryptionService.decrypt(encryptedValue)
+        return registry.decrypt(encryptionAlgorithm, encryptedValue)
                 .orElseThrow(f -> new EdcException(format("Failed to decrypt sensitive config value for key %s and participant context %s", key, participantContextId)));
     }
 

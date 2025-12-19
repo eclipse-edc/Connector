@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":core:common:lib:query-lib"))
     implementation(project(":core:common:lib:transform-lib"))
     implementation(project(":core:common:lib:validator-lib"))
+    implementation(project(":core:common:lib:encryption-lib"))
 
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)
