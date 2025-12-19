@@ -36,11 +36,12 @@ import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.Participant.MANAGEMENT_V4;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.CONSUMER_CP;
+import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.CONSUMER_DP;
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.CONSUMER_ID;
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.PROVIDER_CP;
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.PROVIDER_DP;
@@ -51,8 +52,8 @@ import static org.hamcrest.Matchers.greaterThan;
 interface TransferPushSignalingTest {
 
     @Test
-    default void shouldRegisterDataPlaneThroughSignaling(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
-                                                         @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer) {
+    default void shouldTransferFiniteDataWithPush(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
+                                                  @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer) {
         provider.baseManagementRequest()
                 .get("/dataplanes")
                 .then()
@@ -72,27 +73,30 @@ interface TransferPushSignalingTest {
         var transferProcessId = consumer.requestAssetFrom(assetId, provider)
                 .withTransferType("Finite-PUSH").execute();
 
-        consumer.awaitTransferToBeInState(transferProcessId, STARTED);
+        consumer.awaitTransferToBeInState(transferProcessId, COMPLETED);
     }
 
     @Nested
     @EndToEndTest
     class InMemory implements TransferPushSignalingTest {
 
+        static final Endpoints CONSUMER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
+        static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
+
         @RegisterExtension
+        @Order(0)
         static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
                 .name(CONSUMER_CP)
                 .modules(Runtimes.ControlPlane.SIGNALING_MODULES)
-                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .endpoints(CONSUMER_ENDPOINTS)
                 .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
                 .paramProvider(TransferEndToEndParticipant.class, ctx -> TransferEndToEndParticipant.newInstance(ctx)
                         .managementVersionBasePath(MANAGEMENT_V4)
                         .build())
                 .build();
 
-        static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
-
         @RegisterExtension
+        @Order(0)
         static final RuntimeExtension PROVIDER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
                 .name(PROVIDER_CP)
                 .modules(Runtimes.ControlPlane.SIGNALING_MODULES)
@@ -104,12 +108,23 @@ interface TransferPushSignalingTest {
                 .build();
 
         @RegisterExtension
+        @Order(1)
         static final RuntimeExtension PROVIDER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
                 .name(PROVIDER_DP)
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
                 .configurationProvider(() -> Runtimes.ControlPlane.controlPlaneEndpointOf(PROVIDER_ENDPOINTS))
+                .build();
+
+        @RegisterExtension
+        @Order(1)
+        static final RuntimeExtension CONSUMER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(CONSUMER_DP)
+                .modules(Runtimes.SignalingDataPlane.MODULES)
+                .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
+                .configurationProvider(Runtimes.SignalingDataPlane::config)
+                .configurationProvider(() -> Runtimes.ControlPlane.controlPlaneEndpointOf(CONSUMER_ENDPOINTS))
                 .build();
     }
 
@@ -131,12 +146,16 @@ interface TransferPushSignalingTest {
             POSTGRESQL_EXTENSION.createDatabase(PROVIDER_DB);
         };
 
+        static final Endpoints CONSUMER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
+        static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
+
         @RegisterExtension
+        @Order(2)
         static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
                 .name(CONSUMER_CP)
                 .modules(Runtimes.ControlPlane.SIGNALING_MODULES)
                 .modules(Runtimes.ControlPlane.SQL_MODULES)
-                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
+                .endpoints(CONSUMER_ENDPOINTS)
                 .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONSUMER_DB))
                 .paramProvider(TransferEndToEndParticipant.class, ctx -> TransferEndToEndParticipant.newInstance(ctx)
@@ -144,9 +163,8 @@ interface TransferPushSignalingTest {
                         .build())
                 .build();
 
-        static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
-
         @RegisterExtension
+        @Order(2)
         static final RuntimeExtension PROVIDER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
                 .name(PROVIDER_CP)
                 .modules(Runtimes.ControlPlane.SIGNALING_MODULES)
@@ -160,6 +178,17 @@ interface TransferPushSignalingTest {
                 .build();
 
         @RegisterExtension
+        @Order(3)
+        static final RuntimeExtension CONSUMER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
+                .name(CONSUMER_DP)
+                .modules(Runtimes.SignalingDataPlane.MODULES)
+                .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
+                .configurationProvider(Runtimes.SignalingDataPlane::config)
+                .configurationProvider(() -> Runtimes.ControlPlane.controlPlaneEndpointOf(CONSUMER_ENDPOINTS))
+                .build();
+
+        @RegisterExtension
+        @Order(3)
         static final RuntimeExtension PROVIDER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
                 .name(PROVIDER_DP)
                 .modules(Runtimes.SignalingDataPlane.MODULES)

@@ -842,8 +842,10 @@ class TransferProcessManagerImplTest {
         @Test
         void shouldTransitionToRequesting_whenProvisionThroughDataplaneSucceedsButNoActualProvisionNeeded() {
             var dataPlaneId = UUID.randomUUID().toString();
+            var dataDestination = DataAddress.Builder.newInstance().type("any").build();
             var dataFlowResponse = DataFlowResponse.Builder.newInstance()
                     .dataPlaneId(dataPlaneId)
+                    .dataAddress(dataDestination)
                     .provisioning(false)
                     .build();
             var transferProcess = createTransferProcess(INITIAL);
@@ -863,7 +865,8 @@ class TransferProcessManagerImplTest {
                 verify(transferProcessStore).save(captor.capture());
                 var storedTransferProcess = captor.getValue();
                 assertThat(storedTransferProcess.getState()).isEqualTo(REQUESTING.code());
-                assertThat(storedTransferProcess.getDataPlaneId()).isEqualTo(null);
+                assertThat(storedTransferProcess.getDataPlaneId()).isEqualTo(dataPlaneId);
+                assertThat(storedTransferProcess.getDataDestination()).isSameAs(dataDestination);
             });
         }
     }

@@ -31,8 +31,7 @@ public interface Runtimes {
     interface ControlPlane {
 
         String[] MODULES = new String[]{
-                ":system-tests:e2e-transfer-test:control-plane",
-                ":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"
+                ":system-tests:e2e-transfer-test:control-plane"
         };
 
         String[] SIGNALING_MODULES = new String[]{
@@ -42,8 +41,7 @@ public interface Runtimes {
 
         String[] EMBEDDED_DP_MODULES = new String[]{
                 ":system-tests:e2e-transfer-test:control-plane",
-                ":system-tests:e2e-transfer-test:data-plane",
-                ":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"
+                ":system-tests:e2e-transfer-test:data-plane"
         };
 
         String[] SQL_MODULES = new String[]{
@@ -69,6 +67,7 @@ public interface Runtimes {
                     put("edc.negotiation.provider.state-machine.iteration-wait-millis", "50");
                     put("edc.transfer.state-machine.iteration-wait-millis", "50");
                     put("edc.data.plane.selector.state-machine.iteration-wait-millis", "100");
+                    put("edc.core.retry.retries.max", "1");
                 }
             });
         }

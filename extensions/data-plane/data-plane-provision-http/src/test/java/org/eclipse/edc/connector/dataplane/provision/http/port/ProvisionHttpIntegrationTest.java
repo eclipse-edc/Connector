@@ -33,7 +33,6 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
-import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.spi.types.domain.transfer.TransferType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,6 +67,7 @@ import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISION_R
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.types.domain.transfer.FlowType.PUSH;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 @ComponentTest
@@ -122,7 +122,7 @@ public class ProvisionHttpIntegrationTest {
                         .property(EDC_NAMESPACE + "method", "POST")
                         .build()
                 )
-                .transferType(new TransferType("HttpData", FlowType.PUSH))
+                .transferType(new TransferType("HttpData", PUSH))
                 .callbackAddress(URI.create(controlPlane.baseUrl()))
                 .build();
 

@@ -17,10 +17,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":dist:bom:controlplane-base-bom")) {
-        exclude(group = "org.eclipse.edc", module = "data-plane-signaling-client")
-
-    }
+    implementation(project(":dist:bom:controlplane-base-bom"))
     implementation(project(":extensions:common:iam:iam-mock"))
 }
 
