@@ -36,7 +36,7 @@ public class ParticipantContextConfigServicesExtension implements ServiceExtensi
 
     @Setting(
             description = "The encryption algorithm used for encrypting and decrypting sensitive config.",
-            key = "edc.participants.config.encryption",
+            key = "edc.participants.config.encryption.algorithm",
             defaultValue = "aes"
     )
     private String encryptionAlgorithm;
