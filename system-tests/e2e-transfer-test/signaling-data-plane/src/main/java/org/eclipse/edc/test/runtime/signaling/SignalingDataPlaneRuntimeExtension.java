@@ -14,15 +14,29 @@
 
 package org.eclipse.edc.test.runtime.signaling;
 
+import dev.failsafe.Failsafe;
+import dev.failsafe.RetryPolicy;
 import org.eclipse.dataplane.Dataplane;
+import org.eclipse.dataplane.domain.DataAddress;
 import org.eclipse.dataplane.domain.Result;
 import org.eclipse.dataplane.domain.dataflow.DataFlow;
+import org.eclipse.dataplane.logic.OnPrepare;
 import org.eclipse.dataplane.logic.OnStart;
+import org.eclipse.dataplane.logic.OnTerminate;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
+import org.eclipse.edc.web.spi.exception.InvalidRequestException;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+
+import static java.util.Collections.emptyList;
 
 public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
 
@@ -43,9 +57,12 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
         dataplane = Dataplane.newInstance()
                 .endpoint("http://localhost:%d%s/v1/dataflows".formatted(httpPort, httpPath))
                 .transferType("Finite-PUSH")
+                .onPrepare(new DataplaneOnPrepare())
                 .onStart(new DataplaneOnStart())
+                .onTerminate(new DataplaneOnTerminate())
                 .build();
         webService.registerResource(dataplane.controller());
+        webService.registerResource(new ReceiveDataController(context.getMonitor()));
     }
 
     @Override
@@ -54,7 +71,51 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
                 .orElseThrow(e -> new RuntimeException("Cannot register dataplane on controlplane", e));
     }
 
-    private static class DataplaneOnStart implements OnStart {
+    private class DataplaneOnStart implements OnStart {
+        @Override
+        public Result<DataFlow> action(DataFlow dataFlow) {
+            if (dataFlow.getDataAddress() == null) {
+                return Result.failure(new InvalidRequestException("DataAddress should not be null for PUSH transfers"));
+            }
+            var destinationUri = URI.create(dataFlow.getDataAddress().endpoint());
+            var request = HttpRequest.newBuilder(destinationUri).POST(HttpRequest.BodyPublishers.ofString("test-data")).build();
+            HttpClient.newHttpClient().sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                    .whenComplete((response, throwable) -> {
+                        if (throwable == null) {
+                            var statusCode = response.statusCode();
+                            if (statusCode >= 200 && statusCode < 300) {
+                                notifyCompleted(dataFlow);
+                            } else {
+                                dataplane.notifyErrored(dataFlow.getId(), new RuntimeException("Destination endpoint responded with " + statusCode));
+                            }
+                        } else {
+                            dataplane.notifyErrored(dataFlow.getId(), throwable);
+                        }
+                    });
+
+            return Result.success(dataFlow);
+        }
+
+        private void notifyCompleted(DataFlow dataFlow) {
+            var retryPolicy = RetryPolicy.builder().withMaxRetries(5).withDelay(Duration.ofSeconds(1)).build();
+            Failsafe.with(retryPolicy).run(context -> {
+                if (dataplane.notifyCompleted(dataFlow.getId()).failed()) {
+                    throw new RuntimeException("Notification failed");
+                }
+            });
+        }
+    }
+
+    private class DataplaneOnPrepare implements OnPrepare {
+        @Override
+        public Result<DataFlow> action(DataFlow dataFlow) {
+            var destination = new DataAddress("Finite-PUSH", "http", "http://localhost:%d%s/receive".formatted(httpPort, httpPath), emptyList());
+            dataFlow.setDataAddress(destination);
+            return Result.success(dataFlow);
+        }
+    }
+
+    private class DataplaneOnTerminate implements OnTerminate {
         @Override
         public Result<DataFlow> action(DataFlow dataFlow) {
             return Result.success(dataFlow);

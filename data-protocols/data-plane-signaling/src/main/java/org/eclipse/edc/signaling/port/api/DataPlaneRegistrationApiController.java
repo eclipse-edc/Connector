@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.signaling.port;
+package org.eclipse.edc.signaling.port.api;
 
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;

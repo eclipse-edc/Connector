@@ -14,10 +14,9 @@
 
 package org.eclipse.edc.connector.dataplane.selector.manager;
 
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
+import org.eclipse.edc.connector.dataplane.selector.spi.manager.DataPlaneAvailabilityChecker;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -52,14 +51,14 @@ import static org.mockito.Mockito.when;
 class DataPlaneSelectorManagerImplTest {
 
     private final DataPlaneInstanceStore store = mock();
-    private final DataPlaneClientFactory clientFactory = mock();
+    private final DataPlaneAvailabilityChecker availabilityChecker = mock();
     private final Duration checkPeriod = Duration.of(10, SECONDS);
     private final Instant now = Instant.now();
     private final Clock clock = Clock.fixed(now, ZoneId.systemDefault());
     private final DataPlaneSelectorManagerImpl manager = DataPlaneSelectorManagerImpl.Builder.newInstance()
             .monitor(mock())
             .store(store)
-            .clientFactory(clientFactory)
+            .availabilityChecker(availabilityChecker)
             .checkPeriod(checkPeriod)
             .clock(clock)
             .build();
@@ -71,9 +70,7 @@ class DataPlaneSelectorManagerImplTest {
         void shouldTransitionToAvailable_whenDataPlaneIsAvailable() {
             var instance = DataPlaneInstance.Builder.newInstance().state(REGISTERED.code()).url("http://any").build();
             when(store.nextNotLeased(anyInt(), stateIs(REGISTERED))).thenReturn(List.of(instance)).thenReturn(emptyList());
-            DataPlaneClient dataPlaneClient = mock();
-            when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(dataPlaneClient.checkAvailability()).thenReturn(StatusResult.success());
+            when(availabilityChecker.checkAvailability(any())).thenReturn(StatusResult.success());
 
             manager.start();
 
@@ -86,9 +83,7 @@ class DataPlaneSelectorManagerImplTest {
         void shouldTransitionToUnavailable_whenDataPlaneIsNotAvailable() {
             var instance = DataPlaneInstance.Builder.newInstance().state(REGISTERED.code()).url("http://any").build();
             when(store.nextNotLeased(anyInt(), stateIs(REGISTERED))).thenReturn(List.of(instance)).thenReturn(emptyList());
-            DataPlaneClient dataPlaneClient = mock();
-            when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(dataPlaneClient.checkAvailability()).thenReturn(StatusResult.failure(FATAL_ERROR));
+            when(availabilityChecker.checkAvailability(any())).thenReturn(StatusResult.failure(FATAL_ERROR));
 
             manager.start();
 
@@ -108,9 +103,7 @@ class DataPlaneSelectorManagerImplTest {
             var instance = DataPlaneInstance.Builder.newInstance().state(AVAILABLE.code()).url("http://any")
                     .updatedAt(updatedAt.toEpochMilli()).build();
             when(store.nextNotLeased(anyInt(), stateIs(AVAILABLE))).thenReturn(List.of(instance)).thenReturn(emptyList());
-            DataPlaneClient dataPlaneClient = mock();
-            when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(dataPlaneClient.checkAvailability()).thenReturn(StatusResult.success());
+            when(availabilityChecker.checkAvailability(any())).thenReturn(StatusResult.success());
 
             manager.start();
 
@@ -125,9 +118,7 @@ class DataPlaneSelectorManagerImplTest {
             var instance = DataPlaneInstance.Builder.newInstance().state(AVAILABLE.code()).url("http://any")
                     .updatedAt(updatedAt.toEpochMilli()).build();
             when(store.nextNotLeased(anyInt(), stateIs(AVAILABLE))).thenReturn(List.of(instance)).thenReturn(emptyList());
-            DataPlaneClient dataPlaneClient = mock();
-            when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(dataPlaneClient.checkAvailability()).thenReturn(StatusResult.failure(FATAL_ERROR));
+            when(availabilityChecker.checkAvailability(any())).thenReturn(StatusResult.failure(FATAL_ERROR));
 
             manager.start();
 
@@ -142,14 +133,12 @@ class DataPlaneSelectorManagerImplTest {
             var instance = DataPlaneInstance.Builder.newInstance().state(AVAILABLE.code()).url("http://any")
                     .updatedAt(updatedAt.toEpochMilli()).build();
             when(store.nextNotLeased(anyInt(), stateIs(AVAILABLE))).thenReturn(List.of(instance)).thenReturn(emptyList());
-            DataPlaneClient dataPlaneClient = mock();
-            when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(dataPlaneClient.checkAvailability()).thenReturn(StatusResult.success());
+            when(availabilityChecker.checkAvailability(any())).thenReturn(StatusResult.success());
 
             manager.start();
 
             await().untilAsserted(() -> {
-                verifyNoInteractions(clientFactory);
+                verifyNoInteractions(availabilityChecker);
                 verify(store, atLeast(2)).nextNotLeased(anyInt(), stateIs(AVAILABLE));
             });
         }
@@ -164,9 +153,7 @@ class DataPlaneSelectorManagerImplTest {
             var instance = DataPlaneInstance.Builder.newInstance().state(UNAVAILABLE.code()).url("http://any")
                     .updatedAt(updatedAt.toEpochMilli()).build();
             when(store.nextNotLeased(anyInt(), stateIs(UNAVAILABLE))).thenReturn(List.of(instance)).thenReturn(emptyList());
-            DataPlaneClient dataPlaneClient = mock();
-            when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(dataPlaneClient.checkAvailability()).thenReturn(StatusResult.failure(FATAL_ERROR));
+            when(availabilityChecker.checkAvailability(any())).thenReturn(StatusResult.failure(FATAL_ERROR));
 
             manager.start();
 
@@ -181,9 +168,7 @@ class DataPlaneSelectorManagerImplTest {
             var instance = DataPlaneInstance.Builder.newInstance().state(UNAVAILABLE.code()).url("http://any")
                     .updatedAt(updatedAt.toEpochMilli()).build();
             when(store.nextNotLeased(anyInt(), stateIs(UNAVAILABLE))).thenReturn(List.of(instance)).thenReturn(emptyList());
-            DataPlaneClient dataPlaneClient = mock();
-            when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(dataPlaneClient.checkAvailability()).thenReturn(StatusResult.success());
+            when(availabilityChecker.checkAvailability(any())).thenReturn(StatusResult.success());
 
             manager.start();
 
@@ -198,14 +183,12 @@ class DataPlaneSelectorManagerImplTest {
             var instance = DataPlaneInstance.Builder.newInstance().state(UNAVAILABLE.code()).url("http://any")
                     .updatedAt(updatedAt.toEpochMilli()).build();
             when(store.nextNotLeased(anyInt(), stateIs(UNAVAILABLE))).thenReturn(List.of(instance)).thenReturn(emptyList());
-            DataPlaneClient dataPlaneClient = mock();
-            when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            when(dataPlaneClient.checkAvailability()).thenReturn(StatusResult.success());
+            when(availabilityChecker.checkAvailability(any())).thenReturn(StatusResult.success());
 
             manager.start();
 
             await().untilAsserted(() -> {
-                verifyNoInteractions(clientFactory);
+                verifyNoInteractions(availabilityChecker);
                 verify(store, atLeast(2)).nextNotLeased(anyInt(), stateIs(UNAVAILABLE));
             });
         }

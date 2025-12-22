@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorManagerConf
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
+import org.eclipse.edc.connector.dataplane.selector.spi.manager.DataPlaneAvailabilityChecker;
 import org.eclipse.edc.connector.dataplane.selector.spi.manager.DataPlaneSelectorManager;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.spi.query.Criterion;
@@ -39,6 +40,7 @@ public class DataPlaneSelectorManagerImpl extends AbstractStateEntityManager<Dat
 
     private DataPlaneClientFactory clientFactory;
     private Duration checkPeriod = Duration.ofMinutes(1);
+    private DataPlaneAvailabilityChecker availabilityChecker;
 
     private DataPlaneSelectorManagerImpl() {
     }
@@ -60,8 +62,7 @@ public class DataPlaneSelectorManagerImpl extends AbstractStateEntityManager<Dat
     }
 
     private boolean availability(DataPlaneInstance instance) {
-        var client = clientFactory.createClient(instance);
-        var availability = client.checkAvailability();
+        var availability = availabilityChecker.checkAvailability(instance);
         if (availability.succeeded()) {
             instance.transitionToAvailable();
         } else {
@@ -97,13 +98,13 @@ public class DataPlaneSelectorManagerImpl extends AbstractStateEntityManager<Dat
             return this;
         }
 
-        public Builder clientFactory(DataPlaneClientFactory clientFactory) {
-            manager.clientFactory = clientFactory;
+        public Builder checkPeriod(Duration checkPeriod) {
+            manager.checkPeriod = checkPeriod;
             return this;
         }
 
-        public Builder checkPeriod(Duration checkPeriod) {
-            manager.checkPeriod = checkPeriod;
+        public Builder availabilityChecker(DataPlaneAvailabilityChecker dataPlaneAvailabilityChecker) {
+            manager.availabilityChecker = dataPlaneAvailabilityChecker;
             return this;
         }
 
