@@ -36,13 +36,15 @@ public class DspRequestBasePathProviderImpl implements DspRequestBasePathProvide
 
     @Override
     public String provideBasePath(RemoteMessage message) {
-        var protocolPath = "";
-        if (wellKnownPath) {
-            protocolPath = Optional.ofNullable(dataspaceProfileContextRegistry.getProtocolVersion(message.getProtocol()))
-                    .map(ProtocolVersion::path)
-                    .map(this::removeTrailingSlash)
-                    .orElseThrow(() -> new EdcException(format("No protocol version found for protocol: %s", message.getProtocol())));
+        if (!wellKnownPath) {
+            return message.getCounterPartyAddress();
         }
+
+        var protocolPath = Optional.ofNullable(dataspaceProfileContextRegistry.getProtocolVersion(message.getProtocol()))
+                .map(ProtocolVersion::path)
+                .map(this::removeTrailingSlash)
+                .orElseThrow(() -> new EdcException(format("No protocol version found for protocol: %s", message.getProtocol())));
+
         return message.getCounterPartyAddress() + protocolPath;
     }
 
