@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
+import org.eclipse.edc.jsonld.CachedDocumentRegistry;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
@@ -69,12 +70,11 @@ public class Participant {
     protected String name;
     protected LazySupplier<URI> controlPlaneManagement = new LazySupplier<>(() -> URI.create("http://localhost:" + getFreePort() + "/management"));
     protected LazySupplier<URI> controlPlaneProtocol = new LazySupplier<>(() -> URI.create("http://localhost:" + getFreePort() + "/protocol"));
-    protected String protocolVersionPath = "";
     protected UnaryOperator<RequestSpecification> enrichManagementRequest = r -> r;
     protected JsonLd jsonLd;
     protected ObjectMapper objectMapper;
     protected Duration timeout = Duration.ofSeconds(30);
-    protected String protocol = "dataspace-protocol-http";
+    protected Protocol protocol = new Protocol("dataspace-protocol-http:2025-1", "/2025-1");
     protected String managementVersionBasePath = MANAGEMENT_V3;
 
     protected Participant() {
@@ -88,21 +88,8 @@ public class Participant {
         return timeout;
     }
 
-    public String getProtocol() {
+    public Protocol getProtocol() {
         return protocol;
-    }
-
-    public void setProtocol(String protocol) {
-        setProtocol(protocol, "");
-    }
-
-    public void setProtocol(String protocol, String path) {
-        this.protocol = protocol;
-        this.protocolVersionPath = path;
-    }
-
-    public String getProtocolVersionPath() {
-        return protocolVersionPath;
     }
 
     public String getId() {
@@ -113,17 +100,13 @@ public class Participant {
         return jsonLd;
     }
 
-    public void setJsonLd(JsonLd jsonLd) {
-        this.jsonLd = jsonLd;
-    }
-
     /**
      * Get the protocol URL of the participant which is the protocol base path + protocol version path (empty by default).
      *
      * @return protocol URL
      */
     public String getProtocolUrl() {
-        return controlPlaneProtocol.get() + protocolVersionPath;
+        return controlPlaneProtocol.get() + protocol.versionPath();
     }
 
     public String createAsset(JsonObject requestBody) {
@@ -252,7 +235,7 @@ public class Participant {
                 .add(TYPE, "CatalogRequest")
                 .add("counterPartyId", provider.id)
                 .add("counterPartyAddress", provider.getProtocolUrl())
-                .add("protocol", protocol);
+                .add("protocol", protocol.name());
 
         if (querySpec != null) {
             requestBodyBuilder.add("querySpec", querySpec);
@@ -296,7 +279,7 @@ public class Participant {
                 .add(ID, assetId)
                 .add("counterPartyId", provider.id)
                 .add("counterPartyAddress", provider.getProtocolUrl())
-                .add("protocol", protocol)
+                .add("protocol", protocol.name())
                 .build();
 
         var response = baseManagementRequest()
@@ -345,7 +328,7 @@ public class Participant {
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "ContractRequest")
                 .add("counterPartyAddress", provider.getProtocolUrl())
-                .add("protocol", protocol)
+                .add("protocol", protocol.name())
                 .add("policy", jsonLd.compact(policy).getContent())
                 .build();
 
@@ -408,7 +391,7 @@ public class Participant {
         var requestBodyBuilder = createObjectBuilder()
                 .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
                 .add(TYPE, "TransferRequest")
-                .add("protocol", protocol)
+                .add("protocol", protocol.name())
                 .add("contractId", contractAgreementId)
                 .add("connectorId", provider.id)
                 .add("counterPartyAddress", provider.getProtocolUrl());
@@ -624,11 +607,6 @@ public class Participant {
             return self();
         }
 
-        public B protocol(String protocol) {
-            participant.protocol = protocol;
-            return self();
-        }
-
         public B timeout(Duration timeout) {
             participant.timeout = timeout;
             return self();
@@ -649,12 +627,20 @@ public class Participant {
             return self();
         }
 
+        public B protocol(String name, String versionPath) {
+            participant.protocol = new Protocol(name, versionPath);
+            return self();
+        }
+
         public P build() {
             Objects.requireNonNull(participant.id, "id");
             Objects.requireNonNull(participant.name, "name");
 
             if (participant.jsonLd == null) {
                 participant.jsonLd = new TitaniumJsonLd(new ConsoleMonitor());
+                CachedDocumentRegistry.getDocuments().forEach(result -> result
+                        .onSuccess(c -> participant.jsonLd.registerCachedDocument(c.url(), c.resource()))
+                );
             }
             if (participant.objectMapper == null) {
                 participant.objectMapper = JacksonJsonLd.createObjectMapper();
@@ -720,4 +706,6 @@ public class Participant {
             return transferProcessId;
         }
     }
+
+    public record Protocol(String name, String versionPath) { }
 }

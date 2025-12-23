@@ -37,13 +37,7 @@ public class TransferEndToEndParticipant extends Participant {
     }
 
     public static TransferEndToEndParticipant forContext(ComponentRuntimeContext ctx) {
-        var id = ctx.getConfig().getString("edc.participant.id");
-        return TransferEndToEndParticipant.Builder.newInstance()
-                .id(id)
-                .name(ctx.getName())
-                .managementUrl(ctx.getEndpoint(MANAGEMENT))
-                .protocolUrl(ctx.getEndpoint(PROTOCOL))
-                .build();
+        return newInstance(ctx).build();
     }
 
     public static TransferEndToEndParticipant.Builder newInstance(ComponentRuntimeContext ctx) {
