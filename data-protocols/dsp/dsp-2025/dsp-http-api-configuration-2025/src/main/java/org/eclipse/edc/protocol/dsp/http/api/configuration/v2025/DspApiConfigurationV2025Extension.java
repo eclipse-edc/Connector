@@ -28,6 +28,7 @@ import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -60,6 +61,11 @@ public class DspApiConfigurationV2025Extension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol 2025/1 API Configuration Extension";
 
+    private static final boolean DEFAULT_WELL_KNOWN_PATH = false;
+
+    @Setting(description = "If set enable the well known path resolution scheme will be used", key = "edc.dsp.well-known-path.enabled", required = false, defaultValue = DEFAULT_WELL_KNOWN_PATH + "")
+    private boolean wellKnownPathEnabled;
+
     @Inject
     private TypeManager typeManager;
     @Inject
@@ -86,7 +92,8 @@ public class DspApiConfigurationV2025Extension implements ServiceExtension {
         registerNamespaces();
         registerTransformers();
 
-        dataspaceProfileContextRegistry.registerDefault(new DataspaceProfileContext(DATASPACE_PROTOCOL_HTTP_V_2025_1, V_2025_1, () -> dspWebhookAddress.get() + V_2025_1_PATH, participantIdExtractionFunction));
+        var v2025Path = dspWebhookAddress.get() + (wellKnownPathEnabled ? "" : V_2025_1_PATH);
+        dataspaceProfileContextRegistry.registerDefault(new DataspaceProfileContext(DATASPACE_PROTOCOL_HTTP_V_2025_1, V_2025_1, () -> v2025Path, participantIdExtractionFunction));
     }
 
     private void registerNamespaces() {
