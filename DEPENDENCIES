@@ -91,11 +91,11 @@ maven/mavencentral/io.opentelemetry.instrumentation/opentelemetry-instrumentatio
 maven/mavencentral/io.opentelemetry.proto/opentelemetry-proto/1.9.0-alpha, , restricted, clearlydefined
 maven/mavencentral/io.opentelemetry/opentelemetry-api/1.32.0, Apache-2.0, approved, #11682
 maven/mavencentral/io.opentelemetry/opentelemetry-context/1.32.0, Apache-2.0, approved, #11683
-maven/mavencentral/io.rest-assured/json-path/5.5.6, Apache-2.0, approved, #19524
-maven/mavencentral/io.rest-assured/rest-assured-common/5.5.6, Apache-2.0, approved, #19522
+maven/mavencentral/io.rest-assured/json-path/6.0.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/io.rest-assured/rest-assured-common/6.0.0, , restricted, clearlydefined
 maven/mavencentral/io.rest-assured/rest-assured/5.5.5, Apache-2.0, approved, #15676
-maven/mavencentral/io.rest-assured/rest-assured/5.5.6, Apache-2.0, approved, #15676
-maven/mavencentral/io.rest-assured/xml-path/5.5.6, Apache-2.0, approved, #19523
+maven/mavencentral/io.rest-assured/rest-assured/6.0.0, , restricted, clearlydefined
+maven/mavencentral/io.rest-assured/xml-path/6.0.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.setl/rdf-urdna/1.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/io.swagger.core.v3/swagger-annotations-jakarta/2.2.26, Apache-2.0, approved, #5947
 maven/mavencentral/io.swagger.core.v3/swagger-annotations-jakarta/2.2.41, Apache-2.0, approved, #5947
@@ -142,14 +142,15 @@ maven/mavencentral/org.apache.commons/commons-compress/1.28.0, Apache-2.0 AND (A
 maven/mavencentral/org.apache.commons/commons-lang3/3.12.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.commons/commons-lang3/3.17.0, Apache-2.0, approved, #16044
 maven/mavencentral/org.apache.commons/commons-lang3/3.18.0, Apache-2.0, approved, #22470
+maven/mavencentral/org.apache.commons/commons-lang3/3.19.0, Apache-2.0, approved, #23560
 maven/mavencentral/org.apache.commons/commons-lang3/3.7, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apache.commons/commons-lang3/3.8.1, Apache-2.0, approved, #815
 maven/mavencentral/org.apache.commons/commons-pool2/2.13.0, , restricted, clearlydefined
 maven/mavencentral/org.apache.commons/commons-text/1.3, Apache-2.0, approved, clearlydefined
-maven/mavencentral/org.apache.groovy/groovy-bom/4.0.22, Apache-2.0, approved, #9266
-maven/mavencentral/org.apache.groovy/groovy-json/4.0.22, Apache-2.0, approved, #7411
-maven/mavencentral/org.apache.groovy/groovy-xml/4.0.22, Apache-2.0, approved, #10179
-maven/mavencentral/org.apache.groovy/groovy/4.0.22, Apache-2.0 AND BSD-3-Clause AND MIT, approved, #1742
+maven/mavencentral/org.apache.groovy/groovy-bom/5.0.3, , restricted, clearlydefined
+maven/mavencentral/org.apache.groovy/groovy-json/5.0.3, , restricted, clearlydefined
+maven/mavencentral/org.apache.groovy/groovy-xml/5.0.3, , restricted, clearlydefined
+maven/mavencentral/org.apache.groovy/groovy/5.0.3, , restricted, clearlydefined
 maven/mavencentral/org.apache.httpcomponents.client5/httpclient5/5.5.1, Apache-2.0 AND MPL-2.0, approved, #24483
 maven/mavencentral/org.apache.httpcomponents.core5/httpcore5-h2/5.3.6, Apache-2.0, approved, #16867
 maven/mavencentral/org.apache.httpcomponents.core5/httpcore5/5.3.6, Apache-2.0, approved, #16866
