@@ -216,11 +216,11 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 var provisioning = dataFlowManager.prepare(process, policy);
                 if (provisioning.succeeded()) {
                     var response = provisioning.getContent();
+                    process.setDataPlaneId(response.getDataPlaneId());
                     if (response.isProvisioning()) {
-                        process.setDataPlaneId(response.getDataPlaneId());
                         process.transitionProvisioningRequested();
                     } else {
-                        process.setDataPlaneId(null);
+                        process.updateDestination(response.getDataAddress());
                         process.transitionRequesting();
                     }
 
