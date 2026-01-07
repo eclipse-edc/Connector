@@ -22,7 +22,6 @@ import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.annotations.Runtime;
@@ -32,8 +31,6 @@ import org.eclipse.edc.junit.utils.Endpoints;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.configuration.Config;
-import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.jetbrains.annotations.NotNull;
@@ -71,7 +68,6 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 
 class TransferPullEndToEndTest {
-
 
     abstract static class Tests extends TransferEndToEndTestBase {
 
@@ -389,146 +385,6 @@ class TransferPullEndToEndTest {
 
     @Nested
     @EndToEndTest
-    class InMemoryV2024Rev1 extends Tests {
-
-        @RegisterExtension
-        static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
-                .name(CONSUMER_CP)
-                .modules(Runtimes.ControlPlane.MODULES)
-                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
-                .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
-                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
-                .build();
-
-        static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
-
-        @RegisterExtension
-        static final RuntimeExtension PROVIDER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
-                .name(PROVIDER_CP)
-                .modules(Runtimes.ControlPlane.MODULES)
-                .endpoints(PROVIDER_ENDPOINTS)
-                .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
-                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
-                .build();
-
-        @RegisterExtension
-        static final RuntimeExtension PROVIDER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
-                .name(PROVIDER_DP)
-                .modules(Runtimes.DataPlane.IN_MEM_MODULES)
-                .endpoints(Runtimes.DataPlane.ENDPOINTS.build())
-                .configurationProvider(Runtimes.DataPlane::config)
-                .configurationProvider(() -> Runtimes.ControlPlane.dataPlaneSelectorFor(PROVIDER_ENDPOINTS))
-                .build()
-                .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension());
-
-        @BeforeAll
-        static void beforeAll(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                              @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
-            consumer.setProtocol("dataspace-protocol-http:2024/1", "/2024/1");
-            provider.setProtocol("dataspace-protocol-http:2024/1", "/2024/1");
-        }
-
-    }
-
-    @Nested
-    @EndToEndTest
-    class InMemoryV2024Rev1WellKnownPath extends Tests {
-
-        @RegisterExtension
-        static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
-                .name(CONSUMER_CP)
-                .modules(Runtimes.ControlPlane.MODULES)
-                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
-                .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
-                .configurationProvider(InMemoryV2024Rev1WellKnownPath::config)
-                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
-
-                .build();
-
-        static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
-
-        @RegisterExtension
-        static final RuntimeExtension PROVIDER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
-                .name(PROVIDER_CP)
-                .modules(Runtimes.ControlPlane.MODULES)
-                .endpoints(PROVIDER_ENDPOINTS)
-                .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
-                .configurationProvider(InMemoryV2024Rev1WellKnownPath::config)
-                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
-                .build();
-
-        @RegisterExtension
-        static final RuntimeExtension PROVIDER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
-                .name(PROVIDER_DP)
-                .modules(Runtimes.DataPlane.IN_MEM_MODULES)
-                .endpoints(Runtimes.DataPlane.ENDPOINTS.build())
-                .configurationProvider(Runtimes.DataPlane::config)
-                .configurationProvider(() -> Runtimes.ControlPlane.dataPlaneSelectorFor(PROVIDER_ENDPOINTS))
-                .build()
-                .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension());
-
-        private static Config config() {
-            var settings = Map.of("edc.dsp.well-known-path.enabled", "true");
-            return ConfigFactory.fromMap(settings);
-        }
-
-        @BeforeAll
-        static void beforeAll(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                              @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
-            consumer.setProtocol("dataspace-protocol-http:2024/1");
-            provider.setProtocol("dataspace-protocol-http:2024/1");
-        }
-
-    }
-
-    @Nested
-    @EndToEndTest
-    class InMemoryV2025Rev1 extends Tests {
-
-        @RegisterExtension
-        static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
-                .name(CONSUMER_CP)
-                .modules(Runtimes.ControlPlane.MODULES)
-                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
-                .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
-                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
-                .build();
-
-        static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
-
-        @RegisterExtension
-        static final RuntimeExtension PROVIDER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
-                .name(PROVIDER_CP)
-                .modules(Runtimes.ControlPlane.MODULES)
-                .endpoints(PROVIDER_ENDPOINTS)
-                .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
-                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
-                .build();
-
-        @RegisterExtension
-        static final RuntimeExtension PROVIDER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
-                .name(PROVIDER_DP)
-                .modules(Runtimes.DataPlane.IN_MEM_MODULES)
-                .endpoints(Runtimes.DataPlane.ENDPOINTS.build())
-                .configurationProvider(Runtimes.DataPlane::config)
-                .configurationProvider(() -> Runtimes.ControlPlane.dataPlaneSelectorFor(PROVIDER_ENDPOINTS))
-                .build()
-                .registerSystemExtension(ServiceExtension.class, new HttpProxyDataPlaneExtension());
-
-
-        @BeforeAll
-        static void beforeAll(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                              @Runtime(CONSUMER_CP) JsonLd jsonLd,
-                              @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
-            consumer.setJsonLd(jsonLd);
-            consumer.setProtocol("dataspace-protocol-http:2025-1", "/2025-1");
-            provider.setProtocol("dataspace-protocol-http:2025-1", "/2025-1");
-        }
-
-    }
-
-    @Nested
-    @EndToEndTest
     class EmbeddedDataPlane extends Tests {
 
         @RegisterExtension
@@ -571,6 +427,7 @@ class TransferPullEndToEndTest {
             vault.storeSecret("private-key", privateKey);
             vault.storeSecret("public-key", publicKey);
         }
+
     }
 
     @Nested
