@@ -16,22 +16,18 @@ package org.eclipse.edc.signaling.port;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.json.JsonObject;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.http.spi.ControlApiHttpClient;
-import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
+import org.eclipse.edc.signaling.domain.DataFlowResponseMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -43,34 +39,29 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 /**
  * Client that implements the Data Plane Signaling spec
  */
-public class DataPlaneSignalingClient implements DataPlaneClient {
+public class DataPlaneSignalingClient {
 
     private  static final MediaType TYPE_JSON = MediaType.parse("application/json");
 
     private final DataPlaneInstance dataPlane;
     private final ControlApiHttpClient httpClient;
     private final Supplier<ObjectMapper> objectMapperSupplier;
-    private final TypeTransformerRegistry transformerRegistry;
-    private final JsonLd jsonLd;
-    private final String jsonLdScope;
 
     public DataPlaneSignalingClient(DataPlaneInstance dataPlane, ControlApiHttpClient httpClient,
-                                    Supplier<ObjectMapper> objectMapperSupplier, TypeTransformerRegistry typeTransformerRegistry,
-                                    JsonLd jsonLd, String jsonLdScope) {
+                                    Supplier<ObjectMapper> objectMapperSupplier) {
         this.dataPlane = dataPlane;
         this.httpClient = httpClient;
         this.objectMapperSupplier = objectMapperSupplier;
-        transformerRegistry = typeTransformerRegistry;
-        this.jsonLd = jsonLd;
-        this.jsonLdScope = jsonLdScope;
     }
 
-    @Override
-    public StatusResult<DataFlowResponseMessage> prepare(DataFlowProvisionMessage request) {
-        return StatusResult.failure(ResponseStatus.FATAL_ERROR, "not implemented");
+    public StatusResult<DataFlowResponseMessage> prepare(DataFlowPrepareMessage request) {
+        var url = "%s/prepare".formatted(dataPlane.getUrl());
+        return createRequestBuilder(request, url)
+                .compose(builder -> httpClient.request(builder)
+                        .flatMap(result -> result.map(this::handleResponse)
+                                .orElse(this::failedResult)));
     }
 
-    @Override
     public StatusResult<DataFlowResponseMessage> start(DataFlowStartMessage request) {
         var url = "%s/start".formatted(dataPlane.getUrl());
         return createRequestBuilder(request, url)
@@ -79,17 +70,14 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
                                 .orElse(this::failedResult)));
     }
 
-    @Override
     public StatusResult<Void> suspend(String transferProcessId) {
         return StatusResult.failure(ResponseStatus.FATAL_ERROR, "not implemented");
     }
 
-    @Override
     public StatusResult<Void> terminate(String transferProcessId) {
-        return StatusResult.failure(ResponseStatus.FATAL_ERROR, "not implemented");
+        return StatusResult.success();
     }
 
-    @Override
     public StatusResult<Void> checkAvailability() {
         var requestBuilder = new Request.Builder().get().url(dataPlane.getUrl() + "/");
         return httpClient.request(requestBuilder)
@@ -116,9 +104,7 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
     }
 
     private StatusResult<Request.Builder> createRequestBuilder(Object message, String url) {
-        return transformerRegistry.transform(message, JsonObject.class)
-                .compose(this::compact)
-                .compose(this::serializeMessage)
+        return this.serialize(message)
                 .map(rawBody -> RequestBody.create(rawBody, TYPE_JSON))
                 .map(body -> new Request.Builder().post(body).url(url))
                 .flatMap(it -> {
@@ -130,11 +116,7 @@ public class DataPlaneSignalingClient implements DataPlaneClient {
                 });
     }
 
-    private Result<JsonObject> compact(JsonObject object) {
-        return jsonLd.compact(object, jsonLdScope);
-    }
-
-    private Result<String> serializeMessage(Object message) {
+    private Result<String> serialize(Object message) {
         try {
             return Result.success(objectMapperSupplier.get().writeValueAsString(message));
         } catch (JsonProcessingException e) {

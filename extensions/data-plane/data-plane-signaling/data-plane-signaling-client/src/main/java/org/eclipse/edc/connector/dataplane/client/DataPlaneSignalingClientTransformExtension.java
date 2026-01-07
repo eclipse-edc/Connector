@@ -39,7 +39,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 @Extension(value = DataPlaneSignalingClientTransformExtension.NAME)
 public class DataPlaneSignalingClientTransformExtension implements ServiceExtension {
 
-    public static final String NAME = "Data Plane Signaling transform Client";
+    public static final String NAME = "Legacy Data Plane Signaling transform Client";
 
     @Inject
     private TypeTransformerRegistry transformerRegistry;

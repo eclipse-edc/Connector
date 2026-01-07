@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.dataplane;
 
-import org.eclipse.edc.connector.controlplane.transfer.dataplane.flow.DataPlaneSignalingFlowController;
+import org.eclipse.edc.connector.controlplane.transfer.dataplane.flow.LegacyDataPlaneSignalingFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
@@ -35,7 +35,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.dataplane.Transfer
 @Extension(NAME)
 public class TransferDataPlaneSignalingExtension implements ServiceExtension {
 
-    protected static final String NAME = "Transfer Data Plane Signaling Extension";
+    protected static final String NAME = "Legacy Data Plane Signaling Extension";
 
     private static final String DEFAULT_DATAPLANE_SELECTOR_STRATEGY = "random";
 
@@ -62,7 +62,7 @@ public class TransferDataPlaneSignalingExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var controller = new DataPlaneSignalingFlowController(callbackUrl, selectorService, getPropertiesProvider(),
+        var controller = new LegacyDataPlaneSignalingFlowController(callbackUrl, selectorService, getPropertiesProvider(),
                 clientFactory, selectionStrategy, transferTypeParser);
         dataFlowManager.register(controller);
     }

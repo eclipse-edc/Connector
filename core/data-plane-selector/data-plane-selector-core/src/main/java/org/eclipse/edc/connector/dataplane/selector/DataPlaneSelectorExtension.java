@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.dataplane.selector;
 import org.eclipse.edc.connector.dataplane.selector.manager.DataPlaneSelectorManagerImpl;
 import org.eclipse.edc.connector.dataplane.selector.service.EmbeddedDataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
+import org.eclipse.edc.connector.dataplane.selector.spi.manager.DataPlaneAvailabilityChecker;
 import org.eclipse.edc.connector.dataplane.selector.spi.manager.DataPlaneSelectorManager;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
@@ -59,7 +59,7 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
     @Inject
     private SelectionStrategyRegistry selectionStrategyRegistry;
     @Inject
-    private DataPlaneClientFactory clientFactory;
+    private DataPlaneAvailabilityChecker dataPlaneAvailabilityChecker;
 
     private DataPlaneSelectorManager manager;
 
@@ -90,11 +90,11 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
             );
 
             manager = DataPlaneSelectorManagerImpl.Builder.newInstance()
-                    .clientFactory(clientFactory)
                     .store(instanceStore)
                     .monitor(context.getMonitor())
                     .configuration(configuration)
                     .entityRetryProcessConfiguration(stateMachineConfiguration.entityRetryProcessConfiguration())
+                    .availabilityChecker(dataPlaneAvailabilityChecker)
                     .build();
         }
         return manager;
