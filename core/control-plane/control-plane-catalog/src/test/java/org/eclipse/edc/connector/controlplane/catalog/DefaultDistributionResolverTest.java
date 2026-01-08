@@ -17,7 +17,7 @@ package org.eclipse.edc.connector.controlplane.catalog;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
@@ -34,14 +34,14 @@ class DefaultDistributionResolverTest {
 
     private final DataService dataService = DataService.Builder.newInstance().build();
     private final DataServiceRegistry dataServiceRegistry = mock();
-    private final DataFlowManager dataFlowManager = mock();
+    private final DataFlowController dataFlowController = mock();
 
-    private final DefaultDistributionResolver resolver = new DefaultDistributionResolver(dataServiceRegistry, dataFlowManager);
+    private final DefaultDistributionResolver resolver = new DefaultDistributionResolver(dataServiceRegistry, dataFlowController);
 
     @Test
     void shouldReturnDistributionsForEveryTransferType() {
         when(dataServiceRegistry.getDataServices(any(), any())).thenReturn(List.of(dataService));
-        when(dataFlowManager.transferTypesFor(any(Asset.class))).thenReturn(Set.of("type1", "type2"));
+        when(dataFlowController.transferTypesFor(any(Asset.class))).thenReturn(Set.of("type1", "type2"));
 
         var dataAddress = DataAddress.Builder.newInstance().type("any").build();
         var asset = Asset.Builder.newInstance().dataAddress(dataAddress).build();
@@ -62,7 +62,7 @@ class DefaultDistributionResolverTest {
     @Test
     void shouldReturnDistribution_whenAssetIsCatalog() {
         when(dataServiceRegistry.getDataServices(any(), any())).thenReturn(List.of(dataService));
-        when(dataFlowManager.transferTypesFor(any(Asset.class))).thenReturn(Set.of("type1", "type2"));
+        when(dataFlowController.transferTypesFor(any(Asset.class))).thenReturn(Set.of("type1", "type2"));
 
         var dataAddress = DataAddress.Builder.newInstance()
                 .type("HttpData")

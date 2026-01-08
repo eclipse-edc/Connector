@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.test.e2e;
 
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
@@ -101,7 +101,7 @@ public class DataPlaneSelectorEndToEndTest {
         selectorService.register(createDataPlaneInstance("available", "http://localhost:" + dataPlaneControlPort + "/control/v1/dataflows"));
 
         await().atMost(30, SECONDS).untilAsserted(() -> {
-            var start = controlPlane.getService(DataFlowManager.class).start(transferProcess, policy);
+            var start = controlPlane.getService(DataFlowController.class).start(transferProcess, policy);
             assertThat(start).isSucceeded();
         });
     }

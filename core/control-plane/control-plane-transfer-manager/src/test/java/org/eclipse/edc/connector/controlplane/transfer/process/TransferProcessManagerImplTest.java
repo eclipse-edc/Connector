@@ -26,7 +26,7 @@ import org.eclipse.edc.connector.controlplane.transfer.provision.fixtures.TestPr
 import org.eclipse.edc.connector.controlplane.transfer.provision.fixtures.TestResourceDefinition;
 import org.eclipse.edc.connector.controlplane.transfer.provision.fixtures.TokenTestProvisionResource;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator;
@@ -143,7 +143,7 @@ class TransferProcessManagerImplTest {
     private final ResourceManifestGenerator manifestGenerator = mock();
     private final TransferProcessStore transferProcessStore = mock();
     private final PolicyArchive policyArchive = mock();
-    private final DataFlowManager dataFlowManager = mock();
+    private final DataFlowController dataFlowController = mock();
     private final Vault vault = mock();
     private final Clock clock = Clock.systemUTC();
     private final TransferProcessListener listener = mock();
@@ -166,7 +166,7 @@ class TransferProcessManagerImplTest {
     @BeforeEach
     void setup() {
         when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> protocolWebhookUrl);
-        when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponseBuilder().build()));
+        when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponseBuilder().build()));
         when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().build());
         when(policyArchive.getAgreementIdForContract(any())).thenReturn("agreementId");
         var observable = new TransferProcessObservableImpl();
@@ -174,7 +174,7 @@ class TransferProcessManagerImplTest {
         var entityRetryProcessConfiguration = new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L));
         manager = TransferProcessManagerImpl.Builder.newInstance()
                 .provisionManager(provisionManager)
-                .dataFlowManager(dataFlowManager)
+                .dataFlowController(dataFlowController)
                 .waitStrategy(() -> 10000L)
                 .batchSize(TRANSFER_MANAGER_BATCHSIZE)
                 .dispatcherRegistry(dispatcherRegistry)
@@ -398,8 +398,8 @@ class TransferProcessManagerImplTest {
                 .thenReturn(List.of(transferProcess)).thenReturn(emptyList());
         when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(result);
         when(transferProcessStore.findById(transferProcess.getId())).thenReturn(transferProcess);
-        when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
-        when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
+        when(dataFlowController.suspend(any())).thenReturn(StatusResult.success());
+        when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
 
         manager.start();
 
@@ -543,7 +543,7 @@ class TransferProcessManagerImplTest {
             manager.start();
 
             await().untilAsserted(() -> {
-                verify(dataFlowManager).completed(process);
+                verify(dataFlowController).completed(process);
             });
         }
     }
@@ -556,12 +556,12 @@ class TransferProcessManagerImplTest {
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
             when(dispatcherRegistry.dispatch(any(), any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
-            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
+            when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
 
             manager.start();
 
             await().untilAsserted(() -> {
-                verify(dataFlowManager).terminate(process);
+                verify(dataFlowController).terminate(process);
                 var captor = ArgumentCaptor.forClass(TransferTerminationMessage.class);
                 verify(dispatcherRegistry).dispatch(any(), eq(Object.class), captor.capture());
                 var message = captor.getValue();
@@ -577,7 +577,7 @@ class TransferProcessManagerImplTest {
         void shouldUpdateStateCountForRetry_whenFailureAndRetriesNotExhausted() {
             var process = createTransferProcess(TERMINATING).toBuilder().type(PROVIDER).build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
+            when(dataFlowController.terminate(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
 
             manager.start();
 
@@ -591,7 +591,7 @@ class TransferProcessManagerImplTest {
             var process = createTransferProcess(TERMINATING).toBuilder().type(PROVIDER).build();
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+            when(dataFlowController.terminate(any())).thenReturn(StatusResult.failure(FATAL_ERROR));
 
             manager.start();
 
@@ -603,7 +603,7 @@ class TransferProcessManagerImplTest {
         @Test
         void shouldTransitToTerminated_whenFailureAndRetriesExhausted() {
             var process = createTransferProcessBuilder(TERMINATING).type(PROVIDER).stateCount(RETRY_EXHAUSTED).build();
-            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
+            when(dataFlowController.terminate(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
 
             manager.start();
@@ -622,12 +622,12 @@ class TransferProcessManagerImplTest {
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
             when(dispatcherRegistry.dispatch(any(), any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
-            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
+            when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
 
             manager.start();
 
             await().untilAsserted(() -> {
-                verify(dataFlowManager).terminate(process);
+                verify(dataFlowController).terminate(process);
                 var captor = ArgumentCaptor.forClass(TransferTerminationMessage.class);
                 verify(dispatcherRegistry).dispatch(any(), eq(Object.class), captor.capture());
                 var message = captor.getValue();
@@ -648,12 +648,12 @@ class TransferProcessManagerImplTest {
             var process = createTransferProcessBuilder(TERMINATING_REQUESTED).type(PROVIDER).correlationId("correlationId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING_REQUESTED.code()).build());
-            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
+            when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
 
             manager.start();
 
             await().untilAsserted(() -> {
-                verify(dataFlowManager).terminate(process);
+                verify(dataFlowController).terminate(process);
                 verifyNoInteractions(dispatcherRegistry);
                 verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == DEPROVISIONING.code()));
                 verify(listener).terminated(process);
@@ -665,12 +665,12 @@ class TransferProcessManagerImplTest {
             var process = createTransferProcessBuilder(TERMINATING_REQUESTED).type(PROVIDER).correlationId("correlationId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING_REQUESTED.code()).build());
-            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
+            when(dataFlowController.terminate(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
 
             manager.start();
 
             await().untilAsserted(() -> {
-                verify(dataFlowManager).terminate(process);
+                verify(dataFlowController).terminate(process);
                 verifyNoInteractions(dispatcherRegistry);
                 verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == TERMINATING_REQUESTED.code()));
             });
@@ -754,7 +754,7 @@ class TransferProcessManagerImplTest {
         @Test
         void shouldTransitionToTerminated_whenNoPolicyFound() {
             var transferProcess = createTransferProcess(INITIAL);
-            when(dataFlowManager.prepare(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+            when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
                     .thenReturn(List.of(transferProcess))
                     .thenReturn(emptyList());
@@ -772,7 +772,7 @@ class TransferProcessManagerImplTest {
         @Test
         void shouldTransitionToProvisioning_whenLegacyControlPaneProvisioning() {
             var transferProcess = createTransferProcess(INITIAL);
-            when(dataFlowManager.prepare(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+            when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
                     .thenReturn(List.of(transferProcess))
@@ -787,14 +787,14 @@ class TransferProcessManagerImplTest {
                 verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
                 verifyNoInteractions(provisionManager);
                 verify(transferProcessStore).save(argThat(p -> p.getState() == PROVISIONING.code()));
-                verify(dataFlowManager, never()).prepare(any(), any());
+                verify(dataFlowController, never()).prepare(any(), any());
             });
         }
 
         @Test
         void shouldTransitionToTerminated_whenLegacyManifestEvaluationFailed() {
             var transferProcess = createTransferProcess(INITIAL);
-            when(dataFlowManager.prepare(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+            when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
                     .thenReturn(List.of(transferProcess))
@@ -824,7 +824,7 @@ class TransferProcessManagerImplTest {
                     .thenReturn(emptyList());
             when(manifestGenerator.generateConsumerResourceManifest(any(TransferProcess.class), any(Policy.class)))
                     .thenReturn(Result.success(ResourceManifest.Builder.newInstance().build()));
-            when(dataFlowManager.prepare(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
+            when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
 
             manager.start();
 
@@ -854,7 +854,7 @@ class TransferProcessManagerImplTest {
                     .thenReturn(emptyList());
             when(manifestGenerator.generateConsumerResourceManifest(any(TransferProcess.class), any(Policy.class)))
                     .thenReturn(Result.success(ResourceManifest.Builder.newInstance().build()));
-            when(dataFlowManager.prepare(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
+            when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
 
             manager.start();
 
@@ -988,7 +988,7 @@ class TransferProcessManagerImplTest {
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
             when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process);
-            when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
+            when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
             when(dispatcherRegistry.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
             manager.start();
@@ -1013,7 +1013,7 @@ class TransferProcessManagerImplTest {
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
             when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process);
-            when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(
+            when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(
                     dataFlowResponseBuilder().provisioning(true).dataPlaneId("dataPlaneId").build()));
 
             manager.start();
@@ -1040,7 +1040,7 @@ class TransferProcessManagerImplTest {
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
             when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(RESUMING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process);
-            when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
+            when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
             when(dispatcherRegistry.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
             manager.start();
@@ -1097,12 +1097,12 @@ class TransferProcessManagerImplTest {
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING.code()).build());
             when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
-            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
+            when(dataFlowController.suspend(any())).thenReturn(StatusResult.success());
 
             manager.start();
 
             await().untilAsserted(() -> {
-                verify(dataFlowManager).suspend(process);
+                verify(dataFlowController).suspend(process);
                 var captor = ArgumentCaptor.forClass(TransferSuspensionMessage.class);
                 verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
                 var message = captor.getValue();
@@ -1124,7 +1124,7 @@ class TransferProcessManagerImplTest {
             manager.start();
 
             await().untilAsserted(() -> {
-                verifyNoInteractions(dataFlowManager);
+                verifyNoInteractions(dataFlowController);
                 var captor = ArgumentCaptor.forClass(TransferSuspensionMessage.class);
                 verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
                 var message = captor.getValue();
@@ -1146,12 +1146,12 @@ class TransferProcessManagerImplTest {
             var process = createTransferProcessBuilder(SUSPENDING_REQUESTED).type(PROVIDER).correlationId("counterPartyId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING_REQUESTED.code()).build());
-            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
+            when(dataFlowController.suspend(any())).thenReturn(StatusResult.success());
 
             manager.start();
 
             await().untilAsserted(() -> {
-                verify(dataFlowManager).suspend(process);
+                verify(dataFlowController).suspend(process);
                 verifyNoInteractions(dispatcherRegistry);
                 verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == SUSPENDED.code()));
                 verify(listener).suspended(process);
@@ -1163,12 +1163,12 @@ class TransferProcessManagerImplTest {
             var process = createTransferProcessBuilder(SUSPENDING_REQUESTED).type(PROVIDER).correlationId("counterPartyId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING_REQUESTED.code()).build());
-            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
+            when(dataFlowController.suspend(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
 
             manager.start();
 
             await().untilAsserted(() -> {
-                verify(dataFlowManager).suspend(process);
+                verify(dataFlowController).suspend(process);
                 verifyNoInteractions(dispatcherRegistry);
                 verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == SUSPENDING_REQUESTED.code()));
             });
@@ -1184,12 +1184,12 @@ class TransferProcessManagerImplTest {
             var process = createTransferProcessBuilder(SUSPENDING_REQUESTED).type(PROVIDER).correlationId("counterPartyId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING_REQUESTED.code()).build());
-            when(dataFlowManager.suspend(any())).thenReturn(StatusResult.success());
+            when(dataFlowController.suspend(any())).thenReturn(StatusResult.success());
 
             manager.start();
 
             await().untilAsserted(() -> {
-                verify(dataFlowManager).suspend(process);
+                verify(dataFlowController).suspend(process);
                 verifyNoInteractions(dispatcherRegistry);
                 verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == SUSPENDED.code()));
                 verify(listener).suspended(process);

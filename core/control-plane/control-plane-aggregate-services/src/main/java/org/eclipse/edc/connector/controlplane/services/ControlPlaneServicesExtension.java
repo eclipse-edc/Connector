@@ -62,7 +62,7 @@ import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.Trans
 import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessProtocolServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessServiceImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
@@ -164,7 +164,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Inject
     private ParticipantIdentityResolver identityResolver;
     @Inject
-    private DataFlowManager dataFlowManager;
+    private DataFlowController dataFlowController;
 
     @Override
     public String name() {
@@ -248,7 +248,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     public TransferProcessProtocolService transferProcessProtocolService() {
         return new TransferProcessProtocolServiceImpl(transferProcessStore, transactionContext, contractNegotiationStore,
                 contractValidationService, protocolTokenValidator(), dataAddressValidator, transferProcessObservable, clock,
-                monitor, telemetry, vault, dataFlowManager);
+                monitor, telemetry, vault, dataFlowController);
     }
 
     @Provider

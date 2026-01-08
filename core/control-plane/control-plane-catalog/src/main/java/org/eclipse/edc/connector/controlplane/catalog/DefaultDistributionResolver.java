@@ -20,7 +20,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 
 import java.util.Base64;
 import java.util.List;
@@ -28,11 +28,11 @@ import java.util.List;
 public class DefaultDistributionResolver implements DistributionResolver {
 
     private final DataServiceRegistry dataServiceRegistry;
-    private final DataFlowManager dataFlowManager;
+    private final DataFlowController dataFlowController;
 
-    public DefaultDistributionResolver(DataServiceRegistry dataServiceRegistry, DataFlowManager dataFlowManager) {
+    public DefaultDistributionResolver(DataServiceRegistry dataServiceRegistry, DataFlowController dataFlowController) {
         this.dataServiceRegistry = dataServiceRegistry;
-        this.dataFlowManager = dataFlowManager;
+        this.dataFlowController = dataFlowController;
     }
 
     @Override
@@ -45,7 +45,7 @@ public class DefaultDistributionResolver implements DistributionResolver {
                             .build())
                     .build());
         }
-        return dataFlowManager.transferTypesFor(asset).stream().map((format) -> createDistribution(asset.getParticipantContextId(), protocol, format)).toList();
+        return dataFlowController.transferTypesFor(asset).stream().map((format) -> createDistribution(asset.getParticipantContextId(), protocol, format)).toList();
     }
 
     private Distribution createDistribution(String participantContextId, String protocol, String format) {

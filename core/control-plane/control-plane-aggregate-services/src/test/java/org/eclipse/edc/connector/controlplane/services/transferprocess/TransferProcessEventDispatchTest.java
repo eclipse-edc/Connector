@@ -25,11 +25,12 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessDeprovisioned;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessEvent;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessInitiated;
-import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessProvisioned;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessRequested;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessTerminated;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.retry.TransferWaitStrategy;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessAck;
@@ -98,7 +99,8 @@ public class TransferProcessEventDispatchTest {
             .registerServiceMock(PolicyArchive.class, mock())
             .registerServiceMock(ContractNegotiationStore.class, mock())
             .registerServiceMock(ParticipantAgentService.class, mock())
-            .registerServiceMock(DataPlaneClientFactory.class, mock());
+            .registerServiceMock(DataPlaneClientFactory.class, mock())
+            .registerServiceMock(DataFlowController.class, mock());
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
             .participantContextId("participantContextId")
             .identity("participantId")
@@ -106,9 +108,10 @@ public class TransferProcessEventDispatchTest {
     private final EventSubscriber eventSubscriber = mock();
 
     @BeforeEach
-    void setup() {
+    void setup(DataFlowController dataFlowController) {
         when(DATASPACE_PROFILE_CONTEXT_REGISTRY.getWebhook(any())).thenReturn(() -> "http://dummy");
         when(DATASPACE_PROFILE_CONTEXT_REGISTRY.getIdExtractionFunction(any())).thenReturn(ct -> "id");
+        when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
     }
 
     @Test
@@ -150,7 +153,6 @@ public class TransferProcessEventDispatchTest {
         assertThat(initiateResult).isSucceeded();
         await().atMost(TIMEOUT).untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessInitiated.class)));
-            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessProvisioned.class)));
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessRequested.class)));
         });
 
@@ -212,7 +214,6 @@ public class TransferProcessEventDispatchTest {
 
         await().atMost(TIMEOUT).untilAsserted(() -> {
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessInitiated.class)));
-            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessProvisioned.class)));
             verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessRequested.class)));
         });
 

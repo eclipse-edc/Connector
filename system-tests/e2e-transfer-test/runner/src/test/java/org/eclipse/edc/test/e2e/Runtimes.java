@@ -31,7 +31,8 @@ public interface Runtimes {
     interface ControlPlane {
 
         String[] MODULES = new String[]{
-                ":system-tests:e2e-transfer-test:control-plane"
+                ":system-tests:e2e-transfer-test:control-plane",
+                ":extensions:control-plane:transfer:transfer-data-plane-signaling"
         };
 
         String[] SIGNALING_MODULES = new String[]{
@@ -41,6 +42,7 @@ public interface Runtimes {
 
         String[] EMBEDDED_DP_MODULES = new String[]{
                 ":system-tests:e2e-transfer-test:control-plane",
+                ":extensions:control-plane:transfer:transfer-data-plane-signaling",
                 ":system-tests:e2e-transfer-test:data-plane"
         };
 

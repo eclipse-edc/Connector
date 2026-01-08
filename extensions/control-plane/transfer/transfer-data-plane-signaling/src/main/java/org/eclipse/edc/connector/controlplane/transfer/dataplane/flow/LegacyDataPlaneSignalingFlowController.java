@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transfer.dataplane.flow;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
@@ -34,6 +35,7 @@ import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -61,16 +63,18 @@ public class LegacyDataPlaneSignalingFlowController implements DataFlowControlle
     private final DataFlowPropertiesProvider propertiesProvider;
     private final String selectionStrategy;
     private final TransferTypeParser transferTypeParser;
+    private final AssetIndex assetIndex;
 
     public LegacyDataPlaneSignalingFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient,
                                                   DataFlowPropertiesProvider propertiesProvider, DataPlaneClientFactory clientFactory,
-                                                  String selectionStrategy, TransferTypeParser transferTypeParser) {
+                                                  String selectionStrategy, TransferTypeParser transferTypeParser, AssetIndex assetIndex) {
         this.callbackUrl = callbackUrl;
         this.selectorClient = selectorClient;
         this.propertiesProvider = propertiesProvider;
         this.clientFactory = clientFactory;
         this.selectionStrategy = selectionStrategy;
         this.transferTypeParser = transferTypeParser;
+        this.assetIndex = assetIndex;
     }
 
     @Override
@@ -207,6 +211,13 @@ public class LegacyDataPlaneSignalingFlowController implements DataFlowControlle
                 .flatMap(dataPlane -> dataPlane.getAllowedTransferTypes().stream())
                 .filter(transferType -> isCompatibleTransferType(transferType, expectedResponseChannelType))
                 .collect(toSet());
+    }
+
+    @Override
+    public Set<String> transferTypesFor(String assetId) {
+        return Optional.ofNullable(assetIndex.findById(assetId))
+                .map(this::transferTypesFor)
+                .orElseGet(Collections::emptySet);
     }
 
     private boolean isCompatibleTransferType(String transferType, @Nullable String expectedResponseChannelType) {

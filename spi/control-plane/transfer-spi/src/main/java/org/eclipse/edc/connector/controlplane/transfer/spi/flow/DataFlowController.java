@@ -88,4 +88,11 @@ public interface DataFlowController {
      * @return transfer type set.
      */
     Set<String> transferTypesFor(Asset asset);
+
+    /**
+     * Returns transfer types that the controller can handle for the specified Asset id.
+     *
+     * @return transfer type set.
+     */
+    Set<String> transferTypesFor(String assetId);
 }

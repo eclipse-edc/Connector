@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinit
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionEvent;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.junit.annotations.ComponentTest;
@@ -54,6 +55,7 @@ public class ContractDefinitionEventDispatchTest {
         extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
         extension.registerServiceMock(IdentityService.class, mock());
         extension.registerServiceMock(DataPlaneClientFactory.class, mock());
+        extension.registerServiceMock(DataFlowController.class, mock());
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api"

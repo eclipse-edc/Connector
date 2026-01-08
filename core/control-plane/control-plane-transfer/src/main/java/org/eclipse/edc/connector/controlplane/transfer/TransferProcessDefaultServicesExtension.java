@@ -14,14 +14,11 @@
 
 package org.eclipse.edc.connector.controlplane.transfer;
 
-import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
-import org.eclipse.edc.connector.controlplane.transfer.flow.DataFlowManagerImpl;
 import org.eclipse.edc.connector.controlplane.transfer.flow.TransferTypeParserImpl;
 import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
 import org.eclipse.edc.connector.controlplane.transfer.provision.ProvisionManagerImpl;
 import org.eclipse.edc.connector.controlplane.transfer.provision.ResourceManifestGeneratorImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.policy.ProvisionManifestVerifyPolicyContext;
@@ -43,8 +40,6 @@ public class TransferProcessDefaultServicesExtension implements ServiceExtension
 
     @Inject
     private PolicyEngine policyEngine;
-    @Inject
-    private AssetIndex assetIndex;
 
     @Override
     public String name() {
@@ -54,11 +49,6 @@ public class TransferProcessDefaultServicesExtension implements ServiceExtension
     @Override
     public void initialize(ServiceExtensionContext context) {
         policyEngine.registerScope(MANIFEST_VERIFICATION_SCOPE, ProvisionManifestVerifyPolicyContext.class);
-    }
-
-    @Provider
-    public DataFlowManager dataFlowManager(ServiceExtensionContext context) {
-        return new DataFlowManagerImpl(context.getMonitor(), assetIndex);
     }
 
     @Provider

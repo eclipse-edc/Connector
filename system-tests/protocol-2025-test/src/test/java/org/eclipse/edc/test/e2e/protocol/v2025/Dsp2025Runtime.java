@@ -14,12 +14,15 @@
 
 package org.eclipse.edc.test.e2e.protocol.v2025;
 
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Stream;
+
+import static org.mockito.Mockito.mock;
 
 public interface Dsp2025Runtime {
 
@@ -42,7 +45,7 @@ public interface Dsp2025Runtime {
         return new EmbeddedRuntime("runtime", modules).configurationProvider(() -> ConfigFactory.fromMap(Map.of(
                 "web.http.protocol.path", "/protocol",
                 "web.http.protocol.port", String.valueOf(protocolPort)
-        )));
+        ))).registerServiceMock(DataFlowController.class, mock());
     }
 
 }

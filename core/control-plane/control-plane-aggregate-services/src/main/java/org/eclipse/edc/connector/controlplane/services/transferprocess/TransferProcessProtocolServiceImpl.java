@@ -23,7 +23,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
@@ -76,7 +76,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     private final Monitor monitor;
     private final Telemetry telemetry;
     private final Vault vault;
-    private final DataFlowManager dataFlowManager;
+    private final DataFlowController dataFlowController;
 
     public TransferProcessProtocolServiceImpl(TransferProcessStore transferProcessStore,
                                               TransactionContext transactionContext, ContractNegotiationStore negotiationStore,
@@ -84,7 +84,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                                               ProtocolTokenValidator protocolTokenValidator,
                                               DataAddressValidatorRegistry dataAddressValidator, TransferProcessObservable observable,
                                               Clock clock, Monitor monitor, Telemetry telemetry, Vault vault,
-                                              DataFlowManager dataFlowManager) {
+                                              DataFlowController dataFlowController) {
         this.transferProcessStore = transferProcessStore;
         this.transactionContext = transactionContext;
         this.negotiationStore = negotiationStore;
@@ -96,7 +96,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         this.monitor = monitor;
         this.telemetry = telemetry;
         this.vault = vault;
-        this.dataFlowManager = dataFlowManager;
+        this.dataFlowController = dataFlowController;
     }
 
     @Override
@@ -292,7 +292,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         }
 
         var transferType = message.getTransferType();
-        var supportedTransferTypes = dataFlowManager.transferTypesFor(context.agreement().getAssetId());
+        var supportedTransferTypes = dataFlowController.transferTypesFor(context.agreement().getAssetId());
         if (!supportedTransferTypes.contains(transferType)) {
             return ServiceResult.badRequest("TransferType %s is not supported".formatted(transferType));
         }

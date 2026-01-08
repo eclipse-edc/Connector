@@ -14,18 +14,19 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.dataplane;
 
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.transfer.dataplane.flow.LegacyDataPlaneSignalingFlowController;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 
 import java.util.Map;
@@ -42,9 +43,6 @@ public class TransferDataPlaneSignalingExtension implements ServiceExtension {
     @Setting(description = "Defines strategy for Data Plane instance selection in case Data Plane is not embedded in current runtime", defaultValue = DEFAULT_DATAPLANE_SELECTOR_STRATEGY, key = "edc.dataplane.client.selector.strategy")
     private String selectionStrategy;
 
-    @Inject
-    private DataFlowManager dataFlowManager;
-
     @Inject(required = false)
     private ControlApiUrl callbackUrl;
 
@@ -59,12 +57,13 @@ public class TransferDataPlaneSignalingExtension implements ServiceExtension {
 
     @Inject
     private TransferTypeParser transferTypeParser;
+    @Inject
+    private AssetIndex assetIndex;
 
-    @Override
-    public void initialize(ServiceExtensionContext context) {
-        var controller = new LegacyDataPlaneSignalingFlowController(callbackUrl, selectorService, getPropertiesProvider(),
-                clientFactory, selectionStrategy, transferTypeParser);
-        dataFlowManager.register(controller);
+    @Provider
+    public DataFlowController dataFlowController() {
+        return new LegacyDataPlaneSignalingFlowController(callbackUrl, selectorService, getPropertiesProvider(),
+                clientFactory, selectionStrategy, transferTypeParser, assetIndex);
     }
 
     private DataFlowPropertiesProvider getPropertiesProvider() {
