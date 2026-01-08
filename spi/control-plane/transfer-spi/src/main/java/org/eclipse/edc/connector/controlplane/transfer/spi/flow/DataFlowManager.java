@@ -84,6 +84,15 @@ public interface DataFlowManager {
     StatusResult<Void> suspend(TransferProcess transferProcess);
 
     /**
+     * Notify data flow completion.
+     *
+     * @param transferProcess the transfer process.
+     * @return success if the flow completion notification has been delivered correctly, failed otherwise.
+     */
+    @NotNull
+    StatusResult<Void> completed(TransferProcess transferProcess);
+
+    /**
      * Returns the transfer types available for a specific asset.
      *
      * @param asset the asset.

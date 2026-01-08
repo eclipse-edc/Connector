@@ -435,7 +435,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .doProcess(futureResult("Dispatch TransferCompletionMessage to " + process.getCounterPartyAddress(),
                         (t, dataFlowResponse) -> {
                             if (t.completionWasRequestedByCounterParty()) {
-                                var result = dataFlowManager.terminate(t);
+                                var result = dataFlowManager.completed(t);
                                 return completedFuture(result.mapEmpty());
                             } else {
                                 return dispatch(builder, t, Object.class);

@@ -75,6 +75,14 @@ public interface DataFlowController {
     StatusResult<Void> terminate(TransferProcess transferProcess);
 
     /**
+     * Notify data flow completion.
+     *
+     * @param transferProcess the transfer process.
+     * @return success if the notification has been delivered correctly, failure otherwise;
+     */
+    StatusResult<Void> completed(TransferProcess transferProcess);
+
+    /**
      * Returns transfer types that the controller can handle for the specified Asset.
      *
      * @return transfer type set.

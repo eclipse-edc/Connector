@@ -477,6 +477,12 @@ public class Participant {
                 .extract().body().jsonPath().getString("state");
     }
 
+    public String getTransferProcessIdGivenCounterPartyOne(String consumerTransferProcessId) {
+        return getTransferProcesses().stream()
+                .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
+                .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
+    }
+
     /**
      * Suspend the transfer process
      *

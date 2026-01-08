@@ -18,7 +18,7 @@ plugins {
 dependencies {
     implementation(project(":core:common:runtime-core"))
     implementation(project(":extensions:common:http"))
-    implementation("org.eclipse.dataplane-core:dataplane-sdk:0.0.1-SNAPSHOT") // TODO: put in version catalog
+    implementation(libs.dataplane.sdk)
 }
 
 edcBuild {

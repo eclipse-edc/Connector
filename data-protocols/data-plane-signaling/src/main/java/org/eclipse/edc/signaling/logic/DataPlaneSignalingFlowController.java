@@ -140,7 +140,15 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
 
     @Override
     public StatusResult<Void> suspend(TransferProcess transferProcess) {
-        return StatusResult.failure(FATAL_ERROR, "not implemented");
+        var dataPlaneId = transferProcess.getDataPlaneId();
+        if (dataPlaneId == null) {
+            return StatusResult.fatalError("DataPlane id is null");
+        }
+
+        return selectorClient.findById(transferProcess.getDataPlaneId())
+                .flatMap(this::toStatusResult)
+                .map(clientFactory::createClient)
+                .compose(client -> client.suspend(transferProcess.getId()));
     }
 
     @Override
@@ -154,6 +162,19 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .flatMap(this::toStatusResult)
                 .map(clientFactory::createClient)
                 .compose(client -> client.terminate(transferProcess.getId()));
+    }
+
+    @Override
+    public StatusResult<Void> completed(TransferProcess transferProcess) {
+        var dataPlaneId = transferProcess.getDataPlaneId();
+        if (dataPlaneId == null) {
+            return StatusResult.fatalError("DataPlane id is null");
+        }
+
+        return selectorClient.findById(transferProcess.getDataPlaneId())
+                .flatMap(this::toStatusResult)
+                .map(clientFactory::createClient)
+                .compose(client -> client.completed(transferProcess.getId()));
     }
 
     @Override
