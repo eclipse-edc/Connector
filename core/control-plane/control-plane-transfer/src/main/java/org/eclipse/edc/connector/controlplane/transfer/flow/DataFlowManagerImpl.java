@@ -104,6 +104,13 @@ public class DataFlowManagerImpl implements DataFlowManager {
     }
 
     @Override
+    public @NotNull StatusResult<Void> completed(TransferProcess transferProcess) {
+        return chooseController(transferProcess)
+                .map(controller -> controller.completed(transferProcess))
+                .orElseGet(() -> StatusResult.failure(FATAL_ERROR, controllerNotFound(transferProcess.getId())));
+    }
+
+    @Override
     public Set<String> transferTypesFor(Asset asset) {
         return controllers.stream()
                 .map(it -> it.controller)

@@ -534,7 +534,7 @@ class TransferProcessManagerImplTest {
         }
 
         @Test
-        void shouldTerminateDataFlow_whenTransferCompletedByCounterPart() {
+        void shouldNotifyDataFlowCompletion_whenTransferCompletedByCounterPart() {
             var process = createTransferProcessBuilder(COMPLETING_REQUESTED).type(CONSUMER).correlationId("correlationId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(COMPLETING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING_REQUESTED.code()).build());
@@ -543,7 +543,7 @@ class TransferProcessManagerImplTest {
             manager.start();
 
             await().untilAsserted(() -> {
-                verify(dataFlowManager).terminate(process);
+                verify(dataFlowManager).completed(process);
             });
         }
     }

@@ -208,9 +208,7 @@ class TransferPullEndToEndTest {
 
             var edrEntry = assertConsumerCanAccessData(consumer, consumerTransferProcessId);
 
-            var providerTransferProcessId = provider.getTransferProcesses().stream()
-                    .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
-                    .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
+            var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
 
             provider.suspendTransfer(providerTransferProcessId, "supension");
 
@@ -270,9 +268,7 @@ class TransferPullEndToEndTest {
 
             var edrEntry = assertConsumerCanAccessData(consumer, consumerTransferProcessId);
 
-            var providerTransferProcessId = provider.getTransferProcesses().stream()
-                    .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
-                    .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
+            var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
 
             provider.terminateTransfer(providerTransferProcessId);
 
@@ -296,9 +292,7 @@ class TransferPullEndToEndTest {
 
             var edrEntry = assertConsumerCanAccessData(consumer, consumerTransferProcessId);
 
-            var providerTransferProcessId = provider.getTransferProcesses().stream()
-                    .filter(filter -> filter.asJsonObject().getString("correlationId").equals(consumerTransferProcessId))
-                    .map(id -> id.asJsonObject().getString("@id")).findFirst().orElseThrow();
+            var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
 
             consumer.terminateTransfer(consumerTransferProcessId);
 

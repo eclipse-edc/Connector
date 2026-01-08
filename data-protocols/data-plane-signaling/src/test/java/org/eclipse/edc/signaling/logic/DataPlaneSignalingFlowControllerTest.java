@@ -213,6 +213,112 @@ public class DataPlaneSignalingFlowControllerTest {
     }
 
     @Nested
+    class Completed {
+
+        @Test
+        void shouldCallComplete() {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId("dataPlaneId")
+                    .build();
+            when(dataPlaneClient.completed(any())).thenReturn(StatusResult.success());
+            var dataPlaneInstance = dataPlaneInstanceBuilder().id("dataPlaneId").build();
+            when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            when(selectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+
+            var result = flowController.completed(transferProcess);
+
+            assertThat(result).isSucceeded();
+            verify(dataPlaneClient).completed("transferProcessId");
+            verify(clientFactory).createClient(dataPlaneInstance);
+        }
+
+        @Test
+        void shouldFail_whenDataPlaneDoesNotExist() {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId("invalid")
+                    .build();
+            when(selectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
+
+            var result = flowController.completed(transferProcess);
+
+            assertThat(result).isFailed();
+            verifyNoInteractions(dataPlaneClient, clientFactory);
+        }
+
+        @Test
+        void shouldFail_whenDataPlaneIdIsNull() {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId(null)
+                    .build();
+
+            var result = flowController.completed(transferProcess);
+
+            assertThat(result).isFailed();
+            verifyNoInteractions(dataPlaneClient, clientFactory, selectorService);
+        }
+
+    }
+
+    @Nested
+    class Suspend {
+
+        @Test
+        void shouldCallSuspend() {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId("dataPlaneId")
+                    .build();
+            when(dataPlaneClient.suspend(any())).thenReturn(StatusResult.success());
+            var dataPlaneInstance = dataPlaneInstanceBuilder().id("dataPlaneId").build();
+            when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            when(selectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+
+            var result = flowController.suspend(transferProcess);
+
+            assertThat(result).isSucceeded();
+            verify(dataPlaneClient).suspend("transferProcessId");
+            verify(clientFactory).createClient(dataPlaneInstance);
+        }
+
+        @Test
+        void shouldFail_whenDataPlaneDoesNotExist() {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId("invalid")
+                    .build();
+            when(selectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
+
+            var result = flowController.suspend(transferProcess);
+
+            assertThat(result).isFailed();
+            verifyNoInteractions(dataPlaneClient, clientFactory);
+        }
+
+        @Test
+        void shouldFail_whenDataPlaneIdIsNull() {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId(null)
+                    .build();
+
+            var result = flowController.suspend(transferProcess);
+
+            assertThat(result).isFailed();
+            verifyNoInteractions(dataPlaneClient, clientFactory, selectorService);
+        }
+
+    }
+
+    @Nested
     class TransferTypes {
 
         @Test

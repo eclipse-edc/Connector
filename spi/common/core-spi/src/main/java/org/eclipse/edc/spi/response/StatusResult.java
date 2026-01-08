@@ -52,6 +52,10 @@ public class StatusResult<T> extends AbstractResult<T, ResponseFailure, StatusRe
         return new StatusResult<>(null, new ResponseFailure(status, List.of(error)));
     }
 
+    public static StatusResult<Void> fatalError(String error) {
+        return failure(FATAL_ERROR, error);
+    }
+
     public boolean fatalError() {
         return failed() && getFailure().status() == FATAL_ERROR;
     }

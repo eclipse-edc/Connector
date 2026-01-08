@@ -24,10 +24,10 @@ import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowResponseMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
-import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -71,11 +71,30 @@ public class DataPlaneSignalingClient {
     }
 
     public StatusResult<Void> suspend(String transferProcessId) {
-        return StatusResult.failure(ResponseStatus.FATAL_ERROR, "not implemented");
+        var url = "%s/%s/suspend".formatted(dataPlane.getUrl(), transferProcessId);
+        var message = DataFlowSuspendMessage.Builder.newInstance().build();
+        return createRequestBuilder(message, url)
+                .compose(builder -> httpClient.request(builder)
+                        .flatMap(result -> result.map(it -> StatusResult.success())
+                                .orElse(this::failedResult)));
     }
 
     public StatusResult<Void> terminate(String transferProcessId) {
-        return StatusResult.success();
+        var url = "%s/%s/terminate".formatted(dataPlane.getUrl(), transferProcessId);
+        var message = DataFlowSuspendMessage.Builder.newInstance().build();
+        return createRequestBuilder(message, url)
+                .compose(builder -> httpClient.request(builder)
+                        .flatMap(result -> result.map(it -> StatusResult.success())
+                                .orElse(this::failedResult)));
+    }
+
+    public StatusResult<Void> completed(String flowId) {
+        var url = "%s/%s/completed".formatted(dataPlane.getUrl(), flowId);
+        var message = DataFlowSuspendMessage.Builder.newInstance().build();
+        return createRequestBuilder(message, url)
+                .compose(builder -> httpClient.request(builder)
+                        .flatMap(result -> result.map(it -> StatusResult.success())
+                                .orElse(this::failedResult)));
     }
 
     public StatusResult<Void> checkAvailability() {
@@ -123,5 +142,4 @@ public class DataPlaneSignalingClient {
             return Result.failure(e.getMessage());
         }
     }
-
 }

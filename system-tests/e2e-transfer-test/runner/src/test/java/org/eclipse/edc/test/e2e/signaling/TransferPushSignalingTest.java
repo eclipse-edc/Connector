@@ -23,6 +23,7 @@ import org.eclipse.edc.junit.utils.Endpoints;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.Runtimes;
 import org.eclipse.edc.test.e2e.TransferEndToEndParticipant;
+import org.eclipse.edc.test.e2e.dataplane.DataPlaneSignalingClient;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,7 @@ import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_
 import static org.eclipse.edc.connector.controlplane.test.system.utils.Participant.MANAGEMENT_V4;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
@@ -53,7 +55,9 @@ interface TransferPushSignalingTest {
 
     @Test
     default void shouldTransferFiniteDataWithPush(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
-                                                  @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer) {
+                                                  @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                  @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
+                                                  @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
         provider.baseManagementRequest()
                 .get("/dataplanes")
                 .then()
@@ -70,10 +74,42 @@ interface TransferPushSignalingTest {
         var assetId = provider.createAsset(createAssetRequestBody);
         provider.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, noConstraintPolicyId);
 
-        var transferProcessId = consumer.requestAssetFrom(assetId, provider)
+        var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
                 .withTransferType("Finite-PUSH").execute();
 
-        consumer.awaitTransferToBeInState(transferProcessId, COMPLETED);
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, COMPLETED);
+        var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "COMPLETED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "COMPLETED");
+    }
+
+    @Test
+    default void shouldTransferNonFiniteDataWithPush(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
+                                                     @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                     @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
+                                                     @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+        provider.baseManagementRequest()
+                .get("/dataplanes")
+                .then()
+                .body("size()", greaterThan(0));
+
+        var createAssetRequestBody = createObjectBuilder()
+                .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                .add(TYPE, EDC_ASSET_TYPE_TERM)
+                .add("properties", createObjectBuilder()
+                        .add("name", "test-asset"))
+                .build();
+
+        var noConstraintPolicyId = provider.createPolicyDefinition(noConstraintPolicy());
+        var assetId = provider.createAsset(createAssetRequestBody);
+        provider.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, noConstraintPolicyId);
+
+        var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider).withTransferType("NonFinite-PUSH").execute();
+
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+        var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "PREPARED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
     }
 
     @Nested
@@ -115,6 +151,7 @@ interface TransferPushSignalingTest {
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
                 .configurationProvider(() -> Runtimes.ControlPlane.controlPlaneEndpointOf(PROVIDER_ENDPOINTS))
+                .paramProvider(DataPlaneSignalingClient.class, DataPlaneSignalingClient::new)
                 .build();
 
         @RegisterExtension
@@ -125,6 +162,7 @@ interface TransferPushSignalingTest {
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
                 .configurationProvider(() -> Runtimes.ControlPlane.controlPlaneEndpointOf(CONSUMER_ENDPOINTS))
+                .paramProvider(DataPlaneSignalingClient.class, DataPlaneSignalingClient::new)
                 .build();
     }
 
@@ -185,6 +223,7 @@ interface TransferPushSignalingTest {
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
                 .configurationProvider(() -> Runtimes.ControlPlane.controlPlaneEndpointOf(CONSUMER_ENDPOINTS))
+                .paramProvider(DataPlaneSignalingClient.class, DataPlaneSignalingClient::new)
                 .build();
 
         @RegisterExtension
@@ -195,6 +234,7 @@ interface TransferPushSignalingTest {
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
                 .configurationProvider(() -> Runtimes.ControlPlane.controlPlaneEndpointOf(PROVIDER_ENDPOINTS))
+                .paramProvider(DataPlaneSignalingClient.class, DataPlaneSignalingClient::new)
                 .build();
     }
 

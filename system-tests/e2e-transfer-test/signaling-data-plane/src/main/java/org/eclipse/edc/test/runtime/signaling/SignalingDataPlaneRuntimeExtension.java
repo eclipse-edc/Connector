@@ -35,6 +35,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.emptyList;
 
@@ -57,8 +59,10 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
         dataplane = Dataplane.newInstance()
                 .endpoint("http://localhost:%d%s/v1/dataflows".formatted(httpPort, httpPath))
                 .transferType("Finite-PUSH")
+                .transferType("NonFinite-PUSH")
                 .onPrepare(new DataplaneOnPrepare())
                 .onStart(new DataplaneOnStart())
+                .onCompleted(Result::success)
                 .onTerminate(new DataplaneOnTerminate())
                 .build();
         webService.registerResource(dataplane.controller());
@@ -77,23 +81,38 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
             if (dataFlow.getDataAddress() == null) {
                 return Result.failure(new InvalidRequestException("DataAddress should not be null for PUSH transfers"));
             }
-            var destinationUri = URI.create(dataFlow.getDataAddress().endpoint());
-            var request = HttpRequest.newBuilder(destinationUri).POST(HttpRequest.BodyPublishers.ofString("test-data")).build();
-            HttpClient.newHttpClient().sendAsync(request, HttpResponse.BodyHandlers.discarding())
-                    .whenComplete((response, throwable) -> {
-                        if (throwable == null) {
-                            var statusCode = response.statusCode();
-                            if (statusCode >= 200 && statusCode < 300) {
-                                notifyCompleted(dataFlow);
-                            } else {
-                                dataplane.notifyErrored(dataFlow.getId(), new RuntimeException("Destination endpoint responded with " + statusCode));
-                            }
-                        } else {
-                            dataplane.notifyErrored(dataFlow.getId(), throwable);
-                        }
-                    });
 
-            return Result.success(dataFlow);
+            if (dataFlow.getTransferType().equals("NonFinite-PUSH")) {
+                Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+                    var destinationUri = URI.create(dataFlow.getDataAddress().endpoint());
+                    var request = HttpRequest.newBuilder(destinationUri).POST(HttpRequest.BodyPublishers.ofString("test-data")).build();
+                    HttpClient.newHttpClient().sendAsync(request, HttpResponse.BodyHandlers.discarding());
+                }, 0, 200, TimeUnit.MILLISECONDS);
+
+                return Result.success(dataFlow);
+            }
+
+            if (dataFlow.getTransferType().equals("Finite-PUSH")) {
+                var destinationUri = URI.create(dataFlow.getDataAddress().endpoint());
+                var request = HttpRequest.newBuilder(destinationUri).POST(HttpRequest.BodyPublishers.ofString("test-data")).build();
+                HttpClient.newHttpClient().sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                        .whenComplete((response, throwable) -> {
+                            if (throwable == null) {
+                                var statusCode = response.statusCode();
+                                if (statusCode >= 200 && statusCode < 300) {
+                                    notifyCompleted(dataFlow);
+                                } else {
+                                    dataplane.notifyErrored(dataFlow.getId(), new RuntimeException("Destination endpoint responded with " + statusCode));
+                                }
+                            } else {
+                                dataplane.notifyErrored(dataFlow.getId(), throwable);
+                            }
+                        });
+
+                return Result.success(dataFlow);
+            }
+
+            return Result.failure(new RuntimeException("TransferType %s not supported".formatted(dataFlow.getTransferType())));
         }
 
         private void notifyCompleted(DataFlow dataFlow) {

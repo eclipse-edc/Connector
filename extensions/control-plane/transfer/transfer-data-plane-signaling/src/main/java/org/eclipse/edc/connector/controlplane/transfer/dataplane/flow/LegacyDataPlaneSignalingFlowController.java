@@ -180,6 +180,11 @@ public class LegacyDataPlaneSignalingFlowController implements DataFlowControlle
     }
 
     @Override
+    public StatusResult<Void> completed(TransferProcess transferProcess) {
+        return terminate(transferProcess);
+    }
+
+    @Override
     public Set<String> transferTypesFor(Asset asset) {
         var allDataPlanes = selectorClient.getAll();
         if (allDataPlanes.failed()) {
