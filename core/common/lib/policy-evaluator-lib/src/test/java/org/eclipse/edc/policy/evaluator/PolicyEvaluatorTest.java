@@ -39,33 +39,30 @@ import static org.mockito.Mockito.when;
 class PolicyEvaluatorTest {
 
     @Test
-    void verifySimpleEval() {
+    void verifyPermissionEvaluationFails_whenNoFunctionWasDefined() {
         var constraint = createLiteralAtomicConstraint("foo", "foo");
-
-        var duty = Duty.Builder.newInstance().constraint(constraint).build();
-        var policy = Policy.Builder.newInstance().duty(duty).build();
+        var permission = Permission.Builder.newInstance().constraint(constraint).build();
+        var policy = Policy.Builder.newInstance().permission(permission).build();
 
         var evaluator = PolicyEvaluator.Builder.newInstance().build();
-        assertTrue(evaluator.evaluate(policy).valid());
+        assertFalse(evaluator.evaluate(policy).valid());
     }
 
     @Test
-    void verifyProhibitionNotEqualEval() {
-        var constraint = createLiteralAtomicConstraint("baz", "bar");
-
+    void verifyProhibitionEvaluationFails_whenNoFunctionWasDefined() {
+        var constraint = createLiteralAtomicConstraint("foo", "foo");
         var prohibition = Prohibition.Builder.newInstance().constraint(constraint).build();
         var policy = Policy.Builder.newInstance().prohibition(prohibition).build();
 
         var evaluator = PolicyEvaluator.Builder.newInstance().build();
-        assertTrue(evaluator.evaluate(policy).valid());
+        assertFalse(evaluator.evaluate(policy).valid());
     }
 
     @Test
-    void verifyPermissionNotEqualEval() {
-        var constraint = createLiteralAtomicConstraint("baz", "bar");
-
-        var permission = Permission.Builder.newInstance().constraint(constraint).build();
-        var policy = Policy.Builder.newInstance().permission(permission).build();
+    void verifyDutyEvaluationFails_whenNoFunctionWasDefined() {
+        var constraint = createLiteralAtomicConstraint("foo", "foo");
+        var duty = Duty.Builder.newInstance().constraint(constraint).build();
+        var policy = Policy.Builder.newInstance().duty(duty).build();
 
         var evaluator = PolicyEvaluator.Builder.newInstance().build();
         assertFalse(evaluator.evaluate(policy).valid());

@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -171,28 +170,13 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
             if (function != null) {
                 return function.evaluate(constraint.getOperator(), rightValue, ruleContext);
             }
+            ruleProblems.add(RuleProblem.Builder.newInstance()
+                    .rule(ruleContext)
+                    .description(ruleContext.toString())
+                    .constraintProblem(new ConstraintProblem("No evaluation function found", constraint))
+                    .build());
         }
-
-        // TODO handle expression eval errors
-        switch (constraint.getOperator()) {
-            case EQ:
-                return Objects.equals(leftRawValue, rightValue);
-            case IN:
-                return Objects.equals(leftRawValue, rightValue);
-            case NEQ:
-                return !Objects.equals(leftRawValue, rightValue);
-            case GT:
-                break;
-            case GEQ:
-                break;
-            case LT:
-                break;
-            case LEQ:
-                break;
-            default:
-                break;
-        }
-        return null;
+        return false;
     }
 
     @Override
