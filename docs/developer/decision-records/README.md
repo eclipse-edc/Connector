@@ -90,3 +90,4 @@
 - [2025-10-22 E2E testing improvements](2025-10-22-e2e-testing-improvements)
 - [2025-10-29 Participant identifiers resolution](2025-10-29-participant-identifiers)
 - [2025-11-10 Extracting service for presentation requests](2025-11-10-presentation-request-service)
+- [2026-01-08 inline DataFlowManager](2026-01-08-inline-data-flow-manager)
