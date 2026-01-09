@@ -23,10 +23,19 @@ import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.policy.model.Permission;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.Prohibition;
+import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsProvider;
+import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.support.ParameterDeclarations;
 
 import java.util.List;
+import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.policy.evaluator.PolicyTestFunctions.createLiteralAtomicConstraint;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,36 +48,36 @@ import static org.mockito.Mockito.when;
 class PolicyEvaluatorTest {
 
     @Test
-    void verifySimpleEval() {
-        var constraint = createLiteralAtomicConstraint("foo", "foo");
-
-        var duty = Duty.Builder.newInstance().constraint(constraint).build();
-        var policy = Policy.Builder.newInstance().duty(duty).build();
-
-        var evaluator = PolicyEvaluator.Builder.newInstance().build();
-        assertTrue(evaluator.evaluate(policy).valid());
-    }
-
-    @Test
-    void verifyProhibitionNotEqualEval() {
-        var constraint = createLiteralAtomicConstraint("baz", "bar");
-
-        var prohibition = Prohibition.Builder.newInstance().constraint(constraint).build();
-        var policy = Policy.Builder.newInstance().prohibition(prohibition).build();
-
-        var evaluator = PolicyEvaluator.Builder.newInstance().build();
-        assertTrue(evaluator.evaluate(policy).valid());
-    }
-
-    @Test
-    void verifyPermissionNotEqualEval() {
-        var constraint = createLiteralAtomicConstraint("baz", "bar");
-
+    void verifyEvaluationFails_whenLeftOperandIsNotString() {
+        var constraint = AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression(new Object()))
+                .operator(Operator.EQ)
+                .rightExpression(new LiteralExpression("foo"))
+                .build();
         var permission = Permission.Builder.newInstance().constraint(constraint).build();
         var policy = Policy.Builder.newInstance().permission(permission).build();
 
         var evaluator = PolicyEvaluator.Builder.newInstance().build();
-        assertFalse(evaluator.evaluate(policy).valid());
+        var result = evaluator.evaluate(policy);
+
+        assertThat(result.valid()).isFalse();
+        assertThat(result.getProblems())
+                .flatExtracting(RuleProblem::getConstraintProblem)
+                .extracting(ConstraintProblem::getDescription)
+                .contains("Left operand value is not a String");
+    }
+
+    @ParameterizedTest(name = "{displayName} {0}")
+    @ArgumentsSource(PoliciesProvider.class)
+    void verifyEvaluationFails_whenNoFunctionWasDefined(Policy policy) {
+        var evaluator = PolicyEvaluator.Builder.newInstance().build();
+        var result = evaluator.evaluate(policy);
+
+        assertThat(result.valid()).isFalse();
+        assertThat(result.getProblems())
+                .flatExtracting(RuleProblem::getConstraintProblem)
+                .extracting(ConstraintProblem::getDescription)
+                .contains("No evaluation function found");
     }
 
     @Test
@@ -244,6 +253,28 @@ class PolicyEvaluatorTest {
         assertTrue(evaluator.evaluate(policy).valid());
 
         verify(mock).evaluate(eq(Operator.EQ), isA(List.class), isA(Duty.class));
+    }
+
+    private static class PoliciesProvider implements ArgumentsProvider {
+        @Override
+        public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameters, ExtensionContext context)
+                throws Exception {
+            var constraint = createLiteralAtomicConstraint("foo", "foo");
+            var permissionPolicy = Policy.Builder.newInstance()
+                    .permission(Permission.Builder.newInstance().constraint(constraint).build())
+                    .build();
+            var prohibitionPolicy = Policy.Builder.newInstance()
+                    .prohibition(Prohibition.Builder.newInstance().constraint(constraint).build())
+                    .build();
+            var dutyPolicy = Policy.Builder.newInstance()
+                    .duty(Duty.Builder.newInstance().constraint(constraint).build())
+                    .build();
+
+            return Stream.of(
+                    Arguments.of(Named.of("Permission", permissionPolicy)),
+                    Arguments.of(Named.of("Prohibition", prohibitionPolicy)),
+                    Arguments.of(Named.of("Duty", dutyPolicy)));
+        }
     }
 
 }
