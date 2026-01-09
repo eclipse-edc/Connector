@@ -59,15 +59,15 @@ public interface Runtimes {
             return ConfigFactory.fromMap(new HashMap<>() {
                 {
                     put("edc.participant.id", participantId);
-                    put("edc.transfer.send.retry.limit", "1");
-                    put("edc.transfer.send.retry.base-delay.ms", "100");
+                    put("edc.transfer.send.retry.limit", "3");
+                    put("edc.transfer.send.retry.base-delay.ms", "500");
+                    put("edc.transfer.state-machine.iteration-wait-millis", "50");
                     put("edc.negotiation.consumer.send.retry.limit", "1");
                     put("edc.negotiation.provider.send.retry.limit", "1");
                     put("edc.negotiation.consumer.send.retry.base-delay.ms", "100");
                     put("edc.negotiation.provider.send.retry.base-delay.ms", "100");
                     put("edc.negotiation.consumer.state-machine.iteration-wait-millis", "50");
                     put("edc.negotiation.provider.state-machine.iteration-wait-millis", "50");
-                    put("edc.transfer.state-machine.iteration-wait-millis", "50");
                     put("edc.data.plane.selector.state-machine.iteration-wait-millis", "100");
                     put("edc.core.retry.retries.max", "1");
                 }

@@ -62,6 +62,7 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
                 .transferType("NonFinite-PUSH")
                 .onPrepare(new DataplaneOnPrepare())
                 .onStart(new DataplaneOnStart())
+                .onStarted(Result::success)
                 .onCompleted(Result::success)
                 .onTerminate(new DataplaneOnTerminate())
                 .build();

@@ -108,7 +108,7 @@ interface TransferPushSignalingTest {
 
         consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
         var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
-        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "PREPARED");
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
         providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
     }
 

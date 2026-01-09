@@ -112,6 +112,7 @@ public class TransferProcessEventDispatchTest {
         when(DATASPACE_PROFILE_CONTEXT_REGISTRY.getWebhook(any())).thenReturn(() -> "http://dummy");
         when(DATASPACE_PROFILE_CONTEXT_REGISTRY.getIdExtractionFunction(any())).thenReturn(ct -> "id");
         when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
+        when(dataFlowController.started(any())).thenReturn(StatusResult.success());
     }
 
     @Test

@@ -48,6 +48,7 @@ import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
@@ -304,7 +305,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     }
 
     public boolean canBeStartedConsumer() {
-        return currentStateIsOneOf(STARTED, REQUESTED, STARTING, RESUMED, SUSPENDED);
+        return currentStateIsOneOf(STARTED, REQUESTED, STARTING, RESUMED, SUSPENDED, STARTUP_REQUESTED);
     }
 
     public void transitionStarted() {
@@ -425,7 +426,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     }
 
     public void transitionStartupRequested() {
-        transition(STARTUP_REQUESTED, STARTING);
+        if (type == PROVIDER) {
+            transition(STARTUP_REQUESTED, STARTING);
+        } else {
+            transition(STARTUP_REQUESTED, STARTUP_REQUESTED, REQUESTED);
+        }
     }
 
     public boolean currentStateIsOneOf(TransferProcessStates... states) {

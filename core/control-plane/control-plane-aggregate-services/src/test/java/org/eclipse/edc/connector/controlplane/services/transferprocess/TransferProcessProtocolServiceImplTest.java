@@ -78,6 +78,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
@@ -637,7 +638,7 @@ class TransferProcessProtocolServiceImplTest {
                     .dataAddress(DataAddress.Builder.newInstance().type("test").build())
                     .build();
             var agreement = contractAgreement();
-            var transferProcess = transferProcess(STARTED, "transferProcessId");
+            var transferProcess = transferProcess(REQUESTED, "transferProcessId");
 
             when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
@@ -651,7 +652,7 @@ class TransferProcessProtocolServiceImplTest {
             var transferProcessCaptor = ArgumentCaptor.forClass(TransferProcess.class);
             assertThat(result).isSucceeded();
             verify(store).save(transferProcessCaptor.capture());
-            verify(store).save(argThat(t -> t.getState() == STARTED.code()));
+            verify(store).save(argThat(t -> t.getState() == STARTUP_REQUESTED.code()));
             verify(listener).started(any(), startedDataCaptor.capture());
             verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
             assertThat(startedDataCaptor.getValue().getDataAddress()).usingRecursiveComparison().isEqualTo(message.getDataAddress());

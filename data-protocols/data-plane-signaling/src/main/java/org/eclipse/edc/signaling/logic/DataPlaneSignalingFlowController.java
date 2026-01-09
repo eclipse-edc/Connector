@@ -165,6 +165,19 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
     }
 
     @Override
+    public StatusResult<Void> started(TransferProcess transferProcess) {
+        var dataPlaneId = transferProcess.getDataPlaneId();
+        if (dataPlaneId == null) {
+            return StatusResult.fatalError("DataPlane id is null");
+        }
+
+        return selectorClient.findById(transferProcess.getDataPlaneId())
+                .flatMap(this::toStatusResult)
+                .map(clientFactory::createClient)
+                .compose(client -> client.started(transferProcess.getId()));
+    }
+
+    @Override
     public StatusResult<Void> completed(TransferProcess transferProcess) {
         var dataPlaneId = transferProcess.getDataPlaneId();
         if (dataPlaneId == null) {

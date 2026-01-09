@@ -224,7 +224,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     private ServiceResult<TransferProcess> startedAction(TransferStartMessage message, TransferProcess transferProcess) {
         if (transferProcess.getType() == CONSUMER && transferProcess.canBeStartedConsumer()) {
             transferProcess.protocolMessageReceived(message.getId());
-            transferProcess.transitionStarted();
+            transferProcess.transitionStartupRequested();
             update(transferProcess);
             var transferStartedData = TransferProcessStartedData.Builder.newInstance()
                     .dataAddress(message.getDataAddress())

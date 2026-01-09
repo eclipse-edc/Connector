@@ -78,6 +78,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
@@ -176,6 +177,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
                 .processor(processConsumerTransfersInState(REQUESTING, this::processRequesting))
                 .processor(processProviderTransfersInState(STARTING, this::processStarting))
+                .processor(processConsumerTransfersInState(STARTUP_REQUESTED, this::processStartupRequested))
                 .processor(processTransfersInState(SUSPENDING, this::processSuspending))
                 .processor(processTransfersInState(SUSPENDING_REQUESTED, this::processSuspending))
                 .processor(processProviderTransfersInState(RESUMING, this::processProviderResuming))
@@ -395,6 +397,25 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
                 })
                 .onFailure((t, throwable) -> onFailure.accept(t))
+                .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
+                .execute();
+    }
+
+
+    /**
+     * Process STARTUP_REQUESTED transfer for consumer<p> Notify data-plane that data flow has been started
+     *
+     * @param process the STARTUP_REQUESTED transfer fetched
+     * @return if the transfer has been processed or not
+     */
+    @WithSpan
+    private boolean processStartupRequested(TransferProcess process) {
+        return entityRetryProcessFactory.retryProcessor(process)
+                .doProcess(result("Notify started to data plane " + process.getCounterPartyAddress(), (t, r) ->
+                        dataFlowController.started(process))
+                )
+                .onSuccess((t, c) -> transitionToStarted(t))
+                .onFailure((t, throwable) -> transitionToStartupRequested(t))
                 .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .execute();
     }
@@ -643,6 +664,16 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
     private void transitionToStarting(TransferProcess transferProcess) {
         transferProcess.transitionStarting();
+        update(transferProcess);
+    }
+
+    private void transitionToStarted(TransferProcess transferProcess) {
+        transferProcess.transitionStarted();
+        update(transferProcess);
+    }
+
+    private void transitionToStartupRequested(TransferProcess transferProcess) {
+        transferProcess.transitionStartupRequested();
         update(transferProcess);
     }
 
