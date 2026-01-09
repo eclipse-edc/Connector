@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import static java.util.Collections.emptyMap;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
@@ -70,37 +71,34 @@ public class DataPlaneSignalingClient {
                                 .orElse(this::failedResult)));
     }
 
-    public StatusResult<Void> suspend(String transferProcessId) {
-        var url = "%s/%s/suspend".formatted(dataPlane.getUrl(), transferProcessId);
-        var message = DataFlowSuspendMessage.Builder.newInstance().build();
-        return createRequestBuilder(message, url)
-                .compose(builder -> httpClient.request(builder)
-                        .flatMap(result -> result.map(it -> StatusResult.success())
-                                .orElse(this::failedResult)));
+    public StatusResult<Void> suspend(String flowId) {
+        return sendMessage(flowId, "suspend", DataFlowSuspendMessage.Builder.newInstance().build());
     }
 
-    public StatusResult<Void> terminate(String transferProcessId) {
-        var url = "%s/%s/terminate".formatted(dataPlane.getUrl(), transferProcessId);
-        var message = DataFlowSuspendMessage.Builder.newInstance().build();
-        return createRequestBuilder(message, url)
-                .compose(builder -> httpClient.request(builder)
-                        .flatMap(result -> result.map(it -> StatusResult.success())
-                                .orElse(this::failedResult)));
+    public StatusResult<Void> terminate(String flowId) {
+        return sendMessage(flowId, "terminate", emptyMap());
+    }
+
+    public StatusResult<Void> started(String flowId) {
+        return sendMessage(flowId, "started", emptyMap());
     }
 
     public StatusResult<Void> completed(String flowId) {
-        var url = "%s/%s/completed".formatted(dataPlane.getUrl(), flowId);
-        var message = DataFlowSuspendMessage.Builder.newInstance().build();
-        return createRequestBuilder(message, url)
-                .compose(builder -> httpClient.request(builder)
-                        .flatMap(result -> result.map(it -> StatusResult.success())
-                                .orElse(this::failedResult)));
+        return sendMessage(flowId, "completed", emptyMap());
     }
 
     public StatusResult<Void> checkAvailability() {
         var requestBuilder = new Request.Builder().get().url(dataPlane.getUrl() + "/");
         return httpClient.request(requestBuilder)
                 .flatMap(result -> result.map(it -> StatusResult.success()).orElse(this::failedResult));
+    }
+
+    private StatusResult<Void> sendMessage(String flowId, String name, Object message) {
+        var url = dataPlane.getUrl() + "/" + flowId + "/" + name;
+        return createRequestBuilder(message, url)
+                .compose(builder -> httpClient.request(builder)
+                        .flatMap(result -> result.map(it -> StatusResult.success())
+                                .orElse(this::failedResult)));
     }
 
     private StatusResult<DataFlowResponseMessage> handleResponse(String responseBody) {

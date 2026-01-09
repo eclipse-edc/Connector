@@ -184,6 +184,11 @@ public class LegacyDataPlaneSignalingFlowController implements DataFlowControlle
     }
 
     @Override
+    public StatusResult<Void> started(TransferProcess transferProcess) {
+        return StatusResult.success(); // no-op for legacy protocol
+    }
+
+    @Override
     public StatusResult<Void> completed(TransferProcess transferProcess) {
         return terminate(transferProcess);
     }

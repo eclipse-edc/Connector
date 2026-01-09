@@ -94,6 +94,9 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
             if (entity == null) {
                 return StoreResult.notFound(format("Entity %s not found", id));
             }
+            if (isLeased(id)) {
+                return StoreResult.alreadyLeased("Entity %s already leased".formatted(id));
+            }
             return acquireLease(id).map(it -> entity.copy());
         });
     }

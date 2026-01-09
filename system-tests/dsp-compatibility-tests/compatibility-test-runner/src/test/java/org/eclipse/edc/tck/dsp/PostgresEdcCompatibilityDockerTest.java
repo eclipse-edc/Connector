@@ -89,15 +89,9 @@ public class PostgresEdcCompatibilityDockerTest {
         });
     }
 
-    private static String resourceConfig(String resource) {
-        return Path.of(TestUtils.getResource(resource)).toString();
-    }
-
     @Timeout(300)
     @Test
     void assertDspCompatibility() {
-
-
         // pipe the docker container's log to this console at the INFO level
         var monitor = new ConsoleMonitor(">>> TCK Runtime (Docker)", ConsoleMonitor.Level.INFO, true);
         var reporter = new TckTestReporter();
@@ -119,6 +113,10 @@ public class PostgresEdcCompatibilityDockerTest {
         if (!failures.isEmpty()) {
             fail(failures.size() + " TCK test cases failed:\n" + String.join("\n", failures));
         }
+    }
+
+    private String resourceConfig(String resource) {
+        return Path.of(TestUtils.getResource(resource)).toString();
     }
 
 
