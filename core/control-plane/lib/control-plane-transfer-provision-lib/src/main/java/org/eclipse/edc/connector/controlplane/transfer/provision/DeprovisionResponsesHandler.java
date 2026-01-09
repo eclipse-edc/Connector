@@ -98,7 +98,6 @@ public class DeprovisionResponsesHandler implements ResponsesHandler<StatusResul
 
         if (transferProcess.deprovisionComplete()) {
             transferProcess.transitionDeprovisioned();
-            observable.invokeForEach(l -> l.preDeprovisioned(transferProcess));
         } else if (results.stream().anyMatch(DeprovisionedResource::isInProcess)) {
             transferProcess.transitionDeprovisioningRequested();
         }
@@ -116,6 +115,5 @@ public class DeprovisionResponsesHandler implements ResponsesHandler<StatusResul
     private void transitionToDeprovisioningError(TransferProcess transferProcess, String message) {
         monitor.severe(message);
         transferProcess.transitionDeprovisioned(message);
-        observable.invokeForEach(l -> l.preDeprovisioned(transferProcess));
     }
 }

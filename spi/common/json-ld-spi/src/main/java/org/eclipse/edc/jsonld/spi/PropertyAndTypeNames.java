@@ -16,7 +16,6 @@ package org.eclipse.edc.jsonld.spi;
 
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
@@ -75,6 +74,4 @@ public interface PropertyAndTypeNames {
     String ODRL_USE_ACTION_ATTRIBUTE = ODRL_SCHEMA + "use";
     String ODRL_PROFILE_ATTRIBUTE = ODRL_SCHEMA + "profile";
     String DSPACE_PROPERTY_PARTICIPANT_ID_TERM = "participantId";
-    @Deprecated(since = "0.14.0")
-    String DSPACE_PROPERTY_PARTICIPANT_ID_IRI = DSPACE_SCHEMA + DSPACE_PROPERTY_PARTICIPANT_ID_TERM;
 }
