@@ -48,11 +48,23 @@ import static org.mockito.Mockito.when;
 class PolicyEvaluatorTest {
 
     @Test
+    void verifyEvaluationFails_whenLeftOperandIsNotString() {
+        var constraint = AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression(new Object()))
+                .operator(Operator.EQ)
+                .rightExpression(new LiteralExpression("foo"))
+                .build();
         var permission = Permission.Builder.newInstance().constraint(constraint).build();
         var policy = Policy.Builder.newInstance().permission(permission).build();
 
         var evaluator = PolicyEvaluator.Builder.newInstance().build();
+        var result = evaluator.evaluate(policy);
 
+        assertThat(result.valid()).isFalse();
+        assertThat(result.getProblems())
+                .flatExtracting(RuleProblem::getConstraintProblem)
+                .extracting(ConstraintProblem::getDescription)
+                .contains("Left operand value is not a String");
     }
 
     @ParameterizedTest(name = "{displayName} {0}")

@@ -156,27 +156,35 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
 
     @Override
     public Boolean visitAtomicConstraint(AtomicConstraint constraint) {
-        var rightValue = constraint.getRightExpression().accept(this);
         var leftRawValue = constraint.getLeftExpression().accept(this);
-        if (leftRawValue instanceof String) {
-            AtomicConstraintFunction<Object, Rule, Boolean> function;
-            if (ruleContext instanceof Permission) {
-                function = getEvaluationFunction((String) leftRawValue, permissionFunctions, dynamicPermissionFunctions);
-            } else if (ruleContext instanceof Prohibition) {
-                function = getEvaluationFunction((String) leftRawValue, prohibitionFunctions, dynamicProhibitionFunctions);
-            } else {
-                function = getEvaluationFunction((String) leftRawValue, dutyFunctions, dynamicDutyFunctions);
-            }
-            if (function != null) {
-                return function.evaluate(constraint.getOperator(), rightValue, ruleContext);
-            }
+        if (!(leftRawValue instanceof String)) {
+            ruleProblems.add(RuleProblem.Builder.newInstance()
+                    .rule(ruleContext)
+                    .description(ruleContext.toString())
+                    .constraintProblem(new ConstraintProblem("Left operand value is not a String", constraint))
+                    .build());
+            return false;
+        }
+
+        AtomicConstraintFunction<Object, Rule, Boolean> function;
+        if (ruleContext instanceof Permission) {
+            function = getEvaluationFunction((String) leftRawValue, permissionFunctions, dynamicPermissionFunctions);
+        } else if (ruleContext instanceof Prohibition) {
+            function = getEvaluationFunction((String) leftRawValue, prohibitionFunctions, dynamicProhibitionFunctions);
+        } else {
+            function = getEvaluationFunction((String) leftRawValue, dutyFunctions, dynamicDutyFunctions);
+        }
+        if (function == null) {
             ruleProblems.add(RuleProblem.Builder.newInstance()
                     .rule(ruleContext)
                     .description(ruleContext.toString())
                     .constraintProblem(new ConstraintProblem("No evaluation function found", constraint))
                     .build());
+            return false;
         }
-        return false;
+
+        var rightValue = constraint.getRightExpression().accept(this);
+        return function.evaluate(constraint.getOperator(), rightValue, ruleContext);
     }
 
     @Override
