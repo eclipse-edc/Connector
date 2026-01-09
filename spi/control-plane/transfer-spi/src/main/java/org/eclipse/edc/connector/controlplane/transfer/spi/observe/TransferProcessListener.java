@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.transfer.spi.observe;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.observe.Observable;
 
 /**
@@ -27,115 +26,6 @@ import org.eclipse.edc.spi.observe.Observable;
  * is guaranteed to be called at least once.
  */
 public interface TransferProcessListener {
-    /**
-     * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#INITIAL INITIAL}, but before the change is persisted.
-     *
-     * @param process the transfer process whose state has changed.
-     * @deprecated will be removed soon.
-     */
-    @Deprecated(since = "0.14.0")
-    default void preCreated(TransferProcess process) {
-    }
-
-    /**
-     * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#PROVISIONING PROVISIONING}, but before the change is persisted.
-     *
-     * @param process the transfer process whose state has changed.
-     * @deprecated will be removed soon.
-     */
-    @Deprecated(since = "0.14.0")
-    default void preProvisioning(TransferProcess process) {
-    }
-
-    /**
-     * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#PROVISIONED PROVISIONED}, but before the change is persisted.
-     *
-     * @param process the transfer process whose state has changed.
-     * @deprecated will be removed soon.
-     */
-    @Deprecated(since = "0.14.0")
-    default void preProvisioned(TransferProcess process) {
-    }
-
-    /**
-     * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#REQUESTING REQUESTING}, but before the change is persisted.
-     *
-     * @param process the transfer process whose state has changed.
-     * @deprecated will be removed soon.
-     */
-    @Deprecated(since = "0.14.0")
-    default void preRequesting(TransferProcess process) {
-    }
-
-    /**
-     * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#REQUESTED REQUESTED}, but before the change is persisted.
-     *
-     * @param process the transfer process whose state has changed.
-     * @deprecated will be removed soon.
-     */
-    @Deprecated(since = "0.14.0")
-    default void preRequested(TransferProcess process) {
-    }
-
-    /**
-     * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#STARTED}, but before the change is persisted.
-     *
-     * @param process the transfer process whose state has changed.
-     * @deprecated will be removed soon.
-     */
-    @Deprecated(since = "0.14.0")
-    default void preStarted(TransferProcess process) {
-    }
-
-    /**
-     * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#COMPLETED COMPLETED}, but before the change is persisted.
-     *
-     * @param process the transfer process whose state has changed.
-     * @deprecated will be removed soon.
-     */
-    @Deprecated(since = "0.14.0")
-    default void preCompleted(TransferProcess process) {
-    }
-
-    /**
-     * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#DEPROVISIONING DEPROVISIONING}, but before the change is persisted.
-     *
-     * @param process the transfer process whose state has changed.
-     * @deprecated will be removed soon.
-     */
-    @Deprecated(since = "0.14.0")
-    default void preDeprovisioning(TransferProcess process) {
-    }
-
-    /**
-     * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#DEPROVISIONED DEPROVISIONED}, but before the change is persisted.
-     *
-     * @param process the transfer process whose state has changed.
-     * @deprecated will be removed soon.
-     */
-    @Deprecated(since = "0.14.0")
-    default void preDeprovisioned(TransferProcess process) {
-    }
-
-    /**
-     * Called after a {@link TransferProcess} has moved to state
-     * {@link TransferProcessStates#TERMINATED}, but before the change is persisted.
-     *
-     * @param process the transfer process whose state has changed.
-     * @deprecated will be removed soon.
-     */
-    @Deprecated(since = "0.14.0")
-    default void preTerminated(TransferProcess process) {
-    }
 
     /**
      * Called after a {@link TransferProcess} was initiated.

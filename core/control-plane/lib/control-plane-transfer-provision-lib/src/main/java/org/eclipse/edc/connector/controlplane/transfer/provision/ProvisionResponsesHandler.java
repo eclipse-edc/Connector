@@ -133,7 +133,6 @@ public class ProvisionResponsesHandler implements ResponsesHandler<StatusResult<
 
         if (transferProcess.provisioningComplete()) {
             transferProcess.transitionProvisioned();
-            observable.invokeForEach(l -> l.preProvisioned(transferProcess));
         } else if (responses.stream().anyMatch(ProvisionResponse::isInProcess)) {
             transferProcess.transitionProvisioningRequested();
         }

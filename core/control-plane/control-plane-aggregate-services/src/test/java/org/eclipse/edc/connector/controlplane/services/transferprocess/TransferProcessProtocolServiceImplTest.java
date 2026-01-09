@@ -159,7 +159,6 @@ class TransferProcessProtocolServiceImplTest {
                 assertThat(tp.getCounterPartyAddress()).isEqualTo("http://any");
                 assertThat(tp.getAssetId()).isEqualTo("assetId");
             });
-            verify(listener).preCreated(any());
             verify(store).save(argThat(t -> t.getState() == INITIAL.code()));
             verify(listener).initiated(any());
             verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
@@ -463,7 +462,6 @@ class TransferProcessProtocolServiceImplTest {
             var result = service.notifyCompleted(participantContext, message, tokenRepresentation);
 
             assertThat(result).isSucceeded();
-            verify(listener).preCompleted(any());
             verify(store).save(argThat(t -> t.getState() == COMPLETING_REQUESTED.code()));
             verify(listener).completed(any());
             verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
@@ -652,7 +650,6 @@ class TransferProcessProtocolServiceImplTest {
             var startedDataCaptor = ArgumentCaptor.forClass(TransferProcessStartedData.class);
             var transferProcessCaptor = ArgumentCaptor.forClass(TransferProcess.class);
             assertThat(result).isSucceeded();
-            verify(listener).preStarted(any());
             verify(store).save(transferProcessCaptor.capture());
             verify(store).save(argThat(t -> t.getState() == STARTED.code()));
             verify(listener).started(any(), startedDataCaptor.capture());

@@ -24,16 +24,12 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.C
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
-import org.eclipse.edc.policy.engine.spi.PolicyEngine;
-import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
-import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
@@ -42,25 +38,15 @@ import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.statemachine.StateMachineConfiguration;
 
 import java.time.Clock;
 
-@Provides({ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class
-})
+@Provides({ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class})
 @Extension(value = ContractManagerExtension.NAME)
 public class ContractManagerExtension implements ServiceExtension {
 
     public static final String NAME = "Contract Manager";
-    private static final String DEPRECATED_ITERATION_WAIT_MILLIS_KEY = "edc.negotiation.state-machine.iteration-wait-millis";
-
-    @Deprecated(since = "0.14.0")
-    @Setting(
-            description = "the iteration wait time in milliseconds in the negotiation state machine.",
-            key = DEPRECATED_ITERATION_WAIT_MILLIS_KEY,
-            defaultValue = StateMachineConfiguration.DEFAULT_ITERATION_WAIT + "")
-    private long stateMachineIterationWaitMillis;
 
     @SettingContext("edc.negotiation.consumer")
     @Configuration
@@ -70,18 +56,11 @@ public class ContractManagerExtension implements ServiceExtension {
     @Configuration
     private StateMachineConfiguration providerStateMachineConfiguration;
 
-    private ConsumerContractNegotiationManagerImpl consumerNegotiationManager;
-
-    private ProviderContractNegotiationManagerImpl providerNegotiationManager;
-
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
 
     @Inject
     private ContractNegotiationStore store;
-
-    @Inject
-    private PolicyEngine policyEngine;
 
     @Inject
     private PolicyDefinitionStore policyStore;
@@ -94,15 +73,6 @@ public class ContractManagerExtension implements ServiceExtension {
 
     @Inject
     private Clock clock;
-
-    @Inject
-    private EventRouter eventRouter;
-
-    @Inject
-    private TypeManager typeManager;
-
-    @Inject
-    private RuleBindingRegistry ruleBindingRegistry;
 
     @Inject
     private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
@@ -118,6 +88,9 @@ public class ContractManagerExtension implements ServiceExtension {
 
     @Inject
     private ParticipantIdentityResolver identityResolver;
+
+    private ConsumerContractNegotiationManagerImpl consumerNegotiationManager;
+    private ProviderContractNegotiationManagerImpl providerNegotiationManager;
 
     @Override
     public String name() {
@@ -147,21 +120,8 @@ public class ContractManagerExtension implements ServiceExtension {
     }
 
     private void registerServices(ServiceExtensionContext context) {
-        WaitStrategy consumerWaitStrategy;
-        WaitStrategy providerWaitStrategy;
-        if (context.getConfig().hasKey(DEPRECATED_ITERATION_WAIT_MILLIS_KEY)) {
-            monitor.warning(("The setting '%s' has been deprecated, please use 'edc.negotiation.consumer.state-machine.iteration-wait-millis' " +
-                    "and 'edc.negotiation.provider.state-machine.iteration-wait-millis' instead.")
-                    .formatted(DEPRECATED_ITERATION_WAIT_MILLIS_KEY));
-            consumerWaitStrategy = getWaitStrategy(context, new ExponentialWaitStrategy(stateMachineIterationWaitMillis));
-            providerWaitStrategy = getWaitStrategy(context, new ExponentialWaitStrategy(stateMachineIterationWaitMillis));
-        } else {
-            consumerWaitStrategy = getWaitStrategy(context, consumerStateMachineConfiguration.iterationWaitExponentialWaitStrategy());
-            providerWaitStrategy = getWaitStrategy(context, providerStateMachineConfiguration.iterationWaitExponentialWaitStrategy());
-        }
-
         consumerNegotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
-                .waitStrategy(consumerWaitStrategy)
+                .waitStrategy(getWaitStrategy(context, consumerStateMachineConfiguration.iterationWaitExponentialWaitStrategy()))
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
                 .observable(observable)
@@ -178,7 +138,7 @@ public class ContractManagerExtension implements ServiceExtension {
                 .build();
 
         providerNegotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
-                .waitStrategy(providerWaitStrategy)
+                .waitStrategy(getWaitStrategy(context, providerStateMachineConfiguration.iterationWaitExponentialWaitStrategy()))
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
                 .observable(observable)

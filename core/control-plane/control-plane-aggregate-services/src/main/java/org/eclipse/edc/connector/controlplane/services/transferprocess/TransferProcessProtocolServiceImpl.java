@@ -187,7 +187,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                             .participantContextId(participantContext.getParticipantContextId())
                             .build();
 
-                    observable.invokeForEach(l -> l.preCreated(process));
                     process.protocolMessageReceived(message.getId());
                     update(process);
                     observable.invokeForEach(l -> l.initiated(process));
@@ -224,7 +223,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @NotNull
     private ServiceResult<TransferProcess> startedAction(TransferStartMessage message, TransferProcess transferProcess) {
         if (transferProcess.getType() == CONSUMER && transferProcess.canBeStartedConsumer()) {
-            observable.invokeForEach(l -> l.preStarted(transferProcess));
             transferProcess.protocolMessageReceived(message.getId());
             transferProcess.transitionStarted();
             update(transferProcess);
@@ -246,7 +244,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     @NotNull
     private ServiceResult<TransferProcess> completedAction(TransferCompletionMessage message, TransferProcess transferProcess) {
         if (transferProcess.canBeCompleted()) {
-            observable.invokeForEach(l -> l.preCompleted(transferProcess));
             transferProcess.protocolMessageReceived(message.getId());
             transferProcess.transitionCompletingRequested();
             update(transferProcess);

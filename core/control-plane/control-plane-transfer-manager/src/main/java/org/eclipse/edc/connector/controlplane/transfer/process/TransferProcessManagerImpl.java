@@ -162,7 +162,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .dataplaneMetadata(transferRequest.getDataplaneMetadata())
                 .build();
 
-        observable.invokeForEach(l -> l.preCreated(process));
         update(process);
         observable.invokeForEach(l -> l.initiated(process));
 
@@ -390,7 +389,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
                     } else {
                         process.transitionStarted();
-                        observable.invokeForEach(l -> l.preStarted(t));
                         update(t);
                         observable.invokeForEach(l -> l.started(t, TransferProcessStartedData.Builder.newInstance().build()));
                     }
@@ -537,8 +535,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
      */
     @WithSpan
     private boolean processDeprovisioning(TransferProcess process) {
-        observable.invokeForEach(l -> l.preDeprovisioning(process)); // TODO: this is called here since it's not callable from the command handler
-
         var policy = policyArchive.findPolicyForContract(process.getContractId());
 
         var resourcesToDeprovision = process.getResourcesToDeprovision();
@@ -630,20 +626,17 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
     private void transitionToProvisioning(TransferProcess process) {
         process.transitionProvisioning(process.getResourceManifest());
-        observable.invokeForEach(l -> l.preProvisioning(process));
         update(process);
     }
 
     private void transitionToRequesting(TransferProcess process) {
         process.transitionRequesting();
-        observable.invokeForEach(l -> l.preRequesting(process));
         update(process);
     }
 
     private void transitionToRequested(TransferProcess transferProcess, TransferProcessAck ack) {
         transferProcess.transitionRequested();
         transferProcess.setCorrelationId(ack.getProviderPid());
-        observable.invokeForEach(l -> l.preRequested(transferProcess));
         update(transferProcess);
         observable.invokeForEach(l -> l.requested(transferProcess));
     }
@@ -670,7 +663,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
     private void transitionToCompleted(TransferProcess transferProcess) {
         transferProcess.transitionCompleted();
-        observable.invokeForEach(l -> l.preCompleted(transferProcess));
         update(transferProcess);
         observable.invokeForEach(l -> l.completed(transferProcess));
     }
@@ -716,7 +708,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
     private void transitionToTerminated(TransferProcess process) {
         process.transitionTerminated();
-        observable.invokeForEach(l -> l.preTerminated(process));
         update(process);
         observable.invokeForEach(l -> l.terminated(process));
     }
@@ -729,7 +720,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     private void transitionToDeprovisioningError(TransferProcess transferProcess, String message) {
         monitor.severe(message);
         transferProcess.transitionDeprovisioned(message);
-        observable.invokeForEach(l -> l.preDeprovisioned(transferProcess));
         update(transferProcess);
         observable.invokeForEach(l -> l.deprovisioned(transferProcess));
     }
