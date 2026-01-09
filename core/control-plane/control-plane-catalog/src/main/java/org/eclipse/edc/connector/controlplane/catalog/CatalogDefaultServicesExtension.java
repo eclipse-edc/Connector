@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.controlplane.catalog;
 
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -29,7 +29,7 @@ public class CatalogDefaultServicesExtension implements ServiceExtension {
     public static final String NAME = "Catalog Default Services";
 
     @Inject
-    private DataFlowManager dataFlowManager;
+    private DataFlowController dataFlowController;
 
     private DataServiceRegistry dataServiceRegistry;
 
@@ -50,7 +50,7 @@ public class CatalogDefaultServicesExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public DistributionResolver distributionResolver() {
-        return new DefaultDistributionResolver(dataServiceRegistry, dataFlowManager);
+        return new DefaultDistributionResolver(dataServiceRegistry, dataFlowController);
     }
 
 }

@@ -179,6 +179,15 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
 
     @Override
     public Set<String> transferTypesFor(Asset asset) {
+        return transferTypes();
+    }
+
+    @Override
+    public Set<String> transferTypesFor(String assetId) {
+        return transferTypes();
+    }
+
+    private @NotNull Set<String> transferTypes() {
         return selectorClient.getAll().map(Collection::stream)
                 .map(it -> it.map(DataPlaneInstance::getAllowedTransferTypes)
                         .flatMap(Collection::stream).collect(toSet()))

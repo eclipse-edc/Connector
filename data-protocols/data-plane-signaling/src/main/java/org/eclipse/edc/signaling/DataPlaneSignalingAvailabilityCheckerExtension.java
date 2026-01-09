@@ -23,11 +23,11 @@ import org.eclipse.edc.signaling.port.ClientFactory;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.types.TypeManager;
 
-import static org.eclipse.edc.signaling.DataPlaneSignalingClientExtension.NAME;
+import static org.eclipse.edc.signaling.DataPlaneSignalingAvailabilityCheckerExtension.NAME;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(NAME)
-public class DataPlaneSignalingClientExtension implements ServiceExtension {
+public class DataPlaneSignalingAvailabilityCheckerExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane Signaling Availability Checker";
 
@@ -37,6 +37,11 @@ public class DataPlaneSignalingClientExtension implements ServiceExtension {
     private TypeManager typeManager;
 
     private ClientFactory clientFactory;
+
+    @Override
+    public String name() {
+        return NAME;
+    }
 
     @Provider
     public DataPlaneAvailabilityChecker dataPlaneAvailabilityChecker() {

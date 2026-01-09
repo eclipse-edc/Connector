@@ -21,7 +21,7 @@ import org.eclipse.edc.connector.controlplane.transfer.provision.DeprovisionResp
 import org.eclipse.edc.connector.controlplane.transfer.provision.ProvisionResponsesHandler;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator;
@@ -61,7 +61,7 @@ public class TransferManagerExtension implements ServiceExtension {
     private TransferProcessStore transferProcessStore;
 
     @Inject
-    private DataFlowManager dataFlowManager;
+    private DataFlowController dataFlowController;
 
     @Inject
     private ResourceManifestGenerator resourceManifestGenerator;
@@ -122,7 +122,7 @@ public class TransferManagerExtension implements ServiceExtension {
         processManager = TransferProcessManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .manifestGenerator(resourceManifestGenerator)
-                .dataFlowManager(dataFlowManager)
+                .dataFlowController(dataFlowController)
                 .provisionManager(provisionManager)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)

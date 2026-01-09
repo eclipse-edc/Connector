@@ -14,11 +14,11 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.spi.types;
 
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 
 /**
- * A Response for {@link DataFlowManager#start} and {@link DataFlowManager#prepare} operation
+ * A Response for {@link DataFlowController#start} and {@link DataFlowController#prepare} operation
  */
 public class DataFlowResponse {
 

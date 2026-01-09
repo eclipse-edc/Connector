@@ -66,7 +66,7 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
 
     private final LegacyDataPlaneSignalingFlowController flowController = new LegacyDataPlaneSignalingFlowController(
             () -> URI.create("http://localhost"), selectorService, propertiesProvider, dataPlaneClientFactory,
-            "random", transferTypeParser);
+            "random", transferTypeParser, mock());
 
     @Nested
     class CanHandle {

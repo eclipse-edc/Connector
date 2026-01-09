@@ -1,2 +1,3 @@
-org.eclipse.edc.signaling.DataPlaneSignalingExtension
-org.eclipse.edc.signaling.DataPlaneSignalingClientExtension
+org.eclipse.edc.signaling.DataPlaneSignalingApiExtension
+org.eclipse.edc.signaling.DataPlaneSignalingAvailabilityCheckerExtension
+org.eclipse.edc.signaling.DataPlaneSignalingFlowControllerExtension

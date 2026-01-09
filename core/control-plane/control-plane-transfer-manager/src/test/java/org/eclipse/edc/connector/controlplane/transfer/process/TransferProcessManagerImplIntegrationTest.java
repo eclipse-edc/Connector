@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.provision.ProvisionResponsesHandler;
 import org.eclipse.edc.connector.controlplane.transfer.provision.fixtures.TestProvisionedDataDestinationResource;
 import org.eclipse.edc.connector.controlplane.transfer.provision.fixtures.TestResourceDefinition;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
@@ -99,7 +99,7 @@ class TransferProcessManagerImplIntegrationTest {
     private final Clock clock = Clock.systemUTC();
     private final TransferProcessStore store = new InMemoryTransferProcessStore(clock, CriterionOperatorRegistryImpl.ofDefaults());
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
-    private final DataFlowManager dataFlowManager = mock();
+    private final DataFlowController dataFlowController = mock();
     private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
     private TransferProcessManagerImpl manager;
 
@@ -117,7 +117,7 @@ class TransferProcessManagerImplIntegrationTest {
         var waitStrategy = mock(ExponentialWaitStrategy.class);
         manager = TransferProcessManagerImpl.Builder.newInstance()
                 .provisionManager(provisionManager)
-                .dataFlowManager(dataFlowManager)
+                .dataFlowController(dataFlowController)
                 .waitStrategy(waitStrategy)
                 .batchSize(TRANSFER_MANAGER_BATCH_SIZE)
                 .dispatcherRegistry(dispatcherRegistry)
@@ -138,7 +138,7 @@ class TransferProcessManagerImplIntegrationTest {
     @DisplayName("Verify that no process 'starves' during two consecutive runs, when the batch size > number of processes")
     void verifyProvision_shouldNotStarve() {
         var numProcesses = TRANSFER_MANAGER_BATCH_SIZE * 2;
-        when(dataFlowManager.prepare(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
+        when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
         when(provisionManager.provision(any(), any(Policy.class))).thenAnswer(i -> completedFuture(List.of(
                 ProvisionResponse.Builder.newInstance()
                         .resource(new TestProvisionedDataDestinationResource("any", "1"))
@@ -198,8 +198,8 @@ class TransferProcessManagerImplIntegrationTest {
             when(dispatcherRegistry.dispatch(any(), any(), isA(messageType)))
                     .thenReturn(completedFuture(StatusResult.failure(ERROR_RETRY)))
                     .thenReturn(completedFuture(StatusResult.success(TransferProcessAck.Builder.newInstance().build())));
-            when(dataFlowManager.start(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
-            when(dataFlowManager.terminate(any())).thenReturn(StatusResult.success());
+            when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
+            when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
 
             var transfer = transferProcessBuilder().type(type).state(state.code()).build();
             store.save(transfer);

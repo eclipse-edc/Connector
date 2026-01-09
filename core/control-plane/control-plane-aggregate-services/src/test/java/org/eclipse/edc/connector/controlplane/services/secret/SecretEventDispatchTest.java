@@ -14,12 +14,14 @@
 
 package org.eclipse.edc.connector.controlplane.services.secret;
 
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.secret.spi.event.SecretCreated;
 import org.eclipse.edc.connector.secret.spi.event.SecretDeleted;
 import org.eclipse.edc.connector.secret.spi.event.SecretEvent;
 import org.eclipse.edc.connector.spi.service.SecretService;
+import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.protocol.spi.ProtocolWebhook;
@@ -40,6 +42,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+@ComponentTest
 @ExtendWith(RuntimePerMethodExtension.class)
 public class SecretEventDispatchTest {
 
@@ -51,6 +54,7 @@ public class SecretEventDispatchTest {
         extension.registerServiceMock(DataPlaneInstanceStore.class, mock());
         extension.registerServiceMock(IdentityService.class, mock());
         extension.registerServiceMock(DataPlaneClientFactory.class, mock());
+        extension.registerServiceMock(DataFlowController.class, mock());
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api"

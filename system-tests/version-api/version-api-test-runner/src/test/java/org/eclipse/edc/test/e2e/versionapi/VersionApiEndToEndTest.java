@@ -15,8 +15,10 @@
 package org.eclipse.edc.test.e2e.versionapi;
 
 import io.restassured.common.mapper.TypeRef;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
+import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
@@ -35,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Mockito.mock;
 
+@ComponentTest
 public class VersionApiEndToEndTest {
 
     public static final int DEFAULT_CONTEXT_PORT = Ports.getFreePort();
@@ -55,6 +58,7 @@ public class VersionApiEndToEndTest {
                 }
             }))
             .registerServiceMock(DataPlaneManager.class, mock())
+            .registerServiceMock(DataFlowController.class, mock())
             .registerServiceMock(DataPlaneClientFactory.class, mock()));
 
     @Test

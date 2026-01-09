@@ -25,7 +25,7 @@ import org.eclipse.edc.connector.controlplane.transfer.provision.ProvisionRespon
 import org.eclipse.edc.connector.controlplane.transfer.provision.ResponsesHandler;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowManager;
+import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager;
@@ -115,7 +115,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     private ResourceManifestGenerator manifestGenerator;
     private ProvisionManager provisionManager;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
-    private DataFlowManager dataFlowManager;
+    private DataFlowController dataFlowController;
     private Vault vault;
     private TransferProcessObservable observable;
     private DataAddressResolver addressResolver;
@@ -213,7 +213,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             var manifest = manifestResult.getContent();
 
             if (manifest.empty()) {
-                var provisioning = dataFlowManager.prepare(process, policy);
+                var provisioning = dataFlowController.prepare(process, policy);
                 if (provisioning.succeeded()) {
                     var response = provisioning.getContent();
                     process.setDataPlaneId(response.getDataPlaneId());
@@ -373,7 +373,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         var policy = policyArchive.findPolicyForContract(process.getContractId());
 
         return entityRetryProcessFactory.retryProcessor(process)
-                .doProcess(result("Start DataFlow", (t, c) -> dataFlowManager.start(process, policy)))
+                .doProcess(result("Start DataFlow", (t, c) -> dataFlowController.start(process, policy)))
                 .doProcess(futureResult("Dispatch TransferRequestMessage to: " + process.getCounterPartyAddress(), (t, dataFlowResponse) -> {
                     if (dataFlowResponse.isProvisioning()) {
                         return completedFuture(StatusResult.success(dataFlowResponse));
@@ -435,7 +435,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .doProcess(futureResult("Dispatch TransferCompletionMessage to " + process.getCounterPartyAddress(),
                         (t, dataFlowResponse) -> {
                             if (t.completionWasRequestedByCounterParty()) {
-                                var result = dataFlowManager.completed(t);
+                                var result = dataFlowController.completed(t);
                                 return completedFuture(result.mapEmpty());
                             } else {
                                 return dispatch(builder, t, Object.class);
@@ -503,7 +503,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         }
 
         return entityRetryProcessFactory.retryProcessor(process)
-                .doProcess(result("Terminate DataFlow", (p, i) -> dataFlowManager.terminate(process)))
+                .doProcess(result("Terminate DataFlow", (p, i) -> dataFlowController.terminate(process)))
                 .doProcess(futureResult("Dispatch TransferTerminationMessage", (t, n) -> {
                     if (t.terminationWasRequestedByCounterParty()) {
                         return completedFuture(StatusResult.success(null));
@@ -554,7 +554,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     @NotNull
     private StatusResult<Void> suspendDataFlow(TransferProcess process) {
         if (process.getType() == PROVIDER) {
-            return dataFlowManager.suspend(process);
+            return dataFlowController.suspend(process);
         } else {
             return StatusResult.success();
         }
@@ -755,7 +755,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             super.build();
             Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator cannot be null");
             Objects.requireNonNull(manager.provisionManager, "provisionManager cannot be null");
-            Objects.requireNonNull(manager.dataFlowManager, "dataFlowManager cannot be null");
+            Objects.requireNonNull(manager.dataFlowController, "dataFlowController cannot be null");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry cannot be null");
             Objects.requireNonNull(manager.observable, "observable cannot be null");
             Objects.requireNonNull(manager.policyArchive, "policyArchive cannot be null");
@@ -776,8 +776,8 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             return this;
         }
 
-        public Builder dataFlowManager(DataFlowManager dataFlowManager) {
-            manager.dataFlowManager = dataFlowManager;
+        public Builder dataFlowController(DataFlowController dataFlowController) {
+            manager.dataFlowController = dataFlowController;
             return this;
         }
 

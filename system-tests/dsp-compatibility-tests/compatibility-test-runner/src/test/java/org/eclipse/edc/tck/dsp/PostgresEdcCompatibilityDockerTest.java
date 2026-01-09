@@ -66,7 +66,6 @@ public class PostgresEdcCompatibilityDockerTest {
     ).configurationProvider(PostgresEdcCompatibilityDockerTest::runtimeConfiguration)
             .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONNECTOR_UNDER_TEST.toLowerCase())));
 
-
     private static Config runtimeConfiguration() {
         return ConfigFactory.fromMap(new HashMap<>() {
             {
