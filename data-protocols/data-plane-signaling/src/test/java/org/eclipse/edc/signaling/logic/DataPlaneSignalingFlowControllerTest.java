@@ -213,6 +213,59 @@ public class DataPlaneSignalingFlowControllerTest {
     }
 
     @Nested
+    class Started {
+
+        @Test
+        void shouldCallStarted() {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId("dataPlaneId")
+                    .build();
+            when(dataPlaneClient.started(any())).thenReturn(StatusResult.success());
+            var dataPlaneInstance = dataPlaneInstanceBuilder().id("dataPlaneId").build();
+            when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            when(selectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+
+            var result = flowController.started(transferProcess);
+
+            assertThat(result).isSucceeded();
+            verify(dataPlaneClient).started("transferProcessId");
+            verify(clientFactory).createClient(dataPlaneInstance);
+        }
+
+        @Test
+        void shouldFail_whenDataPlaneDoesNotExist() {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId("invalid")
+                    .build();
+            when(selectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
+
+            var result = flowController.started(transferProcess);
+
+            assertThat(result).isFailed();
+            verifyNoInteractions(dataPlaneClient, clientFactory);
+        }
+
+        @Test
+        void shouldFail_whenDataPlaneIdIsNull() {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId(null)
+                    .build();
+
+            var result = flowController.started(transferProcess);
+
+            assertThat(result).isFailed();
+            verifyNoInteractions(dataPlaneClient, clientFactory, selectorService);
+        }
+
+    }
+
+    @Nested
     class Completed {
 
         @Test

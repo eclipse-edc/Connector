@@ -183,7 +183,7 @@ class TransferPullEndToEndTest {
 
             var edrEntry = assertConsumerCanAccessData(consumer, transferProcessId);
 
-            consumer.suspendTransfer(transferProcessId, "supension");
+            consumer.suspendTransfer(transferProcessId, "suspension");
 
             consumer.awaitTransferToBeInState(transferProcessId, SUSPENDED);
             assertConsumerCanNotAccessData(consumer, transferProcessId, edrEntry);

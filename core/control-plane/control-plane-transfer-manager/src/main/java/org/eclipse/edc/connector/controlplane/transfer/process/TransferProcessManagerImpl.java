@@ -78,6 +78,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
@@ -176,6 +177,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
                 .processor(processConsumerTransfersInState(REQUESTING, this::processRequesting))
                 .processor(processProviderTransfersInState(STARTING, this::processStarting))
+                .processor(processConsumerLogTransfersInState(STARTUP_REQUESTED, this::processStartupRequested))
                 .processor(processTransfersInState(SUSPENDING, this::processSuspending))
                 .processor(processTransfersInState(SUSPENDING_REQUESTED, this::processSuspending))
                 .processor(processProviderTransfersInState(RESUMING, this::processProviderResuming))
@@ -399,6 +401,25 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .execute();
     }
 
+
+    /**
+     * Process STARTUP_REQUESTED transfer for consumer<p> Notify data-plane that data flow has been started
+     *
+     * @param process the STARTUP_REQUESTED transfer fetched
+     * @return if the transfer has been processed or not
+     */
+    @WithSpan
+    private boolean processStartupRequested(TransferProcess process) {
+        return entityRetryProcessFactory.retryProcessor(process)
+                .doProcess(result("Notify started to data plane " + process.getCounterPartyAddress(), (t, r) ->
+                        dataFlowController.started(process))
+                )
+                .onSuccess((t, c) -> transitionToStarted(t))
+                .onFailure((t, throwable) -> transitionToStartupRequested(t))
+                .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
+                .execute();
+    }
+
     /**
      * Process STARTING transfer that was SUSPENDED
      *
@@ -595,6 +616,11 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         }
     }
 
+    private Processor processConsumerLogTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
+        var filter = new Criterion[]{ hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", CONSUMER.name()) };
+        return createLogProcessor(function, filter);
+    }
+
     private Processor processConsumerTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
         var filter = new Criterion[]{ hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", CONSUMER.name()) };
         return createProcessor(function, filter);
@@ -611,6 +637,14 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     }
 
     private ProcessorImpl<TransferProcess> createProcessor(Function<TransferProcess, Boolean> function, Criterion[] filter) {
+        return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter))
+                .process(telemetry.contextPropagationMiddleware(function))
+                .guard(pendingGuard, this::setPending)
+                .onNotProcessed(this::breakLease)
+                .build();
+    }
+
+    private ProcessorImpl<TransferProcess> createLogProcessor(Function<TransferProcess, Boolean> function, Criterion[] filter) {
         return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter))
                 .process(telemetry.contextPropagationMiddleware(function))
                 .guard(pendingGuard, this::setPending)
@@ -643,6 +677,20 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
     private void transitionToStarting(TransferProcess transferProcess) {
         transferProcess.transitionStarting();
+        update(transferProcess);
+    }
+
+    private void transitionToStarted(TransferProcess transferProcess) {
+        transferProcess.transitionStarted();
+        update(transferProcess);
+        var transferStartedData = TransferProcessStartedData.Builder.newInstance()
+                .dataAddress(transferProcess.getContentDataAddress())
+                .build();
+        observable.invokeForEach(l -> l.started(transferProcess, transferStartedData));
+    }
+
+    private void transitionToStartupRequested(TransferProcess transferProcess) {
+        transferProcess.transitionStartupRequested();
         update(transferProcess);
     }
 

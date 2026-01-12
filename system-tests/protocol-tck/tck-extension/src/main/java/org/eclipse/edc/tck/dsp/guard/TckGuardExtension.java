@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcess
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.event.EventRouter;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -37,21 +38,19 @@ import static org.eclipse.edc.tck.dsp.data.DataAssembly.createTransferProcessTri
 public class TckGuardExtension implements ServiceExtension {
     private static final String NAME = "DSP TCK Guard";
 
-    private ContractNegotiationGuard negotiationGuard;
-
-    private TransferProcessGuard transferProcessGuard;
-
     @Inject
-    private ContractNegotiationStore store;
-
+    private ContractNegotiationStore contractNegotiationStore;
     @Inject
     private TransferProcessStore transferProcessStore;
-
     @Inject
     private TransactionContext transactionContext;
-
     @Inject
     private EventRouter router;
+    @Inject
+    private Monitor monitor;
+
+    private ContractNegotiationGuard negotiationGuard;
+    private TransferProcessGuard transferProcessGuard;
 
     @Override
     public String name() {
@@ -62,11 +61,13 @@ public class TckGuardExtension implements ServiceExtension {
     public ContractNegotiationPendingGuard negotiationGuard() {
         var recorder = createNegotiationRecorder();
 
-        var registry = new ContractNegotiationTriggerSubscriber(store, transactionContext);
+        var registry = new StatefulEntityTriggerSubscriber<>(monitor.withPrefix("TckContractNegotiationTrigger"),
+                contractNegotiationStore, transactionContext, ContractNegotiationEvent.class,
+                ContractNegotiationEvent::getContractNegotiationId);
         createNegotiationTriggers().forEach(registry::register);
         router.register(ContractNegotiationEvent.class, registry);
 
-        negotiationGuard = new ContractNegotiationGuard(cn -> recorder.playNext(cn.getContractOffers().get(0).getAssetId(), cn), store);
+        negotiationGuard = new ContractNegotiationGuard(cn -> recorder.playNext(cn.getContractOffers().get(0).getAssetId(), cn), contractNegotiationStore);
         return negotiationGuard;
     }
 
@@ -74,9 +75,11 @@ public class TckGuardExtension implements ServiceExtension {
     public TransferProcessPendingGuard transferProcessPendingGuard() {
         var recorder = createTransferProcessRecorder();
 
-        var tpRegistry = new TransferProcessTriggerSubscriber(transferProcessStore);
-        createTransferProcessTriggers().forEach(tpRegistry::register);
-        router.register(TransferProcessEvent.class, tpRegistry);
+        var registry = new StatefulEntityTriggerSubscriber<>(monitor.withPrefix("TckTransferProcessTrigger"),
+                transferProcessStore, transactionContext, TransferProcessEvent.class,
+                TransferProcessEvent::getTransferProcessId);
+        createTransferProcessTriggers().forEach(registry::register);
+        router.register(TransferProcessEvent.class, registry);
 
         transferProcessGuard = new TransferProcessGuard(tp -> recorder.playNext(tp.getContractId(), tp), transferProcessStore);
         return transferProcessGuard;
