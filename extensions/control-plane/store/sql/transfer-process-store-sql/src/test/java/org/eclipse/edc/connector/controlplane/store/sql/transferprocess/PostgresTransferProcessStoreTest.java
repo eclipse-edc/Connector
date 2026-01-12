@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.store.sql.transferprocess;
 
 import org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.SqlTransferProcessStore;
 import org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.schema.postgres.PostgresDialectStatements;
-import org.eclipse.edc.connector.controlplane.transfer.spi.testfixtures.store.TestFunctions;
 import org.eclipse.edc.connector.controlplane.transfer.spi.testfixtures.store.TransferProcessStoreTestBase;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
@@ -32,7 +31,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
 
@@ -46,9 +44,8 @@ class PostgresTransferProcessStoreTest extends TransferProcessStoreTestBase {
     private SqlTransferProcessStore store;
 
     @BeforeEach
-    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) throws IOException {
+    void setUp(PostgresqlStoreSetupExtension extension, QueryExecutor queryExecutor) {
         var typeManager = new JacksonTypeManager();
-        typeManager.registerTypes(TestFunctions.TestResourceDef.class, TestFunctions.TestProvisionedResource.class);
         typeManager.registerTypes(PolicyRegistrationTypes.TYPES.toArray(Class<?>[]::new));
 
         leaseUtil = new LeaseUtil(extension.getTransactionContext(), extension::getConnection, statements.getTransferProcessTableName(), leaseStatements, clock);

@@ -31,9 +31,6 @@ public class TransferProcessMapping extends StatefulEntityMapping {
     private static final String FIELD_CREATED_TIMESTAMP = "createdAt";
     private static final String FIELD_DATAADDRESS = "dataAddress";
     private static final String FIELD_CONTENTDATAADDRESS = "contentDataAddress";
-    private static final String FIELD_RESOURCE_MANIFEST = "resourceManifest";
-    private static final String FIELD_PROVISIONED_RESOURCE_SET = "provisionedResourceSet";
-    private static final String FIELD_DEPROVISIONED_RESOURCES = "deprovisionedResources";
     private static final String FIELD_PRIVATE_PROPERTIES = "privateProperties";
     private static final String FIELD_PENDING = "pending";
     private static final String FIELD_TRANSFER_TYPE = "transferType";
@@ -57,11 +54,7 @@ public class TransferProcessMapping extends StatefulEntityMapping {
         add(FIELD_DATA_DESTINATION, new JsonFieldTranslator(statements.getDataDestinationColumn()));
         add(FIELD_DATAADDRESS, new JsonFieldTranslator(statements.getContentDataAddressColumn()));
         add(FIELD_CONTENTDATAADDRESS, new JsonFieldTranslator(statements.getContentDataAddressColumn()));
-        add(FIELD_RESOURCE_MANIFEST, new ResourceManifestMapping());
         add(FIELD_PRIVATE_PROPERTIES, new JsonFieldTranslator(statements.getPrivatePropertiesColumn()));
-        add(FIELD_PROVISIONED_RESOURCE_SET, new ProvisionedResourceSetMapping());
-        // using the alias instead of the actual column name to avoid name clashes.
-        add(FIELD_DEPROVISIONED_RESOURCES, new JsonFieldTranslator(PostgresDialectStatements.DEPROVISIONED_RESOURCES_ALIAS));
         add(FIELD_PENDING, statements.getPendingColumn());
         add(FIELD_TRANSFER_TYPE, statements.getTransferTypeColumn());
         add(FIELD_DATA_PLANE_ID, statements.getDataPlaneIdColumn());

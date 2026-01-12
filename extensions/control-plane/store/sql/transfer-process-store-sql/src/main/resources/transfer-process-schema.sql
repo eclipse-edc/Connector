@@ -25,10 +25,7 @@ CREATE TABLE IF NOT EXISTS edc_transfer_process
     updated_at                 BIGINT            NOT NULL,
     trace_context              JSON,
     error_detail               VARCHAR,
-    resource_manifest          JSON,
-    provisioned_resource_set   JSON,
     content_data_address       JSON,
-    deprovisioned_resources    JSON,
     private_properties         JSON,
     callback_addresses         JSON,
     pending                    BOOLEAN  DEFAULT FALSE,
@@ -46,10 +43,7 @@ CREATE TABLE IF NOT EXISTS edc_transfer_process
 );
 
 COMMENT ON COLUMN edc_transfer_process.trace_context IS 'Java Map serialized as JSON';
-COMMENT ON COLUMN edc_transfer_process.resource_manifest IS 'java ResourceManifest serialized as JSON';
-COMMENT ON COLUMN edc_transfer_process.provisioned_resource_set IS 'ProvisionedResourceSet serialized as JSON';
 COMMENT ON COLUMN edc_transfer_process.content_data_address IS 'DataAddress serialized as JSON';
-COMMENT ON COLUMN edc_transfer_process.deprovisioned_resources IS 'List of deprovisioned resources, serialized as JSON';
 COMMENT ON COLUMN edc_transfer_process.dataplane_metadata IS 'Dataplane Metadata serialized as JSON';
 
 -- This will help to identify states that need to be transitioned without a table scan when the entries grow

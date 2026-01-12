@@ -15,8 +15,6 @@
 
 package org.eclipse.edc.connector.controlplane.services.spi.transferprocess;
 
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.DeprovisionedResource;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyPreparedCommand;
@@ -101,17 +99,6 @@ public interface TransferProcessService {
     ServiceResult<Void> resume(ResumeTransferCommand command);
 
     /**
-     * Asynchronously requests deprovisioning of the transfer process.
-     * <p>
-     * The return result status only reflects the successful submission of the command.
-     *
-     * @param transferProcessId id of the transferProcess
-     * @return a result that is successful if the transfer process was found and is in a state that can be deprovisioned
-     */
-    @NotNull
-    ServiceResult<Void> deprovision(String transferProcessId);
-
-    /**
      * Initiate transfer request for type consumer.
      *
      * @param request for the transfer.
@@ -127,27 +114,5 @@ public interface TransferProcessService {
      * @return the result.
      */
     ServiceResult<Void> notifyPrepared(NotifyPreparedCommand command);
-
-    /**
-     * Asynchronously informs the system that the {@link DeprovisionedResource} has been provisioned
-     *
-     * @param transferProcessId The transfer process id
-     * @param resource          The {@link DeprovisionedResource} to deprovision
-     * @return a result that is successful if the transfer process was found
-     * @deprecated provisioning will be fully managed by the data-plane
-     */
-    @Deprecated(since = "0.14.1")
-    ServiceResult<Void> completeDeprovision(String transferProcessId, DeprovisionedResource resource);
-
-    /**
-     * Asynchronously handles a {@link ProvisionResponse} received from an external system
-     *
-     * @param transferProcessId The transfer process id
-     * @param response          The {@link ProvisionResponse} to handle
-     * @return a result that is successful if the transfer process was found
-     * @deprecated provisioning will be fully managed by the data-plane
-     */
-    @Deprecated(since = "0.14.1")
-    ServiceResult<Void> addProvisionedResource(String transferProcessId, ProvisionResponse response);
 
 }

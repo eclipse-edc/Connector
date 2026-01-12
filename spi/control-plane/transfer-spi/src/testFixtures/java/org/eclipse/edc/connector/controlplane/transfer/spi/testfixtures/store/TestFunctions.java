@@ -15,13 +15,6 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.spi.testfixtures.store;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedResource;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ResourceDefinition;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -33,11 +26,6 @@ import java.util.List;
 import java.util.UUID;
 
 public class TestFunctions {
-
-    public static ResourceManifest createManifest() {
-        return ResourceManifest.Builder.newInstance()
-                .build();
-    }
 
     public static TransferProcess createTransferProcess() {
         return createTransferProcess("test-process");
@@ -61,8 +49,7 @@ public class TestFunctions {
                 .type(TransferProcess.Type.CONSUMER)
                 .contentDataAddress(createDataAddressBuilder("any").build())
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("local://test").build()))
-                .participantContextId("participantContextId")
-                .resourceManifest(createManifest());
+                .participantContextId("participantContextId");
     }
 
     public static DataAddress.Builder createDataAddressBuilder(String type) {
@@ -75,42 +62,4 @@ public class TestFunctions {
         return createTransferProcessBuilder(UUID.randomUUID().toString()).correlationId("clientid").build();
     }
 
-    @JsonTypeName("dataspaceconnector:testresourcedef")
-    @JsonDeserialize(builder = TestResourceDef.Builder.class)
-    public static class TestResourceDef extends ResourceDefinition {
-
-        @Override
-        public <RD extends ResourceDefinition, B extends ResourceDefinition.Builder<RD, B>> B toBuilder() {
-            return null;
-        }
-
-        @JsonPOJOBuilder(withPrefix = "")
-        public static class Builder extends ResourceDefinition.Builder<TestResourceDef, Builder> {
-            private Builder() {
-                super(new TestResourceDef());
-            }
-
-            @JsonCreator
-            public static Builder newInstance() {
-                return new Builder();
-            }
-        }
-    }
-
-    @JsonDeserialize(builder = TestProvisionedResource.Builder.class)
-    @JsonTypeName("dataspaceconnector:testprovisionedresource")
-    public static class TestProvisionedResource extends ProvisionedResource {
-
-        @JsonPOJOBuilder(withPrefix = "")
-        public static class Builder extends ProvisionedResource.Builder<TestProvisionedResource, Builder> {
-            private Builder() {
-                super(new TestProvisionedResource());
-            }
-
-            @JsonCreator
-            public static Builder newInstance() {
-                return new Builder();
-            }
-        }
-    }
 }

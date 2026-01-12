@@ -20,8 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.store.sql.transferprocess.store.schema.TransferProcessStoreStatements;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedResourceSet;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.spi.entity.ProtocolMessages;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
@@ -128,11 +126,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                         entity.getUpdatedAt(),
                         toJson(entity.getTraceContext()),
                         entity.getErrorDetail(),
-                        toJson(entity.getResourceManifest()),
-                        toJson(entity.getProvisionedResourceSet()),
                         toJson(entity.getContentDataAddress()),
                         entity.getType().toString(),
-                        toJson(entity.getDeprovisionedResources()),
                         toJson(entity.getPrivateProperties()),
                         toJson(entity.getCallbackAddresses()),
                         entity.isPending(),
@@ -244,8 +239,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .stateTimestamp(resultSet.getLong(statements.getStateTimestampColumn()))
                 .stateCount(resultSet.getInt(statements.getStateCountColumn()))
                 .traceContext(fromJson(resultSet.getString(statements.getTraceContextColumn()), getTypeRef()))
-                .resourceManifest(fromJson(resultSet.getString(statements.getResourceManifestColumn()), ResourceManifest.class))
-                .provisionedResourceSet(fromJson(resultSet.getString(statements.getProvisionedResourceSetColumn()), ProvisionedResourceSet.class))
                 .errorDetail(resultSet.getString(statements.getErrorDetailColumn()))
                 .correlationId(resultSet.getString(statements.getCorrelationIdColumn()))
                 .assetId(resultSet.getString(statements.getAssetIdColumn()))
@@ -254,8 +247,6 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .counterPartyAddress(resultSet.getString(statements.getCounterPartyAddressColumn()))
                 .contractId(resultSet.getString(statements.getContractIdColumn()))
                 .contentDataAddress(fromJson(resultSet.getString(statements.getContentDataAddressColumn()), DataAddress.class))
-                .deprovisionedResources(fromJson(resultSet.getString(statements.getDeprovisionedResourcesColumn()), new TypeReference<>() {
-                }))
                 .callbackAddresses(fromJson(resultSet.getString(statements.getCallbackAddressesColumn()), new TypeReference<>() {
                 }))
                 .privateProperties(fromJson(resultSet.getString(statements.getPrivatePropertiesColumn()), getTypeRef()))
