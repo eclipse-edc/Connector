@@ -25,7 +25,6 @@ import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolToke
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
-import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
@@ -224,12 +223,9 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     private ServiceResult<TransferProcess> startedAction(TransferStartMessage message, TransferProcess transferProcess) {
         if (transferProcess.getType() == CONSUMER && transferProcess.canBeStartedConsumer()) {
             transferProcess.protocolMessageReceived(message.getId());
+            transferProcess.setContentDataAddress(message.getDataAddress());
             transferProcess.transitionStartupRequested();
             update(transferProcess);
-            var transferStartedData = TransferProcessStartedData.Builder.newInstance()
-                    .dataAddress(message.getDataAddress())
-                    .build();
-            observable.invokeForEach(l -> l.started(transferProcess, transferStartedData));
             return ServiceResult.success(transferProcess);
         } else if (transferProcess.getType() == PROVIDER && transferProcess.currentStateIsOneOf(SUSPENDED)) {
             transferProcess.protocolMessageReceived(message.getId());

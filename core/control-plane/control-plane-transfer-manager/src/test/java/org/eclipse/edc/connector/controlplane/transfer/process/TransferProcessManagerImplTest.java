@@ -120,6 +120,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -972,6 +973,7 @@ class TransferProcessManagerImplTest {
                 verify(dataFlowController).started(process);
                 verify(transferProcessStore).save(captor.capture());
                 assertThat(captor.getValue().stateAsString()).isEqualTo(STARTED.name());
+                verify(listener).started(same(process), any());
             });
         }
     }

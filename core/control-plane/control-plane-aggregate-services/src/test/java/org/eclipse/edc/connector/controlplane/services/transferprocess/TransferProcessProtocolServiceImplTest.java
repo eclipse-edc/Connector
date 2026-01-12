@@ -24,7 +24,6 @@ import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.Trans
 import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
-import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
@@ -648,14 +647,13 @@ class TransferProcessProtocolServiceImplTest {
 
             var result = service.notifyStarted(participantContext, message, tokenRepresentation);
 
-            var startedDataCaptor = ArgumentCaptor.forClass(TransferProcessStartedData.class);
             var transferProcessCaptor = ArgumentCaptor.forClass(TransferProcess.class);
             assertThat(result).isSucceeded();
             verify(store).save(transferProcessCaptor.capture());
             verify(store).save(argThat(t -> t.getState() == STARTUP_REQUESTED.code()));
-            verify(listener).started(any(), startedDataCaptor.capture());
             verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
-            assertThat(startedDataCaptor.getValue().getDataAddress()).usingRecursiveComparison().isEqualTo(message.getDataAddress());
+            verifyNoInteractions(listener);
+            assertThat(transferProcessCaptor.getValue().getContentDataAddress()).isEqualTo(message.getDataAddress());
         }
 
         @Test

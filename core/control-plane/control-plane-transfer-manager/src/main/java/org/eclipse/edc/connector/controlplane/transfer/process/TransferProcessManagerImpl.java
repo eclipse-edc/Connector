@@ -177,7 +177,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
                 .processor(processConsumerTransfersInState(REQUESTING, this::processRequesting))
                 .processor(processProviderTransfersInState(STARTING, this::processStarting))
-                .processor(processConsumerTransfersInState(STARTUP_REQUESTED, this::processStartupRequested))
+                .processor(processConsumerLogTransfersInState(STARTUP_REQUESTED, this::processStartupRequested))
                 .processor(processTransfersInState(SUSPENDING, this::processSuspending))
                 .processor(processTransfersInState(SUSPENDING_REQUESTED, this::processSuspending))
                 .processor(processProviderTransfersInState(RESUMING, this::processProviderResuming))
@@ -616,6 +616,11 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         }
     }
 
+    private Processor processConsumerLogTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
+        var filter = new Criterion[]{ hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", CONSUMER.name()) };
+        return createLogProcessor(function, filter);
+    }
+
     private Processor processConsumerTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
         var filter = new Criterion[]{ hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", CONSUMER.name()) };
         return createProcessor(function, filter);
@@ -632,6 +637,14 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     }
 
     private ProcessorImpl<TransferProcess> createProcessor(Function<TransferProcess, Boolean> function, Criterion[] filter) {
+        return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter))
+                .process(telemetry.contextPropagationMiddleware(function))
+                .guard(pendingGuard, this::setPending)
+                .onNotProcessed(this::breakLease)
+                .build();
+    }
+
+    private ProcessorImpl<TransferProcess> createLogProcessor(Function<TransferProcess, Boolean> function, Criterion[] filter) {
         return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter))
                 .process(telemetry.contextPropagationMiddleware(function))
                 .guard(pendingGuard, this::setPending)
@@ -670,6 +683,10 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     private void transitionToStarted(TransferProcess transferProcess) {
         transferProcess.transitionStarted();
         update(transferProcess);
+        var transferStartedData = TransferProcessStartedData.Builder.newInstance()
+                .dataAddress(transferProcess.getContentDataAddress())
+                .build();
+        observable.invokeForEach(l -> l.started(transferProcess, transferStartedData));
     }
 
     private void transitionToStartupRequested(TransferProcess transferProcess) {

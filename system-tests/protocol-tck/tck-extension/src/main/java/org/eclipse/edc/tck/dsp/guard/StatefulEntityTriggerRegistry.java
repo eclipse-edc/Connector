@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.tck.dsp.guard;
 
-import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.spi.entity.StatefulEntity;
 
 /**
- * Registers contract negotiation triggers.
+ * Registers stateful entity triggers.
  */
-public interface ContractNegotiationTriggerRegistry {
+public interface StatefulEntityTriggerRegistry<SE extends StatefulEntity<SE>> {
 
-    void register(Trigger<ContractNegotiation> trigger);
+    void register(Trigger<SE> trigger);
 
 }

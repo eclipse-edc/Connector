@@ -429,7 +429,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
         if (type == PROVIDER) {
             transition(STARTUP_REQUESTED, STARTING);
         } else {
-            transition(STARTUP_REQUESTED, STARTUP_REQUESTED, REQUESTED);
+            transition(STARTUP_REQUESTED, STARTUP_REQUESTED, REQUESTED, SUSPENDED, RESUMED);
         }
     }
 
