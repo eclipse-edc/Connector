@@ -272,7 +272,7 @@ class TransferPullEndToEndTest {
 
             provider.terminateTransfer(providerTransferProcessId);
 
-            provider.awaitTransferToBeInState(providerTransferProcessId, DEPROVISIONED);
+            provider.awaitTransferToBeInState(providerTransferProcessId, TERMINATED);
             consumer.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
 
             assertConsumerCanNotAccessData(consumer, consumerTransferProcessId, edrEntry);
@@ -296,7 +296,7 @@ class TransferPullEndToEndTest {
 
             consumer.terminateTransfer(consumerTransferProcessId);
 
-            provider.awaitTransferToBeInState(providerTransferProcessId, DEPROVISIONED);
+            provider.awaitTransferToBeInState(providerTransferProcessId, TERMINATED);
             consumer.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
 
             assertConsumerCanNotAccessData(consumer, consumerTransferProcessId, edrEntry);

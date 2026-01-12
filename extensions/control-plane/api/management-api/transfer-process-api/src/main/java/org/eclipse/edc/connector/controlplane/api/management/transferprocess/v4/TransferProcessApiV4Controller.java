@@ -74,13 +74,6 @@ public class TransferProcessApiV4Controller extends BaseTransferProcessApiContro
     }
 
     @POST
-    @Path("/{id}/deprovision")
-    @Override
-    public void deprovisionTransferProcessV4(@PathParam("id") String id) {
-        deprovisionTransferProcess(id);
-    }
-
-    @POST
     @Path("/{id}/terminate")
     @Override
     public void terminateTransferProcessV4(@PathParam("id") String id, @SchemaType(TERMINATE_TRANSFER_TYPE_TERM) JsonObject terminateTransfer) {

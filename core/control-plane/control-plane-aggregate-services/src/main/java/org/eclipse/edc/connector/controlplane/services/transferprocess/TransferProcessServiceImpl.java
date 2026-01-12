@@ -21,15 +21,10 @@ import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.Trans
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.DeprovisionedResource;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.AddProvisionedResourceCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.CompleteTransferCommand;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.DeprovisionCompleteCommand;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.DeprovisionRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyPreparedCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.ResumeTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.SuspendTransferCommand;
@@ -118,11 +113,6 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     }
 
     @Override
-    public @NotNull ServiceResult<Void> deprovision(String transferProcessId) {
-        return execute(new DeprovisionRequest(transferProcessId));
-    }
-
-    @Override
     public @NotNull ServiceResult<TransferProcess> initiateTransfer(ParticipantContext participantContext, TransferRequest request) {
         var transferTypeParse = transferTypeParser.parse(request.getTransferType());
         if (transferTypeParse.failed()) {
@@ -156,16 +146,6 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     @Override
     public ServiceResult<Void> notifyPrepared(NotifyPreparedCommand command) {
         return execute(command);
-    }
-
-    @Override
-    public ServiceResult<Void> completeDeprovision(String transferProcessId, DeprovisionedResource resource) {
-        return execute(new DeprovisionCompleteCommand(transferProcessId, resource));
-    }
-
-    @Override
-    public ServiceResult<Void> addProvisionedResource(String transferProcessId, ProvisionResponse response) {
-        return execute(new AddProvisionedResourceCommand(transferProcessId, response));
     }
 
     private List<TransferProcess> queryTransferProcesses(QuerySpec query) {

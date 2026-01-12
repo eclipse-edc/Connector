@@ -44,7 +44,7 @@ public class NotifyPreparedCommandHandler extends EntityCommandHandler<NotifyPre
         }
 
         if (entity.getType() == TransferProcess.Type.CONSUMER) {
-            entity.transitionProvisioned();
+            entity.transitionRequesting();
         } else {
             entity.transitionStarting();
         }

@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessCompleted;
-import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessDeprovisioned;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessEvent;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessInitiated;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessRequested;
@@ -185,11 +184,6 @@ public class TransferProcessEventDispatchTest {
                     verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessCompleted.class)));
                 });
 
-        service.deprovision(transferProcess.getId());
-
-        await().atMost(TIMEOUT).untilAsserted(() -> {
-            verify(eventSubscriber).on(argThat(isEnvelopeOf(TransferProcessDeprovisioned.class)));
-        });
     }
 
     @Test

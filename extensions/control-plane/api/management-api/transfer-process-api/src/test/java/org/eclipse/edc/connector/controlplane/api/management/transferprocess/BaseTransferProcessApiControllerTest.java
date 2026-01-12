@@ -349,45 +349,6 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
     }
 
     @Nested
-    class Deprovision {
-
-        @Test
-        void shouldDeprovision() {
-            when(service.deprovision(any())).thenReturn(ServiceResult.success());
-
-            baseRequest()
-                    .contentType(JSON)
-                    .post("/id/deprovision")
-                    .then()
-                    .statusCode(204);
-            verify(service).deprovision("id");
-        }
-
-        @Test
-        void shouldReturnConflict_whenServiceReturnsConflict() {
-            when(service.deprovision(any())).thenReturn(ServiceResult.conflict("conflict"));
-
-            baseRequest()
-                    .contentType(JSON)
-                    .post("/id/deprovision")
-                    .then()
-                    .statusCode(409);
-        }
-
-        @Test
-        void shouldReturnNotFound_whenServiceReturnsNotFound() {
-            when(service.deprovision(any())).thenReturn(ServiceResult.notFound("not found"));
-
-            baseRequest()
-                    .contentType(JSON)
-                    .post("/id/deprovision")
-                    .then()
-                    .statusCode(404);
-        }
-
-    }
-
-    @Nested
     class Terminate {
 
         @Test

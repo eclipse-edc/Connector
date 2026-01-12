@@ -17,14 +17,10 @@ package org.eclipse.edc.connector.controlplane.transfer;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.process.TransferProcessManagerImpl;
-import org.eclipse.edc.connector.controlplane.transfer.provision.DeprovisionResponsesHandler;
-import org.eclipse.edc.connector.controlplane.transfer.provision.ProvisionResponsesHandler;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
-import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager;
-import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.controlplane.transfer.spi.retry.TransferWaitStrategy;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
@@ -39,7 +35,6 @@ import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.statemachine.StateMachineConfiguration;
 
 import java.time.Clock;
@@ -64,12 +59,6 @@ public class TransferManagerExtension implements ServiceExtension {
     private DataFlowController dataFlowController;
 
     @Inject
-    private ResourceManifestGenerator resourceManifestGenerator;
-
-    @Inject
-    private ProvisionManager provisionManager;
-
-    @Inject
     private TransferProcessObservable observable;
 
     @Inject
@@ -86,9 +75,6 @@ public class TransferManagerExtension implements ServiceExtension {
 
     @Inject
     private Clock clock;
-
-    @Inject
-    private TypeManager typeManager;
 
     @Inject
     private Telemetry telemetry;
@@ -116,14 +102,10 @@ public class TransferManagerExtension implements ServiceExtension {
         var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : stateMachineConfiguration.iterationWaitExponentialWaitStrategy();
 
         var entityRetryProcessConfiguration = stateMachineConfiguration.entityRetryProcessConfiguration();
-        var provisionResponsesHandler = new ProvisionResponsesHandler(observable, monitor, vault, typeManager);
-        var deprovisionResponsesHandler = new DeprovisionResponsesHandler(observable, monitor, vault);
 
         processManager = TransferProcessManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
-                .manifestGenerator(resourceManifestGenerator)
                 .dataFlowController(dataFlowController)
-                .provisionManager(provisionManager)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
                 .telemetry(telemetry)
@@ -137,8 +119,6 @@ public class TransferManagerExtension implements ServiceExtension {
                 .addressResolver(addressResolver)
                 .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
                 .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
-                .provisionResponsesHandler(provisionResponsesHandler)
-                .deprovisionResponsesHandler(deprovisionResponsesHandler)
                 .pendingGuard(pendingGuard)
                 .build();
 
