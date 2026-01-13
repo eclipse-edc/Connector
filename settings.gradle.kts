@@ -265,9 +265,6 @@ include(":extensions:data-plane-selector:store:sql:data-plane-instance-store-sql
 
 include(":extensions:policy-monitor:store:sql:policy-monitor-store-sql")
 
-// modules for launchers, i.e. runnable compositions of the app ------------------------------------
-include(":launchers:dpf-selector")
-
 // extension points for a connector ----------------------------------------------------------------
 include(":spi:common:auth-spi")
 include(":spi:common:encryption-spi")

@@ -41,15 +41,6 @@ technology- and cloud-specific implementations should go.
 If someone were to create a configuration service based on Postgres, then the implementation should go into
 the `extensions/database/configuration-postgres` module.
 
-### `launchers`
-
-Launchers are essentially connector packages that are runnable. What modules get included in the build (and thus: what
-capabilities a connector has) is defined by the `build.gradle.kts` file inside the launcher subdirectory. That's also
-where a Java class containing a `main` method should go. We will call that class a "runtime" and in order for the
-connector to become operational the `runtime` needs to perform several important tasks (="bootstrapping"). For an
-example take a look at
-[this runtime](https://github.com/eclipse-edc/Samples/tree/main/basic/basic-01-basic-connector).
-
 ### `data-protocols`
 
 Contains implementations for communication protocols a connector might use, such as DSP.

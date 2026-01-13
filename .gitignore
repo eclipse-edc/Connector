@@ -45,7 +45,6 @@ distributions/**/github.properties
 
 **/terraform.tfvars
 **/.terraform*
-launchers/demo-e2e/edc-config.properties
 **/out
 *.hprof
 
