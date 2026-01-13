@@ -26,8 +26,8 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONING_REQUESTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
 import static org.mockito.Mockito.mock;
@@ -53,7 +53,7 @@ class NotifyPreparedCommandHandlerTest {
         var result = handler.modify(entity, command);
 
         assertThat(result).isTrue();
-        assertThat(entity.getState()).isEqualTo(PROVISIONED.code());
+        assertThat(entity.getState()).isEqualTo(REQUESTING.code());
         assertThat(entity.getDataDestination()).isSameAs(newDestination);
     }
 
@@ -66,7 +66,7 @@ class NotifyPreparedCommandHandlerTest {
         var result = handler.modify(entity, command);
 
         assertThat(result).isTrue();
-        assertThat(entity.getState()).isEqualTo(PROVISIONED.code());
+        assertThat(entity.getState()).isEqualTo(REQUESTING.code());
         assertThat(entity.getDataDestination()).isSameAs(originalDestination);
     }
 

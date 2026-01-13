@@ -39,22 +39,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Predicate;
 
 import static java.lang.String.format;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.unmodifiableList;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONING;
@@ -81,36 +73,6 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  * sharing transaction from the perspective of each endpoint. The data transfer process is modeled as a "loosely"
  * coordinated state machine on each connector. The state transitions are symmetric on the consumer and provider with
  * the exception that the consumer process has two additional states for request/request ack.
- * <p>
- * The consumer transitions are:
- *
- * <pre>
- * {@link TransferProcessStates#INITIAL} -&gt;
- * {@link TransferProcessStates#PROVISIONING} -&gt;
- * {@link TransferProcessStates#PROVISIONED} -&gt;
- * {@link TransferProcessStates#REQUESTING} -&gt;
- * {@link TransferProcessStates#REQUESTED} -&gt;
- * {@link TransferProcessStates#STARTED} -&gt;
- * {@link TransferProcessStates#COMPLETED} -&gt;
- * {@link TransferProcessStates#DEPROVISIONING} -&gt;
- * {@link TransferProcessStates#DEPROVISIONED} -&gt;
- * {@link TransferProcessStates#TERMINATED} -&gt;
- * </pre>
- * <p>
- * <p>
- * The provider transitions are:
- *
- * <pre>
- * {@link TransferProcessStates#INITIAL} -&gt;
- * {@link TransferProcessStates#PROVISIONING} -&gt;
- * {@link TransferProcessStates#PROVISIONED} -&gt;
- * {@link TransferProcessStates#STARTED} -&gt;
- * {@link TransferProcessStates#COMPLETED} -&gt;
- * {@link TransferProcessStates#DEPROVISIONING} -&gt;
- * {@link TransferProcessStates#DEPROVISIONED} -&gt;
- * {@link TransferProcessStates#TERMINATED} -&gt;
- * </pre>
- * <p>
  */
 @JsonTypeName("dataspaceconnector:transferprocess")
 @JsonDeserialize(builder = TransferProcess.Builder.class)
@@ -140,9 +102,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     private String assetId;
     private String contractId;
     private DataAddress contentDataAddress;
-    private ResourceManifest resourceManifest;
-    private ProvisionedResourceSet provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance().build();
-    private List<DeprovisionedResource> deprovisionedResources = new ArrayList<>();
     private Map<String, Object> privateProperties = new HashMap<>();
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
     private ProtocolMessages protocolMessages = new ProtocolMessages();
@@ -155,20 +114,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     private TransferProcess() {
     }
 
-    public List<DeprovisionedResource> getDeprovisionedResources() {
-        return deprovisionedResources;
-    }
-
     public Type getType() {
         return type;
-    }
-
-    public ResourceManifest getResourceManifest() {
-        return resourceManifest;
-    }
-
-    public ProvisionedResourceSet getProvisionedResourceSet() {
-        return provisionedResourceSet;
     }
 
     public DataAddress getContentDataAddress() {
@@ -179,76 +126,12 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
         contentDataAddress = dataAddress;
     }
 
-    public void transitionProvisioning(ResourceManifest manifest) {
-        transition(PROVISIONING, INITIAL, PROVISIONING);
-        resourceManifest = manifest;
-        resourceManifest.setTransferProcessId(id);
-    }
-
-    public void addProvisionedResource(ProvisionedResource resource) {
-        provisionedResourceSet.addResource(resource);
-        setModified();
-
-    }
-
-    public void addDeprovisionedResource(DeprovisionedResource resource) {
-        deprovisionedResources.add(resource);
-        setModified();
-    }
-
-    @Nullable
-    public ProvisionedResource getProvisionedResource(String id) {
-        return getProvisionedResources().stream().filter(r -> r.getId().equals(id)).findFirst().orElse(null);
-    }
-
-    /**
-     * Returns the collection of resources that have not been provisioned.
-     */
-    @JsonIgnore
-    @NotNull
-    public List<ResourceDefinition> getResourcesToProvision() {
-        if (resourceManifest == null) {
-            return emptyList();
-        }
-        if (provisionedResourceSet == null) {
-            return unmodifiableList(resourceManifest.getDefinitions());
-        }
-        var provisionedResources = provisionedResourceSet.getResources().stream().map(ProvisionedResource::getResourceDefinitionId).collect(toSet());
-        return resourceManifest.getDefinitions().stream().filter(r -> !provisionedResources.contains(r.getId())).collect(toList());
-    }
-
-    public boolean provisioningComplete() {
-        if (resourceManifest == null) {
-            return false;
-        }
-
-        return getResourcesToProvision().isEmpty();
-    }
-
-    /**
-     * Returns the collection of resources that have not been deprovisioned.
-     */
-    @JsonIgnore
-    @NotNull
-    public List<ProvisionedResource> getResourcesToDeprovision() {
-        if (provisionedResourceSet == null) {
-            return emptyList();
-        }
-
-        var deprovisionedResources = this.deprovisionedResources.stream().map(DeprovisionedResource::getProvisionedResourceId).collect(toSet());
-        return provisionedResourceSet.getResources().stream().filter(r -> !deprovisionedResources.contains(r.getId())).collect(toList());
-    }
-
     public Map<String, Object> getPrivateProperties() {
         return Collections.unmodifiableMap(privateProperties);
     }
 
     public List<CallbackAddress> getCallbackAddresses() {
         return Collections.unmodifiableList(callbackAddresses);
-    }
-
-    public boolean deprovisionComplete() {
-        return getResourcesToDeprovision().isEmpty();
     }
 
     public boolean shouldIgnoreIncomingMessage(@NotNull String messageId) {
@@ -280,11 +163,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
         transition(PROVISIONING_REQUESTED, PROVISIONING, INITIAL);
     }
 
-    public void transitionProvisioned() {
-        // requested is allowed to support retries
-        transition(PROVISIONED, PROVISIONING, PROVISIONING_REQUESTED, PROVISIONED, REQUESTED);
-    }
-
     public void transitionRequesting() {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no REQUESTING state");
@@ -297,7 +175,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
             throw new IllegalStateException("Provider processes have no REQUESTED state");
         }
         transition(REQUESTED, PROVISIONED, REQUESTING, REQUESTED);
-
     }
 
     public void transitionStarting() {
@@ -335,27 +212,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
         transition(COMPLETED, COMPLETED, COMPLETING, COMPLETING_REQUESTED, STARTED);
     }
 
-    public boolean canBeDeprovisioned() {
-        return currentStateIsOneOf(COMPLETING, TERMINATING, COMPLETED, TERMINATED, DEPROVISIONING);
-    }
-
-    public void transitionDeprovisioning() {
-        transition(DEPROVISIONING, state -> canBeDeprovisioned());
-    }
-
-    public void transitionDeprovisioningRequested() {
-        transition(DEPROVISIONING_REQUESTED, DEPROVISIONING);
-    }
-
-    public void transitionDeprovisioned(String errorDetail) {
-        this.errorDetail = errorDetail;
-        transitionDeprovisioned();
-    }
-
-    public void transitionDeprovisioned() {
-        transition(DEPROVISIONED, DEPROVISIONING, DEPROVISIONING_REQUESTED, DEPROVISIONED);
-    }
-
     public boolean canBeTerminated() {
         return currentStateIsOneOf(INITIAL, PROVISIONING, PROVISIONING_REQUESTED, PROVISIONED, REQUESTING, REQUESTED,
                 STARTING, STARTUP_REQUESTED, STARTED, COMPLETING, COMPLETING_REQUESTED, SUSPENDING, SUSPENDING_REQUESTED,
@@ -378,11 +234,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
 
     public void transitionTerminatingRequested() {
         transition(TERMINATING_REQUESTED, state -> canBeTerminated());
-    }
-
-    public void transitionTerminated(String message) {
-        this.errorDetail = message;
-        transitionTerminated();
     }
 
     public void transitionTerminated() {
@@ -453,11 +304,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     }
 
     @JsonIgnore
-    public List<ProvisionedResource> getProvisionedResources() {
-        return Optional.ofNullable(getProvisionedResourceSet()).map(ProvisionedResourceSet::getResources).orElse(emptyList());
-    }
-
-    @JsonIgnore
     public String getCounterPartyAddress() {
         return counterPartyAddress;
     }
@@ -517,16 +363,13 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     @Override
     public TransferProcess copy() {
         var builder = Builder.newInstance()
-                .resourceManifest(resourceManifest)
                 .protocol(protocol)
                 .correlationId(correlationId)
                 .counterPartyAddress(counterPartyAddress)
                 .dataDestination(dataDestination)
                 .assetId(assetId)
                 .contractId(contractId)
-                .provisionedResourceSet(provisionedResourceSet)
                 .contentDataAddress(contentDataAddress)
-                .deprovisionedResources(deprovisionedResources)
                 .privateProperties(privateProperties)
                 .callbackAddresses(callbackAddresses)
                 .transferType(transferType)
@@ -630,23 +473,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
             return this;
         }
 
-        public Builder resourceManifest(ResourceManifest manifest) {
-            entity.resourceManifest = manifest;
-            return this;
-        }
-
         public Builder contentDataAddress(DataAddress dataAddress) {
             entity.contentDataAddress = dataAddress;
-            return this;
-        }
-
-        public Builder provisionedResourceSet(ProvisionedResourceSet set) {
-            entity.provisionedResourceSet = set;
-            return this;
-        }
-
-        public Builder deprovisionedResources(List<DeprovisionedResource> resources) {
-            entity.deprovisionedResources = resources;
             return this;
         }
 
@@ -723,10 +551,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
         @Override
         public TransferProcess build() {
             super.build();
-
-            if (entity.resourceManifest != null) {
-                entity.resourceManifest.setTransferProcessId(entity.id);
-            }
 
             if (entity.state == 0) {
                 entity.transitionTo(INITIAL.code());

@@ -230,7 +230,6 @@ include(":extensions:control-plane:api:management-api:policy-definition-api")
 include(":extensions:control-plane:api:management-api:transfer-process-api")
 include(":extensions:control-plane:api:management-api:edr-cache-api")
 include(":extensions:control-plane:transfer:transfer-data-plane-signaling")
-include(":extensions:control-plane:provision:provision-http")
 
 include(":extensions:control-plane:store:sql:asset-index-sql")
 include(":extensions:control-plane:store:sql:contract-definition-store-sql")

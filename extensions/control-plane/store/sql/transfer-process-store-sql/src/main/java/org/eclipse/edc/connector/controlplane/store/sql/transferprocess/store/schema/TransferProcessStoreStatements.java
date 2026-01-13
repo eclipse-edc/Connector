@@ -41,14 +41,6 @@ public interface TransferProcessStoreStatements extends StatefulEntityStatements
         return "transferprocess_id";
     }
 
-    default String getResourceManifestColumn() {
-        return "resource_manifest";
-    }
-
-    default String getProvisionedResourceSetColumn() {
-        return "provisioned_resource_set";
-    }
-
     default String getTypeColumn() {
         return "type";
     }
@@ -91,10 +83,6 @@ public interface TransferProcessStoreStatements extends StatefulEntityStatements
 
     default String getCorrelationIdColumn() {
         return "correlation_id";
-    }
-
-    default String getDeprovisionedResourcesColumn() {
-        return "deprovisioned_resources";
     }
 
     default String getCallbackAddressesColumn() {

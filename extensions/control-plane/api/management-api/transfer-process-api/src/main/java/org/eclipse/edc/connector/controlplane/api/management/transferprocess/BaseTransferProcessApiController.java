@@ -132,14 +132,6 @@ public abstract class BaseTransferProcessApiController {
                 .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
     }
 
-
-    public void deprovisionTransferProcess(String id) {
-        service.deprovision(id)
-                .onSuccess(tp -> monitor.debug(format("Deprovision requested for TransferProcess with ID %s", id)))
-                .orElseThrow(exceptionMapper(TransferProcess.class, id));
-    }
-
-
     public void terminateTransferProcess(String id, JsonObject requestBody) {
         validatorRegistry.validate(TERMINATE_TRANSFER_TYPE, requestBody).orElseThrow(ValidationFailureException::new);
 

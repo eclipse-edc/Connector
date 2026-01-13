@@ -25,7 +25,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.DeprovisionRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.ResumeTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.SuspendTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
@@ -47,9 +46,6 @@ import org.eclipse.edc.validator.spi.ValidationResult;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.ArgumentsProvider;
 
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -58,14 +54,11 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.validator.spi.Violation.violation;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -163,27 +156,6 @@ class TransferProcessServiceImplTest {
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
     }
 
-    @Test
-    void deprovision() {
-        when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success());
-
-        var result = service.deprovision(id);
-
-        assertThat(result).isSucceeded();
-        verify(commandHandlerRegistry).execute(isA(DeprovisionRequest.class));
-    }
-
-    @Test
-    void deprovision_whenNotFound() {
-        when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.notFound("not found"));
-
-        var result = service.deprovision(id);
-
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailureMessages()).containsExactly("not found");
-        verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
-    }
-
     private TransferProcess transferProcess() {
         var state = TransferProcessStates.values()[ThreadLocalRandom.current().nextInt(TransferProcessStates.values().length)];
         return transferProcess(state, UUID.randomUUID().toString());
@@ -215,28 +187,6 @@ class TransferProcessServiceImplTest {
                 .assetId(assetId)
                 .policy(Policy.Builder.newInstance().build())
                 .build();
-    }
-
-    private static class InvalidFilters implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    arguments(criterion("provisionedResourceSet.resources.hastoken", "=", "true")), // wrong case
-                    arguments(criterion("resourceManifest.definitions.notexist", "=", "foobar")), // property not exist
-                    arguments(criterion("contentDataAddress.properties[*].someKey", "=", "someval")) // map types not supported
-            );
-        }
-    }
-
-    private static class ValidFilters implements ArgumentsProvider {
-        @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
-            return Stream.of(
-                    arguments(criterion("deprovisionedResources.provisionedResourceId", "=", "someval")),
-                    arguments(criterion("type", "=", "CONSUMER")),
-                    arguments(criterion("provisionedResourceSet.resources.hasToken", "=", "true"))
-            );
-        }
     }
 
     @Nested

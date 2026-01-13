@@ -16,17 +16,9 @@ package org.eclipse.edc.connector.controlplane.transfer.process;
 
 import org.eclipse.edc.connector.controlplane.defaults.storage.transferprocess.InMemoryTransferProcessStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
-import org.eclipse.edc.connector.controlplane.transfer.provision.ProvisionResponsesHandler;
-import org.eclipse.edc.connector.controlplane.transfer.provision.fixtures.TestProvisionedDataDestinationResource;
-import org.eclipse.edc.connector.controlplane.transfer.provision.fixtures.TestResourceDefinition;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
-import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager;
-import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionResponse;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedResourceSet;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ResourceManifest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
@@ -43,7 +35,6 @@ import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -94,8 +85,6 @@ class TransferProcessManagerImplIntegrationTest {
 
     private static final int TRANSFER_MANAGER_BATCH_SIZE = 10;
     private static final Duration TIMEOUT = Duration.ofSeconds(5);
-    private final ProvisionManager provisionManager = mock();
-    private final ResourceManifestGenerator manifestGenerator = mock();
     private final Clock clock = Clock.systemUTC();
     private final TransferProcessStore store = new InMemoryTransferProcessStore(clock, CriterionOperatorRegistryImpl.ofDefaults());
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
@@ -106,8 +95,6 @@ class TransferProcessManagerImplIntegrationTest {
     @BeforeEach
     void setup() {
         when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> "any");
-        var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
-        when(manifestGenerator.generateConsumerResourceManifest(any(TransferProcess.class), any(Policy.class))).thenReturn(Result.success(resourceManifest));
 
         var policyArchive = mock(PolicyArchive.class);
         when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
@@ -116,12 +103,10 @@ class TransferProcessManagerImplIntegrationTest {
         var monitor = mock(Monitor.class);
         var waitStrategy = mock(ExponentialWaitStrategy.class);
         manager = TransferProcessManagerImpl.Builder.newInstance()
-                .provisionManager(provisionManager)
                 .dataFlowController(dataFlowController)
                 .waitStrategy(waitStrategy)
                 .batchSize(TRANSFER_MANAGER_BATCH_SIZE)
                 .dispatcherRegistry(dispatcherRegistry)
-                .manifestGenerator(manifestGenerator)
                 .monitor(monitor)
                 .clock(clock)
                 .observable(mock())
@@ -129,8 +114,6 @@ class TransferProcessManagerImplIntegrationTest {
                 .policyArchive(policyArchive)
                 .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
                 .addressResolver(mock())
-                .provisionResponsesHandler(new ProvisionResponsesHandler(mock(), mock(), mock(), mock()))
-                .deprovisionResponsesHandler(mock())
                 .build();
     }
 
@@ -139,17 +122,10 @@ class TransferProcessManagerImplIntegrationTest {
     void verifyProvision_shouldNotStarve() {
         var numProcesses = TRANSFER_MANAGER_BATCH_SIZE * 2;
         when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
-        when(provisionManager.provision(any(), any(Policy.class))).thenAnswer(i -> completedFuture(List.of(
-                ProvisionResponse.Builder.newInstance()
-                        .resource(new TestProvisionedDataDestinationResource("any", "1"))
-                        .build()
-        )));
 
-        var manifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
         var callback = CallbackAddress.Builder.newInstance().uri("local://test").build();
         var processes = IntStream.range(0, numProcesses)
-                .mapToObj(i -> provisionedResourceSet())
-                .map(resourceSet -> transferProcessBuilder().resourceManifest(manifest).callbackAddresses(List.of(callback)).provisionedResourceSet(resourceSet).build())
+                .mapToObj(num -> transferProcessBuilder().callbackAddresses(List.of(callback)).build())
                 .peek(store::save)
                 .collect(Collectors.toList());
 
@@ -167,20 +143,12 @@ class TransferProcessManagerImplIntegrationTest {
 
                         assertThat(storedProcess.getCallbackAddresses()).usingRecursiveFieldByFieldElementComparator().contains(callback);
                     });
-            verify(provisionManager, times(numProcesses)).provision(any(), any());
         });
 
     }
 
-    private ProvisionedResourceSet provisionedResourceSet() {
-        return ProvisionedResourceSet.Builder.newInstance()
-                .resources(List.of(new TestProvisionedDataDestinationResource("test-resource", "1")))
-                .build();
-    }
-
     private TransferProcess.Builder transferProcessBuilder() {
         return TransferProcess.Builder.newInstance()
-                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
                 .type(CONSUMER)
                 .id("test-process-" + UUID.randomUUID())
                 .correlationId(UUID.randomUUID().toString())

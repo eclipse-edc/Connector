@@ -59,7 +59,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.inForceDatePolicy;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
@@ -210,7 +209,7 @@ class TransferPullEndToEndTest {
 
             var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
 
-            provider.suspendTransfer(providerTransferProcessId, "supension");
+            provider.suspendTransfer(providerTransferProcessId, "suspension");
 
             provider.awaitTransferToBeInState(providerTransferProcessId, SUSPENDED);
             assertConsumerCanNotAccessData(consumer, consumerTransferProcessId, edrEntry);
@@ -272,7 +271,7 @@ class TransferPullEndToEndTest {
 
             provider.terminateTransfer(providerTransferProcessId);
 
-            provider.awaitTransferToBeInState(providerTransferProcessId, DEPROVISIONED);
+            provider.awaitTransferToBeInState(providerTransferProcessId, TERMINATED);
             consumer.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
 
             assertConsumerCanNotAccessData(consumer, consumerTransferProcessId, edrEntry);
@@ -296,7 +295,7 @@ class TransferPullEndToEndTest {
 
             consumer.terminateTransfer(consumerTransferProcessId);
 
-            provider.awaitTransferToBeInState(providerTransferProcessId, DEPROVISIONED);
+            provider.awaitTransferToBeInState(providerTransferProcessId, TERMINATED);
             consumer.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
 
             assertConsumerCanNotAccessData(consumer, consumerTransferProcessId, edrEntry);

@@ -18,10 +18,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedContentResource;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedDataAddressResource;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedDataDestinationResource;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.ProvisionedResource;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
@@ -82,7 +78,7 @@ public final class QueryValidators {
      * @return the validator.
      */
     public static QueryValidator transferProcess() {
-        return new QueryValidator(TransferProcess.class, transferProcessSubtypeMap());
+        return new QueryValidator(TransferProcess.class);
     }
 
     private static Map<Class<?>, List<Class<?>>> policySubtypeMap() {
@@ -90,13 +86,6 @@ public final class QueryValidators {
                 Constraint.class, List.of(MultiplicityConstraint.class, AtomicConstraint.class),
                 MultiplicityConstraint.class, List.of(AndConstraint.class, OrConstraint.class, XoneConstraint.class),
                 Expression.class, List.of(LiteralExpression.class)
-        );
-    }
-
-    private static Map<Class<?>, List<Class<?>>> transferProcessSubtypeMap() {
-        return Map.of(
-                ProvisionedResource.class, List.of(ProvisionedDataAddressResource.class),
-                ProvisionedDataAddressResource.class, List.of(ProvisionedDataDestinationResource.class, ProvisionedContentResource.class)
         );
     }
 }

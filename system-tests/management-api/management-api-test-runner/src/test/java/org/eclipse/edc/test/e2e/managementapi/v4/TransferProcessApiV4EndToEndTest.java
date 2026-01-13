@@ -177,18 +177,6 @@ public class TransferProcessApiV4EndToEndTest {
         }
 
         @Test
-        void deprovision(ManagementEndToEndTestContext context, TransferProcessStore store) {
-            var id = UUID.randomUUID().toString();
-            store.save(createTransferProcessBuilder(id).state(COMPLETED.code()).build());
-
-            context.baseRequest()
-                    .contentType(JSON)
-                    .post("/v4beta/transferprocesses/" + id + "/deprovision")
-                    .then()
-                    .statusCode(204);
-        }
-
-        @Test
         void terminate(ManagementEndToEndTestContext context, TransferProcessStore store) {
             var id = UUID.randomUUID().toString();
             store.save(createTransferProcessBuilder(id).state(REQUESTED.code()).build());

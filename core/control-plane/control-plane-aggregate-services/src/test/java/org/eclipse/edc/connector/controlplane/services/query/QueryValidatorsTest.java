@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.services.query;
 
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.jspecify.annotations.NullMarked;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -23,6 +24,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.support.ParameterDeclarations;
 
 import java.util.stream.Stream;
 
@@ -136,10 +138,9 @@ class QueryValidatorsTest {
 
         private static class InvalidFilters implements ArgumentsProvider {
             @Override
-            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            @NullMarked
+            public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameters, ExtensionContext context) {
                 return Stream.of(
-                        arguments(criterion("provisionedResourceSet.resources.hastoken", "=", "true")), // wrong case
-                        arguments(criterion("resourceManifest.definitions.notexist", "=", "foobar")), // property not exist
                         arguments(criterion("contentDataAddress.properties[*].someKey", "=", "someval")) // map types not supported
                 );
             }
@@ -147,11 +148,10 @@ class QueryValidatorsTest {
 
         private static class ValidFilters implements ArgumentsProvider {
             @Override
-            public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            @NullMarked
+            public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameters, ExtensionContext context) {
                 return Stream.of(
-                        arguments(criterion("deprovisionedResources.provisionedResourceId", "=", "someval")),
-                        arguments(criterion("type", "=", "CONSUMER")),
-                        arguments(criterion("provisionedResourceSet.resources.hasToken", "=", "true"))
+                        arguments(criterion("type", "=", "CONSUMER"))
                 );
             }
         }

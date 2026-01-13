@@ -20,16 +20,11 @@ package org.eclipse.edc.connector.controlplane.transfer.process;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
-import org.eclipse.edc.connector.controlplane.transfer.provision.DeprovisionResponsesHandler;
-import org.eclipse.edc.connector.controlplane.transfer.provision.ProvisionResponsesHandler;
-import org.eclipse.edc.connector.controlplane.transfer.provision.ResponsesHandler;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
-import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ProvisionManager;
-import org.eclipse.edc.connector.controlplane.transfer.spi.provision.ResourceManifestGenerator;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
@@ -56,7 +51,6 @@ import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.StateMachineManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -64,16 +58,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONED;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
@@ -86,7 +76,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_SECRET;
-import static org.eclipse.edc.statemachine.retry.processor.Process.future;
 import static org.eclipse.edc.statemachine.retry.processor.Process.futureResult;
 import static org.eclipse.edc.statemachine.retry.processor.Process.result;
 
@@ -113,8 +102,6 @@ import static org.eclipse.edc.statemachine.retry.processor.Process.result;
  */
 public class TransferProcessManagerImpl extends AbstractStateEntityManager<TransferProcess, TransferProcessStore>
         implements TransferProcessManager {
-    private ResourceManifestGenerator manifestGenerator;
-    private ProvisionManager provisionManager;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private DataFlowController dataFlowController;
     private Vault vault;
@@ -122,8 +109,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     private DataAddressResolver addressResolver;
     private PolicyArchive policyArchive;
     private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
-    private ProvisionResponsesHandler provisionResponsesHandler;
-    private DeprovisionResponsesHandler deprovisionResponsesHandler;
     private TransferProcessPendingGuard pendingGuard = tp -> false;
 
     private TransferProcessManagerImpl() {
@@ -173,11 +158,9 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
         return builder
                 .processor(processTransfersInState(INITIAL, this::processInitial))
-                .processor(processTransfersInState(PROVISIONING, this::processProvisioning))
-                .processor(processTransfersInState(PROVISIONED, this::processProvisioned))
                 .processor(processConsumerTransfersInState(REQUESTING, this::processRequesting))
                 .processor(processProviderTransfersInState(STARTING, this::processStarting))
-                .processor(processConsumerLogTransfersInState(STARTUP_REQUESTED, this::processStartupRequested))
+                .processor(processConsumerTransfersInState(STARTUP_REQUESTED, this::processStartupRequested))
                 .processor(processTransfersInState(SUSPENDING, this::processSuspending))
                 .processor(processTransfersInState(SUSPENDING_REQUESTED, this::processSuspending))
                 .processor(processProviderTransfersInState(RESUMING, this::processProviderResuming))
@@ -185,8 +168,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .processor(processTransfersInState(COMPLETING, this::processCompleting))
                 .processor(processTransfersInState(COMPLETING_REQUESTED, this::processCompleting))
                 .processor(processTransfersInState(TERMINATING, this::processTerminating))
-                .processor(processTransfersInState(TERMINATING_REQUESTED, this::processTerminating))
-                .processor(processTransfersInState(DEPROVISIONING, this::processDeprovisioning));
+                .processor(processTransfersInState(TERMINATING_REQUESTED, this::processTerminating));
     }
 
     /**
@@ -206,33 +188,23 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         }
 
         if (process.getType() == CONSUMER) {
-            var manifestResult = manifestGenerator.generateConsumerResourceManifest(process, policy);
-            if (manifestResult.failed()) {
-                transitionToTerminated(process, format("Resource manifest for process %s cannot be modified to fulfil policy. %s", process.getId(), manifestResult.getFailureMessages()));
-                return true;
-            }
-            var manifest = manifestResult.getContent();
 
-            if (manifest.empty()) {
-                var provisioning = dataFlowController.prepare(process, policy);
-                if (provisioning.succeeded()) {
-                    var response = provisioning.getContent();
-                    process.setDataPlaneId(response.getDataPlaneId());
-                    if (response.isProvisioning()) {
-                        process.transitionProvisioningRequested();
-                    } else {
-                        process.updateDestination(response.getDataAddress());
-                        process.transitionRequesting();
-                    }
+            var provisioning = dataFlowController.prepare(process, policy);
 
-                    update(process);
-                    return true;
-                }
+            if (provisioning.failed()) {
+                // with the upcoming data-plane signaling data-plane will be mandatory also on consumer side
+                // so in this case the transfer will be terminated straight away
+                process.transitionRequesting();
             } else {
-                monitor.warning("control-plane provisioning has been deprecated, please convert your provision extensions to the data-plane model and deploy them there.");
+                var response = provisioning.getContent();
+                process.setDataPlaneId(response.getDataPlaneId());
+                if (response.isProvisioning()) {
+                    process.transitionProvisioningRequested();
+                } else {
+                    process.updateDestination(response.getDataAddress());
+                    process.transitionRequesting();
+                }
             }
-
-            process.transitionProvisioning(manifest);
 
         } else {
             var assetId = process.getAssetId();
@@ -244,61 +216,10 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             // default the content address to the asset address; this may be overridden during provisioning
             process.setContentDataAddress(dataAddress);
 
-            var manifest = manifestGenerator.generateProviderResourceManifest(process, dataAddress, policy);
-            if (!manifest.empty()) {
-                monitor.warning("control-plane provisioning has been deprecated, please convert your provision extensions to the data-plane model and deploy them there.");
-            }
-            process.transitionProvisioning(manifest);
+            process.transitionStarting();
         }
 
         update(process);
-        return true;
-    }
-
-    /**
-     * Process PROVISIONING transfer<p> Launch provision process. On completion, set to PROVISIONED if succeeded, TERMINATED
-     * otherwise
-     * <p>
-     * On a consumer, provisioning may entail setting up a data destination and supporting infrastructure. On a
-     * provider, provisioning is initiated when a request is received and map involve preprocessing data or other
-     * operations.
-     *
-     * @param process the PROVISIONING transfer fetched
-     * @return if the transfer has been processed or not
-     */
-    @WithSpan
-    private boolean processProvisioning(TransferProcess process) {
-        var policy = policyArchive.findPolicyForContract(process.getContractId());
-
-        var resources = process.getResourcesToProvision();
-
-        return entityRetryProcessFactory.retryProcessor(process)
-                .doProcess(future("Provisioning", (p, c) -> provisionManager.provision(resources, policy)))
-                .onSuccess((t, responses) -> handleResult(t, responses, provisionResponsesHandler))
-                .onFailure((t, throwable) -> transitionToProvisioning(t))
-                .onFinalFailure((t, throwable) -> {
-                    if (t.getType() == PROVIDER) {
-                        transitionToTerminating(t, format("Error during provisioning: %s", throwable.getMessage()));
-                    } else {
-                        transitionToTerminated(t, format("Error during provisioning: %s", throwable.getMessage()));
-                    }
-                })
-                .execute();
-    }
-
-    /**
-     * Process PROVISIONED transfer<p> If CONSUMER, set it to REQUESTING, if PROVIDER set to STARTING
-     *
-     * @param process the PROVISIONED transfer fetched
-     * @return if the transfer has been processed or not
-     */
-    @WithSpan
-    private boolean processProvisioned(TransferProcess process) {
-        if (CONSUMER == process.getType()) {
-            transitionToRequesting(process);
-        } else {
-            transitionToStarting(process);
-        }
         return true;
     }
 
@@ -461,12 +382,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                             }
                         })
                 )
-                .onSuccess((t, c) -> {
-                    transitionToCompleted(t);
-                    if (t.getType() == PROVIDER) {
-                        transitionToDeprovisioning(t);
-                    }
-                })
+                .onSuccess((t, c) -> transitionToCompleted(t))
                 .onFailure((t, throwable) -> transitionToCompleting(t))
                 .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .execute();
@@ -530,12 +446,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                         return dispatch(TransferTerminationMessage.Builder.newInstance().reason(t.getErrorDetail()), t, Object.class);
                     }
                 }))
-                .onSuccess((t, c) -> {
-                    transitionToTerminated(t);
-                    if (t.getType() == PROVIDER) {
-                        transitionToDeprovisioning(t);
-                    }
-                })
+                .onSuccess((t, c) -> transitionToTerminated(t))
                 .onFailure((t, throwable) -> {
                     if (t.terminationWasRequestedByCounterParty()) {
                         transitionToTerminatingRequested(t, throwable.getMessage());
@@ -544,27 +455,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                     }
                 })
                 .onFinalFailure(this::transitionToTerminated)
-                .execute();
-    }
-
-    /**
-     * Process DEPROVISIONING transfer<p> Launch deprovision process. On completion, set to DEPROVISIONED if succeeded,
-     * DEPROVISIONED otherwise
-     *
-     * @param process the DEPROVISIONING transfer fetched
-     * @return if the transfer has been processed or not
-     */
-    @WithSpan
-    private boolean processDeprovisioning(TransferProcess process) {
-        var policy = policyArchive.findPolicyForContract(process.getContractId());
-
-        var resourcesToDeprovision = process.getResourcesToDeprovision();
-
-        return entityRetryProcessFactory.retryProcessor(process)
-                .doProcess(future("Deprovisioning", (p, c) -> provisionManager.deprovision(resourcesToDeprovision, policy)))
-                .onSuccess((t, responses) -> handleResult(t, responses, deprovisionResponsesHandler))
-                .onFailure((t, throwable) -> transitionToDeprovisioning(t))
-                .onFinalFailure((t, throwable) -> transitionToDeprovisioningError(t, throwable.getMessage()))
                 .execute();
     }
 
@@ -607,20 +497,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         return dispatcherRegistry.dispatch(process.getParticipantContextId(), responseType, message);
     }
 
-    private <T> void handleResult(TransferProcess transferProcess, List<StatusResult<T>> responses, ResponsesHandler<StatusResult<T>> handler) {
-        if (handler.handle(transferProcess, responses)) {
-            update(transferProcess);
-            handler.postActions(transferProcess);
-        } else {
-            breakLease(transferProcess);
-        }
-    }
-
-    private Processor processConsumerLogTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
-        var filter = new Criterion[]{ hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", CONSUMER.name()) };
-        return createLogProcessor(function, filter);
-    }
-
     private Processor processConsumerTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
         var filter = new Criterion[]{ hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", CONSUMER.name()) };
         return createProcessor(function, filter);
@@ -644,23 +520,10 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .build();
     }
 
-    private ProcessorImpl<TransferProcess> createLogProcessor(Function<TransferProcess, Boolean> function, Criterion[] filter) {
-        return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter))
-                .process(telemetry.contextPropagationMiddleware(function))
-                .guard(pendingGuard, this::setPending)
-                .onNotProcessed(this::breakLease)
-                .build();
-    }
-
     private boolean setPending(TransferProcess transferProcess) {
         transferProcess.setPending(true);
         update(transferProcess);
         return true;
-    }
-
-    private void transitionToProvisioning(TransferProcess process) {
-        process.transitionProvisioning(process.getResourceManifest());
-        update(process);
     }
 
     private void transitionToRequesting(TransferProcess process) {
@@ -760,18 +623,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         observable.invokeForEach(l -> l.terminated(process));
     }
 
-    private void transitionToDeprovisioning(TransferProcess process) {
-        process.transitionDeprovisioning();
-        update(process);
-    }
-
-    private void transitionToDeprovisioningError(TransferProcess transferProcess, String message) {
-        monitor.severe(message);
-        transferProcess.transitionDeprovisioned(message);
-        update(transferProcess);
-        observable.invokeForEach(l -> l.deprovisioned(transferProcess));
-    }
-
     public static class Builder
             extends AbstractStateEntityManager.Builder<TransferProcess, TransferProcessStore, TransferProcessManagerImpl, Builder> {
 
@@ -791,27 +642,13 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         @Override
         public TransferProcessManagerImpl build() {
             super.build();
-            Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator cannot be null");
-            Objects.requireNonNull(manager.provisionManager, "provisionManager cannot be null");
             Objects.requireNonNull(manager.dataFlowController, "dataFlowController cannot be null");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry cannot be null");
             Objects.requireNonNull(manager.observable, "observable cannot be null");
             Objects.requireNonNull(manager.policyArchive, "policyArchive cannot be null");
             Objects.requireNonNull(manager.addressResolver, "addressResolver cannot be null");
-            Objects.requireNonNull(manager.provisionResponsesHandler, "provisionResultHandler cannot be null");
-            Objects.requireNonNull(manager.deprovisionResponsesHandler, "deprovisionResponsesHandler cannot be null");
 
             return manager;
-        }
-
-        public Builder manifestGenerator(ResourceManifestGenerator manifestGenerator) {
-            manager.manifestGenerator = manifestGenerator;
-            return this;
-        }
-
-        public Builder provisionManager(ProvisionManager provisionManager) {
-            manager.provisionManager = provisionManager;
-            return this;
         }
 
         public Builder dataFlowController(DataFlowController dataFlowController) {
@@ -846,16 +683,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
         public Builder dataspaceProfileContextRegistry(DataspaceProfileContextRegistry dataspaceProfileContextRegistry) {
             manager.dataspaceProfileContextRegistry = dataspaceProfileContextRegistry;
-            return this;
-        }
-
-        public Builder provisionResponsesHandler(ProvisionResponsesHandler provisionResponsesHandler) {
-            manager.provisionResponsesHandler = provisionResponsesHandler;
-            return this;
-        }
-
-        public Builder deprovisionResponsesHandler(DeprovisionResponsesHandler deprovisionResponsesHandler) {
-            manager.deprovisionResponsesHandler = deprovisionResponsesHandler;
             return this;
         }
 

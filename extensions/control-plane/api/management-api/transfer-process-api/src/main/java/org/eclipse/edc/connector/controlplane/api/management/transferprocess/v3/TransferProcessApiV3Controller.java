@@ -72,7 +72,8 @@ public class TransferProcessApiV3Controller extends BaseTransferProcessApiContro
     @Path("/{id}/deprovision")
     @Override
     public void deprovisionTransferProcessV3(@PathParam("id") String id) {
-        deprovisionTransferProcess(id);
+        // no-op
+        monitor.warning("Deprovisioning operation is no more managed by the control-plane.");
     }
 
     @POST
