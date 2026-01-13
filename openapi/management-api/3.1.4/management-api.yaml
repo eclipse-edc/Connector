@@ -276,30 +276,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /callback/{processId}/provision:
-    post:
-      tags:
-      - HTTP Provisioner Webhook
-      operationId: callProvisionWebhook
-      parameters:
-      - name: processId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/ProvisionerWebhookRequest"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-      deprecated: true
   /v4beta/contractdefinitions/request:
     post:
       tags:
@@ -2135,47 +2111,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorDetail"
-  /v4beta/transferprocesses/{id}/deprovision:
-    post:
-      tags:
-      - Transfer Process v4beta
-      description: "Requests the deprovisioning of resources associated with a transfer\
-        \ process. Due to the asynchronous nature of transfers, a successful response\
-        \ only indicates that the request was successfully received. This may take\
-        \ a long time, so clients must poll the /{id}/state endpoint to track the\
-        \ state."
-      operationId: deprovisionTransferProcessV4
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "204":
-          description: Request to deprovision the transfer process was successfully
-            received
-          links:
-            poll-state:
-              operationId: deprovisionTransferProcessV3
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: A transfer process with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v3/contractnegotiations/{id}/terminate:
     post:
       tags:
@@ -3013,30 +2948,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /callback/{processId}/deprovision:
-    post:
-      tags:
-      - HTTP Provisioner Webhook
-      operationId: callDeprovisionWebhook
-      parameters:
-      - name: processId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DeprovisionedResource"
-      responses:
-        default:
-          description: default response
-          content:
-            application/json: {}
-      deprecated: true
   /v3/transferprocesses:
     post:
       tags:
@@ -3476,40 +3387,6 @@ components:
             type: string
         properties:
           type: object
-    ProvisionerWebhookRequest:
-      type: object
-      properties:
-        apiKeyJwt:
-          type: string
-        assetId:
-          type: string
-        contentDataAddress:
-          $ref: "#/components/schemas/DataAddress_2"
-        hasToken:
-          type: boolean
-        resourceDefinitionId:
-          type: string
-        resourceName:
-          type: string
-      example:
-        apiKeyJwt: apiKeyJwt
-        resourceDefinitionId: resourceDefinitionId
-        assetId: assetId
-        hasToken: true
-        resourceName: resourceName
-        contentDataAddress:
-          properties:
-            key: "{}"
-    DataAddress_2:
-      type: object
-      properties:
-        properties:
-          type: object
-          additionalProperties:
-            type: object
-      example:
-        properties:
-          key: "{}"
     contract-definition-schema:
       title: ContractDefinitionSchema
       type: object
@@ -5616,6 +5493,16 @@ components:
         dataAddress:
           properties:
             key: "{}"
+    DataAddress_2:
+      type: object
+      properties:
+        properties:
+          type: object
+          additionalProperties:
+            type: object
+      example:
+        properties:
+          key: "{}"
     contract-request-schema:
       title: ContractRequestSchema
       type: object
@@ -6236,22 +6123,6 @@ components:
           type: string
         createdAt:
           type: integer
-    DeprovisionedResource:
-      type: object
-      properties:
-        error:
-          type: boolean
-        errorMessage:
-          type: string
-        inProcess:
-          type: boolean
-        provisionedResourceId:
-          type: string
-      example:
-        provisionedResourceId: provisionedResourceId
-        inProcess: true
-        errorMessage: errorMessage
-        error: true
     TransferRequestV3:
       required:
       - '@context'
