@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStartedNotificationMessage;
 import org.eclipse.edc.signaling.domain.DspDataAddress;
 import org.eclipse.edc.signaling.port.ClientFactory;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -174,7 +175,19 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
         return selectorClient.findById(transferProcess.getDataPlaneId())
                 .flatMap(this::toStatusResult)
                 .map(clientFactory::createClient)
-                .compose(client -> client.started(transferProcess.getId()));
+                .compose(client -> {
+                    var builder = DataFlowStartedNotificationMessage.Builder.newInstance();
+                    var dataAddress = transferProcess.getContentDataAddress();
+                    if (dataAddress != null) {
+                        var dspDataAddressTransformation = typeTransformerRegistry.transform(dataAddress, DspDataAddress.class);
+                        if (dspDataAddressTransformation.failed()) {
+                            return StatusResult.failure(FATAL_ERROR, dspDataAddressTransformation.getFailureDetail());
+                        }
+                        builder.dataAddress(dspDataAddressTransformation.getContent());
+                    }
+
+                    return client.started(transferProcess.getId(), builder.build());
+                });
     }
 
     @Override

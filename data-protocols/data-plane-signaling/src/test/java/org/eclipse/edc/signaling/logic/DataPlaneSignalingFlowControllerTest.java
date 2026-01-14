@@ -43,6 +43,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -222,15 +224,17 @@ public class DataPlaneSignalingFlowControllerTest {
                     .contentDataAddress(testDataAddress())
                     .dataPlaneId("dataPlaneId")
                     .build();
-            when(dataPlaneClient.started(any())).thenReturn(StatusResult.success());
             var dataPlaneInstance = dataPlaneInstanceBuilder().id("dataPlaneId").build();
+            var dspDataAddress = createDspDataAddress();
+            when(dataPlaneClient.started(any(), any())).thenReturn(StatusResult.success());
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
             when(selectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(typeTransformerRegistry.transform(isA(DataAddress.class), any())).thenReturn(Result.success(dspDataAddress));
 
             var result = flowController.started(transferProcess);
 
             assertThat(result).isSucceeded();
-            verify(dataPlaneClient).started("transferProcessId");
+            verify(dataPlaneClient).started(eq("transferProcessId"), argThat(msg -> msg.getDataAddress().equals(dspDataAddress)));
             verify(clientFactory).createClient(dataPlaneInstance);
         }
 
@@ -425,10 +429,6 @@ public class DataPlaneSignalingFlowControllerTest {
 
     private Policy.Builder policyBuilder() {
         return Policy.Builder.newInstance();
-    }
-
-    private DataAddress buildResponseChannel() {
-        return DataAddress.Builder.newInstance().type("Response").build();
     }
 
     private @NonNull DspDataAddress createDspDataAddress() {

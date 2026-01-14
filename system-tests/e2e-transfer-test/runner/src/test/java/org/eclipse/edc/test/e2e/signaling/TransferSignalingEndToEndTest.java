@@ -48,32 +48,17 @@ import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.CONSUMER_ID;
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.PROVIDER_CP;
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.PROVIDER_DP;
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.PROVIDER_ID;
-import static org.hamcrest.Matchers.greaterThan;
 
 
-interface TransferPushSignalingTest {
+interface TransferSignalingEndToEndTest {
 
     @Test
     default void shouldTransferFiniteDataWithPush(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
                                                   @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
                                                   @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
                                                   @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
-        provider.baseManagementRequest()
-                .get("/dataplanes")
-                .then()
-                .body("size()", greaterThan(0));
 
-        var createAssetRequestBody = createObjectBuilder()
-                .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
-                .add(TYPE, EDC_ASSET_TYPE_TERM)
-                .add("properties", createObjectBuilder()
-                        .add("name", "test-asset"))
-                .build();
-
-        var noConstraintPolicyId = provider.createPolicyDefinition(noConstraintPolicy());
-        var assetId = provider.createAsset(createAssetRequestBody);
-        provider.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, noConstraintPolicyId);
-
+        var assetId = createOffer(provider);
         var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
                 .withTransferType("Finite-PUSH").execute();
 
@@ -88,11 +73,34 @@ interface TransferPushSignalingTest {
                                                      @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
                                                      @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
                                                      @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
-        provider.baseManagementRequest()
-                .get("/dataplanes")
-                .then()
-                .body("size()", greaterThan(0));
 
+        var assetId = createOffer(provider);
+        var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
+                .withTransferType("NonFinite-PUSH").execute();
+
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+        var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
+    }
+
+    @Test
+    default void shouldTransferNonFiniteDataWithPull(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
+                                                     @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                     @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
+                                                     @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+
+        var assetId = createOffer(provider);
+        var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
+                .withTransferType("NonFinite-PULL").execute();
+
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+        var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
+    }
+
+    private String createOffer(TransferEndToEndParticipant provider) {
         var createAssetRequestBody = createObjectBuilder()
                 .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                 .add(TYPE, EDC_ASSET_TYPE_TERM)
@@ -103,18 +111,12 @@ interface TransferPushSignalingTest {
         var noConstraintPolicyId = provider.createPolicyDefinition(noConstraintPolicy());
         var assetId = provider.createAsset(createAssetRequestBody);
         provider.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, noConstraintPolicyId);
-
-        var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider).withTransferType("NonFinite-PUSH").execute();
-
-        consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
-        var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
-        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
-        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
+        return assetId;
     }
 
     @Nested
     @EndToEndTest
-    class InMemory implements TransferPushSignalingTest {
+    class InMemory implements TransferSignalingEndToEndTest {
 
         static final Endpoints CONSUMER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
         static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
@@ -168,7 +170,7 @@ interface TransferPushSignalingTest {
 
     @Nested
     @PostgresqlIntegrationTest
-    class Postgres implements TransferPushSignalingTest {
+    class Postgres implements TransferSignalingEndToEndTest {
 
         static final String CONSUMER_DB = "consumer";
         static final String PROVIDER_DB = "provider";
