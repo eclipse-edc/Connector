@@ -24,6 +24,7 @@ import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowResponseMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStartedNotificationMessage;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
@@ -79,8 +80,8 @@ public class DataPlaneSignalingClient {
         return sendMessage(flowId, "terminate", emptyMap());
     }
 
-    public StatusResult<Void> started(String flowId) {
-        return sendMessage(flowId, "started", emptyMap());
+    public StatusResult<Void> started(String flowId, DataFlowStartedNotificationMessage message) {
+        return sendMessage(flowId, "started", message);
     }
 
     public StatusResult<Void> completed(String flowId) {

@@ -22,9 +22,11 @@ import org.eclipse.dataplane.domain.Result;
 import org.eclipse.dataplane.domain.dataflow.DataFlow;
 import org.eclipse.dataplane.logic.OnPrepare;
 import org.eclipse.dataplane.logic.OnStart;
+import org.eclipse.dataplane.logic.OnStarted;
 import org.eclipse.dataplane.logic.OnTerminate;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
@@ -38,6 +40,7 @@ import java.time.Duration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static java.net.http.HttpResponse.BodyHandlers.ofString;
 import static java.util.Collections.emptyList;
 
 public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
@@ -51,6 +54,8 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
 
     @Inject
     private WebService webService;
+    @Inject
+    private Monitor monitor;
 
     private Dataplane dataplane;
 
@@ -60,14 +65,16 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
                 .endpoint("http://localhost:%d%s/v1/dataflows".formatted(httpPort, httpPath))
                 .transferType("Finite-PUSH")
                 .transferType("NonFinite-PUSH")
+                .transferType("NonFinite-PULL")
                 .onPrepare(new DataplaneOnPrepare())
                 .onStart(new DataplaneOnStart())
-                .onStarted(Result::success)
+                .onStarted(new DataplaneOnStarted())
                 .onCompleted(Result::success)
                 .onTerminate(new DataplaneOnTerminate())
                 .build();
         webService.registerResource(dataplane.controller());
-        webService.registerResource(new ReceiveDataController(context.getMonitor()));
+        webService.registerResource(new ReceiveDataController(monitor));
+        webService.registerResource(new SourceDataController(monitor));
     }
 
     @Override
@@ -79,41 +86,53 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
     private class DataplaneOnStart implements OnStart {
         @Override
         public Result<DataFlow> action(DataFlow dataFlow) {
-            if (dataFlow.getDataAddress() == null) {
-                return Result.failure(new InvalidRequestException("DataAddress should not be null for PUSH transfers"));
-            }
 
-            if (dataFlow.getTransferType().equals("NonFinite-PUSH")) {
-                Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+            switch (dataFlow.getTransferType()) {
+                case "NonFinite-PUSH" -> {
+                    if (dataFlow.getDataAddress() == null) {
+                        return Result.failure(new InvalidRequestException("DataAddress should not be null for PUSH transfers"));
+                    }
+
+                    Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+                        var destinationUri = URI.create(dataFlow.getDataAddress().endpoint());
+                        var request = HttpRequest.newBuilder(destinationUri).POST(HttpRequest.BodyPublishers.ofString("test-data")).build();
+                        HttpClient.newHttpClient().sendAsync(request, HttpResponse.BodyHandlers.discarding());
+                    }, 0, 200, TimeUnit.MILLISECONDS);
+
+                    return Result.success(dataFlow);
+                }
+                case "Finite-PUSH" -> {
+                    if (dataFlow.getDataAddress() == null) {
+                        return Result.failure(new InvalidRequestException("DataAddress should not be null for PUSH transfers"));
+                    }
+
                     var destinationUri = URI.create(dataFlow.getDataAddress().endpoint());
                     var request = HttpRequest.newBuilder(destinationUri).POST(HttpRequest.BodyPublishers.ofString("test-data")).build();
-                    HttpClient.newHttpClient().sendAsync(request, HttpResponse.BodyHandlers.discarding());
-                }, 0, 200, TimeUnit.MILLISECONDS);
-
-                return Result.success(dataFlow);
-            }
-
-            if (dataFlow.getTransferType().equals("Finite-PUSH")) {
-                var destinationUri = URI.create(dataFlow.getDataAddress().endpoint());
-                var request = HttpRequest.newBuilder(destinationUri).POST(HttpRequest.BodyPublishers.ofString("test-data")).build();
-                HttpClient.newHttpClient().sendAsync(request, HttpResponse.BodyHandlers.discarding())
-                        .whenComplete((response, throwable) -> {
-                            if (throwable == null) {
-                                var statusCode = response.statusCode();
-                                if (statusCode >= 200 && statusCode < 300) {
-                                    notifyCompleted(dataFlow);
+                    HttpClient.newHttpClient().sendAsync(request, HttpResponse.BodyHandlers.discarding())
+                            .whenComplete((response, throwable) -> {
+                                if (throwable == null) {
+                                    var statusCode = response.statusCode();
+                                    if (statusCode >= 200 && statusCode < 300) {
+                                        notifyCompleted(dataFlow);
+                                    } else {
+                                        dataplane.notifyErrored(dataFlow.getId(), new RuntimeException("Destination endpoint responded with " + statusCode));
+                                    }
                                 } else {
-                                    dataplane.notifyErrored(dataFlow.getId(), new RuntimeException("Destination endpoint responded with " + statusCode));
+                                    dataplane.notifyErrored(dataFlow.getId(), throwable);
                                 }
-                            } else {
-                                dataplane.notifyErrored(dataFlow.getId(), throwable);
-                            }
-                        });
+                            });
 
-                return Result.success(dataFlow);
+                    return Result.success(dataFlow);
+                }
+                case "NonFinite-PULL" -> {
+                    var dataAddress = new DataAddress(dataFlow.getTransferType(), "http", "http://localhost:%d%s/source".formatted(httpPort, httpPath), emptyList());
+                    dataFlow.setDataAddress(dataAddress);
+                    return Result.success(dataFlow);
+                }
+                default -> {
+                    return Result.failure(new RuntimeException("TransferType %s not supported".formatted(dataFlow.getTransferType())));
+                }
             }
-
-            return Result.failure(new RuntimeException("TransferType %s not supported".formatted(dataFlow.getTransferType())));
         }
 
         private void notifyCompleted(DataFlow dataFlow) {
@@ -123,6 +142,33 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
                     throw new RuntimeException("Notification failed");
                 }
             });
+        }
+    }
+
+    private class DataplaneOnStarted implements OnStarted {
+        @Override
+        public Result<DataFlow> action(DataFlow dataFlow) {
+
+            if (dataFlow.getTransferType().endsWith("-PULL")) {
+                var sourceUri = URI.create(dataFlow.getDataAddress().endpoint());
+                Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+                    var request = HttpRequest.newBuilder(sourceUri).GET().build();
+                    HttpClient.newHttpClient().sendAsync(request, ofString()).whenComplete((response, throwable) -> {
+                        if (throwable == null) {
+                            if (response.statusCode() == 200) {
+                                var body = response.body();
+                                monitor.info("Received data for data flow %s: %s".formatted(dataFlow.getId(), body));
+                            } else {
+                                monitor.severe("Error retrieving data: %s: %s".formatted(response.statusCode(), response.body()));
+                            }
+                        } else {
+                            monitor.severe("Error retrieving data", throwable);
+                        }
+                    });
+                }, 0, 200, TimeUnit.MILLISECONDS);
+            }
+
+            return Result.success(dataFlow);
         }
     }
 
@@ -141,4 +187,5 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
             return Result.success(dataFlow);
         }
     }
+
 }

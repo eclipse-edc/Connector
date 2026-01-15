@@ -15,11 +15,9 @@
 package org.eclipse.edc.connector.core;
 
 import org.eclipse.edc.keys.KeyParserRegistryImpl;
-import org.eclipse.edc.keys.VaultCertificateResolver;
 import org.eclipse.edc.keys.VaultPrivateKeyResolver;
 import org.eclipse.edc.keys.keyparsers.JwkParser;
 import org.eclipse.edc.keys.keyparsers.PemParser;
-import org.eclipse.edc.keys.spi.CertificateResolver;
 import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -33,7 +31,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 import static org.eclipse.edc.connector.core.SecurityDefaultServicesExtension.NAME;
 
 /**
- * This extension provides default/standard implementations for the {@link PrivateKeyResolver} and the {@link CertificateResolver}
+ * This extension provides default/standard implementation for the {@link PrivateKeyResolver}
  * Those provider methods CANNOT be implemented in {@link CoreDefaultServicesExtension}, because that could potentially cause
  * a conflict with injecting/providing the {@link Vault}
  */
@@ -57,11 +55,6 @@ public class SecurityDefaultServicesExtension implements ServiceExtension {
             privateKeyResolver = new VaultPrivateKeyResolver(keyParserRegistry(context), vault, context.getMonitor().withPrefix("PrivateKeyResolution"), context.getConfig());
         }
         return privateKeyResolver;
-    }
-
-    @Provider(isDefault = true)
-    public CertificateResolver certificateResolver() {
-        return new VaultCertificateResolver(vault);
     }
 
     @Provider
