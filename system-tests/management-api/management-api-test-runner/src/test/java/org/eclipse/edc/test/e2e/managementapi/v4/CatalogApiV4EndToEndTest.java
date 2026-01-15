@@ -66,7 +66,7 @@ public class CatalogApiV4EndToEndTest {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "CatalogRequest")
-                    .add("counterPartyAddress", context.providerProtocolUrl("/2025-1"))
+                    .add("counterPartyAddress", context.providerDsp2025url())
                     .add("counterPartyId", "counter-party-id")
                     .add("protocol", "dataspace-protocol-http:2025-1")
                     .build();
@@ -109,7 +109,7 @@ public class CatalogApiV4EndToEndTest {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "CatalogRequest")
-                    .add("counterPartyAddress", context.providerProtocolUrl("/2025-1"))
+                    .add("counterPartyAddress", context.providerDsp2025url())
                     .add("counterPartyId", "counter-party-id")
                     .add("protocol", "dataspace-protocol-http:2025-1")
                     .add("querySpec", querySpec)
@@ -172,7 +172,7 @@ public class CatalogApiV4EndToEndTest {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "CatalogRequest")
-                    .add("counterPartyAddress", context.providerProtocolUrl("/2025-1"))
+                    .add("counterPartyAddress", context.providerDsp2025url())
                     .add("counterPartyId", "counter-party-id")
                     .add("protocol", "dataspace-protocol-http:2025-1")
                     .build();
@@ -209,7 +209,7 @@ public class CatalogApiV4EndToEndTest {
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "DatasetRequest")
                     .add(ID, "asset-id")
-                    .add("counterPartyAddress", context.providerProtocolUrl("/2025-1"))
+                    .add("counterPartyAddress", context.providerDsp2025url())
                     .add("counterPartyId", "counter-party-id")
                     .add("protocol", "dataspace-protocol-http:2025-1")
                     .build();
@@ -253,7 +253,7 @@ public class CatalogApiV4EndToEndTest {
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "DatasetRequest")
                     .add(ID, "asset-response")
-                    .add("counterPartyAddress", context.providerProtocolUrl("/2025-1"))
+                    .add("counterPartyAddress", context.providerDsp2025url())
                     .add("counterPartyId", "counter-party-id")
                     .add("protocol", "dataspace-protocol-http:2025-1")
                     .build();

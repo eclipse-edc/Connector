@@ -32,7 +32,7 @@ public interface PrivateKeyResolver {
      * @return The {@link PrivateKey}, or a failure, if no key material was found for this ID, or the referenced material did not contain a private key.
      * @deprecated Please use {@link #resolvePrivateKey(String, String)} instead.
      */
-    @Deprecated
+    @Deprecated(since = "0.15.0")
     Result<PrivateKey> resolvePrivateKey(String id);
 
     /**

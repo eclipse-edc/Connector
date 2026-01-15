@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
@@ -32,6 +32,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTR
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_TIMESTAMP_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
 
@@ -66,18 +67,23 @@ public class JsonObjectFromContractAgreementMessageTransformer extends AbstractN
 
         var copiedPolicy = Json.createObjectBuilder(policy)
                 .add(ID, agreement.getAgreementId())
-                .add(ODRL_ASSIGNEE_ATTRIBUTE, agreement.getConsumerId())
-                .add(ODRL_ASSIGNER_ATTRIBUTE, agreement.getProviderId())
+                .add(ODRL_ASSIGNEE_ATTRIBUTE, createId(jsonFactory, agreement.getConsumerId()))
+                .add(ODRL_ASSIGNER_ATTRIBUTE, createId(jsonFactory, agreement.getProviderId()))
                 .add(forNamespace(DSPACE_PROPERTY_TIMESTAMP_TERM), signing)
                 .build();
 
-        return jsonFactory.createObjectBuilder()
+        var builder = jsonFactory.createObjectBuilder()
                 .add(ID, agreementMessage.getId())
                 .add(TYPE, forNamespace(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM))
-                .add(forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), agreementMessage.getProviderPid())
-                .add(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), agreementMessage.getConsumerPid())
-                .add(forNamespace(DSPACE_PROPERTY_AGREEMENT_TERM), copiedPolicy)
-                .build();
+                .add(forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), createId(jsonFactory, agreementMessage.getProviderPid()))
+                .add(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), createId(jsonFactory, agreementMessage.getConsumerPid()))
+                .add(forNamespace(DSPACE_PROPERTY_AGREEMENT_TERM), copiedPolicy);
+
+        if (agreementMessage.getCallbackAddress() != null) {
+            builder.add(forNamespace(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM), agreementMessage.getCallbackAddress());
+        }
+
+        return builder.build();
     }
 
 }

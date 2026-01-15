@@ -57,7 +57,7 @@ public class TypeIs implements Validator<JsonObject> {
             var newPath = path.append(TYPE);
 
             var violation = violation(
-                    "%s was expected to be %s but it was not".formatted(newPath, expectedType),
+                    "%s was expected to be %s but it was %s".formatted(newPath, expectedType, types),
                     newPath.toString(), types
             );
             return ValidationResult.failure(violation);

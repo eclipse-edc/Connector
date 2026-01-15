@@ -15,6 +15,7 @@
 package org.eclipse.edc.tck.dsp;
 
 import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
@@ -22,8 +23,11 @@ import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
+import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
@@ -40,18 +44,38 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.eclipse.edc.tck.dsp.CompatibilityTests.ALLOWED_FAILURES;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
-@EndToEndTest
 @Testcontainers
-public class EdcCompatibilityDockerTest {
+public abstract class EdcCompatibilityDockerTest {
 
     private static final GenericContainer<?> TCK_CONTAINER = new TckContainer<>("eclipsedataspacetck/dsp-tck-runtime:1.0.0-RC5");
-    @RegisterExtension
-    protected static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime("CUT",
-            ":system-tests:dsp-compatibility-tests:connector-under-test"
-    ).configurationProvider(EdcCompatibilityDockerTest::runtimeConfiguration));
 
+    @Timeout(300)
+    @Test
+    void assertDspCompatibility() {
+        // pipe the docker container's log to this console at the INFO level
+        var monitor = new ConsoleMonitor(">>> TCK Runtime (Docker)", ConsoleMonitor.Level.INFO, true);
+        var reporter = new TckTestReporter();
 
-    private static Config runtimeConfiguration() {
+        TCK_CONTAINER.addFileSystemBind(resourceConfig("docker.tck.properties"), "/etc/tck/config.properties", BindMode.READ_ONLY, SelinuxContext.SINGLE);
+        TCK_CONTAINER.addFileSystemBind(resourceConfig("dspace-edc-context-v1.jsonld"), "/etc/tck/dspace-edc-context-v1.jsonld", BindMode.READ_ONLY, SelinuxContext.SINGLE);
+        TCK_CONTAINER.withExtraHost("host.docker.internal", "host-gateway");
+        TCK_CONTAINER.withLogConsumer(outputFrame -> monitor.info(outputFrame.getUtf8String()));
+        TCK_CONTAINER.withLogConsumer(reporter);
+        TCK_CONTAINER.waitingFor(new LogMessageWaitStrategy().withRegEx(".*Test run complete.*").withStartupTimeout(Duration.ofSeconds(300)));
+        TCK_CONTAINER.start();
+
+        var failures = reporter.failures();
+
+        assertThat(failures).containsAll(ALLOWED_FAILURES);
+
+        failures.removeAll(ALLOWED_FAILURES);
+
+        if (!failures.isEmpty()) {
+            fail(failures.size() + " TCK test cases failed:\n" + String.join("\n", failures));
+        }
+    }
+
+    protected static Config runtimeConfiguration() {
         return ConfigFactory.fromMap(new HashMap<>() {
             {
                 put("edc.participant.id", "participantContextId");
@@ -78,30 +102,36 @@ public class EdcCompatibilityDockerTest {
         return Path.of(TestUtils.getResource(resource)).toString();
     }
 
-    @Timeout(300)
-    @Test
-    void assertDspCompatibility() {
-        // pipe the docker container's log to this console at the INFO level
-        var monitor = new ConsoleMonitor(">>> TCK Runtime (Docker)", ConsoleMonitor.Level.INFO, true);
-        var reporter = new TckTestReporter();
+    @EndToEndTest
+    public static class InMemoryTest extends EdcCompatibilityDockerTest {
+        @RegisterExtension
+        protected static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime("CUT",
+                ":system-tests:dsp-compatibility-tests:connector-under-test"
+        ).configurationProvider(EdcCompatibilityDockerTest::runtimeConfiguration));
 
-        TCK_CONTAINER.addFileSystemBind(resourceConfig("docker.tck.properties"), "/etc/tck/config.properties", BindMode.READ_ONLY, SelinuxContext.SINGLE);
-        TCK_CONTAINER.addFileSystemBind(resourceConfig("dspace-edc-context-v1.jsonld"), "/etc/tck/dspace-edc-context-v1.jsonld", BindMode.READ_ONLY, SelinuxContext.SINGLE);
-        TCK_CONTAINER.withExtraHost("host.docker.internal", "host-gateway");
-        TCK_CONTAINER.withLogConsumer(outputFrame -> monitor.info(outputFrame.getUtf8String()));
-        TCK_CONTAINER.withLogConsumer(reporter);
-        TCK_CONTAINER.waitingFor(new LogMessageWaitStrategy().withRegEx(".*Test run complete.*").withStartupTimeout(Duration.ofSeconds(300)));
-        TCK_CONTAINER.start();
+    }
 
-        var failures = reporter.failures();
+    @PostgresqlIntegrationTest
+    public static class PostgresTest extends EdcCompatibilityDockerTest {
 
-        assertThat(failures).containsAll(ALLOWED_FAILURES);
+        @Order(0)
+        @RegisterExtension
+        static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension();
+        private static final String CONNECTOR_UNDER_TEST = "CUT";
 
-        failures.removeAll(ALLOWED_FAILURES);
+        @Order(1)
+        @RegisterExtension
+        static final BeforeAllCallback CREATE_DATABASES = context -> {
+            POSTGRESQL_EXTENSION.createDatabase(CONNECTOR_UNDER_TEST.toLowerCase());
+        };
 
-        if (!failures.isEmpty()) {
-            fail(failures.size() + " TCK test cases failed:\n" + String.join("\n", failures));
-        }
+        @RegisterExtension
+        protected static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime(CONNECTOR_UNDER_TEST,
+                ":system-tests:dsp-compatibility-tests:connector-under-test",
+                ":dist:bom:controlplane-feature-sql-bom"
+        ).configurationProvider(EdcCompatibilityDockerTest::runtimeConfiguration)
+                .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONNECTOR_UNDER_TEST.toLowerCase())));
+
     }
 
 

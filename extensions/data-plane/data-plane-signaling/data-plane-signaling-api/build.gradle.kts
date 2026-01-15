@@ -22,6 +22,7 @@ dependencies {
     api(project(":spi:common:web-spi"))
     api(project(":spi:common:json-ld-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
+    api(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
 
     implementation(project(":core:common:lib:transform-lib"))
     implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))

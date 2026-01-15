@@ -42,6 +42,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
@@ -124,7 +125,7 @@ public class ContractAgreementApiV4EndToEndTest {
                             .uri("local://test")
                             .events(Set.of("test-event1", "test-event2"))
                             .build()))
-                    .protocol("dataspace-protocol-http")
+                    .protocol(DATASPACE_PROTOCOL_HTTP_V_2025_1)
                     .contractOffer(contractOfferBuilder().build())
                     .participantContextId("participantContextId")
                     .state(FINALIZED.code());

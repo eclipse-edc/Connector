@@ -70,12 +70,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.client.LegacyDataPlaneSignalingClientExtension.CONTROL_CLIENT_SCOPE;
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_2025_1_IRI;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
@@ -112,7 +113,7 @@ class DataPlaneSignalingClientTest {
         JSON_LD.registerNamespace(VOCAB, EDC_NAMESPACE);
         JSON_LD.registerNamespace(VOCAB, EDC_NAMESPACE, CONTROL_CLIENT_SCOPE);
         JSON_LD.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, CONTROL_CLIENT_SCOPE);
-        JSON_LD.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, CONTROL_CLIENT_SCOPE);
+        JSON_LD.registerNamespace(DSPACE_PREFIX, DSPACE_2025_1_IRI, CONTROL_CLIENT_SCOPE);
 
         TRANSFORMER_REGISTRY.register(new JsonObjectFromDataFlowTerminateMessageTransformer(factory));
         TRANSFORMER_REGISTRY.register(new JsonObjectFromDataFlowSuspendMessageTransformer(factory));
@@ -120,8 +121,8 @@ class DataPlaneSignalingClientTest {
         TRANSFORMER_REGISTRY.register(new JsonObjectFromDataFlowProvisionMessageTransformer(factory, TYPE_MANAGER, "test"));
         TRANSFORMER_REGISTRY.register(new JsonObjectFromDataFlowResponseMessageTransformer(factory));
         TRANSFORMER_REGISTRY.register(new JsonObjectToDataFlowResponseMessageTransformer());
-        TRANSFORMER_REGISTRY.register(new JsonObjectFromDataAddressDspaceTransformer(factory, TYPE_MANAGER, "test"));
-        TRANSFORMER_REGISTRY.register(new JsonObjectToDataAddressDspaceTransformer());
+        TRANSFORMER_REGISTRY.register(new JsonObjectFromDataAddressDspaceTransformer(factory, TYPE_MANAGER, "test", DSP_NAMESPACE_V_2025_1));
+        TRANSFORMER_REGISTRY.register(new JsonObjectToDataAddressDspaceTransformer(DSP_NAMESPACE_V_2025_1));
         when(TYPE_MANAGER.getMapper("test")).thenReturn(MAPPER);
     }
 

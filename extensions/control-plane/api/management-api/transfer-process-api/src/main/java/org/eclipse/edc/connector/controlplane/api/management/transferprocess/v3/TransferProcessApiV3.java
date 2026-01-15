@@ -174,7 +174,7 @@ public interface TransferProcessApiV3 {
                 {
                     "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "https://w3id.org/edc/v0.0.1/ns/TransferRequest",
-                    "protocol": "dataspace-protocol-http",
+                    "protocol": "dataspace-protocol-http:2025-1",
                     "counterPartyAddress": "http://provider-address",
                     "contractId": "contract-id",
                     "transferType": "transferType",

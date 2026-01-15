@@ -15,19 +15,19 @@
 package org.eclipse.edc.protocol.dsp.transferprocess.transform.v2025;
 
 import jakarta.json.Json;
+import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferCompletionMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferErrorTransformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferProcessTransformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferRequestMessageTransformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferStartMessageTransformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferSuspensionMessageTransformer;
+import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.from.JsonObjectFromTransferTerminationMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to.JsonObjectToTransferCompletionMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to.JsonObjectToTransferProcessAckTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to.JsonObjectToTransferRequestMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to.JsonObjectToTransferStartMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to.JsonObjectToTransferSuspensionMessageTransformer;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to.JsonObjectToTransferTerminationMessageTransformer;
-import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.v2024.from.JsonObjectFromTransferCompletionMessageV2024Transformer;
-import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.v2024.from.JsonObjectFromTransferProcessV2024Transformer;
-import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.v2024.from.JsonObjectFromTransferRequestMessageV2024Transformer;
-import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.v2024.from.JsonObjectFromTransferStartMessageV2024Transformer;
-import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.v2024.from.JsonObjectFromTransferSuspensionMessageV2024Transformer;
-import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.v2024.from.JsonObjectFromTransferTerminationMessageV2024Transformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -79,12 +79,12 @@ public class DspTransferProcessTransformV2025Extension implements ServiceExtensi
         dspRegistry.register(new JsonObjectToTransferProcessAckTransformer(DSP_NAMESPACE_V_2025_1));
         dspRegistry.register(new JsonObjectToTransferSuspensionMessageTransformer(typeManager, JSON_LD, DSP_NAMESPACE_V_2025_1));
 
-        dspRegistry.register(new JsonObjectFromTransferProcessV2024Transformer(builderFactory, DSP_NAMESPACE_V_2025_1));
-        dspRegistry.register(new JsonObjectFromTransferRequestMessageV2024Transformer(builderFactory, DSP_NAMESPACE_V_2025_1));
-        dspRegistry.register(new JsonObjectFromTransferStartMessageV2024Transformer(builderFactory, DSP_NAMESPACE_V_2025_1));
-        dspRegistry.register(new JsonObjectFromTransferCompletionMessageV2024Transformer(builderFactory, DSP_NAMESPACE_V_2025_1));
-        dspRegistry.register(new JsonObjectFromTransferTerminationMessageV2024Transformer(builderFactory, DSP_NAMESPACE_V_2025_1));
-        dspRegistry.register(new JsonObjectFromTransferSuspensionMessageV2024Transformer(builderFactory, DSP_NAMESPACE_V_2025_1));
+        dspRegistry.register(new JsonObjectFromTransferProcessTransformer(builderFactory, DSP_NAMESPACE_V_2025_1));
+        dspRegistry.register(new JsonObjectFromTransferRequestMessageTransformer(builderFactory, DSP_NAMESPACE_V_2025_1));
+        dspRegistry.register(new JsonObjectFromTransferStartMessageTransformer(builderFactory, DSP_NAMESPACE_V_2025_1));
+        dspRegistry.register(new JsonObjectFromTransferCompletionMessageTransformer(builderFactory, DSP_NAMESPACE_V_2025_1));
+        dspRegistry.register(new JsonObjectFromTransferTerminationMessageTransformer(builderFactory, DSP_NAMESPACE_V_2025_1));
+        dspRegistry.register(new JsonObjectFromTransferSuspensionMessageTransformer(builderFactory, DSP_NAMESPACE_V_2025_1));
     }
 
 }

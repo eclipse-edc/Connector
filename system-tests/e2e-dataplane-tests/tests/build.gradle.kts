@@ -18,6 +18,7 @@ plugins {
 
 dependencies {
     testImplementation(project(":spi:data-plane:data-plane-spi"))
+    testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:keys-lib"))
     testImplementation(project(":core:common:lib:transform-lib")) // for the transformer registry impl

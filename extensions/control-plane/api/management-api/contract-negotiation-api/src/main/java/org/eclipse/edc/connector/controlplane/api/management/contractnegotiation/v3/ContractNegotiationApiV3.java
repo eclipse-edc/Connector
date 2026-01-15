@@ -153,7 +153,7 @@ public interface ContractNegotiationApiV3 {
                     "@context": { "@vocab": "https://w3id.org/edc/v0.0.1/ns/" },
                     "@type": "https://w3id.org/edc/v0.0.1/ns/ContractRequest",
                     "counterPartyAddress": "http://provider-address",
-                    "protocol": "dataspace-protocol-http",
+                    "protocol": "dataspace-protocol-http:2025-1",
                     "policy": {
                         "@context": "http://www.w3.org/ns/odrl.jsonld",
                         "@type": "odrl:Offer",

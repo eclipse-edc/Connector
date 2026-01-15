@@ -21,5 +21,4 @@ dependencies {
     implementation(project(":core:common:lib:validator-lib"))
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":data-protocols:dsp:dsp-08:dsp-spi-08"))
 }

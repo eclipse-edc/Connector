@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
@@ -38,7 +38,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 public class JsonObjectFromContractOfferMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<ContractOfferMessage, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
-
+    
     public JsonObjectFromContractOfferMessageTransformer(JsonBuilderFactory jsonFactory, JsonLdNamespace namespace) {
         super(ContractOfferMessage.class, JsonObject.class, namespace);
         this.jsonFactory = jsonFactory;
@@ -49,9 +49,9 @@ public class JsonObjectFromContractOfferMessageTransformer extends AbstractNames
         var builder = jsonFactory.createObjectBuilder()
                 .add(ID, message.getId())
                 .add(TYPE, forNamespace(DSPACE_TYPE_CONTRACT_OFFER_MESSAGE_TERM))
-                .add(forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), message.getProviderPid());
+                .add(forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), createId(jsonFactory, message.getProviderPid()));
 
-        addIfNotNull(message.getConsumerPid(), forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), builder);
+        addIdIfNotNull(message.getConsumerPid(), forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), jsonFactory, builder);
         addIfNotNull(message.getCallbackAddress(), forNamespace(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM), builder);
 
         var offer = message.getContractOffer();

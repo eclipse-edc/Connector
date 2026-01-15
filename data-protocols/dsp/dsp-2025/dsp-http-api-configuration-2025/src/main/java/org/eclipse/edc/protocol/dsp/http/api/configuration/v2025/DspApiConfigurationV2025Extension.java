@@ -32,8 +32,8 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.transform.transformer.dspace.from.JsonObjectFromDataAddressDspaceTransformer;
 import org.eclipse.edc.transform.transformer.dspace.to.JsonObjectToDataAddressDspaceTransformer;
-import org.eclipse.edc.transform.transformer.dspace.v2024.from.JsonObjectFromDataAddressDspace2024Transformer;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromCriterionTransformer;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromQuerySpecTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToCriterionTransformer;
@@ -114,6 +114,6 @@ public class DspApiConfigurationV2025Extension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonObjectToCriterionTransformer());
         dspApiTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer(DSP_NAMESPACE_V_2025_1));
         dspApiTransformerRegistry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory, participantIdMapper, new JsonObjectFromPolicyTransformer.TransformerConfig(true, true)));
-        dspApiTransformerRegistry.register(new JsonObjectFromDataAddressDspace2024Transformer(jsonBuilderFactory, typeManager, JSON_LD, DSP_NAMESPACE_V_2025_1));
+        dspApiTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(jsonBuilderFactory, typeManager, JSON_LD, DSP_NAMESPACE_V_2025_1));
     }
 }

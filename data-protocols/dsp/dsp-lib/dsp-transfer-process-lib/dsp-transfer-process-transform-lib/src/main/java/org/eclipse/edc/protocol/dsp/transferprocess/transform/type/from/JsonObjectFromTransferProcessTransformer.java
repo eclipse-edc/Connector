@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
@@ -30,6 +30,11 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_STATE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_PROCESS_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_VALUE_TRANSFER_STATE_REQUESTED_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_VALUE_TRANSFER_STATE_STARTED_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM;
 
 public class JsonObjectFromTransferProcessTransformer extends AbstractNamespaceAwareJsonLdTransformer<TransferProcess, JsonObject> {
 
@@ -45,17 +50,58 @@ public class JsonObjectFromTransferProcessTransformer extends AbstractNamespaceA
         var builder = jsonBuilderFactory.createObjectBuilder()
                 .add(ID, transferProcess.getId())
                 .add(TYPE, forNamespace(DSPACE_TYPE_TRANSFER_PROCESS_TERM))
-                .add(forNamespace(DSPACE_PROPERTY_STATE_TERM), TransferProcessStates.from(transferProcess.getState()).name());
+                .add(forNamespace(DSPACE_PROPERTY_STATE_TERM), createId(jsonBuilderFactory, state(transferProcess.getState(), transferProcess.getErrorDetail(), context)));
 
         if (transferProcess.getType() == TransferProcess.Type.PROVIDER) {
-            builder.add(forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), transferProcess.getId());
-            addIfNotNull(transferProcess.getCorrelationId(), forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), builder);
+            builder.add(forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), createId(jsonBuilderFactory, transferProcess.getId()));
+            addIdIfNotNull(transferProcess.getCorrelationId(), forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), jsonBuilderFactory, builder);
         } else {
-            builder.add(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), transferProcess.getId());
-            addIfNotNull(transferProcess.getCorrelationId(), forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), builder);
+            builder.add(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), createId(jsonBuilderFactory, transferProcess.getId()));
+            addIdIfNotNull(transferProcess.getCorrelationId(), forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), jsonBuilderFactory, builder);
         }
 
         return builder.build();
     }
 
+    private String state(Integer state, String errorDetails, TransformerContext context) {
+        var transferProcessState = TransferProcessStates.from(state);
+        if (transferProcessState == null) {
+            context.problem()
+                    .nullProperty()
+                    .type(TransferProcess.class)
+                    .property(forNamespace(DSPACE_PROPERTY_STATE_TERM))
+                    .report();
+            return null;
+        }
+
+        return switch (transferProcessState) {
+            case INITIAL, REQUESTING, REQUESTED, PROVISIONING, PROVISIONING_REQUESTED, PROVISIONED, STARTUP_REQUESTED ->
+                    forNamespace(DSPACE_VALUE_TRANSFER_STATE_REQUESTED_TERM);
+            case STARTING, SUSPENDING_REQUESTED, STARTED -> forNamespace(DSPACE_VALUE_TRANSFER_STATE_STARTED_TERM);
+            case SUSPENDING, SUSPENDED, RESUMING, RESUMED ->
+                    forNamespace(DSPACE_VALUE_TRANSFER_STATE_SUSPENDED_TERM);
+            case COMPLETING, COMPLETING_REQUESTED, COMPLETED ->
+                    forNamespace(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM);
+
+            case DEPROVISIONING, DEPROVISIONING_REQUESTED, DEPROVISIONED -> {
+                if (errorDetails != null) {
+                    yield forNamespace(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM);
+                } else {
+                    yield forNamespace(DSPACE_VALUE_TRANSFER_STATE_COMPLETED_TERM);
+                }
+            }
+            case TERMINATING, TERMINATING_REQUESTED, TERMINATED ->
+                    forNamespace(DSPACE_VALUE_TRANSFER_STATE_TERMINATED_TERM);
+            default -> {
+                context.problem()
+                        .unexpectedType()
+                        .type(TransferProcess.class)
+                        .property("state")
+                        .actual(transferProcessState.toString())
+                        .expected(TransferProcessStates.class)
+                        .report();
+                yield null;
+            }
+        };
+    }
 }

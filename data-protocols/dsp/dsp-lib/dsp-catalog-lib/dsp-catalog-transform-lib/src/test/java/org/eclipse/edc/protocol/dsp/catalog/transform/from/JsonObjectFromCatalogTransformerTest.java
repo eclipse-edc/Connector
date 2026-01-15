@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
@@ -61,7 +61,6 @@ class JsonObjectFromCatalogTransformerTest {
     private final ObjectMapper mapper = mock();
     private final TransformerContext context = mock();
     private final ParticipantIdMapper participantIdMapper = mock();
-
     private final TypeManager typeManager = mock();
 
     private final JsonObjectFromCatalogTransformer transformer = new JsonObjectFromCatalogTransformer(jsonFactory, typeManager, "test", participantIdMapper, DSP_NAMESPACE);
@@ -72,9 +71,7 @@ class JsonObjectFromCatalogTransformerTest {
 
     @BeforeEach
     void setUp() {
-
         when(typeManager.getMapper("test")).thenReturn(mapper);
-
         datasetJson = getJsonObject("dataset");
         catalogJson = getJsonObject("Catalog");
         dataServiceJson = getJsonObject("dataService");
@@ -108,7 +105,7 @@ class JsonObjectFromCatalogTransformerTest {
                 .isInstanceOf(JsonArray.class)
                 .matches(v -> v.asJsonArray().size() == 1)
                 .matches(v -> v.asJsonArray().get(0).equals(dataServiceJson));
-        assertThat(result.getString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PARTICIPANT_ID_TERM))).isEqualTo("urn:namespace:participantId");
+        assertThat(result.getJsonObject(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PARTICIPANT_ID_TERM)).getString(ID)).isEqualTo("urn:namespace:participantId");
         assertThat(result.get(CATALOG_PROPERTY)).isNotNull();
 
         verify(context, times(1)).transform(catalog.getDatasets().get(0), JsonObject.class);
@@ -143,7 +140,7 @@ class JsonObjectFromCatalogTransformerTest {
                 .isInstanceOf(JsonArray.class)
                 .matches(v -> v.asJsonArray().size() == 1)
                 .matches(v -> v.asJsonArray().get(0).equals(dataServiceJson));
-        assertThat(result.getString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PARTICIPANT_ID_TERM))).isEqualTo("urn:namespace:participantId");
+        assertThat(result.getJsonObject(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PARTICIPANT_ID_TERM)).getString(ID)).isEqualTo("urn:namespace:participantId");
         assertThat(result.get(CATALOG_PROPERTY)).isNotNull();
 
         verify(context, times(1)).transform(catalog.getDatasets().get(0), JsonObject.class);

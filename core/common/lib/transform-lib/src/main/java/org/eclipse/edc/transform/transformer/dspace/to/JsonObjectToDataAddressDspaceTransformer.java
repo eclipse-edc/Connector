@@ -27,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY_TERM;
@@ -38,10 +37,6 @@ import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSeri
  * Transforms a {@link JsonObject} into a DataAddress using the DSPACE-serialization format.
  */
 public class JsonObjectToDataAddressDspaceTransformer extends AbstractNamespaceAwareJsonLdTransformer<JsonObject, DataAddress> {
-
-    public JsonObjectToDataAddressDspaceTransformer() {
-        this(new JsonLdNamespace(DSPACE_SCHEMA));
-    }
 
     public JsonObjectToDataAddressDspaceTransformer(JsonLdNamespace namespace) {
         super(JsonObject.class, DataAddress.class, namespace);

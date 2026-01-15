@@ -23,16 +23,14 @@ public interface Namespaces {
     String DCAT_PREFIX = "dcat";
     String DCAT_SCHEMA = "http://www.w3.org/ns/dcat#";
 
-
     String DCT_PREFIX = "dct";
     String DCT_SCHEMA = "http://purl.org/dc/terms/";
 
     String DSPACE_PREFIX = "dspace";
-    @Deprecated(since = "0.14.0")
-    String DSPACE_SCHEMA = "https://w3id.org/dspace/v0.8/";
+    String DSPACE_2025_1_IRI = "https://w3id.org/dspace/2025/1/";
 
     String DSPACE_CONTEXT_2025_1 = "https://w3id.org/dspace/2025/1/context.jsonld";
     String DSPACE_ODRL_PROFILE_2025_1 = "https://w3id.org/dspace/2025/1/odrl-profile.jsonld";
-
     String EDC_DSPACE_CONTEXT = "https://w3id.org/edc/dspace/v0.0.1";
+
 }

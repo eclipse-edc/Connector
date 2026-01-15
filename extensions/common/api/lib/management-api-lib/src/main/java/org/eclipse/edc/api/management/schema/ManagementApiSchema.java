@@ -125,7 +125,7 @@ public interface ManagementApiSchema {
                     "@type": "https://w3id.org/edc/v0.0.1/ns/ContractNegotiation",
                     "@id": "negotiation-id",
                     "type": "PROVIDER",
-                    "protocol": "dataspace-protocol-http",
+                    "protocol": "dataspace-protocol-http:2025-1",
                     "counterPartyId": "counter-party-id",
                     "counterPartyAddress": "http://counter/party/address",
                     "state": "VERIFIED",

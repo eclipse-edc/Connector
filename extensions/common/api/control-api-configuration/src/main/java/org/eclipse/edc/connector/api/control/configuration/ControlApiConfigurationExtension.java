@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.api.control.configuration;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -45,8 +44,8 @@ import java.util.stream.Stream;
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_2025_1_IRI;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -83,8 +82,6 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
     @Inject
     private TypeManager typeManager;
     @Inject
-    private ApiAuthenticationRegistry authenticationRegistry;
-    @Inject
     private ApiVersionService apiVersionService;
 
     @Override
@@ -101,7 +98,7 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
         jsonLd.registerNamespace(EDC_PREFIX, EDC_NAMESPACE, CONTROL_SCOPE);
         jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE, CONTROL_SCOPE);
         jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, CONTROL_SCOPE);
-        jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, CONTROL_SCOPE);
+        jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_2025_1_IRI, CONTROL_SCOPE);
 
         webService.registerResource(ApiContext.CONTROL, new ObjectMapperProvider(typeManager, JSON_LD));
         webService.registerResource(ApiContext.CONTROL, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, CONTROL_SCOPE));

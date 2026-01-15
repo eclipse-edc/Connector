@@ -52,7 +52,10 @@ import java.util.UUID;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage.DATA_FLOW_TERMINATE_MESSAGE_REASON;
 import static org.hamcrest.Matchers.anyOf;
@@ -74,8 +77,8 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
         var builderFactory = Json.createBuilderFactory(Map.of());
         mapper = JacksonJsonLd.createObjectMapper();
         registry.register(new JsonObjectFromDataFlowStartMessageTransformer(builderFactory, typeManager, "test"));
-        registry.register(new JsonObjectFromDataAddressDspaceTransformer(builderFactory, typeManager, "test"));
-        registry.register(new JsonObjectToDataAddressDspaceTransformer());
+        registry.register(new JsonObjectFromDataAddressDspaceTransformer(builderFactory, typeManager, "test", DSP_NAMESPACE_V_2025_1));
+        registry.register(new JsonObjectToDataAddressDspaceTransformer(DSP_NAMESPACE_V_2025_1));
         registry.register(new JsonObjectToDataFlowResponseMessageTransformer());
         when(typeManager.getMapper("test")).thenReturn(mapper);
         runtime.getService(PublicEndpointGeneratorService.class)
@@ -200,7 +203,7 @@ public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
 
         var resultJson = DATAPLANE.baseControlRequest()
                 .contentType(ContentType.JSON)
-                .body(startMessage)
+                .body(Json.createObjectBuilder(startMessage).add(CONTEXT, EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2).build())
                 .post("/v1/dataflows")
                 .then()
                 .log().ifValidationFails()

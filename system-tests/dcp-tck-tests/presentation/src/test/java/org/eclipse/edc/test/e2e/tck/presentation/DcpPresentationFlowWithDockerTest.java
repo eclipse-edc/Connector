@@ -145,7 +145,7 @@ public class DcpPresentationFlowWithDockerTest {
     }
 
     private String createDidDocumentJson() {
-        var ddoc = DidDocument.Builder.newInstance()
+        var didDocument = DidDocument.Builder.newInstance()
                 .id(VERIFIER_DID)
                 .verificationMethod(List.of(
                         VerificationMethod.Builder.newInstance()
@@ -158,7 +158,7 @@ public class DcpPresentationFlowWithDockerTest {
                 .service(List.of(new Service(UUID.randomUUID().toString(), "CredentialService", "https://example.com/credentialservice")))
                 .build();
         try {
-            return new ObjectMapper().writeValueAsString(ddoc);
+            return new ObjectMapper().writeValueAsString(didDocument);
         } catch (JsonProcessingException e) {
             throw new AssertionError(e);
         }
@@ -169,13 +169,13 @@ public class DcpPresentationFlowWithDockerTest {
     void runPresentationFlowTests() throws InterruptedException {
         var monitor = new org.eclipse.edc.spi.monitor.ConsoleMonitor("TCK", ConsoleMonitor.Level.DEBUG, true);
 
-        var triggerPath = PROTOCOL_API_PATH + "/2024/1/catalog/request"; // todo: update to 2025 as soon as that is the default
+        var triggerPath = PROTOCOL_API_PATH + "/2025-1/catalog/request";
         var holderDid = "did:web:0.0.0.0%3A" + CALLBACK_PORT + ":holder";
         var thirdPartyDid = "did:web:0.0.0.0%3A" + CALLBACK_PORT + ":thirdparty";
         var baseCallbackUrl = "http://0.0.0.0:%s".formatted(CALLBACK_PORT);
         var baseCallbackUri = URI.create(baseCallbackUrl);
 
-        try (var tckContainer = new GenericContainer<>("eclipsedataspacetck/dcp-tck-runtime:1.0.0-RC5")
+        try (var tckContainer = new GenericContainer<>("eclipsedataspacetck/dcp-tck-runtime:latest")
                 .withExtraHost("host.docker.internal", "host-gateway")
                 .withExposedPorts(CALLBACK_PORT)
                 .withEnv(Map.of(

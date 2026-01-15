@@ -38,6 +38,7 @@ import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -112,7 +113,7 @@ public class ContractAgreementApiEndToEndTest {
                             .uri("local://test")
                             .events(Set.of("test-event1", "test-event2"))
                             .build()))
-                    .protocol("dataspace-protocol-http")
+                    .protocol(DATASPACE_PROTOCOL_HTTP_V_2025_1)
                     .contractOffer(contractOfferBuilder().build())
                     .participantContextId("participantContextId")
                     .state(FINALIZED.code());

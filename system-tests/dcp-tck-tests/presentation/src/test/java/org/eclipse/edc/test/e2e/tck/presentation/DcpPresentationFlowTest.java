@@ -143,32 +143,12 @@ public class DcpPresentationFlowTest {
                 });
     }
 
-    private String createDidDocumentJson() {
-        var ddoc = DidDocument.Builder.newInstance()
-                .id(VERIFIER_DID)
-                .verificationMethod(List.of(
-                        VerificationMethod.Builder.newInstance()
-                                .type("assertionMethod")
-                                .controller(VERIFIER_DID)
-                                .publicKeyJwk(verifierKey.toJSONObject())
-                                .id(verifierKey.getKeyID())
-                                .build()
-                ))
-                .service(List.of(new Service(UUID.randomUUID().toString(), "CredentialService", "https://example.com/credentialservice")))
-                .build();
-        try {
-            return new ObjectMapper().writeValueAsString(ddoc);
-        } catch (JsonProcessingException e) {
-            throw new AssertionError(e);
-        }
-    }
-
     @DisplayName("Run TCK Presentation Flow tests")
     @Test
     void runPresentationFlowTests() {
         var monitor = new ConsoleMonitor(true, true);
 
-        var triggerPath = PROTOCOL_API_PATH + "/2024/1/catalog/request"; // todo: update to 2025 as soon as that is the default
+        var triggerPath = PROTOCOL_API_PATH + "/2025-1/catalog/request";
         var holderDid = "did:web:localhost%3A" + CALLBACK_PORT + ":holder";
         var thirdPartyDid = "did:web:localhost%3A" + CALLBACK_PORT + ":thirdparty";
         var baseCallbackUrl = "http://localhost:%s".formatted(CALLBACK_PORT);
@@ -198,6 +178,26 @@ public class DcpPresentationFlowTest {
                     .map(f -> "- " + f.getTestIdentifier().getDisplayName() + " (" + f.getException() + ")")
                     .collect(Collectors.joining("\n"));
             Assertions.fail(result.getTotalFailureCount() + " TCK test cases failed:\n" + failures);
+        }
+    }
+
+    private String createDidDocumentJson() {
+        var ddoc = DidDocument.Builder.newInstance()
+                .id(VERIFIER_DID)
+                .verificationMethod(List.of(
+                        VerificationMethod.Builder.newInstance()
+                                .type("assertionMethod")
+                                .controller(VERIFIER_DID)
+                                .publicKeyJwk(verifierKey.toJSONObject())
+                                .id(verifierKey.getKeyID())
+                                .build()
+                ))
+                .service(List.of(new Service(UUID.randomUUID().toString(), "CredentialService", "https://example.com/credentialservice")))
+                .build();
+        try {
+            return new ObjectMapper().writeValueAsString(ddoc);
+        } catch (JsonProcessingException e) {
+            throw new AssertionError(e);
         }
     }
 

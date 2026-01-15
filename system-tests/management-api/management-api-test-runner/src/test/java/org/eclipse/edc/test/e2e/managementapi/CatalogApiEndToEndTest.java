@@ -45,6 +45,7 @@ import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -63,8 +64,8 @@ public class CatalogApiEndToEndTest {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                     .add(TYPE, "CatalogRequest")
-                    .add("counterPartyAddress", context.providerProtocolUrl())
-                    .add("protocol", "dataspace-protocol-http")
+                    .add("counterPartyAddress", context.providerDsp2025url())
+                    .add("protocol", DATASPACE_PROTOCOL_HTTP_V_2025_1)
                     .build();
 
             context.baseRequest()
@@ -75,7 +76,7 @@ public class CatalogApiEndToEndTest {
                     .log().ifValidationFails()
                     .statusCode(200)
                     .contentType(JSON)
-                    .body(TYPE, is("dcat:Catalog"));
+                    .body(TYPE, is("Catalog"));
         }
 
         @Test
@@ -105,8 +106,8 @@ public class CatalogApiEndToEndTest {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                     .add(TYPE, "CatalogRequest")
-                    .add("counterPartyAddress", context.providerProtocolUrl())
-                    .add("protocol", "dataspace-protocol-http")
+                    .add("counterPartyAddress", context.providerDsp2025url())
+                    .add("protocol", DATASPACE_PROTOCOL_HTTP_V_2025_1)
                     .add("querySpec", querySpec)
                     .build();
 
@@ -115,10 +116,11 @@ public class CatalogApiEndToEndTest {
                     .body(requestBody)
                     .post("/v3/catalog/request")
                     .then()
+                    .log().ifValidationFails()
                     .statusCode(200)
                     .contentType(JSON)
-                    .body(TYPE, is("dcat:Catalog"))
-                    .body("'dcat:dataset'.id", is("id-2"));
+                    .body(TYPE, is("Catalog"))
+                    .body("dataset[0].id", is("id-2"));
         }
 
         @Test
@@ -143,12 +145,11 @@ public class CatalogApiEndToEndTest {
             createContractOffer(policyDefinitionStore, contractDefinitionStore, assetSelectorCriteria);
 
 
-            // request all assets
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                     .add(TYPE, "CatalogRequest")
-                    .add("counterPartyAddress", context.providerProtocolUrl())
-                    .add("protocol", "dataspace-protocol-http")
+                    .add("counterPartyAddress", context.providerDsp2025url())
+                    .add("protocol", DATASPACE_PROTOCOL_HTTP_V_2025_1)
                     .build();
 
             context.baseRequest()
@@ -156,16 +157,17 @@ public class CatalogApiEndToEndTest {
                     .body(requestBody)
                     .post("/v3/catalog/request")
                     .then()
+                    .log().ifValidationFails()
                     .statusCode(200)
                     .contentType(JSON)
-                    .body(TYPE, is("dcat:Catalog"))
-                    .body("'dcat:service'", notNullValue())
-                    // findAll is the restAssured way to express JSON Path filters
-                    .body("'dcat:catalog'.'@type'", equalTo("dcat:Catalog"))
-                    .body("'dcat:catalog'.isCatalog", equalTo(true))
-                    .body("'dcat:catalog'.'@id'", equalTo(catalogAssetId))
-                    .body("'dcat:catalog'.'dcat:service'.'dcat:endpointURL'", equalTo("http://quizzqua.zz/buzz"))
-                    .body("'dcat:catalog'.'dcat:distribution'.'dcat:accessService'.'@id'", equalTo(Base64.getUrlEncoder().encodeToString(catalogAssetId.getBytes())));
+                    .body(TYPE, is("Catalog"))
+                    .body("service", notNullValue())
+                    .body("catalog.size()", equalTo(1))
+                    .body("catalog[0].'@type'", equalTo("Catalog"))
+                    .body("catalog[0].isCatalog", equalTo(true))
+                    .body("catalog[0].'@id'", equalTo(catalogAssetId))
+                    .body("catalog[0].service[0].endpointURL", equalTo("http://quizzqua.zz/buzz"))
+                    .body("catalog[0].distribution[0].accessService.'@id'", equalTo(Base64.getUrlEncoder().encodeToString(catalogAssetId.getBytes())));
         }
 
         @Test
@@ -183,8 +185,8 @@ public class CatalogApiEndToEndTest {
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                     .add(TYPE, "DatasetRequest")
                     .add(ID, "asset-id")
-                    .add("counterPartyAddress", context.providerProtocolUrl())
-                    .add("protocol", "dataspace-protocol-http")
+                    .add("counterPartyAddress", context.providerDsp2025url())
+                    .add("protocol", DATASPACE_PROTOCOL_HTTP_V_2025_1)
                     .build();
 
             context.baseRequest()
@@ -196,8 +198,8 @@ public class CatalogApiEndToEndTest {
                     .statusCode(200)
                     .contentType(JSON)
                     .body(ID, is("asset-id"))
-                    .body(TYPE, is("dcat:Dataset"))
-                    .body("'dcat:distribution'.'dcat:accessService'.@id", notNullValue());
+                    .body(TYPE, is("Dataset"))
+                    .body("distribution[0].accessService.@id", notNullValue());
         }
 
         @Test
@@ -226,8 +228,8 @@ public class CatalogApiEndToEndTest {
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                     .add(TYPE, "DatasetRequest")
                     .add(ID, "asset-response")
-                    .add("counterPartyAddress", context.providerProtocolUrl())
-                    .add("protocol", "dataspace-protocol-http")
+                    .add("counterPartyAddress", context.providerDsp2025url())
+                    .add("protocol", DATASPACE_PROTOCOL_HTTP_V_2025_1)
                     .build();
 
             context.baseRequest()
@@ -239,8 +241,8 @@ public class CatalogApiEndToEndTest {
                     .statusCode(200)
                     .contentType(JSON)
                     .body(ID, is("asset-response"))
-                    .body(TYPE, is("dcat:Dataset"))
-                    .body("'dcat:distribution'.'dct:format'.@id", is("any-PULL-response"));
+                    .body(TYPE, is("Dataset"))
+                    .body("distribution[0].format", is("any-PULL-response"));
         }
 
         private void createContractOffer(PolicyDefinitionStore policyStore, ContractDefinitionStore contractDefStore, List<Criterion> assetsSelectorCritera) {

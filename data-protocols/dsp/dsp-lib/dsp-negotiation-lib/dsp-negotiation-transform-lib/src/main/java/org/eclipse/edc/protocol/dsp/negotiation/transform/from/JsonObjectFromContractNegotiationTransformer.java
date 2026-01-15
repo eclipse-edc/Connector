@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
@@ -56,9 +56,9 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractNamesp
         return jsonFactory.createObjectBuilder()
                 .add(ID, pidFor(contractNegotiation, contractNegotiation.getType()))
                 .add(TYPE, forNamespace(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERM))
-                .add(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), pidFor(contractNegotiation, ContractNegotiation.Type.CONSUMER))
-                .add(forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), pidFor(contractNegotiation, ContractNegotiation.Type.PROVIDER))
-                .add(forNamespace(DSPACE_PROPERTY_STATE_TERM), state(contractNegotiation.getState(), context))
+                .add(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), createId(jsonFactory, pidFor(contractNegotiation, ContractNegotiation.Type.CONSUMER)))
+                .add(forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), createId(jsonFactory, pidFor(contractNegotiation, ContractNegotiation.Type.PROVIDER)))
+                .add(forNamespace(DSPACE_PROPERTY_STATE_TERM), createId(jsonFactory, state(contractNegotiation.getState(), context)))
                 .build();
     }
 

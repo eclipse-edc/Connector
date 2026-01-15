@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2025 Metaform Systems, Inc.
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Metaform Systems, Inc. - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
@@ -30,7 +30,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPA
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.V_2025_1_PATH;
 
 /**
- * Versioned Catalog endpoint for 2024/1 protocol version
+ * Versioned Catalog endpoint for 2025/1 protocol version
  */
 @Consumes({APPLICATION_JSON})
 @Produces({APPLICATION_JSON})

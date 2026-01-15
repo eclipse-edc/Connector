@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
@@ -46,8 +46,8 @@ public class JsonObjectFromContractAgreementVerificationMessageTransformer exten
         return jsonFactory.createObjectBuilder()
                 .add(ID, verificationMessage.getId())
                 .add(TYPE, forNamespace(DSPACE_TYPE_CONTRACT_AGREEMENT_VERIFICATION_MESSAGE_TERM))
-                .add(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), verificationMessage.getConsumerPid())
-                .add(forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), verificationMessage.getProviderPid())
+                .add(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), createId(jsonFactory, verificationMessage.getConsumerPid()))
+                .add(forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), createId(jsonFactory, verificationMessage.getProviderPid()))
                 .build();
     }
 }
