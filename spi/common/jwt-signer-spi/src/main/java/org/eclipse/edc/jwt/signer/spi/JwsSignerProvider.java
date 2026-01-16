@@ -29,7 +29,7 @@ public interface JwsSignerProvider {
      * @param privateKeyId The ID of the private key, used for key lookup, e.g., in a secure vault
      * @deprecated Please use {@link #createJwsSigner(String, String)} instead.
      */
-    @Deprecated
+    @Deprecated(since = "0.15.0")
     Result<JWSSigner> createJwsSigner(String privateKeyId);
 
     /**

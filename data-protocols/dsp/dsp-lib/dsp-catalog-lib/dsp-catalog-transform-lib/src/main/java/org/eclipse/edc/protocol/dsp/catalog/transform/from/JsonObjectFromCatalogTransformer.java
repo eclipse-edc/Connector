@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
@@ -87,7 +87,7 @@ public class JsonObjectFromCatalogTransformer extends AbstractNamespaceAwareJson
                 .add(DCAT_DISTRIBUTION_ATTRIBUTE, distributions)
                 .add(DCAT_DATA_SERVICE_ATTRIBUTE, dataServices);
 
-        ofNullable(catalog.getParticipantId()).ifPresent(pid -> objectBuilder.add(forNamespace(DSPACE_PROPERTY_PARTICIPANT_ID_TERM), participantIdMapper.toIri(pid)));
+        ofNullable(catalog.getParticipantId()).ifPresent(pid -> objectBuilder.add(forNamespace(DSPACE_PROPERTY_PARTICIPANT_ID_TERM), createId(jsonFactory, participantIdMapper.toIri(pid))));
 
         transformProperties(catalog.getProperties(), objectBuilder, typeManager.getMapper(typeContext), context);
 

@@ -24,6 +24,7 @@ dependencies {
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:transform-lib"))
+    implementation(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
     implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
 
     implementation(libs.opentelemetry.instrumentation.annotations)

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
@@ -45,8 +45,8 @@ public class JsonObjectFromTransferSuspensionMessageTransformer extends Abstract
         var builder = jsonBuilderFactory.createObjectBuilder()
                 .add(ID, message.getId())
                 .add(TYPE, forNamespace(DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE_TERM))
-                .add(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), message.getConsumerPid())
-                .add(forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), message.getProviderPid())
+                .add(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), createId(jsonBuilderFactory, message.getConsumerPid()))
+                .add(forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), createId(jsonBuilderFactory, message.getProviderPid()))
                 .add(forNamespace(DSPACE_PROPERTY_REASON_TERM), jsonBuilderFactory.createArrayBuilder(message.getReason()));
 
         addIfNotNull(message.getCode(), forNamespace(DSPACE_PROPERTY_CODE_TERM), builder);

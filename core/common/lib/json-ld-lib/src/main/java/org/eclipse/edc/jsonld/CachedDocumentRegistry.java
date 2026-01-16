@@ -42,7 +42,6 @@ public class CachedDocumentRegistry {
     public static Stream<Result<JsonLdContext>> getDocuments() {
         return Map.of(
                 "odrl.jsonld", "http://www.w3.org/ns/odrl.jsonld",
-                "dspace.jsonld", "https://w3id.org/dspace/2024/1/context.json",
                 "management-context-v1.jsonld", EDC_CONNECTOR_MANAGEMENT_CONTEXT,
                 "management-context-v2.jsonld", EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2,
                 "dspace-edc-context-v1.jsonld", EDC_DSPACE_CONTEXT,

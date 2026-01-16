@@ -50,12 +50,8 @@ public record ManagementEndToEndTestContext(LazySupplier<URI> managementApiUri, 
                 .when();
     }
 
-    public String providerProtocolUrl() {
-        return providerProtocolUrl("");
-    }
-
-    public String providerProtocolUrl(String versionPath) {
-        return protocolApiUri.get() + versionPath;
+    public String providerDsp2025url() {
+        return protocolApiUri.get() + "/2025-1";
     }
 
     public JsonObject query(Criterion... criteria) {

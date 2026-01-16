@@ -84,7 +84,7 @@ public interface CatalogApiV3 {
                     "@type": "CatalogRequest",
                     "counterPartyAddress": "http://provider-address",
                     "counterPartyId": "providerId",
-                    "protocol": "dataspace-protocol-http",
+                    "protocol": "dataspace-protocol-http:2025-1",
                     "additionalScopes": [ "org.eclipse.edc.vc.type:SomeCredential:read", "org.eclipse.edc.vc.type:AnotherCredential:write" ],
                     "querySpec": {
                         "offset": 0,
@@ -113,7 +113,7 @@ public interface CatalogApiV3 {
                     "@id": "dataset-id",
                     "counterPartyAddress": "http://counter-party-address",
                     "counterPartyId": "counter-party-id",
-                    "protocol": "dataspace-protocol-http"
+                    "protocol": "dataspace-protocol-http:2025-1"
                 }
                 """;
     }
@@ -183,7 +183,7 @@ public interface CatalogApiV3 {
                         "edc": "https://w3id.org/edc/v0.0.1/ns/",
                         "dcat": "http://www.w3.org/ns/dcat#",
                         "odrl": "http://www.w3.org/ns/odrl/2/",
-                        "dspace": "https://w3id.org/dspace/v0.8/"
+                        "dspace": "https://w3id.org/dspace/2025/1/"
                     }
                 }
                 """;
@@ -244,7 +244,7 @@ public interface CatalogApiV3 {
                         "edc": "https://w3id.org/edc/v0.0.1/ns/",
                         "dcat": "http://www.w3.org/ns/dcat#",
                         "odrl": "http://www.w3.org/ns/odrl/2/",
-                        "dspace": "https://w3id.org/dspace/v0.8/"
+                        "dspace": "https://w3id.org/dspace/2025/1/"
                     }
                 }
                 """;

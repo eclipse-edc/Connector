@@ -45,7 +45,7 @@ public class JwtGenerationService implements TokenGenerationService {
     }
 
     @Override
-    @Deprecated
+    @Deprecated(since = "0.15.0")
     public Result<TokenRepresentation> generate(String privateKeyId, @NotNull TokenDecorator... decorators) {
 
         var tokenSignerResult = jwsGeneratorFunction.createJwsSigner(privateKeyId);

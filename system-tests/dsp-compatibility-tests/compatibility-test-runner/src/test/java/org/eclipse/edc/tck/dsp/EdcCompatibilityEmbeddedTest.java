@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.tck.dsp;
 
-import org.assertj.core.api.Assertions;
 import org.eclipse.dataspacetck.core.system.ConsoleMonitor;
 import org.eclipse.dataspacetck.runtime.TckRuntime;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
@@ -131,10 +130,9 @@ public class EdcCompatibilityEmbeddedTest {
                 .map(TestResult::format)
                 .toList();
 
-        if (!failureReasons.isEmpty()) {
-            Assertions.fail(failureReasons.size() + " TCK test cases failed:\n" + String.join("\n", failureReasons));
-        }
-
+        assertThat(failureReasons)
+                .withFailMessage(() -> failureReasons.size() + " TCK test cases failed:\n" + String.join("\n", failureReasons))
+                .isEmpty();
 
     }
 

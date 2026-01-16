@@ -36,6 +36,7 @@ import org.eclipse.edc.web.spi.configuration.ApiContext;
 import java.util.Map;
 
 import static org.eclipse.edc.connector.dataplane.api.DataPlaneSignalingApiExtension.NAME;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(NAME)
@@ -66,9 +67,9 @@ public class DataPlaneSignalingApiExtension implements ServiceExtension {
         signalingApiTypeTransformerRegistry.register(new JsonObjectToDataFlowProvisionMessageTransformer());
         signalingApiTypeTransformerRegistry.register(new JsonObjectToDataFlowSuspendMessageTransformer());
         signalingApiTypeTransformerRegistry.register(new JsonObjectToDataFlowTerminateMessageTransformer());
-        signalingApiTypeTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer());
+        signalingApiTypeTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer(DSP_NAMESPACE_V_2025_1));
         signalingApiTypeTransformerRegistry.register(new JsonObjectFromDataFlowResponseMessageTransformer(factory));
-        signalingApiTypeTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(factory, typeManager, JSON_LD));
+        signalingApiTypeTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(factory, typeManager, JSON_LD, DSP_NAMESPACE_V_2025_1));
 
         var controller = new DataPlaneSignalingApiController(signalingApiTypeTransformerRegistry,
                 dataPlaneManager, context.getMonitor().withPrefix("SignalingAPI"));

@@ -59,6 +59,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
@@ -125,7 +126,7 @@ public class TransferProcessApiEndToEndTest {
                     .id(UUID.randomUUID().toString())
                     .counterPartyId("counterPartyId")
                     .counterPartyAddress("http://counterparty")
-                    .protocol("dataspace-protocol-http")
+                    .protocol(DATASPACE_PROTOCOL_HTTP_V_2025_1)
                     .contractAgreement(createContractAgreement(contractId, assetId).build())
                     .participantContextId("participantContextId")
                     .build();
@@ -144,7 +145,7 @@ public class TransferProcessApiEndToEndTest {
                     )
                     .add("transferType", "HttpData-PUSH")
                     .add("callbackAddresses", createCallbackAddress())
-                    .add("protocol", "dataspace-protocol-http")
+                    .add("protocol", DATASPACE_PROTOCOL_HTTP_V_2025_1)
                     .add("counterPartyAddress", "http://connector-address")
                     .add("contractId", contractId)
                     .add("assetId", assetId)
@@ -287,7 +288,7 @@ public class TransferProcessApiEndToEndTest {
                     .dataDestination(DataAddress.Builder.newInstance()
                             .type("type")
                             .build())
-                    .protocol("dataspace-protocol-http")
+                    .protocol(DATASPACE_PROTOCOL_HTTP_V_2025_1)
                     .assetId("asset-id")
                     .contractId("contractId")
                     .participantContextId("participantContextId")

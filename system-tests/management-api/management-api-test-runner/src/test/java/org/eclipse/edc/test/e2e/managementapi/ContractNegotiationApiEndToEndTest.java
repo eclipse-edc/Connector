@@ -51,6 +51,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
@@ -67,8 +68,8 @@ public class ContractNegotiationApiEndToEndTest {
         void getAll(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
             var id1 = UUID.randomUUID().toString();
             var id2 = UUID.randomUUID().toString();
-            store.save(createContractNegotiationBuilder(id1).counterPartyAddress(context.providerProtocolUrl()).build());
-            store.save(createContractNegotiationBuilder(id2).counterPartyAddress(context.providerProtocolUrl()).build());
+            store.save(createContractNegotiationBuilder(id1).counterPartyAddress(context.providerDsp2025url()).build());
+            store.save(createContractNegotiationBuilder(id2).counterPartyAddress(context.providerDsp2025url()).build());
 
             var jsonPath = context.baseRequest()
                     .contentType(JSON)
@@ -95,11 +96,11 @@ public class ContractNegotiationApiEndToEndTest {
                     .body("size()", is(2))
                     .extract().jsonPath();
 
-            assertThat(jsonPath.getString("[0].counterPartyAddress")).isEqualTo(context.providerProtocolUrl());
+            assertThat(jsonPath.getString("[0].counterPartyAddress")).isEqualTo(context.providerDsp2025url());
             assertThat(jsonPath.getString("[0].@id")).isIn(id1, id2);
             assertThat(jsonPath.getString("[1].@id")).isIn(id1, id2);
-            assertThat(jsonPath.getString("[0].protocol")).isEqualTo("dataspace-protocol-http");
-            assertThat(jsonPath.getString("[1].protocol")).isEqualTo("dataspace-protocol-http");
+            assertThat(jsonPath.getString("[0].protocol")).isEqualTo(DATASPACE_PROTOCOL_HTTP_V_2025_1);
+            assertThat(jsonPath.getString("[1].protocol")).isEqualTo(DATASPACE_PROTOCOL_HTTP_V_2025_1);
         }
 
         @Test
@@ -115,7 +116,7 @@ public class ContractNegotiationApiEndToEndTest {
                     .extract().jsonPath();
 
             assertThat((String) json.get("@id")).isEqualTo("cn1");
-            assertThat(json.getString("protocol")).isEqualTo("dataspace-protocol-http");
+            assertThat(json.getString("protocol")).isEqualTo(DATASPACE_PROTOCOL_HTTP_V_2025_1);
         }
 
         @Test
@@ -231,7 +232,7 @@ public class ContractNegotiationApiEndToEndTest {
                             .uri("local://test")
                             .events(Set.of("test-event1", "test-event2"))
                             .build()))
-                    .protocol("dataspace-protocol-http")
+                    .protocol(DATASPACE_PROTOCOL_HTTP_V_2025_1)
                     .state(REQUESTED.code())
                     .participantContextId("participantContextId")
                     .contractOffer(contractOfferBuilder().build());

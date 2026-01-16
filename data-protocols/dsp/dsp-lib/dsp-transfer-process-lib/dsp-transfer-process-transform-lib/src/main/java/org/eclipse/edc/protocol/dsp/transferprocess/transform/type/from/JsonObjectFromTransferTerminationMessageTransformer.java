@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
@@ -45,8 +45,8 @@ public class JsonObjectFromTransferTerminationMessageTransformer extends Abstrac
         var builder = jsonBuilderFactory.createObjectBuilder()
                 .add(ID, transferTerminationMessage.getId())
                 .add(TYPE, forNamespace(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_TERM))
-                .add(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), transferTerminationMessage.getConsumerPid())
-                .add(forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), transferTerminationMessage.getProviderPid());
+                .add(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), createId(jsonBuilderFactory, transferTerminationMessage.getConsumerPid()))
+                .add(forNamespace(DSPACE_PROPERTY_PROVIDER_PID_TERM), createId(jsonBuilderFactory, transferTerminationMessage.getProviderPid()));
 
         addIfNotNull(transferTerminationMessage.getCode(), forNamespace(DSPACE_PROPERTY_CODE_TERM), builder);
         addIfNotNull(transferTerminationMessage.getReason(), forNamespace(DSPACE_PROPERTY_REASON_TERM), builder);

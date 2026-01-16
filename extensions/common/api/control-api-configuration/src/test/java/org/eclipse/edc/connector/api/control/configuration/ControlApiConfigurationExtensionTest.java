@@ -40,8 +40,8 @@ import static org.eclipse.edc.connector.api.control.configuration.ControlApiConf
 import static org.eclipse.edc.connector.api.control.configuration.ControlApiConfigurationExtension.DEFAULT_CONTROL_PATH;
 import static org.eclipse.edc.connector.api.control.configuration.ControlApiConfigurationExtension.DEFAULT_CONTROL_PORT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_2025_1_IRI;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -105,6 +105,6 @@ public class ControlApiConfigurationExtensionTest {
         jsonLd.registerNamespace(EDC_PREFIX, EDC_NAMESPACE, CONTROL_SCOPE);
         jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE, CONTROL_SCOPE);
         jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, CONTROL_SCOPE);
-        jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, CONTROL_SCOPE);
+        jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_2025_1_IRI, CONTROL_SCOPE);
     }
 }

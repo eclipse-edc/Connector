@@ -14,21 +14,13 @@
 
 package org.eclipse.edc.protocol.dsp.spi.type;
 
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
-
 /**
  * Dataspace protocol types and attributes for catalog request.
  */
 public interface DspCatalogPropertyAndTypeNames {
 
     String DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM = "CatalogRequestMessage";
-    @Deprecated(since = "0.14.0")
-    String DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_IRI = DSPACE_SCHEMA + DSPACE_TYPE_CATALOG_REQUEST_MESSAGE_TERM;
     String DSPACE_TYPE_CATALOG_ERROR_TERM = "CatalogError";
-    @Deprecated(since = "0.14.0")
-    String DSPACE_TYPE_CATALOG_ERROR_IRI = DSPACE_SCHEMA + DSPACE_TYPE_CATALOG_ERROR_TERM;
     String DSPACE_PROPERTY_FILTER_TERM = "filter";
-    @Deprecated(since = "0.14.0")
-    String DSPACE_PROPERTY_FILTER_IRI = DSPACE_SCHEMA + DSPACE_PROPERTY_FILTER_TERM;
 
 }

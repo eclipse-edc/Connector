@@ -31,6 +31,7 @@ import org.eclipse.edc.transform.transformer.dspace.to.JsonObjectToDataAddressDs
 
 import java.util.Map;
 
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
@@ -62,8 +63,8 @@ public class DataPlaneSignalingClientTransformExtension implements ServiceExtens
         signalingApiTransformerRegistry.register(new JsonObjectFromDataFlowSuspendMessageTransformer(factory));
         signalingApiTransformerRegistry.register(new JsonObjectFromDataFlowTerminateMessageTransformer(factory));
         signalingApiTransformerRegistry.register(new JsonObjectToDataFlowResponseMessageTransformer());
-        signalingApiTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer());
-        signalingApiTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(factory, typeManager, JSON_LD));
+        signalingApiTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer(DSP_NAMESPACE_V_2025_1));
+        signalingApiTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(factory, typeManager, JSON_LD, DSP_NAMESPACE_V_2025_1));
     }
 }
 

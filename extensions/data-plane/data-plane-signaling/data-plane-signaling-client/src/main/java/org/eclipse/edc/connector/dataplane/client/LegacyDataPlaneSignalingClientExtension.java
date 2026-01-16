@@ -33,8 +33,8 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import java.util.Objects;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_2025_1_IRI;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -82,7 +82,7 @@ public class LegacyDataPlaneSignalingClientExtension implements ServiceExtension
         }
 
         jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, CONTROL_CLIENT_SCOPE);
-        jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, CONTROL_CLIENT_SCOPE);
+        jsonLd.registerNamespace(DSPACE_PREFIX, DSPACE_2025_1_IRI, CONTROL_CLIENT_SCOPE);
         jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE, CONTROL_CLIENT_SCOPE);
 
         context.getMonitor().debug(() -> "Using remote Data Plane client.");

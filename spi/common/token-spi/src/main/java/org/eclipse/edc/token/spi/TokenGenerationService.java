@@ -29,7 +29,7 @@ public interface TokenGenerationService {
      * @param decorators   an optional list of {@code JwtDecorator} objects to determine the shape of the token, i.e. headers and claims
      * @deprecated Please {@link #generate(String, String, TokenDecorator...)} instead.
      */
-    @Deprecated
+    @Deprecated(since = "0.15.0")
     Result<TokenRepresentation> generate(String privateKeyId, TokenDecorator... decorators);
 
     /**

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
@@ -28,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Set;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.DSPACE_DATAADDRESS_TYPE_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY_TERM;
@@ -43,10 +42,6 @@ public class JsonObjectFromDataAddressDspaceTransformer extends AbstractNamespac
     private final JsonBuilderFactory jsonFactory;
     private final TypeManager typeManager;
     private final String typeContext;
-
-    public JsonObjectFromDataAddressDspaceTransformer(JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext) {
-        this(jsonFactory, typeManager, typeContext, new JsonLdNamespace(DSPACE_SCHEMA));
-    }
 
     public JsonObjectFromDataAddressDspaceTransformer(JsonBuilderFactory jsonFactory, TypeManager typeManager, String typeContext, JsonLdNamespace namespace) {
         super(DataAddress.class, JsonObject.class, namespace);
@@ -64,7 +59,7 @@ public class JsonObjectFromDataAddressDspaceTransformer extends AbstractNamespac
 
         return jsonFactory.createObjectBuilder()
                 .add(TYPE, forNamespace(DSPACE_DATAADDRESS_TYPE_TERM))
-                .add(forNamespace(ENDPOINT_TYPE_PROPERTY_TERM), dataAddress.getType())
+                .add(forNamespace(ENDPOINT_TYPE_PROPERTY_TERM), createId(jsonFactory, dataAddress.getType()))
                 .add(forNamespace(ENDPOINT_PROPERTIES_PROPERTY_TERM), endpointProperties)
                 .build();
     }

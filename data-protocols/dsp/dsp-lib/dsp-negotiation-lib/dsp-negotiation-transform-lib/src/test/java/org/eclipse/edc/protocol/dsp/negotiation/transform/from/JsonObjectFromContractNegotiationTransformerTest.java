@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
@@ -18,7 +18,6 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
-import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +47,8 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.VERIFYING;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.from.TestFunction.DSP_NAMESPACE;
+import static org.eclipse.edc.protocol.dsp.negotiation.transform.from.TestFunction.toIri;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_ACCEPTED_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_VALUE_NEGOTIATION_STATE_AGREED_TERM;
@@ -66,10 +67,11 @@ import static org.mockito.Mockito.verify;
 
 class JsonObjectFromContractNegotiationTransformerTest {
 
-    private static final JsonLdNamespace DSP_NAMESPACE = new JsonLdNamespace("http://www.w3.org/ns/dsp#");
     private final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Map.of());
     private final TransformerContext context = mock(TransformerContext.class);
+
     private JsonObjectFromContractNegotiationTransformer transformer;
+
 
     @BeforeEach
     void setUp() {
@@ -92,9 +94,9 @@ class JsonObjectFromContractNegotiationTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getString(ID)).isEqualTo("consumerPid");
-        assertThat(result.getString(TYPE)).isEqualTo(DSP_NAMESPACE.toIri(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERM));
-        assertThat(result.getString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM))).isEqualTo("consumerPid");
-        assertThat(result.getString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM))).isEqualTo("providerPid");
+        assertThat(result.getString(TYPE)).isEqualTo(toIri(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERM));
+        assertThat(result.getJsonObject(toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM)).getString(ID)).isEqualTo("consumerPid");
+        assertThat(result.getJsonObject(toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM)).getString(ID)).isEqualTo("providerPid");
 
         verify(context, never()).reportProblem(anyString());
     }
@@ -115,9 +117,9 @@ class JsonObjectFromContractNegotiationTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getString(ID)).isEqualTo("providerPid");
-        assertThat(result.getString(TYPE)).isEqualTo(DSP_NAMESPACE.toIri(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERM));
-        assertThat(result.getString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM))).isEqualTo("consumerPid");
-        assertThat(result.getString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM))).isEqualTo("providerPid");
+        assertThat(result.getString(TYPE)).isEqualTo(toIri(DSPACE_TYPE_CONTRACT_NEGOTIATION_TERM));
+        assertThat(result.getJsonObject(toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM)).getString(ID)).isEqualTo("consumerPid");
+        assertThat(result.getJsonObject(toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM)).getString(ID)).isEqualTo("providerPid");
 
         verify(context, never()).reportProblem(anyString());
     }
@@ -138,7 +140,7 @@ class JsonObjectFromContractNegotiationTransformerTest {
         var result = transformer.transform(negotiation, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getString(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_STATE_TERM))).isEqualTo(expectedDspState);
+        assertThat(result.getJsonObject(toIri(DSPACE_PROPERTY_STATE_TERM)).getString(ID)).isEqualTo(expectedDspState);
 
         verify(context, never()).reportProblem(anyString());
     }
@@ -148,20 +150,20 @@ class JsonObjectFromContractNegotiationTransformerTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.arguments(REQUESTING, DSP_NAMESPACE.toIri(DSPACE_VALUE_NEGOTIATION_STATE_REQUESTED_TERM)),
-                    Arguments.arguments(REQUESTED, DSP_NAMESPACE.toIri(DSPACE_VALUE_NEGOTIATION_STATE_REQUESTED_TERM)),
-                    Arguments.arguments(OFFERING, DSP_NAMESPACE.toIri(DSPACE_VALUE_NEGOTIATION_STATE_OFFERED_TERM)),
-                    Arguments.arguments(OFFERED, DSP_NAMESPACE.toIri(DSPACE_VALUE_NEGOTIATION_STATE_OFFERED_TERM)),
-                    Arguments.arguments(ACCEPTING, DSP_NAMESPACE.toIri(DSPACE_VALUE_NEGOTIATION_STATE_ACCEPTED_TERM)),
-                    Arguments.arguments(ACCEPTED, DSP_NAMESPACE.toIri(DSPACE_VALUE_NEGOTIATION_STATE_ACCEPTED_TERM)),
-                    Arguments.arguments(AGREEING, DSP_NAMESPACE.toIri(DSPACE_VALUE_NEGOTIATION_STATE_AGREED_TERM)),
-                    Arguments.arguments(AGREED, DSP_NAMESPACE.toIri(DSPACE_VALUE_NEGOTIATION_STATE_AGREED_TERM)),
-                    Arguments.arguments(VERIFYING, DSP_NAMESPACE.toIri(DSPACE_VALUE_NEGOTIATION_STATE_VERIFIED_TERM)),
-                    Arguments.arguments(VERIFIED, DSP_NAMESPACE.toIri(DSPACE_VALUE_NEGOTIATION_STATE_VERIFIED_TERM)),
-                    Arguments.arguments(FINALIZING, DSP_NAMESPACE.toIri(DSPACE_VALUE_NEGOTIATION_STATE_FINALIZED_TERM)),
-                    Arguments.arguments(FINALIZED, DSP_NAMESPACE.toIri(DSPACE_VALUE_NEGOTIATION_STATE_FINALIZED_TERM)),
-                    Arguments.arguments(TERMINATING, DSP_NAMESPACE.toIri(DSPACE_VALUE_NEGOTIATION_STATE_TERMINATED_TERM)),
-                    Arguments.arguments(TERMINATED, DSP_NAMESPACE.toIri(DSPACE_VALUE_NEGOTIATION_STATE_TERMINATED_TERM))
+                    Arguments.arguments(REQUESTING, toIri(DSPACE_VALUE_NEGOTIATION_STATE_REQUESTED_TERM)),
+                    Arguments.arguments(REQUESTED, toIri(DSPACE_VALUE_NEGOTIATION_STATE_REQUESTED_TERM)),
+                    Arguments.arguments(OFFERING, toIri(DSPACE_VALUE_NEGOTIATION_STATE_OFFERED_TERM)),
+                    Arguments.arguments(OFFERED, toIri(DSPACE_VALUE_NEGOTIATION_STATE_OFFERED_TERM)),
+                    Arguments.arguments(ACCEPTING, toIri(DSPACE_VALUE_NEGOTIATION_STATE_ACCEPTED_TERM)),
+                    Arguments.arguments(ACCEPTED, toIri(DSPACE_VALUE_NEGOTIATION_STATE_ACCEPTED_TERM)),
+                    Arguments.arguments(AGREEING, toIri(DSPACE_VALUE_NEGOTIATION_STATE_AGREED_TERM)),
+                    Arguments.arguments(AGREED, toIri(DSPACE_VALUE_NEGOTIATION_STATE_AGREED_TERM)),
+                    Arguments.arguments(VERIFYING, toIri(DSPACE_VALUE_NEGOTIATION_STATE_VERIFIED_TERM)),
+                    Arguments.arguments(VERIFIED, toIri(DSPACE_VALUE_NEGOTIATION_STATE_VERIFIED_TERM)),
+                    Arguments.arguments(FINALIZING, toIri(DSPACE_VALUE_NEGOTIATION_STATE_FINALIZED_TERM)),
+                    Arguments.arguments(FINALIZED, toIri(DSPACE_VALUE_NEGOTIATION_STATE_FINALIZED_TERM)),
+                    Arguments.arguments(TERMINATING, toIri(DSPACE_VALUE_NEGOTIATION_STATE_TERMINATED_TERM)),
+                    Arguments.arguments(TERMINATED, toIri(DSPACE_VALUE_NEGOTIATION_STATE_TERMINATED_TERM))
             );
         }
     }

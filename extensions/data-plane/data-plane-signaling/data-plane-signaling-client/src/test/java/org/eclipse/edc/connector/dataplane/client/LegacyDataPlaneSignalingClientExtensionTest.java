@@ -26,8 +26,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.client.LegacyDataPlaneSignalingClientExtension.CONTROL_CLIENT_SCOPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_2025_1_IRI;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_PREFIX;
-import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_SCHEMA;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_PREFIX;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -48,7 +48,7 @@ class LegacyDataPlaneSignalingClientExtensionTest {
 
         assertThat(client).isInstanceOf(LegacyDataPlaneSignalingClient.class);
         verify(jsonLd).registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, CONTROL_CLIENT_SCOPE);
-        verify(jsonLd).registerNamespace(DSPACE_PREFIX, DSPACE_SCHEMA, CONTROL_CLIENT_SCOPE);
+        verify(jsonLd).registerNamespace(DSPACE_PREFIX, DSPACE_2025_1_IRI, CONTROL_CLIENT_SCOPE);
         verify(jsonLd).registerNamespace(VOCAB, EDC_NAMESPACE, CONTROL_CLIENT_SCOPE);
     }
 

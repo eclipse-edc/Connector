@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
@@ -52,10 +52,10 @@ public class JsonObjectFromTransferRequestMessageTransformer extends AbstractNam
         var builder = jsonBuilderFactory.createObjectBuilder()
                 .add(ID, transferRequestMessage.getId())
                 .add(TYPE, forNamespace(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_TERM))
-                .add(forNamespace(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID_TERM), transferRequestMessage.getContractId())
-                .add(DCT_FORMAT_ATTRIBUTE, format)
+                .add(forNamespace(DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID_TERM), createId(jsonBuilderFactory, transferRequestMessage.getContractId()))
+                .add(DCT_FORMAT_ATTRIBUTE, createId(jsonBuilderFactory, format))
                 .add(forNamespace(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM), transferRequestMessage.getCallbackAddress())
-                .add(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), transferRequestMessage.getConsumerPid());
+                .add(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), createId(jsonBuilderFactory, transferRequestMessage.getConsumerPid()));
 
         if (transferRequestMessage.getDataDestination() != null && transferRequestMessage.getDataDestination().getProperties().size() > 1) {
             builder.add(forNamespace(DSPACE_PROPERTY_DATA_ADDRESS_TERM), context.transform(transferRequestMessage.getDataDestination(), JsonObject.class));
