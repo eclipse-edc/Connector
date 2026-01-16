@@ -175,7 +175,7 @@ public class DcpPresentationFlowWithDockerTest {
         var baseCallbackUrl = "http://0.0.0.0:%s".formatted(CALLBACK_PORT);
         var baseCallbackUri = URI.create(baseCallbackUrl);
 
-        try (var tckContainer = new GenericContainer<>("eclipsedataspacetck/dcp-tck-runtime:latest")
+        try (var tckContainer = new GenericContainer<>("eclipsedataspacetck/dcp-tck-runtime:1.0.0-RC6")
                 .withExtraHost("host.docker.internal", "host-gateway")
                 .withExposedPorts(CALLBACK_PORT)
                 .withEnv(Map.of(

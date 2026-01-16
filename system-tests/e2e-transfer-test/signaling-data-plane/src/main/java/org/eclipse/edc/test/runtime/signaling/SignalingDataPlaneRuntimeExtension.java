@@ -37,7 +37,11 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import static java.net.http.HttpResponse.BodyHandlers.ofString;
@@ -58,12 +62,14 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
     private Monitor monitor;
 
     private Dataplane dataplane;
+    private Map<String, ScheduledFuture<?>> ongoingNonFiniteTransfers = new HashMap<>();
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         dataplane = Dataplane.newInstance()
                 .endpoint("http://localhost:%d%s/v1/dataflows".formatted(httpPort, httpPath))
                 .transferType("Finite-PUSH")
+                .transferType("Finite-PULL")
                 .transferType("NonFinite-PUSH")
                 .transferType("NonFinite-PULL")
                 .onPrepare(new DataplaneOnPrepare())
@@ -93,11 +99,13 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
                         return Result.failure(new InvalidRequestException("DataAddress should not be null for PUSH transfers"));
                     }
 
-                    Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
+                    var future = Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
                         var destinationUri = URI.create(dataFlow.getDataAddress().endpoint());
                         var request = HttpRequest.newBuilder(destinationUri).POST(HttpRequest.BodyPublishers.ofString("test-data")).build();
                         HttpClient.newHttpClient().sendAsync(request, HttpResponse.BodyHandlers.discarding());
                     }, 0, 200, TimeUnit.MILLISECONDS);
+
+                    ongoingNonFiniteTransfers.put(dataFlow.getId(), future);
 
                     return Result.success(dataFlow);
                 }
@@ -109,22 +117,11 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
                     var destinationUri = URI.create(dataFlow.getDataAddress().endpoint());
                     var request = HttpRequest.newBuilder(destinationUri).POST(HttpRequest.BodyPublishers.ofString("test-data")).build();
                     HttpClient.newHttpClient().sendAsync(request, HttpResponse.BodyHandlers.discarding())
-                            .whenComplete((response, throwable) -> {
-                                if (throwable == null) {
-                                    var statusCode = response.statusCode();
-                                    if (statusCode >= 200 && statusCode < 300) {
-                                        notifyCompleted(dataFlow);
-                                    } else {
-                                        dataplane.notifyErrored(dataFlow.getId(), new RuntimeException("Destination endpoint responded with " + statusCode));
-                                    }
-                                } else {
-                                    dataplane.notifyErrored(dataFlow.getId(), throwable);
-                                }
-                            });
+                            .whenComplete((response, throwable) -> notifyCompletion(dataFlow, response, throwable));
 
                     return Result.success(dataFlow);
                 }
-                case "NonFinite-PULL" -> {
+                case "NonFinite-PULL", "Finite-PULL" -> {
                     var dataAddress = new DataAddress(dataFlow.getTransferType(), "http", "http://localhost:%d%s/source".formatted(httpPort, httpPath), emptyList());
                     dataFlow.setDataAddress(dataAddress);
                     return Result.success(dataFlow);
@@ -135,40 +132,45 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
             }
         }
 
-        private void notifyCompleted(DataFlow dataFlow) {
-            var retryPolicy = RetryPolicy.builder().withMaxRetries(5).withDelay(Duration.ofSeconds(1)).build();
-            Failsafe.with(retryPolicy).run(context -> {
-                if (dataplane.notifyCompleted(dataFlow.getId()).failed()) {
-                    throw new RuntimeException("Notification failed");
-                }
-            });
-        }
     }
 
     private class DataplaneOnStarted implements OnStarted {
         @Override
         public Result<DataFlow> action(DataFlow dataFlow) {
 
-            if (dataFlow.getTransferType().endsWith("-PULL")) {
-                var sourceUri = URI.create(dataFlow.getDataAddress().endpoint());
-                Executors.newSingleThreadScheduledExecutor().scheduleAtFixedRate(() -> {
-                    var request = HttpRequest.newBuilder(sourceUri).GET().build();
-                    HttpClient.newHttpClient().sendAsync(request, ofString()).whenComplete((response, throwable) -> {
-                        if (throwable == null) {
-                            if (response.statusCode() == 200) {
-                                var body = response.body();
-                                monitor.info("Received data for data flow %s: %s".formatted(dataFlow.getId(), body));
-                            } else {
-                                monitor.severe("Error retrieving data: %s: %s".formatted(response.statusCode(), response.body()));
-                            }
-                        } else {
-                            monitor.severe("Error retrieving data", throwable);
-                        }
-                    });
-                }, 0, 200, TimeUnit.MILLISECONDS);
+            switch (dataFlow.getTransferType()) {
+                case "NonFinite-PULL" -> {
+                    var sourceUri = URI.create(dataFlow.getDataAddress().endpoint());
+                    var future = Executors.newSingleThreadScheduledExecutor()
+                            .scheduleAtFixedRate(() -> requestData(dataFlow, sourceUri), 0, 200, TimeUnit.MILLISECONDS);
+
+                    ongoingNonFiniteTransfers.put(dataFlow.getId(), future);
+                }
+                case "Finite-PULL" -> {
+                    var sourceUri = URI.create(dataFlow.getDataAddress().endpoint());
+                    requestData(dataFlow, sourceUri)
+                            .whenComplete((response, throwable) -> notifyCompletion(dataFlow, response, throwable));
+                }
+                default -> { }
             }
 
             return Result.success(dataFlow);
+        }
+
+        private CompletableFuture<HttpResponse<String>> requestData(DataFlow dataFlow, URI sourceUri) {
+            var request = HttpRequest.newBuilder(sourceUri).GET().build();
+            return HttpClient.newHttpClient().sendAsync(request, ofString()).whenComplete((response, throwable) -> {
+                if (throwable == null) {
+                    if (response.statusCode() == 200) {
+                        var body = response.body();
+                        monitor.info("Received data for data flow %s: %s".formatted(dataFlow.getId(), body));
+                    } else {
+                        monitor.severe("Error retrieving data: %s: %s".formatted(response.statusCode(), response.body()));
+                    }
+                } else {
+                    monitor.severe("Error retrieving data", throwable);
+                }
+            });
         }
     }
 
@@ -184,8 +186,37 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
     private class DataplaneOnTerminate implements OnTerminate {
         @Override
         public Result<DataFlow> action(DataFlow dataFlow) {
+            var future = ongoingNonFiniteTransfers.get(dataFlow.getId());
+            if (future != null) {
+                future.cancel(true);
+                ongoingNonFiniteTransfers.remove(dataFlow.getId());
+                monitor.info("Ongoing flow %s terminated".formatted(dataFlow.getId()));
+            }
             return Result.success(dataFlow);
         }
+    }
+
+    private void notifyCompletion(DataFlow dataFlow, HttpResponse<?> response, Throwable throwable) {
+        if (throwable == null) {
+            var statusCode = response.statusCode();
+            if (statusCode >= 200 && statusCode < 300) {
+                notifyCompleted(dataFlow);
+            } else {
+                dataplane.notifyErrored(dataFlow.getId(), new RuntimeException("Data source/destination endpoint responded with " + statusCode));
+            }
+        } else {
+            dataplane.notifyErrored(dataFlow.getId(), throwable);
+        }
+    }
+
+    private void notifyCompleted(DataFlow dataFlow) {
+        var retryPolicy = RetryPolicy.builder().withMaxRetries(5).withDelay(Duration.ofSeconds(1)).build();
+        Failsafe.with(retryPolicy).run(context -> {
+            var notifyCompleted = dataplane.notifyCompleted(dataFlow.getId());
+            if (notifyCompleted.failed()) {
+                throw new RuntimeException("Notify Completed failed: " + notifyCompleted);
+            }
+        });
     }
 
 }

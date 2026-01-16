@@ -72,8 +72,10 @@ public class StatefulEntityTriggerSubscriber<SE extends StatefulEntity<SE>, EP> 
                                         trigger.action().accept(entity);
                                         update(entity);
                                     }).onFailure(f -> {
-                                        monitor.warning("Cannot find entity %s: %s, so trigger doesn't get executed. Event: %s".formatted(id, f.getReason(), event.getClass().getSimpleName()));
+                                        monitor.severe("Cannot find entity %s: %s, so trigger doesn't get executed. Event: %s"
+                                                .formatted(id, f.getReason(), event.getClass().getSimpleName()));
                                     });
+
                         });
                     } catch (Exception e) {
                         monitor.severe("Generic error while trying to execute TCK trigger on event " + envelope.getPayload().name(), e);
