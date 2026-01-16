@@ -39,6 +39,7 @@ import static org.eclipse.edc.connector.controlplane.test.system.utils.Participa
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
@@ -82,6 +83,12 @@ interface TransferSignalingEndToEndTest {
         var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
         consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
         providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
+
+        provider.terminateTransfer(providerTransferProcessId);
+        provider.awaitTransferToBeInState(providerTransferProcessId, TERMINATED);
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "TERMINATED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "TERMINATED");
     }
 
     @Test
@@ -98,6 +105,29 @@ interface TransferSignalingEndToEndTest {
         var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
         consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
         providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
+
+        consumer.terminateTransfer(consumerTransferProcessId);
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
+        provider.awaitTransferToBeInState(providerTransferProcessId, TERMINATED);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "TERMINATED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "TERMINATED");
+    }
+
+    @Test
+    default void shouldTransferFiniteDataWithPull(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
+                                                  @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                  @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
+                                                  @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+
+        var assetId = createOffer(provider);
+        var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
+                .withTransferType("Finite-PULL").execute();
+
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, COMPLETED);
+        var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
+        provider.awaitTransferToBeInState(providerTransferProcessId, COMPLETED);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "COMPLETED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "COMPLETED");
     }
 
     private String createOffer(TransferEndToEndParticipant provider) {
@@ -116,7 +146,7 @@ interface TransferSignalingEndToEndTest {
 
     @Nested
     @EndToEndTest
-    class InMemory implements TransferSignalingEndToEndTest {
+    class InMemoryTest implements TransferSignalingEndToEndTest {
 
         static final Endpoints CONSUMER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
         static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
@@ -170,7 +200,7 @@ interface TransferSignalingEndToEndTest {
 
     @Nested
     @PostgresqlIntegrationTest
-    class Postgres implements TransferSignalingEndToEndTest {
+    class PostgresTest implements TransferSignalingEndToEndTest {
 
         static final String CONSUMER_DB = "consumer";
         static final String PROVIDER_DB = "provider";
