@@ -37,10 +37,6 @@ public interface DataPlaneAuthorizationService {
      * <p>
      * In addition, this service checks whether the token has permission to access the data identified by the {@code requestData} parameter, which could be a URL,
      * or query params, etc.
-     * <p>
-     * The result (if successful) of this method is the original {@link DataAddress} that was passed to a previous invocation of
-     * {@link DataPlaneAuthorizationService#createEndpointDataReference(DataFlow)}, i.e. {@link DataFlowStartMessage#getSourceDataAddress()}.
-     *
      * @param token       The raw, encoded token, e.g. serialized JWT
      * @param requestData Additional information about the request, such as a URL, query params, headers, etc.
      * @return The {@link DataAddress} that was encapsulated in the original {@link DataFlowStartMessage}
