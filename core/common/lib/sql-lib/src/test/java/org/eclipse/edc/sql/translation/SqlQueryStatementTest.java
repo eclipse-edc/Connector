@@ -114,6 +114,28 @@ class SqlQueryStatementTest {
         assertThat(t.getParameters()).containsExactly("testid1", customParameter, 50, 0);
     }
 
+    @Test
+    void forUpdate() {
+        var criterion = new Criterion("field1", "=", "testid1");
+        var builder = queryBuilder(criterion).sortField("description");
+        when(criterionToWhereClauseConverter.convert(any())).thenReturn(new WhereClause("edc_field_1 = ?", "testid1"));
+        var t = new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping(), criterionToWhereClauseConverter)
+                .forUpdate();
+
+        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 = ? ORDER BY edc_description ASC LIMIT ? OFFSET ? FOR UPDATE;");
+    }
+
+    @Test
+    void forUpdate_skipLocked() {
+        var criterion = new Criterion("field1", "=", "testid1");
+        var builder = queryBuilder(criterion).sortField("description");
+        when(criterionToWhereClauseConverter.convert(any())).thenReturn(new WhereClause("edc_field_1 = ?", "testid1"));
+        var t = new SqlQueryStatement(SELECT_STATEMENT, builder.sortOrder(SortOrder.ASC).build(), new TestMapping(), criterionToWhereClauseConverter)
+                .forUpdate(true);
+
+        assertThat(t.getQueryAsString()).isEqualToIgnoringCase(SELECT_STATEMENT + " WHERE edc_field_1 = ? ORDER BY edc_description ASC LIMIT ? OFFSET ? FOR UPDATE SKIP LOCKED;");
+    }
+
     private QuerySpec.Builder queryBuilder(Criterion... criterion) {
         return QuerySpec.Builder.newInstance().filter(List.of(criterion));
     }

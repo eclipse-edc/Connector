@@ -44,6 +44,7 @@ public class SqlQueryStatement {
     private CriterionToWhereClauseConverter criterionToWhereConditionConverter;
     private SortFieldConverter sortFieldConverter;
     private String orderByClause = "";
+    private String forUpdate = "";
 
     /**
      * Initializes this SQL Query Statement.
@@ -61,10 +62,10 @@ public class SqlQueryStatement {
     /**
      * Initializes this SQL Query Statement with a SELECT clause, a {@link QuerySpec}, a translation mapping and a criterion converter
      *
-     * @param selectStatement                    The SELECT clause, e.g. {@code SELECT * FROM your_table}
-     * @param query                              a {@link QuerySpec} that contains a query in the canonical format
-     * @param rootModel                          A {@link TranslationMapping} that enables mapping from canonical to the
-     *                                           SQL-specific model/format
+     * @param selectStatement                 The SELECT clause, e.g. {@code SELECT * FROM your_table}
+     * @param query                           a {@link QuerySpec} that contains a query in the canonical format
+     * @param rootModel                       A {@link TranslationMapping} that enables mapping from canonical to the
+     *                                        SQL-specific model/format
      * @param criterionToWhereClauseConverter Converts criterion to where condition clauses
      */
     public SqlQueryStatement(String selectStatement, QuerySpec query, TranslationMapping rootModel, CriterionToWhereClauseConverter criterionToWhereClauseConverter) {
@@ -100,6 +101,7 @@ public class SqlQueryStatement {
                 orderByClause +
                 LIMIT +
                 OFFSET +
+                forUpdate +
                 ";";
     }
 
@@ -126,6 +128,15 @@ public class SqlQueryStatement {
         whereClauses.add(clause);
         Collections.addAll(this.parameters, parameters);
         return this;
+    }
+
+    public SqlQueryStatement forUpdate(boolean skipLocked) {
+        this.forUpdate = skipLocked ? " FOR UPDATE SKIP LOCKED" : " FOR UPDATE";
+        return this;
+    }
+
+    public SqlQueryStatement forUpdate() {
+        return forUpdate(false);
     }
 
     private void initialize(QuerySpec query) {
