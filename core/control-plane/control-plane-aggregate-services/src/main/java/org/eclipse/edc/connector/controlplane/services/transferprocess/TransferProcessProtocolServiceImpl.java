@@ -156,7 +156,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         return transactionContext.execute(() -> fetchRequestContext(participantContext, message.getTransferProcessId())
                 .compose(context -> verifyRequest(participantContext, tokenRepresentation, context, message)
                         .compose(claimTokenContext -> validateCounterParty(claimTokenContext.participantAgent(), claimTokenContext.agreement())
-                        .map(it -> context.transferProcess())))
+                                .map(it -> context.transferProcess())))
         );
     }
 
@@ -226,11 +226,13 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             transferProcess.setContentDataAddress(message.getDataAddress());
             transferProcess.transitionStartupRequested();
             update(transferProcess);
+            observable.invokeForEach(l -> l.startupRequested(transferProcess));
             return ServiceResult.success(transferProcess);
         } else if (transferProcess.getType() == PROVIDER && transferProcess.currentStateIsOneOf(SUSPENDED)) {
             transferProcess.protocolMessageReceived(message.getId());
             transferProcess.transitionStarting();
             update(transferProcess);
+            observable.invokeForEach(l -> l.startingRequested(transferProcess));
             return ServiceResult.success(transferProcess);
         } else {
             return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be started"));
@@ -243,7 +245,9 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             transferProcess.protocolMessageReceived(message.getId());
             transferProcess.transitionCompletingRequested();
             update(transferProcess);
+            // this is not completed yet, just requested - the actual completion will happen later
             observable.invokeForEach(l -> l.completed(transferProcess));
+            observable.invokeForEach(l -> l.completingRequested(transferProcess));
             return ServiceResult.success(transferProcess);
         } else {
             return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be completed"));
@@ -257,6 +261,8 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             transferProcess.transitionSuspendingRequested(reason);
             transferProcess.protocolMessageReceived(message.getId());
             update(transferProcess);
+            observable.invokeForEach(l -> l.suspendingRequested(transferProcess));
+
             return ServiceResult.success(transferProcess);
         } else {
             return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be suspended"));
@@ -269,6 +275,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             transferProcess.transitionTerminatingRequested();
             transferProcess.protocolMessageReceived(message.getId());
             update(transferProcess);
+            observable.invokeForEach(l -> l.terminatingRequested(transferProcess));
             return ServiceResult.success(transferProcess);
         } else {
             return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be terminated"));
@@ -398,7 +405,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
     private void update(TransferProcess transferProcess) {
         transferProcessStore.save(transferProcess);
-        monitor.debug(format("TransferProcess %s is now in state %s", transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
+        monitor.debug(format("[%s] TransferProcess %s is now in state %s", transferProcess.getType(), transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
     }
 
     private record TransferMessageContext(ContractAgreement agreement, TransferProcess transferProcess) {
