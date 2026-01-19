@@ -14,6 +14,7 @@
 
 plugins {
     `java-library`
+    id("application")
 }
 
 dependencies {
@@ -22,4 +23,8 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-2025"))
     api(project(":system-tests:protocol-tck:tck-extension"))
     runtimeOnly(libs.parsson)
+}
+
+application {
+    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
 }
