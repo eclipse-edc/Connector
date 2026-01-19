@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.spi.iam;
 
-import org.eclipse.edc.connector.dataplane.spi.DataFlow;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
@@ -37,9 +36,6 @@ public interface DataPlaneAuthorizationService {
      * <p>
      * In addition, this service checks whether the token has permission to access the data identified by the {@code requestData} parameter, which could be a URL,
      * or query params, etc.
-     * <p>
-     * The result (if successful) of this method is the original {@link DataAddress} that was passed to a previous invocation of
-     * {@link DataPlaneAuthorizationService#createEndpointDataReference(DataFlow)}, i.e. {@link DataFlowStartMessage#getSourceDataAddress()}.
      *
      * @param token       The raw, encoded token, e.g. serialized JWT
      * @param requestData Additional information about the request, such as a URL, query params, headers, etc.

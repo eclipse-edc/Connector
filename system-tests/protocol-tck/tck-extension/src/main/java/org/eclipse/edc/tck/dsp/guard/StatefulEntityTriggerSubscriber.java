@@ -56,7 +56,7 @@ public class StatefulEntityTriggerSubscriber<SE extends StatefulEntity<SE>, EP> 
     public <E extends Event> void on(EventEnvelope<E> envelope) {
 
         try {
-            TimeUnit.MILLISECONDS.sleep(100);
+            TimeUnit.MILLISECONDS.sleep(50);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -67,9 +67,13 @@ public class StatefulEntityTriggerSubscriber<SE extends StatefulEntity<SE>, EP> 
                         var event = baseEventPayload.cast(envelope.getPayload());
                         transactionContext.execute(() -> {
                             var id = idFromEventPayload.apply(event);
-                            var entity = store.findByIdAndLease(id).getContent();
-                            trigger.action().accept(entity);
-                            update(entity);
+                            store.findByIdAndLease(id)
+                                    .onSuccess(entity -> {
+                                        trigger.action().accept(entity);
+                                        update(entity);
+                                    }).onFailure(f -> {
+                                        monitor.warning("Cannot find entity %s: %s, so trigger doesn't get executed. Event: %s".formatted(id, f.getReason(), event.getClass().getSimpleName()));
+                                    });
                         });
                     } catch (Exception e) {
                         monitor.severe("Generic error while trying to execute TCK trigger on event " + envelope.getPayload().name(), e);
