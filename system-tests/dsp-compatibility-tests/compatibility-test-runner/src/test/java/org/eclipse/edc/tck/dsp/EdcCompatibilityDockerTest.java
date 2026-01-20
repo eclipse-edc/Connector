@@ -47,7 +47,7 @@ import static org.eclipse.edc.util.io.Ports.getFreePort;
 @Testcontainers
 public abstract class EdcCompatibilityDockerTest {
 
-    private static final GenericContainer<?> TCK_CONTAINER = new TckContainer<>("eclipsedataspacetck/dsp-tck-runtime:1.0.0-RC5");
+    private static final GenericContainer<?> TCK_CONTAINER = new TckContainer<>("eclipsedataspacetck/dsp-tck-runtime:1.0.0-RC6");
 
     @Timeout(300)
     @Test
@@ -75,35 +75,13 @@ public abstract class EdcCompatibilityDockerTest {
         }
     }
 
-    protected static Config runtimeConfiguration() {
-        return ConfigFactory.fromMap(new HashMap<>() {
-            {
-                put("edc.participant.id", "participantContextId");
-                put("web.http.port", "8080");
-                put("web.http.path", "/api");
-                put("web.http.control.port", String.valueOf(getFreePort()));
-                put("web.http.control.path", "/api/control");
-                put("web.http.management.port", "8081");
-                put("web.http.management.path", "/api/management");
-                put("web.http.protocol.port", "8282"); // this must match the configured connector url in resources/docker.tck.properties
-                put("web.http.protocol.path", "/api/dsp"); // this must match the configured connector url in resources/docker.tck.properties
-                put("web.api.auth.key", "password");
-                put("edc.dsp.callback.address", "http://host.docker.internal:8282/api/dsp"); // host.docker.internal is required by the container to communicate with the host
-                put("edc.management.context.enabled", "true");
-                put("edc.hostname", "host.docker.internal");
-                put("edc.component.id", "DSP-compatibility-test");
-                put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");
-                put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
-            }
-        });
-    }
-
-    private static String resourceConfig(String resource) {
+    private String resourceConfig(String resource) {
         return Path.of(TestUtils.getResource(resource)).toString();
     }
 
     @EndToEndTest
     public static class InMemoryTest extends EdcCompatibilityDockerTest {
+
         @RegisterExtension
         protected static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime("CUT",
                 ":system-tests:dsp-compatibility-tests:connector-under-test"
@@ -134,6 +112,27 @@ public abstract class EdcCompatibilityDockerTest {
 
     }
 
-
+    protected static Config runtimeConfiguration() {
+        return ConfigFactory.fromMap(new HashMap<>() {
+            {
+                put("edc.participant.id", "participantContextId");
+                put("web.http.port", "8080");
+                put("web.http.path", "/api");
+                put("web.http.control.port", String.valueOf(getFreePort()));
+                put("web.http.control.path", "/api/control");
+                put("web.http.management.port", "8081");
+                put("web.http.management.path", "/api/management");
+                put("web.http.protocol.port", "8282"); // this must match the configured connector url in resources/docker.tck.properties
+                put("web.http.protocol.path", "/api/dsp"); // this must match the configured connector url in resources/docker.tck.properties
+                put("web.api.auth.key", "password");
+                put("edc.dsp.callback.address", "http://host.docker.internal:8282/api/dsp"); // host.docker.internal is required by the container to communicate with the host
+                put("edc.management.context.enabled", "true");
+                put("edc.hostname", "host.docker.internal");
+                put("edc.component.id", "DSP-compatibility-test");
+                put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");
+                put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
+            }
+        });
+    }
 }
 
