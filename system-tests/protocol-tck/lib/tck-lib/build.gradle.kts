@@ -25,7 +25,6 @@ dependencies {
     implementation(project(":spi:common:web-spi"))
     implementation(project(":spi:data-plane:data-plane-spi"))
     implementation(project(":spi:common:participant-context-single-spi"))
-    implementation(project(":system-tests:protocol-tck:lib:tck-lib"))
     implementation(libs.jakarta.rsApi)
     implementation(libs.nimbus.jwt)
 

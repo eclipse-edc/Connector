@@ -27,10 +27,10 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
-import static org.eclipse.edc.tck.dsp.data.DataAssembly.createNegotiationRecorder;
-import static org.eclipse.edc.tck.dsp.data.DataAssembly.createNegotiationTriggers;
-import static org.eclipse.edc.tck.dsp.data.DataAssembly.createTransferProcessRecorder;
-import static org.eclipse.edc.tck.dsp.data.DataAssembly.createTransferProcessTriggers;
+import static org.eclipse.edc.tck.dsp.guard.GuardAssembly.createNegotiationRecorder;
+import static org.eclipse.edc.tck.dsp.guard.GuardAssembly.createNegotiationTriggers;
+import static org.eclipse.edc.tck.dsp.guard.GuardAssembly.createTransferProcessRecorder;
+import static org.eclipse.edc.tck.dsp.guard.GuardAssembly.createTransferProcessTriggers;
 
 /**
  * Loads the transition guard.

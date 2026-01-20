@@ -37,14 +37,21 @@ public class StatefulEntityTriggerSubscriber<SE extends StatefulEntity<SE>, EP> 
     private final TransactionContext transactionContext;
     private final Class<EP> baseEventPayload;
     private final Function<EP, String> idFromEventPayload;
+    private final int delayMillis;
 
     public StatefulEntityTriggerSubscriber(Monitor monitor, StateEntityStore<SE> store, TransactionContext transactionContext,
                                            Class<EP> eventPayloadBaseClass, Function<EP, String> idFromEventPayload) {
+        this(monitor, store, transactionContext, eventPayloadBaseClass, idFromEventPayload, 50);
+    }
+
+    public StatefulEntityTriggerSubscriber(Monitor monitor, StateEntityStore<SE> store, TransactionContext transactionContext,
+                                           Class<EP> eventPayloadBaseClass, Function<EP, String> idFromEventPayload, int delayMillis) {
         this.monitor = monitor;
         this.store = store;
         this.transactionContext = transactionContext;
         this.baseEventPayload = eventPayloadBaseClass;
         this.idFromEventPayload = idFromEventPayload;
+        this.delayMillis = delayMillis;
     }
 
     @Override
@@ -56,7 +63,7 @@ public class StatefulEntityTriggerSubscriber<SE extends StatefulEntity<SE>, EP> 
     public <E extends Event> void on(EventEnvelope<E> envelope) {
 
         try {
-            TimeUnit.MILLISECONDS.sleep(50);
+            TimeUnit.MILLISECONDS.sleep(delayMillis);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }

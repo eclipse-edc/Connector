@@ -20,12 +20,13 @@ import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.Co
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
-import static org.eclipse.edc.tck.dsp.data.DataAssembly.createAssets;
-import static org.eclipse.edc.tck.dsp.data.DataAssembly.createContractDefinitions;
-import static org.eclipse.edc.tck.dsp.data.DataAssembly.createContractNegotiations;
-import static org.eclipse.edc.tck.dsp.data.DataAssembly.createPolicyDefinitions;
+import static org.eclipse.edc.tck.dsp.data.DataSeed.createAssets;
+import static org.eclipse.edc.tck.dsp.data.DataSeed.createContractDefinitions;
+import static org.eclipse.edc.tck.dsp.data.DataSeed.createContractNegotiations;
+import static org.eclipse.edc.tck.dsp.data.DataSeed.createPolicyDefinitions;
 import static org.eclipse.edc.tck.dsp.setup.TckSetupExtension.NAME;
 
 /**
@@ -34,6 +35,10 @@ import static org.eclipse.edc.tck.dsp.setup.TckSetupExtension.NAME;
 @Extension(NAME)
 public class TckSetupExtension implements ServiceExtension {
     public static final String NAME = "DSP TCK Setup";
+
+
+    @Setting(description = "Configures the participant context id for the tck suite runtime", key = "edc.participant.context.id", defaultValue = "participantContextId")
+    public String participantContextId;
 
     @Inject
     private AssetIndex assetIndex;
@@ -54,10 +59,10 @@ public class TckSetupExtension implements ServiceExtension {
 
     @Override
     public void prepare() {
-        createAssets().forEach(asset -> assetIndex.create(asset));
-        createPolicyDefinitions().forEach(definition -> policyDefinitionService.create(definition));
-        createContractDefinitions().forEach(definition -> contractDefinitionService.create(definition));
-        createContractNegotiations().forEach(negotiation -> contractNegotiationStore.save(negotiation));
+        createAssets(participantContextId).forEach(asset -> assetIndex.create(asset));
+        createPolicyDefinitions(participantContextId).forEach(definition -> policyDefinitionService.create(definition));
+        createContractDefinitions(participantContextId).forEach(definition -> contractDefinitionService.create(definition));
+        createContractNegotiations(participantContextId).forEach(negotiation -> contractNegotiationStore.save(negotiation));
     }
 
 
