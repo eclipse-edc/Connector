@@ -39,6 +39,7 @@ import static org.eclipse.edc.connector.controlplane.test.system.utils.Participa
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -128,6 +129,69 @@ interface TransferSignalingEndToEndTest {
         provider.awaitTransferToBeInState(providerTransferProcessId, COMPLETED);
         consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "COMPLETED");
         providerDataPlane.awaitFlowToBe(providerTransferProcessId, "COMPLETED");
+    }
+
+    @Test
+    default void shouldSuspendAndResumeFromProvider(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
+                                                    @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                    @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
+                                                    @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+
+        var assetId = createOffer(provider);
+        var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
+                .withTransferType("NonFinite-PULL").execute();
+
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+        var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
+        provider.awaitTransferToBeInState(providerTransferProcessId, STARTED);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
+
+        provider.suspendTransfer(providerTransferProcessId, "any reason");
+
+        provider.awaitTransferToBeInState(providerTransferProcessId, SUSPENDED);
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, SUSPENDED);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "SUSPENDED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "SUSPENDED");
+
+        provider.resumeTransfer(providerTransferProcessId);
+
+        provider.awaitTransferToBeInState(providerTransferProcessId, STARTED);
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
+    }
+
+
+    @Test
+    default void shouldSuspendAndResumeFromConsumer(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
+                                                    @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                    @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
+                                                    @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+
+        var assetId = createOffer(provider);
+        var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
+                .withTransferType("NonFinite-PUSH").execute();
+
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+        var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
+        provider.awaitTransferToBeInState(providerTransferProcessId, STARTED);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
+
+        consumer.suspendTransfer(consumerTransferProcessId, "any reason");
+
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, SUSPENDED);
+        provider.awaitTransferToBeInState(providerTransferProcessId, SUSPENDED);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "SUSPENDED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "SUSPENDED");
+
+        consumer.resumeTransfer(consumerTransferProcessId);
+
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+        provider.awaitTransferToBeInState(providerTransferProcessId, STARTED);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
     }
 
     private String createOffer(TransferEndToEndParticipant provider) {

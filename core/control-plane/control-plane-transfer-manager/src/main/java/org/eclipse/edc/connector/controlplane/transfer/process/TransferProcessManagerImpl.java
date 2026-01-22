@@ -49,7 +49,6 @@ import org.eclipse.edc.statemachine.AbstractStateEntityManager;
 import org.eclipse.edc.statemachine.Processor;
 import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.StateMachineManager;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -401,7 +400,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .reason(process.getErrorDetail());
 
         return entityRetryProcessFactory.retryProcessor(process)
-                .doProcess(result("Suspend DataFlow", (t, c) -> suspendDataFlow(process)))
+                .doProcess(result("Suspend DataFlow", (t, c) -> dataFlowController.suspend(process)))
                 .doProcess(futureResult("Dispatch TransferSuspensionMessage to " + process.getCounterPartyAddress(),
                         (t, dataFlowResponse) -> {
                             if (t.suspensionWasRequestedByCounterParty()) {
@@ -456,15 +455,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 })
                 .onFinalFailure(this::transitionToTerminated)
                 .execute();
-    }
-
-    @NotNull
-    private StatusResult<Void> suspendDataFlow(TransferProcess process) {
-        if (process.getType() == PROVIDER) {
-            return dataFlowController.suspend(process);
-        } else {
-            return StatusResult.success();
-        }
     }
 
     private <T, M extends TransferRemoteMessage, B extends TransferRemoteMessage.Builder<M, B>> CompletableFuture<StatusResult<T>> dispatch(B messageBuilder, TransferProcess process, Class<T> responseType) {

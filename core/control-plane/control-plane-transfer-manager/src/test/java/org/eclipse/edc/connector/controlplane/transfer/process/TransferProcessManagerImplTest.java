@@ -822,16 +822,17 @@ class TransferProcessManagerImplTest {
         }
 
         @Test
-        void consumer_shouldTransitionToSuspended_whenMessageSentCorrectly() {
+        void consumer_shouldSuspendDataFlowAndTransitionToSuspended_whenMessageSentCorrectly() {
             var process = createTransferProcessBuilder(SUSPENDING).type(CONSUMER).correlationId("counterPartyId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING.code()).build());
             when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dataFlowController.suspend(any())).thenReturn(StatusResult.success());
 
             manager.start();
 
             await().untilAsserted(() -> {
-                verifyNoInteractions(dataFlowController);
+                verify(dataFlowController).suspend(process);
                 var captor = ArgumentCaptor.forClass(TransferSuspensionMessage.class);
                 verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
                 var message = captor.getValue();
@@ -888,7 +889,7 @@ class TransferProcessManagerImplTest {
 
         @Test
         void shouldSuspendDataFlowAndTransitionToSuspendedAndNotSendMessage_whenMessageWasSentByCounterPart() {
-            var process = createTransferProcessBuilder(SUSPENDING_REQUESTED).type(PROVIDER).correlationId("counterPartyId").build();
+            var process = createTransferProcessBuilder(SUSPENDING_REQUESTED).type(CONSUMER).correlationId("counterPartyId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(SUSPENDING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(SUSPENDING_REQUESTED.code()).build());
             when(dataFlowController.suspend(any())).thenReturn(StatusResult.success());

@@ -23,7 +23,6 @@ import org.eclipse.dataplane.domain.dataflow.DataFlow;
 import org.eclipse.dataplane.logic.OnPrepare;
 import org.eclipse.dataplane.logic.OnStart;
 import org.eclipse.dataplane.logic.OnStarted;
-import org.eclipse.dataplane.logic.OnTerminate;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -31,6 +30,7 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -61,8 +61,8 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
     @Inject
     private Monitor monitor;
 
+    private final Map<String, ScheduledFuture<?>> ongoingNonFiniteTransfers = new HashMap<>();
     private Dataplane dataplane;
-    private Map<String, ScheduledFuture<?>> ongoingNonFiniteTransfers = new HashMap<>();
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -75,8 +75,9 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
                 .onPrepare(new DataplaneOnPrepare())
                 .onStart(new DataplaneOnStart())
                 .onStarted(new DataplaneOnStarted())
+                .onSuspend(this::stopDataFlow)
                 .onCompleted(Result::success)
-                .onTerminate(new DataplaneOnTerminate())
+                .onTerminate(this::stopDataFlow)
                 .build();
         webService.registerResource(dataplane.controller());
         webService.registerResource(new ReceiveDataController(monitor));
@@ -183,17 +184,14 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
         }
     }
 
-    private class DataplaneOnTerminate implements OnTerminate {
-        @Override
-        public Result<DataFlow> action(DataFlow dataFlow) {
-            var future = ongoingNonFiniteTransfers.get(dataFlow.getId());
-            if (future != null) {
-                future.cancel(true);
-                ongoingNonFiniteTransfers.remove(dataFlow.getId());
-                monitor.info("Ongoing flow %s terminated".formatted(dataFlow.getId()));
-            }
-            return Result.success(dataFlow);
+    private @NotNull Result<DataFlow> stopDataFlow(DataFlow dataFlow) {
+        var future = ongoingNonFiniteTransfers.get(dataFlow.getId());
+        if (future != null) {
+            future.cancel(true);
+            ongoingNonFiniteTransfers.remove(dataFlow.getId());
+            monitor.info("Ongoing flow %s terminated".formatted(dataFlow.getId()));
         }
+        return Result.success(dataFlow);
     }
 
     private void notifyCompletion(DataFlow dataFlow, HttpResponse<?> response, Throwable throwable) {
@@ -218,5 +216,4 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
             }
         });
     }
-
 }

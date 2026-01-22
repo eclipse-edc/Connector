@@ -359,7 +359,7 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
     class Suspend {
 
         @Test
-        void shouldCallTerminate() {
+        void shouldCallSuspend() {
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("transferProcessId")
                     .contentDataAddress(testDataAddress())
@@ -393,7 +393,7 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
         }
 
         @Test
-        void shouldFail_whenDataPlaneIdIsNull() {
+        void shouldDoNothing_whenDataPlaneIdIsNull() {
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("transferProcessId")
                     .contentDataAddress(testDataAddress())
@@ -402,7 +402,7 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
 
             var result = flowController.suspend(transferProcess);
 
-            assertThat(result).isFailed().detail().contains("Failed to select the data plane for suspending the transfer process");
+            assertThat(result).isSucceeded();
             verifyNoInteractions(dataPlaneClient, dataPlaneClientFactory, selectorService);
         }
 
