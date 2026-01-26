@@ -22,7 +22,12 @@ dependencies {
 
     implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
 
-    implementation(libs.bundles.jersey.core)
+    implementation(libs.jersey.server)
+    implementation(libs.jersey.common)
+    implementation(libs.jersey.jackson)
+    implementation(libs.jersey.multipart)
+    implementation(libs.jersey.inject)
+    implementation(libs.jersey.servlet)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:connector-core"))
