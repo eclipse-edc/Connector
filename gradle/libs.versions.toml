@@ -19,7 +19,7 @@ jakarta-servlet = "6.1.0"
 jakarta-transaction = "2.0.1"
 jackson = "2.20.1"
 jackson-annotations = "2.20"
-jersey = "3.1.11"
+jersey = "4.0.0"
 jetbrainsAnnotation = "26.0.2-1"
 jetty = "12.1.5"
 junit-pioneer = "2.3.0"
@@ -72,7 +72,6 @@ jersey-jackson = { module = "org.glassfish.jersey.media:jersey-media-json-jackso
 jersey-multipart = { module = "org.glassfish.jersey.media:jersey-media-multipart", version.ref = "jersey" }
 jersey-server = { module = "org.glassfish.jersey.core:jersey-server", version.ref = "jersey" }
 jersey-servlet = { module = "org.glassfish.jersey.containers:jersey-container-servlet", version.ref = "jersey" }
-jersey-servletcore = { module = "org.glassfish.jersey.containers:jersey-container-servlet-core", version.ref = "jersey" }
 jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrainsAnnotation" }
 jetty-http = { module = "org.eclipse.jetty:jetty-http", version.ref = "jetty" }
 jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty" }
@@ -127,7 +126,6 @@ dsp-core = { module = "org.eclipse.dataspacetck.dsp:core", version.ref = "dcp-tc
 
 [bundles]
 jackson = ["jackson-annotations", "jackson-databind"]
-jersey-core = ["jersey-server", "jersey-common", "jersey-jackson", "jersey-multipart", "jersey-inject", "jersey-servlet", "jersey-servletcore"]
 
 [plugins]
 edc-build = { id = "org.eclipse.edc.edc-build", version = "1.1.5" }
