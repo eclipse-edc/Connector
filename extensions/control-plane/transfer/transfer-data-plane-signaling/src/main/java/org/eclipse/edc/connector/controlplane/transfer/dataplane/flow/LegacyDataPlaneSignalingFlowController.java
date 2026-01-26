@@ -155,6 +155,9 @@ public class LegacyDataPlaneSignalingFlowController implements DataFlowControlle
 
     @Override
     public StatusResult<Void> suspend(TransferProcess transferProcess) {
+        if (transferProcess.getDataPlaneId() == null) {
+            return StatusResult.success();
+        }
         return Optional.ofNullable(transferProcess.getDataPlaneId())
                 .map(StatusResult::success)
                 .orElse(StatusResult.failure(FATAL_ERROR, "DataPlane id is null"))
