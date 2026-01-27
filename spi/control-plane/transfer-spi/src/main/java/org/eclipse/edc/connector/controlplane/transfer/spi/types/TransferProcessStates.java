@@ -25,7 +25,7 @@ public enum TransferProcessStates {
     INITIAL(100),
     @Deprecated(since = "0.16.0")
     PROVISIONING(200),
-    PROVISIONING_REQUESTED(250),
+    PREPARATION_REQUESTED(250),
     @Deprecated(since = "0.16.0")
     PROVISIONED(300),
     REQUESTING(400),

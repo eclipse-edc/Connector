@@ -197,8 +197,9 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             } else {
                 var response = provisioning.getContent();
                 process.setDataPlaneId(response.getDataPlaneId());
-                if (response.isProvisioning()) {
-                    process.transitionProvisioningRequested();
+                if (response.isAsync()) {
+                    process.transitionPreparationRequested();
+                    observable.invokeForEach(l -> l.preparationRequested(process));
                 } else {
                     process.updateDestination(response.getDataAddress());
                     process.transitionRequesting();
@@ -296,7 +297,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         return entityRetryProcessFactory.retryProcessor(process)
                 .doProcess(result("Start DataFlow", (t, c) -> dataFlowController.start(process, policy)))
                 .doProcess(futureResult("Dispatch TransferRequestMessage to: " + process.getCounterPartyAddress(), (t, dataFlowResponse) -> {
-                    if (dataFlowResponse.isProvisioning()) {
+                    if (dataFlowResponse.isAsync()) {
                         return completedFuture(StatusResult.success(dataFlowResponse));
                     }
                     var messageBuilder = TransferStartMessage.Builder.newInstance().dataAddress(dataFlowResponse.getDataAddress());
@@ -305,7 +306,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 }))
                 .onSuccess((t, dataFlowResponse) -> {
                     t.setDataPlaneId(dataFlowResponse.getDataPlaneId());
-                    if (dataFlowResponse.isProvisioning()) {
+                    if (dataFlowResponse.isAsync()) {
                         process.transitionStartupRequested();
                         update(t);
 

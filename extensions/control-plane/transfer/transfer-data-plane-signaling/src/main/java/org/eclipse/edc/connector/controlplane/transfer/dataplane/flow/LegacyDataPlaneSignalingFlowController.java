@@ -238,7 +238,7 @@ public class LegacyDataPlaneSignalingFlowController implements DataFlowControlle
         return DataFlowResponse.Builder.newInstance()
                 .dataAddress(it.getDataAddress())
                 .dataPlaneId(dataPlaneInstance.getId())
-                .provisioning(it.isProvisioning())
+                .async(it.isProvisioning())
                 .build();
     }
 

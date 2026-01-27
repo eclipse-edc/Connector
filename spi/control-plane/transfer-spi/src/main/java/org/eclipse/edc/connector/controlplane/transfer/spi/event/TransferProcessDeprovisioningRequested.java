@@ -20,8 +20,11 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * This event is raised when the TransferProcess has been requested for deprovisioning.
+ *
+ * @deprecated will be removed soon.
  */
 @JsonDeserialize(builder = TransferProcessDeprovisioningRequested.Builder.class)
+@Deprecated(since = "0.16.0")
 public class TransferProcessDeprovisioningRequested extends TransferProcessEvent {
 
     private TransferProcessDeprovisioningRequested() {

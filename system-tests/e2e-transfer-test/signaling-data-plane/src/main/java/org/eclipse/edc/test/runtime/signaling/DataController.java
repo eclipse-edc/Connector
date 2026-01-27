@@ -14,16 +14,17 @@
 
 package org.eclipse.edc.test.runtime.signaling;
 
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import org.eclipse.edc.spi.monitor.Monitor;
 
-@Path("/")
-public class ReceiveDataController {
+@Path("/data")
+public class DataController {
 
     private final Monitor monitor;
 
-    public ReceiveDataController(Monitor monitor) {
+    public DataController(Monitor monitor) {
         this.monitor = monitor;
     }
 
@@ -31,6 +32,13 @@ public class ReceiveDataController {
     @Path("/receive")
     public void receiveData(String data) {
         monitor.info("Data received: " + data);
+    }
+
+    @GET
+    @Path("/source")
+    public String dataSource() {
+        monitor.info("Data requested");
+        return "data";
     }
 
 }

@@ -48,9 +48,9 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PREPARATION_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONING;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMED;
@@ -159,15 +159,15 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
         protocolMessages.addReceived(id);
     }
 
-    public void transitionProvisioningRequested() {
-        transition(PROVISIONING_REQUESTED, PROVISIONING, INITIAL);
+    public void transitionPreparationRequested() {
+        transition(PREPARATION_REQUESTED, PROVISIONING, INITIAL);
     }
 
     public void transitionRequesting() {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no REQUESTING state");
         }
-        transition(REQUESTING, INITIAL, PROVISIONED, PROVISIONING_REQUESTED, REQUESTING);
+        transition(REQUESTING, INITIAL, PROVISIONED, PREPARATION_REQUESTED, REQUESTING);
     }
 
     public void transitionRequested() {
@@ -213,7 +213,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     }
 
     public boolean canBeTerminated() {
-        return currentStateIsOneOf(INITIAL, PROVISIONING, PROVISIONING_REQUESTED, PROVISIONED, REQUESTING, REQUESTED,
+        return currentStateIsOneOf(INITIAL, PROVISIONING, PREPARATION_REQUESTED, PROVISIONED, REQUESTING, REQUESTED,
                 STARTING, STARTUP_REQUESTED, STARTED, COMPLETING, COMPLETING_REQUESTED, SUSPENDING, SUSPENDING_REQUESTED,
                 SUSPENDED, RESUMING, TERMINATING, TERMINATING_REQUESTED);
     }

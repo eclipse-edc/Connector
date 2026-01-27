@@ -38,6 +38,7 @@ class DataFlowResponseMessageToDataFlowResponseTransformerTest {
         var message = DataFlowResponseMessage.Builder.newInstance()
                 .dataplaneId("dataPlaneId")
                 .dataAddress(DspDataAddress.Builder.newInstance().build())
+                .state("STARTED")
                 .build();
 
         var result = transformer.transform(message, context);
@@ -45,5 +46,22 @@ class DataFlowResponseMessageToDataFlowResponseTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getDataPlaneId()).isSameAs("dataPlaneId");
         assertThat(result.getDataAddress()).isSameAs(dataAddress);
+        assertThat(result.isAsync()).isFalse();
+    }
+
+    @Test
+    void shouldBeAsync_whenStateEndsWithIng() {
+        var dataAddress = DataAddress.Builder.newInstance().type("any").build();
+        when(context.transform(isA(DspDataAddress.class), any())).thenReturn(dataAddress);
+        var message = DataFlowResponseMessage.Builder.newInstance()
+                .dataplaneId("dataPlaneId")
+                .dataAddress(DspDataAddress.Builder.newInstance().build())
+                .state("STARTING")
+                .build();
+
+        var result = transformer.transform(message, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.isAsync()).isTrue();
     }
 }

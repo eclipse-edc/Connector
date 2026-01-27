@@ -39,7 +39,7 @@ public class DataFlowResponseMessageToDataFlowResponseTransformer implements Typ
         return DataFlowResponse.Builder.newInstance()
                 .dataAddress(context.transform(dataFlowResponseMessage.getDataAddress(), DataAddress.class))
                 .dataPlaneId(dataFlowResponseMessage.getDataplaneId())
-                .provisioning(false)
+                .async(dataFlowResponseMessage.getState().endsWith("ING"))
                 .build();
     }
 

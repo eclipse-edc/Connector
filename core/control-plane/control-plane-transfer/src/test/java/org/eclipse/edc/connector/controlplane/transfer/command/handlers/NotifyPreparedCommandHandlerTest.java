@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONING_REQUESTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PREPARATION_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
@@ -48,7 +48,7 @@ class NotifyPreparedCommandHandlerTest {
         var newDestination = DataAddress.Builder.newInstance().type("new").build();
         var originalDestination = DataAddress.Builder.newInstance().type("original").build();
         var command = new NotifyPreparedCommand("test-id", newDestination);
-        var entity = TransferProcess.Builder.newInstance().state(PROVISIONING_REQUESTED.code()).type(CONSUMER).dataDestination(originalDestination).build();
+        var entity = TransferProcess.Builder.newInstance().state(PREPARATION_REQUESTED.code()).type(CONSUMER).dataDestination(originalDestination).build();
 
         var result = handler.modify(entity, command);
 
@@ -61,7 +61,7 @@ class NotifyPreparedCommandHandlerTest {
     void shouldNotUpdateDestination_whenItIsMissing() {
         var command = new NotifyPreparedCommand("test-id", null);
         var originalDestination = DataAddress.Builder.newInstance().type("original").build();
-        var entity = TransferProcess.Builder.newInstance().state(PROVISIONING_REQUESTED.code()).dataDestination(originalDestination).build();
+        var entity = TransferProcess.Builder.newInstance().state(PREPARATION_REQUESTED.code()).dataDestination(originalDestination).build();
 
         var result = handler.modify(entity, command);
 
@@ -87,7 +87,7 @@ class NotifyPreparedCommandHandlerTest {
     @Test
     void postAction_shouldCallProvisioned() {
         var command = new NotifyPreparedCommand("test-id", null);
-        var entity = TransferProcess.Builder.newInstance().state(PROVISIONING_REQUESTED.code()).build();
+        var entity = TransferProcess.Builder.newInstance().state(PREPARATION_REQUESTED.code()).build();
         var listener = mock(TransferProcessListener.class);
         observable.registerListener(listener);
 
