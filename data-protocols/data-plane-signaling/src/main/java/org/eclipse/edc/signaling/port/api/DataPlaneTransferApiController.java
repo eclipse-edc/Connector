@@ -21,10 +21,17 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyPreparedCommand;
+import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
+import org.eclipse.edc.signaling.domain.DataFlowResponseMessage;
+import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToException;
 
 @Path("/transfers")
 @Produces(APPLICATION_JSON)
@@ -32,9 +39,25 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 public class DataPlaneTransferApiController implements DataPlaneTransferApi {
 
     private final TransferProcessService transferProcessService;
+    private final TypeTransformerRegistry typeTransformerRegistry;
 
-    public DataPlaneTransferApiController(TransferProcessService transferProcessService) {
+    public DataPlaneTransferApiController(TransferProcessService transferProcessService, TypeTransformerRegistry typeTransformerRegistry) {
         this.transferProcessService = transferProcessService;
+        this.typeTransformerRegistry = typeTransformerRegistry;
+    }
+
+    @Path("/{transferId}/dataflow/prepared")
+    @POST
+    @Override
+    public Response prepared(@PathParam("transferId") String transferId, DataFlowResponseMessage message) {
+        typeTransformerRegistry.transform(message, DataFlowResponse.class)
+                .map(ServiceResult::success)
+                .orElse(failure -> ServiceResult.badRequest(failure.getMessages()))
+                .map(response -> new NotifyPreparedCommand(transferId, response.getDataAddress()))
+                .compose(transferProcessService::notifyPrepared)
+                .orElseThrow(f -> mapToException(f, DataFlowPrepareMessage.class));
+
+        return Response.ok().build();
     }
 
     @Path("/{transferId}/dataflow/completed")

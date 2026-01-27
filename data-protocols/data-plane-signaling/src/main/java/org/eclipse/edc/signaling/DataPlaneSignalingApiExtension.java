@@ -20,8 +20,12 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.signaling.port.api.DataPlaneRegistrationApiController;
 import org.eclipse.edc.signaling.port.api.DataPlaneTransferApiController;
+import org.eclipse.edc.signaling.port.transformer.DataAddressToDspDataAddressTransformer;
+import org.eclipse.edc.signaling.port.transformer.DataFlowResponseMessageToDataFlowResponseTransformer;
+import org.eclipse.edc.signaling.port.transformer.DspDataAddressToDataAddressTransformer;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
@@ -38,6 +42,8 @@ public class DataPlaneSignalingApiExtension implements ServiceExtension {
     private WebService webService;
     @Inject
     private TransferProcessService transferProcessService;
+    @Inject
+    private TypeTransformerRegistry transformerRegistry;
 
     @Override
     public String name() {
@@ -46,8 +52,12 @@ public class DataPlaneSignalingApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var typeTransformerRegistry = transformerRegistry.forContext("signaling-api");
+        typeTransformerRegistry.register(new DataAddressToDspDataAddressTransformer());
+        typeTransformerRegistry.register(new DataFlowResponseMessageToDataFlowResponseTransformer());
+        typeTransformerRegistry.register(new DspDataAddressToDataAddressTransformer());
         webService.registerResource(ApiContext.CONTROL, new DataPlaneRegistrationApiController(dataPlaneSelectorService));
-        webService.registerResource(ApiContext.CONTROL, new DataPlaneTransferApiController(transferProcessService));
+        webService.registerResource(ApiContext.CONTROL, new DataPlaneTransferApiController(transferProcessService, typeTransformerRegistry));
     }
 
 

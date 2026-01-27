@@ -120,7 +120,7 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
             assertThat(result).isSucceeded().satisfies(dataFlowResponse -> {
                 assertThat(dataFlowResponse.getDataPlaneId()).isEqualTo(dataPlaneInstance.getId());
                 assertThat(dataFlowResponse.getDataAddress()).isSameAs(newDestinationAddress);
-                assertThat(dataFlowResponse.isProvisioning()).isTrue();
+                assertThat(dataFlowResponse.isAsync()).isTrue();
             });
             verify(dataPlaneClient).prepare(isA(DataFlowProvisionMessage.class));
         }

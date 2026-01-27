@@ -47,7 +47,7 @@ public class ControlApiHttpClientImpl implements ControlApiHttpClient {
     public ServiceResult<String> request(Request.Builder requestBuilder) {
         authenticationProvider.authenticationHeaders().forEach(requestBuilder::header);
         try (
-                var response = httpClient.execute(requestBuilder.build(), List.of(retryWhenStatusIsNotIn(200, 204)));
+                var response = httpClient.execute(requestBuilder.build(), List.of(retryWhenStatusIsNotIn(200, 202, 204)));
                 var responseBody = response.body();
         ) {
             if (response.isSuccessful()) {

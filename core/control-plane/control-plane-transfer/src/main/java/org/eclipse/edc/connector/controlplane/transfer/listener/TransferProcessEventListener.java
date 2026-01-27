@@ -19,8 +19,8 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessDeprovisioningRequested;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessEvent;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessInitiated;
+import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessPreparationRequested;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessProvisioned;
-import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessProvisioningRequested;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessRequested;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessSuspended;
@@ -49,8 +49,8 @@ public class TransferProcessEventListener implements TransferProcessListener {
     }
 
     @Override
-    public void provisioningRequested(TransferProcess process) {
-        var event = withBaseProperties(TransferProcessProvisioningRequested.Builder.newInstance(), process)
+    public void preparationRequested(TransferProcess process) {
+        var event = withBaseProperties(TransferProcessPreparationRequested.Builder.newInstance(), process)
                 .build();
 
         eventRouter.publish(event);

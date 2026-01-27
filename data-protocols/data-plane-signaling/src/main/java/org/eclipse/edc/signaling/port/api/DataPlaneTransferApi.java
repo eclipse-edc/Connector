@@ -23,12 +23,24 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.api.model.ApiCoreSchema;
+import org.eclipse.edc.signaling.domain.DataFlowResponseMessage;
 
 import static jakarta.ws.rs.HttpMethod.POST;
 
 @OpenAPIDefinition
 @Tag(name = "Data Plane Transfer events")
 public interface DataPlaneTransferApi {
+
+    @Operation(
+            method = POST,
+            description = "Notify a prepared transfer",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Prepared notification delivered correctly"),
+                    @ApiResponse(responseCode = "404", description = "Transfer process does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+            }
+    )
+    Response prepared(String transferId, DataFlowResponseMessage message);
 
     @Operation(
             method = POST,

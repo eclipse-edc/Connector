@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.test.e2e.dataplane;
 
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 
+import static io.restassured.RestAssured.given;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.equalTo;
 
@@ -31,7 +31,7 @@ public class DataPlaneSignalingClient {
     public void awaitFlowToBe(String flowId, String status) {
         await().untilAsserted(() -> {
             var uri = context.getEndpoint("default").get();
-            RestAssured.given()
+            given()
                     .baseUri(uri.toString())
                     .get("/v1/dataflows/{flowId}/status", flowId)
                     .then()
@@ -40,5 +40,16 @@ public class DataPlaneSignalingClient {
                     .contentType(ContentType.JSON)
                     .body("state", equalTo(status));
         });
+    }
+
+    public void completePreparation(String flowId) {
+        var uri = context.getEndpoint("default").get();
+
+        given()
+                .baseUri(uri.toString())
+                .post("/control/flows/{flowId}/complete-preparation", flowId)
+                .then()
+                .log().ifValidationFails()
+                .statusCode(204);
     }
 }

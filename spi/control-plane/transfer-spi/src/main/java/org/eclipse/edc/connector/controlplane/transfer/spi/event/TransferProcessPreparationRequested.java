@@ -19,24 +19,24 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
- * This event is raised when the TransferProcess has been requested for provisioning.
+ * This event is raised when the TransferProcess has been requested for preparation.
  */
-@JsonDeserialize(builder = TransferProcessProvisioningRequested.Builder.class)
-public class TransferProcessProvisioningRequested extends TransferProcessEvent {
+@JsonDeserialize(builder = TransferProcessPreparationRequested.Builder.class)
+public class TransferProcessPreparationRequested extends TransferProcessEvent {
 
-    private TransferProcessProvisioningRequested() {
+    private TransferProcessPreparationRequested() {
     }
 
     @Override
     public String name() {
-        return "transfer.process.provisioningRequested";
+        return "transfer.process.preparationRequested";
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder extends TransferProcessEvent.Builder<TransferProcessProvisioningRequested, Builder> {
+    public static class Builder extends TransferProcessEvent.Builder<TransferProcessPreparationRequested, Builder> {
 
         private Builder() {
-            super(new TransferProcessProvisioningRequested());
+            super(new TransferProcessPreparationRequested());
         }
 
         @JsonCreator

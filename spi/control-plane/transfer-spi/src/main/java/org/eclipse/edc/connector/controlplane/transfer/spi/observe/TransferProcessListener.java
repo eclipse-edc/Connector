@@ -37,11 +37,11 @@ public interface TransferProcessListener {
     }
 
     /**
-     * Called after an asynchronous provisioning for a {@link TransferProcess} was requested.
+     * Called after an asynchronous preparation for a {@link TransferProcess} was requested.
      *
-     * @param process the transfer process that has been requested for provisioning.
+     * @param process the transfer process that has been requested for preparation.
      */
-    default void provisioningRequested(TransferProcess process) {
+    default void preparationRequested(TransferProcess process) {
 
     }
 

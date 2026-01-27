@@ -75,7 +75,7 @@ public class JsonObjectFromTransferProcessTransformer extends AbstractNamespaceA
         }
 
         return switch (transferProcessState) {
-            case INITIAL, REQUESTING, REQUESTED, PROVISIONING, PROVISIONING_REQUESTED, PROVISIONED, STARTUP_REQUESTED ->
+            case INITIAL, REQUESTING, REQUESTED, PROVISIONING, PREPARATION_REQUESTED, PROVISIONED, STARTUP_REQUESTED ->
                     forNamespace(DSPACE_VALUE_TRANSFER_STATE_REQUESTED_TERM);
             case STARTING, SUSPENDING_REQUESTED, STARTED -> forNamespace(DSPACE_VALUE_TRANSFER_STATE_STARTED_TERM);
             case SUSPENDING, SUSPENDED, RESUMING, RESUMED ->

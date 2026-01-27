@@ -75,7 +75,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONING_REQUESTED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PREPARATION_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMED;
@@ -490,11 +490,11 @@ class TransferProcessManagerImplTest {
         }
 
         @Test
-        void shouldTransitionToProvisioningRequested_whenProvisionThroughDataplaneSucceeds() {
+        void shouldTransitionToPreparationRequested_whenProvisionThroughDataplaneSucceeds() {
             var dataPlaneId = UUID.randomUUID().toString();
             var dataFlowResponse = DataFlowResponse.Builder.newInstance()
                     .dataPlaneId(dataPlaneId)
-                    .provisioning(true)
+                    .async(true)
                     .build();
             var transferProcess = createTransferProcess(INITIAL);
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
@@ -506,10 +506,11 @@ class TransferProcessManagerImplTest {
 
             await().untilAsserted(() -> {
                 verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+                verify(listener).preparationRequested(transferProcess);
                 var captor = ArgumentCaptor.forClass(TransferProcess.class);
                 verify(transferProcessStore).save(captor.capture());
                 var storedTransferProcess = captor.getValue();
-                assertThat(storedTransferProcess.getState()).isEqualTo(PROVISIONING_REQUESTED.code());
+                assertThat(storedTransferProcess.getState()).isEqualTo(PREPARATION_REQUESTED.code());
                 assertThat(storedTransferProcess.getDataPlaneId()).isEqualTo(dataPlaneId);
             });
         }
@@ -521,7 +522,7 @@ class TransferProcessManagerImplTest {
             var dataFlowResponse = DataFlowResponse.Builder.newInstance()
                     .dataPlaneId(dataPlaneId)
                     .dataAddress(dataDestination)
-                    .provisioning(false)
+                    .async(false)
                     .build();
             var transferProcess = createTransferProcess(INITIAL);
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
@@ -699,7 +700,7 @@ class TransferProcessManagerImplTest {
             when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process);
             when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(
-                    dataFlowResponseBuilder().provisioning(true).dataPlaneId("dataPlaneId").build()));
+                    dataFlowResponseBuilder().async(true).dataPlaneId("dataPlaneId").build()));
 
             manager.start();
 

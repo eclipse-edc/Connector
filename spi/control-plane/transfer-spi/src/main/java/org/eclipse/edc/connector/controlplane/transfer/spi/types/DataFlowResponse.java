@@ -24,7 +24,7 @@ public class DataFlowResponse {
 
     private DataAddress dataAddress;
     private String dataPlaneId;
-    private boolean provisioning;
+    private boolean async;
 
     private DataFlowResponse() {
     }
@@ -37,8 +37,8 @@ public class DataFlowResponse {
         return dataPlaneId;
     }
 
-    public boolean isProvisioning() {
-        return provisioning;
+    public boolean isAsync() {
+        return async;
     }
 
     public static class Builder {
@@ -63,8 +63,8 @@ public class DataFlowResponse {
             return this;
         }
 
-        public Builder provisioning(boolean provisioning) {
-            response.provisioning = provisioning;
+        public Builder async(boolean provisioning) {
+            response.async = provisioning;
             return this;
         }
 

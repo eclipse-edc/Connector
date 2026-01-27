@@ -38,6 +38,7 @@ import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_
 import static org.eclipse.edc.connector.controlplane.test.system.utils.Participant.MANAGEMENT_V4;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PREPARATION_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
@@ -161,8 +162,7 @@ interface TransferSignalingEndToEndTest {
         consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
         providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
     }
-
-
+    
     @Test
     default void shouldSuspendAndResumeFromConsumer(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
                                                     @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
@@ -192,6 +192,26 @@ interface TransferSignalingEndToEndTest {
         provider.awaitTransferToBeInState(providerTransferProcessId, STARTED);
         consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
         providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
+    }
+
+    @Test
+    default void shouldSupportAsyncPreparation(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
+                                       @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                       @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
+                                       @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+        var assetId = createOffer(provider);
+        var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
+                .withTransferType("AsyncPrepare-PUSH").execute();
+
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, PREPARATION_REQUESTED);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "PREPARING");
+
+        consumerDataPlane.completePreparation(consumerTransferProcessId);
+
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, COMPLETED);
+        var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "COMPLETED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "COMPLETED");
     }
 
     private String createOffer(TransferEndToEndParticipant provider) {

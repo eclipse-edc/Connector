@@ -104,11 +104,11 @@ public class DataPlaneSignalingClient {
 
     private StatusResult<DataFlowResponseMessage> handleResponse(String responseBody) {
         return Optional.ofNullable(responseBody)
-                .map(this::deserializeStartMessage)
+                .map(this::deserializeResponseMessage)
                 .orElseGet(() -> StatusResult.failure(FATAL_ERROR, "Body missing"));
     }
 
-    private StatusResult<DataFlowResponseMessage> deserializeStartMessage(String responseBody) {
+    private StatusResult<DataFlowResponseMessage> deserializeResponseMessage(String responseBody) {
         try {
             var message = objectMapperSupplier.get().readValue(responseBody, DataFlowResponseMessage.class);
             return StatusResult.success(message);
