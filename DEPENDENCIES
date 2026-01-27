@@ -131,6 +131,7 @@ maven/mavencentral/net.bytebuddy/byte-buddy-agent/1.14.1, Apache-2.0, approved, 
 maven/mavencentral/net.bytebuddy/byte-buddy-agent/1.17.7, Apache-2.0, approved, #19238
 maven/mavencentral/net.bytebuddy/byte-buddy/1.14.1, Apache-2.0 AND BSD-3-Clause, approved, #7163
 maven/mavencentral/net.bytebuddy/byte-buddy/1.17.7, Apache-2.0 AND BSD-3-Clause, approved, #19239
+maven/mavencentral/net.bytebuddy/byte-buddy/1.18.3, Apache-2.0 AND BSD-3-Clause, approved, #24658
 maven/mavencentral/net.java.dev.jna/jna/5.18.1, Apache-2.0 AND LGPL-2.1-or-later, approved, #23404
 maven/mavencentral/net.javacrumbs.json-unit/json-unit-core/2.40.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/net.minidev/accessors-smart/2.6.0, Apache-2.0, approved, #24380
@@ -166,6 +167,7 @@ maven/mavencentral/org.apache.maven.doxia/doxia-sink-api/1.12.0, Apache-2.0, app
 maven/mavencentral/org.apache.xbean/xbean-reflect/3.7, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.apiguardian/apiguardian-api/1.1.2, Apache-2.0, approved, #17641
 maven/mavencentral/org.assertj/assertj-core/3.27.6, Apache-2.0, approved, #17980
+maven/mavencentral/org.assertj/assertj-core/3.27.7, Apache-2.0, approved, #17980
 maven/mavencentral/org.awaitility/awaitility/4.2.0, Apache-2.0, approved, #14178
 maven/mavencentral/org.awaitility/awaitility/4.2.2, Apache-2.0, approved, #14178
 maven/mavencentral/org.awaitility/awaitility/4.3.0, Apache-2.0, approved, clearlydefined
