@@ -91,3 +91,4 @@
 - [2025-10-29 Participant identifiers resolution](2025-10-29-participant-identifiers)
 - [2025-11-10 Extracting service for presentation requests](2025-11-10-presentation-request-service)
 - [2026-01-08 inline DataFlowManager](2026-01-08-inline-data-flow-manager)
+- [2026-01-27 Adopt CEL expressions](2026-01-27-adopt-cel-expressions)
