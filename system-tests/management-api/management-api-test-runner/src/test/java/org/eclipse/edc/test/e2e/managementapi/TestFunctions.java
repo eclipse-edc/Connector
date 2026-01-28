@@ -216,6 +216,18 @@ public class TestFunctions {
 
     }
 
+    public static JsonObject celExpression(String context) {
+        return createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "CelExpression")
+                .add(ID, "cel-expression-id")
+                .add("leftOperand", "some.left.operand")
+                .add("expression", "someExpression == true")
+                .add("description", "A CEL expression for testing")
+                .add("scopes", createArrayBuilder().add("scope1").add("scope2").build())
+                .build();
+    }
+
     public static JsonObject terminateNegotiationObject(String context) {
         return Json.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder(context).build())

@@ -48,6 +48,7 @@ public interface ManagementApiJsonSchema {
         String SUSPEND_TRANSFER = EDC_MGMT_V4_SCHEMA_PREFIX + "/transfer-suspend-schema.json";
         String PARTICIPANT_CONTEXT = EDC_MGMT_V4_SCHEMA_PREFIX + "/participant-context-schema.json";
         String PARTICIPANT_CONTEXT_CONFIG = EDC_MGMT_V4_SCHEMA_PREFIX + "/participant-context-config-schema.json";
+        String CEL_EXPRESSION = EDC_MGMT_V4_SCHEMA_PREFIX + "/cel-expression-schema.json";
 
 
         static String version() {

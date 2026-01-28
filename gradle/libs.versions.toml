@@ -43,6 +43,7 @@ dsp-tck = "1.0.0-RC6"
 dcp-tck = "1.0.0-RC6"
 junit = "6.0.1"
 wiremock = "3.13.2"
+cel = "0.11.1"
 
 [libraries]
 iron-vc = { module = "com.apicatalog:iron-verifiable-credentials", version.ref = "apicatalog" }
@@ -97,6 +98,7 @@ testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka", ver
 testcontainers-postgres = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
 testcontainers-vault = { module = "org.testcontainers:testcontainers-vault", version.ref = "testcontainers" }
 tink = { module = "com.google.crypto.tink:tink", version.ref = "tink" }
+cel = { module = "dev.cel:cel", version.ref = "cel" }
 
 
 # other technology extensions
