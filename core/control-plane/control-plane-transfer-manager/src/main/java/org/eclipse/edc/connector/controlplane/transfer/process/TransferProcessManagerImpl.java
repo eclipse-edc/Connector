@@ -178,6 +178,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
      */
     @WithSpan
     private boolean processInitial(TransferProcess process) {
+        // TODO: split this method! C and P
         var contractId = process.getContractId();
         var policy = policyArchive.findPolicyForContract(contractId);
 
@@ -207,16 +208,27 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             }
 
         } else {
+            // this is to support the legacy data plane signaling, it will be deleted when the legacy protocol will be dismissed
             var assetId = process.getAssetId();
             var dataAddress = addressResolver.resolveForAsset(assetId);
-            if (dataAddress == null) {
-                transitionToStarting(process);
-                return true;
+            if (dataAddress != null) {
+                process.setContentDataAddress(dataAddress);
             }
-            // default the content address to the asset address; this may be overridden during provisioning
-            process.setContentDataAddress(dataAddress);
 
-            process.transitionStarting();
+            // TODO: unit tests
+            var starting = dataFlowController.start(process, policy); // TODO: retry mechanism
+            if (starting.failed()) {
+                // retry!
+            }
+
+            var response = starting.getContent();
+            process.setDataPlaneId(response.getDataPlaneId());
+            if (response.isAsync()) {
+                process.transitionStartupRequested();
+            } else {
+                process.setContentDataAddress(response.getDataAddress());
+                process.transitionStarting();
+            }
         }
 
         update(process);
@@ -292,30 +304,15 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     }
 
     private boolean startTransferFlow(TransferProcess process, Consumer<TransferProcess> onFailure) {
-        var policy = policyArchive.findPolicyForContract(process.getContractId());
-
         return entityRetryProcessFactory.retryProcessor(process)
-                .doProcess(result("Start DataFlow", (t, c) -> dataFlowController.start(process, policy)))
                 .doProcess(futureResult("Dispatch TransferRequestMessage to: " + process.getCounterPartyAddress(), (t, dataFlowResponse) -> {
-                    if (dataFlowResponse.isAsync()) {
-                        return completedFuture(StatusResult.success(dataFlowResponse));
-                    }
-                    var messageBuilder = TransferStartMessage.Builder.newInstance().dataAddress(dataFlowResponse.getDataAddress());
-                    return dispatch(messageBuilder, t, Object.class)
-                            .thenApply(result -> result.map(i -> dataFlowResponse));
+                    var messageBuilder = TransferStartMessage.Builder.newInstance().dataAddress(t.getContentDataAddress());
+                    return dispatch(messageBuilder, t, Object.class);
                 }))
-                .onSuccess((t, dataFlowResponse) -> {
-                    t.setDataPlaneId(dataFlowResponse.getDataPlaneId());
-                    if (dataFlowResponse.isAsync()) {
-                        process.transitionStartupRequested();
-                        update(t);
-
-                    } else {
-                        process.transitionStarted();
-                        update(t);
-                        observable.invokeForEach(l -> l.started(t, TransferProcessStartedData.Builder.newInstance().build()));
-                    }
-
+                .onSuccess((t, o) -> {
+                    t.transitionStarted();
+                    update(t);
+                    observable.invokeForEach(l -> l.started(t, TransferProcessStartedData.Builder.newInstance().build()));
                 })
                 .onFailure((t, throwable) -> onFailure.accept(t))
                 .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))

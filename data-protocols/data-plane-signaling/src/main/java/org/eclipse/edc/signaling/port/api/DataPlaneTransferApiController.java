@@ -24,8 +24,10 @@ import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.Trans
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyPreparedCommand;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyStartedCommand;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowResponseMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
@@ -56,6 +58,20 @@ public class DataPlaneTransferApiController implements DataPlaneTransferApi {
                 .map(response -> new NotifyPreparedCommand(transferId, response.getDataAddress()))
                 .compose(transferProcessService::notifyPrepared)
                 .orElseThrow(f -> mapToException(f, DataFlowPrepareMessage.class));
+
+        return Response.ok().build();
+    }
+
+    @Path("/{transferId}/dataflow/started")
+    @POST
+    @Override
+    public Response started(@PathParam("transferId") String transferId, DataFlowResponseMessage message) {
+        typeTransformerRegistry.transform(message, DataFlowResponse.class)
+                .map(ServiceResult::success)
+                .orElse(failure -> ServiceResult.badRequest(failure.getMessages()))
+                .map(response -> new NotifyStartedCommand(transferId, response.getDataAddress()))
+                .compose(transferProcessService::notifyStarted)
+                .orElseThrow(f -> mapToException(f, DataFlowStartMessage.class));
 
         return Response.ok().build();
     }

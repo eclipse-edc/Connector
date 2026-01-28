@@ -47,6 +47,15 @@ public class ControlController {
         }).orElseThrow(RuntimeException::new);
     }
 
+    @POST
+    @Path("/flows/{flowId}/complete-startup")
+    public void completeStartup(@PathParam("flowId") String flowId) {
+        dataplane.notifyStarted(flowId, dataFlow -> {
+            dataFlow.setDataAddress(new DataAddress("http", apiConfiguration.dataSourceEndpoint(), emptyList()));
+            return Result.success(dataFlow);
+        }).orElseThrow(RuntimeException::new);
+    }
+
     @GET
     @Path("/source")
     public String dataSource() {

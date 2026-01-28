@@ -73,6 +73,7 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
                 .transferType("NonFinite-PUSH")
                 .transferType("NonFinite-PULL")
                 .transferType("AsyncPrepare-PUSH")
+                .transferType("AsyncStart-PULL")
                 .onPrepare(new DataplaneOnPrepare())
                 .onStart(new DataplaneOnStart())
                 .onStarted(new DataplaneOnStarted())
@@ -123,6 +124,10 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
                     dataFlow.setDataAddress(dataAddress);
                     return Result.success(dataFlow);
                 }
+                case "AsyncStart-PULL" -> {
+                    dataFlow.transitionToStarting();
+                    return Result.success(dataFlow);
+                }
                 default -> {
                     return Result.failure(new RuntimeException("TransferType %s not supported".formatted(dataFlow.getTransferType())));
                 }
@@ -149,7 +154,7 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
 
                     ongoingNonFiniteTransfers.put(dataFlow.getId(), future);
                 }
-                case "Finite-PULL" -> {
+                case "Finite-PULL", "AsyncStart-PULL" -> {
                     var sourceUri = URI.create(dataFlow.getDataAddress().endpoint());
                     requestData(dataFlow, sourceUri)
                             .whenComplete((response, throwable) -> notifyCompletion(dataFlow, response, throwable));

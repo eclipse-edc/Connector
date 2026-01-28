@@ -52,4 +52,15 @@ public class DataPlaneSignalingClient {
                 .log().ifValidationFails()
                 .statusCode(204);
     }
+
+    public void completeStartup(String flowId) {
+        var uri = context.getEndpoint("default").get();
+
+        given()
+                .baseUri(uri.toString())
+                .post("/control/flows/{flowId}/complete-startup", flowId)
+                .then()
+                .log().ifValidationFails()
+                .statusCode(204);
+    }
 }
