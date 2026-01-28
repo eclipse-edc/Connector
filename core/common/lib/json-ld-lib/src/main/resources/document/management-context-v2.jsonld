@@ -489,6 +489,18 @@
         }
       }
     },
+    "CelExpression": {
+      "@id": "edc:CelExpression",
+      "@context": {
+        "leftOperand": "edc:leftOperand",
+        "scopes": {
+          "@id": "edc:scopes",
+          "@container": "@set"
+        },
+        "expression": "edc:expression",
+        "description": "edc:description"
+      }
+    },
     "inForceDate": "edc:inForceDate",
     "ruleFunctions": {
       "@id": "edc:ruleFunctions",
