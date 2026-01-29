@@ -47,16 +47,21 @@ maven/mavencentral/com.github.docker-java/docker-java-transport/3.7.0, Apache-2.
 maven/mavencentral/com.github.jknack/handlebars-helpers/4.3.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.github.jknack/handlebars/4.3.1, MIT AND Apache-2.0, approved, #3064
 maven/mavencentral/com.github.luben/zstd-jni/1.5.6-10, BSD-2-Clause, approved, #19830
+maven/mavencentral/com.google.auto.value/auto-value-annotations/1.11.0, Apache-2.0, approved, #15058
+maven/mavencentral/com.google.code.findbugs/annotations/3.0.1, CC-BY-2.5 AND LGPL-2.1-or-later, restricted, #2120
+maven/mavencentral/com.google.code.findbugs/jsr305/3.0.1, Apache-2.0 and CC-BY-2.5, approved, #15220
 maven/mavencentral/com.google.code.findbugs/jsr305/3.0.2, Apache-2.0 and CC-BY-2.5, approved, #15220
 maven/mavencentral/com.google.code.gson/gson/2.13.2, Apache-2.0, approved, #20656
 maven/mavencentral/com.google.crypto.tink/tink/1.20.0, , restricted, clearlydefined
 maven/mavencentral/com.google.errorprone/error_prone_annotations/2.41.0, Apache-2.0, approved, #22631
+maven/mavencentral/com.google.errorprone/error_prone_annotations/2.42.0, Apache-2.0, approved, #23390
 maven/mavencentral/com.google.guava/failureaccess/1.0.3, Apache-2.0, approved, CQ22654
 maven/mavencentral/com.google.guava/guava/33.5.0-jre, Apache-2.0 AND CC0-1.0 AND CC-PDDC, approved, #23378
 maven/mavencentral/com.google.guava/listenablefuture/9999.0-empty-to-avoid-conflict-with-guava, Apache-2.0, approved, CQ22657
 maven/mavencentral/com.google.j2objc/j2objc-annotations/3.1, Apache-2.0, approved, #23379
 maven/mavencentral/com.google.protobuf/protobuf-java/4.33.0, BSD-3-Clause, approved, clearlydefined
 maven/mavencentral/com.google.protobuf/protobuf-java/4.33.1, BSD-3-Clause, approved, clearlydefined
+maven/mavencentral/com.google.re2j/re2j/1.8, BSD-3-Clause, approved, #20485
 maven/mavencentral/com.h2database/h2/2.4.240, EPL-1.0 AND MPL-2.0 AND LGPL-2.1-or-later AND BSD-3-Clause AND LicenseRef-Public-Domain, approved, #23567
 maven/mavencentral/com.jayway.jsonpath/json-path/2.10.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.networknt/json-schema-validator/1.5.9, Apache-2.0 AND Unicode-TOU, approved, #15630
@@ -80,6 +85,7 @@ maven/mavencentral/commons-fileupload/commons-fileupload/1.6.0, Apache-2.0, appr
 maven/mavencentral/commons-io/commons-io/2.19.0, Apache-2.0, approved, #20657
 maven/mavencentral/commons-io/commons-io/2.20.0, Apache-2.0, approved, #22562
 maven/mavencentral/commons-logging/commons-logging/1.2, Apache-2.0, approved, CQ10162
+maven/mavencentral/dev.cel/cel/0.11.1, , restricted, clearlydefined
 maven/mavencentral/dev.failsafe/failsafe-okhttp/3.3.2, Apache-2.0, approved, #15208
 maven/mavencentral/dev.failsafe/failsafe/3.3.2, Apache-2.0, approved, #9268
 maven/mavencentral/info.picocli/picocli/4.7.7, Apache-2.0, approved, #4365
@@ -134,6 +140,7 @@ maven/mavencentral/net.bytebuddy/byte-buddy/1.17.7, Apache-2.0 AND BSD-3-Clause,
 maven/mavencentral/net.bytebuddy/byte-buddy/1.18.3, Apache-2.0 AND BSD-3-Clause, approved, #24658
 maven/mavencentral/net.java.dev.jna/jna/5.18.1, Apache-2.0 AND LGPL-2.1-or-later, approved, #23404
 maven/mavencentral/net.javacrumbs.json-unit/json-unit-core/2.40.1, Apache-2.0, approved, clearlydefined
+maven/mavencentral/net.jcip/jcip-annotations/1.0, CC-BY-2.5, approved, clearlydefined
 maven/mavencentral/net.minidev/accessors-smart/2.6.0, Apache-2.0, approved, #24380
 maven/mavencentral/net.minidev/json-smart/2.6.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/net.sf.jopt-simple/jopt-simple/5.0.4, MIT, approved, CQ13174
@@ -302,6 +309,7 @@ maven/mavencentral/org.testcontainers/testcontainers-kafka/2.0.3, , restricted, 
 maven/mavencentral/org.testcontainers/testcontainers-postgresql/2.0.3, MIT, approved, #25273
 maven/mavencentral/org.testcontainers/testcontainers-vault/2.0.3, MIT, approved, clearlydefined
 maven/mavencentral/org.testcontainers/testcontainers/2.0.3, MIT, approved, #25274
+maven/mavencentral/org.threeten/threeten-extra/1.8.0, BSD-3-Clause, approved, clearlydefined
 maven/mavencentral/org.wiremock/wiremock-jetty12/3.13.2, Apache-2.0, approved, #21027
 maven/mavencentral/org.wiremock/wiremock/3.13.2, MIT AND Apache-2.0, approved, #21025
 maven/mavencentral/org.xerial.snappy/snappy-java/1.1.10.7, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #9098
@@ -312,3 +320,4 @@ maven/mavencentral/org.xmlunit/xmlunit-placeholders/2.11.0, , restricted, clearl
 maven/mavencentral/org.yaml/snakeyaml/2.2, Apache-2.0 AND (Apache-2.0 OR BSD-3-Clause OR EPL-1.0 OR GPL-2.0-or-later OR LGPL-2.1-or-later), approved, #10232
 maven/mavencentral/org.yaml/snakeyaml/2.3, Apache-2.0 AND (Apache-2.0 OR BSD-3-Clause OR EPL-1.0 OR GPL-2.0-or-later OR LGPL-2.1-or-later), approved, #16046
 maven/mavencentral/org.yaml/snakeyaml/2.4, Apache-2.0, approved, #19469
+maven/mavencentral/org.yaml/snakeyaml/2.5, Apache-2.0, approved, #23100
