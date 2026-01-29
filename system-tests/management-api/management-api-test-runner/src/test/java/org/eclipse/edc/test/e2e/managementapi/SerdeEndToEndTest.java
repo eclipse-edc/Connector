@@ -34,6 +34,8 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TerminateTransf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferState;
+import org.eclipse.edc.connector.controlplane.transform.edc.cel.from.JsonObjectFromCelExpressionTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.cel.to.JsonObjectToCelExpressionTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.config.from.JsonObjectFromParticipantContextConfigurationTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.config.to.JsonObjectToParticipantContextConfigurationTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.from.JsonObjectFromParticipantContextTransformer;
@@ -46,6 +48,7 @@ import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.policy.cel.model.CelExpression;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
@@ -98,6 +101,7 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.MANAGEMENT_AP
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.assetObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogAsset;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogRequestObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.celExpression;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractDefinitionObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractRequestObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createContractAgreement;
@@ -589,7 +593,8 @@ public class SerdeEndToEndTest {
                         Arguments.of(dataAddressObject(jsonLdContext), DataAddress.class, null),
                         Arguments.of(dataPaneInstanceObject(jsonLdContext), DataPlaneInstance.class, null),
                         Arguments.of(participantContextObject(jsonLdContext), ParticipantContext.class, null),
-                        Arguments.of(participantContextConfigObject(jsonLdContext), ParticipantContextConfiguration.class, null)
+                        Arguments.of(participantContextConfigObject(jsonLdContext), ParticipantContextConfiguration.class, null),
+                        Arguments.of(celExpression(jsonLdContext), CelExpression.class, null)
                 );
             }
 
@@ -625,6 +630,11 @@ public class SerdeEndToEndTest {
                 .configurationProvider(SerdeEndToEndTest::config)
                 .build();
 
+        private static boolean shouldSkipV3(JsonObject inputObject, Class<?> klass) {
+            return !klass.equals(DataPlaneInstance.class) && !klass.equals(ParticipantContext.class) &&
+                    !klass.equals(CelExpression.class) &&
+                    !klass.equals(ParticipantContextConfiguration.class) && !inputObject.getString(TYPE).equals("CatalogAsset");
+        }
 
         /**
          * Tests for entities that supports transformation from/to JsonObject
@@ -635,8 +645,7 @@ public class SerdeEndToEndTest {
         void serde(JsonObject inputObject, Class<?> klass, Function<JsonObject, JsonObject> mapper,
                    JsonLd jsonLd, JsonObjectValidatorRegistry validatorRegistry,
                    TypeTransformerRegistry typeTransformerRegistry) {
-            if (!klass.equals(DataPlaneInstance.class) && !klass.equals(ParticipantContext.class) &&
-                    !klass.equals(ParticipantContextConfiguration.class) && !inputObject.getString(TYPE).equals("CatalogAsset")) {
+            if (shouldSkipV3(inputObject, klass)) {
                 verifySerde(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, klass, mapper);
             }
         }
@@ -686,6 +695,8 @@ public class SerdeEndToEndTest {
             registry.register(new JsonObjectToParticipantContextTransformer());
             registry.register(new JsonObjectFromParticipantContextConfigurationTransformer(factory));
             registry.register(new JsonObjectToParticipantContextConfigurationTransformer());
+            registry.register(new JsonObjectFromCelExpressionTransformer(factory));
+            registry.register(new JsonObjectToCelExpressionTransformer());
         }
 
         @Override

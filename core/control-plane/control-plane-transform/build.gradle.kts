@@ -20,6 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:common:json-ld-spi"))
     api(project(":spi:common:participant-spi"))
+    api(project(":spi:common:cel-spi"))
     api(project(":spi:common:participant-context-config-spi"))
     api(project(":spi:common:transform-spi"))
     api(project(":spi:control-plane:asset-spi"))
