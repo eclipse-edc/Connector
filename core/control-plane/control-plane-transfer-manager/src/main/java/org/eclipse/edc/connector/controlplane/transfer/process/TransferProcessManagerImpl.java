@@ -49,6 +49,7 @@ import org.eclipse.edc.statemachine.AbstractStateEntityManager;
 import org.eclipse.edc.statemachine.Processor;
 import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.StateMachineManager;
+import org.eclipse.edc.statemachine.retry.processor.RetryProcessor;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -226,7 +227,12 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             if (response.isAsync()) {
                 process.transitionStartupRequested();
             } else {
-                process.setContentDataAddress(response.getDataAddress());
+                // TODO: for the time being put the EDR in the destination field to being able to support both DPS and legacy protocol
+                //       will eventually go away
+                var dataPlaneDataAddress = response.getDataAddress();
+                if (dataPlaneDataAddress != null) {
+                    process.updateDestination(dataPlaneDataAddress);
+                }
                 process.transitionStarting();
             }
         }
@@ -282,45 +288,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     }
 
     /**
-     * Process STARTING transfer<p> If PROVIDER, starts data transfer and send message to consumer, should never be CONSUMER
-     *
-     * @param process the STARTING transfer fetched
-     * @return if the transfer has been processed or not
-     */
-    @WithSpan
-    private boolean processStarting(TransferProcess process) {
-        return startTransferFlow(process, this::transitionToStarting);
-    }
-
-    /**
-     * Process RESUMING transfer for PROVIDER.
-     *
-     * @param process the RESUMING transfer fetched
-     * @return if the transfer has been processed or not
-     */
-    @WithSpan
-    private boolean processProviderResuming(TransferProcess process) {
-        return startTransferFlow(process, this::transitionToResuming);
-    }
-
-    private boolean startTransferFlow(TransferProcess process, Consumer<TransferProcess> onFailure) {
-        return entityRetryProcessFactory.retryProcessor(process)
-                .doProcess(futureResult("Dispatch TransferRequestMessage to: " + process.getCounterPartyAddress(), (t, dataFlowResponse) -> {
-                    var messageBuilder = TransferStartMessage.Builder.newInstance().dataAddress(t.getContentDataAddress());
-                    return dispatch(messageBuilder, t, Object.class);
-                }))
-                .onSuccess((t, o) -> {
-                    t.transitionStarted();
-                    update(t);
-                    observable.invokeForEach(l -> l.started(t, TransferProcessStartedData.Builder.newInstance().build()));
-                })
-                .onFailure((t, throwable) -> onFailure.accept(t))
-                .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
-                .execute();
-    }
-
-
-    /**
      * Process STARTUP_REQUESTED transfer for consumer<p> Notify data-plane that data flow has been started
      *
      * @param process the STARTUP_REQUESTED transfer fetched
@@ -334,6 +301,53 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 )
                 .onSuccess((t, c) -> transitionToStarted(t))
                 .onFailure((t, throwable) -> transitionToStartupRequested(t))
+                .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
+                .execute();
+    }
+
+    /**
+     * Process STARTING transfer<p> If PROVIDER, starts data transfer and send message to consumer, should never be CONSUMER
+     *
+     * @param process the STARTING transfer fetched
+     * @return if the transfer has been processed or not
+     */
+    @WithSpan
+    private boolean processStarting(TransferProcess process) {
+        return startFlow(process, this::transitionToStarting, Function.identity());
+    }
+
+    /**
+     * Process RESUMING transfer for PROVIDER.
+     *
+     * @param process the RESUMING transfer fetched
+     * @return if the transfer has been processed or not
+     */
+    @WithSpan
+    private boolean processProviderResuming(TransferProcess process) {
+        var policy = policyArchive.findPolicyForContract(process.getContractId());
+
+        // TODO: unit tests
+        Function<RetryProcessor<TransferProcess, ?>, RetryProcessor<TransferProcess, ?>> preProcess = r -> r
+                .doProcess(result("Data Plane resume", (t, ignored) -> dataFlowController.start(process, policy)))
+                .doProcess(result("Set new data destination", (t, response) -> {
+                    t.updateDestination(response.getDataAddress());
+                    return StatusResult.success();
+                }));
+        return startFlow(process, this::transitionToResuming, preProcess);
+    }
+
+    private boolean startFlow(TransferProcess process, Consumer<TransferProcess> onFailure, Function<RetryProcessor<TransferProcess, ?>, RetryProcessor<TransferProcess, ?>> preProcessing) {
+        return preProcessing.apply(entityRetryProcessFactory.retryProcessor(process))
+                .doProcess(futureResult("Dispatch TransferRequestMessage to: " + process.getCounterPartyAddress(), (t, dataFlowResponse) -> {
+                    var messageBuilder = TransferStartMessage.Builder.newInstance().dataAddress(t.getDataDestination());
+                    return dispatch(messageBuilder, t, Object.class);
+                }))
+                .onSuccess((t, o) -> {
+                    t.transitionStarted();
+                    update(t);
+                    observable.invokeForEach(l -> l.started(t, TransferProcessStartedData.Builder.newInstance().build()));
+                })
+                .onFailure((t, throwable) -> onFailure.accept(t))
                 .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .execute();
     }

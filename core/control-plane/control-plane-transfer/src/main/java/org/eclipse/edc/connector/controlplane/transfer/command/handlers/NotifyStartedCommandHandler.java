@@ -42,8 +42,9 @@ public class NotifyStartedCommandHandler extends EntityCommandHandler<NotifyStar
 
     @Override
     protected boolean modify(TransferProcess entity, NotifyStartedCommand command) {
+        // TODO: unit tests
         if (command.getDataAddress() != null) {
-            entity.setContentDataAddress(command.getDataAddress());
+            entity.updateDestination(command.getDataAddress());
         }
 
         if (entity.getType() == TransferProcess.Type.CONSUMER) {

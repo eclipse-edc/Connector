@@ -164,7 +164,7 @@ interface TransferSignalingEndToEndTest {
         consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
         providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
     }
-    
+
     @Test
     default void shouldSuspendAndResumeFromConsumer(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
                                                     @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,

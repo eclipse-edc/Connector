@@ -110,7 +110,6 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
     public boolean canHandle(DataAddress sourceAddress, @Nullable String transferType) {
         Objects.requireNonNull(transferType, "transferType cannot be null!");
         if (sourceAddress != null) {
-            Objects.requireNonNull(sourceAddress, "source cannot be null!");
             // startsWith: the allowed transferType could be HttpData-PULL-someResponseChannel, and we only need to match the HttpData-PULL
             return allowedSourceTypes.contains(sourceAddress.getType()) && allowedTransferTypes.contains(transferType);
         }

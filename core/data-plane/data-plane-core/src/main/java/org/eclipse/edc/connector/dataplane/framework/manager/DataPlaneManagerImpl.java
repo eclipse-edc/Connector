@@ -110,7 +110,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
             }
 
             return Result.failure(format("Cannot find a transfer Service that can handle %s source and %s destination",
-                    dataRequest.getSourceDataAddress().getType(), dataRequest.getDestinationDataAddress().getType()));
+                    dataRequest.getSourceType(), dataRequest.getDestinationType()));
         }
     }
 
