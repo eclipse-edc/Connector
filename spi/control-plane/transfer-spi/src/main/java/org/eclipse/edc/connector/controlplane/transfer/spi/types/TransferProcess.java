@@ -164,7 +164,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     }
 
     public void transitionInitial() {
-        transition(INITIAL, SUSPENDED);
+        transition(INITIAL, INITIAL, SUSPENDED);
     }
 
     public void transitionRequesting() {

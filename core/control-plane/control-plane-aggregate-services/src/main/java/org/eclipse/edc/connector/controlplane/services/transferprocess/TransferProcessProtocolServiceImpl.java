@@ -230,7 +230,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             return ServiceResult.success(transferProcess);
         } else if (transferProcess.getType() == PROVIDER && transferProcess.currentStateIsOneOf(SUSPENDED)) {
             transferProcess.protocolMessageReceived(message.getId());
-            transferProcess.transitionInitial(); // TODO: unit tests
+            transferProcess.transitionInitial();
             update(transferProcess);
             observable.invokeForEach(l -> l.initiated(transferProcess));
             return ServiceResult.success(transferProcess);

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
@@ -18,16 +18,14 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProce
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyPreparedCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyStartedCommand;
 import org.eclipse.edc.spi.command.EntityCommandHandler;
 
 /**
- * Handles a {@link NotifyPreparedCommand}.
+ * Handles a {@link NotifyStartedCommand}.
  */
 public class NotifyStartedCommandHandler extends EntityCommandHandler<NotifyStartedCommand, TransferProcess> {
 
-    // TODO: unit tests
     private final TransferProcessObservable observable;
 
     public NotifyStartedCommandHandler(TransferProcessStore store, TransferProcessObservable observable) {
@@ -42,13 +40,12 @@ public class NotifyStartedCommandHandler extends EntityCommandHandler<NotifyStar
 
     @Override
     protected boolean modify(TransferProcess entity, NotifyStartedCommand command) {
-        // TODO: unit tests
         if (command.getDataAddress() != null) {
             entity.updateDestination(command.getDataAddress());
         }
 
         if (entity.getType() == TransferProcess.Type.CONSUMER) {
-            return false; // TODO: what?
+            return false;
         } else {
             entity.transitionStarting();
         }

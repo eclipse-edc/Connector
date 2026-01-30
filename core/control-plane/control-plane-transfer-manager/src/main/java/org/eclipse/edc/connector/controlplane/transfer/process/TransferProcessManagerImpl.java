@@ -157,7 +157,8 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     @Override
     protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
         return builder
-                .processor(processTransfersInState(INITIAL, this::processInitial))
+                .processor(processConsumerTransfersInState(INITIAL, this::processConsumerInitial))
+                .processor(processProviderTransfersInState(INITIAL, this::processProviderInitial))
                 .processor(processConsumerTransfersInState(REQUESTING, this::processRequesting))
                 .processor(processProviderTransfersInState(STARTING, this::processStarting))
                 .processor(processConsumerTransfersInState(STARTUP_REQUESTED, this::processStartupRequested))
@@ -171,15 +172,8 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .processor(processTransfersInState(TERMINATING_REQUESTED, this::processTerminating));
     }
 
-    /**
-     * Process INITIAL transfer<p> set it to PROVISIONING
-     *
-     * @param process the INITIAL transfer fetched
-     * @return if the transfer has been processed or not
-     */
     @WithSpan
-    private boolean processInitial(TransferProcess process) {
-        // TODO: split this method! C and P
+    private boolean processConsumerInitial(TransferProcess process) {
         var contractId = process.getContractId();
         var policy = policyArchive.findPolicyForContract(contractId);
 
@@ -188,57 +182,79 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             return true;
         }
 
-        if (process.getType() == CONSUMER) {
+        return entityRetryProcessFactory.retryProcessor(process)
+                .doProcess(result("prepare data flow", (t, ignored) -> dataFlowController.prepare(process, policy)))
+                .onSuccess((t, response) -> {
+                    process.setDataPlaneId(response.getDataPlaneId());
+                    if (response.isAsync()) {
+                        process.transitionPreparationRequested();
+                        observable.invokeForEach(l -> l.preparationRequested(process));
+                    } else {
+                        process.updateDestination(response.getDataAddress());
+                        process.transitionRequesting();
+                    }
+                    update(process);
+                })
+                .onFailure((t, throwable) -> transitionToInitial(t))
+                .onFinalFailure((t, throwable) -> {
+                    // with the upcoming data-plane signaling, the data-plane will be mandatory also on consumer side
+                    // so in this case the transfer will retry
+                    monitor.warning("Data Flow preparation failed, please note that this phase will become mandatory in " +
+                            "the upcoming versions so please ensure that there's a data-plane able to manage the transfer-type " +
+                            "%s. Error: %s".formatted(t.getTransferType(), throwable.getMessage()));
+                    transitionToRequesting(t);
+                })
+                .execute();
+    }
 
-            var provisioning = dataFlowController.prepare(process, policy);
+    @WithSpan
+    private boolean processProviderInitial(TransferProcess process) {
+        var contractId = process.getContractId();
+        var policy = policyArchive.findPolicyForContract(contractId);
 
-            if (provisioning.failed()) {
-                // with the upcoming data-plane signaling data-plane will be mandatory also on consumer side
-                // so in this case the transfer will be terminated straight away
-                process.transitionRequesting();
-            } else {
-                var response = provisioning.getContent();
-                process.setDataPlaneId(response.getDataPlaneId());
-                if (response.isAsync()) {
-                    process.transitionPreparationRequested();
-                    observable.invokeForEach(l -> l.preparationRequested(process));
-                } else {
-                    process.updateDestination(response.getDataAddress());
-                    process.transitionRequesting();
-                }
-            }
-
-        } else {
-            // this is to support the legacy data plane signaling, it will be deleted when the legacy protocol will be dismissed
-            var assetId = process.getAssetId();
-            var dataAddress = addressResolver.resolveForAsset(assetId);
-            if (dataAddress != null) {
-                process.setContentDataAddress(dataAddress);
-            }
-
-            // TODO: unit tests
-            var starting = dataFlowController.start(process, policy); // TODO: retry mechanism
-            if (starting.failed()) {
-                // retry!
-            }
-
-            var response = starting.getContent();
-            process.setDataPlaneId(response.getDataPlaneId());
-            if (response.isAsync()) {
-                process.transitionStartupRequested();
-            } else {
-                // TODO: for the time being put the EDR in the destination field to being able to support both DPS and legacy protocol
-                //       will eventually go away
-                var dataPlaneDataAddress = response.getDataAddress();
-                if (dataPlaneDataAddress != null) {
-                    process.updateDestination(dataPlaneDataAddress);
-                }
-                process.transitionStarting();
-            }
+        if (policy == null) {
+            transitionToTerminated(process, "Policy not found for contract: " + contractId);
+            return true;
         }
 
-        update(process);
-        return true;
+        eventuallySetContentDataAddress(process);
+
+        return entityRetryProcessFactory.retryProcessor(process)
+                .doProcess(result("start data flow", (t, ignored) -> dataFlowController.start(process, policy)))
+                .onSuccess((t, response) -> {
+                    process.setDataPlaneId(response.getDataPlaneId());
+                    if (response.isAsync()) {
+                        process.transitionStartupRequested();
+                    } else {
+                        // for the time being put the EDR in the destination field to being able to support both DPS
+                        // and legacy protocol will eventually go away
+                        var dataPlaneDataAddress = response.getDataAddress();
+                        if (dataPlaneDataAddress != null) {
+                            process.updateDestination(dataPlaneDataAddress);
+                        }
+                        process.transitionStarting();
+                    }
+
+                    update(process);
+                })
+                .onFailure((t, throwable) -> transitionToInitial(t))
+                .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
+                .execute();
+
+    }
+
+    /**
+     * this is to support the legacy data plane signaling, it will be deleted when the legacy protocol will be dismissed
+     *
+     * @deprecated can be deleted as soon as the legacy data plane signaling protocol is dismissed.
+     */
+    @Deprecated(since = "0.16.0")
+    private void eventuallySetContentDataAddress(TransferProcess process) {
+        var assetId = process.getAssetId();
+        var dataAddress = addressResolver.resolveForAsset(assetId);
+        if (dataAddress != null) {
+            process.setContentDataAddress(dataAddress);
+        }
     }
 
     /**
@@ -326,7 +342,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     private boolean processProviderResuming(TransferProcess process) {
         var policy = policyArchive.findPolicyForContract(process.getContractId());
 
-        // TODO: unit tests
         Function<RetryProcessor<TransferProcess, ?>, RetryProcessor<TransferProcess, ?>> preProcess = r -> r
                 .doProcess(result("Data Plane resume", (t, ignored) -> dataFlowController.start(process, policy)))
                 .doProcess(result("Set new data destination", (t, response) -> {
@@ -526,6 +541,11 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         transferProcess.setPending(true);
         update(transferProcess);
         return true;
+    }
+
+    private void transitionToInitial(TransferProcess process) {
+        process.transitionInitial();
+        update(process);
     }
 
     private void transitionToRequesting(TransferProcess process) {

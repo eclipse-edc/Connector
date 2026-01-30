@@ -426,8 +426,8 @@ class DataPlaneManagerImplTest {
     @Nested
     class ProvisionNotifying {
         @Test
-        void shouldNotifyProvisioningToTransferProcess() {
-            var dataFlow = dataFlowBuilder().state(PROVISION_NOTIFYING.code()).stateCount(RETRY_EXHAUSTED).build();
+        void shouldNotifyProvisioningToTransferProcessAndTransitionToProvisioned_whenConsumer() {
+            var dataFlow = dataFlowBuilder().source(null).state(PROVISION_NOTIFYING.code()).stateCount(RETRY_EXHAUSTED).build();
             when(store.nextNotLeased(anyInt(), stateIs(PROVISION_NOTIFYING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
             when(transferProcessApiClient.provisioned(any())).thenReturn(StatusResult.success());
 
@@ -438,6 +438,23 @@ class DataPlaneManagerImplTest {
                 verify(store).save(captor.capture());
                 var storedDataFlow = captor.getValue();
                 assertThat(storedDataFlow.stateAsString()).isEqualTo(PROVISIONED.name());
+            });
+        }
+
+        @Test
+        void shouldNotifyProvisionedAndStartFlow_whenProvider() {
+            var dataFlow = dataFlowBuilder().state(PROVISION_NOTIFYING.code()).stateCount(RETRY_EXHAUSTED)
+                    .transferType(new TransferType("Any", PUSH)).build();
+            when(store.nextNotLeased(anyInt(), stateIs(PROVISION_NOTIFYING.code()))).thenReturn(List.of(dataFlow)).thenReturn(emptyList());
+            when(transferProcessApiClient.provisioned(any())).thenReturn(StatusResult.success());
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                var captor = ArgumentCaptor.forClass(DataFlow.class);
+                verify(store).save(captor.capture());
+                var storedDataFlow = captor.getValue();
+                assertThat(storedDataFlow.stateAsString()).isEqualTo(RECEIVED.name());
             });
         }
 

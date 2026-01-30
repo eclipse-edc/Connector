@@ -410,8 +410,12 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         return entityRetryProcessFactory.retryProcessor(dataFlow)
                 .doProcess(result("provision notifying", (flow, e) -> transferProcessClient.provisioned(flow)))
                 .onSuccess((flow, v) -> {
-                    flow.transitionToProvisioned();
-                    update(flow);
+                    if (dataFlow.isConsumer()) {
+                        flow.transitionToProvisioned();
+                        update(flow);
+                    } else {
+                        triggerDataFlow(dataFlow);
+                    }
                 })
                 .onFailure((flow, t) -> {
                     flow.transitionToProvisionNotifying();

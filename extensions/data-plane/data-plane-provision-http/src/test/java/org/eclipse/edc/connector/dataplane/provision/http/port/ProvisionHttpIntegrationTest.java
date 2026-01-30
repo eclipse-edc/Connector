@@ -59,10 +59,8 @@ import static java.util.Map.entry;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.COMPLETED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISIONED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.DEPROVISION_REQUESTED;
-import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISIONED;
 import static org.eclipse.edc.connector.dataplane.spi.DataFlowStates.PROVISION_REQUESTED;
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
@@ -139,18 +137,16 @@ public class ProvisionHttpIntegrationTest {
 
         provisionResponse(provisionService);
 
-        awaitDataFlowToBeInStatus(flowId, PROVISIONED);
-        controlPlane.verify(newRequestPattern(POST, urlPathEqualTo("/transferprocess/" + flowId + "/provisioned")));
-
-        var startResult = dataPlaneManager.start(startMessage);
-        assertThat(startResult).isSucceeded().satisfies(it -> {
-            assertThat(it.isProvisioning()).isFalse();
+        await().untilAsserted(() -> {
+            controlPlane.verify(newRequestPattern(POST, urlPathEqualTo("/transferprocess/" + flowId + "/provisioned")));
         });
 
-        awaitDataFlowToBeInStatus(flowId, COMPLETED);
-
-        sourceService.verify(newRequestPattern(GET, urlPathEqualTo("/")));
-        destinationService.verify(newRequestPattern(POST, urlPathEqualTo("/")).withRequestBody(equalTo("data-to-transfer")));
+        // flow automatically gets STARTED
+        await().untilAsserted(() -> {
+            sourceService.verify(newRequestPattern(GET, urlPathEqualTo("/")));
+            destinationService.verify(newRequestPattern(POST, urlPathEqualTo("/")).withRequestBody(equalTo("data-to-transfer")));
+        });
+        // flow automatically gets COMPLETED
 
         awaitDataFlowToBeInStatus(flowId, DEPROVISION_REQUESTED);
         provisionService.verify(newRequestPattern(POST, urlPathEqualTo("/provision"))
