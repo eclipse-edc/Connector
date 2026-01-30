@@ -108,7 +108,7 @@ atomikos-jdbc = { module = "com.atomikos:transactions-jdbc", version.ref = "atom
 cloudEvents = { module = "io.cloudevents:cloudevents-http-basic", version.ref = "cloudEvents" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 kafkaClients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafkaClients" }
-jsonschema = { module = "com.networknt:json-schema-validator", version = "2.0.0" }
+jsonschema = { module = "com.networknt:json-schema-validator", version = "3.0.0" }
 
 # DSP-TCK libraries
 dsp-tck-runtime = { module = "org.eclipse.dataspacetck.dsp:tck-runtime", version.ref = "dsp-tck" }
