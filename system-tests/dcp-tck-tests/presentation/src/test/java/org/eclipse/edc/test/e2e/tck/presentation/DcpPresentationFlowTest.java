@@ -37,7 +37,6 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerReg
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
-import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.test.e2e.tck.TckTest;
 import org.junit.jupiter.api.Assertions;
@@ -87,7 +86,6 @@ public class DcpPresentationFlowTest {
     static final RuntimePerClassExtension EDC_RUNTIME_EXTENSIONS = new RuntimePerClassExtension(
             new EmbeddedRuntime("Connector-under-test", ":dist:bom:controlplane-dcp-bom")
                     .registerServiceMock(SecureTokenService.class, STS_MOCK)
-                    .registerSystemExtension(ServiceExtension.class, new DefaultScopeFunctionExtension())
                     .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
                             "edc.iam.accesstoken.jti.validation", "true",
                             "edc.iam.did.web.use.https", "false",
@@ -99,6 +97,11 @@ public class DcpPresentationFlowTest {
                             "edc.iam.sts.oauth.token.url", "https://example.com/token",
                             "edc.iam.sts.oauth.client.id", "test-client-id",
                             "edc.iam.sts.oauth.client.secret.alias", "test-secret-alias"
+                    )))
+                    .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
+                            "edc.iam.dcp.scopes.membership.id", "membership-scope",
+                            "edc.iam.dcp.scopes.membership.type", "DEFAULT",
+                            "edc.iam.dcp.scopes.membership.value", "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read"
                     )))
     );
 

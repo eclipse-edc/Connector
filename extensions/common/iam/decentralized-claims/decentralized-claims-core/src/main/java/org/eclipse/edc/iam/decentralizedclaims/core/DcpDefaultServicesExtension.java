@@ -19,8 +19,10 @@ import org.eclipse.edc.iam.decentralizedclaims.core.defaults.DefaultDcpParticipa
 import org.eclipse.edc.iam.decentralizedclaims.core.defaults.DefaultTrustedIssuerRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.core.defaults.InMemorySignatureSuiteRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.core.scope.DcpScopeExtractorRegistry;
+import org.eclipse.edc.iam.decentralizedclaims.core.scope.defaults.InMemoryDcpScopeStore;
 import org.eclipse.edc.iam.decentralizedclaims.spi.ClaimTokenCreatorFunction;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractorRegistry;
+import org.eclipse.edc.iam.decentralizedclaims.spi.scope.store.DcpScopeStore;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.SignatureSuiteRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
@@ -32,6 +34,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
@@ -62,6 +65,8 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
     private JwsSignerProvider externalSigner;
     @Inject
     private JtiValidationStore jtiValidationStore;
+    @Inject
+    private CriterionOperatorRegistry criterionOperatorRegistry;
 
     @Provider(isDefault = true)
     public TrustedIssuerRegistry createInMemoryIssuerRegistry() {
@@ -98,5 +103,9 @@ public class DcpDefaultServicesExtension implements ServiceExtension {
             return success(b.build());
         };
     }
-
+    
+    @Provider(isDefault = true)
+    public DcpScopeStore scopeStore() {
+        return new InMemoryDcpScopeStore(criterionOperatorRegistry);
+    }
 }
