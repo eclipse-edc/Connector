@@ -163,6 +163,10 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
         transition(PREPARATION_REQUESTED, PROVISIONING, INITIAL);
     }
 
+    public void transitionInitial() {
+        transition(INITIAL, INITIAL, SUSPENDED);
+    }
+
     public void transitionRequesting() {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no REQUESTING state");
@@ -278,7 +282,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
 
     public void transitionStartupRequested() {
         if (type == PROVIDER) {
-            transition(STARTUP_REQUESTED, STARTING);
+            transition(STARTUP_REQUESTED, INITIAL, STARTING);
         } else {
             transition(STARTUP_REQUESTED, STARTUP_REQUESTED, REQUESTED, SUSPENDED, RESUMED);
         }

@@ -26,6 +26,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -96,6 +97,14 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
      */
     public DataAddress getDestinationDataAddress() {
         return destinationDataAddress;
+    }
+
+    public String getSourceType() {
+        return Optional.ofNullable(sourceDataAddress).map(DataAddress::getType).orElse(null);
+    }
+
+    public String getDestinationType() {
+        return Optional.ofNullable(destinationDataAddress).map(DataAddress::getType).orElse(null);
     }
 
     /**

@@ -54,6 +54,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.support.ParameterDeclarations;
 import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
@@ -145,7 +146,6 @@ class TransferProcessManagerImplTest {
     @BeforeEach
     void setup() {
         when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> protocolWebhookUrl);
-        when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponseBuilder().build()));
         when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().build());
         when(policyArchive.getAgreementIdForContract(any())).thenReturn("agreementId");
         var observable = new TransferProcessObservableImpl();
@@ -194,6 +194,7 @@ class TransferProcessManagerImplTest {
                 .thenReturn(List.of(transferProcess)).thenReturn(emptyList());
         when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(result);
         when(transferProcessStore.findById(transferProcess.getId())).thenReturn(transferProcess);
+        when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponseBuilder().build()));
         when(dataFlowController.suspend(any())).thenReturn(StatusResult.success());
         when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
 
@@ -476,7 +477,7 @@ class TransferProcessManagerImplTest {
         void shouldTransitionToTerminated_whenNoPolicyFound() {
             var transferProcess = createTransferProcess(INITIAL);
             when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.failure(FATAL_ERROR));
-            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
+            when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(INITIAL.code())))
                     .thenReturn(List.of(transferProcess))
                     .thenReturn(emptyList());
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(null);
@@ -497,7 +498,7 @@ class TransferProcessManagerImplTest {
                     .async(true)
                     .build();
             var transferProcess = createTransferProcess(INITIAL);
-            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
+            when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(INITIAL.code())))
                     .thenReturn(List.of(transferProcess))
                     .thenReturn(emptyList());
             when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
@@ -525,7 +526,7 @@ class TransferProcessManagerImplTest {
                     .async(false)
                     .build();
             var transferProcess = createTransferProcess(INITIAL);
-            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
+            when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(INITIAL.code())))
                     .thenReturn(List.of(transferProcess))
                     .thenReturn(emptyList());
             when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
@@ -546,7 +547,7 @@ class TransferProcessManagerImplTest {
         @Test
         void shouldTransitionToRequesting_whenProvisionThroughDataplaneFails() {
             var transferProcess = createTransferProcess(INITIAL);
-            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code())))
+            when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(INITIAL.code())))
                     .thenReturn(List.of(transferProcess))
                     .thenReturn(emptyList());
             when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.fatalError("error"));
@@ -570,12 +571,36 @@ class TransferProcessManagerImplTest {
         private final TransferProcess.Builder builder = createTransferProcessBuilder(INITIAL).type(PROVIDER);
 
         @Test
-        void shouldTransitionToStarting() {
+        void shouldTransitionToStartupRequested_whenAsyncDataFlowStart() {
+            var dataPlaneId = UUID.randomUUID().toString();
+            var transferProcess = builder.build();
+            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+            when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
+            when(addressResolver.resolveForAsset(any())).thenReturn(null);
+            when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(
+                    dataFlowResponseBuilder().async(true).dataPlaneId(dataPlaneId).build()));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+                verify(dataFlowController).start(transferProcess, Policy.Builder.newInstance().build());
+                var captor = ArgumentCaptor.forClass(TransferProcess.class);
+                verify(transferProcessStore).save(captor.capture());
+                var actualTransferProcess = captor.getValue();
+                assertThat(actualTransferProcess.getState()).isEqualTo(STARTUP_REQUESTED.code());
+                assertThat(actualTransferProcess.getDataPlaneId()).isEqualTo(dataPlaneId);
+            });
+        }
+
+        @Test
+        void shouldTransitionToStarting_whenSyncDataFlowWithoutDataAddress() {
             var transferProcess = builder.dataDestination(null).build();
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
-            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
+            when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
             var contentDataAddress = DataAddress.Builder.newInstance().type("type").build();
             when(addressResolver.resolveForAsset(any())).thenReturn(contentDataAddress);
+            when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponseBuilder().build()));
 
             manager.start();
 
@@ -590,22 +615,30 @@ class TransferProcessManagerImplTest {
         }
 
         @Test
-        void shouldTransitionToStarting_whenTransferHasNoDataAddress() {
+        void shouldTransitionToStarting_whenSyncDataFlowStartWithDataAddress() {
+            var dataPlaneId = UUID.randomUUID().toString();
+            var dataAddress = DataAddress.Builder.newInstance().type("type").build();
             var transferProcess = builder.build();
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
-            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
+            when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
             when(addressResolver.resolveForAsset(any())).thenReturn(null);
+            when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(
+                    dataFlowResponseBuilder().async(false).dataPlaneId(dataPlaneId).dataAddress(dataAddress).build()));
 
             manager.start();
 
             await().untilAsserted(() -> {
                 verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+                verify(dataFlowController).start(transferProcess, Policy.Builder.newInstance().build());
                 var captor = ArgumentCaptor.forClass(TransferProcess.class);
                 verify(transferProcessStore).save(captor.capture());
                 var actualTransferProcess = captor.getValue();
                 assertThat(actualTransferProcess.getState()).isEqualTo(STARTING.code());
+                assertThat(actualTransferProcess.getDataPlaneId()).isEqualTo(dataPlaneId);
+                assertThat(actualTransferProcess.getDataDestination()).isSameAs(dataAddress);
             });
         }
+
     }
 
     @Nested
@@ -668,13 +701,11 @@ class TransferProcessManagerImplTest {
     class StartingProvider {
 
         @Test
-        void shouldStartDataTransferAndSendMessageToConsumer() {
+        void shouldSendMessageToConsumer() {
             var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
-            var dataFlowResponse = dataFlowResponseBuilder().build();
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
             when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process);
-            when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
             when(dispatcherRegistry.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
             manager.start();
@@ -689,31 +720,9 @@ class TransferProcessManagerImplTest {
                 assertThat(message.getProcessId()).isEqualTo(process.getCorrelationId());
                 assertThat(message.getConsumerPid()).isEqualTo(process.getCorrelationId());
                 assertThat(message.getProviderPid()).isEqualTo(process.getId());
-                assertThat(message.getDataAddress()).usingRecursiveComparison().isEqualTo(dataFlowResponse.getDataAddress());
             });
         }
 
-        @Test
-        void shouldNotSendMessageAndTransitionToStartupRequested_whenAsynchronousDataPlaneProvisioning() {
-            var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
-            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
-            when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
-            when(transferProcessStore.findById(process.getId())).thenReturn(process);
-            when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(
-                    dataFlowResponseBuilder().async(true).dataPlaneId("dataPlaneId").build()));
-
-            manager.start();
-
-            await().untilAsserted(() -> {
-                var captor = ArgumentCaptor.forClass(TransferProcess.class);
-                verify(transferProcessStore).save(captor.capture());
-                assertThat(captor.getValue()).satisfies(stored -> {
-                    assertThat(stored.stateAsString()).isEqualTo(STARTUP_REQUESTED.name());
-                    assertThat(stored.getDataPlaneId()).isEqualTo("dataPlaneId");
-                });
-                verifyNoInteractions(dispatcherRegistry, listener);
-            });
-        }
     }
 
     @Nested
@@ -945,7 +954,7 @@ class TransferProcessManagerImplTest {
         private static final int RETRIES_EXHAUSTED = RETRIES_NOT_EXHAUSTED + 1;
 
         @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+        public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameters, ExtensionContext context) {
             CompletableFuture<StatusResult<Object>> genericError = failedFuture(new EdcException("error"));
             var fatalError = completedFuture(StatusResult.failure(FATAL_ERROR));
             return Stream.of(

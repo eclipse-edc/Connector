@@ -163,7 +163,7 @@ public class PipelineServiceImpl implements PipelineService {
     @Nullable
     private DataSourceFactory getSourceFactory(DataFlowStartMessage request) {
         return sourceFactories.stream()
-                .filter(s -> Objects.equals(s.supportedType(), request.getSourceDataAddress().getType()))
+                .filter(s -> Objects.equals(s.supportedType(), request.getSourceType()))
                 .findFirst()
                 .orElse(null);
     }
@@ -171,7 +171,7 @@ public class PipelineServiceImpl implements PipelineService {
     @Nullable
     private DataSinkFactory getSinkFactory(DataFlowStartMessage request) {
         return sinkFactories.stream()
-                .filter(s -> Objects.equals(s.supportedType(), request.getDestinationDataAddress().getType()))
+                .filter(s -> Objects.equals(s.supportedType(), request.getDestinationType()))
                 .findFirst()
                 .orElse(null);
     }

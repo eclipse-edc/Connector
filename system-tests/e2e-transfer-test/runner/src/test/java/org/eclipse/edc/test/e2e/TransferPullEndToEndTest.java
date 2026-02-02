@@ -92,7 +92,6 @@ class TransferPullEndToEndTest {
             vault.storeSecret("public-key", publicKey);
         }
 
-
         @Test
         void httpPull_dataTransfer_withCallbacks(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
                                                  @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) throws IOException {

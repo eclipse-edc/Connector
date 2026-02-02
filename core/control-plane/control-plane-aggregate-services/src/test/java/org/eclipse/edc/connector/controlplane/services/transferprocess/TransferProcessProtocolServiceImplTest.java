@@ -76,7 +76,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING_REQUESTED;
@@ -796,7 +795,7 @@ class TransferProcessProtocolServiceImplTest {
     class NotifyStartedResumed {
 
         @Test
-        void shouldTransitionToStartedAndStartDataFlow_whenProvider() {
+        void shouldTransitionToInitial_whenProvider() {
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
             var message = TransferStartMessage.Builder.newInstance()
@@ -823,7 +822,7 @@ class TransferProcessProtocolServiceImplTest {
             assertThat(result).isSucceeded();
             verify(store).save(transferProcessCaptor.capture());
             var storedTransferProcess = transferProcessCaptor.getValue();
-            assertThat(storedTransferProcess.getState()).isEqualTo(STARTING.code());
+            assertThat(storedTransferProcess.getState()).isEqualTo(INITIAL.code());
             verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
         }
 

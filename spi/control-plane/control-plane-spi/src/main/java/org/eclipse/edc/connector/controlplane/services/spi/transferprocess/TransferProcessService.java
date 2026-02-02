@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.controlplane.services.spi.transferprocess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyPreparedCommand;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyStartedCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.ResumeTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.SuspendTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
@@ -114,5 +115,13 @@ public interface TransferProcessService {
      * @return the result.
      */
     ServiceResult<Void> notifyPrepared(NotifyPreparedCommand command);
+
+    /**
+     * Asynchronously notifies the system that the startup phase has been completed by the data-plane.
+     *
+     * @param command the command.
+     * @return the result.
+     */
+    ServiceResult<Void> notifyStarted(NotifyStartedCommand command);
 
 }
