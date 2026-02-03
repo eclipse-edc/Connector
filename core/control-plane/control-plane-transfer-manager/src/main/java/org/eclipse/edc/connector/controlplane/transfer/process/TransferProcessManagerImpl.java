@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowControll
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
@@ -43,7 +44,6 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.retry.WaitStrategy;
-import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.statemachine.AbstractStateEntityManager;
 import org.eclipse.edc.statemachine.Processor;
@@ -75,7 +75,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING_REQUESTED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
-import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_SECRET;
 import static org.eclipse.edc.statemachine.retry.processor.Process.futureResult;
 import static org.eclipse.edc.statemachine.retry.processor.Process.result;
 
@@ -104,12 +103,12 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         implements TransferProcessManager {
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private DataFlowController dataFlowController;
-    private Vault vault;
     private TransferProcessObservable observable;
     private DataAddressResolver addressResolver;
     private PolicyArchive policyArchive;
     private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
     private TransferProcessPendingGuard pendingGuard = tp -> false;
+    private DataAddressStore dataAddressStore;
 
     private TransferProcessManagerImpl() {
     }
@@ -184,13 +183,19 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
         return entityRetryProcessFactory.retryProcessor(process)
                 .doProcess(result("prepare data flow", (t, ignored) -> dataFlowController.prepare(process, policy)))
+                .doProcess(result("store eventual data address", (t, response) -> {
+                    if (response.getDataAddress() == null) {
+                        return StatusResult.success(response);
+                    }
+                    return dataAddressStore.store(response.getDataAddress(), process).flatMap(StatusResult::from)
+                            .map(it -> response);
+                }))
                 .onSuccess((t, response) -> {
                     process.setDataPlaneId(response.getDataPlaneId());
                     if (response.isAsync()) {
                         process.transitionPreparationRequested();
                         observable.invokeForEach(l -> l.preparationRequested(process));
                     } else {
-                        process.updateDestination(response.getDataAddress());
                         process.transitionRequesting();
                     }
                     update(process);
@@ -221,22 +226,22 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
         return entityRetryProcessFactory.retryProcessor(process)
                 .doProcess(result("start data flow", (t, ignored) -> dataFlowController.start(process, policy)))
-                .onSuccess((t, response) -> {
+                .doProcess(result("eventually store data address", (t, response) -> {
                     process.setDataPlaneId(response.getDataPlaneId());
                     if (response.isAsync()) {
                         process.transitionStartupRequested();
                     } else {
-                        // for the time being put the EDR in the destination field to being able to support both DPS
-                        // and legacy protocol will eventually go away
+                        process.transitionStarting();
+
                         var dataPlaneDataAddress = response.getDataAddress();
                         if (dataPlaneDataAddress != null) {
-                            process.updateDestination(dataPlaneDataAddress);
+                            return dataAddressStore.store(dataPlaneDataAddress, process).flatMap(StatusResult::from);
                         }
-                        process.transitionStarting();
                     }
 
-                    update(process);
-                })
+                    return StatusResult.success();
+                }))
+                .onSuccess((t, response) -> update(t))
                 .onFailure((t, throwable) -> transitionToInitial(t))
                 .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
                 .execute();
@@ -265,42 +270,37 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
      */
     @WithSpan
     private boolean processRequesting(TransferProcess process) {
-        var originalDestination = process.getDataDestination();
         var callbackAddress = dataspaceProfileContextRegistry.getWebhook(process.getProtocol());
 
-        if (callbackAddress != null) {
-            var agreementId = policyArchive.getAgreementIdForContract(process.getContractId());
-
-            if (agreementId == null) {
-                transitionToTerminated(process, "No agreement found for contract: " + process.getContractId());
-                return true;
-            }
-
-            var dataDestination = Optional.ofNullable(originalDestination)
-                    .map(DataAddress::getKeyName)
-                    .map(key -> vault.resolveSecret(process.getParticipantContextId(), key))
-                    .map(secret -> originalDestination.toBuilder().property(EDC_DATA_ADDRESS_SECRET, secret).build())
-                    .orElse(originalDestination);
-
-            var messageBuilder = TransferRequestMessage.Builder.newInstance()
-                    .callbackAddress(callbackAddress.url())
-                    .dataDestination(dataDestination)
-                    .transferType(process.getTransferType())
-                    .contractId(agreementId);
-
-            return entityRetryProcessFactory.retryProcessor(process)
-                    .doProcess(futureResult("Dispatch TransferRequestMessage to " + process.getCounterPartyAddress(),
-                            (t, c) -> dispatch(messageBuilder, t, TransferProcessAck.class))
-                    )
-                    .onSuccess(this::transitionToRequested)
-                    .onFailure((t, throwable) -> transitionToRequesting(t))
-                    .onFinalFailure(this::transitionToTerminated)
-                    .execute();
-
-        } else {
+        if (callbackAddress == null) {
             transitionToTerminated(process, "No callback address found for protocol: " + process.getProtocol());
             return true;
         }
+
+        var agreementId = policyArchive.getAgreementIdForContract(process.getContractId());
+
+        if (agreementId == null) {
+            transitionToTerminated(process, "No agreement found for contract: " + process.getContractId());
+            return true;
+        }
+
+        var dataAddress = dataAddressStore.resolve(process).orElse(f -> null);
+
+        var messageBuilder = TransferRequestMessage.Builder.newInstance()
+                .callbackAddress(callbackAddress.url())
+                .dataAddress(dataAddress)
+                .transferType(process.getTransferType())
+                .contractId(agreementId);
+
+        return entityRetryProcessFactory.retryProcessor(process)
+                .doProcess(futureResult("Dispatch TransferRequestMessage to " + process.getCounterPartyAddress(),
+                        (t, c) -> dispatch(messageBuilder, t, TransferProcessAck.class))
+                )
+                .onSuccess(this::transitionToRequested)
+                .onFailure((t, throwable) -> transitionToRequesting(t))
+                .onFinalFailure(this::transitionToTerminated)
+                .execute();
+
     }
 
     /**
@@ -329,7 +329,10 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
      */
     @WithSpan
     private boolean processStarting(TransferProcess process) {
-        return startFlow(process, this::transitionToStarting, Function.identity());
+        Function<RetryProcessor<TransferProcess, ?>, RetryProcessor<TransferProcess, DataAddress>> preProcessing = r -> r
+                .doProcess(result("resolve data address", (p, ignored) -> StatusResult.success(dataAddressStore.resolve(p).orElse(f -> null))));
+
+        return sendStartMessage(process, this::transitionToStarting, preProcessing);
     }
 
     /**
@@ -342,22 +345,27 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     private boolean processProviderResuming(TransferProcess process) {
         var policy = policyArchive.findPolicyForContract(process.getContractId());
 
-        Function<RetryProcessor<TransferProcess, ?>, RetryProcessor<TransferProcess, ?>> preProcess = r -> r
+        Function<RetryProcessor<TransferProcess, ?>, RetryProcessor<TransferProcess, DataAddress>> preProcess = r -> r
                 .doProcess(result("Data Plane resume", (t, ignored) -> dataFlowController.start(process, policy)))
-                .doProcess(result("Set new data destination", (t, response) -> {
-                    t.updateDestination(response.getDataAddress());
-                    return StatusResult.success();
-                }));
-        return startFlow(process, this::transitionToResuming, preProcess);
+                .doProcess(result("Forward DataAddress", (t, response) -> StatusResult.success(response.getDataAddress())));
+
+        return sendStartMessage(process, this::transitionToResuming, preProcess);
     }
 
-    private boolean startFlow(TransferProcess process, Consumer<TransferProcess> onFailure, Function<RetryProcessor<TransferProcess, ?>, RetryProcessor<TransferProcess, ?>> preProcessing) {
+    private boolean sendStartMessage(TransferProcess process, Consumer<TransferProcess> onFailure, Function<RetryProcessor<TransferProcess, ?>, RetryProcessor<TransferProcess, DataAddress>> preProcessing) {
         return preProcessing.apply(entityRetryProcessFactory.retryProcessor(process))
-                .doProcess(futureResult("Dispatch TransferRequestMessage to: " + process.getCounterPartyAddress(), (t, dataFlowResponse) -> {
-                    var messageBuilder = TransferStartMessage.Builder.newInstance().dataAddress(t.getDataDestination());
-                    return dispatch(messageBuilder, t, Object.class);
+                .doProcess(futureResult("Dispatch TransferRequestMessage to: " + process.getCounterPartyAddress(), (t, dataAddress) -> {
+                    var messageBuilder = TransferStartMessage.Builder.newInstance().dataAddress(dataAddress);
+                    return dispatch(messageBuilder, t, Object.class)
+                            .thenApply((Function<StatusResult<Object>, StatusResult<DataAddress>>) i -> i.map(a -> dataAddress));
                 }))
-                .onSuccess((t, o) -> {
+                .doProcess(result("Store eventual DataAddress", (t, dataAddress) -> {
+                    if (dataAddress == null) {
+                        return StatusResult.success();
+                    }
+                    return dataAddressStore.store(dataAddress, t).flatMap(StatusResult::from);
+                }))
+                .onSuccess((t, dataAddress) -> {
                     t.transitionStarted();
                     update(t);
                     observable.invokeForEach(l -> l.started(t, TransferProcessStartedData.Builder.newInstance().build()));
@@ -683,11 +691,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             return this;
         }
 
-        public Builder vault(Vault vault) {
-            manager.vault = vault;
-            return this;
-        }
-
         public Builder observable(TransferProcessObservable observable) {
             manager.observable = observable;
             return this;
@@ -710,6 +713,11 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
         public Builder pendingGuard(TransferProcessPendingGuard pendingGuard) {
             manager.pendingGuard = pendingGuard;
+            return this;
+        }
+
+        public Builder dataAddressStore(DataAddressStore dataAddressStore) {
+            manager.dataAddressStore = dataAddressStore;
             return this;
         }
     }

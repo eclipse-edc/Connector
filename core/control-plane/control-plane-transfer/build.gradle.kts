@@ -21,10 +21,13 @@ dependencies {
     api(project(":spi:control-plane:policy-spi"))
     api(project(":spi:control-plane:transfer-spi"))
 
+    implementation(project(":core:common:lib:transform-lib"))
     implementation(project(":core:control-plane:lib:control-plane-transfer-provision-lib"))
     implementation(libs.opentelemetry.instrumentation.annotations)
+    implementation(libs.jakarta.json.api)
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(libs.parsson)
 }
 
 
