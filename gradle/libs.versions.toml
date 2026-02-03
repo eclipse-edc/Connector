@@ -41,7 +41,7 @@ testcontainers = "2.0.3"
 tink = "1.20.0"
 dsp-tck = "1.0.0-RC6"
 dcp-tck = "1.0.0-RC6"
-junit = "6.0.1"
+junit = "6.0.2"
 wiremock = "3.13.2"
 cel = "0.11.1"
 
