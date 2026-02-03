@@ -241,14 +241,14 @@ maven/mavencentral/org.glassfish.hk2/hk2-api/4.0.0-M3, EPL-2.0 OR GPL-2.0-only w
 maven/mavencentral/org.glassfish.hk2/hk2-locator/4.0.0-M3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.glassfish
 maven/mavencentral/org.glassfish.hk2/hk2-utils/4.0.0-M3, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.glassfish
 maven/mavencentral/org.glassfish.hk2/osgi-resource-locator/3.0.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.glassfish
-maven/mavencentral/org.glassfish.jersey.containers/jersey-container-servlet/4.0.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
-maven/mavencentral/org.glassfish.jersey.core/jersey-client/4.0.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
-maven/mavencentral/org.glassfish.jersey.core/jersey-common/4.0.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
-maven/mavencentral/org.glassfish.jersey.core/jersey-server/4.0.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
-maven/mavencentral/org.glassfish.jersey.ext/jersey-entity-filtering/4.0.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
-maven/mavencentral/org.glassfish.jersey.inject/jersey-hk2/4.0.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
-maven/mavencentral/org.glassfish.jersey.media/jersey-media-json-jackson/4.0.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
-maven/mavencentral/org.glassfish.jersey.media/jersey-media-multipart/4.0.0, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.containers/jersey-container-servlet/4.0.2, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.core/jersey-client/4.0.2, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.core/jersey-common/4.0.2, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.core/jersey-server/4.0.2, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.ext/jersey-entity-filtering/4.0.2, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.inject/jersey-hk2/4.0.2, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.media/jersey-media-json-jackson/4.0.2, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
+maven/mavencentral/org.glassfish.jersey.media/jersey-media-multipart/4.0.2, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jersey
 maven/mavencentral/org.glassfish/jakarta.json/2.0.1, EPL-2.0 OR GPL-2.0-only with Classpath-exception-2.0, approved, ee4j.jsonp
 maven/mavencentral/org.hamcrest/hamcrest-core/2.2, BSD-3-Clause, approved, #23163
 maven/mavencentral/org.hamcrest/hamcrest/2.1, BSD-3-Clause, approved, clearlydefined
