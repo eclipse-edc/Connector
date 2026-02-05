@@ -3130,6 +3130,7 @@ components:
         '@type': '@type'
         type: type
         '@context': {}
+        example: ""
       allOf:
       - properties:
           '@context':
@@ -3157,9 +3158,12 @@ components:
           type: string
         type:
           type: string
+        example:
+          type: type
       example:
         '@type': '@type'
         type: type
+        example: ""
     api-error-schema:
       title: ApiErrorSchema
       type: object
@@ -3319,17 +3323,21 @@ components:
         dataAddress:
           '@type': '@type'
           type: type
+          example: ""
         '@type': '@type'
         dataplaneMetadata:
           '@type': '@type'
-          properties: "{}"
+          properties:
+            key: value
           labels:
           - labels
           - labels
         '@id': '@id'
-        privateProperties: "{}"
+        privateProperties:
+          privateKey: privateValue
         '@context': {}
-        properties: "{}"
+        properties:
+          key: value
       allOf:
       - $ref: "#/components/schemas/Asset"
     Asset:
@@ -3351,8 +3359,12 @@ components:
           type: string
         properties:
           type: object
+          example:
+            key: value
         privateProperties:
           type: object
+          example:
+            privateKey: privateValue
         dataAddress:
           $ref: "#/components/schemas/data-address-schema"
         dataplaneMetadata:
@@ -3363,6 +3375,7 @@ components:
       example:
         '@type': '@type'
         type: type
+        example: ""
       allOf:
       - $ref: "#/components/schemas/DataAddress"
     dataplane-metadata-schema:
@@ -3370,7 +3383,8 @@ components:
       type: object
       example:
         '@type': '@type'
-        properties: "{}"
+        properties:
+          key: value
         labels:
         - labels
         - labels
@@ -3387,6 +3401,8 @@ components:
             type: string
         properties:
           type: object
+          example:
+            key: value
     contract-definition-schema:
       title: ContractDefinitionSchema
       type: object
@@ -4479,7 +4495,8 @@ components:
         assetId: assetId
         dataplaneMetadata:
           '@type': '@type'
-          properties: "{}"
+          properties:
+            key: value
           labels:
           - labels
           - labels
@@ -4506,6 +4523,7 @@ components:
         dataDestination:
           '@type': '@type'
           type: type
+          example: ""
         correlationId: correlationId
         '@id': '@id'
         state: state
@@ -4589,26 +4607,24 @@ components:
       type: object
       example:
         participantId: participantId
-        '@context':
-        - '@context'
-        - '@context'
+        '@context': {}
       allOf:
       - $ref: "#/components/schemas/RootCatalog"
     RootCatalog:
-      required:
-      - '@context'
-      - participantId
       type: object
-      properties:
-        '@context':
-          title: ContextSchema
-          type: array
-          items:
-            type: string
-        participantId:
-          type: string
       allOf:
       - $ref: "#/components/schemas/Catalog"
+      - required:
+        - '@context'
+        - participantId
+        type: object
+        properties:
+          '@context':
+            $ref: "#/components/schemas/context-schema_1"
+          participantId:
+            type: string
+        example: null
+      example: null
     Catalog:
       required:
       - '@id'
@@ -4670,11 +4686,244 @@ components:
           $ref: "#/components/schemas/Distribution_accessService"
         format:
           type: string
+      example:
+        hasPolicy:
+        - obligation:
+          - action: null
+            constraint:
+            - null
+            - null
+          - action: null
+            constraint:
+            - null
+            - null
+          '@type': '@type'
+          profile:
+          - PolicyClass_profile
+          - PolicyClass_profile
+          prohibition:
+          - action: action
+            constraint:
+            - null
+            - null
+          - action: action
+            constraint:
+            - null
+            - null
+          permission:
+          - action: action
+            constraint:
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+          - action: action
+            constraint:
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+          '@id': '@id'
+        - obligation:
+          - action: null
+            constraint:
+            - null
+            - null
+          - action: null
+            constraint:
+            - null
+            - null
+          '@type': '@type'
+          profile:
+          - PolicyClass_profile
+          - PolicyClass_profile
+          prohibition:
+          - action: action
+            constraint:
+            - null
+            - null
+          - action: action
+            constraint:
+            - null
+            - null
+          permission:
+          - action: action
+            constraint:
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+          - action: action
+            constraint:
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+          '@id': '@id'
+        accessService: Distribution_accessService
+        format: format
     Offer:
       type: object
       not:
         required:
         - target
+      example:
+        obligation:
+        - action: null
+          constraint:
+          - null
+          - null
+        - action: null
+          constraint:
+          - null
+          - null
+        '@type': '@type'
+        profile:
+        - PolicyClass_profile
+        - PolicyClass_profile
+        prohibition:
+        - action: action
+          constraint:
+          - null
+          - null
+        - action: action
+          constraint:
+          - null
+          - null
+        permission:
+        - action: action
+          constraint:
+          - or:
+            - null
+            - null
+            andSequence:
+            - null
+            - null
+            and:
+            - null
+            - null
+            xone:
+            - null
+            - null
+          - or:
+            - null
+            - null
+            andSequence:
+            - null
+            - null
+            and:
+            - null
+            - null
+            xone:
+            - null
+            - null
+        - action: action
+          constraint:
+          - or:
+            - null
+            - null
+            andSequence:
+            - null
+            - null
+            and:
+            - null
+            - null
+            xone:
+            - null
+            - null
+          - or:
+            - null
+            - null
+            andSequence:
+            - null
+            - null
+            and:
+            - null
+            - null
+            xone:
+            - null
+            - null
+        '@id': '@id'
       allOf:
       - $ref: "#/components/schemas/PolicyClass"
       - properties:
@@ -4699,21 +4948,24 @@ components:
             items:
               $ref: "#/components/schemas/Dataset"
     Dataset:
-      required:
-      - distribution
-      - hasPolicy
       type: object
-      properties:
-        hasPolicy:
-          minItems: 1
-          type: array
-          items:
-            $ref: "#/components/schemas/Offer"
       allOf:
       - $ref: "#/components/schemas/AbstractDataset"
+      - required:
+        - hasPolicy
+        type: object
+        properties:
+          hasPolicy:
+            minItems: 1
+            type: array
+            items:
+              $ref: "#/components/schemas/Offer"
+        example: null
+      example: null
     context-schema_1:
       title: ContextSchema
       type: array
+      example: {}
       items:
         type: string
     catalog-request-schema:
@@ -5227,7 +5479,8 @@ components:
       example:
         '@type': '@type'
         '@id': '@id'
-        privateProperties: "{}"
+        privateProperties:
+          privateKey: privateValue
         '@context': {}
         policy:
           '@type': '@type'
@@ -5328,6 +5581,8 @@ components:
           $ref: "#/components/schemas/PolicyClass_1"
         privateProperties:
           type: object
+          example:
+            privateKey: privateValue
     PolicyClass_1:
       required:
       - '@type'
@@ -6180,23 +6435,486 @@ components:
       title: DatasetSchema
       type: object
       example:
-        '@context':
-        - '@context'
-        - '@context'
+        hasPolicy:
+        - obligation:
+          - action: null
+            constraint:
+            - null
+            - null
+          - action: null
+            constraint:
+            - null
+            - null
+          '@type': '@type'
+          profile:
+          - PolicyClass_profile
+          - PolicyClass_profile
+          prohibition:
+          - action: action
+            constraint:
+            - null
+            - null
+          - action: action
+            constraint:
+            - null
+            - null
+          permission:
+          - action: action
+            constraint:
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+          - action: action
+            constraint:
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+          '@id': '@id'
+        - obligation:
+          - action: null
+            constraint:
+            - null
+            - null
+          - action: null
+            constraint:
+            - null
+            - null
+          '@type': '@type'
+          profile:
+          - PolicyClass_profile
+          - PolicyClass_profile
+          prohibition:
+          - action: action
+            constraint:
+            - null
+            - null
+          - action: action
+            constraint:
+            - null
+            - null
+          permission:
+          - action: action
+            constraint:
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+          - action: action
+            constraint:
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+            - or:
+              - null
+              - null
+              andSequence:
+              - null
+              - null
+              and:
+              - null
+              - null
+              xone:
+              - null
+              - null
+          '@id': '@id'
+        '@id': '@id'
+        distribution:
+        - hasPolicy:
+          - obligation:
+            - action: null
+              constraint:
+              - null
+              - null
+            - action: null
+              constraint:
+              - null
+              - null
+            '@type': '@type'
+            profile:
+            - PolicyClass_profile
+            - PolicyClass_profile
+            prohibition:
+            - action: action
+              constraint:
+              - null
+              - null
+            - action: action
+              constraint:
+              - null
+              - null
+            permission:
+            - action: action
+              constraint:
+              - or:
+                - null
+                - null
+                andSequence:
+                - null
+                - null
+                and:
+                - null
+                - null
+                xone:
+                - null
+                - null
+              - or:
+                - null
+                - null
+                andSequence:
+                - null
+                - null
+                and:
+                - null
+                - null
+                xone:
+                - null
+                - null
+            - action: action
+              constraint:
+              - or:
+                - null
+                - null
+                andSequence:
+                - null
+                - null
+                and:
+                - null
+                - null
+                xone:
+                - null
+                - null
+              - or:
+                - null
+                - null
+                andSequence:
+                - null
+                - null
+                and:
+                - null
+                - null
+                xone:
+                - null
+                - null
+            '@id': '@id'
+          - obligation:
+            - action: null
+              constraint:
+              - null
+              - null
+            - action: null
+              constraint:
+              - null
+              - null
+            '@type': '@type'
+            profile:
+            - PolicyClass_profile
+            - PolicyClass_profile
+            prohibition:
+            - action: action
+              constraint:
+              - null
+              - null
+            - action: action
+              constraint:
+              - null
+              - null
+            permission:
+            - action: action
+              constraint:
+              - or:
+                - null
+                - null
+                andSequence:
+                - null
+                - null
+                and:
+                - null
+                - null
+                xone:
+                - null
+                - null
+              - or:
+                - null
+                - null
+                andSequence:
+                - null
+                - null
+                and:
+                - null
+                - null
+                xone:
+                - null
+                - null
+            - action: action
+              constraint:
+              - or:
+                - null
+                - null
+                andSequence:
+                - null
+                - null
+                and:
+                - null
+                - null
+                xone:
+                - null
+                - null
+              - or:
+                - null
+                - null
+                andSequence:
+                - null
+                - null
+                and:
+                - null
+                - null
+                xone:
+                - null
+                - null
+            '@id': '@id'
+          accessService: Distribution_accessService
+          format: format
+        - hasPolicy:
+          - obligation:
+            - action: null
+              constraint:
+              - null
+              - null
+            - action: null
+              constraint:
+              - null
+              - null
+            '@type': '@type'
+            profile:
+            - PolicyClass_profile
+            - PolicyClass_profile
+            prohibition:
+            - action: action
+              constraint:
+              - null
+              - null
+            - action: action
+              constraint:
+              - null
+              - null
+            permission:
+            - action: action
+              constraint:
+              - or:
+                - null
+                - null
+                andSequence:
+                - null
+                - null
+                and:
+                - null
+                - null
+                xone:
+                - null
+                - null
+              - or:
+                - null
+                - null
+                andSequence:
+                - null
+                - null
+                and:
+                - null
+                - null
+                xone:
+                - null
+                - null
+            - action: action
+              constraint:
+              - or:
+                - null
+                - null
+                andSequence:
+                - null
+                - null
+                and:
+                - null
+                - null
+                xone:
+                - null
+                - null
+              - or:
+                - null
+                - null
+                andSequence:
+                - null
+                - null
+                and:
+                - null
+                - null
+                xone:
+                - null
+                - null
+            '@id': '@id'
+          - obligation:
+            - action: null
+              constraint:
+              - null
+              - null
+            - action: null
+              constraint:
+              - null
+              - null
+            '@type': '@type'
+            profile:
+            - PolicyClass_profile
+            - PolicyClass_profile
+            prohibition:
+            - action: action
+              constraint:
+              - null
+              - null
+            - action: action
+              constraint:
+              - null
+              - null
+            permission:
+            - action: action
+              constraint:
+              - or:
+                - null
+                - null
+                andSequence:
+                - null
+                - null
+                and:
+                - null
+                - null
+                xone:
+                - null
+                - null
+              - or:
+                - null
+                - null
+                andSequence:
+                - null
+                - null
+                and:
+                - null
+                - null
+                xone:
+                - null
+                - null
+            - action: action
+              constraint:
+              - or:
+                - null
+                - null
+                andSequence:
+                - null
+                - null
+                and:
+                - null
+                - null
+                xone:
+                - null
+                - null
+              - or:
+                - null
+                - null
+                andSequence:
+                - null
+                - null
+                and:
+                - null
+                - null
+                xone:
+                - null
+                - null
+            '@id': '@id'
+          accessService: Distribution_accessService
+          format: format
+        '@context': {}
       allOf:
       - $ref: "#/components/schemas/RootDataset"
     RootDataset:
-      required:
-      - '@context'
       type: object
-      properties:
-        '@context':
-          title: ContextSchema
-          type: array
-          items:
-            type: string
       allOf:
       - $ref: "#/components/schemas/Dataset"
+      - required:
+        - '@context'
+        type: object
+        properties:
+          '@context':
+            $ref: "#/components/schemas/context-schema_1"
+        example: null
+      example: null
     NegotiationState_1:
       type: object
       properties:
