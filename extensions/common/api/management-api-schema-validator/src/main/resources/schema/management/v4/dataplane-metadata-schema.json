@@ -23,7 +23,8 @@
           }
         },
         "properties": {
-          "type": "object"
+          "type": "object",
+          "example": { "key": "value" }
         }
       }
     }

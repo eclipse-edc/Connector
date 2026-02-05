@@ -18,7 +18,8 @@
         },
         "type": {
           "type": "string"
-        }
+        },
+        "example": { "type": "type" }
       },
       "required": [
         "@type",

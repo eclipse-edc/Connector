@@ -26,7 +26,8 @@
           "$ref": "https://w3id.org/edc/connector/management/schema/v4/policy-definition-schema.json#/definitions/PolicyClass"
         },
         "privateProperties": {
-          "type": "object"
+          "type": "object",
+          "example": { "privateKey": "privateValue" }
         }
       },
       "required": [
