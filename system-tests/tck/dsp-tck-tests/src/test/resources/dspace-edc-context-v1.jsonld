@@ -1,0 +1,31 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "edc": "https://w3id.org/edc/v0.0.1/ns/",
+    "QuerySpec": {
+      "@id": "edc:QuerySpec",
+      "@context": {
+        "sortOrder": "edc:sortOrder",
+        "sortField": "edc:sortField",
+        "offset": "edc:offset",
+        "limit": "edc:limit",
+        "filterExpression": {
+          "@id": "edc:filterExpression",
+          "@container": "@set"
+        }
+      }
+    },
+    "Criterion": {
+      "@id": "edc:Criterion",
+      "@context": {
+        "operandLeft": "edc:operandLeft",
+        "operator": "edc:operator",
+        "operandRight": "edc:operandRight"
+      }
+    },
+    "inForceDate": "edc:inForceDate",
+    "id": "edc:id",
+    "description": "edc:descripti1on",
+    "isCatalog": "edc:isCatalog"
+  }
+}
