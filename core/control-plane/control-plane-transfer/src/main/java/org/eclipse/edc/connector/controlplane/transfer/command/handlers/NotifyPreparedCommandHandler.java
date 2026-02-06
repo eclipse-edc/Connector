@@ -50,7 +50,7 @@ public class NotifyPreparedCommandHandler extends EntityCommandHandler<NotifyPre
 
         if (command.getDataAddress() != null) {
             var dataAddressStorage = dataAddressStore.store(command.getDataAddress(), entity);
-            return !dataAddressStorage.failed();
+            return dataAddressStorage.succeeded();
         }
 
         return true;
