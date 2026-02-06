@@ -47,7 +47,7 @@ public class JsonObjectFromTransferRequestMessageTransformer extends AbstractNam
     @Override
     public @Nullable JsonObject transform(@NotNull TransferRequestMessage transferRequestMessage, @NotNull TransformerContext context) {
         var format = Optional.ofNullable(transferRequestMessage.getTransferType())
-                .orElseGet(() -> transferRequestMessage.getDataDestination().getType());
+                .orElseGet(() -> transferRequestMessage.getDataAddress().getType());
 
         var builder = jsonBuilderFactory.createObjectBuilder()
                 .add(ID, transferRequestMessage.getId())
@@ -57,8 +57,8 @@ public class JsonObjectFromTransferRequestMessageTransformer extends AbstractNam
                 .add(forNamespace(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM), transferRequestMessage.getCallbackAddress())
                 .add(forNamespace(DSPACE_PROPERTY_CONSUMER_PID_TERM), createId(jsonBuilderFactory, transferRequestMessage.getConsumerPid()));
 
-        if (transferRequestMessage.getDataDestination() != null && transferRequestMessage.getDataDestination().getProperties().size() > 1) {
-            builder.add(forNamespace(DSPACE_PROPERTY_DATA_ADDRESS_TERM), context.transform(transferRequestMessage.getDataDestination(), JsonObject.class));
+        if (transferRequestMessage.getDataAddress() != null && transferRequestMessage.getDataAddress().getProperties().size() > 1) {
+            builder.add(forNamespace(DSPACE_PROPERTY_DATA_ADDRESS_TERM), context.transform(transferRequestMessage.getDataAddress(), JsonObject.class));
         }
         return builder.build();
     }

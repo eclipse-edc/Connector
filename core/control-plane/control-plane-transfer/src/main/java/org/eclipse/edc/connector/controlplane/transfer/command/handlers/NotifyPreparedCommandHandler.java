@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.transfer.command.handlers;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyPreparedCommand;
 import org.eclipse.edc.spi.command.EntityCommandHandler;
@@ -26,10 +27,12 @@ import org.eclipse.edc.spi.command.EntityCommandHandler;
 public class NotifyPreparedCommandHandler extends EntityCommandHandler<NotifyPreparedCommand, TransferProcess> {
 
     private final TransferProcessObservable observable;
+    private final DataAddressStore dataAddressStore;
 
-    public NotifyPreparedCommandHandler(TransferProcessStore store, TransferProcessObservable observable) {
+    public NotifyPreparedCommandHandler(TransferProcessStore store, TransferProcessObservable observable, DataAddressStore dataAddressStore) {
         super(store);
         this.observable = observable;
+        this.dataAddressStore = dataAddressStore;
     }
 
     @Override
@@ -39,15 +42,17 @@ public class NotifyPreparedCommandHandler extends EntityCommandHandler<NotifyPre
 
     @Override
     protected boolean modify(TransferProcess entity, NotifyPreparedCommand command) {
-        if (command.getDataAddress() != null) {
-            entity.updateDestination(command.getDataAddress());
-        }
-
         if (entity.getType() == TransferProcess.Type.CONSUMER) {
             entity.transitionRequesting();
         } else {
             entity.transitionStarting();
         }
+
+        if (command.getDataAddress() != null) {
+            var dataAddressStorage = dataAddressStore.store(command.getDataAddress(), entity);
+            return dataAddressStorage.succeeded();
+        }
+
         return true;
     }
 

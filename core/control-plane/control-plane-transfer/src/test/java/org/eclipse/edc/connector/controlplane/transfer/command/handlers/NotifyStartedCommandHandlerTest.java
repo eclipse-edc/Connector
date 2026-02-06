@@ -18,8 +18,10 @@ import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessOb
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyStartedCommand;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -28,14 +30,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class NotifyStartedCommandHandlerTest {
 
     private final TransferProcessObservable observable = new TransferProcessObservableImpl();
-    private final NotifyStartedCommandHandler handler = new NotifyStartedCommandHandler(mock(TransferProcessStore.class), observable);
+    private final DataAddressStore dataAddressStore = mock();
+    private final NotifyStartedCommandHandler handler = new NotifyStartedCommandHandler(mock(TransferProcessStore.class), observable, dataAddressStore);
 
     @Test
     void verifyCorrectType() {
@@ -44,56 +51,40 @@ class NotifyStartedCommandHandlerTest {
 
     @Test
     void shouldNotTransition_whenConsumer() {
-        var newDestination = DataAddress.Builder.newInstance().type("new").build();
-        var originalDestination = DataAddress.Builder.newInstance().type("original").build();
-        var command = new NotifyStartedCommand("test-id", newDestination);
-        var entity = TransferProcess.Builder.newInstance().state(STARTING.code()).type(CONSUMER).dataDestination(originalDestination).build();
+        var dataAddress = DataAddress.Builder.newInstance().type("new").build();
+        var command = new NotifyStartedCommand("test-id", dataAddress);
+        var entity = TransferProcess.Builder.newInstance().state(STARTING.code()).type(CONSUMER).build();
 
         var result = handler.modify(entity, command);
 
         assertThat(result).isFalse();
         assertThat(entity.getState()).isEqualTo(STARTING.code());
-        assertThat(entity.getDataDestination()).isSameAs(newDestination);
     }
 
     @Test
     void shouldTransitionToStarting_whenProvider() {
-        var newDestination = DataAddress.Builder.newInstance().type("new").build();
-        var originalDestination = DataAddress.Builder.newInstance().type("original").build();
-        var command = new NotifyStartedCommand("test-id", newDestination);
-        var entity = TransferProcess.Builder.newInstance().state(STARTING.code()).type(PROVIDER).dataDestination(originalDestination).build();
+        var dataAddress = DataAddress.Builder.newInstance().type("new").build();
+        var command = new NotifyStartedCommand("test-id", dataAddress);
+        var entity = TransferProcess.Builder.newInstance().state(STARTING.code()).type(PROVIDER).build();
+        when(dataAddressStore.store(dataAddress, entity)).thenReturn(StoreResult.success());
 
         var result = handler.modify(entity, command);
 
         assertThat(result).isTrue();
         assertThat(entity.getState()).isEqualTo(STARTING.code());
-        assertThat(entity.getDataDestination()).isSameAs(newDestination);
-    }
-
-    @Test
-    void shouldUpdateDestination_whenProvided() {
-        var newDestination = DataAddress.Builder.newInstance().type("new").build();
-        var originalDestination = DataAddress.Builder.newInstance().type("original").build();
-        var command = new NotifyStartedCommand("test-id", newDestination);
-        var entity = TransferProcess.Builder.newInstance().state(STARTING.code()).type(PROVIDER).dataDestination(originalDestination).build();
-
-        var result = handler.modify(entity, command);
-
-        assertThat(result).isTrue();
-        assertThat(entity.getDataDestination()).isSameAs(newDestination);
+        verify(dataAddressStore).store(dataAddress, entity);
     }
 
     @Test
     void shouldNotUpdateDestination_whenItIsMissing() {
         var command = new NotifyStartedCommand("test-id", null);
-        var originalDestination = DataAddress.Builder.newInstance().type("original").build();
-        var entity = TransferProcess.Builder.newInstance().state(STARTING.code()).type(PROVIDER).dataDestination(originalDestination).build();
+        var entity = TransferProcess.Builder.newInstance().state(STARTING.code()).type(PROVIDER).build();
 
         var result = handler.modify(entity, command);
 
         assertThat(result).isTrue();
         assertThat(entity.getState()).isEqualTo(STARTING.code());
-        assertThat(entity.getDataDestination()).isSameAs(originalDestination);
+        verify(dataAddressStore, never()).store(any(), any());
     }
 
     @Test
@@ -109,5 +100,18 @@ class NotifyStartedCommandHandlerTest {
         var captor = ArgumentCaptor.forClass(org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData.class);
         verify(listener).started(eq(entity), captor.capture());
         assertThat(captor.getValue().getDataAddress()).isSameAs(dataAddress);
+    }
+
+    @Test
+    void shouldNotTransition_whenDataAddressStoreOperationFails() {
+        var dataAddress = DataAddress.Builder.newInstance().type("new").build();
+        var command = new NotifyStartedCommand("test-id", dataAddress);
+        var entity = TransferProcess.Builder.newInstance().state(STARTUP_REQUESTED.code()).type(PROVIDER).build();
+        when(dataAddressStore.store(dataAddress, entity)).thenReturn(StoreResult.notFound("Failed to store"));
+
+        var result = handler.modify(entity, command);
+
+        assertThat(result).isFalse();
+        verify(dataAddressStore).store(dataAddress, entity);
     }
 }

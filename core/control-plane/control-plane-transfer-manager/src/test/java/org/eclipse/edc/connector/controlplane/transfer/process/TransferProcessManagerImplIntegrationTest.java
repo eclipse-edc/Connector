@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.controlplane.defaults.storage.transferprocess.I
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
@@ -35,6 +36,7 @@ import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
@@ -90,6 +92,7 @@ class TransferProcessManagerImplIntegrationTest {
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
     private final DataFlowController dataFlowController = mock();
     private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
+    private final DataAddressStore dataAddressStore = mock();
     private TransferProcessManagerImpl manager;
 
     @BeforeEach
@@ -114,6 +117,7 @@ class TransferProcessManagerImplIntegrationTest {
                 .policyArchive(policyArchive)
                 .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
                 .addressResolver(mock())
+                .dataAddressStore(dataAddressStore)
                 .build();
     }
 
@@ -168,6 +172,7 @@ class TransferProcessManagerImplIntegrationTest {
                     .thenReturn(completedFuture(StatusResult.success(TransferProcessAck.Builder.newInstance().build())));
             when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
             when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.notFound("any"));
 
             var transfer = transferProcessBuilder().type(type).state(state.code()).build();
             store.save(transfer);

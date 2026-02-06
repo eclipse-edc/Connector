@@ -54,7 +54,7 @@ public class JsonObjectToTransferRequestMessageTransformer extends AbstractNames
 
         var dataAddressObject = messageObject.get(forNamespace(DSPACE_PROPERTY_DATA_ADDRESS_TERM));
         if (dataAddressObject != null) {
-            builder.dataDestination(transformObject(dataAddressObject, DataAddress.class, context));
+            builder.dataAddress(transformObject(dataAddressObject, DataAddress.class, context));
         }
 
         transformString(messageObject.get(DCT_FORMAT_ATTRIBUTE), builder::transferType, context);

@@ -26,7 +26,7 @@ import java.util.Objects;
 public class TransferRequestMessage extends TransferRemoteMessage {
 
     private String contractId;
-    private DataAddress dataDestination;
+    private DataAddress dataAddress;
     private String transferType;
     private String callbackAddress;
 
@@ -34,8 +34,8 @@ public class TransferRequestMessage extends TransferRemoteMessage {
         return contractId;
     }
 
-    public DataAddress getDataDestination() {
-        return dataDestination;
+    public DataAddress getDataAddress() {
+        return dataAddress;
     }
 
     public String getTransferType() {
@@ -68,8 +68,8 @@ public class TransferRequestMessage extends TransferRemoteMessage {
             return this;
         }
 
-        public Builder dataDestination(DataAddress dataDestination) {
-            message.dataDestination = dataDestination;
+        public Builder dataAddress(DataAddress dataAddress) {
+            message.dataAddress = dataAddress;
             return this;
         }
 

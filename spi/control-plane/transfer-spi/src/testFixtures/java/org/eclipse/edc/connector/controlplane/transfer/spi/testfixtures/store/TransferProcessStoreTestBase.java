@@ -90,6 +90,7 @@ public abstract class TransferProcessStoreTestBase {
                     .dataPlaneId("dataPlaneId")
                     .callbackAddresses(callbacks)
                     .dataplaneMetadata(dataplaneMetadata)
+                    .dataAddressAlias("dataAddressAlias")
                     .build();
             getTransferProcessStore().save(transferProcess);
 

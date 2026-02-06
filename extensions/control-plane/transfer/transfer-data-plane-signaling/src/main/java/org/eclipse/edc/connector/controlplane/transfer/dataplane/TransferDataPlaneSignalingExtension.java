@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.controlplane.transfer.dataplane.flow.LegacyData
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -45,25 +46,23 @@ public class TransferDataPlaneSignalingExtension implements ServiceExtension {
 
     @Inject(required = false)
     private ControlApiUrl callbackUrl;
-
     @Inject
     private DataPlaneSelectorService selectorService;
-
     @Inject
     private DataPlaneClientFactory clientFactory;
-
     @Inject(required = false)
     private DataFlowPropertiesProvider propertiesProvider;
-
     @Inject
     private TransferTypeParser transferTypeParser;
     @Inject
     private AssetIndex assetIndex;
+    @Inject
+    private DataAddressStore dataAddressStore;
 
     @Provider
     public DataFlowController dataFlowController() {
         return new LegacyDataPlaneSignalingFlowController(callbackUrl, selectorService, getPropertiesProvider(),
-                clientFactory, selectionStrategy, transferTypeParser, assetIndex);
+                clientFactory, selectionStrategy, transferTypeParser, assetIndex, dataAddressStore);
     }
 
     private DataFlowPropertiesProvider getPropertiesProvider() {

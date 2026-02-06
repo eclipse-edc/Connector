@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
@@ -64,10 +65,12 @@ public class LegacyDataPlaneSignalingFlowController implements DataFlowControlle
     private final String selectionStrategy;
     private final TransferTypeParser transferTypeParser;
     private final AssetIndex assetIndex;
+    private final DataAddressStore dataAddressStore;
 
     public LegacyDataPlaneSignalingFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient,
                                                   DataFlowPropertiesProvider propertiesProvider, DataPlaneClientFactory clientFactory,
-                                                  String selectionStrategy, TransferTypeParser transferTypeParser, AssetIndex assetIndex) {
+                                                  String selectionStrategy, TransferTypeParser transferTypeParser, AssetIndex assetIndex,
+                                                  DataAddressStore dataAddressStore) {
         this.callbackUrl = callbackUrl;
         this.selectorClient = selectorClient;
         this.propertiesProvider = propertiesProvider;
@@ -75,6 +78,7 @@ public class LegacyDataPlaneSignalingFlowController implements DataFlowControlle
         this.selectionStrategy = selectionStrategy;
         this.transferTypeParser = transferTypeParser;
         this.assetIndex = assetIndex;
+        this.dataAddressStore = dataAddressStore;
     }
 
     @Override
@@ -84,8 +88,9 @@ public class LegacyDataPlaneSignalingFlowController implements DataFlowControlle
 
     @Override
     public StatusResult<DataFlowResponse> prepare(TransferProcess transferProcess, Policy policy) {
+        var dataAddress = dataAddressStore.resolve(transferProcess).orElse(f -> null);
         var selection = selectorClient.select(selectionStrategy, dataPlane ->
-                dataPlane.canProvisionDestination(transferProcess.getDataDestination()));
+                dataPlane.canProvisionDestination(dataAddress));
         if (selection.failed()) {
             return StatusResult.failure(FATAL_ERROR, selection.getFailureDetail());
         }
@@ -102,7 +107,7 @@ public class LegacyDataPlaneSignalingFlowController implements DataFlowControlle
 
         var dataFlowRequest = DataFlowProvisionMessage.Builder.newInstance()
                 .processId(transferProcess.getId())
-                .destination(transferProcess.getDataDestination())
+                .destination(dataAddress)
                 .participantId(policy.getAssignee())
                 .agreementId(transferProcess.getContractId())
                 .assetId(transferProcess.getAssetId())
@@ -129,11 +134,12 @@ public class LegacyDataPlaneSignalingFlowController implements DataFlowControlle
             return StatusResult.failure(FATAL_ERROR, propertiesResult.getFailureDetail());
         }
 
+        var dataAddress = dataAddressStore.resolve(transferProcess).orElse(f -> null);
         var dataFlowRequest = DataFlowStartMessage.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .processId(transferProcess.getId())
                 .sourceDataAddress(transferProcess.getContentDataAddress())
-                .destinationDataAddress(transferProcess.getDataDestination())
+                .destinationDataAddress(dataAddress)
                 .participantId(policy.getAssignee())
                 .agreementId(transferProcess.getContractId())
                 .assetId(transferProcess.getAssetId())

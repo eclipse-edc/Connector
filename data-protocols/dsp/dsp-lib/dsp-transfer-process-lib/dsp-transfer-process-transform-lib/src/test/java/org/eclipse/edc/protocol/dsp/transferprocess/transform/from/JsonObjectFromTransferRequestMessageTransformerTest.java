@@ -79,7 +79,7 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
                 .callbackAddress(callbackAddress)
                 .contractId(contractId)
                 .protocol(protocol)
-                .dataDestination(buildTestDataAddress())
+                .dataAddress(buildTestDataAddress())
                 .build();
 
         var result = transformer.transform(message, context);
@@ -103,7 +103,7 @@ class JsonObjectFromTransferRequestMessageTransformerTest {
                 .callbackAddress(callbackAddress)
                 .contractId(contractId)
                 .protocol(protocol)
-                .dataDestination(DataAddress.Builder.newInstance().type(dataAddressType).build())
+                .dataAddress(DataAddress.Builder.newInstance().type(dataAddressType).build())
                 .build();
 
         var result = transformer.transform(message, context);

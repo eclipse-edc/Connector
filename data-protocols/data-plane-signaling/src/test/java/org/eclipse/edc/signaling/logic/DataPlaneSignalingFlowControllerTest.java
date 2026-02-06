@@ -15,6 +15,7 @@
 package org.eclipse.edc.signaling.logic;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
@@ -29,6 +30,7 @@ import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
@@ -58,10 +60,11 @@ public class DataPlaneSignalingFlowControllerTest {
     private final ClientFactory clientFactory = mock();
     private final DataPlaneSelectorService selectorService = mock();
     private final TypeTransformerRegistry typeTransformerRegistry = mock();
+    private final DataAddressStore dataAddressStore = mock();
 
     private final DataPlaneSignalingFlowController flowController = new DataPlaneSignalingFlowController(
             () -> URI.create("http://localhost"), selectorService,
-            "random", typeTransformerRegistry, clientFactory);
+            "random", typeTransformerRegistry, clientFactory, dataAddressStore);
 
     @Nested
     class Prepare {
@@ -117,6 +120,7 @@ public class DataPlaneSignalingFlowControllerTest {
             when(dataPlaneClient.start(any())).thenReturn(StatusResult.success(DataFlowResponseMessage.Builder.newInstance()
                     .dataAddress(createDspDataAddress())
                     .build()));
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(DataAddress.Builder.newInstance().type("test").build()));
 
             var result = flowController.start(transferProcess, policy);
 
@@ -150,6 +154,7 @@ public class DataPlaneSignalingFlowControllerTest {
             when(selectorService.select(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
             when(typeTransformerRegistry.transform(isA(DataAddress.class), any())).thenReturn(Result.success(createDspDataAddress()));
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(DataAddress.Builder.newInstance().type("test").build()));
 
             var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
 
@@ -423,8 +428,7 @@ public class DataPlaneSignalingFlowControllerTest {
                 .contractId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
                 .counterPartyAddress("test.connector.address")
-                .transferType("transferType")
-                .dataDestination(DataAddress.Builder.newInstance().type("test").build());
+                .transferType("transferType");
     }
 
     private Policy.Builder policyBuilder() {

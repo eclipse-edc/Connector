@@ -141,7 +141,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                         entity.getContractId(),
                         toJson(entity.getDataDestination()),
                         entity.getParticipantContextId(),
-                        toJson(entity.getDataplaneMetadata()));
+                        toJson(entity.getDataplaneMetadata()),
+                        entity.getDataAddressAlias());
 
                 return leaseContext.withConnection(conn).breakLease(entity.getId());
             } catch (SQLException e) {
@@ -255,7 +256,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .protocolMessages(fromJson(resultSet.getString(statements.getProtocolMessagesColumn()), ProtocolMessages.class))
                 .dataPlaneId(resultSet.getString(statements.getDataPlaneIdColumn()))
                 .participantContextId(resultSet.getString(statements.getParticipantContextIdColumn()))
-                .dataplaneMetadata(fromJson(resultSet.getString(statements.getDataplaneMetadata()), DataplaneMetadata.class))
+                .dataplaneMetadata(fromJson(resultSet.getString(statements.getDataplaneMetadataColumn()), DataplaneMetadata.class))
+                .dataAddressAlias(resultSet.getString(statements.getDataAddressAliasColumn()))
                 .build();
     }
 

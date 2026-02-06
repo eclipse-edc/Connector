@@ -18,8 +18,10 @@ import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessOb
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyPreparedCommand;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 
@@ -30,13 +32,17 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class NotifyPreparedCommandHandlerTest {
 
     private final TransferProcessObservable observable = new TransferProcessObservableImpl();
-    private final NotifyPreparedCommandHandler handler = new NotifyPreparedCommandHandler(mock(TransferProcessStore.class), observable);
+    private final DataAddressStore dataAddressStore = mock();
+    private final NotifyPreparedCommandHandler handler = new NotifyPreparedCommandHandler(mock(TransferProcessStore.class), observable, dataAddressStore);
 
     @Test
     void verifyCorrectType() {
@@ -45,43 +51,42 @@ class NotifyPreparedCommandHandlerTest {
 
     @Test
     void shouldTransitionProvisioned_whenConsumer() {
-        var newDestination = DataAddress.Builder.newInstance().type("new").build();
-        var originalDestination = DataAddress.Builder.newInstance().type("original").build();
-        var command = new NotifyPreparedCommand("test-id", newDestination);
-        var entity = TransferProcess.Builder.newInstance().state(PREPARATION_REQUESTED.code()).type(CONSUMER).dataDestination(originalDestination).build();
+        var dataAddress = DataAddress.Builder.newInstance().type("new").build();
+        var command = new NotifyPreparedCommand("test-id", dataAddress);
+        var entity = TransferProcess.Builder.newInstance().state(PREPARATION_REQUESTED.code()).type(CONSUMER).build();
+        when(dataAddressStore.store(dataAddress, entity)).thenReturn(StoreResult.success());
 
         var result = handler.modify(entity, command);
 
         assertThat(result).isTrue();
         assertThat(entity.getState()).isEqualTo(REQUESTING.code());
-        assertThat(entity.getDataDestination()).isSameAs(newDestination);
+        verify(dataAddressStore).store(dataAddress, entity);
     }
 
     @Test
-    void shouldNotUpdateDestination_whenItIsMissing() {
+    void shouldNotSaveDataAddress_whenItIsMissing() {
         var command = new NotifyPreparedCommand("test-id", null);
-        var originalDestination = DataAddress.Builder.newInstance().type("original").build();
-        var entity = TransferProcess.Builder.newInstance().state(PREPARATION_REQUESTED.code()).dataDestination(originalDestination).build();
+        var entity = TransferProcess.Builder.newInstance().state(PREPARATION_REQUESTED.code()).build();
 
         var result = handler.modify(entity, command);
 
         assertThat(result).isTrue();
         assertThat(entity.getState()).isEqualTo(REQUESTING.code());
-        assertThat(entity.getDataDestination()).isSameAs(originalDestination);
+        verify(dataAddressStore, never()).store(any(), any());
     }
 
     @Test
     void shouldTransitionToStarting_whenProvider() {
-        var newDestination = DataAddress.Builder.newInstance().type("new").build();
-        var originalDestination = DataAddress.Builder.newInstance().type("original").build();
-        var command = new NotifyPreparedCommand("test-id", newDestination);
-        var entity = TransferProcess.Builder.newInstance().state(STARTUP_REQUESTED.code()).type(PROVIDER).dataDestination(originalDestination).build();
+        var dataAddress = DataAddress.Builder.newInstance().type("new").build();
+        var command = new NotifyPreparedCommand("test-id", dataAddress);
+        var entity = TransferProcess.Builder.newInstance().state(STARTUP_REQUESTED.code()).type(PROVIDER).build();
+        when(dataAddressStore.store(dataAddress, entity)).thenReturn(StoreResult.success());
 
         var result = handler.modify(entity, command);
 
         assertThat(result).isTrue();
         assertThat(entity.getState()).isEqualTo(STARTING.code());
-        assertThat(entity.getDataDestination()).isSameAs(newDestination);
+        verify(dataAddressStore).store(dataAddress, entity);
     }
 
     @Test
@@ -94,5 +99,18 @@ class NotifyPreparedCommandHandlerTest {
         handler.postActions(entity, command);
 
         verify(listener).provisioned(entity);
+    }
+
+    @Test
+    void shouldNotTransition_whenDataAddressStoreOperationFails() {
+        var dataAddress = DataAddress.Builder.newInstance().type("new").build();
+        var command = new NotifyPreparedCommand("test-id", dataAddress);
+        var entity = TransferProcess.Builder.newInstance().state(PREPARATION_REQUESTED.code()).type(CONSUMER).build();
+        when(dataAddressStore.store(dataAddress, entity)).thenReturn(StoreResult.notFound("Failed to store"));
+
+        var result = handler.modify(entity, command);
+
+        assertThat(result).isFalse();
+        verify(dataAddressStore).store(dataAddress, entity);
     }
 }

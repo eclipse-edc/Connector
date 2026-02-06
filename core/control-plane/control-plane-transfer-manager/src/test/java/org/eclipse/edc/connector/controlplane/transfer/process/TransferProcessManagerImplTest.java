@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendin
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
@@ -41,8 +42,8 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
-import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
@@ -96,7 +97,6 @@ import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
-import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_SECRET;
 import static org.mockito.AdditionalMatchers.aryEq;
 import static org.mockito.AdditionalMatchers.or;
 import static org.mockito.ArgumentMatchers.any;
@@ -108,6 +108,7 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -126,11 +127,11 @@ class TransferProcessManagerImplTest {
     private final TransferProcessStore transferProcessStore = mock();
     private final PolicyArchive policyArchive = mock();
     private final DataFlowController dataFlowController = mock();
-    private final Vault vault = mock();
     private final Clock clock = Clock.systemUTC();
     private final TransferProcessListener listener = mock();
     private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
     private final DataAddressResolver addressResolver = mock();
+    private final DataAddressStore dataAddressStore = mock();
     private final String protocolWebhookUrl = "http://protocol.webhook/url";
     private final TransferProcessPendingGuard pendingGuard = mock();
 
@@ -161,11 +162,11 @@ class TransferProcessManagerImplTest {
                 .observable(observable)
                 .store(transferProcessStore)
                 .policyArchive(policyArchive)
-                .vault(vault)
                 .addressResolver(addressResolver)
                 .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
                 .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
                 .pendingGuard(pendingGuard)
+                .dataAddressStore(dataAddressStore)
                 .build();
     }
 
@@ -197,6 +198,9 @@ class TransferProcessManagerImplTest {
         when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponseBuilder().build()));
         when(dataFlowController.suspend(any())).thenReturn(StatusResult.success());
         when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
+        when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
+        when(dataAddressStore.resolve(any())).thenReturn(StoreResult.notFound("any"));
+
 
         manager.start();
 
@@ -519,10 +523,10 @@ class TransferProcessManagerImplTest {
         @Test
         void shouldTransitionToRequesting_whenProvisionThroughDataplaneSucceedsButNoActualProvisionNeeded() {
             var dataPlaneId = UUID.randomUUID().toString();
-            var dataDestination = DataAddress.Builder.newInstance().type("any").build();
+            var dataAddress = DataAddress.Builder.newInstance().type("any").build();
             var dataFlowResponse = DataFlowResponse.Builder.newInstance()
                     .dataPlaneId(dataPlaneId)
-                    .dataAddress(dataDestination)
+                    .dataAddress(dataAddress)
                     .async(false)
                     .build();
             var transferProcess = createTransferProcess(INITIAL);
@@ -530,6 +534,7 @@ class TransferProcessManagerImplTest {
                     .thenReturn(List.of(transferProcess))
                     .thenReturn(emptyList());
             when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
+            when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
 
             manager.start();
 
@@ -540,7 +545,7 @@ class TransferProcessManagerImplTest {
                 var storedTransferProcess = captor.getValue();
                 assertThat(storedTransferProcess.getState()).isEqualTo(REQUESTING.code());
                 assertThat(storedTransferProcess.getDataPlaneId()).isEqualTo(dataPlaneId);
-                assertThat(storedTransferProcess.getDataDestination()).isSameAs(dataDestination);
+                verify(dataAddressStore).store(dataAddress, transferProcess);
             });
         }
 
@@ -590,17 +595,20 @@ class TransferProcessManagerImplTest {
                 var actualTransferProcess = captor.getValue();
                 assertThat(actualTransferProcess.getState()).isEqualTo(STARTUP_REQUESTED.code());
                 assertThat(actualTransferProcess.getDataPlaneId()).isEqualTo(dataPlaneId);
+                verifyNoInteractions(dataAddressStore);
             });
         }
 
         @Test
         void shouldTransitionToStarting_whenSyncDataFlowWithoutDataAddress() {
-            var transferProcess = builder.dataDestination(null).build();
+            var dataPlaneId = UUID.randomUUID().toString();
+            var transferProcess = builder.build();
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
             when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
             var contentDataAddress = DataAddress.Builder.newInstance().type("type").build();
             when(addressResolver.resolveForAsset(any())).thenReturn(contentDataAddress);
-            when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponseBuilder().build()));
+            var dataFlowResponse = dataFlowResponseBuilder().async(false).dataAddress(null).dataPlaneId(dataPlaneId).build();
+            when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
 
             manager.start();
 
@@ -610,7 +618,9 @@ class TransferProcessManagerImplTest {
                 verify(transferProcessStore).save(captor.capture());
                 var actualTransferProcess = captor.getValue();
                 assertThat(actualTransferProcess.getState()).isEqualTo(STARTING.code());
+                assertThat(actualTransferProcess.getDataPlaneId()).isEqualTo(dataPlaneId);
                 assertThat(actualTransferProcess.getContentDataAddress()).isSameAs(contentDataAddress);
+                verifyNoInteractions(dataAddressStore);
             });
         }
 
@@ -622,8 +632,9 @@ class TransferProcessManagerImplTest {
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
             when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(INITIAL.code()))).thenReturn(List.of(transferProcess)).thenReturn(emptyList());
             when(addressResolver.resolveForAsset(any())).thenReturn(null);
-            when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(
-                    dataFlowResponseBuilder().async(false).dataPlaneId(dataPlaneId).dataAddress(dataAddress).build()));
+            var dataFlowResponse = dataFlowResponseBuilder().async(false).dataAddress(dataAddress).dataPlaneId(dataPlaneId).build();
+            when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
+            when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
 
             manager.start();
 
@@ -635,7 +646,7 @@ class TransferProcessManagerImplTest {
                 var actualTransferProcess = captor.getValue();
                 assertThat(actualTransferProcess.getState()).isEqualTo(STARTING.code());
                 assertThat(actualTransferProcess.getDataPlaneId()).isEqualTo(dataPlaneId);
-                assertThat(actualTransferProcess.getDataDestination()).isSameAs(dataAddress);
+                verify(dataAddressStore).store(dataAddress, transferProcess);
             });
         }
 
@@ -643,15 +654,16 @@ class TransferProcessManagerImplTest {
 
     @Nested
     class Requesting {
+
         @Test
-        void requesting_shouldSendMessageAndTransitionToRequested() {
-            var process = createTransferProcessBuilder(REQUESTING).dataDestination(null).build();
+        void shouldSendMessageAndTransitionToRequested() {
+            var process = createTransferProcessBuilder(REQUESTING).build();
             process.setCorrelationId(null);
             var ack = TransferProcessAck.Builder.newInstance().providerPid("providerPid").build();
             when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
             when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
-            when(vault.resolveSecret(anyString(), any())).thenReturn(null);
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.notFound("not found"));
 
             manager.start();
 
@@ -669,19 +681,19 @@ class TransferProcessManagerImplTest {
                 assertThat(message.getConsumerPid()).isEqualTo(process.getId());
                 assertThat(message.getProviderPid()).isEqualTo(null);
                 assertThat(message.getCallbackAddress()).isEqualTo(protocolWebhookUrl);
-                assertThat(message.getDataDestination()).isNull();
+                assertThat(message.getDataAddress()).isNull();
             });
         }
 
         @Test
-        void requesting_shouldAddSecretToDataAddress_whenItExists() {
-            var destination = DataAddress.Builder.newInstance().type("any").keyName("keyName").build();
-            var process = createTransferProcessBuilder(REQUESTING).dataDestination(destination).build();
+        void shouldAddDataDataAddressToMessage_whenItExists() {
+            var dataAddress = DataAddress.Builder.newInstance().type("any").keyName("keyName").build();
+            var process = createTransferProcessBuilder(REQUESTING).build();
             var ack = TransferProcessAck.Builder.newInstance().providerPid("providerPid").build();
             when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
             when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(REQUESTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(REQUESTING.code()).build());
-            when(vault.resolveSecret(anyString(), any())).thenReturn("secret");
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(dataAddress));
 
             manager.start();
 
@@ -690,36 +702,72 @@ class TransferProcessManagerImplTest {
                 verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(TransferProcessAck.class), captor.capture());
                 verify(transferProcessStore, times(1)).save(argThat(p -> p.getState() == REQUESTED.code()));
                 verify(listener).requested(process);
-                verify(vault).resolveSecret(anyString(), eq("keyName"));
                 var requestMessage = captor.getValue();
-                assertThat(requestMessage.getDataDestination().getStringProperty(EDC_DATA_ADDRESS_SECRET)).isEqualTo("secret");
+                assertThat(requestMessage.getDataAddress()).isSameAs(dataAddress);
             });
         }
     }
 
     @Nested
-    class StartingProvider {
+    class Starting {
 
         @Test
-        void shouldSendMessageToConsumer() {
+        void shouldSendMessageToConsumer_whenNoDataAddress() {
             var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
             when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process);
             when(dispatcherRegistry.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.notFound("not found"));
 
             manager.start();
 
             await().untilAsserted(() -> {
-                var captor = ArgumentCaptor.forClass(TransferStartMessage.class);
+                var messageCaptor = ArgumentCaptor.forClass(TransferStartMessage.class);
+                var storedCaptor = ArgumentCaptor.forClass(TransferProcess.class);
                 verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
-                verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), captor.capture());
-                verify(transferProcessStore).save(argThat(p -> p.getState() == STARTED.code()));
+                verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), messageCaptor.capture());
+                verify(transferProcessStore).save(storedCaptor.capture());
                 verify(listener).started(eq(process), any());
-                var message = captor.getValue();
+                var message = messageCaptor.getValue();
                 assertThat(message.getProcessId()).isEqualTo(process.getCorrelationId());
                 assertThat(message.getConsumerPid()).isEqualTo(process.getCorrelationId());
                 assertThat(message.getProviderPid()).isEqualTo(process.getId());
+                assertThat(message.getDataAddress()).isNull();
+                var transferProcess = storedCaptor.getValue();
+                assertThat(transferProcess.getState()).isEqualTo(STARTED.code());
+                verify(dataAddressStore, never()).store(any(), any());
+            });
+        }
+
+        @Test
+        void shouldSendMessageToConsumer_whenDataAddress() {
+            var process = createTransferProcess(STARTING).toBuilder().type(PROVIDER).build();
+            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+            when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(STARTING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process);
+            when(dispatcherRegistry.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(dataAddress));
+            when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                var messageCaptor = ArgumentCaptor.forClass(TransferStartMessage.class);
+                var storedCaptor = ArgumentCaptor.forClass(TransferProcess.class);
+                verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
+                verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), messageCaptor.capture());
+                verify(transferProcessStore).save(storedCaptor.capture());
+                verify(listener).started(eq(process), any());
+                var message = messageCaptor.getValue();
+                assertThat(message.getProcessId()).isEqualTo(process.getCorrelationId());
+                assertThat(message.getConsumerPid()).isEqualTo(process.getCorrelationId());
+                assertThat(message.getProviderPid()).isEqualTo(process.getId());
+                assertThat(message.getDataAddress()).isSameAs(dataAddress);
+                var transferProcess = storedCaptor.getValue();
+                assertThat(transferProcess.getState()).isEqualTo(STARTED.code());
+                verify(dataAddressStore).store(dataAddress, transferProcess);
             });
         }
 
@@ -759,6 +807,7 @@ class TransferProcessManagerImplTest {
             when(transferProcessStore.findById(process.getId())).thenReturn(process);
             when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
             when(dispatcherRegistry.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
 
             manager.start();
 
@@ -768,13 +817,14 @@ class TransferProcessManagerImplTest {
                 verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), captor.capture());
                 var transferCaptor = ArgumentCaptor.forClass(TransferProcess.class);
                 verify(transferProcessStore).save(transferCaptor.capture());
-                assertThat(transferCaptor.getValue().getState()).isEqualTo(STARTED.code());
+                assertThat(transferCaptor.getValue().stateAsString()).isEqualTo(STARTED.name());
                 verify(listener).started(eq(process), any());
                 var message = captor.getValue();
                 assertThat(message.getProcessId()).isEqualTo(process.getCorrelationId());
                 assertThat(message.getConsumerPid()).isEqualTo(process.getCorrelationId());
                 assertThat(message.getProviderPid()).isEqualTo(process.getId());
                 assertThat(message.getDataAddress()).usingRecursiveComparison().isEqualTo(dataFlowResponse.getDataAddress());
+                verify(dataAddressStore).store(dataFlowResponse.getDataAddress(), process);
             });
         }
     }

@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowControll
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.retry.TransferWaitStrategy;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -30,7 +31,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -54,39 +54,28 @@ public class TransferManagerExtension implements ServiceExtension {
 
     @Inject
     private TransferProcessStore transferProcessStore;
-
     @Inject
     private DataFlowController dataFlowController;
-
     @Inject
     private TransferProcessObservable observable;
-
     @Inject
     private PolicyArchive policyArchive;
-
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
-
     @Inject
     private DataAddressResolver addressResolver;
-
-    @Inject
-    private Vault vault;
-
     @Inject
     private Clock clock;
-
     @Inject
     private Telemetry telemetry;
-
     @Inject
     private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
-
     @Inject
     private TransferProcessPendingGuard pendingGuard;
-
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
+    @Inject
+    private DataAddressStore dataAddressStore;
 
     private TransferProcessManagerImpl processManager;
 
@@ -110,7 +99,6 @@ public class TransferManagerExtension implements ServiceExtension {
                 .monitor(monitor)
                 .telemetry(telemetry)
                 .executorInstrumentation(executorInstrumentation)
-                .vault(vault)
                 .clock(clock)
                 .observable(observable)
                 .store(transferProcessStore)
@@ -120,6 +108,7 @@ public class TransferManagerExtension implements ServiceExtension {
                 .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
                 .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
                 .pendingGuard(pendingGuard)
+                .dataAddressStore(dataAddressStore)
                 .build();
 
         context.registerService(TransferProcessManager.class, processManager);

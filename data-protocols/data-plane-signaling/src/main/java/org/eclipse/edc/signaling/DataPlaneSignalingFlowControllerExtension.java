@@ -15,6 +15,7 @@
 package org.eclipse.edc.signaling;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -53,6 +54,8 @@ public class DataPlaneSignalingFlowControllerExtension implements ServiceExtensi
     private ClientFactory clientFactory;
     @Inject
     private DataPlaneSelectorService dataPlaneSelectorService;
+    @Inject
+    private DataAddressStore dataAddressStore;
 
     @Override
     public String name() {
@@ -66,6 +69,6 @@ public class DataPlaneSignalingFlowControllerExtension implements ServiceExtensi
         typeTransformerRegistry.register(new DataFlowResponseMessageToDataFlowResponseTransformer());
         typeTransformerRegistry.register(new DspDataAddressToDataAddressTransformer());
         return new DataPlaneSignalingFlowController(controlApiUrl, dataPlaneSelectorService, selectionStrategy,
-                typeTransformerRegistry, clientFactory);
+                typeTransformerRegistry, clientFactory, dataAddressStore);
     }
 }
