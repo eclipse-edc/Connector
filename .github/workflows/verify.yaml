@@ -84,7 +84,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: eclipse-edc/.github/.github/actions/setup-build@main
       - name: TCK Tests
-        run: ./gradlew compileJava compileTestJava test -DincludeTags="TckTest" -PverboseTest=true
+        run: ./gradlew compileJava test -DincludeTags="TckTest" -PverboseTest=true
 
   Verify-OpenApi:
     if: github.event_name == 'pull_request'
