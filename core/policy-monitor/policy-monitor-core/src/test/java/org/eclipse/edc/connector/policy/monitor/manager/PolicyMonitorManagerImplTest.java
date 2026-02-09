@@ -29,6 +29,7 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,6 +66,7 @@ class PolicyMonitorManagerImplTest {
 
     @BeforeEach
     void setUp() {
+        when(store.save(any())).thenReturn(StoreResult.success());
         manager = PolicyMonitorManagerImpl.Builder.newInstance()
                 .executorInstrumentation(ExecutorInstrumentation.noop())
                 .monitor(mock())

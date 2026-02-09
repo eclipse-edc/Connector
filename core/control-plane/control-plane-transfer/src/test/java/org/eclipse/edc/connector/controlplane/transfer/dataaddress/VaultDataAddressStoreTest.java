@@ -216,4 +216,53 @@ class VaultDataAddressStoreTest {
             assertThat(result).isFailed().extracting(StoreFailure::getReason).isEqualTo(NOT_FOUND);
         }
     }
+
+    @Nested
+    class Remove {
+        @Test
+        void shouldRemoveDataAddressFromVault() {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("tp-id")
+                    .participantContextId("participant-context-id")
+                    .dataAddressAlias("data-address-alias")
+                    .build();
+            when(vault.deleteSecret(any(), any())).thenReturn(Result.success());
+
+            var result = store.remove(transferProcess);
+
+            assertThat(result).isSucceeded();
+            assertThat(transferProcess.getDataAddressAlias()).isNull();
+            verify(vault).deleteSecret("participant-context-id", "data-address-alias");
+        }
+
+        @Test
+        void shouldFail_whenDeleteSecretFails() {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("tp-id")
+                    .participantContextId("participant-context-id")
+                    .dataAddressAlias("data-address-alias")
+                    .build();
+            when(vault.deleteSecret(any(), any())).thenReturn(Result.failure("error"));
+
+            var result = store.remove(transferProcess);
+
+            assertThat(result).isFailed();
+            assertThat(transferProcess.getDataAddressAlias()).isNotNull();
+        }
+
+        @Test
+        void shouldSucceedWithoutEffect_whenAliasIsNull() {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("tp-id")
+                    .participantContextId("participant-context-id")
+                    .dataAddressAlias(null)
+                    .build();
+            when(vault.deleteSecret(any(), any())).thenReturn(Result.failure("error"));
+
+            var result = store.remove(transferProcess);
+
+            assertThat(result).isSucceeded();
+            verifyNoInteractions(vault);
+        }
+    }
 }

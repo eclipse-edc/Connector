@@ -29,6 +29,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessTerminated;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.retry.TransferWaitStrategy;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
@@ -54,6 +55,7 @@ import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,7 +87,6 @@ import static org.mockito.Mockito.when;
 public class TransferProcessEventDispatchTest {
 
     public static final Duration TIMEOUT = Duration.ofSeconds(30);
-    private static final DataspaceProfileContextRegistry DATASPACE_PROFILE_CONTEXT_REGISTRY = mock(DataspaceProfileContextRegistry.class);
     @RegisterExtension
     static final RuntimeExtension RUNTIME = new RuntimePerClassExtension()
             .setConfiguration(Map.of(
@@ -94,12 +95,13 @@ public class TransferProcessEventDispatchTest {
             ))
             .registerServiceMock(TransferWaitStrategy.class, () -> 1)
             .registerServiceMock(IdentityService.class, mock())
-            .registerServiceMock(DataspaceProfileContextRegistry.class, DATASPACE_PROFILE_CONTEXT_REGISTRY)
+            .registerServiceMock(DataspaceProfileContextRegistry.class, mock())
             .registerServiceMock(PolicyArchive.class, mock())
             .registerServiceMock(ContractNegotiationStore.class, mock())
             .registerServiceMock(ParticipantAgentService.class, mock())
             .registerServiceMock(DataPlaneClientFactory.class, mock())
-            .registerServiceMock(DataFlowController.class, mock());
+            .registerServiceMock(DataFlowController.class, mock())
+            .registerServiceMock(DataAddressStore.class, mock());
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
             .participantContextId("participantContextId")
             .identity("participantId")
@@ -107,11 +109,13 @@ public class TransferProcessEventDispatchTest {
     private final EventSubscriber eventSubscriber = mock();
 
     @BeforeEach
-    void setup(DataFlowController dataFlowController) {
-        when(DATASPACE_PROFILE_CONTEXT_REGISTRY.getWebhook(any())).thenReturn(() -> "http://dummy");
-        when(DATASPACE_PROFILE_CONTEXT_REGISTRY.getIdExtractionFunction(any())).thenReturn(ct -> "id");
+    void setup(DataFlowController dataFlowController, DataAddressStore dataAddressStore, DataspaceProfileContextRegistry dataspaceProfileContextRegistry) {
+        when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> "http://dummy");
+        when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> "id");
         when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
         when(dataFlowController.started(any())).thenReturn(StatusResult.success());
+        when(dataAddressStore.resolve(any())).thenReturn(StoreResult.notFound("any"));
+        when(dataAddressStore.remove(any())).thenReturn(StoreResult.success());
     }
 
     @Test
