@@ -98,7 +98,9 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     private String protocol;
     private String correlationId;
     private String counterPartyAddress;
+    @Deprecated(since = "0.16.0")
     private DataAddress dataDestination;
+    private String dataAddressAlias;
     private String assetId;
     private String contractId;
     private DataAddress contentDataAddress;
@@ -330,26 +332,30 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
         return contractId;
     }
 
-    @Nullable
-    @JsonIgnore
-    public DataAddress getDataDestination() {
-        return dataDestination;
-    }
-
     @JsonIgnore
     public String getProtocol() {
         return protocol;
     }
 
+    public String getDataAddressAlias() {
+        return dataAddressAlias;
+    }
+
+    public void setDataAddressAlias(String dataAddressAlias) {
+        this.dataAddressAlias = dataAddressAlias;
+    }
+
+    @Nullable
     @JsonIgnore
-    public void updateDestination(DataAddress dataAddress) {
-        this.dataDestination = dataAddress;
+    @Deprecated(since = "0.16.0")
+    public DataAddress getDataDestination() {
+        return dataDestination;
     }
 
     @JsonIgnore
-    @Deprecated(since = "0.15.0")
-    public String getDestinationType() {
-        return dataDestination.getType();
+    @Deprecated(since = "0.16.0")
+    public void updateDestination(DataAddress dataAddress) {
+        this.dataDestination = dataAddress;
     }
 
     public String getDataPlaneId() {
@@ -381,7 +387,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
                 .protocolMessages(protocolMessages)
                 .dataPlaneId(dataPlaneId)
                 .participantContextId(participantContextId)
-                .dataplaneMetadata(dataplaneMetadata);
+                .dataplaneMetadata(dataplaneMetadata)
+                .dataAddressAlias(dataAddressAlias);
         return copy(builder);
     }
 
@@ -522,6 +529,12 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
             return this;
         }
 
+        public Builder dataAddressAlias(String dataAddressAlias) {
+            entity.dataAddressAlias = dataAddressAlias;
+            return this;
+        }
+
+        @Deprecated(since = "0.16.0")
         public Builder dataDestination(DataAddress dataDestination) {
             entity.dataDestination = dataDestination;
             return this;

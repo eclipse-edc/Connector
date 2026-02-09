@@ -16,6 +16,7 @@ package org.eclipse.edc.signaling.logic;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
@@ -51,14 +52,17 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
     private final String selectionStrategy;
     private final TypeTransformerRegistry typeTransformerRegistry;
     private final ClientFactory clientFactory;
+    private final DataAddressStore dataAddressStore;
 
     public DataPlaneSignalingFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient, String selectionStrategy,
-                                            TypeTransformerRegistry typeTransformerRegistry, ClientFactory clientFactory) {
+                                            TypeTransformerRegistry typeTransformerRegistry, ClientFactory clientFactory,
+                                            DataAddressStore dataAddressStore) {
         this.callbackUrl = callbackUrl;
         this.selectorClient = selectorClient;
         this.selectionStrategy = selectionStrategy;
         this.typeTransformerRegistry = typeTransformerRegistry;
         this.clientFactory = clientFactory;
+        this.dataAddressStore = dataAddressStore;
     }
 
     @Override
@@ -116,7 +120,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .callbackAddress(callbackUrl.get())
                 .transferType(transferProcess.getTransferType());
 
-        var dataAddress = transferProcess.getDataDestination();
+        var dataAddress = dataAddressStore.resolve(transferProcess).orElse(f -> null);
         if (dataAddress != null) {
             var dspDataAddressTransformation = typeTransformerRegistry.transform(dataAddress, DspDataAddress.class);
             if (dspDataAddressTransformation.failed()) {

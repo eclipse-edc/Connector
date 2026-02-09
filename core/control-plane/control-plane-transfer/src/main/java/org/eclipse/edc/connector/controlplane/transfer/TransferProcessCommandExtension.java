@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.controlplane.transfer.command.handlers.SuspendT
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.TerminateTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -34,9 +35,10 @@ public class TransferProcessCommandExtension implements ServiceExtension {
 
     @Inject
     private TransferProcessStore store;
-
     @Inject
     private TransferProcessObservable observable;
+    @Inject
+    private DataAddressStore dataAddressStore;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -46,8 +48,8 @@ public class TransferProcessCommandExtension implements ServiceExtension {
         registry.register(new SuspendTransferCommandHandler(store));
         registry.register(new ResumeTransferCommandHandler(store));
         registry.register(new CompleteTransferCommandHandler(store));
-        registry.register(new NotifyPreparedCommandHandler(store, observable));
-        registry.register(new NotifyStartedCommandHandler(store, observable));
+        registry.register(new NotifyPreparedCommandHandler(store, observable, dataAddressStore));
+        registry.register(new NotifyStartedCommandHandler(store, observable, dataAddressStore));
     }
 
 }

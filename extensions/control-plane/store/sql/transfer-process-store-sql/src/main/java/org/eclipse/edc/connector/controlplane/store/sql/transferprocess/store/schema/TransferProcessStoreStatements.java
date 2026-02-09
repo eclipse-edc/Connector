@@ -101,8 +101,12 @@ public interface TransferProcessStoreStatements extends StatefulEntityStatements
         return "participant_context_id";
     }
 
-    default String getDataplaneMetadata() {
+    default String getDataplaneMetadataColumn() {
         return "dataplane_metadata";
+    }
+
+    default String getDataAddressAliasColumn() {
+        return "data_address_alias";
     }
 
     SqlQueryStatement createQuery(QuerySpec querySpec);

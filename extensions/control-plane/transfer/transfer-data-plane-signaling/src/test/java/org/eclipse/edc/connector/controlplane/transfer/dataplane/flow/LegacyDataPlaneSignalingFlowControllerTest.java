@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.transfer.dataplane.flow;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
@@ -28,6 +29,7 @@ import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowResponseMessage;
@@ -63,10 +65,11 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
     private final DataPlaneSelectorService selectorService = mock();
     private final DataFlowPropertiesProvider propertiesProvider = mock();
     private final TransferTypeParser transferTypeParser = mock();
+    private final DataAddressStore dataAddressStore = mock();
 
     private final LegacyDataPlaneSignalingFlowController flowController = new LegacyDataPlaneSignalingFlowController(
             () -> URI.create("http://localhost"), selectorService, propertiesProvider, dataPlaneClientFactory,
-            "random", transferTypeParser, mock());
+            "random", transferTypeParser, mock(), dataAddressStore);
 
     @Nested
     class CanHandle {
@@ -98,7 +101,7 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
     }
 
     @Nested
-    class Provision {
+    class Prepare {
 
         @Test
         void shouldCallPrepareOnDataPlane() {
@@ -114,6 +117,8 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
                     .provisioning(true)
                     .build();
             when(dataPlaneClient.prepare(any())).thenReturn(StatusResult.success(flowResponseMessage));
+            var dataAddress = DataAddress.Builder.newInstance().type("test").build();
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(dataAddress));
 
             var result = flowController.prepare(transferProcess, policyBuilder().build());
 
@@ -129,6 +134,8 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
         void shouldReturnFailure_whenNoDataPlaneIsFound() {
             var transferProcess = transferProcessBuilder().build();
             when(selectorService.select(any(), any())).thenReturn(ServiceResult.notFound("no data plane can provision this"));
+            var dataAddress = DataAddress.Builder.newInstance().type("test").build();
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(dataAddress));
 
             var result = flowController.prepare(transferProcess, policyBuilder().build());
 
@@ -140,6 +147,8 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
         void shouldReturnSuccess_whenDataPlaneSelectionFailsWithUnexpectedError() {
             var transferProcess = transferProcessBuilder().build();
             when(selectorService.select(any(), any())).thenReturn(ServiceResult.unexpected("unexpected error"));
+            var dataAddress = DataAddress.Builder.newInstance().type("test").build();
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(dataAddress));
 
             var result = flowController.prepare(transferProcess, policyBuilder().build());
 
@@ -151,6 +160,8 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
             var transferProcess = transferProcessBuilder().build();
             when(selectorService.select(any(), any())).thenReturn(ServiceResult.success(createDataPlaneInstance()));
             when(transferTypeParser.parse(any())).thenReturn(Result.failure("transferType error"));
+            var dataAddress = DataAddress.Builder.newInstance().type("test").build();
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(dataAddress));
 
             var result = flowController.prepare(transferProcess, policyBuilder().build());
 
@@ -163,6 +174,8 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
             when(selectorService.select(any(), any())).thenReturn(ServiceResult.success(createDataPlaneInstance()));
             when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("any", FlowType.PUSH)));
             when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, "propertiesProvider error"));
+            var dataAddress = DataAddress.Builder.newInstance().type("test").build();
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(dataAddress));
 
             var result = flowController.prepare(transferProcess, policyBuilder().build());
 
@@ -171,7 +184,7 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
     }
 
     @Nested
-    class InitiateFlow {
+    class Start {
         @Test
         void transferSuccess() {
             when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("Valid", FlowType.PULL)));
@@ -188,6 +201,8 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
             var dataPlaneInstance = createDataPlaneInstance();
             when(selectorService.select(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            var dataAddress = DataAddress.Builder.newInstance().type("test").build();
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(dataAddress));
 
             var result = flowController.start(transferProcess, policy);
 
@@ -197,7 +212,7 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
             var captured = captor.getValue();
             assertThat(captured.getProcessId()).isEqualTo(transferProcess.getId());
             assertThat(captured.getSourceDataAddress()).usingRecursiveComparison().isEqualTo(source);
-            assertThat(captured.getDestinationDataAddress()).usingRecursiveComparison().isEqualTo(transferProcess.getDataDestination());
+            assertThat(captured.getDestinationDataAddress()).isSameAs(dataAddress);
             assertThat(captured.getParticipantId()).isEqualTo(policy.getAssignee());
             assertThat(captured.getAgreementId()).isEqualTo(transferProcess.getContractId());
             assertThat(captured.getAssetId()).isEqualTo(transferProcess.getAssetId());
@@ -214,7 +229,6 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
                     .transferType(HTTP_DATA_PULL)
                     .contentDataAddress(testDataAddress())
                     .build();
-
             var response = mock(DataFlowResponseMessage.class);
             when(response.getDataAddress()).thenReturn(DataAddress.Builder.newInstance().type("type").build());
             when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(Map.of()));
@@ -222,6 +236,8 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
             var dataPlaneInstance = createDataPlaneInstance();
             when(selectorService.select(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            var dataAddress = DataAddress.Builder.newInstance().type("test").build();
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(dataAddress));
 
             var result = flowController.start(transferProcess, policy);
 
@@ -239,9 +255,9 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
                     .contentDataAddress(testDataAddress())
                     .transferType(HTTP_DATA_PULL)
                     .build();
-
             when(propertiesProvider.propertiesFor(any(), any())).thenReturn(StatusResult.success(Map.of()));
             when(selectorService.select(any(), any())).thenReturn(ServiceResult.notFound("no dataplane found"));
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.notFound("not found"));
 
             var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
 
@@ -291,6 +307,8 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
             var dataPlaneInstance = createDataPlaneInstance();
             when(selectorService.select(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(dataPlaneClientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            var dataAddress = DataAddress.Builder.newInstance().type("test").build();
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(dataAddress));
 
             var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
 
@@ -487,8 +505,7 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
                 .contractId(UUID.randomUUID().toString())
                 .assetId(UUID.randomUUID().toString())
                 .counterPartyAddress("test.connector.address")
-                .transferType("transferType")
-                .dataDestination(DataAddress.Builder.newInstance().type("test").build());
+                .transferType("transferType");
     }
 
     private Policy.Builder policyBuilder() {

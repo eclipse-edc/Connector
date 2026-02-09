@@ -68,7 +68,7 @@ class JsonObjectToTransferRequestMessageTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getContractId()).isEqualTo(contractId);
         assertThat(result.getTransferType()).isEqualTo(destinationType);
-        assertThat(result.getDataDestination()).isNull();
+        assertThat(result.getDataAddress()).isNull();
         assertThat(result.getCallbackAddress()).isEqualTo(callbackAddress);
         assertThat(result.getConsumerPid()).isEqualTo("processId");
 
@@ -94,7 +94,7 @@ class JsonObjectToTransferRequestMessageTransformerTest {
         assertThat(result.getContractId()).isEqualTo(contractId);
         assertThat(result.getTransferType()).isEqualTo(destinationType);
         assertThat(result.getCallbackAddress()).isEqualTo(callbackAddress);
-        assertThat(result.getDataDestination()).isSameAs(dataDestination);
+        assertThat(result.getDataAddress()).isSameAs(dataDestination);
         verify(context).transform(any(), eq(DataAddress.class));
         verify(context, never()).reportProblem(anyString());
     }

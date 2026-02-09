@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.transfer.command.handlers;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyStartedCommand;
 import org.eclipse.edc.spi.command.EntityCommandHandler;
@@ -27,10 +28,12 @@ import org.eclipse.edc.spi.command.EntityCommandHandler;
 public class NotifyStartedCommandHandler extends EntityCommandHandler<NotifyStartedCommand, TransferProcess> {
 
     private final TransferProcessObservable observable;
+    private final DataAddressStore dataAddressStore;
 
-    public NotifyStartedCommandHandler(TransferProcessStore store, TransferProcessObservable observable) {
+    public NotifyStartedCommandHandler(TransferProcessStore store, TransferProcessObservable observable, DataAddressStore dataAddressStore) {
         super(store);
         this.observable = observable;
+        this.dataAddressStore = dataAddressStore;
     }
 
     @Override
@@ -40,15 +43,17 @@ public class NotifyStartedCommandHandler extends EntityCommandHandler<NotifyStar
 
     @Override
     protected boolean modify(TransferProcess entity, NotifyStartedCommand command) {
-        if (command.getDataAddress() != null) {
-            entity.updateDestination(command.getDataAddress());
-        }
-
         if (entity.getType() == TransferProcess.Type.CONSUMER) {
             return false;
-        } else {
-            entity.transitionStarting();
         }
+
+        entity.transitionStarting();
+
+        if (command.getDataAddress() != null) {
+            var dataAddressStorage = dataAddressStore.store(command.getDataAddress(), entity);
+            return !dataAddressStorage.failed();
+        }
+
         return true;
     }
 

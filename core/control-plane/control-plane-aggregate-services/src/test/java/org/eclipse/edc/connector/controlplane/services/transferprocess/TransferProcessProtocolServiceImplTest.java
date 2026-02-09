@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessOb
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
@@ -43,7 +44,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
@@ -85,7 +85,6 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
-import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNEXPECTED;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
@@ -111,7 +110,7 @@ class TransferProcessProtocolServiceImplTest {
     private final DataAddressValidatorRegistry dataAddressValidator = mock();
     private final TransferProcessListener listener = mock();
     private final ProtocolTokenValidator protocolTokenValidator = mock();
-    private final Vault vault = mock();
+    private final DataAddressStore dataAddressStore = mock();
     private final DataFlowController dataFlowController = mock();
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
             .participantContextId("participantContextId")
@@ -124,7 +123,8 @@ class TransferProcessProtocolServiceImplTest {
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
         service = new TransferProcessProtocolServiceImpl(store, transactionContext, negotiationStore, validationService,
-                protocolTokenValidator, dataAddressValidator, observable, mock(), mock(), mock(), vault, dataFlowController);
+                protocolTokenValidator, dataAddressValidator, observable, mock(), mock(), mock(), dataFlowController,
+                dataAddressStore);
 
     }
 
@@ -307,6 +307,7 @@ class TransferProcessProtocolServiceImplTest {
         void validAgreement_shouldInitiateTransfer() {
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
+            var dataAddress = DataAddress.Builder.newInstance().type("any").build();
             var message = TransferRequestMessage.Builder.newInstance()
                     .consumerPid("consumerPid")
                     .processId("consumerPid")
@@ -314,7 +315,7 @@ class TransferProcessProtocolServiceImplTest {
                     .protocol("protocol")
                     .callbackAddress("http://any")
                     .transferType("transferType")
-                    .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                    .dataAddress(dataAddress)
                     .build();
 
             when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
@@ -322,6 +323,7 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
             when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
+            when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
@@ -331,18 +333,16 @@ class TransferProcessProtocolServiceImplTest {
                 assertThat(tp.getAssetId()).isEqualTo("assetId");
             });
             verify(store).save(argThat(t -> t.getState() == INITIAL.code()));
+            verify(dataAddressStore).store(dataAddress, result.getContent());
             verify(listener).initiated(any());
             verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
-            verifyNoInteractions(vault);
         }
 
         @Test
-        void shouldStoreEventualSecretInTheVault() {
+        void shouldFail_whenDataAddressStorageFails() {
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
-            var dataDestination = DataAddress.Builder.newInstance().type("any")
-                    .keyName("consumer-key-name")
-                    .property(DataAddress.EDC_DATA_ADDRESS_SECRET, "the secret").build();
+            var dataAddress = DataAddress.Builder.newInstance().type("any").build();
             var message = TransferRequestMessage.Builder.newInstance()
                     .consumerPid("consumerPid")
                     .processId("consumerPid")
@@ -350,62 +350,19 @@ class TransferProcessProtocolServiceImplTest {
                     .protocol("protocol")
                     .callbackAddress("http://any")
                     .transferType("transferType")
-                    .dataDestination(dataDestination)
+                    .dataAddress(dataAddress)
                     .build();
 
             when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
             when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
-            when(vault.storeSecret(any(), any(), any())).thenReturn(Result.success());
             when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
+            when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.generalError("error"));
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
-            assertThat(result).isSucceeded().satisfies(tp -> {
-                assertThat(tp.getCorrelationId()).isEqualTo("consumerPid");
-                assertThat(tp.getCounterPartyAddress()).isEqualTo("http://any");
-                assertThat(tp.getAssetId()).isEqualTo("assetId");
-            });
-            var captor = ArgumentCaptor.forClass(TransferProcess.class);
-            verify(store).save(captor.capture());
-            var stored = captor.getValue();
-            assertThat(stored.stateAsString()).isEqualTo(INITIAL.name());
-            assertThat(stored.getDataDestination().getStringProperty(DataAddress.EDC_DATA_ADDRESS_SECRET)).isNull();
-            assertThat(stored.getDataDestination().getKeyName()).isNotEqualTo("consumer-key-name");
-            verify(vault).storeSecret(eq("participantContextId"), any(), eq("the secret"));
-            verify(listener).initiated(any());
-        }
-
-        @Test
-        void shouldReturnError_whenSecretStorageFails() {
-            var participantAgent = participantAgent();
-            var tokenRepresentation = tokenRepresentation();
-            var dataDestination = DataAddress.Builder.newInstance().type("any")
-                    .keyName("consumer-key-name")
-                    .property(DataAddress.EDC_DATA_ADDRESS_SECRET, "the secret").build();
-            var message = TransferRequestMessage.Builder.newInstance()
-                    .consumerPid("consumerPid")
-                    .processId("consumerPid")
-                    .contractId("agreementId")
-                    .protocol("protocol")
-                    .callbackAddress("http://any")
-                    .dataDestination(dataDestination)
-                    .transferType("transferType")
-                    .build();
-
-            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-            when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
-            when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
-            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
-            when(vault.storeSecret(any(), any(), any())).thenReturn(Result.failure("cannot store secret"));
-            when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
-
-            var result = service.notifyRequested(participantContext, message, tokenRepresentation);
-
-            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNEXPECTED);
-            verify(store, never()).save(any());
-            verify(listener, never()).initiated(any());
+            assertThat(result).isFailed().messages().contains("error");
         }
 
         @Test
@@ -416,7 +373,7 @@ class TransferProcessProtocolServiceImplTest {
                     .contractId("agreementId")
                     .protocol("protocol")
                     .callbackAddress("http://any")
-                    .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                    .dataAddress(DataAddress.Builder.newInstance().type("any").build())
                     .transferType("transferType")
                     .build();
             var participantAgent = participantAgent();
@@ -443,7 +400,7 @@ class TransferProcessProtocolServiceImplTest {
                     .protocol("protocol")
                     .callbackAddress("http://any")
                     .contractId("agreementId")
-                    .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                    .dataAddress(DataAddress.Builder.newInstance().type("any").build())
                     .transferType("transferType")
                     .build();
             var participantAgent = participantAgent();
@@ -471,7 +428,7 @@ class TransferProcessProtocolServiceImplTest {
                     .protocol("protocol")
                     .contractId("agreementId")
                     .callbackAddress("http://any")
-                    .dataDestination(DataAddress.Builder.newInstance().type("any").build())
+                    .dataAddress(DataAddress.Builder.newInstance().type("any").build())
                     .build();
 
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
@@ -508,7 +465,7 @@ class TransferProcessProtocolServiceImplTest {
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
-            verifyNoInteractions(listener, store, vault);
+            verifyNoInteractions(listener, store);
         }
     }
 
