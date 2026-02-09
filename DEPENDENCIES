@@ -65,8 +65,8 @@ maven/mavencentral/com.google.re2j/re2j/1.8, BSD-3-Clause, approved, #20485
 maven/mavencentral/com.h2database/h2/2.4.240, EPL-1.0 AND MPL-2.0 AND LGPL-2.1-or-later AND BSD-3-Clause AND LicenseRef-Public-Domain, approved, #23567
 maven/mavencentral/com.jayway.jsonpath/json-path/2.10.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.networknt/json-schema-validator/1.5.9, Apache-2.0 AND Unicode-TOU, approved, #15630
-maven/mavencentral/com.networknt/json-schema-validator/2.0.0, , restricted, clearlydefined
-maven/mavencentral/com.networknt/json-schema-validator/2.0.1, , restricted, clearlydefined
+maven/mavencentral/com.networknt/json-schema-validator/2.0.0, Apache-2.0 AND LicenseRef-scancode-unicode, restricted, #25988
+maven/mavencentral/com.networknt/json-schema-validator/2.0.1, Apache-2.0 AND LicenseRef-scancode-unicode, restricted, #25988
 maven/mavencentral/com.nimbusds/nimbus-jose-jwt/10.7, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.puppycrawl.tools/checkstyle/12.3.0, , restricted, clearlydefined
 maven/mavencentral/com.squareup.okhttp3/okhttp-dnsoverhttps/5.3.2, Apache-2.0, approved, clearlydefined
