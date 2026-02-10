@@ -24,7 +24,7 @@ dependencies {
     api(project(":spi:common:boot-spi"))
     api(project(":spi:common:policy-model"))
 
-    testImplementation(project(":tests:junit-base"))
+    testImplementation(project(":core:common:junit-base"))
     testImplementation(project(":core:common:lib:json-lib"))
 }
 

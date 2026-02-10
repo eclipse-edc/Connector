@@ -23,7 +23,7 @@ dependencies {
     api(project(":spi:control-plane:asset-spi"))
 
     implementation(project(":spi:common:data-address:data-address-http-data-spi"))
-    testImplementation(project(":tests:junit-base"))
+    testImplementation(project(":core:common:junit-base"))
 
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":core:common:lib:query-lib"))

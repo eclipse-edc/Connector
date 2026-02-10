@@ -26,7 +26,7 @@ dependencies {
     implementation(project(":spi:common:core-spi"))
     implementation(project(":spi:common:json-ld-spi"))
     testImplementation(project(":core:common:lib:util-lib"))
-    testImplementation(project(":tests:junit-base"))
+    testImplementation(project(":core:common:junit-base"))
 
     testImplementation(libs.wiremock)
 }

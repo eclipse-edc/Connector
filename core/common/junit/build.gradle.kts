@@ -19,15 +19,15 @@ plugins {
 }
 
 dependencies {
-    api(project(":tests:junit-base"))
+    api(project(":core:common:junit-base"))
 
     api(project(":spi:common:core-spi"))
+    api(project(":spi:common:http-spi"))
     api(project(":core:common:boot"))
     api(project(":core:common:lib:http-lib"))
     api(project(":core:common:lib:json-lib"))
     api(project(":core:common:lib:util-lib"))
 
-    implementation(project(":spi:common:http-spi"))
     implementation(libs.okhttp)
     implementation(libs.mockito.core)
     implementation(libs.junit.jupiter.api)

@@ -253,6 +253,7 @@ include(":spi:common:identity-did-spi")
 include(":spi:common:json-ld-spi")
 include(":spi:common:jwt-spi")
 include(":spi:common:jwt-signer-spi")
+include(":core:common:junit-base")
 include(":spi:common:token-spi")
 include(":spi:common:oauth2-spi")
 include(":spi:common:participant-spi")
@@ -285,8 +286,6 @@ include(":spi:data-plane:data-plane-http-spi")
 include(":spi:data-plane-selector:data-plane-selector-spi")
 include(":spi:policy-monitor:policy-monitor-spi")
 
-// modules for tests ------------------------------------------------------------------------
-include(":tests:junit-base")
 
 // modules for system tests ------------------------------------------------------------------------
 include(":system-tests:bom-tests")

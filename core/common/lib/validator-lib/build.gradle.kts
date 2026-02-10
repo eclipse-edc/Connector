@@ -21,6 +21,6 @@ dependencies {
     api(project(":spi:common:json-ld-spi"))
     api(project(":spi:common:validator-spi"))
 
-    testImplementation(project(":tests:junit-base"));
+    testImplementation(project(":core:common:junit-base"));
 
 }

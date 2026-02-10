@@ -22,7 +22,7 @@ dependencies {
     api(project(":spi:common:validator-spi"))
     api(project(":spi:common:data-address:data-address-http-data-spi"))
 
-    testImplementation(project(":tests:junit-base"));
+    testImplementation(project(":core:common:junit-base"));
 
 }
 

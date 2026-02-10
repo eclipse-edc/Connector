@@ -22,7 +22,7 @@ dependencies {
     implementation(project(":spi:common:transaction-spi"))
     implementation(project(":core:common:lib:store-lib"))
 
-    testImplementation(project(":tests:junit-base"))
+    testImplementation(project(":core:common:junit-base"))
     testImplementation(testFixtures(project(":spi:common:connector-participant-context-spi")))
     testImplementation(project(":core:common:lib:query-lib"))
     testImplementation(project(":core:common:junit"))
