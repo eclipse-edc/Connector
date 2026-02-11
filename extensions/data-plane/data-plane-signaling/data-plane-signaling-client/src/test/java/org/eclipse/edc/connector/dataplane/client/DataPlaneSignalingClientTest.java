@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.dataplane.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
@@ -57,10 +56,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.badRequest;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
@@ -516,27 +513,4 @@ class DataPlaneSignalingClientTest {
         }
     }
 
-    @Nested
-    class CheckAvailability {
-        @Test
-        void shouldSucceed_whenDataPlaneIsAvailable() {
-            dataPlane.stubFor(get(DATA_PLANE_PATH + "/check")
-                    .willReturn(aResponse().withStatus(204)));
-
-            var result = dataPlaneClient.checkAvailability();
-
-            assertThat(result).isSucceeded();
-        }
-
-        @Test
-        void shouldFail_whenDataPlaneIsNotAvailable() {
-
-            dataPlane.stubFor(WireMock.get(anyUrl())
-                    .willReturn(aResponse().withStatus(404)));
-
-            var result = dataPlaneClient.checkAvailability();
-
-            assertThat(result).isFailed();
-        }
-    }
 }

@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.AVAILABLE;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.UNREGISTERED;
 
 public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorService {
 
@@ -60,7 +60,7 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
         return transactionContext.execute(() -> {
             try (var stream = store.getAll()) {
                 var dataPlanes = stream
-                        .filter(it -> it.getState() == AVAILABLE.code())
+                        .filter(it -> it.getState() != UNREGISTERED.code())
                         .filter(filter)
                         .toList();
 

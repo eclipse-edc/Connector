@@ -16,15 +16,12 @@ package org.eclipse.edc.connector.dataplane.client;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.spi.manager.DataPlaneAvailabilityChecker;
 import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -44,7 +41,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
  * This extension provides an implementation of {@link DataPlaneClient} compliant with the data plane signaling protocol
  */
 @Extension(value = LegacyDataPlaneSignalingClientExtension.NAME)
-@Provides({ DataPlaneClientFactory.class, DataPlaneAvailabilityChecker.class })
+@Provides(DataPlaneClientFactory.class)
 public class LegacyDataPlaneSignalingClientExtension implements ServiceExtension {
     public static final String NAME = "Legacy Data Plane Signaling Client";
     public static final String CONTROL_CLIENT_SCOPE = "CONTROL_CLIENT_SCOPE";
@@ -70,7 +67,6 @@ public class LegacyDataPlaneSignalingClientExtension implements ServiceExtension
         var dataPlaneClientFactory = dataPlaneClientFactory(context);
 
         context.registerService(DataPlaneClientFactory.class, dataPlaneClientFactory);
-        context.registerService(DataPlaneAvailabilityChecker.class, new LegacyDataPlaneAvailabilityChecker(dataPlaneClientFactory));
     }
 
     protected DataPlaneClientFactory dataPlaneClientFactory(ServiceExtensionContext context) {
@@ -92,18 +88,6 @@ public class LegacyDataPlaneSignalingClientExtension implements ServiceExtension
                 instance);
     }
 
-    private static class LegacyDataPlaneAvailabilityChecker implements DataPlaneAvailabilityChecker {
-        private final DataPlaneClientFactory dataPlaneClientFactory;
-
-        LegacyDataPlaneAvailabilityChecker(DataPlaneClientFactory dataPlaneClientFactory) {
-            this.dataPlaneClientFactory = dataPlaneClientFactory;
-        }
-
-        @Override
-        public StatusResult<Void> checkAvailability(DataPlaneInstance dataPlane) {
-            return dataPlaneClientFactory.createClient(dataPlane).checkAvailability();
-        }
-    }
 }
 
 

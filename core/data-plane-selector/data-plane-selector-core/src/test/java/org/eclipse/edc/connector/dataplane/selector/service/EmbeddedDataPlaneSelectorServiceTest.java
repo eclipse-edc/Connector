@@ -31,9 +31,7 @@ import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.stream.IntStream.range;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.AVAILABLE;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.REGISTERED;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.UNAVAILABLE;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.UNREGISTERED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
@@ -61,7 +59,7 @@ public class EmbeddedDataPlaneSelectorServiceTest {
                     .mapToObj(i -> createInstanceBuilder("instance" + i)
                             .allowedSourceType("srcTestType")
                             .allowedTransferType("transferType")
-                            .state(AVAILABLE.code())
+                            .state(REGISTERED.code())
                             .build())
                     .toList();
             when(store.getAll()).thenAnswer(i -> instances.stream());
@@ -76,19 +74,19 @@ public class EmbeddedDataPlaneSelectorServiceTest {
         }
 
         @Test
-        void select_shouldExcludeInstancesNotAvailable() {
-            var availableInstance = createInstanceBuilder("available").state(AVAILABLE.code())
+        void select_shouldExcludeInstancesNotUnregistered() {
+            var registeredInstance = createInstanceBuilder("available").state(REGISTERED.code())
                     .allowedSourceType("srcTestType").allowedTransferType("transferType").build();
-            var unavailableInstance = createInstanceBuilder("unavailable").state(UNAVAILABLE.code())
+            var unregisteredInstance = createInstanceBuilder("unavailable").state(UNREGISTERED.code())
                     .allowedSourceType("srcTestType").allowedTransferType("transferType").build();
-            when(store.getAll()).thenReturn(Stream.of(availableInstance, unavailableInstance));
+            when(store.getAll()).thenReturn(Stream.of(registeredInstance, unregisteredInstance));
             SelectionStrategy selectionStrategy = mock();
-            when(selectionStrategy.apply(any())).thenAnswer(it -> availableInstance);
+            when(selectionStrategy.apply(any())).thenAnswer(it -> registeredInstance);
             when(selectionStrategyRegistry.find(any())).thenReturn(selectionStrategy);
 
             service.select("strategy", dataPlane -> dataPlane.canHandle(createAddress("srcTestType"), "transferType"));
 
-            verify(selectionStrategy).apply(List.of(availableInstance));
+            verify(selectionStrategy).apply(List.of(registeredInstance));
         }
 
         @Test

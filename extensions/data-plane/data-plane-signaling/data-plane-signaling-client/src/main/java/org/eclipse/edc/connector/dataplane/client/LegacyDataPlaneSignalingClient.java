@@ -108,14 +108,6 @@ public class LegacyDataPlaneSignalingClient implements DataPlaneClient {
                                 .orElse(failure -> failedResult(transferProcessId, failure))));
     }
 
-    @Override
-    public StatusResult<Void> checkAvailability() {
-        var requestBuilder = new Request.Builder().get().url(dataPlane.getUrl() + "/check");
-        return httpClient.request(requestBuilder)
-                .flatMap(result -> result.map(it -> StatusResult.success())
-                        .orElse(failure -> failedResult(null, failure)));
-    }
-
     private StatusResult<Request.Builder> createRequestBuilder(Object message, String url) {
         return transformerRegistry.transform(message, JsonObject.class)
                 .compose(this::compact)

@@ -70,9 +70,4 @@ public class EmbeddedDataPlaneClient implements DataPlaneClient {
         return dataPlaneManager.terminate(transferProcessId);
     }
 
-    @Override
-    public StatusResult<Void> checkAvailability() {
-        return StatusResult.success();
-    }
-
 }

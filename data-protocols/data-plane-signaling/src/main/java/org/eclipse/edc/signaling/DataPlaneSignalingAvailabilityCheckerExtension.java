@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.signaling;
 
-import org.eclipse.edc.connector.dataplane.selector.spi.manager.DataPlaneAvailabilityChecker;
 import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -41,12 +40,6 @@ public class DataPlaneSignalingAvailabilityCheckerExtension implements ServiceEx
     @Override
     public String name() {
         return NAME;
-    }
-
-    @Provider
-    public DataPlaneAvailabilityChecker dataPlaneAvailabilityChecker() {
-        var clientFactory = clientFactory();
-        return dataPlane -> clientFactory.createClient(dataPlane).checkAvailability();
     }
 
     @Provider

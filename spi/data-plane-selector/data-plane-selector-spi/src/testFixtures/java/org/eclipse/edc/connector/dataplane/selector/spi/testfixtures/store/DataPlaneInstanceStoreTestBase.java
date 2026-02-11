@@ -28,8 +28,8 @@ import java.util.UUID;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.AVAILABLE;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.REGISTERED;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.UNREGISTERED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_LEASED;
@@ -129,13 +129,13 @@ public abstract class DataPlaneInstanceStoreTestBase {
             var entry = createInstanceBuilder(UUID.randomUUID().toString()).build();
             getStore().save(entry);
 
-            entry.transitionToAvailable();
+            entry.transitionToRegistered();
             getStore().save(entry);
 
             var result = getStore().findById(entry.getId());
 
             assertThat(result).isNotNull();
-            assertThat(result.getState()).isEqualTo(AVAILABLE.code());
+            assertThat(result.getState()).isEqualTo(REGISTERED.code());
         }
     }
 
@@ -180,7 +180,7 @@ public abstract class DataPlaneInstanceStoreTestBase {
                     .mapToObj(i -> createInstanceBuilder("id-" + i).state(REGISTERED.code()).build())
                     .forEach(getStore()::save);
 
-            var leased = getStore().nextNotLeased(2, hasState(AVAILABLE.code()));
+            var leased = getStore().nextNotLeased(2, hasState(UNREGISTERED.code()));
 
             assertThat(leased).isEmpty();
         }
