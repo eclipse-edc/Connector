@@ -586,7 +586,7 @@ class TransferProcessProtocolServiceImplTest {
             var result = service.notifyTerminated(participantContext, message, tokenRepresentation);
 
             assertThat(result).isSucceeded();
-            verify(store).save(argThat(t -> t.getState() == TERMINATING_REQUESTED.code()));
+            verify(store).save(argThat(t -> t.getState() == TERMINATING_REQUESTED.code() && t.getErrorDetail().equals("TestReason")));
             verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
         }
 
