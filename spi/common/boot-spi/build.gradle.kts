@@ -25,7 +25,7 @@ dependencies {
 
     implementation(libs.opentelemetry.api)
 
-    testImplementation(project(":tests:junit-base"));
+    testImplementation(project(":core:common:junit-base"));
 }
 
 

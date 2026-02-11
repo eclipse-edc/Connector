@@ -21,7 +21,7 @@ plugins {
 dependencies {
     implementation(libs.edc.runtime.metamodel)
     api(project(":spi:common:core-spi"))
-    testFixturesImplementation(project(":tests:junit-base"))
+    testFixturesImplementation(project(":core:common:junit-base"))
 }
 
 

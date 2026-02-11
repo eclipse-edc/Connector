@@ -23,7 +23,7 @@ dependencies {
     implementation(project(":core:common:lib:policy-evaluator-lib"))
 
     testImplementation(project(":spi:common:participant-spi"))
-    testImplementation(project(":tests:junit-base"))
+    testImplementation(project(":core:common:junit-base"))
 }
 
 

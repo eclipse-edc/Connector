@@ -19,6 +19,6 @@ plugins {
 
 dependencies {
     api(project(":spi:common:core-spi"))
-    testFixturesImplementation(project(":tests:junit-base"))
+    testFixturesImplementation(project(":core:common:junit-base"))
 }
 

@@ -25,7 +25,7 @@ dependencies {
     api(project(":spi:control-plane:policy-spi"))
     api(project(":spi:common:connector-participant-context-spi"))
 
-    testImplementation(project(":tests:junit-base"))
+    testImplementation(project(":core:common:junit-base"))
     testImplementation(project(":core:common:lib:json-lib"))
 
     testFixturesImplementation(project(":spi:control-plane:asset-spi"))
