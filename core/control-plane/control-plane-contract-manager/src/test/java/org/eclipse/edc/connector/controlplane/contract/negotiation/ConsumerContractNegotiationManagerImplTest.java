@@ -38,6 +38,7 @@ import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
@@ -107,6 +108,7 @@ class ConsumerContractNegotiationManagerImplTest {
 
     @BeforeEach
     void setUp() {
+        when(store.save(any())).thenReturn(StoreResult.success());
         var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(listener);
 

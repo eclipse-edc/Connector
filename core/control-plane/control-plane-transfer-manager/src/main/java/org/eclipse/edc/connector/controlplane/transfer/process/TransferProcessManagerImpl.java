@@ -523,17 +523,17 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     }
 
     private Processor processConsumerTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
-        var filter = new Criterion[]{ hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", CONSUMER.name()) };
+        var filter = new Criterion[]{hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", CONSUMER.name())};
         return createProcessor(function, filter);
     }
 
     private Processor processProviderTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
-        var filter = new Criterion[]{ hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", PROVIDER.name()) };
+        var filter = new Criterion[]{hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", PROVIDER.name())};
         return createProcessor(function, filter);
     }
 
     private Processor processTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
-        var filter = new Criterion[]{ hasState(state.code()), isNotPending() };
+        var filter = new Criterion[]{hasState(state.code()), isNotPending()};
         return createProcessor(function, filter);
     }
 
@@ -604,8 +604,8 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
     private void transitionToCompleted(TransferProcess transferProcess) {
         transferProcess.transitionCompleted();
-        update(transferProcess);
-        observable.invokeForEach(l -> l.completed(transferProcess));
+        update(transferProcess).compose(i -> dataAddressStore.remove(transferProcess))
+                .onSuccess(i -> observable.invokeForEach(l -> l.completed(transferProcess)));
     }
 
     private void transitionToSuspending(TransferProcess process, String message) {
@@ -649,8 +649,8 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
     private void transitionToTerminated(TransferProcess process) {
         process.transitionTerminated();
-        update(process);
-        observable.invokeForEach(l -> l.terminated(process));
+        update(process).compose(i -> dataAddressStore.remove(process))
+                .onSuccess(i -> observable.invokeForEach(l -> l.terminated(process)));
     }
 
     public static class Builder

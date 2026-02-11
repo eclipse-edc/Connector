@@ -149,6 +149,7 @@ class TransferProcessManagerImplTest {
         when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> protocolWebhookUrl);
         when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().build());
         when(policyArchive.getAgreementIdForContract(any())).thenReturn("agreementId");
+        when(transferProcessStore.save(any())).thenReturn(StoreResult.success());
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
         var entityRetryProcessConfiguration = new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L));
@@ -223,6 +224,7 @@ class TransferProcessManagerImplTest {
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(COMPLETING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING.code()).build());
             when(dispatcherRegistry.dispatch(any(), any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dataAddressStore.remove(any())).thenReturn(StoreResult.success());
 
             manager.start();
 
@@ -235,6 +237,7 @@ class TransferProcessManagerImplTest {
                 assertThat(message.getProcessId()).isEqualTo("correlationId");
                 verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == COMPLETED.code()));
                 verify(listener).completed(process);
+                verify(dataAddressStore).remove(process);
             });
         }
 
@@ -244,6 +247,7 @@ class TransferProcessManagerImplTest {
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(COMPLETING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(COMPLETING.code()).build());
             when(dispatcherRegistry.dispatch(any(), any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dataAddressStore.remove(any())).thenReturn(StoreResult.success());
 
             manager.start();
 
@@ -283,6 +287,7 @@ class TransferProcessManagerImplTest {
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
             when(dispatcherRegistry.dispatch(any(), any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
             when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
+            when(dataAddressStore.remove(any())).thenReturn(StoreResult.success());
 
             manager.start();
 
@@ -296,6 +301,7 @@ class TransferProcessManagerImplTest {
                 assertThat(message.getProcessId()).isEqualTo("correlationId");
                 verify(transferProcessStore, atLeastOnce()).save(argThat(p -> p.getState() == TERMINATED.code()));
                 verify(listener).terminated(process);
+                verify(dataAddressStore).remove(process);
             });
         }
 
@@ -349,6 +355,7 @@ class TransferProcessManagerImplTest {
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING.code()).build());
             when(dispatcherRegistry.dispatch(any(), any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
             when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
+            when(dataAddressStore.remove(any())).thenReturn(StoreResult.success());
 
             manager.start();
 
@@ -362,6 +369,7 @@ class TransferProcessManagerImplTest {
                 assertThat(message.getProcessId()).isEqualTo("correlationId");
                 verify(transferProcessStore).save(argThat(p -> p.getState() == TERMINATED.code()));
                 verify(listener).terminated(process);
+                verify(dataAddressStore).remove(process);
             });
         }
 
@@ -375,6 +383,7 @@ class TransferProcessManagerImplTest {
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING_REQUESTED.code()).build());
             when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
+            when(dataAddressStore.remove(any())).thenReturn(StoreResult.success());
 
             manager.start();
 
@@ -411,6 +420,7 @@ class TransferProcessManagerImplTest {
             var process = createTransferProcessBuilder(TERMINATING_REQUESTED).type(CONSUMER).correlationId("correlationId").build();
             when(transferProcessStore.nextNotLeased(anyInt(), stateIs(TERMINATING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process, process.toBuilder().state(TERMINATING_REQUESTED.code()).build());
+            when(dataAddressStore.remove(any())).thenReturn(StoreResult.success());
 
             manager.start();
 

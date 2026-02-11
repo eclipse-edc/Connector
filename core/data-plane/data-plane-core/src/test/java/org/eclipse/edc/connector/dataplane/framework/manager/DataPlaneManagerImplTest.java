@@ -122,6 +122,7 @@ class DataPlaneManagerImplTest {
 
     @BeforeEach
     public void setUp() {
+        when(store.save(any())).thenReturn(StoreResult.success());
         when(registry.resolveTransferService(any())).thenReturn(transferService);
         manager = DataPlaneManagerImpl.Builder.newInstance()
                 .executorInstrumentation(ExecutorInstrumentation.noop())

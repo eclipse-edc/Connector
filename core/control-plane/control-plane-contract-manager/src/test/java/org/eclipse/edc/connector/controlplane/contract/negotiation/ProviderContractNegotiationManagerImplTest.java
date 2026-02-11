@@ -39,6 +39,7 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -106,6 +107,7 @@ class ProviderContractNegotiationManagerImplTest {
 
     @BeforeEach
     void setUp() {
+        when(store.save(any())).thenReturn(StoreResult.success());
         var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(listener);
         manager = ProviderContractNegotiationManagerImpl.Builder.newInstance()

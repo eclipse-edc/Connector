@@ -80,6 +80,22 @@ public class VaultDataAddressStore implements DataAddressStore {
                 .flatMap(this::toStoreResult);
     }
 
+    @Override
+    public StoreResult<Void> remove(TransferProcess transferProcess) {
+        var dataAddressAlias = transferProcess.getDataAddressAlias();
+        if (dataAddressAlias == null) {
+            return StoreResult.success();
+        }
+
+        var result = vault.deleteSecret(transferProcess.getParticipantContextId(), dataAddressAlias);
+        if (result.succeeded()) {
+            transferProcess.setDataAddressAlias(null);
+            return StoreResult.success();
+        } else {
+            return StoreResult.generalError(result.getFailureDetail());
+        }
+    }
+
     private static Result<JsonObject> readJsonObject(String json) {
         try {
             var jsonObject = Json.createReader(new StringReader(json)).readObject();
