@@ -81,7 +81,7 @@ public class VaultDataAddressStore implements DataAddressStore {
     }
 
     @Override
-    public StoreResult<DataAddress> remove(TransferProcess transferProcess) {
+    public StoreResult<Void> remove(TransferProcess transferProcess) {
         var dataAddressAlias = transferProcess.getDataAddressAlias();
         if (dataAddressAlias == null) {
             return StoreResult.success();

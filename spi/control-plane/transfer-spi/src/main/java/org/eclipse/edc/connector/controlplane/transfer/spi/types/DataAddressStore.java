@@ -47,13 +47,12 @@ public interface DataAddressStore {
 
     /**
      * Removes the {@link DataAddress} associated with the specified {@link TransferProcess} from the store.
-     * If the operation succeeds, the removed data address is returned.
      * If the operation fails, an appropriate error is encapsulated in the returned result.
      *
      * @param transferProcess The {@link TransferProcess} whose associated {@link DataAddress} is to be removed. Must not be null.
-     * @return A {@link StoreResult} containing the removed {@link DataAddress} if the operation is successful.
+     * @return An empty {@link StoreResult} if the operation is successful.
      *         If the removal fails, the result will encapsulate the corresponding error details.
      */
-    StoreResult<DataAddress> remove(TransferProcess transferProcess);
+    StoreResult<Void> remove(TransferProcess transferProcess);
 
 }
