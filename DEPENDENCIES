@@ -298,7 +298,7 @@ maven/mavencentral/org.slf4j/slf4j-nop/2.0.17, MIT, approved, #10370
 maven/mavencentral/org.slf4j/slf4j-simple/2.0.17, MIT, approved, #10372
 maven/mavencentral/org.testcontainers/testcontainers-database-commons/2.0.3, Apache-2.0, approved, #25271
 maven/mavencentral/org.testcontainers/testcontainers-jdbc/2.0.3, Apache-2.0, approved, #25272
-maven/mavencentral/org.testcontainers/testcontainers-junit-jupiter/2.0.3, , restricted, clearlydefined
+maven/mavencentral/org.testcontainers/testcontainers-junit-jupiter/2.0.3, MIT, approved, #26032
 maven/mavencentral/org.testcontainers/testcontainers-kafka/2.0.3, , restricted, clearlydefined
 maven/mavencentral/org.testcontainers/testcontainers-postgresql/2.0.3, MIT, approved, #25273
 maven/mavencentral/org.testcontainers/testcontainers-vault/2.0.3, MIT, approved, clearlydefined
