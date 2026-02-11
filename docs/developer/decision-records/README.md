@@ -93,3 +93,4 @@
 - [2026-01-08 inline DataFlowManager](2026-01-08-inline-data-flow-manager)
 - [2026-01-27 Adopt CEL expressions](2026-01-27-adopt-cel-expressions)
 - [2026-01-30 Dynamic DCP scopes](2026-01-30-dynamic-dcp-scopes)
+- [2026-02-10 Data Plane Selector Manager dismission](./2026-02-10-data-plane-selector-manager-dismission)
