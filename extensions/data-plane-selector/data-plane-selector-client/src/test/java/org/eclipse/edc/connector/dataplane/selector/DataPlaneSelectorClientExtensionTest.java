@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.dataplane.selector;
 
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
-import org.eclipse.edc.connector.dataplane.selector.spi.manager.DataPlaneSelectorManager;
+import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -44,7 +44,7 @@ class DataPlaneSelectorClientExtensionTest {
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
-        context.registerService(DataPlaneSelectorManager.class, null);
+        context.registerService(DataPlaneInstanceStore.class, null);
         context.registerService(TypeTransformerRegistry.class, typeTransformerRegistry);
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("edc.dataplane.client.selector.strategy", "http://any",
                 "edc.dpf.selector.url", "http://any")));

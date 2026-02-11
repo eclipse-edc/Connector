@@ -19,7 +19,9 @@ import java.util.Arrays;
 public enum DataPlaneInstanceStates {
 
     REGISTERED(100),
+    @Deprecated(since = "0.16.0")
     AVAILABLE(200),
+    @Deprecated(since = "0.16.0")
     UNAVAILABLE(300),
     UNREGISTERED(400);
 

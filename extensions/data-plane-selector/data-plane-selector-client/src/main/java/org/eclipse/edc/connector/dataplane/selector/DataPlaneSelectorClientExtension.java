@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.dataplane.selector;
 
 import jakarta.json.Json;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
-import org.eclipse.edc.connector.dataplane.selector.spi.manager.DataPlaneSelectorManager;
+import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -57,7 +57,7 @@ public class DataPlaneSelectorClientExtension implements ServiceExtension {
     @Inject
     private JsonLd jsonLd;
     @Inject(required = false)
-    private DataPlaneSelectorManager dataPlaneSelectorManager;
+    private DataPlaneInstanceStore dataPlaneInstanceStore;
 
     @Override
     public String name() {
@@ -66,7 +66,7 @@ public class DataPlaneSelectorClientExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        if (dataPlaneSelectorManager != null) {
+        if (dataPlaneInstanceStore != null) {
             return;
         }
 

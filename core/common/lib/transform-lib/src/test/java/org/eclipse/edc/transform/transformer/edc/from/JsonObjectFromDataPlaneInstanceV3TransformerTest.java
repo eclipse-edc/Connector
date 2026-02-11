@@ -39,7 +39,7 @@ import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlan
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.PROPERTIES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.TURN_COUNT;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.URL;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.AVAILABLE;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.REGISTERED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -67,7 +67,7 @@ class JsonObjectFromDataPlaneInstanceV3TransformerTest {
                 .destinationProvisionTypes(Set.of("test-destination-type"))
                 .lastActive(15)
                 .turnCount(42)
-                .state(AVAILABLE.code())
+                .state(REGISTERED.code())
                 .property("foo", "bar")
                 .build();
 
@@ -82,7 +82,7 @@ class JsonObjectFromDataPlaneInstanceV3TransformerTest {
         assertThat(jsonObject.get(DESTINATION_PROVISION_TYPES)).isInstanceOfSatisfying(JsonArray.class, singleItemEqualTo("test-destination-type"));
         assertThat(jsonObject.getJsonNumber(LAST_ACTIVE).intValue()).isEqualTo(15);
         assertThat(jsonObject.getJsonNumber(TURN_COUNT).intValue()).isEqualTo(42);
-        assertThat(jsonObject.getString(DATAPLANE_INSTANCE_STATE)).isEqualTo(AVAILABLE.name());
+        assertThat(jsonObject.getString(DATAPLANE_INSTANCE_STATE)).isEqualTo(REGISTERED.name());
         assertThat(jsonObject.getJsonNumber(DATAPLANE_INSTANCE_STATE_TIMESTAMP).longValue()).isEqualTo(dpi.getStateTimestamp());
         assertThat(jsonObject.getJsonObject(PROPERTIES).getJsonString("foo").getString()).isEqualTo("bar");
     }

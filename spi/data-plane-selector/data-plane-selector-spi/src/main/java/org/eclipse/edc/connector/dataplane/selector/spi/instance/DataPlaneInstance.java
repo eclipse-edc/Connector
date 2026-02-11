@@ -32,9 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.AVAILABLE;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.REGISTERED;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.UNAVAILABLE;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.UNREGISTERED;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
@@ -161,14 +159,6 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
 
     public void transitionToRegistered() {
         transitionTo(REGISTERED.code());
-    }
-
-    public void transitionToAvailable() {
-        transitionTo(AVAILABLE.code());
-    }
-
-    public void transitionToUnavailable() {
-        transitionTo(UNAVAILABLE.code());
     }
 
     public void transitionToUnregistered() {

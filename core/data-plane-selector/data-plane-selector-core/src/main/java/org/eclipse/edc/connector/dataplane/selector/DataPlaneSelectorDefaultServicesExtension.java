@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.dataplane.selector;
 
-import org.eclipse.edc.connector.dataplane.selector.spi.manager.DataPlaneAvailabilityChecker;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.RandomSelectionStrategy;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
@@ -24,7 +23,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
 import java.time.Clock;
@@ -60,8 +58,4 @@ public class DataPlaneSelectorDefaultServicesExtension implements ServiceExtensi
         return strategy;
     }
 
-    @Provider(isDefault = true)
-    public DataPlaneAvailabilityChecker dataPlaneAvailabilityChecker() {
-        return dataPlane -> StatusResult.success();
-    }
 }

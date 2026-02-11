@@ -36,7 +36,7 @@ import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlan
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.LAST_ACTIVE;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.PROPERTIES;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.URL;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.AVAILABLE;
+import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.REGISTERED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -62,7 +62,7 @@ class JsonObjectFromDataPlaneInstanceTransformerTest {
                 .allowedTransferType("test-transfer-type")
                 .destinationProvisionTypes(Set.of("test-destination-type"))
                 .lastActive(15)
-                .state(AVAILABLE.code())
+                .state(REGISTERED.code())
                 .property("foo", "bar")
                 .build();
 
@@ -74,7 +74,7 @@ class JsonObjectFromDataPlaneInstanceTransformerTest {
         assertThat(jsonObject.get(ALLOWED_SOURCE_TYPES)).isInstanceOfSatisfying(JsonArray.class, singleItemEqualTo("test-source-type"));
         assertThat(jsonObject.get(ALLOWED_TRANSFER_TYPES)).isInstanceOfSatisfying(JsonArray.class, singleItemEqualTo("test-transfer-type"));
         assertThat(jsonObject.get(DESTINATION_PROVISION_TYPES)).isInstanceOfSatisfying(JsonArray.class, singleItemEqualTo("test-destination-type"));
-        assertThat(jsonObject.getString(DATAPLANE_INSTANCE_STATE)).isEqualTo(AVAILABLE.name());
+        assertThat(jsonObject.getString(DATAPLANE_INSTANCE_STATE)).isEqualTo(REGISTERED.name());
         assertThat(jsonObject.getJsonNumber(LAST_ACTIVE).intValue()).isEqualTo(15);
         assertThat(jsonObject.getJsonObject(PROPERTIES).getJsonString("foo").getString()).isEqualTo("bar");
     }

@@ -14,43 +14,22 @@
 
 package org.eclipse.edc.connector.dataplane.selector;
 
-import org.eclipse.edc.connector.dataplane.selector.manager.DataPlaneSelectorManagerImpl;
 import org.eclipse.edc.connector.dataplane.selector.service.EmbeddedDataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
-import org.eclipse.edc.connector.dataplane.selector.spi.manager.DataPlaneAvailabilityChecker;
-import org.eclipse.edc.connector.dataplane.selector.spi.manager.DataPlaneSelectorManager;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
-import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.statemachine.StateMachineConfiguration;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-
-import java.time.Duration;
 
 import static org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorExtension.NAME;
 
 @Extension(NAME)
-@Provides(DataPlaneSelectorManager.class)
 public class DataPlaneSelectorExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane Selector core";
-
-    private static final int DEFAULT_CHECK_PERIOD = 60;
-
-    @SettingContext("edc.data.plane.selector")
-    @Configuration
-    private StateMachineConfiguration stateMachineConfiguration;
-
-    @Setting(description = "the check period for data plane availability, in seconds", defaultValue = DEFAULT_CHECK_PERIOD + "", key = "edc.data.plane.selector.state-machine.check.period")
-    private int selectorCheckPeriod;
 
     @Inject
     private DataPlaneInstanceStore instanceStore;
@@ -58,46 +37,10 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
     private TransactionContext transactionContext;
     @Inject
     private SelectionStrategyRegistry selectionStrategyRegistry;
-    @Inject
-    private DataPlaneAvailabilityChecker dataPlaneAvailabilityChecker;
-
-    private DataPlaneSelectorManager manager;
 
     @Override
     public String name() {
         return NAME;
-    }
-
-    @Override
-    public void start() {
-        manager.start();
-    }
-
-    @Override
-    public void shutdown() {
-        if (manager != null) {
-            manager.stop();
-        }
-    }
-
-    @Provider
-    public DataPlaneSelectorManager dataPlaneSelectorManager(ServiceExtensionContext context) {
-        if (manager == null) {
-            var configuration = new DataPlaneSelectorManagerConfiguration(
-                    stateMachineConfiguration.iterationWaitExponentialWaitStrategy(),
-                    stateMachineConfiguration.batchSize(),
-                    Duration.ofSeconds(selectorCheckPeriod)
-            );
-
-            manager = DataPlaneSelectorManagerImpl.Builder.newInstance()
-                    .store(instanceStore)
-                    .monitor(context.getMonitor())
-                    .configuration(configuration)
-                    .entityRetryProcessConfiguration(stateMachineConfiguration.entityRetryProcessConfiguration())
-                    .availabilityChecker(dataPlaneAvailabilityChecker)
-                    .build();
-        }
-        return manager;
     }
 
     @Provider(isDefault = true)
