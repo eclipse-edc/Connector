@@ -16,10 +16,8 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.core;
 
-import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.iam.decentralizedclaims.core.validation.SelfIssueIdTokenValidationAction;
 import org.eclipse.edc.iam.decentralizedclaims.service.DcpIdentityService;
-import org.eclipse.edc.iam.decentralizedclaims.service.DidCredentialServiceUrlResolver;
 import org.eclipse.edc.iam.decentralizedclaims.service.verification.MultiFormatPresentationVerifier;
 import org.eclipse.edc.iam.decentralizedclaims.spi.ClaimTokenCreatorFunction;
 import org.eclipse.edc.iam.decentralizedclaims.spi.DcpParticipantAgentServiceExtension;
@@ -30,11 +28,7 @@ import org.eclipse.edc.iam.decentralizedclaims.spi.verification.SignatureSuiteRe
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.VerifiableCredentialValidationServiceImpl;
-import org.eclipse.edc.iam.verifiablecredentials.revocation.bitstring.BitstringStatusListRevocationService;
-import org.eclipse.edc.iam.verifiablecredentials.revocation.statuslist2021.StatusList2021RevocationService;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.bitstringstatuslist.BitstringStatusListStatus;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.revocation.statuslist2021.StatusList2021Status;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -55,7 +49,6 @@ import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
 import org.eclipse.edc.token.rules.NotBeforeValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
-import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.HasSubjectRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerEqualsSubjectRule;
@@ -68,8 +61,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URISyntaxException;
 import java.time.Clock;
-import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -81,15 +72,12 @@ import static org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier.
 @Extension("DCP Core Extension")
 public class DcpCoreExtension implements ServiceExtension {
 
-    public static final long DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS = 15 * 60 * 1000L;
     public static final String DCP_SELF_ISSUED_TOKEN_CONTEXT = "dcp-si";
     public static final String JSON_2020_SIGNATURE_SUITE = "JsonWebSignature2020";
     public static final long DEFAULT_CLEANUP_PERIOD_SECONDS = 60;
 
     @Setting(description = "DID of the participant")
     private static final String ISSUER_ID_KEY = "edc.iam.issuer.id";
-    @Setting(description = "Validity period of cached StatusList2021 credential entries in milliseconds.", defaultValue = DEFAULT_REVOCATION_CACHE_VALIDITY_MILLIS + "", key = "edc.iam.credential.revocation.cache.validity")
-    private long revocationCacheValidity;
     @Setting(description = "The period of the JTI entry reaper thread in seconds", defaultValue = DEFAULT_CLEANUP_PERIOD_SECONDS + "", key = "edc.sql.store.jti.cleanup.period")
     private long reaperCleanupPeriod;
     @Setting(description = "Activate or deactivate JTI validation", key = "edc.iam.accesstoken.jti.validation", defaultValue = "true")
@@ -112,13 +100,6 @@ public class DcpCoreExtension implements ServiceExtension {
 
     @Inject
     private Clock clock;
-
-    @Inject
-    private EdcHttpClient httpClient;
-
-    @Inject
-    private TypeTransformerRegistry typeTransformerRegistry;
-
     @Inject
     private DidResolverRegistry didResolverRegistry;
 
@@ -154,8 +135,7 @@ public class DcpCoreExtension implements ServiceExtension {
 
     private PresentationVerifier presentationVerifier;
     private ScheduledFuture<?> jtiEntryReaperThread;
-    @Setting(key = "edc.iam.credential.revocation.mimetype", description = "A comma-separated list of accepted content types of the revocation list credential.", defaultValue = "*/*")
-    private String contentTypes;
+
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -183,11 +163,6 @@ public class DcpCoreExtension implements ServiceExtension {
         if (participantAgentServiceExtension != null) {
             participantAgentService.register(participantAgentServiceExtension);
         }
-
-        // register revocation services
-        var acceptedContentTypes = parseAcceptedContentTypes(contentTypes);
-        revocationServiceRegistry.addService(StatusList2021Status.TYPE, new StatusList2021RevocationService(typeManager.getMapper(), revocationCacheValidity, acceptedContentTypes, httpClient, tokenValidationService, didPublicKeyResolver));
-        revocationServiceRegistry.addService(BitstringStatusListStatus.TYPE, new BitstringStatusListRevocationService(typeManager.getMapper(), revocationCacheValidity, acceptedContentTypes, httpClient, tokenValidationService, didPublicKeyResolver));
     }
 
     @Override
@@ -213,7 +188,6 @@ public class DcpCoreExtension implements ServiceExtension {
 
     @Provider
     public IdentityService createIdentityService(ServiceExtensionContext context) {
-        var credentialServiceUrlResolver = new DidCredentialServiceUrlResolver(didResolverRegistry);
         var validationAction = tokenValidationAction();
 
         var credentialValidationService = new VerifiableCredentialValidationServiceImpl(createPresentationVerifier(context),
@@ -239,10 +213,6 @@ public class DcpCoreExtension implements ServiceExtension {
             presentationVerifier = new MultiFormatPresentationVerifier(jwtVerifier, ldpVerifier);
         }
         return presentationVerifier;
-    }
-
-    private Collection<String> parseAcceptedContentTypes(String contentTypes) {
-        return List.of(contentTypes.split(","));
     }
 
     private String didResolver(String participantContext) {

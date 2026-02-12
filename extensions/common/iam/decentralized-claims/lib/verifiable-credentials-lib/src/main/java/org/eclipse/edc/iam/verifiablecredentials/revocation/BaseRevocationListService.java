@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,8 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
- *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - JWT parsing for status list credential
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
@@ -17,6 +16,7 @@ package org.eclipse.edc.iam.verifiablecredentials.revocation;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.ws.rs.core.MediaType;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.edc.http.spi.EdcHttpClient;
@@ -36,9 +36,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.eclipse.edc.spi.result.Result.success;
 
 /**
  * Service to check if a particular {@link VerifiableCredential} is "valid", where "validity" is defined as not revoked and not suspended nor having
@@ -88,7 +85,7 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
     @Override
     public Result<String> getStatusPurpose(VerifiableCredential credential) {
         if (credential.getCredentialStatus().isEmpty()) {
-            return success(null);
+            return Result.success(null);
         }
 
         var res = credential.getCredentialStatus().stream()
@@ -104,7 +101,7 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
                            .filter(r -> r.getContent() != null)
                            .map(AbstractResult::getContent).toList();
 
-        return list.isEmpty() ? success(null) : success(String.join(", ", list));
+        return list.isEmpty() ? Result.success(null) : Result.success(String.join(", ", list));
     }
 
     /**
@@ -132,7 +129,7 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
             if (credential != null && credential.getExpirationDate() != null && credential.getExpirationDate().isBefore(Instant.now())) {
                 statusListCredentialCache.evict(credentialUrl);
             }
-            return success(statusListCredentialCache.get(credentialUrl));
+            return Result.success(statusListCredentialCache.get(credentialUrl));
         } catch (IllegalArgumentException ex) {
             return Result.failure(ex.getMessage());
         }
@@ -189,7 +186,7 @@ public abstract class BaseRevocationListService<C extends VerifiableCredential, 
     }
 
     private C parseStatusListCredentialResponse(Response response, String acceptHeader) throws IOException {
-        if (acceptHeader.equals(APPLICATION_JSON)) {
+        if (acceptHeader.equals(MediaType.APPLICATION_JSON)) {
             return objectMapper.readValue(response.body().byteStream(), credentialClass);
         }
 

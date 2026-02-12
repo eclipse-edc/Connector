@@ -20,17 +20,12 @@ plugins {
 dependencies {
     api(project(":spi:common:verifiable-credentials-spi"))
     api(project(":spi:common:http-spi"))
-    implementation(project(":core:common:lib:util-lib"))
     implementation(project(":spi:common:token-spi"))
     implementation(project(":spi:common:identity-did-spi"))
+    implementation(project(":extensions:common:iam:decentralized-claims:lib:verifiable-credentials-lib"))
     implementation(libs.jsonschema)
-    implementation(libs.jakarta.rsApi)
 
-    testImplementation(libs.wiremock)
-    testImplementation(testFixtures(project(":spi:common:verifiable-credentials-spi")))
     testImplementation(project(":core:common:junit-base"))
-    testImplementation(project(":core:common:lib:http-lib"))
-    testImplementation(project(":core:common:lib:util-lib"))
-    testImplementation(testFixtures(project(":spi:common:decentralized-claims-spi"))) //test functions
+    testImplementation(testFixtures(project(":spi:common:verifiable-credentials-spi")))
 }
 
