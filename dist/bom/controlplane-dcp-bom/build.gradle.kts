@@ -31,7 +31,7 @@ dependencies {
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-service"))
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-transform"))
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:decentralized-claims-sts-remote-client"))
-
+    api(project(":extensions:common:iam:verifiable-credentials"))
 
     api(project(":extensions:common:iam:decentralized-identity"))
     api(project(":extensions:common:iam:oauth2:oauth2-client"))

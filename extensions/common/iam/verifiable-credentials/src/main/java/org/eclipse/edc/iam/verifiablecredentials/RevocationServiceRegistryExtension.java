@@ -34,7 +34,6 @@ import org.eclipse.edc.token.spi.TokenValidationService;
 import java.util.List;
 
 import static org.eclipse.edc.iam.verifiablecredentials.RevocationServiceRegistryExtension.NAME;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry.WILDCARD;
 
 @Extension(value = NAME)
 public class RevocationServiceRegistryExtension implements ServiceExtension {
@@ -50,7 +49,7 @@ public class RevocationServiceRegistryExtension implements ServiceExtension {
     @Setting(
             key = "edc.iam.credential.revocation.mimetype",
             description = "A comma-separated list of accepted content types of the revocation list credential.",
-            defaultValue = WILDCARD)
+            defaultValue = "*/*")
     private String contentTypes;
 
     @Inject
@@ -77,4 +76,5 @@ public class RevocationServiceRegistryExtension implements ServiceExtension {
                 revocationCacheValidity, acceptedContentTypes, httpClient, tokenValidationService, didPublicKeyResolver));
         return revocationServiceRegistry;
     }
+
 }
