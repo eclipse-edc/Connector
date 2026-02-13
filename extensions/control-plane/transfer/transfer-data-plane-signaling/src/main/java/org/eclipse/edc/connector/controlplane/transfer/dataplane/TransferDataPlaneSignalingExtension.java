@@ -26,6 +26,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
@@ -58,11 +59,13 @@ public class TransferDataPlaneSignalingExtension implements ServiceExtension {
     private AssetIndex assetIndex;
     @Inject
     private DataAddressStore dataAddressStore;
+    @Inject
+    private Monitor monitor;
 
     @Provider
     public DataFlowController dataFlowController() {
         return new LegacyDataPlaneSignalingFlowController(callbackUrl, selectorService, getPropertiesProvider(),
-                clientFactory, selectionStrategy, transferTypeParser, assetIndex, dataAddressStore);
+                clientFactory, selectionStrategy, transferTypeParser, assetIndex, dataAddressStore, monitor);
     }
 
     private DataFlowPropertiesProvider getPropertiesProvider() {

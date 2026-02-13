@@ -27,6 +27,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowProvisionMessage;
@@ -66,11 +67,12 @@ public class LegacyDataPlaneSignalingFlowController implements DataFlowControlle
     private final TransferTypeParser transferTypeParser;
     private final AssetIndex assetIndex;
     private final DataAddressStore dataAddressStore;
+    private final Monitor monitor;
 
     public LegacyDataPlaneSignalingFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient,
                                                   DataFlowPropertiesProvider propertiesProvider, DataPlaneClientFactory clientFactory,
                                                   String selectionStrategy, TransferTypeParser transferTypeParser, AssetIndex assetIndex,
-                                                  DataAddressStore dataAddressStore) {
+                                                  DataAddressStore dataAddressStore, Monitor monitor) {
         this.callbackUrl = callbackUrl;
         this.selectorClient = selectorClient;
         this.propertiesProvider = propertiesProvider;
@@ -79,6 +81,7 @@ public class LegacyDataPlaneSignalingFlowController implements DataFlowControlle
         this.transferTypeParser = transferTypeParser;
         this.assetIndex = assetIndex;
         this.dataAddressStore = dataAddressStore;
+        this.monitor = monitor;
     }
 
     @Override
@@ -92,7 +95,10 @@ public class LegacyDataPlaneSignalingFlowController implements DataFlowControlle
         var selection = selectorClient.select(selectionStrategy, dataPlane ->
                 dataPlane.canProvisionDestination(dataAddress));
         if (selection.failed()) {
-            return StatusResult.failure(FATAL_ERROR, selection.getFailureDetail());
+            monitor.warning("Data Flow preparation failed, please note that this phase will become mandatory in " +
+                    "the upcoming versions so please ensure that there's a data-plane able to manage the transfer-type " +
+                    "%s. Error: %s".formatted(transferProcess.getTransferType(), selection.getFailureDetail()));
+            return StatusResult.success(DataFlowResponse.Builder.newInstance().build());
         }
 
         var transferTypeParse = transferTypeParser.parse(transferProcess.getTransferType());

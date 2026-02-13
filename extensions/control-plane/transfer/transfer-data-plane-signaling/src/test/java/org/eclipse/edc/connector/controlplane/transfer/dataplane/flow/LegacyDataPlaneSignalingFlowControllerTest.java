@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClient;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
@@ -51,6 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -66,10 +68,11 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
     private final DataFlowPropertiesProvider propertiesProvider = mock();
     private final TransferTypeParser transferTypeParser = mock();
     private final DataAddressStore dataAddressStore = mock();
+    private final Monitor monitor = mock();
 
     private final LegacyDataPlaneSignalingFlowController flowController = new LegacyDataPlaneSignalingFlowController(
             () -> URI.create("http://localhost"), selectorService, propertiesProvider, dataPlaneClientFactory,
-            "random", transferTypeParser, mock(), dataAddressStore);
+            "random", transferTypeParser, mock(), dataAddressStore, monitor);
 
     @Nested
     class CanHandle {
@@ -131,7 +134,7 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
         }
 
         @Test
-        void shouldReturnFailure_whenNoDataPlaneIsFound() {
+        void shouldReturnSuccess_whenNoDataPlaneIsFound() {
             var transferProcess = transferProcessBuilder().build();
             when(selectorService.select(any(), any())).thenReturn(ServiceResult.notFound("no data plane can provision this"));
             var dataAddress = DataAddress.Builder.newInstance().type("test").build();
@@ -139,8 +142,9 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
 
             var result = flowController.prepare(transferProcess, policyBuilder().build());
 
-            assertThat(result).isFailed();
+            assertThat(result).isSucceeded();
             verifyNoInteractions(dataPlaneClientFactory);
+            verify(monitor).warning(anyString());
         }
 
         @Test
@@ -152,7 +156,7 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
 
             var result = flowController.prepare(transferProcess, policyBuilder().build());
 
-            assertThat(result).isFailed();
+            assertThat(result).isSucceeded();
         }
 
         @Test
