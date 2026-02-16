@@ -321,49 +321,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail_1"
-  /v1/dataflows/start:
-    post:
-      tags:
-      - Data Plane Signaling api API
-      description: Starts a new data flow. Intended to be called on provider side
-      operationId: start
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DataFlowStartMessage"
-      responses:
-        "200":
-          description: Data flow startup triggered.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DataFlowResponseMessage"
-        "400":
-          description: Failed to validate request
-  /v1/dataflows/{id}/state:
-    get:
-      tags:
-      - Data Plane Signaling api API
-      description: Get the current state of a data transfer.
-      operationId: getTransferState
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: State of the data transfer
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DataFlowState"
-        "404":
-          description: Data transfer not found in the data plane
   /dataplanes/register:
     post:
       tags:
@@ -416,6 +373,49 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail_1"
+  /v1/dataflows/start:
+    post:
+      tags:
+      - Data Plane Signaling api API
+      description: Starts a new data flow. Intended to be called on provider side
+      operationId: start
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DataFlowStartMessage"
+      responses:
+        "200":
+          description: Data flow startup triggered.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataFlowResponseMessage"
+        "400":
+          description: Failed to validate request
+  /v1/dataflows/{id}/state:
+    get:
+      tags:
+      - Data Plane Signaling api API
+      description: Get the current state of a data transfer.
+      operationId: getTransferState
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: State of the data transfer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DataFlowState"
+        "404":
+          description: Data transfer not found in the data plane
   /v1/dataflows/check:
     get:
       tags:
