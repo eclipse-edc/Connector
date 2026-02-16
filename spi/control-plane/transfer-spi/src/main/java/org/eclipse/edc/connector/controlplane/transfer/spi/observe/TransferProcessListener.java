@@ -49,8 +49,19 @@ public interface TransferProcessListener {
      * Called after a {@link TransferProcess} was provisioned.
      *
      * @param process the transfer process that has been provisioned.
+     * @deprecated TP doesn't manage provisioning anymore.
      */
+    @Deprecated(since = "0.16.0")
     default void provisioned(TransferProcess process) {
+
+    }
+
+    /**
+     * Called after a {@link TransferProcess} was prepared.
+     *
+     * @param process the transfer process that has been prepared.
+     */
+    default void prepared(TransferProcess process) {
 
     }
 

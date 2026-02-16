@@ -70,6 +70,7 @@ class TransferProcessEventTest {
                     TransferProcessTerminated.Builder.newInstance().reason("any reason"),
                     TransferProcessInitiated.Builder.newInstance(),
                     TransferProcessProvisioned.Builder.newInstance(),
+                    TransferProcessPrepared.Builder.newInstance(),
                     TransferProcessPreparationRequested.Builder.newInstance(),
                     TransferProcessRequested.Builder.newInstance().transferProcessId("id")
             );

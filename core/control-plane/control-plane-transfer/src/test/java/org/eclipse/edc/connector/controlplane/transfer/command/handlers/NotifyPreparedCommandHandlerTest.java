@@ -90,7 +90,7 @@ class NotifyPreparedCommandHandlerTest {
     }
 
     @Test
-    void postAction_shouldCallProvisioned() {
+    void postAction_shouldCallPrepared() {
         var command = new NotifyPreparedCommand("test-id", null);
         var entity = TransferProcess.Builder.newInstance().state(PREPARATION_REQUESTED.code()).build();
         var listener = mock(TransferProcessListener.class);
@@ -98,6 +98,7 @@ class NotifyPreparedCommandHandlerTest {
 
         handler.postActions(entity, command);
 
+        verify(listener).prepared(entity);
         verify(listener).provisioned(entity);
     }
 
