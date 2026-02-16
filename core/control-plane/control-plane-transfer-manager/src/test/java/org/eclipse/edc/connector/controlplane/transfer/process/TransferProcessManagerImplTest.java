@@ -560,7 +560,7 @@ class TransferProcessManagerImplTest {
         }
 
         @Test
-        void shouldTransitionToRequesting_whenProvisionThroughDataplaneFails() {
+        void shouldTransitionToTerminated_whenProvisionThroughDataplaneFails() {
             var transferProcess = createTransferProcess(INITIAL);
             when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(INITIAL.code())))
                     .thenReturn(List.of(transferProcess))
@@ -574,7 +574,7 @@ class TransferProcessManagerImplTest {
                 var captor = ArgumentCaptor.forClass(TransferProcess.class);
                 verify(transferProcessStore).save(captor.capture());
                 var storedTransferProcess = captor.getValue();
-                assertThat(storedTransferProcess.getState()).isEqualTo(REQUESTING.code());
+                assertThat(storedTransferProcess.getState()).isEqualTo(TERMINATED.code());
                 assertThat(storedTransferProcess.getDataPlaneId()).isEqualTo(null);
             });
         }

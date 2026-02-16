@@ -201,14 +201,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                     update(process);
                 })
                 .onFailure((t, throwable) -> transitionToInitial(t))
-                .onFinalFailure((t, throwable) -> {
-                    // with the upcoming data-plane signaling, the data-plane will be mandatory also on consumer side
-                    // so in this case the transfer will retry
-                    monitor.warning("Data Flow preparation failed, please note that this phase will become mandatory in " +
-                            "the upcoming versions so please ensure that there's a data-plane able to manage the transfer-type " +
-                            "%s. Error: %s".formatted(t.getTransferType(), throwable.getMessage()));
-                    transitionToRequesting(t);
-                })
+                .onFinalFailure(this::transitionToTerminated)
                 .execute();
     }
 
