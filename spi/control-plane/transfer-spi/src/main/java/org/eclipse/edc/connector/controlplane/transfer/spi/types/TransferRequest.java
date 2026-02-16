@@ -32,6 +32,7 @@ public class TransferRequest {
     public static final String TRANSFER_REQUEST_TYPE = EDC_NAMESPACE + TRANSFER_REQUEST_TYPE_TERM;
     public static final String TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS = EDC_NAMESPACE + "counterPartyAddress";
     public static final String TRANSFER_REQUEST_CONTRACT_ID = EDC_NAMESPACE + "contractId";
+    @Deprecated(since = "management-api:v3")
     public static final String TRANSFER_REQUEST_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
     public static final String TRANSFER_REQUEST_TRANSFER_TYPE = EDC_NAMESPACE + "transferType";
     public static final String TRANSFER_REQUEST_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
@@ -63,6 +64,7 @@ public class TransferRequest {
         return contractId;
     }
 
+    @Deprecated(since = "management-api:v3")
     public DataAddress getDataDestination() {
         return dataDestination;
     }
@@ -118,6 +120,7 @@ public class TransferRequest {
             return this;
         }
 
+        @Deprecated(since = "management-api:v3")
         public Builder dataDestination(DataAddress dataDestination) {
             request.dataDestination = dataDestination;
             return this;
