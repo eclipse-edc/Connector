@@ -64,6 +64,7 @@ public class CatalogApiEndToEndTest {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                     .add(TYPE, "CatalogRequest")
+                    .add("counterPartyId", "id")
                     .add("counterPartyAddress", context.providerDsp2025url())
                     .add("protocol", DATASPACE_PROTOCOL_HTTP_V_2025_1)
                     .build();
@@ -106,6 +107,7 @@ public class CatalogApiEndToEndTest {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                     .add(TYPE, "CatalogRequest")
+                    .add("counterPartyId", "id")
                     .add("counterPartyAddress", context.providerDsp2025url())
                     .add("protocol", DATASPACE_PROTOCOL_HTTP_V_2025_1)
                     .add("querySpec", querySpec)
@@ -148,6 +150,7 @@ public class CatalogApiEndToEndTest {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                     .add(TYPE, "CatalogRequest")
+                    .add("counterPartyId", "id")
                     .add("counterPartyAddress", context.providerDsp2025url())
                     .add("protocol", DATASPACE_PROTOCOL_HTTP_V_2025_1)
                     .build();
@@ -185,6 +188,7 @@ public class CatalogApiEndToEndTest {
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                     .add(TYPE, "DatasetRequest")
                     .add(ID, "asset-id")
+                    .add("counterPartyId", "id")
                     .add("counterPartyAddress", context.providerDsp2025url())
                     .add("protocol", DATASPACE_PROTOCOL_HTTP_V_2025_1)
                     .build();
@@ -228,6 +232,7 @@ public class CatalogApiEndToEndTest {
                     .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
                     .add(TYPE, "DatasetRequest")
                     .add(ID, "asset-response")
+                    .add("counterPartyId", "id")
                     .add("counterPartyAddress", context.providerDsp2025url())
                     .add("protocol", DATASPACE_PROTOCOL_HTTP_V_2025_1)
                     .build();

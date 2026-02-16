@@ -27,6 +27,7 @@ import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ID;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
@@ -41,6 +42,7 @@ class CatalogRequestValidatorTest {
     @Test
     void shouldSucceed_whenInputIsValid() {
         var input = Json.createObjectBuilder()
+                .add(CATALOG_REQUEST_COUNTER_PARTY_ID, value("anId"))
                 .add(CATALOG_REQUEST_COUNTER_PARTY_ADDRESS, value("http://any"))
                 .add(CATALOG_REQUEST_PROTOCOL, value("protocol"))
                 .build();
@@ -57,7 +59,8 @@ class CatalogRequestValidatorTest {
         var result = validator.validate(input);
 
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
-                .hasSize(2)
+                .hasSize(3)
+                .anySatisfy(v -> assertThat(v.path()).isEqualTo(CATALOG_REQUEST_COUNTER_PARTY_ID))
                 .anySatisfy(v -> assertThat(v.path()).isEqualTo(CATALOG_REQUEST_COUNTER_PARTY_ADDRESS))
                 .anySatisfy(v -> assertThat(v.path()).isEqualTo(CATALOG_REQUEST_PROTOCOL));
     }
@@ -65,6 +68,7 @@ class CatalogRequestValidatorTest {
     @Test
     void shouldFail_whenOptionalQuerySpecIsInvalid() {
         var input = Json.createObjectBuilder()
+                .add(CATALOG_REQUEST_COUNTER_PARTY_ID, value("anId"))
                 .add(CATALOG_REQUEST_COUNTER_PARTY_ADDRESS, value("http://any"))
                 .add(CATALOG_REQUEST_PROTOCOL, value("protocol"))
                 .add(CATALOG_REQUEST_QUERY_SPEC, createArrayBuilder().add(createObjectBuilder()

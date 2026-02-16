@@ -21,6 +21,7 @@ import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.spi.Validator;
 
 import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_COUNTER_PARTY_ID;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_PROTOCOL;
 
 public class DatasetRequestValidator {
@@ -29,6 +30,7 @@ public class DatasetRequestValidator {
         return JsonObjectValidator.newValidator()
                 .verifyId(MandatoryIdNotBlank::new)
                 .verify(DATASET_REQUEST_PROTOCOL, MandatoryValue::new)
+                .verify(DATASET_REQUEST_COUNTER_PARTY_ID, MandatoryValue::new)
                 .verify(DATASET_REQUEST_COUNTER_PARTY_ADDRESS, MandatoryValue::new)
                 .build();
     }

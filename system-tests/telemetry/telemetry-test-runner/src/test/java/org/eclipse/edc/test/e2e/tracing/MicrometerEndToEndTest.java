@@ -35,6 +35,7 @@ public class MicrometerEndToEndTest extends BaseTelemetryEndToEndTest {
         // will request the catalog to itself, just to trigger okhttp metrics
         var requestBody = Json.createObjectBuilder()
                 .add(TYPE, CATALOG_REQUEST_TYPE)
+                .add(EDC_NAMESPACE + "counterPartyId", "counterPartyId")
                 .add(EDC_NAMESPACE + "counterPartyAddress", "http://localhost:" + PROTOCOL_PORT + "/protocol/2025-1")
                 .add(EDC_NAMESPACE + "protocol", "dataspace-protocol-http:2025-1")
                 .build();
