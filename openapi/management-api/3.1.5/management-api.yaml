@@ -3320,10 +3320,6 @@ components:
       title: AssetSchema
       type: object
       example:
-        dataAddress:
-          '@type': '@type'
-          type: type
-          example: ""
         '@type': '@type'
         dataplaneMetadata:
           '@type': '@type'
@@ -3365,19 +3361,8 @@ components:
           type: object
           example:
             privateKey: privateValue
-        dataAddress:
-          $ref: "#/components/schemas/data-address-schema"
         dataplaneMetadata:
           $ref: "#/components/schemas/dataplane-metadata-schema"
-    data-address-schema:
-      title: DataAddressSchema
-      type: object
-      example:
-        '@type': '@type'
-        type: type
-        example: ""
-      allOf:
-      - $ref: "#/components/schemas/DataAddress"
     dataplane-metadata-schema:
       title: DataplaneMetadataSchema
       type: object
@@ -4380,8 +4365,6 @@ components:
           type: string
         privateProperties:
           type: object
-        dataDestination:
-          $ref: "#/components/schemas/data-address-schema"
         callbackAddresses:
           type: array
           items:
@@ -4546,10 +4529,6 @@ components:
         contractId: contractId
         transferType: transferType
         errorDetail: errorDetail
-        dataDestination:
-          '@type': '@type'
-          type: type
-          example: ""
         correlationId: correlationId
         '@id': '@id'
         state: state
@@ -4598,8 +4577,6 @@ components:
           type: string
         errorDetail:
           type: string
-        dataDestination:
-          $ref: "#/components/schemas/data-address-schema"
         dataplaneMetadata:
           $ref: "#/components/schemas/dataplane-metadata-schema"
     catalog-schema:
