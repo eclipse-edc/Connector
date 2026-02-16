@@ -37,9 +37,6 @@
         "privateProperties": {
           "type": "object"
         },
-        "dataDestination": {
-          "$ref": "https://w3id.org/edc/connector/management/schema/v4/data-address-schema.json"
-        },
         "callbackAddresses": {
           "type": "array",
           "items": {
