@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessEvent;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessInitiated;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessPreparationRequested;
+import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessPrepared;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessProvisioned;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessRequested;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
@@ -241,6 +242,7 @@ public class EndpointDataReferenceStoreReceiverTest {
                     TransferProcessDeprovisioningRequested.Builder.newInstance(),
                     TransferProcessInitiated.Builder.newInstance(),
                     TransferProcessProvisioned.Builder.newInstance(),
+                    TransferProcessPrepared.Builder.newInstance(),
                     TransferProcessPreparationRequested.Builder.newInstance(),
                     TransferProcessRequested.Builder.newInstance().transferProcessId("id")
             );
