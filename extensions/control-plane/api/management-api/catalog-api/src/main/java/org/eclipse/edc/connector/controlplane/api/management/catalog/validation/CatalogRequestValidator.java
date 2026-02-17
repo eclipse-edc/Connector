@@ -22,6 +22,7 @@ import org.eclipse.edc.validator.jsonobject.validators.model.QuerySpecValidator;
 import org.eclipse.edc.validator.spi.Validator;
 
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ID;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
 
@@ -29,6 +30,7 @@ public class CatalogRequestValidator {
 
     public static Validator<JsonObject> instance(CriterionOperatorRegistry criterionOperatorRegistry) {
         return JsonObjectValidator.newValidator()
+                .verify(CATALOG_REQUEST_COUNTER_PARTY_ID, MandatoryValue::new)
                 .verify(CATALOG_REQUEST_COUNTER_PARTY_ADDRESS, MandatoryValue::new)
                 .verify(CATALOG_REQUEST_PROTOCOL, MandatoryValue::new)
                 .verifyObject(CATALOG_REQUEST_QUERY_SPEC, path -> QuerySpecValidator.instance(path, criterionOperatorRegistry))

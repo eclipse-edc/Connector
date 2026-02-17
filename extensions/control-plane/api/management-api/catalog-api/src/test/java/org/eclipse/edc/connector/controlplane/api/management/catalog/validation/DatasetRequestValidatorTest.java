@@ -27,6 +27,7 @@ import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_COUNTER_PARTY_ID;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_PROTOCOL;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
@@ -40,6 +41,7 @@ class DatasetRequestValidatorTest {
     void shouldSucceed_whenInputIsValid() {
         var input = Json.createObjectBuilder()
                 .add(ID, "id")
+                .add(DATASET_REQUEST_COUNTER_PARTY_ID, value("anId"))
                 .add(DATASET_REQUEST_COUNTER_PARTY_ADDRESS, value("http://any"))
                 .add(DATASET_REQUEST_PROTOCOL, value("protocol"))
                 .build();
@@ -56,8 +58,9 @@ class DatasetRequestValidatorTest {
         var result = validator.validate(input);
 
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
-                .hasSize(3)
+                .hasSize(4)
                 .anySatisfy(v -> assertThat(v.path()).isEqualTo(ID))
+                .anySatisfy(v -> assertThat(v.path()).isEqualTo(DATASET_REQUEST_COUNTER_PARTY_ID))
                 .anySatisfy(v -> assertThat(v.path()).isEqualTo(DATASET_REQUEST_COUNTER_PARTY_ADDRESS))
                 .anySatisfy(v -> assertThat(v.path()).isEqualTo(DATASET_REQUEST_PROTOCOL));
     }
