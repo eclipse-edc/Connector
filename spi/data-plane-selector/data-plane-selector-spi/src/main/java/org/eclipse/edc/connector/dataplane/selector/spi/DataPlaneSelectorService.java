@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.selector.spi;
 
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
@@ -42,8 +43,18 @@ public interface DataPlaneSelectorService {
      * @param selectionStrategy the selection strategy.
      * @param filter the predicate.
      * @return the data plane, empty otherwise
+     * @deprecated use {@link #selectFor(TransferProcess)} instead
      */
+    @Deprecated(since = "0.16.0")
     ServiceResult<DataPlaneInstance> select(@Nullable String selectionStrategy, Predicate<DataPlaneInstance> filter);
+
+    /**
+     * Select the {@link DataPlaneInstance} that to be used for the given {@link TransferProcess}.
+     *
+     * @param transferProcess the transfer process.
+     * @return success with the selected instance, failure otherwise.
+     */
+    ServiceResult<DataPlaneInstance> selectFor(TransferProcess transferProcess);
 
     /**
      * Register a data plane instance

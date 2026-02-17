@@ -22,6 +22,7 @@ import jakarta.json.JsonValue;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.http.spi.ControlApiHttpClient;
@@ -78,6 +79,11 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
 
     @Override
     public ServiceResult<DataPlaneInstance> select(@Nullable String selectionStrategy, Predicate<DataPlaneInstance> filter) {
+        return ServiceResult.unexpected("DataPlaneSelectorService.select can only be called as embedded in the control-plane");
+    }
+
+    @Override
+    public ServiceResult<DataPlaneInstance> selectFor(TransferProcess transferProcess) {
         return ServiceResult.unexpected("DataPlaneSelectorService.select can only be called as embedded in the control-plane");
     }
 

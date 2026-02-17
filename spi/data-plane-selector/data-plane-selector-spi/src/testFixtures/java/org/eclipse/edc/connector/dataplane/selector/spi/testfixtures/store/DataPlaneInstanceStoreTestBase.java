@@ -115,6 +115,7 @@ public abstract class DataPlaneInstanceStoreTestBase {
             var entry = createInstanceBuilder(UUID.randomUUID().toString())
                     .allowedTransferType("transfer-type")
                     .allowedSourceType("source-type")
+                    .label("label")
                     .build();
             getStore().save(entry);
 

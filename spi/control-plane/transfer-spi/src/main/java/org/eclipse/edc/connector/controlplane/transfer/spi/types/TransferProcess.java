@@ -577,6 +577,10 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
                 entity.callbackAddresses = new ArrayList<>();
             }
 
+            if (entity.dataplaneMetadata == null) {
+                entity.dataplaneMetadata = DataplaneMetadata.Builder.newInstance().build();
+            }
+
             return entity;
         }
     }

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.selector.service;
 
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
@@ -34,11 +35,14 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
     private final DataPlaneInstanceStore store;
     private final SelectionStrategyRegistry selectionStrategyRegistry;
     private final TransactionContext transactionContext;
+    private final String selectionStrategy;
 
-    public EmbeddedDataPlaneSelectorService(DataPlaneInstanceStore store, SelectionStrategyRegistry selectionStrategyRegistry, TransactionContext transactionContext) {
+    public EmbeddedDataPlaneSelectorService(DataPlaneInstanceStore store, SelectionStrategyRegistry selectionStrategyRegistry,
+                                            TransactionContext transactionContext, String selectionStrategy) {
         this.store = store;
         this.selectionStrategyRegistry = selectionStrategyRegistry;
         this.transactionContext = transactionContext;
+        this.selectionStrategy = selectionStrategy;
     }
 
     @Override
@@ -69,6 +73,37 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
                 }
 
                 var dataPlane = strategy.apply(dataPlanes);
+                return ServiceResult.success(dataPlane);
+            }
+        });
+    }
+
+    @Override
+    public ServiceResult<DataPlaneInstance> selectFor(TransferProcess transferProcess) {
+        var strategy = selectionStrategyRegistry.find(selectionStrategy);
+        if (strategy == null) {
+            return ServiceResult.badRequest("Strategy " + selectionStrategy + " was not found");
+        }
+        return transactionContext.execute(() -> {
+            try (var stream = store.getAll()) {
+                var dataPlanes = stream
+                        .filter(it -> it.getState() != UNREGISTERED.code())
+                        .filter(it -> it.getAllowedTransferTypes().contains(transferProcess.getTransferType()))
+                        .filter(it -> {
+                            var transferLabels = transferProcess.getDataplaneMetadata().getLabels();
+                            return transferLabels.isEmpty() || it.getLabels().containsAll(transferLabels);
+                        })
+                        .toList();
+
+                if (dataPlanes.isEmpty()) {
+                    return ServiceResult.notFound("No dataplane found");
+                }
+
+                var dataPlane = strategy.apply(dataPlanes);
+                if (dataPlane == null) {
+                    return ServiceResult.notFound(selectionStrategy + " strategy failed to select a dataplane");
+                }
+
                 return ServiceResult.success(dataPlane);
             }
         });

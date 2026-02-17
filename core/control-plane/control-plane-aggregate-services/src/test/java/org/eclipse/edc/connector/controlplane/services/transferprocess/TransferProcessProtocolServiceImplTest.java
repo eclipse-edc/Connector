@@ -112,6 +112,7 @@ class TransferProcessProtocolServiceImplTest {
     private final ProtocolTokenValidator protocolTokenValidator = mock();
     private final DataAddressStore dataAddressStore = mock();
     private final DataFlowController dataFlowController = mock();
+    private final TransferProcessProviderFactory transferProcessProviderFactory = mock();
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
             .participantContextId("participantContextId")
             .identity("participantId")
@@ -123,8 +124,8 @@ class TransferProcessProtocolServiceImplTest {
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
         service = new TransferProcessProtocolServiceImpl(store, transactionContext, negotiationStore, validationService,
-                protocolTokenValidator, dataAddressValidator, observable, mock(), mock(), mock(), dataFlowController,
-                dataAddressStore);
+                protocolTokenValidator, dataAddressValidator, observable, mock(), dataFlowController,
+                dataAddressStore, transferProcessProviderFactory);
 
     }
 
@@ -324,14 +325,12 @@ class TransferProcessProtocolServiceImplTest {
             when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
             when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
+            var transferProcess = transferProcess(INITIAL, "transferProcessId");
+            when(transferProcessProviderFactory.create(any(), any(), any())).thenReturn(ServiceResult.success(transferProcess));
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
-            assertThat(result).isSucceeded().satisfies(tp -> {
-                assertThat(tp.getCorrelationId()).isEqualTo("consumerPid");
-                assertThat(tp.getCounterPartyAddress()).isEqualTo("http://any");
-                assertThat(tp.getAssetId()).isEqualTo("assetId");
-            });
+            assertThat(result).isSucceeded().isSameAs(transferProcess);
             verify(store).save(argThat(t -> t.getState() == INITIAL.code()));
             verify(dataAddressStore).store(dataAddress, result.getContent());
             verify(listener).initiated(any());
@@ -359,10 +358,42 @@ class TransferProcessProtocolServiceImplTest {
             when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
             when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.generalError("error"));
+            when(transferProcessProviderFactory.create(any(), any(), any())).thenReturn(ServiceResult.success(transferProcess(INITIAL, "transferProcessId")));
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
             assertThat(result).isFailed().messages().contains("error");
+        }
+
+        @Test
+        void shouldFail_whenTransferProcessCreationFails() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var dataAddress = DataAddress.Builder.newInstance().type("any").build();
+            var message = TransferRequestMessage.Builder.newInstance()
+                    .consumerPid("consumerPid")
+                    .processId("consumerPid")
+                    .contractId("agreementId")
+                    .protocol("protocol")
+                    .callbackAddress("http://any")
+                    .transferType("transferType")
+                    .dataAddress(dataAddress)
+                    .build();
+
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
+            when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
+            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
+            when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
+            when(transferProcessProviderFactory.create(any(), any(), any())).thenReturn(ServiceResult.badRequest("cannot create transfer process"));
+
+            var result = service.notifyRequested(participantContext, message, tokenRepresentation);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+            verifyNoInteractions(dataAddressStore, listener);
+            verify(store, never()).save(any());
+            verify(listener, never()).initiated(any());
+            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
         }
 
         @Test

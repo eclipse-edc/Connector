@@ -49,17 +49,15 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
 
     private final ControlApiUrl callbackUrl;
     private final DataPlaneSelectorService selectorClient;
-    private final String selectionStrategy;
     private final TypeTransformerRegistry typeTransformerRegistry;
     private final ClientFactory clientFactory;
     private final DataAddressStore dataAddressStore;
 
-    public DataPlaneSignalingFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient, String selectionStrategy,
+    public DataPlaneSignalingFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient,
                                             TypeTransformerRegistry typeTransformerRegistry, ClientFactory clientFactory,
                                             DataAddressStore dataAddressStore) {
         this.callbackUrl = callbackUrl;
         this.selectorClient = selectorClient;
-        this.selectionStrategy = selectionStrategy;
         this.typeTransformerRegistry = typeTransformerRegistry;
         this.clientFactory = clientFactory;
         this.dataAddressStore = dataAddressStore;
@@ -72,7 +70,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
 
     @Override
     public StatusResult<DataFlowResponse> prepare(TransferProcess transferProcess, Policy policy) {
-        var selection = selectorClient.select(selectionStrategy, dataPlane -> dataPlane.getAllowedTransferTypes().contains(transferProcess.getTransferType()));
+        var selection = selectorClient.selectFor(transferProcess);
         if (!selection.succeeded()) {
             return StatusResult.failure(FATAL_ERROR, selection.getFailureDetail());
         }
@@ -104,7 +102,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
 
     @Override
     public @NotNull StatusResult<DataFlowResponse> start(TransferProcess transferProcess, Policy policy) {
-        var selection = selectorClient.select(selectionStrategy, dataPlane -> dataPlane.getAllowedTransferTypes().contains(transferProcess.getTransferType()));
+        var selection = selectorClient.selectFor(transferProcess);
         if (!selection.succeeded()) {
             return StatusResult.failure(FATAL_ERROR, selection.getFailureDetail());
         }
