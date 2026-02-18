@@ -20,6 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:connector-participant-context-spi"))
+    api(project(":spi:control-plane:transfer-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
     implementation(project(":core:common:lib:util-lib"))
 

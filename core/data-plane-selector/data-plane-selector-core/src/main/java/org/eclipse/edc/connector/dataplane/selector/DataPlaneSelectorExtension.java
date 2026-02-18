@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrate
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -30,6 +31,14 @@ import static org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorExte
 public class DataPlaneSelectorExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane Selector core";
+    private static final String DEFAULT_DATAPLANE_SELECTOR_STRATEGY = "random";
+
+    @Setting(
+            description = "Defines strategy for Data Plane instance selection in case Data Plane is not embedded in current runtime",
+            defaultValue = DEFAULT_DATAPLANE_SELECTOR_STRATEGY,
+            key = "edc.dataplane.client.selector.strategy"
+    )
+    private String selectionStrategy;
 
     @Inject
     private DataPlaneInstanceStore instanceStore;
@@ -45,7 +54,7 @@ public class DataPlaneSelectorExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public DataPlaneSelectorService dataPlaneSelectorService() {
-        return new EmbeddedDataPlaneSelectorService(instanceStore, selectionStrategyRegistry, transactionContext);
+        return new EmbeddedDataPlaneSelectorService(instanceStore, selectionStrategyRegistry, transactionContext, selectionStrategy);
     }
 
 }

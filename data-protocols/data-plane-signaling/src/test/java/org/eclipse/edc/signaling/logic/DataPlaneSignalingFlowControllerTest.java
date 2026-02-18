@@ -64,7 +64,7 @@ public class DataPlaneSignalingFlowControllerTest {
 
     private final DataPlaneSignalingFlowController flowController = new DataPlaneSignalingFlowController(
             () -> URI.create("http://localhost"), selectorService,
-            "random", typeTransformerRegistry, clientFactory, dataAddressStore);
+            typeTransformerRegistry, clientFactory, dataAddressStore);
 
     @Nested
     class Prepare {
@@ -73,7 +73,7 @@ public class DataPlaneSignalingFlowControllerTest {
         void shouldCallPrepareOnDataPlane() {
             var dataPlaneInstance = createDataPlaneInstance();
             var transferProcess = transferProcessBuilder().build();
-            when(selectorService.select(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(selectorService.selectFor(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
             var flowResponseMessage = DataFlowResponseMessage.Builder.newInstance()
                     .dataAddress(createDspDataAddress())
@@ -92,7 +92,7 @@ public class DataPlaneSignalingFlowControllerTest {
         @Test
         void shouldReturnFailure_whenNoDataPlaneIsFound() {
             var transferProcess = transferProcessBuilder().build();
-            when(selectorService.select(any(), any())).thenReturn(ServiceResult.notFound("no data plane can provision this"));
+            when(selectorService.selectFor(any())).thenReturn(ServiceResult.notFound("no data plane can provision this"));
 
             var result = flowController.prepare(transferProcess, policyBuilder().build());
 
@@ -112,7 +112,7 @@ public class DataPlaneSignalingFlowControllerTest {
                     .contentDataAddress(testDataAddress())
                     .build();
             var dataPlaneInstance = createDataPlaneInstance();
-            when(selectorService.select(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(selectorService.selectFor(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
             when(typeTransformerRegistry.transform(isA(DataAddress.class), any())).thenReturn(Result.success(createDspDataAddress()));
             var response = DataFlowResponse.Builder.newInstance().dataPlaneId("dataPlaneId").dataAddress(testDataAddress()).build();
@@ -134,7 +134,7 @@ public class DataPlaneSignalingFlowControllerTest {
                     .transferType(HTTP_DATA_PULL)
                     .build();
 
-            when(selectorService.select(any(), any())).thenReturn(ServiceResult.notFound("no dataplane found"));
+            when(selectorService.selectFor(any())).thenReturn(ServiceResult.notFound("no dataplane found"));
 
             var result = flowController.start(transferProcess, Policy.Builder.newInstance().build());
 
@@ -151,7 +151,7 @@ public class DataPlaneSignalingFlowControllerTest {
 
             when(dataPlaneClient.start(any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg));
             var dataPlaneInstance = createDataPlaneInstance();
-            when(selectorService.select(any(), any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            when(selectorService.selectFor(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
             when(typeTransformerRegistry.transform(isA(DataAddress.class), any())).thenReturn(Result.success(createDspDataAddress()));
             when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(DataAddress.Builder.newInstance().type("test").build()));

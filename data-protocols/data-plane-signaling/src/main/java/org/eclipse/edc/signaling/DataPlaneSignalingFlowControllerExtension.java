@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.signaling.logic.DataPlaneSignalingFlowController;
 import org.eclipse.edc.signaling.port.ClientFactory;
 import org.eclipse.edc.signaling.port.transformer.DataAddressToDspDataAddressTransformer;
@@ -37,14 +36,6 @@ import static org.eclipse.edc.signaling.DataPlaneSignalingFlowControllerExtensio
 public class DataPlaneSignalingFlowControllerExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane Signaling Api";
-    private static final String DEFAULT_DATAPLANE_SELECTOR_STRATEGY = "random";
-
-    @Setting(
-            description = "Defines strategy for Data Plane instance selection in case Data Plane is not embedded in current runtime",
-            defaultValue = DEFAULT_DATAPLANE_SELECTOR_STRATEGY,
-            key = "edc.dataplane.client.selector.strategy"
-    )
-    private String selectionStrategy;
 
     @Inject
     private TypeTransformerRegistry transformerRegistry;
@@ -68,7 +59,7 @@ public class DataPlaneSignalingFlowControllerExtension implements ServiceExtensi
         typeTransformerRegistry.register(new DataAddressToDspDataAddressTransformer());
         typeTransformerRegistry.register(new DataFlowResponseMessageToDataFlowResponseTransformer());
         typeTransformerRegistry.register(new DspDataAddressToDataAddressTransformer());
-        return new DataPlaneSignalingFlowController(controlApiUrl, dataPlaneSelectorService, selectionStrategy,
+        return new DataPlaneSignalingFlowController(controlApiUrl, dataPlaneSelectorService,
                 typeTransformerRegistry, clientFactory, dataAddressStore);
     }
 }

@@ -44,18 +44,15 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Clock;
 import java.util.Optional;
 import java.util.function.Function;
 
 import static java.lang.String.format;
-import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.joining;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
@@ -71,19 +68,21 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     private final DataAddressValidatorRegistry dataAddressValidator;
     private final TransferProcessObservable observable;
     private final ProtocolTokenValidator protocolTokenValidator;
-    private final Clock clock;
     private final Monitor monitor;
-    private final Telemetry telemetry;
     private final DataFlowController dataFlowController;
     private final DataAddressStore dataAddressStore;
+    private final TransferProcessProviderFactory transferProcessProviderFactory;
 
     public TransferProcessProtocolServiceImpl(TransferProcessStore transferProcessStore,
-                                              TransactionContext transactionContext, ContractNegotiationStore negotiationStore,
+                                              TransactionContext transactionContext,
+                                              ContractNegotiationStore negotiationStore,
                                               ContractValidationService contractValidationService,
                                               ProtocolTokenValidator protocolTokenValidator,
-                                              DataAddressValidatorRegistry dataAddressValidator, TransferProcessObservable observable,
-                                              Clock clock, Monitor monitor, Telemetry telemetry,
-                                              DataFlowController dataFlowController, DataAddressStore dataAddressStore) {
+                                              DataAddressValidatorRegistry dataAddressValidator,
+                                              TransferProcessObservable observable,
+                                              Monitor monitor,
+                                              DataFlowController dataFlowController, DataAddressStore dataAddressStore,
+                                              TransferProcessProviderFactory transferProcessProviderFactory) {
         this.transferProcessStore = transferProcessStore;
         this.transactionContext = transactionContext;
         this.negotiationStore = negotiationStore;
@@ -91,11 +90,10 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         this.protocolTokenValidator = protocolTokenValidator;
         this.dataAddressValidator = dataAddressValidator;
         this.observable = observable;
-        this.clock = clock;
         this.monitor = monitor;
-        this.telemetry = telemetry;
         this.dataFlowController = dataFlowController;
         this.dataAddressStore = dataAddressStore;
+        this.transferProcessProviderFactory = transferProcessProviderFactory;
     }
 
     @Override
@@ -167,33 +165,19 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             return ServiceResult.success(existingTransferProcess);
         }
 
-        var id = randomUUID().toString();
+        return transferProcessProviderFactory.create(participantContext, message, contractAgreement)
+                .compose(process -> {
+                    var dataAddressStorage = message.getDataAddress() == null
+                            ? StoreResult.success()
+                            : dataAddressStore.store(message.getDataAddress(), process);
 
-        var process = TransferProcess.Builder.newInstance()
-                .id(id)
-                .protocol(message.getProtocol())
-                .correlationId(message.getConsumerPid())
-                .counterPartyAddress(message.getCallbackAddress())
-                .assetId(contractAgreement.getAssetId())
-                .contractId(contractAgreement.getId())
-                .transferType(message.getTransferType())
-                .type(PROVIDER)
-                .clock(clock)
-                .traceContext(telemetry.getCurrentTraceContext())
-                .participantContextId(participantContext.getParticipantContextId())
-                .build();
-
-        var dataAddressStorage = message.getDataAddress() == null
-                ? StoreResult.success()
-                : dataAddressStore.store(message.getDataAddress(), process);
-
-        return dataAddressStorage.flatMap(ServiceResult::from)
-                .map(ignored -> {
-                    process.protocolMessageReceived(message.getId());
-                    update(process);
-                    observable.invokeForEach(l -> l.initiated(process));
-
-                    return process;
+                    return dataAddressStorage.flatMap(ServiceResult::from)
+                            .onSuccess(ignored -> {
+                                process.protocolMessageReceived(message.getId());
+                                update(process);
+                                observable.invokeForEach(l -> l.initiated(process));
+                            })
+                            .map(ignored -> process);
                 });
     }
 

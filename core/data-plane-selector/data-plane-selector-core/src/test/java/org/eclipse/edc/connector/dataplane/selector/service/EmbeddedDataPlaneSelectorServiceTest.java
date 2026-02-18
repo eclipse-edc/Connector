@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.connector.dataplane.selector.service;
 
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
@@ -23,6 +25,7 @@ import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -48,9 +51,117 @@ public class EmbeddedDataPlaneSelectorServiceTest {
 
     private final DataPlaneInstanceStore store = mock();
     private final SelectionStrategyRegistry selectionStrategyRegistry = mock();
-    private final DataPlaneSelectorService service = new EmbeddedDataPlaneSelectorService(store, selectionStrategyRegistry, new NoopTransactionContext());
+    private final String configuredSelectionStrategy = "strategy";
+    private final DataPlaneSelectorService service = new EmbeddedDataPlaneSelectorService(store, selectionStrategyRegistry, new NoopTransactionContext(), configuredSelectionStrategy);
 
     @Nested
+    class SelectFor {
+
+        @Test
+        void shouldUseConfiguredSelector() {
+            var transferProcess = transferProcessBuilder().transferType("chosenTransferType").build();
+            var instances = List.of(
+                    createInstanceBuilder("ignoredInstance").allowedTransferType("anotherTransferType").state(REGISTERED.code()).build(),
+                    createInstanceBuilder("expectedInstance").allowedTransferType("chosenTransferType").state(REGISTERED.code()).build()
+            );
+            when(store.getAll()).thenAnswer(i -> instances.stream());
+            var strategy = testRandomSelectionStrategy();
+            when(selectionStrategyRegistry.find(any())).thenReturn(strategy);
+
+            var result = service.selectFor(transferProcess);
+
+            assertThat(result).isSucceeded().extracting(DataPlaneInstance::getId).isEqualTo("expectedInstance");
+            verify(selectionStrategyRegistry).find(configuredSelectionStrategy);
+        }
+
+        @Test
+        void shouldFilterOutUnregisteredInstances() {
+            var transferProcess = transferProcessBuilder().transferType("chosenTransferType").build();
+            var registeredInstance = createInstanceBuilder("registered").state(REGISTERED.code())
+                    .allowedSourceType("srcTestType").allowedTransferType("chosenTransferType").build();
+            var unregisteredInstance = createInstanceBuilder("unregistered").state(UNREGISTERED.code())
+                    .allowedSourceType("srcTestType").allowedTransferType("chosenTransferType").build();
+            when(store.getAll()).thenReturn(Stream.of(unregisteredInstance, registeredInstance));
+            var strategy = testRandomSelectionStrategy();
+            when(selectionStrategyRegistry.find(any())).thenReturn(strategy);
+
+            var result = service.selectFor(transferProcess);
+
+            assertThat(result).isSucceeded().extracting(DataPlaneInstance::getId).isEqualTo("registered");
+            verify(strategy).apply(List.of(registeredInstance));
+        }
+
+        @Test
+        void shouldFilterInstancesWithLabels_whenLabelsAreDefined() {
+            var transferProcess = transferProcessBuilder().transferType("chosenTransferType")
+                    .dataplaneMetadata(DataplaneMetadata.Builder.newInstance().label("gold").label("blue").build())
+                    .build();
+            var ignoredInstance = createInstanceBuilder("ignoredInstance").state(REGISTERED.code()).allowedTransferType("chosenTransferType")
+                    .label("blue").label("other-labels")
+                    .build();
+            var expectedInstance = createInstanceBuilder("expectedInstance").state(REGISTERED.code()).allowedTransferType("chosenTransferType")
+                    .label("gold").label("blue").build();
+            when(store.getAll()).thenReturn(Stream.of(ignoredInstance, expectedInstance));
+            var strategy = testRandomSelectionStrategy();
+            when(selectionStrategyRegistry.find(any())).thenReturn(strategy);
+
+            var result = service.selectFor(transferProcess);
+
+            assertThat(result).isSucceeded().extracting(DataPlaneInstance::getId).isEqualTo("expectedInstance");
+            verify(strategy).apply(List.of(expectedInstance));
+        }
+
+        @Test
+        void shouldReturnBadRequest_whenStrategyNotFound() {
+            when(store.getAll()).thenReturn(Stream.empty());
+            when(selectionStrategyRegistry.find(any())).thenReturn(null);
+
+            var result = service.selectFor(transferProcessBuilder().build());
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+        }
+
+        @Test
+        void shouldReturnNotFound_whenInstanceNotFound() {
+            when(store.getAll()).thenReturn(Stream.empty());
+            var strategy = testRandomSelectionStrategy();
+            when(selectionStrategyRegistry.find(any())).thenReturn(strategy);
+
+            var result = service.selectFor(transferProcessBuilder().build());
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+        }
+
+        @Test
+        void shouldReturnNotFound_whenStrategyReturnsNull() {
+            var transferProcess = transferProcessBuilder().transferType("chosenTransferType").build();
+            when(store.getAll()).thenReturn(Stream.empty());
+            SelectionStrategy strategy = mock();
+            when(strategy.apply(any())).thenReturn(null);
+            when(selectionStrategyRegistry.find(any())).thenReturn(strategy);
+            when(store.getAll()).thenReturn(Stream.of(createInstanceBuilder("expectedInstance").allowedTransferType("chosenTransferType").state(REGISTERED.code()).build()));
+
+            var result = service.selectFor(transferProcess);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(NOT_FOUND);
+        }
+
+        private @NonNull SelectionStrategy testRandomSelectionStrategy() {
+            SelectionStrategy selectionStrategy = mock();
+            when(selectionStrategy.apply(any())).thenAnswer(it -> {
+                List<DataPlaneInstance> filteredInstances = it.getArgument(0);
+                return filteredInstances.stream().findAny().orElse(null);
+            });
+            return selectionStrategy;
+        }
+
+        private TransferProcess.Builder transferProcessBuilder() {
+            return TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
+        }
+    }
+
+    @Nested
+    @Deprecated(since = "0.16.0")
     class Select {
 
         @Test

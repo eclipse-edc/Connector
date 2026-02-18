@@ -68,6 +68,7 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
     private long lastActive = Instant.now().toEpochMilli();
     private URL url;
     private String participantContextId;
+    private final Set<String> labels = new HashSet<>();
 
     private DataPlaneInstance() {
     }
@@ -87,7 +88,8 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
                 .allowedTransferType(allowedTransferTypes)
                 .properties(properties)
                 .destinationProvisionTypes(destinationProvisionTypes)
-                .participantContextId(participantContextId);
+                .participantContextId(participantContextId)
+                .labels(labels);
 
         return copy(builder);
     }
@@ -104,7 +106,9 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
      * @param sourceAddress the sourceAddress
      * @param transferType  the transferType
      * @return true if it can handle, false otherwise.
+     * @deprecated will be determined by the DataPlaneSelectorService directly
      */
+    @Deprecated(since = "0.16.0")
     public boolean canHandle(DataAddress sourceAddress, @Nullable String transferType) {
         Objects.requireNonNull(transferType, "transferType cannot be null!");
         if (sourceAddress != null) {
@@ -146,6 +150,10 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
 
     public Set<String> getDestinationProvisionTypes() {
         return destinationProvisionTypes;
+    }
+
+    public Set<String> getLabels() {
+        return labels;
     }
 
     @Override
@@ -255,6 +263,18 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
 
         public Builder participantContextId(String participantContextId) {
             entity.participantContextId = participantContextId;
+            return this;
+        }
+
+        public Builder labels(Set<String> labels) {
+            if (labels != null) {
+                entity.labels.addAll(labels);
+            }
+            return this;
+        }
+
+        public Builder label(String label) {
+            entity.labels.add(label);
             return this;
         }
 

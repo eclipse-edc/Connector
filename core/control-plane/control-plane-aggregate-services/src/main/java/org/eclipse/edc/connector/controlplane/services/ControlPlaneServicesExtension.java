@@ -60,6 +60,7 @@ import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProto
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessProtocolServiceImpl;
+import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessProviderFactory;
 import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessServiceImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
@@ -249,9 +250,10 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Provider
     public TransferProcessProtocolService transferProcessProtocolService() {
+        var factory = new TransferProcessProviderFactory(clock, telemetry, assetIndex);
         return new TransferProcessProtocolServiceImpl(transferProcessStore, transactionContext, contractNegotiationStore,
-                contractValidationService, protocolTokenValidator(), dataAddressValidator, transferProcessObservable, clock,
-                monitor, telemetry, dataFlowController, dataAddressStore);
+                contractValidationService, protocolTokenValidator(), dataAddressValidator, transferProcessObservable,
+                monitor, dataFlowController, dataAddressStore, factory);
     }
 
     @Provider
