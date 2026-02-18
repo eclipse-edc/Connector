@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.transfer.dataaddress;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataPlaneProtocolInUse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.result.Result;
@@ -36,11 +37,14 @@ public class VaultDataAddressStore implements DataAddressStore {
     private final Vault vault;
     private final TypeTransformerRegistry typeTransformerRegistry;
     private final JsonLd jsonLd;
+    private final DataPlaneProtocolInUse dataPlaneProtocolInUse;
 
-    public VaultDataAddressStore(Vault vault, TypeTransformerRegistry typeTransformerRegistry, JsonLd jsonLd) {
+    public VaultDataAddressStore(Vault vault, TypeTransformerRegistry typeTransformerRegistry, JsonLd jsonLd,
+                                 DataPlaneProtocolInUse dataPlaneProtocolInUse) {
         this.vault = vault;
         this.typeTransformerRegistry = typeTransformerRegistry;
         this.jsonLd = jsonLd;
+        this.dataPlaneProtocolInUse = dataPlaneProtocolInUse;
     }
 
     @Override
@@ -53,7 +57,11 @@ public class VaultDataAddressStore implements DataAddressStore {
                 .flatMap(this::toStoreResult)
                 .onSuccess(o -> {
                     transferProcess.setDataAddressAlias(alias);
-                    transferProcess.updateDestination(null);
+                    if (dataPlaneProtocolInUse.isLegacy()) {
+                        transferProcess.updateDestination(dataAddress);
+                    } else {
+                        transferProcess.updateDestination(null);
+                    }
                 });
     }
 

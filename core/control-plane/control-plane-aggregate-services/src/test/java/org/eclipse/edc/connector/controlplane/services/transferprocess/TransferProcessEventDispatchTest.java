@@ -115,6 +115,7 @@ public class TransferProcessEventDispatchTest {
         when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
         when(dataFlowController.started(any())).thenReturn(StatusResult.success());
         when(dataAddressStore.resolve(any())).thenReturn(StoreResult.notFound("any"));
+        when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
         when(dataAddressStore.remove(any())).thenReturn(StoreResult.success());
     }
 

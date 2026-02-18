@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.transfer.dataaddress;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataPlaneProtocolInUse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.result.Result;
@@ -41,7 +42,8 @@ class VaultDataAddressStoreTest {
     private final Vault vault = mock();
     private final TypeTransformerRegistry typeTransformerRegistry = mock();
     private final JsonLd jsonLd = mock();
-    private final VaultDataAddressStore store = new VaultDataAddressStore(vault, typeTransformerRegistry, jsonLd);
+    private final DataPlaneProtocolInUse dataPlaneProtocolInUse = mock();
+    private final VaultDataAddressStore store = new VaultDataAddressStore(vault, typeTransformerRegistry, jsonLd, dataPlaneProtocolInUse);
 
     @Nested
     class Store {
@@ -82,6 +84,27 @@ class VaultDataAddressStoreTest {
 
             assertThat(result).isSucceeded();
             assertThat(transferProcess.getDataDestination()).isNull();
+            verify(vault).storeSecret("participant-context-id", "transfer-process-tp-id-data-address", expandedJson.toString());
+        }
+
+        @Test
+        void shouldNotRemoveDataDestinationFromTransferProcess_whenDataPlaneProtocolInUseIsLegacy() {
+            when(dataPlaneProtocolInUse.isLegacy()).thenReturn(true);
+            var dataAddress = DataAddress.Builder.newInstance().type("test").build();
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("tp-id")
+                    .participantContextId("participant-context-id")
+                    .dataDestination(DataAddress.Builder.newInstance().type("test").property("previous-data-address", "stored-in-database").build())
+                    .build();
+            when(typeTransformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(Json.createObjectBuilder().build()));
+            var expandedJson = Json.createObjectBuilder().add("type", "any").add("this is", "the json data address").build();
+            when(jsonLd.expand(any())).thenReturn(Result.success(expandedJson));
+            when(vault.storeSecret(any(), any(), any())).thenReturn(Result.success());
+
+            var result = store.store(dataAddress, transferProcess);
+
+            assertThat(result).isSucceeded();
+            assertThat(transferProcess.getDataDestination()).isNotNull();
             verify(vault).storeSecret("participant-context-id", "transfer-process-tp-id-data-address", expandedJson.toString());
         }
 

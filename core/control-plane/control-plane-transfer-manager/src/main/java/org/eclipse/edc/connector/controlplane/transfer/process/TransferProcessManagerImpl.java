@@ -41,8 +41,8 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.Criterion;
-import org.eclipse.edc.spi.response.ResponseStatus;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.WaitStrategy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.statemachine.AbstractStateEntityManager;
@@ -75,6 +75,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING_REQUESTED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
+import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.edc.statemachine.retry.processor.Process.futureResult;
 import static org.eclipse.edc.statemachine.retry.processor.Process.result;
 
@@ -127,13 +128,12 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
         var policy = policyArchive.findPolicyForContract(transferRequest.getContractId());
         if (policy == null) {
-            return StatusResult.failure(ResponseStatus.FATAL_ERROR, "No policy found for contract " + transferRequest.getContractId());
+            return StatusResult.failure(FATAL_ERROR, "No policy found for contract " + transferRequest.getContractId());
         }
 
         var process = TransferProcess.Builder.newInstance()
                 .id(id)
                 .assetId(policy.getTarget())
-                .dataDestination(transferRequest.getDataDestination())
                 .counterPartyAddress(transferRequest.getCounterPartyAddress())
                 .contractId(transferRequest.getContractId())
                 .protocol(transferRequest.getProtocol())
@@ -147,10 +147,20 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .dataplaneMetadata(transferRequest.getDataplaneMetadata())
                 .build();
 
-        update(process);
-        observable.invokeForEach(l -> l.initiated(process));
+        var dataAddressStorage = Optional.ofNullable(transferRequest.getDataDestination())
+                .map(it -> dataAddressStore.store(it, process))
+                .orElse(StoreResult.success());
 
-        return StatusResult.success(process);
+        return  dataAddressStorage
+                .compose(v -> update(process))
+                .onSuccess(v -> observable.invokeForEach(l -> l.initiated(process)))
+                .flatMap(r -> {
+                    if (r.succeeded()) {
+                        return StatusResult.success(process);
+                    } else {
+                        return StatusResult.failure(FATAL_ERROR, "Failed to initiate Transfer Process: " + r.getFailureDetail());
+                    }
+                });
     }
 
     @Override

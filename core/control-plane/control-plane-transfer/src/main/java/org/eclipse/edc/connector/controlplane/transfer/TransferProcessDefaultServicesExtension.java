@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendin
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataPlaneProtocolInUse;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -40,6 +41,8 @@ public class TransferProcessDefaultServicesExtension implements ServiceExtension
     private TypeTransformerRegistry typeTransformerRegistry;
     @Inject
     private JsonLd jsonLd;
+
+    private final DataPlaneProtocolInUse dataPlaneProtocolInUse = new DataPlaneProtocolInUse();
 
     @Override
     public String name() {
@@ -63,7 +66,11 @@ public class TransferProcessDefaultServicesExtension implements ServiceExtension
 
     @Provider
     public DataAddressStore dataAddressStore() {
-        return new VaultDataAddressStore(vault, typeTransformerRegistry, jsonLd);
+        return new VaultDataAddressStore(vault, typeTransformerRegistry, jsonLd, dataPlaneProtocolInUse);
     }
 
+    @Provider
+    public DataPlaneProtocolInUse dataPlaneProtocolInUse() {
+        return dataPlaneProtocolInUse;
+    }
 }
