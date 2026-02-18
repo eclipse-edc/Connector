@@ -29,6 +29,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 
 import java.util.Map;
@@ -36,9 +37,10 @@ import java.util.Map;
 import static org.eclipse.edc.connector.controlplane.transfer.dataplane.TransferDataPlaneSignalingExtension.NAME;
 
 @Extension(NAME)
+@Deprecated(since = "0.16.0")
 public class TransferDataPlaneSignalingExtension implements ServiceExtension {
 
-    protected static final String NAME = "Legacy Data Plane Signaling Extension";
+    protected static final String NAME = "DEPRECATED: Legacy Data Plane Signaling Extension";
 
     private static final String DEFAULT_DATAPLANE_SELECTOR_STRATEGY = "random";
 
@@ -61,6 +63,14 @@ public class TransferDataPlaneSignalingExtension implements ServiceExtension {
     private DataAddressStore dataAddressStore;
     @Inject
     private Monitor monitor;
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        monitor.warning("The EDC Data Plane has been deprecated, the related modules will be removed in future releases, " +
+                "please look into Data Plane Signaling specification and implement your own Data Planes. The EDC control-plane " +
+                "is already supporting that specification, by adding the `data-plane-signaling` module to your runtime and " +
+                "removing the legacy `transfer-data-plane-signaling` one.");
+    }
 
     @Provider
     public DataFlowController dataFlowController() {

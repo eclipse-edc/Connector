@@ -47,9 +47,12 @@ import static org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager.D
 
 /**
  * Provides core services for the Data Plane Framework.
+ *
+ * @deprecated please look into Data Plane Signaling.
  */
 @Provides({ DataPlaneManager.class, TransferServiceRegistry.class })
 @Extension(value = DataPlaneFrameworkExtension.NAME)
+@Deprecated(since = "0.16.0")
 public class DataPlaneFrameworkExtension implements ServiceExtension {
 
     public static final String NAME = "Data Plane Framework";
@@ -98,6 +101,11 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
+
+        monitor.warning("The EDC Data Plane has been deprecated, the related modules will be removed in future releases, " +
+                "please look into Data Plane Signaling specification and implement your own Data Planes. The EDC control-plane " +
+                "is already supporting that specification, by adding the `data-plane-signaling` module to your runtime and " +
+                "removing the legacy `transfer-data-plane-signaling` one.");
 
         var transferServiceRegistry = new TransferServiceRegistryImpl();
         transferServiceRegistry.registerTransferService(pipelineService);
