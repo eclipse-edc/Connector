@@ -41,6 +41,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -66,6 +67,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_AT
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_AGREEMENT;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROFILE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REMEDY_ATTRIBUTE;
@@ -110,6 +112,7 @@ class JsonObjectFromPolicyTransformerTest {
                 .permission(permission)
                 .prohibition(prohibition)
                 .duty(duty)
+                .profiles(List.of("profile"))
                 .build();
 
         var result = transformer.transform(policy, context);
@@ -152,6 +155,10 @@ class JsonObjectFromPolicyTransformerTest {
         var dutyJson = result.get(ODRL_OBLIGATION_ATTRIBUTE).asJsonArray().get(0).asJsonObject();
         assertThat(dutyJson.getJsonObject(ODRL_ACTION_ATTRIBUTE)).isNotNull();
         assertThat(dutyJson.getJsonObject(ODRL_CONSTRAINT_ATTRIBUTE)).isNull();
+
+        var profileJson = result.get(ODRL_PROFILE_ATTRIBUTE).asJsonArray();
+        assertThat(profileJson).hasSize(1).first().extracting(JsonValue::asJsonObject)
+                .extracting(it -> it.getString(ID)).isEqualTo("profile");
 
         verify(context, never()).reportProblem(anyString());
         verify(participantIdMapper).toIri("assignee");

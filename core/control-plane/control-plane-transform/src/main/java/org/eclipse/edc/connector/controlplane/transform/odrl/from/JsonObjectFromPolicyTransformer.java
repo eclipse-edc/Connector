@@ -64,6 +64,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_AT
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_AGREEMENT;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROFILE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REMEDY_ATTRIBUTE;
@@ -177,6 +178,12 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
                             ODRL_TARGET_ATTRIBUTE,
                             jsonFactory.createArrayBuilder().add(jsonFactory.createObjectBuilder().add(ID, target)))
                     );
+
+            if (!policy.getProfiles().isEmpty()) {
+                var profiles = jsonFactory.createArrayBuilder();
+                policy.getProfiles().stream().map(profile -> jsonFactory.createObjectBuilder().add(ID, profile)).forEach(profiles::add);
+                builder.add(ODRL_PROFILE_ATTRIBUTE, profiles);
+            }
 
             return builder.build();
         }
