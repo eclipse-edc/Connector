@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowControll
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataPlaneProtocolInUse;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -63,9 +64,12 @@ public class TransferDataPlaneSignalingExtension implements ServiceExtension {
     private DataAddressStore dataAddressStore;
     @Inject
     private Monitor monitor;
+    @Inject
+    private DataPlaneProtocolInUse dataPlaneProtocolInUse;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        dataPlaneProtocolInUse.setLegacy(true);
         monitor.warning("The EDC Data Plane has been deprecated, the related modules will be removed in future releases, " +
                 "please look into Data Plane Signaling specification and implement your own Data Planes. The EDC control-plane " +
                 "is already supporting that specification, by adding the `data-plane-signaling` module to your runtime and " +

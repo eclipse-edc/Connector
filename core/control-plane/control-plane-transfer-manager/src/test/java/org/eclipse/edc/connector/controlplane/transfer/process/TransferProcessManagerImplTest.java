@@ -436,20 +436,22 @@ class TransferProcessManagerImplTest {
     @Nested
     class InitiateConsumerRequest {
         @Test
-        void shouldStoreTransferProcess() {
+        void shouldStoreTransferProcessAndDataAddress() {
             when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().target("assetId").build());
             when(transferProcessStore.findForCorrelationId("1")).thenReturn(null);
             var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
             var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().label("label").build();
+            var dataAddress = DataAddress.Builder.newInstance().type("test").build();
             var transferRequest = TransferRequest.Builder.newInstance()
                     .id("1")
-                    .dataDestination(DataAddress.Builder.newInstance().type("test").build())
+                    .dataDestination(dataAddress)
                     .callbackAddresses(List.of(callback))
                     .dataplaneMetadata(dataplaneMetadata)
                     .build();
             var participantContext = ParticipantContext.Builder.newInstance().participantContextId("id")
                     .identity("identity")
                     .build();
+            when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
 
             var result = manager.initiateConsumerRequest(participantContext, transferRequest);
 
@@ -462,7 +464,30 @@ class TransferProcessManagerImplTest {
             assertThat(transferProcess.getCallbackAddresses()).usingRecursiveFieldByFieldElementComparator().contains(callback);
             assertThat(transferProcess.getAssetId()).isEqualTo("assetId");
             assertThat(transferProcess.getDataplaneMetadata()).isSameAs(dataplaneMetadata);
+            assertThat(transferProcess.getDataDestination()).isNull();
             verify(listener).initiated(any());
+            verify(dataAddressStore).store(dataAddress, transferProcess);
+        }
+
+        @Test
+        void shouldNotStoreDataAddress_whenItsNotProvided() {
+            when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().target("assetId").build());
+            when(transferProcessStore.findForCorrelationId("1")).thenReturn(null);
+            var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
+            var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().label("label").build();
+            var transferRequest = TransferRequest.Builder.newInstance()
+                    .id("1")
+                    .callbackAddresses(List.of(callback))
+                    .dataplaneMetadata(dataplaneMetadata)
+                    .build();
+            var participantContext = ParticipantContext.Builder.newInstance().participantContextId("id")
+                    .identity("identity")
+                    .build();
+
+            var result = manager.initiateConsumerRequest(participantContext, transferRequest);
+
+            assertThat(result).isSucceeded().isNotNull();
+            verifyNoInteractions(dataAddressStore);
         }
 
         @Test
@@ -481,6 +506,31 @@ class TransferProcessManagerImplTest {
             var result = manager.initiateConsumerRequest(participantContext, transferRequest);
 
             assertThat(result).isFailed();
+        }
+
+        @Test
+        void shouldFail_whenDataAddressStorageFails() {
+            when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().target("assetId").build());
+            when(transferProcessStore.findForCorrelationId("1")).thenReturn(null);
+            var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
+            var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().label("label").build();
+            var dataAddress = DataAddress.Builder.newInstance().type("test").build();
+            var transferRequest = TransferRequest.Builder.newInstance()
+                    .id("1")
+                    .dataDestination(dataAddress)
+                    .callbackAddresses(List.of(callback))
+                    .dataplaneMetadata(dataplaneMetadata)
+                    .build();
+            var participantContext = ParticipantContext.Builder.newInstance().participantContextId("id")
+                    .identity("identity")
+                    .build();
+            when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.generalError("error"));
+
+            var result = manager.initiateConsumerRequest(participantContext, transferRequest);
+
+            assertThat(result).isFailed();
+            verifyNoInteractions(listener);
+            verify(transferProcessStore, never()).save(any());
         }
     }
 
