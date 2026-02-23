@@ -52,7 +52,7 @@ import java.security.interfaces.EdECPrivateKey;
 import java.security.interfaces.EdECPublicKey;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.ECGenParameterSpec;
+import java.security.spec.ECParameterSpec;
 import java.security.spec.ECPoint;
 import java.security.spec.ECPublicKeySpec;
 import java.security.spec.EdECPoint;
@@ -329,34 +329,40 @@ public class CryptoConverter {
     }
 
     private static ECKey convertEcKey(KeyPair keypair, @Nullable String kid) {
-        var pub = (ECPublicKey) keypair.getPublic();
-        var priv = (ECPrivateKey) keypair.getPrivate();
-
-        var key = ofNullable((java.security.interfaces.ECKey) pub).orElse(priv);
-        // inspired by https://stackoverflow.com/a/70474128
         try {
-            var algorithmParameters = AlgorithmParameters.getInstance("EC");
-            algorithmParameters.init(key.getParams());
-            var curveName = algorithmParameters.getParameterSpec(ECGenParameterSpec.class).getName();
+            var pub = (ECPublicKey) keypair.getPublic();
+            var priv = (ECPrivateKey) keypair.getPrivate();
+
+            var curve = getCurve(pub, priv);
 
             if (pub == null) {
-
-                // we need to do elliptic curve multiplication, which Java does not natively support, at least there are no public interfaces.
-                // thus we get bouncy with it.
-                var bcSpec = EC5Util.convertSpec(priv.getParams());
-                var q = bcSpec.getG().multiply(priv.getS()).normalize(); // must be normalized
-                var pointQjce = new ECPoint(q.getAffineXCoord().toBigInteger(), q.getAffineYCoord().toBigInteger());
-                var spec = new ECPublicKeySpec(pointQjce, priv.getParams());
-                pub = (ECPublicKey) KeyFactory.getInstance("EC").generatePublic(spec);
-
+                pub = generatePublicKeyFrom(priv);
             }
 
-            return new ECKey.Builder(Curve.forOID(curveName), pub).privateKey(priv).keyID(kid).keyUse(KeyUse.SIGNATURE).build();
+            return new ECKey.Builder(curve, pub).privateKey(priv).keyID(kid).keyUse(KeyUse.SIGNATURE).build();
 
         } catch (NoSuchAlgorithmException | InvalidParameterSpecException | InvalidKeySpecException e) {
             throw new IllegalArgumentException(e);
         }
 
+    }
+
+    private static Curve getCurve(java.security.interfaces.ECKey pub, ECPrivateKey priv) throws NoSuchAlgorithmException, InvalidParameterSpecException {
+        var key = ofNullable(pub).orElse(priv);
+        var algorithmParameters = AlgorithmParameters.getInstance("EC");
+        algorithmParameters.init(key.getParams());
+        var parameterSpec = algorithmParameters.getParameterSpec(ECParameterSpec.class);
+        return Curve.forECParameterSpec(parameterSpec);
+    }
+
+    private static ECPublicKey generatePublicKeyFrom(ECPrivateKey priv) throws InvalidKeySpecException, NoSuchAlgorithmException {
+        // we need to do elliptic curve multiplication, which Java does not natively support, at least there are no public interfaces.
+        // thus we get bouncy with it.
+        var bcSpec = EC5Util.convertSpec(priv.getParams());
+        var q = bcSpec.getG().multiply(priv.getS()).normalize(); // must be normalized
+        var pointQjce = new ECPoint(q.getAffineXCoord().toBigInteger(), q.getAffineYCoord().toBigInteger());
+        var spec = new ECPublicKeySpec(pointQjce, priv.getParams());
+        return (ECPublicKey) KeyFactory.getInstance("EC").generatePublic(spec);
     }
 
     /**
