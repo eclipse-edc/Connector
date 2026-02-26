@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -107,13 +108,17 @@ public class TitaniumJsonLd implements JsonLd {
         }
     }
 
-    @Override
     public Result<JsonObject> compact(JsonObject json, String scope) {
+        return compact(json, scope, List.of());
+    }
+
+    @Override
+    public Result<JsonObject> compact(JsonObject json, String scope, List<Object> additionalContexts) {
         try {
             var document = JsonDocument.of(json);
             var jsonFactory = createBuilderFactory(Map.of());
             var contextDocument = JsonDocument.of(jsonFactory.createObjectBuilder()
-                    .add(JsonLdKeywords.CONTEXT, createContext(scope))
+                    .add(JsonLdKeywords.CONTEXT, createContext(scope, additionalContexts))
                     .build());
             var compacted = com.apicatalog.jsonld.JsonLd.compact(document, contextDocument)
                     .options(new JsonLdOptions(documentLoader))
@@ -163,8 +168,9 @@ public class TitaniumJsonLd implements JsonLd {
         return jsonObjectBuilder.build();
     }
 
-    private JsonValue createContext(String scope) {
+    private JsonValue createContext(String scope, List<Object> additionalContext) {
         var builder = createObjectBuilder();
+
         // Adds the configured namespaces for * and the input scope
         Stream.concat(namespacesForScope(JsonLd.DEFAULT_SCOPE), namespacesForScope(scope))
                 .forEach(entry -> builder.add(entry.getKey(), entry.getValue()));
@@ -172,6 +178,17 @@ public class TitaniumJsonLd implements JsonLd {
         // Compute the additional context IRI defined for * and the input scope
         var contexts = Stream.concat(contextsForScope(JsonLd.DEFAULT_SCOPE), contextsForScope(scope))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        // Dispatch context entries (URLs as strings, objects as JsonObjects)
+        if (additionalContext != null) {
+            for (Object entry : additionalContext) {
+                if (entry instanceof String url) {
+                    contexts.add(url);
+                } else if (entry instanceof JsonObject object) {
+                    object.forEach(builder::add);
+                }
+            }
+        }
 
         var contextObject = builder.build();
         // if not empty we build a JsonArray

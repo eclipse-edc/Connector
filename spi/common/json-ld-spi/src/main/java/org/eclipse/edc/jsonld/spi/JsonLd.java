@@ -18,6 +18,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.spi.result.Result;
 
 import java.net.URI;
+import java.util.List;
 
 /**
  * Provides JsonLD expansion/compaction functionalities.
@@ -51,6 +52,27 @@ public interface JsonLd {
      * @return a successful {@link Result} containing the compacted {@link JsonObject} if the operation succeed, a failed one otherwise
      */
     Result<JsonObject> compact(JsonObject json, String scope);
+
+    /**
+     * Compact a JsonLD document. The context will be generated from registered contexts and namespaces.
+     *
+     * @param json               the expanded json.
+     * @param additionalContexts a list of additional contexts to apply during the compaction process. The list can contain both context IRIs or JsonObjects representing the context.
+     * @return a successful {@link Result} containing the compacted {@link JsonObject} if the operation succeed, a failed one otherwise
+     */
+    default Result<JsonObject> compact(JsonObject json, List<Object> additionalContexts) {
+        return compact(json, DEFAULT_SCOPE, additionalContexts);
+    }
+
+    /**
+     * Compact a JsonLD document. The context will be generated from registered contexts and namespaces.
+     *
+     * @param json               the expanded json.
+     * @param scope              the scope to apply during the compaction process
+     * @param additionalContexts a list of additional contexts to apply during the compaction process. The list can contain both context IRIs or JsonObjects representing the context.
+     * @return a successful {@link Result} containing the compacted {@link JsonObject} if the operation succeed, a failed one otherwise
+     */
+    Result<JsonObject> compact(JsonObject json, String scope, List<Object> additionalContexts);
 
     /**
      * Register a JsonLD namespace in the default scope
