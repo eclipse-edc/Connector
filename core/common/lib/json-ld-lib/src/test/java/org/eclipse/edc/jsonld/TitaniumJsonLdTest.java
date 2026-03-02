@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.net.URI;
+import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -287,6 +288,46 @@ class TitaniumJsonLdTest {
         });
 
         var compacted = service.compact(expanded.getContent(), customScope);
+
+        assertThat(compacted).isSucceeded().satisfies(c -> {
+            Assertions.assertThat(c).isEqualTo(input);
+        });
+    }
+
+    @Test
+    void expandAndCompact_withAdditionalContexts() {
+        var schemaContext = "http://schema.org/";
+        var testSchemaNs = "http://test.org/";
+
+        var inlineContext = createObjectBuilder()
+                .add("testSchema", testSchemaNs)
+                .add("surname", "testSchema:surname")
+                .add("status", createObjectBuilder().add("@id", "testSchema:status").add("@type", "@id").build())
+                .build();
+
+        var input = createObjectBuilder()
+                .add("@context", createArrayBuilder().add(schemaContext).add(inlineContext).build())
+                .add(JsonLdKeywords.TYPE, "Person")
+                .add("name", "Jane Doe")
+                .add("jobTitle", "Professor")
+                .add("surname", "Surname")
+                .add("status", "http://example.com/status/active")
+                .build();
+
+        var service = defaultService();
+
+        service.registerCachedDocument(schemaContext, TestUtils.getFileFromResourceName("schema-org-light.jsonld").toURI());
+
+        var expanded = service.expand(input);
+
+        assertThat(expanded).isSucceeded().satisfies(c -> {
+            Assertions.assertThat(c.getJsonArray(schemaContext + "name").get(0).asJsonObject().getJsonString(JsonLdKeywords.VALUE).getString()).isEqualTo("Jane Doe");
+            Assertions.assertThat(c.getJsonArray(schemaContext + "jobTitle").get(0).asJsonObject().getJsonString(JsonLdKeywords.VALUE).getString()).isEqualTo("Professor");
+            Assertions.assertThat(c.getJsonArray(testSchemaNs + "surname").get(0).asJsonObject().getJsonString(JsonLdKeywords.VALUE).getString()).isEqualTo("Surname");
+            Assertions.assertThat(c.getJsonArray(testSchemaNs + "status").get(0).asJsonObject().getJsonString(JsonLdKeywords.ID).getString()).isEqualTo("http://example.com/status/active");
+        });
+
+        var compacted = service.compact(expanded.getContent(), List.of("http://schema.org/", inlineContext));
 
         assertThat(compacted).isSucceeded().satisfies(c -> {
             Assertions.assertThat(c).isEqualTo(input);
