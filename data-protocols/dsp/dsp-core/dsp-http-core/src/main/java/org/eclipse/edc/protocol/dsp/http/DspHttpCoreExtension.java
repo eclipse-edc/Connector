@@ -48,7 +48,6 @@ import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -75,11 +74,6 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 public class DspHttpCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol Core Extension";
-
-    private static final boolean DEFAULT_WELL_KNOWN_PATH = false;
-
-    @Setting(description = "If set enable the well known path resolution scheme will be used", key = "edc.dsp.well-known-path.enabled", required = false, defaultValue = DEFAULT_WELL_KNOWN_PATH + "")
-    private boolean wellKnownPathEnabled;
 
     @Inject
     private EdcHttpClient httpClient;
@@ -151,9 +145,9 @@ public class DspHttpCoreExtension implements ServiceExtension {
         return dspTransformerRegistry;
     }
 
-    @Provider
+    @Provider(isDefault = true)
     public DspRequestBasePathProvider dspRequestBasePathProvider() {
-        return new DspRequestBasePathProviderImpl(dataspaceProfileContextRegistry, wellKnownPathEnabled);
+        return new DspRequestBasePathProviderImpl();
     }
 
     private void registerNegotiationPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
