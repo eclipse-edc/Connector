@@ -55,7 +55,7 @@ public class CallbackStaticEndpointExtensionTest {
     }
 
     @Test
-    void initialize_shouldConfigureMultipleCallbacks(ServiceExtensionContext context) {
+    void initialize_shouldConfigureMultipleCallbacksLegacy(ServiceExtensionContext context) {
         var callback = CallbackAddress.Builder.newInstance()
                 .uri("http://url2")
                 .transactional(false)
@@ -69,6 +69,36 @@ public class CallbackStaticEndpointExtensionTest {
                 "edc.callback.endpoint1.events", String.join(" ,", callback.getEvents()),
                 "edc.callback.endpoint1.auth-code-id", callback.getAuthCodeId(),
                 "edc.callback.endpoint1.auth-key", callback.getAuthKey());
+
+        var cfg = ConfigFactory.fromMap(mapConfig);
+
+        when(context.getConfig(EDC_CALLBACK_SETTING_PREFIX)).thenReturn(cfg.getConfig(EDC_CALLBACK_SETTING_PREFIX));
+
+        extension.initialize(context);
+
+        var captor = ArgumentCaptor.forClass(CallbackAddress.class);
+
+        verify(callbackRegistry).register(captor.capture());
+
+        assertThat(captor.getValue()).usingRecursiveComparison().isEqualTo(callback);
+
+    }
+
+    @Test
+    void initialize_shouldConfigureMultipleCallbacks(ServiceExtensionContext context) {
+        var callback = CallbackAddress.Builder.newInstance()
+                .uri("http://url2")
+                .transactional(false)
+                .events(Set.of("asset", "policy"))
+                .authCodeId("codeId")
+                .authKey("key")
+                .build();
+
+        var mapConfig = Map.of("edc.callback.endpoint1.uri", callback.getUri(),
+                "edc.callback.endpoint1.transactional", String.valueOf(callback.isTransactional()),
+                "edc.callback.endpoint1.events", String.join(" ,", callback.getEvents()),
+                "edc.callback.endpoint1.auth.codeid", callback.getAuthCodeId(),
+                "edc.callback.endpoint1.auth.key", callback.getAuthKey());
 
         var cfg = ConfigFactory.fromMap(mapConfig);
 

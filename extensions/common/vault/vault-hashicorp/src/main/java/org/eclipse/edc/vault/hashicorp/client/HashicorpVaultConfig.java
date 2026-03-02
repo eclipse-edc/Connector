@@ -46,8 +46,13 @@ public class HashicorpVaultConfig {
     @Setting(description = "Specifies if being a standby should still return the active status code instead of the standby status code", defaultValue = VAULT_HEALTH_CHECK_STANDBY_OK_DEFAULT + "", key = "edc.vault.hashicorp.health.check.standby.ok")
     private boolean healthStandbyOk;
 
+    @Deprecated(since = "0.17.0")
     @Setting(description = "Whether the automatic token renewal process will be triggered or not. Should be disabled only for development and testing purposes",
             defaultValue = VAULT_TOKEN_SCHEDULED_RENEW_ENABLED_DEFAULT + "", key = "edc.vault.hashicorp.token.scheduled-renew-enabled")
+    private boolean scheduledTokenRenewEnabledLegacy;
+
+    @Setting(description = "Whether the automatic token renewal process will be triggered or not. Should be disabled only for development and testing purposes",
+            defaultValue = VAULT_TOKEN_SCHEDULED_RENEW_ENABLED_DEFAULT + "", key = "edc.vault.hashicorp.token.scheduledrenew.enabled")
     private boolean scheduledTokenRenewEnabled;
 
     @Setting(description = "The time-to-live (ttl) value of the Hashicorp Vault token in seconds", defaultValue = VAULT_TOKEN_TTL_DEFAULT + "", key = "edc.vault.hashicorp.token.ttl")
@@ -62,14 +67,18 @@ public class HashicorpVaultConfig {
     @Setting(description = "The path of the folder that the secret is stored in, relative to VAULT_FOLDER_PATH", required = false, key = "edc.vault.hashicorp.folder")
     private String folderPath;
 
-    public boolean isAllowFallback() {
-        return allowFallback;
-    }
-
+    @Deprecated(since = "0.17.0")
     @Setting(description = "Allow fallback to default vault partition if vault partitioning is not set up", defaultValue = "true", key = "edc.vault.hashicorp.allow-fallback")
+    private boolean allowFallbackLegacy = true;
+
+    @Setting(description = "Allow fallback to default vault partition if vault partitioning is not set up", defaultValue = "true", key = "edc.vault.hashicorp.allowfallback")
     private boolean allowFallback = true;
 
     private HashicorpVaultConfig() {
+    }
+
+    public boolean isAllowFallback() {
+        return allowFallbackLegacy && allowFallback;
     }
 
     public String getVaultUrl() {
@@ -93,7 +102,7 @@ public class HashicorpVaultConfig {
     }
 
     public boolean getScheduledTokenRenewEnabled() {
-        return scheduledTokenRenewEnabled;
+        return scheduledTokenRenewEnabled && scheduledTokenRenewEnabledLegacy;
     }
 
     public long getTtl() {
@@ -151,6 +160,7 @@ public class HashicorpVaultConfig {
 
         public Builder scheduledTokenRenewEnabled(boolean scheduledTokenRenewEnabled) {
             config.scheduledTokenRenewEnabled = scheduledTokenRenewEnabled;
+            config.scheduledTokenRenewEnabledLegacy = scheduledTokenRenewEnabled;
             return this;
         }
 
@@ -175,6 +185,7 @@ public class HashicorpVaultConfig {
         }
 
         public Builder allowFallback(boolean allowFallback) {
+            config.allowFallbackLegacy = allowFallback;
             config.allowFallback = allowFallback;
             return this;
         }

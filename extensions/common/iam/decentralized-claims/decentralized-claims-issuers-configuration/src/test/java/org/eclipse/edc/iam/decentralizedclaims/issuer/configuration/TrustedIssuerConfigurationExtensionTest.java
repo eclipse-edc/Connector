@@ -23,8 +23,9 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Map;
@@ -50,10 +51,11 @@ public class TrustedIssuerConfigurationExtensionTest {
         context.registerService(TypeManager.class, new JacksonTypeManager());
     }
 
-    @Test
-    void initialize_issuerWithSupportedTypes(ServiceExtensionContext context, TrustedIssuerConfigurationExtension ext) {
+    @ValueSource(strings = {"edc.iam.trusted-issuer", "edc.iam.trustedissuer"})
+    @ParameterizedTest
+    void initialize_issuerWithSupportedTypes(String prefix, ServiceExtensionContext context, TrustedIssuerConfigurationExtension ext) {
         var cfg = ConfigFactory.fromMap(Map.of("issuer1.id", "issuer1", "issuer1.supportedtypes", "[\"type1\", \"type2\"]"));
-        when(context.getConfig("edc.iam.trusted-issuer")).thenReturn(cfg);
+        when(context.getConfig(prefix)).thenReturn(cfg);
 
         ext.initialize(context);
 
@@ -61,20 +63,22 @@ public class TrustedIssuerConfigurationExtensionTest {
         verify(trustedIssuerRegistry).register(argThat(issuer -> issuer.id().equals("issuer1")), eq("type1"));
     }
 
-    @Test
-    void initialize_issuerWithoutSupportedType(ServiceExtensionContext context, TrustedIssuerConfigurationExtension ext) {
+    @ValueSource(strings = {"edc.iam.trusted-issuer", "edc.iam.trustedissuer"})
+    @ParameterizedTest
+    void initialize_issuerWithoutSupportedType(String prefix, ServiceExtensionContext context, TrustedIssuerConfigurationExtension ext) {
         var cfg = ConfigFactory.fromMap(Map.of("issuer1.id", "issuer1"));
-        when(context.getConfig("edc.iam.trusted-issuer")).thenReturn(cfg);
+        when(context.getConfig(prefix)).thenReturn(cfg);
 
         ext.initialize(context);
 
         verify(trustedIssuerRegistry).register(argThat(issuer -> issuer.id().equals("issuer1")), eq(TrustedIssuerRegistry.WILDCARD));
     }
 
-    @Test
-    void initialize_WithNoIssuer(ServiceExtensionContext context, TrustedIssuerConfigurationExtension ext, Monitor monitor) {
+    @ValueSource(strings = {"edc.iam.trusted-issuer", "edc.iam.trustedissuer"})
+    @ParameterizedTest
+    void initialize_WithNoIssuer(String prefix, ServiceExtensionContext context, TrustedIssuerConfigurationExtension ext, Monitor monitor) {
         var cfg = ConfigFactory.fromMap(Map.of());
-        when(context.getConfig("edc.iam.trusted-issuer")).thenReturn(cfg);
+        when(context.getConfig(prefix)).thenReturn(cfg);
 
         ext.initialize(context);
 
@@ -84,21 +88,23 @@ public class TrustedIssuerConfigurationExtensionTest {
 
     }
 
-    @Test
-    void initialize_withProperties(ServiceExtensionContext context, TrustedIssuerConfigurationExtension ext) {
+    @ValueSource(strings = {"edc.iam.trusted-issuer", "edc.iam.trustedissuer"})
+    @ParameterizedTest
+    void initialize_withProperties(String prefix, ServiceExtensionContext context, TrustedIssuerConfigurationExtension ext) {
         var properties = "{\"custom\": \"test\"}";
         var cfg = ConfigFactory.fromMap(Map.of("issuer1.id", "issuerId1", "issuer1.properties", properties));
-        when(context.getConfig("edc.iam.trusted-issuer")).thenReturn(cfg);
+        when(context.getConfig(prefix)).thenReturn(cfg);
 
         ext.initialize(context);
 
         verify(trustedIssuerRegistry).register(argThat(issuer -> issuer.additionalProperties().get("custom").equals("test")), eq(TrustedIssuerRegistry.WILDCARD));
     }
 
-    @Test
-    void initialize_withTwoIssuers(ServiceExtensionContext context, TrustedIssuerConfigurationExtension ext) {
+    @ValueSource(strings = {"edc.iam.trusted-issuer", "edc.iam.trustedissuer"})
+    @ParameterizedTest
+    void initialize_withTwoIssuers(String prefix, ServiceExtensionContext context, TrustedIssuerConfigurationExtension ext) {
         var cfg = ConfigFactory.fromMap(Map.of("issuer1.id", "issuerId1", "issuer2.id", "issuerId2"));
-        when(context.getConfig("edc.iam.trusted-issuer")).thenReturn(cfg);
+        when(context.getConfig(prefix)).thenReturn(cfg);
 
         ext.initialize(context);
 

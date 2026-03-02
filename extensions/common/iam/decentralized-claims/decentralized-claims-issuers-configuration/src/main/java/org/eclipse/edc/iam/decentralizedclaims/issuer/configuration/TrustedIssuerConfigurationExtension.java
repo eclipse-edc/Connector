@@ -28,6 +28,7 @@ import org.eclipse.edc.spi.types.TypeManager;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.eclipse.edc.iam.decentralizedclaims.issuer.configuration.TrustedIssuerConfigurationExtension.NAME;
 
@@ -37,14 +38,26 @@ import static org.eclipse.edc.iam.decentralizedclaims.issuer.configuration.Trust
 @Extension(NAME)
 public class TrustedIssuerConfigurationExtension implements ServiceExtension {
 
-    public static final String CONFIG_PREFIX = "edc.iam.trusted-issuer";
+    public static final String DEPRECATED_CONFIG_PREFIX = "edc.iam.trusted-issuer";
+    public static final String CONFIG_PREFIX = "edc.iam.trustedissuer";
+    public static final String DEPRECATED_CONFIG_ALIAS = DEPRECATED_CONFIG_PREFIX + ".<issuerAlias>.";
     public static final String CONFIG_ALIAS = CONFIG_PREFIX + ".<issuerAlias>.";
 
-    @Setting(context = CONFIG_ALIAS, value = "ID of the issuer.", required = true)
+    @Deprecated(since = "0.17.0")
+    @Setting(context = DEPRECATED_CONFIG_ALIAS, value = "ID of the issuer.")
+    public static final String DEPRECATED_ID_SUFFIX = "id";
+    @Deprecated(since = "0.17.0")
+    @Setting(context = DEPRECATED_CONFIG_ALIAS, value = "Additional properties of the issuer.")
+    public static final String DEPRECATED_PROPERTIES_SUFFIX = "properties";
+    @Deprecated(since = "0.17.0")
+    @Setting(context = DEPRECATED_CONFIG_ALIAS, value = "List of supported credential types for this issuer.")
+    public static final String DEPRECATED_SUPPORTEDTYPES_SUFFIX = "supportedtypes";
+
+    @Setting(context = CONFIG_ALIAS, description = "ID of the issuer.")
     public static final String ID_SUFFIX = "id";
-    @Setting(context = CONFIG_ALIAS, value = "Additional properties of the issuer.")
+    @Setting(context = CONFIG_ALIAS, description = "Additional properties of the issuer.")
     public static final String PROPERTIES_SUFFIX = "properties";
-    @Setting(context = CONFIG_ALIAS, value = "List of supported credential types for this issuer.")
+    @Setting(context = CONFIG_ALIAS, description = "List of supported credential types for this issuer.")
     public static final String SUPPORTEDTYPES_SUFFIX = "supportedtypes";
 
     protected static final String NAME = "Trusted Issuers Configuration Extensions";
@@ -58,8 +71,15 @@ public class TrustedIssuerConfigurationExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var config = context.getConfig(CONFIG_PREFIX);
-        var configs = config.partition().toList();
+        var config = context.getConfig(DEPRECATED_CONFIG_PREFIX);
+        var configs = config.partition().collect(Collectors.toList());
+        if (!configs.isEmpty()) {
+            monitor.warning("Using deprecated configuration prefix '%s'. Please switch to the new prefix '%s'".formatted(DEPRECATED_CONFIG_PREFIX, CONFIG_PREFIX));
+        }
+
+        context.getConfig(CONFIG_PREFIX)
+                .partition().forEach(configs::add);
+        
         if (configs.isEmpty()) {
             monitor.warning("The list of trusted issuers is empty");
         }
