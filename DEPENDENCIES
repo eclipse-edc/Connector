@@ -149,7 +149,7 @@ maven/mavencentral/net.jcip/jcip-annotations/1.0, CC-BY-2.5, approved, clearlyde
 maven/mavencentral/net.minidev/accessors-smart/2.6.0, Apache-2.0, approved, #24380
 maven/mavencentral/net.minidev/json-smart/2.6.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/net.sf.jopt-simple/jopt-simple/5.0.4, MIT, approved, CQ13174
-maven/mavencentral/net.sf.saxon/Saxon-HE/12.9, MPL-2.0, approved, clearlydefined
+maven/mavencentral/net.sf.saxon/Saxon-HE/12.9, MPL-2.0, restricted, clearlydefined
 maven/mavencentral/org.antlr/antlr4-runtime/4.13.2, BSD-3-Clause, approved, #10767
 maven/mavencentral/org.apache.commons/commons-compress/1.28.0, Apache-2.0 AND (Apache-2.0 AND BSD-3-Clause), approved, #22677
 maven/mavencentral/org.apache.commons/commons-lang3/3.12.0, Apache-2.0, approved, clearlydefined
