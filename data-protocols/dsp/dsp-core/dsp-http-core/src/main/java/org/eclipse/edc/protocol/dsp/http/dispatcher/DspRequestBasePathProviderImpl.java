@@ -15,43 +15,16 @@
 package org.eclipse.edc.protocol.dsp.http.dispatcher;
 
 import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspRequestBasePathProvider;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
-import org.eclipse.edc.protocol.spi.ProtocolVersion;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
-
-import java.util.Optional;
-
-import static java.lang.String.format;
 
 public class DspRequestBasePathProviderImpl implements DspRequestBasePathProvider {
 
-    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
-    private final boolean wellKnownPath;
-
-    public DspRequestBasePathProviderImpl(DataspaceProfileContextRegistry dataspaceProfileContextRegistry, boolean wellKnownPath) {
-        this.dataspaceProfileContextRegistry = dataspaceProfileContextRegistry;
-        this.wellKnownPath = wellKnownPath;
+    public DspRequestBasePathProviderImpl() {
     }
 
     @Override
     public String provideBasePath(RemoteMessage message) {
-        if (!wellKnownPath) {
-            return message.getCounterPartyAddress();
-        }
-
-        var protocolPath = Optional.ofNullable(dataspaceProfileContextRegistry.getProtocolVersion(message.getProtocol()))
-                .map(ProtocolVersion::path)
-                .map(this::removeTrailingSlash)
-                .orElseThrow(() -> new EdcException(format("No protocol version found for protocol: %s", message.getProtocol())));
-
-        return message.getCounterPartyAddress() + protocolPath;
+        return message.getCounterPartyAddress();
     }
 
-    private String removeTrailingSlash(String path) {
-        if (path.endsWith("/")) {
-            return path.substring(0, path.length() - 1);
-        }
-        return path;
-    }
 }
