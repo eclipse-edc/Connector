@@ -497,6 +497,10 @@
           "@id": "edc:scopes",
           "@container": "@set"
         },
+        "actions": {
+          "@id": "edc:actions",
+          "@container": "@set"
+        },
         "expression": "edc:expression",
         "description": "edc:description"
       }
