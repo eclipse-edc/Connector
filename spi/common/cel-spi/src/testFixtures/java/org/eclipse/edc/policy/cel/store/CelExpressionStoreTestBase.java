@@ -19,6 +19,8 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.junit.jupiter.api.Test;
 
+import java.util.Set;
+
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
@@ -69,6 +71,21 @@ public abstract class CelExpressionStoreTestBase {
         resources.forEach(getStore()::create);
 
         var res = getStore().query(QuerySpec.Builder.newInstance().filter(Criterion.criterion("leftOperand", "=", "leftOperand3")).build());
+        assertThat(res).hasSize(1)
+                .first().satisfies(celExpression -> {
+                    assertThat(celExpression).usingRecursiveComparison().isEqualTo(resources.get(3));
+                });
+    }
+
+    @Test
+    void query_action() {
+        var resources = range(0, 5)
+                .mapToObj(i -> celExpression("id" + i, "leftOperand" + i, "action" + i))
+                .toList();
+
+        resources.forEach(getStore()::create);
+
+        var res = getStore().query(QuerySpec.Builder.newInstance().filter(Criterion.criterion("actions", "contains", "action3")).build());
         assertThat(res).hasSize(1)
                 .first().satisfies(celExpression -> {
                     assertThat(celExpression).usingRecursiveComparison().isEqualTo(resources.get(3));
@@ -147,11 +164,16 @@ public abstract class CelExpressionStoreTestBase {
         return celExpression(id, "leftOperand");
     }
 
-    private CelExpression celExpression(String id, String leftOperand) {
+    private CelExpression celExpression(String id, String leftOperand, String action) {
         return CelExpression.Builder.newInstance().id(id)
                 .leftOperand(leftOperand)
                 .expression("expression")
                 .description("description")
+                .actions(Set.of(action))
                 .build();
+    }
+
+    private CelExpression celExpression(String id, String leftOperand) {
+        return celExpression(id, leftOperand, "action");
     }
 }

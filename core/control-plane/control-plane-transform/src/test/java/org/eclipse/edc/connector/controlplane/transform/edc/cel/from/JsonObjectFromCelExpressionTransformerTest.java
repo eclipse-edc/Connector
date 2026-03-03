@@ -25,6 +25,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_ACTIONS_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_DESCRIPTION_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_EXPRESSION_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_LEFT_OPERAND_IRI;
@@ -52,6 +53,7 @@ class JsonObjectFromCelExpressionTransformerTest {
                 .expression("== 'admin'")
                 .description("Check if user is admin")
                 .scopes(Set.of("read", "write"))
+                .actions(Set.of("use", "access"))
                 .build();
 
         var result = transformer.transform(celExpression, context);
@@ -65,6 +67,10 @@ class JsonObjectFromCelExpressionTransformerTest {
         assertThat(result.getJsonArray(CEL_EXPRESSION_SCOPES_IRI))
                 .hasSize(2)
                 .containsExactlyInAnyOrder(Json.createValue("read"), Json.createValue("write"));
+
+        assertThat(result.getJsonArray(CEL_EXPRESSION_ACTIONS_IRI))
+                .hasSize(2)
+                .containsExactlyInAnyOrder(Json.createValue("use"), Json.createValue("access"));
     }
 
     @Test

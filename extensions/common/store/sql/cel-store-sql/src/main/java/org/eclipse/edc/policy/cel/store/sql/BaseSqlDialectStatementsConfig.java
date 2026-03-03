@@ -31,6 +31,7 @@ public class BaseSqlDialectStatementsConfig implements CelExpressionStoreStateme
                 .column(getExpressionColumn())
                 .column(getDescriptionColumn())
                 .jsonColumn(getScopesColumn())
+                .jsonColumn(getActionsColumn())
                 .column(getCreateTimestampColumn())
                 .column(getLastModifiedTimestampColumn())
                 .insertInto(getCelExpressionTable());
@@ -43,6 +44,7 @@ public class BaseSqlDialectStatementsConfig implements CelExpressionStoreStateme
                 .column(getExpressionColumn())
                 .column(getDescriptionColumn())
                 .jsonColumn(getScopesColumn())
+                .jsonColumn(getActionsColumn())
                 .column(getCreateTimestampColumn())
                 .column(getLastModifiedTimestampColumn())
                 .update(getCelExpressionTable(), getIdColumn());

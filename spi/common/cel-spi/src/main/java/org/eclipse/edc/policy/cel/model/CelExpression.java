@@ -38,12 +38,16 @@ public class CelExpression extends Entity {
     public static final String CEL_EXPRESSION_EXPRESSION_IRI = EDC_NAMESPACE + CEL_EXPRESSION_EXPRESSION_TERM;
     public static final String CEL_EXPRESSION_DESCRIPTION_TERM = "description";
     public static final String CEL_EXPRESSION_DESCRIPTION_IRI = EDC_NAMESPACE + CEL_EXPRESSION_DESCRIPTION_TERM;
+    public static final String CEL_EXPRESSION_ACTIONS_TERM = "actions";
+    public static final String CEL_EXPRESSION_ACTIONS_IRI = EDC_NAMESPACE + CEL_EXPRESSION_ACTIONS_TERM;
     public static final String MATCH_ALL_SCOPE = "*.";
 
     private Set<String> scopes = new HashSet<>();
     private String leftOperand;
     private String expression;
     private String description;
+    private Set<String> actions = new HashSet<>();
+
     private long updatedAt;
 
 
@@ -52,6 +56,10 @@ public class CelExpression extends Entity {
 
     public Set<String> getScopes() {
         return scopes;
+    }
+
+    public Set<String> getActions() {
+        return actions;
     }
 
     public String getDescription() {
@@ -87,6 +95,11 @@ public class CelExpression extends Entity {
 
         public Builder scopes(Set<String> scopes) {
             entity.scopes = scopes;
+            return this;
+        }
+
+        public Builder actions(Set<String> actions) {
+            entity.actions = actions;
             return this;
         }
 

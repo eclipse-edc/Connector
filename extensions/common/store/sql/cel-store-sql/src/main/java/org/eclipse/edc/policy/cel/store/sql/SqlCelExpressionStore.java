@@ -57,6 +57,7 @@ public class SqlCelExpressionStore extends AbstractSqlStore implements CelExpres
     private CelExpression mapResultSet(ResultSet resultSet) throws Exception {
         var id = resultSet.getString(statements.getIdColumn());
         List<String> scopes = fromJson(resultSet.getString(statements.getScopesColumn()), getTypeRef());
+        List<String> actions = fromJson(resultSet.getString(statements.getActionsColumn()), getTypeRef());
         var leftOperand = resultSet.getString(statements.getLeftOperandColumn());
         var expression = resultSet.getString(statements.getExpressionColumn());
         var description = resultSet.getString(statements.getDescriptionColumn());
@@ -71,6 +72,7 @@ public class SqlCelExpressionStore extends AbstractSqlStore implements CelExpres
                 .description(description)
                 .createdAt(created)
                 .updatedAt(lastModified)
+                .actions(new HashSet<>(actions))
                 .build();
     }
 
@@ -89,6 +91,7 @@ public class SqlCelExpressionStore extends AbstractSqlStore implements CelExpres
                         expression.getExpression(),
                         expression.getDescription(),
                         toJson(expression.getScopes()),
+                        toJson(expression.getActions()),
                         expression.getCreatedAt(),
                         expression.getUpdatedAt()
                 );
@@ -111,6 +114,7 @@ public class SqlCelExpressionStore extends AbstractSqlStore implements CelExpres
                             expression.getExpression(),
                             expression.getDescription(),
                             toJson(expression.getScopes()),
+                            toJson(expression.getActions()),
                             expression.getCreatedAt(),
                             expression.getUpdatedAt(),
                             expression.getId());

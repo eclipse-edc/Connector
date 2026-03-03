@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CelExpressionEngineImpl implements CelExpressionEngine {
 
@@ -77,8 +78,7 @@ public class CelExpressionEngineImpl implements CelExpressionEngine {
 
     @Override
     public Set<String> evaluationScopes(String leftOperand) {
-        return fetch(leftOperand)
-                .stream()
+        return Stream.concat(fetch(leftOperand).stream(), fetchByAction(leftOperand).stream())
                 .flatMap(expr -> expr.getScopes().stream())
                 .collect(Collectors.toSet());
     }
@@ -143,6 +143,13 @@ public class CelExpressionEngineImpl implements CelExpressionEngine {
     private List<CelExpression> fetch(String leftOperand) {
         return ctx.execute(() -> store.query(QuerySpec.Builder.newInstance()
                 .filter(Criterion.criterion("leftOperand", "=", leftOperand))
+                .build()));
+
+    }
+
+    private List<CelExpression> fetchByAction(String action) {
+        return ctx.execute(() -> store.query(QuerySpec.Builder.newInstance()
+                .filter(Criterion.criterion("actions", "contains", action))
                 .build()));
 
     }
