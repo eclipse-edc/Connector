@@ -29,6 +29,7 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -228,12 +229,25 @@ public class CelExpressionEngineImplTest {
         assertThat(result).isFalse();
     }
 
+    @Test
+    void evaluationScopes() {
+        var expr = expressionBuilder("empty").scopes(Set.of("scope1", "scope2")).build();
+        when(store.query(any())).thenReturn(List.of(expr));
+
+        var result = registry.evaluationScopes("leftOperand");
+
+        assertThat(result).containsAll(expr.getScopes());
+    }
+
     private CelExpression expression(String expr) {
+        return expressionBuilder(expr).build();
+    }
+
+    private CelExpression.Builder expressionBuilder(String expr) {
         return CelExpression.Builder.newInstance().id("id")
                 .leftOperand("test")
                 .expression(expr)
-                .description("description")
-                .build();
+                .description("description");
     }
 
     private @NotNull Map<String, Object> credential() {

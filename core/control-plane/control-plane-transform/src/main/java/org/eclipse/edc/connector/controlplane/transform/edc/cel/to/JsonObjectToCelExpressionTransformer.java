@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.UUID;
 
 import static java.util.Optional.ofNullable;
+import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_ACTIONS_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_DESCRIPTION_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_EXPRESSION_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_LEFT_OPERAND_IRI;
@@ -45,6 +46,7 @@ public class JsonObjectToCelExpressionTransformer extends AbstractJsonLdTransfor
             id = UUID.randomUUID().toString();
         }
         var scopes = new HashSet<String>();
+        var actions = new HashSet<String>();
 
         var operandLeft = transformString(object.get(CEL_EXPRESSION_LEFT_OPERAND_IRI), context);
         var expression = transformString(object.get(CEL_EXPRESSION_EXPRESSION_IRI), context);
@@ -53,12 +55,16 @@ public class JsonObjectToCelExpressionTransformer extends AbstractJsonLdTransfor
         ofNullable(object.getJsonArray(CEL_EXPRESSION_SCOPES_IRI))
                 .ifPresent(ja -> scopes.addAll(ja.stream().map(this::nodeValue).toList()));
 
+        ofNullable(object.getJsonArray(CEL_EXPRESSION_ACTIONS_IRI))
+                .ifPresent(ja -> actions.addAll(ja.stream().map(this::nodeValue).toList()));
+
         return CelExpression.Builder.newInstance()
                 .id(id)
                 .scopes(scopes)
                 .leftOperand(operandLeft)
                 .expression(expression)
                 .description(description)
+                .actions(actions)
                 .build();
     }
 }

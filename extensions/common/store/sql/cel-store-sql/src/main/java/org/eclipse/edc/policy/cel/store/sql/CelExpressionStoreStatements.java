@@ -44,6 +44,10 @@ public interface CelExpressionStoreStatements extends SqlStatements {
         return "scopes";
     }
 
+    default String getActionsColumn() {
+        return "actions";
+    }
+
     default String getLeftOperandColumn() {
         return "left_operand";
     }

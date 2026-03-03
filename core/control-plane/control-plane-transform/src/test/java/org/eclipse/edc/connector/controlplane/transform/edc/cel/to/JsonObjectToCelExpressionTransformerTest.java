@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_ACTIONS_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_DESCRIPTION_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_EXPRESSION_IRI;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_LEFT_OPERAND_IRI;
@@ -50,6 +51,9 @@ class JsonObjectToCelExpressionTransformerTest {
                 .add(CEL_EXPRESSION_SCOPES_IRI, Json.createArrayBuilder()
                         .add(Json.createObjectBuilder().add(VALUE, "read"))
                         .add(Json.createObjectBuilder().add(VALUE, "write")))
+                .add(CEL_EXPRESSION_ACTIONS_IRI, Json.createArrayBuilder()
+                        .add(Json.createObjectBuilder().add(VALUE, "use"))
+                        .add(Json.createObjectBuilder().add(VALUE, "access")))
                 .build();
 
         var result = transformer.transform(json, context);
@@ -60,6 +64,7 @@ class JsonObjectToCelExpressionTransformerTest {
         assertThat(result.getExpression()).isEqualTo("== 'admin'");
         assertThat(result.getDescription()).isEqualTo("Check if user is admin");
         assertThat(result.getScopes()).containsExactlyInAnyOrder("read", "write");
+        assertThat(result.getActions()).containsExactlyInAnyOrder("use", "access");
     }
 
     @Test

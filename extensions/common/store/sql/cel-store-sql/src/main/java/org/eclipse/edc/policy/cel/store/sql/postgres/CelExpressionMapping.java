@@ -15,6 +15,7 @@
 package org.eclipse.edc.policy.cel.store.sql.postgres;
 
 import org.eclipse.edc.policy.cel.store.sql.CelExpressionStoreStatements;
+import org.eclipse.edc.sql.translation.JsonArrayTranslator;
 import org.eclipse.edc.sql.translation.TranslationMapping;
 
 
@@ -28,6 +29,7 @@ public class CelExpressionMapping extends TranslationMapping {
     public static final String FIELD_LEFT_OPERAND = "leftOperand";
     public static final String FIELD_DESCRIPTION = "description";
     public static final String FIELD_EXPRESSION = "expression";
+    public static final String FIELD_ACTIONS = "actions";
     public static final String FIELD_LASTMODIFIED_TIMESTAMP = "lastModified";
 
     public CelExpressionMapping(CelExpressionStoreStatements statements) {
@@ -36,6 +38,7 @@ public class CelExpressionMapping extends TranslationMapping {
         add(FIELD_DESCRIPTION, statements.getDescriptionColumn());
         add(FIELD_EXPRESSION, statements.getExpressionColumn());
         add(FIELD_CREATE_TIMESTAMP, statements.getCreateTimestampColumn());
+        add(FIELD_ACTIONS, new JsonArrayTranslator(statements.getActionsColumn()));
         add(FIELD_LASTMODIFIED_TIMESTAMP, statements.getLastModifiedTimestampColumn());
     }
 }

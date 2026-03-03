@@ -16,10 +16,11 @@
 CREATE TABLE IF NOT EXISTS edc_cel_expression
 (
     id VARCHAR PRIMARY KEY NOT NULL, -- ID
-    scopes                 JSON DEFAULT '{}',
+    scopes                 JSON DEFAULT '[]',
     left_operand           TEXT NOT NULL,
     expression             TEXT NOT NULL,
     description            TEXT NOT NULL,
+    actions                JSON DEFAULT '[]',
     created_date           BIGINT              NOT NULL, -- POSIX timestamp of the creation of the PC
     last_modified_date     BIGINT              NOT NULL       -- POSIX timestamp of the last modified date
 );
