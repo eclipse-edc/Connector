@@ -286,6 +286,8 @@ include(":spi:data-plane:data-plane-http-spi")
 
 include(":spi:data-plane-selector:data-plane-selector-spi")
 include(":spi:policy-monitor:policy-monitor-spi")
+include(":spi:crawler-spi")
+include(":spi:federated-catalog-spi")
 
 
 // modules for system tests ------------------------------------------------------------------------
