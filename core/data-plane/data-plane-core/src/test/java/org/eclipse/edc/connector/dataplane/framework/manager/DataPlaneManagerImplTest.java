@@ -768,7 +768,7 @@ class DataPlaneManagerImplTest {
 
             await().untilAsserted(() -> {
                 verify(store, never()).save(argThat(it -> it.getState() == COMPLETED.code()));
-                verify(store).save(argThat(it -> it.getState() == TERMINATED.code())); // break lease
+                verify(store).breakLease(terminatedDataFlow);
             });
         }
 
