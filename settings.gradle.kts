@@ -188,10 +188,13 @@ include(":extensions:common:store:sql:edr-index-sql")
 include(":extensions:common:store:sql:jti-validation-store-sql")
 include(":extensions:common:store:sql:cel-store-sql")
 include(":extensions:common:encryption:aes-encryption")
+include(":extensions:federated-catalog:store:sql:federated-catalog-cache-sql")
+include(":extensions:federated-catalog:store:sql:target-node-directory-sql")
 
 include(":extensions:common:api:control-api-configuration")
 include(":extensions:common:api:management-api-configuration")
 include(":extensions:common:api:management-api-schema-validator")
+include(":extensions:federated-catalog:api:federated-catalog-api")
 
 include(":extensions:control-plane:api:control-plane-api")
 include(":extensions:control-plane:api:control-plane-api-client")
