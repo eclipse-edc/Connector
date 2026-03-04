@@ -25,11 +25,9 @@ import org.eclipse.edc.iam.decentralizedclaims.spi.SecureTokenService;
 import org.eclipse.edc.iam.decentralizedclaims.transform.to.JsonObjectToPresentationResponseMessageTransformer;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -37,8 +35,6 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.util.Map;
 
-import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DCP_CONTEXT_URL;
-import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DSPACE_DCP_NAMESPACE_V_0_8;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DSPACE_DCP_NAMESPACE_V_1_0;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DSPACE_DCP_V_1_0_CONTEXT;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
@@ -50,9 +46,6 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 public class DcpPresentationRequestExtension implements ServiceExtension {
 
     public static final String DCP_CLIENT_CONTEXT = "dcp-client";
-
-    @Setting(description = "If set enable the dcp v0.8 namespace will be used", key = "edc.dcp.v08.forced", required = false, defaultValue = "false")
-    private boolean enableDcpV08;
 
     @Inject
     private SecureTokenService secureTokenService;
@@ -76,17 +69,10 @@ public class DcpPresentationRequestExtension implements ServiceExtension {
     @Provider
     public CredentialServiceClient credentialServiceClient(ServiceExtensionContext context) {
         var clientTypeTransformerRegistry = typeTransformerRegistry.forContext(DCP_CLIENT_CONTEXT);
-        clientTypeTransformerRegistry.register(new JsonObjectToPresentationResponseMessageTransformer(typeManager, JSON_LD, dcpNamespace()));
+        clientTypeTransformerRegistry.register(new JsonObjectToPresentationResponseMessageTransformer(typeManager, JSON_LD, DSPACE_DCP_NAMESPACE_V_1_0));
 
         return new DefaultCredentialServiceClient(httpClient, Json.createBuilderFactory(Map.of()),
-                typeManager, JSON_LD, clientTypeTransformerRegistry, jsonLd, context.getMonitor(), dcpContext(), !enableDcpV08);
+                typeManager, JSON_LD, clientTypeTransformerRegistry, jsonLd, context.getMonitor(), DSPACE_DCP_V_1_0_CONTEXT);
     }
 
-    private JsonLdNamespace dcpNamespace() {
-        return enableDcpV08 ? DSPACE_DCP_NAMESPACE_V_0_8 : DSPACE_DCP_NAMESPACE_V_1_0;
-    }
-
-    private String dcpContext() {
-        return enableDcpV08 ? DCP_CONTEXT_URL : DSPACE_DCP_V_1_0_CONTEXT;
-    }
 }

@@ -41,7 +41,7 @@ import java.net.URISyntaxException;
 import java.util.Map;
 
 import static java.lang.String.format;
-import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DCP_CONTEXT_URL;
+import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DSPACE_DCP_NAMESPACE_V_1_0;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DSPACE_DCP_V_1_0_CONTEXT;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
@@ -65,17 +65,16 @@ public class DcpTransformExtension implements ServiceExtension {
 
         var contexts = Map.of("credentials.v2.jsonld", "https://www.w3.org/2018/credentials/v2",
                 "credentials.v1.jsonld", "https://www.w3.org/2018/credentials/v1",
-                "dcp.v08.jsonld", DCP_CONTEXT_URL,
                 "dcp.v1.0.jsonld", DSPACE_DCP_V_1_0_CONTEXT);
 
         contexts.forEach((key, value) -> getResourceUri("document/" + key)
                 .onSuccess(uri -> jsonLdService.registerCachedDocument(value, uri))
                 .onFailure(failure -> monitor.warning("Failed to register cached json-ld document: " + failure.getFailureDetail())));
 
-        typeTransformerRegistry.register(new JsonObjectToPresentationQueryTransformer(typeManager, JSON_LD));
-        typeTransformerRegistry.register(new JsonObjectToPresentationResponseMessageTransformer(typeManager, JSON_LD));
-        typeTransformerRegistry.register(new JsonObjectFromPresentationQueryTransformer(typeManager, JSON_LD));
-        typeTransformerRegistry.register(new JsonObjectFromPresentationResponseMessageTransformer());
+        typeTransformerRegistry.register(new JsonObjectToPresentationQueryTransformer(typeManager, JSON_LD, DSPACE_DCP_NAMESPACE_V_1_0));
+        typeTransformerRegistry.register(new JsonObjectToPresentationResponseMessageTransformer(typeManager, JSON_LD, DSPACE_DCP_NAMESPACE_V_1_0));
+        typeTransformerRegistry.register(new JsonObjectFromPresentationQueryTransformer(typeManager, JSON_LD, DSPACE_DCP_NAMESPACE_V_1_0));
+        typeTransformerRegistry.register(new JsonObjectFromPresentationResponseMessageTransformer(DSPACE_DCP_NAMESPACE_V_1_0));
         typeTransformerRegistry.register(new JsonObjectToVerifiablePresentationTransformer());
         typeTransformerRegistry.register(new JsonObjectToVerifiableCredentialTransformer());
         typeTransformerRegistry.register(new JsonObjectToIssuerTransformer());

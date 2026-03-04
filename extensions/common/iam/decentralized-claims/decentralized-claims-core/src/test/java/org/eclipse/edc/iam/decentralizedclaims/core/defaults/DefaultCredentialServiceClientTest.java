@@ -102,7 +102,7 @@ class DefaultCredentialServiceClientTest {
         var jsonLdMock = mock(JsonLd.class);
         when(jsonLdMock.expand(any())).thenAnswer(a -> success(a.getArgument(0)));
         client = new DefaultCredentialServiceClient(httpClientMock, Json.createBuilderFactory(Map.of()),
-                typeManager, "test", transformerRegistry, jsonLdMock, mock(), DSPACE_DCP_V_1_0_CONTEXT, true);
+                typeManager, "test", transformerRegistry, jsonLdMock, mock(), DSPACE_DCP_V_1_0_CONTEXT);
 
         when(typeManager.getMapper("test")).thenReturn(JacksonJsonLd.createObjectMapper());
     }

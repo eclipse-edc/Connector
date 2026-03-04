@@ -24,24 +24,20 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 
 import java.util.stream.Stream;
 
-import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DCP_CONTEXT_URL;
-import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DSPACE_DCP_NAMESPACE_V_0_8;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DSPACE_DCP_NAMESPACE_V_1_0;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DSPACE_DCP_V_1_0_CONTEXT;
 import static org.mockito.Mockito.mock;
 
 public class TestContextProvider implements ArgumentsProvider {
     @Override
-    public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
+    public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
         return Stream.of(
-                Arguments.of(new TestContext(DCP_CONTEXT_URL, DSPACE_DCP_NAMESPACE_V_0_8, createJsonLd(DCP_CONTEXT_URL))),
                 Arguments.of(new TestContext(DSPACE_DCP_V_1_0_CONTEXT, DSPACE_DCP_NAMESPACE_V_1_0, createJsonLd(DSPACE_DCP_V_1_0_CONTEXT))));
     }
 
     private JsonLd createJsonLd(String activeContext) {
         var jsonLd = new TitaniumJsonLd(mock());
         jsonLd.registerCachedDocument("https://identity.foundation/presentation-exchange/submission/v1", TestUtils.getFileFromResourceName("presentation_ex.json").toURI());
-        jsonLd.registerCachedDocument(DCP_CONTEXT_URL, TestUtils.getFileFromResourceName("document/dcp.v08.jsonld").toURI());
         jsonLd.registerCachedDocument(DSPACE_DCP_V_1_0_CONTEXT, TestUtils.getFileFromResourceName("document/dcp.v1.0.jsonld").toURI());
         jsonLd.registerContext(activeContext);
         return jsonLd;

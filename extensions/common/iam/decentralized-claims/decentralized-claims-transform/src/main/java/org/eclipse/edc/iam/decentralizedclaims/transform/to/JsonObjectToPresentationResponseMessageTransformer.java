@@ -31,7 +31,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DSPACE_DCP_NAMESPACE_V_0_8;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationResponseMessage.Builder;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_SUBMISSION_TERM;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_TERM;
@@ -43,10 +42,6 @@ public class JsonObjectToPresentationResponseMessageTransformer extends Abstract
 
     private final TypeManager typeManager;
     private final String typeContext;
-
-    public JsonObjectToPresentationResponseMessageTransformer(TypeManager typeManager, String typeContext) {
-        this(typeManager, typeContext, DSPACE_DCP_NAMESPACE_V_0_8);
-    }
 
     public JsonObjectToPresentationResponseMessageTransformer(TypeManager typeManager, String typeContext, JsonLdNamespace namespace) {
         super(JsonObject.class, PresentationResponseMessage.class, namespace);

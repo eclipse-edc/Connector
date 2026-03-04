@@ -25,7 +25,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DSPACE_DCP_NAMESPACE_V_0_8;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_DEFINITION_TERM;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_SCOPE_TERM;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_TERM;
@@ -34,10 +33,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 public class JsonObjectFromPresentationQueryTransformer extends AbstractNamespaceAwareJsonLdTransformer<PresentationQueryMessage, JsonObject> {
     private final TypeManager typeManager;
     private final String typeContext;
-
-    public JsonObjectFromPresentationQueryTransformer(TypeManager typeManager, String typeContext) {
-        this(typeManager, typeContext, DSPACE_DCP_NAMESPACE_V_0_8);
-    }
 
     public JsonObjectFromPresentationQueryTransformer(TypeManager typeManager, String typeContext, JsonLdNamespace namespace) {
         super(PresentationQueryMessage.class, JsonObject.class, namespace);

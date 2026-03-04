@@ -24,7 +24,6 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DSPACE_DCP_NAMESPACE_V_0_8;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_PRESENTATION_TERM;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationResponseMessage.PRESENTATION_RESPONSE_MESSAGE_TYPE_TERM;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -34,9 +33,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
  * Transforms a {@link PresentationResponseMessage} into a {@link JsonObject} object.
  */
 public class JsonObjectFromPresentationResponseMessageTransformer extends AbstractNamespaceAwareJsonLdTransformer<PresentationResponseMessage, JsonObject> {
-    public JsonObjectFromPresentationResponseMessageTransformer() {
-        this(DSPACE_DCP_NAMESPACE_V_0_8);
-    }
 
     public JsonObjectFromPresentationResponseMessageTransformer(JsonLdNamespace namespace) {
         super(PresentationResponseMessage.class, JsonObject.class, namespace);
