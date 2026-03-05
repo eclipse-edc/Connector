@@ -30,7 +30,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static org.eclipse.edc.iam.decentralizedclaims.spi.DcpConstants.DSPACE_DCP_NAMESPACE_V_0_8;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_DEFINITION_TERM;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.model.PresentationQueryMessage.PRESENTATION_QUERY_MESSAGE_SCOPE_TERM;
 
@@ -41,10 +40,6 @@ public class JsonObjectToPresentationQueryTransformer extends AbstractNamespaceA
 
     private final TypeManager typeManager;
     private final String typeContext;
-
-    public JsonObjectToPresentationQueryTransformer(TypeManager typeManager, String typeContext) {
-        this(typeManager, typeContext, DSPACE_DCP_NAMESPACE_V_0_8);
-    }
 
     public JsonObjectToPresentationQueryTransformer(TypeManager typeManager, String typeContext, JsonLdNamespace namespace) {
         super(JsonObject.class, PresentationQueryMessage.class, namespace);

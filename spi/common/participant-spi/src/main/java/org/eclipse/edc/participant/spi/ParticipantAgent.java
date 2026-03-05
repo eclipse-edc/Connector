@@ -31,14 +31,6 @@ import java.util.Objects;
  */
 public class ParticipantAgent {
 
-    /**
-     * The dataspace participant identity attribute key.
-     *
-     * @deprecated replaced by {@link #id}.
-     */
-    @Deprecated(since = "0.14.0")
-    public static final String PARTICIPANT_IDENTITY = "edc:identity";
-
     private final String id;
     private final Map<String, Object> claims;
     private final Map<String, String> attributes;
@@ -47,11 +39,6 @@ public class ParticipantAgent {
         this.id = Objects.requireNonNull(id, "identity cannot be null");
         this.claims = Map.copyOf(claims);
         this.attributes = Map.copyOf(attributes);
-    }
-
-    @Deprecated(since = "0.14.0")
-    public ParticipantAgent(Map<String, Object> claims, Map<String, String> attributes) {
-        this(attributes.get(PARTICIPANT_IDENTITY), claims, attributes);
     }
 
     /**

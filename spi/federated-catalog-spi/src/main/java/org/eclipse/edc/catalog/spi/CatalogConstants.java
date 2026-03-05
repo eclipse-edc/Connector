@@ -18,6 +18,4 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 public interface CatalogConstants {
     String PROPERTY_ORIGINATOR = EDC_NAMESPACE + "originator";
-    @Deprecated(since = "0.14.1")
-    String DATASPACE_PROTOCOL = "dataspace-protocol-http";
 }
