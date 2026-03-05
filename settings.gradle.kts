@@ -316,6 +316,10 @@ include(":system-tests:telemetry:telemetry-test-runner")
 include(":system-tests:telemetry:telemetry-test-runtime")
 include(":system-tests:version-api:version-api-test-runner")
 include(":system-tests:version-api:version-api-test-runtime")
+include(":system-tests:e2e-federatedcatalog-tests:component-tests")
+include(":system-tests:e2e-federatedcatalog-tests:end2end-test:catalog-runtime")
+include(":system-tests:e2e-federatedcatalog-tests:end2end-test:connector-runtime")
+include(":system-tests:e2e-federatedcatalog-tests:end2end-test:e2e-junit-runner")
 
 // BOM modules ----------------------------------------------------------------
 include(":dist:bom:controlplane-base-bom")
