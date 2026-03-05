@@ -1,0 +1,2 @@
+org.eclipse.edc.catalog.cache.FederatedCatalogCoreServicesExtension
+org.eclipse.edc.catalog.cache.FederatedCatalogDefaultServicesExtension

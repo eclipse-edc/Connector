@@ -12,3 +12,4 @@
 #
 #
 org.eclipse.edc.sql.lease.SqlLeaseCoreExtension
+org.eclipse.edc.sql.lease.SqlLeaseStatementsExtension

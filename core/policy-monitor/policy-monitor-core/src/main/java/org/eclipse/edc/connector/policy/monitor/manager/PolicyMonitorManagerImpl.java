@@ -115,7 +115,7 @@ public class PolicyMonitorManagerImpl extends AbstractStateEntityManager<PolicyM
         var filter = new Criterion[]{ hasState(state.code()) };
         return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter))
                 .process(telemetry.contextPropagationMiddleware(function))
-                .onNotProcessed(this::breakLease)
+                .onNotProcessed(this::update)
                 .build();
     }
 

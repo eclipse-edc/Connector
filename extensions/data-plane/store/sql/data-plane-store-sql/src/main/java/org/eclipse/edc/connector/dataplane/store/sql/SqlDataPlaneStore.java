@@ -145,6 +145,17 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
         });
     }
 
+    @Override
+    public StoreResult<Void> breakLease(DataFlow entity) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                return leaseContext.withConnection(connection).breakLease(entity.getId());
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
     private DataFlow mapDataFlow(ResultSet resultSet) throws SQLException {
         return DataFlow.Builder.newInstance()
                 .id(resultSet.getString(statements.getIdColumn()))
@@ -168,7 +179,7 @@ public class SqlDataPlaneStore extends AbstractSqlStore implements DataPlaneStor
                 .build();
     }
 
-    private @Nullable DataFlow findByIdInternal(Connection conn, String id) {
+    private DataFlow findByIdInternal(Connection conn, String id) {
         return transactionContext.execute(() -> {
             var querySpec = QuerySpec.Builder.newInstance().filter(criterion("id", "=", id)).build();
             var statement = statements.createQuery(querySpec);

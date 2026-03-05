@@ -129,6 +129,17 @@ public class SqlPolicyMonitorStore extends AbstractSqlStore implements PolicyMon
         });
     }
 
+    @Override
+    public StoreResult<Void> breakLease(PolicyMonitorEntry entity) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                return leaseContext.withConnection(connection).breakLease(entity.getId());
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
     private @Nullable PolicyMonitorEntry findByIdInternal(Connection conn, String id) {
         return transactionContext.execute(() -> {
             var querySpec = QuerySpec.Builder.newInstance().filter(criterion("id", "=", id)).build();
