@@ -87,4 +87,12 @@ public interface StateEntityStore<T> {
      * @param entity the entity.
      */
     StoreResult<Void> save(T entity);
+
+    /**
+     * Break the lease eventually existent on the entity
+     *
+     * @param entity the entity
+     * @return success if lease broken successfully, failure otherwise
+     */
+    StoreResult<Void> breakLease(T entity);
 }

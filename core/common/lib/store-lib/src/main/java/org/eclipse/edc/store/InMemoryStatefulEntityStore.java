@@ -111,6 +111,12 @@ public class InMemoryStatefulEntityStore<T extends StatefulEntity<T>> implements
 
     }
 
+    @Override
+    public StoreResult<Void> breakLease(T entity) {
+        freeLease(entity.getId());
+        return StoreResult.success();
+    }
+
     public StoreResult<Void> delete(String id) {
         if (isLeased(id)) {
             return StoreResult.alreadyLeased("Entity is leased and cannot be deleted!");

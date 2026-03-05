@@ -140,6 +140,17 @@ public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataP
     }
 
     @Override
+    public StoreResult<Void> breakLease(DataPlaneInstance entity) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                return leaseContext.withConnection(connection).breakLease(entity.getId());
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
+    @Override
     public Stream<DataPlaneInstance> getAll() {
         return transactionContext.execute(() -> {
             try {

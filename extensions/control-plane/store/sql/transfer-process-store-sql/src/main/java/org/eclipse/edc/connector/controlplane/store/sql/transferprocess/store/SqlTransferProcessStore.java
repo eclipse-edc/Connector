@@ -152,6 +152,17 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     }
 
     @Override
+    public StoreResult<Void> breakLease(TransferProcess entity) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                return leaseContext.withConnection(connection).breakLease(entity.getId());
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
+    @Override
     public @Nullable TransferProcess findForCorrelationId(String correlationId) {
         return transactionContext.execute(() -> {
             var query = correlationIdQuerySpec(correlationId);

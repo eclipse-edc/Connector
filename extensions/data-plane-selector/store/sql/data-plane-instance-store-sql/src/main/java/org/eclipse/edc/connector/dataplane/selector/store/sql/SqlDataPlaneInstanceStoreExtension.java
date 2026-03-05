@@ -27,6 +27,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.sql.QueryExecutor;
 import org.eclipse.edc.sql.bootstrapper.SqlSchemaBootstrapper;
+import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.lease.spi.SqlLeaseContextBuilderProvider;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -68,6 +69,8 @@ public class SqlDataPlaneInstanceStoreExtension implements ServiceExtension {
 
     @Inject
     private SqlLeaseContextBuilderProvider leaseContextBuilderProvider;
+    @Inject
+    private LeaseStatements leaseStatements;
 
     @Override
     public String name() {
@@ -86,7 +89,7 @@ public class SqlDataPlaneInstanceStoreExtension implements ServiceExtension {
      * returns an externally-provided sql statement dialect, or postgres as a default
      */
     private DataPlaneInstanceStatements getStatementImpl() {
-        return statements != null ? statements : new PostgresDataPlaneInstanceStatements(leaseContextBuilderProvider.getStatements(), clock);
+        return statements != null ? statements : new PostgresDataPlaneInstanceStatements(leaseStatements, clock);
     }
 
 }

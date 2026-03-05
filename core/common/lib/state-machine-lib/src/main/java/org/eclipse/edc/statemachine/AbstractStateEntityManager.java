@@ -90,12 +90,10 @@ public abstract class AbstractStateEntityManager<E extends StatefulEntity<E>, S 
                             .formatted(this.getClass().getSimpleName(), entity.getClass().getSimpleName(),
                                     entity.getId(), entity.stateAsString(), error));
                 });
-
-
     }
 
     protected void breakLease(E entity) {
-        store.save(entity);
+        store.breakLease(entity);
     }
 
     public abstract static class Builder<E extends StatefulEntity<E>, S extends StateEntityStore<E>, M extends AbstractStateEntityManager<E, S>, B extends Builder<E, S, M, B>> {

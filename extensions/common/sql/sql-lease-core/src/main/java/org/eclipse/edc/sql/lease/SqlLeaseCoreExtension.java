@@ -30,16 +30,14 @@ import java.time.Clock;
 public class SqlLeaseCoreExtension implements ServiceExtension {
 
     public static final String NAME = "SQL Lease Core";
+
     @Inject
     private TransactionContext transactionContext;
-
     @Inject
     private Clock clock;
-
     @Inject
     private QueryExecutor queryExecutor;
-
-    @Inject(required = false)
+    @Inject
     private LeaseStatements statements;
 
     @Override
@@ -49,13 +47,7 @@ public class SqlLeaseCoreExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public SqlLeaseContextBuilderProvider leaseContextBuilderProvider(ServiceExtensionContext context) {
-        return new SqlLeaseContextBuilderProviderImpl(transactionContext, getStatementImpl(), context.getRuntimeId(), clock, queryExecutor);
+        return new SqlLeaseContextBuilderProviderImpl(transactionContext, statements, context.getRuntimeId(), clock, queryExecutor);
     }
-    
-    /**
-     * returns an externally-provided sql statement dialect, or postgres as a default
-     */
-    private LeaseStatements getStatementImpl() {
-        return statements != null ? statements : new BaseSqlLeaseStatements();
-    }
+
 }

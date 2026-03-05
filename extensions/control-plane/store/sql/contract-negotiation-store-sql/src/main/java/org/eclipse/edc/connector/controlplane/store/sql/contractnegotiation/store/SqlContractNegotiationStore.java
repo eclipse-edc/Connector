@@ -164,6 +164,17 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     }
 
     @Override
+    public StoreResult<Void> breakLease(ContractNegotiation entity) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                return leaseContext.withConnection(connection).breakLease(entity.getId());
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
+    @Override
     public @Nullable ContractAgreement findContractAgreement(String contractId) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
