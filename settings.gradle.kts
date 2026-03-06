@@ -171,7 +171,6 @@ include(":extensions:common:iam:decentralized-claims:decentralized-claims-issuer
 
 include(":extensions:common:json-ld")
 include(":extensions:common:metrics:micrometer-core")
-include(":extensions:common:monitor:monitor-jdk-logger")
 include(":extensions:common:sql:sql-core")
 include(":extensions:common:sql:sql-lease-spi")
 include(":extensions:common:sql:sql-lease")
