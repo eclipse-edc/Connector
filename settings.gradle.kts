@@ -43,6 +43,7 @@ include(":core:common:cel-core")
 
 include(":core:common:lib:api-lib")
 include(":core:common:lib:boot-lib")
+include(":core:common:lib:catalog-util-lib")
 include(":core:common:lib:crypto-common-lib")
 include(":core:common:lib:http-lib")
 include(":core:common:lib:json-ld-lib")
@@ -59,6 +60,10 @@ include(":core:common:lib:transform-lib")
 include(":core:common:lib:util-lib")
 include(":core:common:lib:validator-lib")
 include(":core:common:lib:encryption-lib")
+
+include(":core:crawler-core")
+include(":core:federated-catalog-core")
+include(":core:federated-catalog-core-2025")
 
 include(":core:control-plane:control-plane-catalog")
 include(":core:control-plane:control-plane-contract")
