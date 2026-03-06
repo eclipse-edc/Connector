@@ -17,6 +17,7 @@ package org.eclipse.edc.iam.verifiablecredentials.spi.model;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
@@ -48,6 +49,8 @@ public class VerifiableCredential {
     protected String id; // must be URI, but URI is less efficient at runtime
 
     protected List<String> type = new ArrayList<>();
+    @JsonProperty("@context")
+    protected List<Object> context = new ArrayList<>();
     protected Issuer issuer; // can be URI or an object containing an ID
     protected Instant issuanceDate; // // VCDM 2.0 calls this "validFrom"
     protected Instant expirationDate; // VCDM 2.0 calls this "validUntil"
@@ -74,6 +77,10 @@ public class VerifiableCredential {
 
     public List<String> getType() {
         return type;
+    }
+
+    public List<Object> getContext() {
+        return context;
     }
 
     public Issuer getIssuer() {
@@ -151,6 +158,16 @@ public class VerifiableCredential {
 
         public B types(List<String> type) {
             this.instance.type = type;
+            return self();
+        }
+
+        public B contexts(List<Object> context) {
+            this.instance.context = context;
+            return self();
+        }
+
+        public B context(Object context) {
+            this.instance.context.add(context);
             return self();
         }
 

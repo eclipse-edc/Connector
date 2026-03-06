@@ -35,6 +35,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import static java.util.Optional.ofNullable;
+import static java.util.function.Function.identity;
 
 public class JwtToVerifiableCredentialTransformer extends AbstractJwtTransformer<VerifiableCredential> {
 
@@ -80,6 +81,8 @@ public class JwtToVerifiableCredentialTransformer extends AbstractJwtTransformer
                         .or(() -> ofNullable(vc.get("id")).map(Object::toString))
                         .ifPresent(builder::id);
 
+                // @context
+                listOrReturn(vc.get(CONTEXT_PROPERTY), identity()).forEach(builder::context);
                 // types
                 listOrReturn(vc.get(TYPE_PROPERTY), Object::toString).forEach(builder::type);
 

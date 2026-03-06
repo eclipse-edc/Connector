@@ -66,6 +66,7 @@ public class ParticipantAgentContextMapper<C extends ParticipantAgentPolicyConte
 
     private Map<String, Object> toMap(VerifiableCredential credential) {
         var cred = new HashMap<String, Object>();
+        cred.put("@context", credential.getContext());
         cred.put("id", credential.getId());
         cred.put("type", credential.getType());
         cred.put("credentialSubject", credential.getCredentialSubject().stream().map(this::toMap).collect(Collectors.toList()));
