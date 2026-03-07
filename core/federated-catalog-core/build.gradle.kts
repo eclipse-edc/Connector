@@ -32,7 +32,7 @@ dependencies {
     api(project(":core:common:lib:query-lib"))
 
     implementation(project(":core:common:lib:util-lib"))
-    implementation(project(":data-protocols:dsp:dsp-core:dsp-http-api-base-configuration"))
+    implementation(project(":data-protocols:dsp:dsp-2025:dsp-http-api-configuration-2025"))
     implementation(project(":spi:common:json-ld-spi"))
     implementation(project(":core:common:lib:json-ld-lib"))
     implementation(project(":core:common:lib:store-lib"))
