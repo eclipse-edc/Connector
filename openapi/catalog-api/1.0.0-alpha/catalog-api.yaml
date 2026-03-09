@@ -1,0 +1,147 @@
+openapi: 3.0.1
+info:
+  title: catalog-api
+  description: REST API documentation for the catalog-api
+  license:
+    name: "The Apache License, Version 2.0"
+    url: http://www.apache.org/licenses/LICENSE-2.0.txt
+  version: 1.0.0-alpha
+servers:
+- url: /
+paths:
+  /v1alpha/catalog/query:
+    post:
+      tags:
+      - Federated Catalog
+      description: Obtains all Catalog currently held by this cache instance
+      operationId: getCachedCatalog
+      parameters:
+      - name: flatten
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: boolean
+          default: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuerySpec"
+      responses:
+        "200":
+          description: "A list of Catalog is returned, potentially empty"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Catalog"
+        "500":
+          description: A Query could not be completed due to an internal error
+components:
+  schemas:
+    Catalog:
+      type: object
+      description: DCAT catalog
+      example:
+        '@id': 7df65569-8c59-4013-b1c0-fa14f6641bf2
+        '@type': dcat:Catalog
+        dcat:dataset:
+          '@id': bcca61be-e82e-4da6-bfec-9716a56cef35
+          '@type': dcat:Dataset
+          odrl:hasPolicy:
+            '@id': OGU0ZTMzMGMtODQ2ZS00ZWMxLThmOGQtNWQxNWM0NmI2NmY4:YmNjYTYxYmUtZTgyZS00ZGE2LWJmZWMtOTcxNmE1NmNlZjM1:NDY2ZTZhMmEtNjQ1Yy00ZGQ0LWFlZDktMjdjNGJkZTU4MDNj
+            '@type': odrl:Set
+            odrl:permission:
+              odrl:target: bcca61be-e82e-4da6-bfec-9716a56cef35
+              odrl:action:
+                odrl:type: http://www.w3.org/ns/odrl/2/use
+              odrl:constraint:
+                odrl:and:
+                - odrl:leftOperand: https://w3id.org/edc/v0.0.1/ns/inForceDate
+                  odrl:operator:
+                    '@id': odrl:gteq
+                  odrl:rightOperand: 2023-07-07T07:19:58.585601395Z
+                - odrl:leftOperand: https://w3id.org/edc/v0.0.1/ns/inForceDate
+                  odrl:operator:
+                    '@id': odrl:lteq
+                  odrl:rightOperand: 2023-07-12T07:19:58.585601395Z
+            odrl:prohibition: []
+            odrl:obligation: []
+          dcat:distribution:
+          - '@type': dcat:Distribution
+            dct:format:
+              '@id': HttpData
+            dcat:accessService: 5e839777-d93e-4785-8972-1005f51cf367
+          description: description
+          id: bcca61be-e82e-4da6-bfec-9716a56cef35
+        dcat:service:
+          '@id': 5e839777-d93e-4785-8972-1005f51cf367
+          '@type': dcat:DataService
+          dct:terms: connector
+          dcat:endpointURL: http://localhost:16806/protocol
+        dspace:participantId: urn:connector:provider
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+          dct: http://purl.org/dc/terms/
+          edc: https://w3id.org/edc/v0.0.1/ns/
+          dcat: http://www.w3.org/ns/dcat#
+          odrl: http://www.w3.org/ns/odrl/2/
+          dspace: https://w3id.org/dspace/2025/1/
+    QuerySpec:
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
+        filterExpression:
+          type: array
+          items:
+            $ref: "#/components/schemas/Criterion"
+        limit:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        sortField:
+          type: string
+        sortOrder:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@type': QuerySpec
+        offset: 5
+        limit: 10
+        sortOrder: DESC
+        sortField: fieldName
+        filterExpression: []
+    Criterion:
+      required:
+      - operandLeft
+      - operandRight
+      - operator
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/Criterion
+        operandLeft:
+          type: object
+        operandRight:
+          type: object
+        operator:
+          type: string
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@type': Criterion
+        operandLeft: fieldName
+        operator: =
+        operandRight: some value
