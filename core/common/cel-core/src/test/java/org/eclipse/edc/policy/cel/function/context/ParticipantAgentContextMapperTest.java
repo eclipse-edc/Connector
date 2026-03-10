@@ -71,6 +71,7 @@ public class ParticipantAgentContextMapperTest {
 
             var expectedMap = Map.of("vc", List.of(
                     Map.of(
+                            "@context", List.of("https://www.w3.org/2018/credentials/v1", "https://www.w3.org/2018/credentials/examples/v1"),
                             "id", "http://example.edu/credentials/3732",
                             "type", List.of("VerifiableCredential", "AlumniCredential"),
                             "issuer", "https://example.edu/issuers/14",
@@ -91,6 +92,7 @@ public class ParticipantAgentContextMapperTest {
     @SuppressWarnings("unchecked")
     private List<VerifiableCredential> credentials() {
         var vc = VerifiableCredential.Builder.newInstance()
+                .contexts(List.of("https://www.w3.org/2018/credentials/v1", "https://www.w3.org/2018/credentials/examples/v1"))
                 .id("http://example.edu/credentials/3732")
                 .types(List.of("VerifiableCredential", "AlumniCredential"))
                 .issuer(new Issuer("https://example.edu/issuers/14", Map.of()))

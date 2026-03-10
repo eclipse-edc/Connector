@@ -31,6 +31,7 @@ abstract class AbstractJwtTransformer<OUTPUT> implements TypeTransformer<String,
 
 
     protected static final String TYPE_PROPERTY = "type";
+    protected static final String CONTEXT_PROPERTY = "@context";
 
 
     private final Class<OUTPUT> output;

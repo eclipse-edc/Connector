@@ -44,6 +44,7 @@ class JwtToVerifiableCredentialTransformerTest {
         assertThat(vc.getCredentialSubject()).doesNotContainNull().isNotEmpty();
         assertThat(vc.getCredentialSubject().stream().findFirst().orElseThrow().getId()).isNotNull();
         assertThat(vc.getIssuanceDate()).isNotNull();
+        assertThat(vc.getContext()).contains("https://www.w3.org/2018/credentials/v1", "https://www.w3.org/2018/credentials/examples/v1");
         assertThat(vc.getCredentialSchema()).isNotNull()
                 .hasSize(2)
                 .anyMatch(schema -> schema.type().equals("JsonSchema") &&
@@ -79,6 +80,7 @@ class JwtToVerifiableCredentialTransformerTest {
         var vc = transformer.transform(TestData.EXAMPLE_JWT_VC_2_0, context);
 
         assertThat(vc).isNotNull();
+        assertThat(vc.getContext()).contains("https://www.w3.org/ns/credentials/v2", "https://www.w3.org/ns/credentials/examples/v2");
         assertThat(vc.getType()).containsExactlyInAnyOrder("VerifiableCredential", "ExampleDegreeCredential", "ExamplePersonCredential");
         assertThat(vc.getIssuer().id()).isEqualTo("https://university.example/issuers/14");
         assertThat(vc.getValidFrom().toString()).isEqualTo("2010-01-01T19:23:24Z");
