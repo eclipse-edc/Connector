@@ -81,6 +81,33 @@ public class BomSmokeTests {
 
     @Nested
     @EndToEndTest
+    class FederatedCatalogDcp extends SmokeTest {
+
+        @RegisterExtension
+        protected RuntimeExtension runtime =
+                new RuntimePerMethodExtension(new EmbeddedRuntime("fc-dcp-bom", ":dist:bom:federatedcatalog-dcp-bom")
+                        .configurationProvider(() -> ConfigFactory.fromMap(new HashMap<>() {
+                            {
+                                put("edc.iam.sts.oauth.token.url", "https://sts.com/token");
+                                put("edc.iam.sts.oauth.client.id", "test-clientid");
+                                put("edc.iam.sts.oauth.client.secret.alias", "test-alias");
+                                put("web.http.port", DEFAULT_PORT);
+                                put("web.http.path", DEFAULT_PATH);
+                                put("web.http.catalog.port", "8081");
+                                put("web.http.catalog.path", "/api/catalog");
+                                put("web.http.version.port", String.valueOf(getFreePort()));
+                                put("edc.catalog.cache.execution.period.seconds", "5");
+                                put("edc.iam.issuer.id", "did:web:testparticipant");
+                                put("edc.iam.sts.privatekey.alias", "private-alias");
+                                put("edc.iam.sts.publickey.id", "public-key-id");
+                                put("edc.catalog.cache.execution.delay.seconds", "0");
+                            }
+                        }))
+                );
+    }
+
+    @Nested
+    @EndToEndTest
     public class DataPlaneBase extends SmokeTest {
 
         @RegisterExtension

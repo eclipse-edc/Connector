@@ -1,0 +1,43 @@
+{
+  "@id": "sub-catalog-id",
+  "@type": "dcat:Catalog",
+  "dcat:dataset": [
+    {
+      "@id": "subcatalog-asset-a873f2be-295e-4d03-af1c-0e15c1363627",
+      "@type": "dcat:Dataset",
+      "odrl:hasPolicy": {
+        "@id": "ODkzNGY3MzEtYzdmMy00N2NiLTlmM2UtNGU1ZDljOGNjNzU3:bm9ybWFsLWFzc2V0LWE4NzNmMmJlLTI5NWUtNGQwMy1hZjFjLTBlMTVjMTM2MzYyNw==:OGZhMzc3ODktOTZlYS00ZGQ1LWIyZjktNjYzNTQwOWZlNTUw",
+        "@type": "odrl:Offer",
+        "odrl:permission": [
+        ],
+        "odrl:prohibition": [
+        ],
+        "odrl:obligation": [
+        ]
+      },
+      "dcat:distribution": [
+      ],
+      "id": "normal-asset-a873f2be-295e-4d03-af1c-0e15c1363627"
+    }
+  ],
+  "dcat:distribution": [
+  ],
+  "dcat:service": {
+    "@id": "5cc832e4-9b77-412b-a21e-7d5b49516f2c",
+    "@type": "dcat:DataService",
+    "dcat:endpointDescription": "dspace:connector",
+    "dcat:endpointURL": "http://localhost:55229/protocol",
+    "dct:terms": "dspace:connector",
+    "dct:endpointUrl": "http://localhost:55229/protocol"
+  },
+  "dspace:participantId": "anonymous",
+  "participantId": "anonymous",
+  "@context": {
+    "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+    "edc": "https://w3id.org/edc/v0.0.1/ns/",
+    "dcat": "http://www.w3.org/ns/dcat#",
+    "dct": "http://purl.org/dc/terms/",
+    "odrl": "http://www.w3.org/ns/odrl/2/",
+    "dspace": "https://w3id.org/dspace/2025/1/"
+  }
+}
