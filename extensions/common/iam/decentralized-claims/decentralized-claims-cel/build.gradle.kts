@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2025 Metaform Systems, Inc.
+ *  Copyright (c) 2026 Metaform Systems, Inc.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -14,12 +14,13 @@
 
 plugins {
     `java-library`
-    `java-test-fixtures`
+    `maven-publish`
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:participant-spi"))
-    testFixturesImplementation(project(":core:common:junit-base"))
+    api(project(":spi:common:cel-spi"))
+    api(project(":spi:common:verifiable-credentials-spi"))
+
+    testImplementation(project(":core:common:junit"))
 }
 

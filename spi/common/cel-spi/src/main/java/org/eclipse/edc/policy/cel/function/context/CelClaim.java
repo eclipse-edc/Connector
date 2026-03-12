@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2025 Metaform Systems, Inc.
+ *  Copyright (c) 2026 Metaform Systems, Inc.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,14 +12,14 @@
  *
  */
 
-plugins {
-    `java-library`
-    `java-test-fixtures`
-}
+package org.eclipse.edc.policy.cel.function.context;
 
-dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:participant-spi"))
-    testFixturesImplementation(project(":core:common:junit-base"))
-}
+/**
+ * Represents a claim to be used in CEL context mapping, consisting of a name and a value.
+ *
+ * @param name  the name of the claim
+ * @param value the value of the claim
+ */
+public record CelClaim(String name, Object value) {
 
+}

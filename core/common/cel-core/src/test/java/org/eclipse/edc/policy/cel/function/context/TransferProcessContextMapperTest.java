@@ -31,7 +31,7 @@ public class TransferProcessContextMapperTest {
 
     private final TransferProcessContextMapper mapper = new TransferProcessContextMapper(
             new AgreementContextMapper(),
-            new ParticipantAgentContextMapper<>()
+            new ParticipantAgentContextMapper<>(mock())
     );
 
     @SuppressWarnings("unchecked")
