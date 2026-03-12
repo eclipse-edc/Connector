@@ -21,21 +21,18 @@ dependencies {
     api(project(":spi:federated-catalog-spi"))
     api(project(":spi:common:core-spi"))
     api(project(":spi:control-plane:contract-spi"))
-    api(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
 
-    implementation(project(":spi:common:boot-spi"))
     implementation(project(":core:common:lib:api-lib"))
     implementation(project(":core:common:lib:catalog-util-lib"))
+    implementation(project(":extensions:common:api:lib:management-api-lib"))
     implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
     implementation(project(":spi:common:transform-spi"))
+    implementation(project(":spi:common:validator-spi"))
     implementation(project(":spi:common:web-spi"))
-
-
-    runtimeOnly(project(":spi:common:json-ld-spi"))
-    runtimeOnly(project(":core:common:lib:json-ld-lib"))
 
     // required for integration test
     testImplementation(project(":data-protocols:dsp:dsp-http-spi"))
+    testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
     testImplementation(project(":core:common:lib:boot-lib"))
     testImplementation(testFixtures(project(":core:federated-catalog-core")))
     testImplementation(project(":core:common:junit"))
@@ -53,6 +50,6 @@ dependencies {
 
 edcBuild {
     swagger {
-        apiGroup.set("catalog-api")
+        apiGroup.set("management-api")
     }
 }
