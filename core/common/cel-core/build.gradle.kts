@@ -19,7 +19,6 @@ plugins {
 dependencies {
     api(project(":spi:common:cel-spi"))
     api(project(":spi:common:transaction-spi"))
-    api(project(":spi:common:verifiable-credentials-spi"))
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":spi:policy-monitor:policy-monitor-spi"))
 

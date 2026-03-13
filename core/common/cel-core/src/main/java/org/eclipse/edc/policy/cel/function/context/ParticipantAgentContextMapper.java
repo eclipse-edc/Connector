@@ -14,15 +14,13 @@
 
 package org.eclipse.edc.policy.cel.function.context;
 
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
+
+import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participant.spi.ParticipantAgentPolicyContext;
 import org.eclipse.edc.spi.result.Result;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Supplies participant agent-related context data for CEL expression evaluation.
@@ -30,6 +28,12 @@ import java.util.stream.Collectors;
  * @param <C> the type of ParticipantAgentPolicyContext
  */
 public class ParticipantAgentContextMapper<C extends ParticipantAgentPolicyContext> implements CelContextMapper<C> {
+
+    private final CelParticipantAgentClaimMapperRegistry claimMapperRegistry;
+
+    public ParticipantAgentContextMapper(CelParticipantAgentClaimMapperRegistry claimMapperRegistry) {
+        this.claimMapperRegistry = claimMapperRegistry;
+    }
 
     private Result<Map<String, Object>> agent(C context) {
         if (context.participantAgent() == null) {
@@ -39,45 +43,22 @@ public class ParticipantAgentContextMapper<C extends ParticipantAgentPolicyConte
         return Result.success(Map.of("agent", Map.ofEntries(
                 Map.entry("id", id),
                 Map.entry("attributes", context.participantAgent().getAttributes()),
-                Map.entry("claims", toClaimsMap(context.participantAgent().getClaims()))
+                Map.entry("claims", toClaimsMap(context.participantAgent()))
         )));
     }
 
-    // Converts the 'vc' claim to a list of verifiable credential maps.
-    // TODO Currently, hardcoded here; in the future, consider using a more generic approach.
-    private Map<String, Object> toClaimsMap(Map<String, Object> claims) {
-        var mappedClaims = new HashMap<>(claims);
-        if (claims.get("vc") == null) {
-            return mappedClaims;
-        }
-        mappedClaims.put("vc", toVcList(claims.get("vc")));
+
+    private Map<String, Object> toClaimsMap(ParticipantAgent agent) {
+        var mappedClaims = new HashMap<>(agent.getClaims());
+
+        claimMapperRegistry.mapClaim(agent)
+                .stream()
+                .filter(claim -> claim.value() != null)
+                .forEach(claim -> mappedClaims.put(claim.name(), claim.value()));
+
         return mappedClaims;
     }
 
-    private List<Map<String, Object>> toVcList(Object vcClaim) {
-        if (vcClaim instanceof List<?> vcList) {
-            return vcList.stream()
-                    .filter(item -> item instanceof VerifiableCredential)
-                    .map(item -> toMap((VerifiableCredential) item))
-                    .toList();
-        }
-        return List.of();
-    }
-
-    private Map<String, Object> toMap(VerifiableCredential credential) {
-        var cred = new HashMap<String, Object>();
-        cred.put("@context", credential.getContext());
-        cred.put("id", credential.getId());
-        cred.put("type", credential.getType());
-        cred.put("credentialSubject", credential.getCredentialSubject().stream().map(this::toMap).collect(Collectors.toList()));
-        cred.put("issuer", credential.getIssuer().id());
-        cred.put("issuanceDate", credential.getIssuanceDate().toString());
-        return cred;
-    }
-
-    private Map<String, Object> toMap(CredentialSubject subject) {
-        return subject.getClaims();
-    }
 
     @Override
     public Result<Map<String, Object>> mapContext(C context) {
