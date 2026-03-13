@@ -84,7 +84,6 @@ class FederatedCatalogTest {
     private static final Endpoint CATALOG_MANAGEMENT = new Endpoint("/management", "8091");
     private static final Endpoint CATALOG_PROTOCOL = new Endpoint("/api/v1/dsp", "8092");
     private static final Endpoint CATALOG_DEFAULT = new Endpoint("/api/v1/", "8090");
-    private static final Endpoint CATALOG_CATALOG = new Endpoint("/catalog", "8093");
 
     @RegisterExtension
     static RuntimeExtension connector = new RuntimePerClassExtension(
@@ -123,15 +122,13 @@ class FederatedCatalogTest {
                             entry("web.http.management.path", CATALOG_MANAGEMENT.path()),
                             entry("web.http.version.port", getFreePort() + ""),
                             entry("web.http.version.path", "/.well-known/version"),
-                            entry("web.http.catalog.port", CATALOG_CATALOG.port()),
-                            entry("web.http.catalog.path", CATALOG_CATALOG.path()),
                             entry("edc.web.rest.cors.headers", "origin,content-type,accept,authorization,x-api-key")
                     )))
     );
 
     private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl();
     private final TypeManager mapper = new JacksonTypeManager();
-    private final CatalogApiClient apiClient = new CatalogApiClient(CATALOG_CATALOG, CONNECTOR_MANAGEMENT,
+    private final CatalogApiClient apiClient = new CatalogApiClient(CATALOG_MANAGEMENT, CONNECTOR_MANAGEMENT,
             JacksonJsonLd.createObjectMapper(), () -> catalog.getService(JsonLd.class), typeTransformerRegistry);
 
     @BeforeEach

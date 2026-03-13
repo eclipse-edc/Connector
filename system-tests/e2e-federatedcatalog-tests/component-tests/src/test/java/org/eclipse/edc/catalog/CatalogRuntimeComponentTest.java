@@ -93,8 +93,8 @@ public class CatalogRuntimeComponentTest {
                         "edc.catalog.cache.partition.num.crawlers", "10",
                         // give the runtime time to set up everything
                         "edc.catalog.cache.execution.delay.seconds", "1",
-                        "web.http.catalog.port", valueOf(TestFunctions.CATALOG_QUERY_PORT),
-                        "web.http.catalog.path", TestFunctions.CATALOG_QUERY_BASE_PATH,
+                        "web.http.management.port", valueOf(TestFunctions.MANAGEMENT_PORT),
+                        "web.http.management.path", TestFunctions.MANAGEMENT_BASE_PATH,
                         "web.http.port", valueOf(getFreePort()),
                         "web.http.path", "/api/v1",
                         "web.http.protocol.port", valueOf(getFreePort()),

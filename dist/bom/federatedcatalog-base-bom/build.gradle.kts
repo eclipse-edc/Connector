@@ -35,6 +35,12 @@ dependencies {
     api(project(":extensions:common:api:version-api"))
 
     api(project(":extensions:common:api:api-core"))
+    api(project(":extensions:common:api:management-api-configuration"))
+    api(project(":extensions:common:api:control-api-configuration"))
+    api(project(":extensions:common:auth:auth-tokenbased"))
+    api(project(":extensions:common:auth:auth-configuration"))
+    api(project(":extensions:common:auth:auth-delegated"))
+    api(project(":extensions:common:http"))
     api(project(":core:control-plane:control-plane-core"))
     api(project(":extensions:common:http:jetty-core"))
     api(project(":core:common:token-core"))
