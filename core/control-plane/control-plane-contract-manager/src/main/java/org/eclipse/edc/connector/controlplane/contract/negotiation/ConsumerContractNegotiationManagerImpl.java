@@ -32,6 +32,7 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.statemachine.StateMachineManager;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.ACCEPTED;
@@ -101,9 +102,9 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      * @return true if processed, false otherwise
      */
     @WithSpan
-    private boolean processInitial(ContractNegotiation negotiation) {
+    private CompletableFuture<StatusResult<Void>> processInitial(ContractNegotiation negotiation) {
         transitionToRequesting(negotiation);
-        return true;
+        return CompletableFuture.completedFuture(StatusResult.success());
     }
 
     /**
@@ -114,11 +115,12 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      * @return true if processed, false otherwise
      */
     @WithSpan
-    private boolean processRequesting(ContractNegotiation negotiation) {
+    private CompletableFuture<StatusResult<Void>> processRequesting(ContractNegotiation negotiation) {
         var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol());
         if (callbackAddress == null) {
-            transitionToTerminated(negotiation, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
-            return true;
+            var message = "No callback address found for protocol: %s".formatted(negotiation.getProtocol());
+            transitionToTerminated(negotiation, message);
+            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
         }
 
         var type = negotiation.getContractOffers().size() == 1 ? Type.INITIAL : Type.COUNTER_OFFER;
@@ -142,7 +144,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      * @return true if processed, false otherwise
      */
     @WithSpan
-    private boolean processAccepting(ContractNegotiation negotiation) {
+    private CompletableFuture<StatusResult<Void>> processAccepting(ContractNegotiation negotiation) {
         var messageBuilder = ContractNegotiationEventMessage.Builder.newInstance().type(ACCEPTED);
         messageBuilder.policy(negotiation.getLastContractOffer().getPolicy());
         return dispatch(messageBuilder, negotiation, Object.class, "[consumer] send acceptance")
@@ -158,9 +160,9 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      * @return true if processed, false otherwise
      */
     @WithSpan
-    private boolean processAgreed(ContractNegotiation negotiation) {
+    private CompletableFuture<StatusResult<Void>> processAgreed(ContractNegotiation negotiation) {
         transitionToVerifying(negotiation);
-        return true;
+        return CompletableFuture.completedFuture(StatusResult.success());
     }
 
     /**
@@ -171,7 +173,7 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
      * @return true if processed, false otherwise
      */
     @WithSpan
-    private boolean processVerifying(ContractNegotiation negotiation) {
+    private CompletableFuture<StatusResult<Void>> processVerifying(ContractNegotiation negotiation) {
         var messageBuilder = ContractAgreementVerificationMessage.Builder.newInstance()
                 .policy(negotiation.getContractAgreement().getPolicy());
 

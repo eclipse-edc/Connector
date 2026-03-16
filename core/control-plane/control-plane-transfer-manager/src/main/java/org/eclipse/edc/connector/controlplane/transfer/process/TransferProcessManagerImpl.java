@@ -182,13 +182,14 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     }
 
     @WithSpan
-    private boolean processConsumerInitial(TransferProcess process) {
+    private CompletableFuture<StatusResult<Void>> processConsumerInitial(TransferProcess process) {
         var contractId = process.getContractId();
         var policy = policyArchive.findPolicyForContract(contractId);
 
         if (policy == null) {
-            transitionToTerminated(process, "Policy not found for contract: " + contractId);
-            return true;
+            var message = "Policy not found for contract: " + contractId;
+            transitionToTerminated(process, message);
+            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
         }
 
         return entityRetryProcessFactory.retryProcessor(process)
@@ -216,13 +217,14 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     }
 
     @WithSpan
-    private boolean processProviderInitial(TransferProcess process) {
+    private CompletableFuture<StatusResult<Void>> processProviderInitial(TransferProcess process) {
         var contractId = process.getContractId();
         var policy = policyArchive.findPolicyForContract(contractId);
 
         if (policy == null) {
-            transitionToTerminated(process, "Policy not found for contract: " + contractId);
-            return true;
+            var message = "Policy not found for contract: " + contractId;
+            transitionToTerminated(process, message);
+            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
         }
 
         eventuallySetContentDataAddress(process);
@@ -272,19 +274,21 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
      * @return if the transfer has been processed or not
      */
     @WithSpan
-    private boolean processRequesting(TransferProcess process) {
+    private CompletableFuture<StatusResult<Void>> processRequesting(TransferProcess process) {
         var callbackAddress = dataspaceProfileContextRegistry.getWebhook(process.getProtocol());
 
         if (callbackAddress == null) {
-            transitionToTerminated(process, "No callback address found for protocol: " + process.getProtocol());
-            return true;
+            var message = "No callback address found for protocol: " + process.getProtocol();
+            transitionToTerminated(process, message);
+            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
         }
 
         var agreementId = policyArchive.getAgreementIdForContract(process.getContractId());
 
         if (agreementId == null) {
-            transitionToTerminated(process, "No agreement found for contract: " + process.getContractId());
-            return true;
+            var message = "No agreement found for contract: " + process.getContractId();
+            transitionToTerminated(process, message);
+            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
         }
 
         var dataAddress = dataAddressStore.resolve(process).orElse(f -> null);
@@ -313,7 +317,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
      * @return if the transfer has been processed or not
      */
     @WithSpan
-    private boolean processStartupRequested(TransferProcess process) {
+    private CompletableFuture<StatusResult<Void>> processStartupRequested(TransferProcess process) {
         return entityRetryProcessFactory.retryProcessor(process)
                 .doProcess(result("Notify started to data plane " + process.getCounterPartyAddress(), (t, r) ->
                         dataFlowController.started(process))
@@ -331,7 +335,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
      * @return if the transfer has been processed or not
      */
     @WithSpan
-    private boolean processStarting(TransferProcess process) {
+    private CompletableFuture<StatusResult<Void>> processStarting(TransferProcess process) {
         Function<RetryProcessor<TransferProcess, ?>, RetryProcessor<TransferProcess, DataAddress>> preProcessing = r -> r
                 .doProcess(result("resolve data address", (p, ignored) -> StatusResult.success(dataAddressStore.resolve(p).orElse(f -> null))));
 
@@ -345,7 +349,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
      * @return if the transfer has been processed or not
      */
     @WithSpan
-    private boolean processProviderResuming(TransferProcess process) {
+    private CompletableFuture<StatusResult<Void>> processProviderResuming(TransferProcess process) {
         var policy = policyArchive.findPolicyForContract(process.getContractId());
 
         Function<RetryProcessor<TransferProcess, ?>, RetryProcessor<TransferProcess, DataAddress>> preProcess = r -> r
@@ -355,7 +359,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         return sendStartMessage(process, this::transitionToResuming, preProcess);
     }
 
-    private boolean sendStartMessage(TransferProcess process, Consumer<TransferProcess> onFailure, Function<RetryProcessor<TransferProcess, ?>, RetryProcessor<TransferProcess, DataAddress>> preProcessing) {
+    private CompletableFuture<StatusResult<Void>> sendStartMessage(TransferProcess process, Consumer<TransferProcess> onFailure, Function<RetryProcessor<TransferProcess, ?>, RetryProcessor<TransferProcess, DataAddress>> preProcessing) {
         return preProcessing.apply(entityRetryProcessFactory.retryProcessor(process))
                 .doProcess(futureResult("Dispatch TransferRequestMessage to: " + process.getCounterPartyAddress(), (t, dataAddress) -> {
                     var messageBuilder = TransferStartMessage.Builder.newInstance().dataAddress(dataAddress);
@@ -385,7 +389,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
      * @return if the transfer has been processed or not
      */
     @WithSpan
-    private boolean processConsumerResuming(TransferProcess process) {
+    private CompletableFuture<StatusResult<Void>> processConsumerResuming(TransferProcess process) {
         var messageBuilder = TransferStartMessage.Builder.newInstance();
 
         return entityRetryProcessFactory.retryProcessor(process)
@@ -405,7 +409,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
      * @return if the transfer has been processed or not
      */
     @WithSpan
-    private boolean processCompleting(TransferProcess process) {
+    private CompletableFuture<StatusResult<Void>> processCompleting(TransferProcess process) {
         var builder = TransferCompletionMessage.Builder.newInstance();
 
         return entityRetryProcessFactory.retryProcessor(process)
@@ -433,7 +437,7 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
      * @return if the transfer has been processed or not
      */
     @WithSpan
-    private boolean processSuspending(TransferProcess process) {
+    private CompletableFuture<StatusResult<Void>> processSuspending(TransferProcess process) {
         var builder = TransferSuspensionMessage.Builder.newInstance()
                 .reason(process.getErrorDetail());
 
@@ -468,10 +472,10 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
      * @return if the transfer has been processed or not
      */
     @WithSpan
-    private boolean processTerminating(TransferProcess process) {
+    private CompletableFuture<StatusResult<Void>> processTerminating(TransferProcess process) {
         if (process.getType() == CONSUMER && process.getState() < REQUESTED.code()) {
             transitionToTerminated(process);
-            return true;
+            return CompletableFuture.completedFuture(StatusResult.success());
         }
 
         return entityRetryProcessFactory.retryProcessor(process)
@@ -525,33 +529,33 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         return dispatcherRegistry.dispatch(process.getParticipantContextId(), responseType, message);
     }
 
-    private Processor processConsumerTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
+    private Processor processConsumerTransfersInState(TransferProcessStates state, Function<TransferProcess, CompletableFuture<StatusResult<Void>>> function) {
         var filter = new Criterion[]{hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", CONSUMER.name())};
         return createProcessor(function, filter);
     }
 
-    private Processor processProviderTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
+    private Processor processProviderTransfersInState(TransferProcessStates state, Function<TransferProcess, CompletableFuture<StatusResult<Void>>> function) {
         var filter = new Criterion[]{hasState(state.code()), isNotPending(), Criterion.criterion("type", "=", PROVIDER.name())};
         return createProcessor(function, filter);
     }
 
-    private Processor processTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
+    private Processor processTransfersInState(TransferProcessStates state, Function<TransferProcess, CompletableFuture<StatusResult<Void>>> function) {
         var filter = new Criterion[]{hasState(state.code()), isNotPending()};
         return createProcessor(function, filter);
     }
 
-    private ProcessorImpl<TransferProcess> createProcessor(Function<TransferProcess, Boolean> function, Criterion[] filter) {
-        return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter))
+    private ProcessorImpl<TransferProcess> createProcessor(Function<TransferProcess, CompletableFuture<StatusResult<Void>>> function, Criterion[] filter) {
+        return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter), entityRetryProcessConfiguration, clock, monitor)
                 .process(telemetry.contextPropagationMiddleware(function))
                 .guard(pendingGuard, this::setPending)
                 .onNotProcessed(this::breakLease)
                 .build();
     }
 
-    private boolean setPending(TransferProcess transferProcess) {
+    private CompletableFuture<StatusResult<Void>> setPending(TransferProcess transferProcess) {
         transferProcess.setPending(true);
         update(transferProcess);
-        return true;
+        return CompletableFuture.completedFuture(StatusResult.success());
     }
 
     private void transitionToInitial(TransferProcess process) {

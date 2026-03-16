@@ -28,6 +28,7 @@ import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolv
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.statemachine.AbstractStateEntityManager;
 import org.eclipse.edc.statemachine.Processor;
@@ -37,6 +38,7 @@ import org.eclipse.edc.statemachine.retry.processor.RetryProcessor;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 import static java.lang.String.format;
@@ -54,9 +56,9 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
 
     abstract ContractNegotiation.Type type();
 
-    protected Processor processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
+    protected Processor processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, CompletableFuture<StatusResult<Void>>> function) {
         var filter = new Criterion[]{hasState(state.code()), isNotPending(), new Criterion("type", "=", type().name())};
-        return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter))
+        return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter), entityRetryProcessConfiguration, clock, monitor)
                 .process(telemetry.contextPropagationMiddleware(function))
                 .guard(pendingGuard, this::setPending)
                 .onNotProcessed(this::breakLease)
@@ -68,10 +70,10 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
      * If this succeeds, the ContractNegotiation is transitioned to state TERMINATED. Else, it is transitioned
      * to TERMINATING for a retry.
      *
-     * @return true if processed, false elsewhere
+     * @return success if succeeded, failure otherwise.
      */
     @WithSpan
-    protected boolean processTerminating(ContractNegotiation negotiation) {
+    protected CompletableFuture<StatusResult<Void>> processTerminating(ContractNegotiation negotiation) {
         var messageBuilder = ContractNegotiationTerminationMessage.Builder.newInstance()
                 .rejectionReason(negotiation.getErrorDetail())
                 .policy(negotiation.getLastContractOffer().getPolicy());
@@ -204,10 +206,10 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
         observable.invokeForEach(l -> l.terminated(negotiation));
     }
 
-    private boolean setPending(ContractNegotiation contractNegotiation) {
+    private CompletableFuture<StatusResult<Void>> setPending(ContractNegotiation contractNegotiation) {
         contractNegotiation.setPending(true);
         update(contractNegotiation);
-        return true;
+        return CompletableFuture.completedFuture(StatusResult.success());
     }
 
     public static class Builder<T extends AbstractContractNegotiationManager>

@@ -25,6 +25,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
@@ -76,27 +77,14 @@ class RetryProcessorTest {
                 .onFinalFailure(finalFailure)
                 .execute();
 
-        assertThat(processed).isTrue();
+        assertThat(processed).succeedsWithin(1, TimeUnit.SECONDS).satisfies(status -> {
+            assertThat(status.succeeded()).isTrue();
+        });
         verify(success).accept(entity, "1 second");
         verifyNoInteractions(failure, finalFailure);
         var inOrder = inOrder(firstProcess, secondProcess);
         inOrder.verify(firstProcess).apply(any(), any());
         inOrder.verify(secondProcess).apply(any(), any());
-    }
-
-    @Test
-    void shouldNotProcess_whenItShouldDelay() {
-        var entity = TestEntity.Builder.newInstance().id(UUID.randomUUID().toString()).stateTimestamp(shouldDelayTime).stateCount(2).build();
-        BiFunction<TestEntity, Object, StatusResult<String>> process = mock();
-
-        var processed = new RetryProcessor<>(entity, monitor, clock, configuration)
-                .doProcess(result("mock", process))
-                .onSuccess(success).onFailure(failure).onFinalFailure(finalFailure)
-                .execute();
-
-        assertThat(processed).isFalse();
-        verify(monitor).debug(contains("not be attempted before"));
-        verifyNoInteractions(process, success, failure, finalFailure);
     }
 
     @Test
@@ -114,7 +102,9 @@ class RetryProcessorTest {
                 .onFinalFailure(finalFailure)
                 .execute();
 
-        assertThat(processed).isTrue();
+        assertThat(processed).succeedsWithin(1, TimeUnit.SECONDS).satisfies(status -> {
+            assertThat(status.failed()).isTrue();
+        });
         verify(failure).accept(same(entity), isA(Throwable.class));
         verifyNoInteractions(second, success, finalFailure);
     }
@@ -134,7 +124,9 @@ class RetryProcessorTest {
                 .onFinalFailure(finalFailure)
                 .execute();
 
-        assertThat(processed).isTrue();
+        assertThat(processed).succeedsWithin(1, TimeUnit.SECONDS).satisfies(status -> {
+            assertThat(status.failed()).isTrue();
+        });
         verify(failure).accept(same(entity), isA(Throwable.class));
         verify(monitor).debug(contains("failed to process. Cause: generic error"));
         verifyNoInteractions(success, finalFailure);
@@ -155,7 +147,9 @@ class RetryProcessorTest {
                 .onFinalFailure(finalFailure)
                 .execute();
 
-        assertThat(processed).isTrue();
+        assertThat(processed).succeedsWithin(1, TimeUnit.SECONDS).satisfies(status -> {
+            assertThat(status.fatalError()).isTrue();
+        });
         verify(monitor).severe(contains("failed to process. Retry limit exceeded. Cause: generic error"));
         verify(finalFailure).accept(same(entity), isA(Throwable.class));
         verifyNoInteractions(success, failure);
@@ -176,7 +170,9 @@ class RetryProcessorTest {
                 .onFinalFailure(finalFailure)
                 .execute();
 
-        assertThat(processed).isTrue();
+        assertThat(processed).succeedsWithin(1, TimeUnit.SECONDS).satisfies(status -> {
+            assertThat(status.fatalError()).isTrue();
+        });
         verify(monitor).severe(contains("failed to process. Fatal error occurred. Cause: fatal error"));
         verify(finalFailure).accept(same(entity), isA(Throwable.class));
         verifyNoInteractions(success, failure);
@@ -196,7 +192,9 @@ class RetryProcessorTest {
                 .onFinalFailure(finalFailure)
                 .execute();
 
-        assertThat(processed).isTrue();
+        assertThat(processed).succeedsWithin(1, TimeUnit.SECONDS).satisfies(status -> {
+            assertThat(status.fatalError()).isTrue();
+        });
         verify(monitor).severe(contains("generic exception"), same(runtimeException));
         verify(finalFailure).accept(same(entity), isA(Throwable.class));
         verifyNoInteractions(success, failure);

@@ -28,9 +28,11 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.policy.model.PolicyType;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.statemachine.StateMachineManager;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static java.lang.String.format;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
@@ -75,11 +77,12 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * @return true if processed, false elsewhere
      */
     @WithSpan
-    private boolean processOffering(ContractNegotiation negotiation) {
+    private CompletableFuture<StatusResult<Void>> processOffering(ContractNegotiation negotiation) {
         var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol());
         if (callbackAddress == null) {
-            transitionToTerminated(negotiation, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
-            return true;
+            var message = "No callback address found for protocol: %s".formatted(negotiation.getProtocol());
+            transitionToTerminated(negotiation, message);
+            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
         }
 
         var messageBuilder = ContractOfferMessage.Builder.newInstance()
@@ -100,9 +103,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * @return true if processed, false otherwise
      */
     @WithSpan
-    private boolean processRequested(ContractNegotiation negotiation) {
+    private CompletableFuture<StatusResult<Void>> processRequested(ContractNegotiation negotiation) {
         transitionToAgreeing(negotiation);
-        return true;
+        return CompletableFuture.completedFuture(StatusResult.success());
     }
 
     /**
@@ -111,9 +114,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * @return true if processed, false otherwise
      */
     @WithSpan
-    private boolean processAccepted(ContractNegotiation negotiation) {
+    private CompletableFuture<StatusResult<Void>> processAccepted(ContractNegotiation negotiation) {
         transitionToAgreeing(negotiation);
-        return true;
+        return CompletableFuture.completedFuture(StatusResult.success());
     }
 
     /**
@@ -124,11 +127,12 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * @return true if processed, false elsewhere
      */
     @WithSpan
-    private boolean processAgreeing(ContractNegotiation negotiation) {
+    private CompletableFuture<StatusResult<Void>> processAgreeing(ContractNegotiation negotiation) {
         var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol());
         if (callbackAddress == null) {
-            transitionToTerminated(negotiation, "No callback address found for protocol: %s".formatted(negotiation.getProtocol()));
-            return true;
+            var message = "No callback address found for protocol: %s".formatted(negotiation.getProtocol());
+            transitionToTerminated(negotiation, message);
+            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
         }
 
         var agreement = Optional.ofNullable(negotiation.getContractAgreement())
@@ -170,9 +174,9 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * @return true if processed, false otherwise
      */
     @WithSpan
-    private boolean processVerified(ContractNegotiation negotiation) {
+    private CompletableFuture<StatusResult<Void>> processVerified(ContractNegotiation negotiation) {
         transitionToFinalizing(negotiation);
-        return true;
+        return CompletableFuture.completedFuture(StatusResult.success());
     }
 
     /**
@@ -183,7 +187,7 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
      * @return true if processed, false elsewhere
      */
     @WithSpan
-    private boolean processFinalizing(ContractNegotiation negotiation) {
+    private CompletableFuture<StatusResult<Void>> processFinalizing(ContractNegotiation negotiation) {
         var messageBuilder = ContractNegotiationEventMessage.Builder.newInstance()
                 .type(ContractNegotiationEventMessage.Type.FINALIZED)
                 .policy(negotiation.getContractAgreement().getPolicy());

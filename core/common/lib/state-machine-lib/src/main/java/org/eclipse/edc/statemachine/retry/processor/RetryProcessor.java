@@ -16,6 +16,8 @@ package org.eclipse.edc.statemachine.retry.processor;
 
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.response.ResponseStatus;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 
 import java.time.Clock;
@@ -87,63 +89,39 @@ public class RetryProcessor<E extends StatefulEntity<E>, C> {
      * Execute the processes applying eventual retry policy
      * Will execute the onSuccess, onFailure, onFinalFailure handlers at need
      *
-     * @return true if the process has been run, false otherwise.
+     * @return success if the execution succeeded, failure otherwise.
      */
-    public boolean execute() {
-        if (isRetry(entity)) {
-            var delay = delayMillis(entity);
-            if (delay > 0) {
-                monitor.debug(String.format("Entity %s %s retry #%d will not be attempted before %d ms.", entity.getId(), entity.getClass().getSimpleName(), entity.getStateCount() - 1, delay));
-                return false;
-            } else {
-                monitor.debug(String.format("Entity %s %s retry #%d of %d.", entity.getId(), entity.getClass().getSimpleName(), entity.getStateCount() - 1, configuration.retryLimit()));
-            }
-        }
-
-        processChain.apply(null)
-                .whenComplete((content, throwable) -> {
+    public CompletableFuture<StatusResult<Void>> execute() {
+        return processChain.apply(null)
+                .handle((content, throwable) -> {
                     if (throwable == null) {
                         onSuccess.accept(content.entity(), content.content());
+                        return StatusResult.success();
                     } else {
                         var cause = throwable.getCause();
                         if (cause instanceof UnrecoverableEntityStateException unrecoverable) {
                             monitor.severe(unrecoverable.getUnrecoverableMessage());
                             onFinalFailure.accept(entity, unrecoverable);
+                            return StatusResult.failure(ResponseStatus.FATAL_ERROR, unrecoverable.getUnrecoverableMessage());
                         } else if (cause instanceof EntityStateException entityStateException) {
                             var exceptionEntity = entityStateException.getEntity();
                             if (exceptionEntity.getStateCount() > configuration.retryLimit()) {
                                 monitor.severe(entityStateException.getRetryLimitExceededMessage());
                                 onFinalFailure.accept(entity, entityStateException);
+                                return StatusResult.failure(ResponseStatus.FATAL_ERROR, entityStateException.getRetryLimitExceededMessage());
                             } else {
                                 monitor.debug(entityStateException.getRetryFailedMessage());
                                 onFailure.accept(entity, entityStateException);
+                                return StatusResult.failure(ResponseStatus.ERROR_RETRY, entityStateException.getRetryFailedMessage());
                             }
                         } else {
-                            monitor.severe("Runtime exception caught by retry processor: %s".formatted(cause.getMessage()), cause);
+                            var errorMessage = "Runtime exception caught by retry processor: %s".formatted(cause.getMessage());
+                            monitor.severe(errorMessage, cause);
                             onFinalFailure.accept(entity, cause);
+                            return StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMessage);
                         }
                     }
                 });
-
-        return true;
-    }
-
-    private boolean isRetry(E entity) {
-        return entity.getStateCount() - 1 > 0;
-    }
-
-    private long delayMillis(E entity) {
-        // Get a new instance of WaitStrategy.
-        var delayStrategy = configuration.delayStrategySupplier().get();
-
-        // Set the WaitStrategy to have observed <retryCount> previous failures.
-        // This is relevant for stateful strategies such as exponential wait.
-        delayStrategy.failures(entity.getStateCount() - 1);
-
-        // Get the delay time following the number of failures.
-        var waitMillis = delayStrategy.retryInMillis();
-
-        return entity.getStateTimestamp() + waitMillis - clock.millis();
     }
 
 }
