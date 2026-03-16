@@ -22,7 +22,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
-import org.eclipse.edc.catalog.api.query.BaseFederatedCatalogApiController;
+import org.eclipse.edc.catalog.api.query.BaseCatalogsApiController;
 import org.eclipse.edc.catalog.spi.QueryService;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.validation.SchemaType;
@@ -32,16 +32,17 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v4beta/federatedcatalog")
-public class FederatedCatalogApiV4Controller extends BaseFederatedCatalogApiController implements FederatedCatalogApiV4 {
+@Path("/v4beta/catalogs")
+public class CatalogsApiV4Controller extends BaseCatalogsApiController implements CatalogsApiV4 {
 
-    public FederatedCatalogApiV4Controller(QueryService queryService, TypeTransformerRegistry transformerRegistry) {
+    public CatalogsApiV4Controller(QueryService queryService, TypeTransformerRegistry transformerRegistry) {
         super(queryService, transformerRegistry);
     }
 
     @Override
     @POST
-    public JsonArray getCachedCatalogV4(@SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson, @DefaultValue("false") @QueryParam("flatten") boolean flatten) {
-        return getCachedCatalog(querySpecJson, flatten);
+    @Path("/request")
+    public JsonArray requestCatalogsV4(@SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson, @DefaultValue("false") @QueryParam("flatten") boolean flatten) {
+        return requestCatalogs(querySpecJson, flatten);
     }
 }

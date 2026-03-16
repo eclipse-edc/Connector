@@ -51,7 +51,7 @@ import static org.eclipse.edc.util.io.Ports.getFreePort;
 public class TestFunctions {
     public static final String MANAGEMENT_BASE_PATH = "/api/management";
     public static final int MANAGEMENT_PORT = getFreePort();
-    private static final String PATH = "/v3/federatedcatalog";
+    private static final String PATH = "/v3/catalogs/request";
     private static final TypeReference<List<Map<String, Object>>> MAP_TYPE = new TypeReference<>() {
     };
 

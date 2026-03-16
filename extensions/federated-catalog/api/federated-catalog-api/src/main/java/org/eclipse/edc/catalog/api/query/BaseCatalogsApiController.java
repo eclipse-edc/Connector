@@ -28,17 +28,17 @@ import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
-public abstract class BaseFederatedCatalogApiController {
+public abstract class BaseCatalogsApiController {
 
     private final QueryService queryService;
     private final TypeTransformerRegistry transformerRegistry;
 
-    public BaseFederatedCatalogApiController(QueryService queryService, TypeTransformerRegistry transformerRegistry) {
+    public BaseCatalogsApiController(QueryService queryService, TypeTransformerRegistry transformerRegistry) {
         this.queryService = queryService;
         this.transformerRegistry = transformerRegistry;
     }
 
-    public JsonArray getCachedCatalog(JsonObject querySpecJson, boolean flatten) {
+    public JsonArray requestCatalogs(JsonObject querySpecJson, boolean flatten) {
         var querySpec = querySpecJson == null
                 ? QuerySpec.none()
                 : transformerRegistry.transform(querySpecJson, QuerySpec.class)

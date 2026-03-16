@@ -29,19 +29,19 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
 @OpenAPIDefinition(
-        info = @Info(description = "This represents the Federated Catalog API. It serves the cached Catalogs fetched from the data providers.",
-                title = "Federated Catalog API", version = "v4beta"))
-@Tag(name = "Federated Catalog v4beta")
-public interface FederatedCatalogApiV4 {
-    @Operation(description = "Obtains all Catalog currently held by this cache instance",
+        info = @Info(description = "This represents the Catalogs API. It serves the cached catalogs fetched from data providers.",
+                title = "Catalogs API", version = "v4beta"))
+@Tag(name = "Catalogs v4beta")
+public interface CatalogsApiV4 {
+    @Operation(description = "Obtains all catalogs currently held by this cache instance",
             requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.QUERY_SPEC))),
             parameters = @Parameter(name = "flatten", description = "Whether the resulting root catalog should be 'flattened' or contain a hierarchy of catalogs"),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "A list of Catalog is returned, potentially empty",
+                    @ApiResponse(responseCode = "200", description = "A list of catalogs is returned, potentially empty",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = "https://w3id.org/dspace/2025/1/catalog/catalog-schema.json")))),
-                    @ApiResponse(responseCode = "500", description = "A Query could not be completed due to an internal error")
+                    @ApiResponse(responseCode = "500", description = "A query could not be completed due to an internal error")
             }
 
     )
-    JsonArray getCachedCatalogV4(JsonObject querySpec, boolean flatten);
+    JsonArray requestCatalogsV4(JsonObject querySpec, boolean flatten);
 }

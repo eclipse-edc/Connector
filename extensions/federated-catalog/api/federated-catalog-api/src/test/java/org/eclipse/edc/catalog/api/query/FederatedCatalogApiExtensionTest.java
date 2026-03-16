@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.catalog.api.query;
 
-import org.eclipse.edc.catalog.api.query.v3.FederatedCatalogApiV3Controller;
-import org.eclipse.edc.catalog.api.query.v4.FederatedCatalogApiV4Controller;
+import org.eclipse.edc.catalog.api.query.v3.CatalogsApiV3Controller;
+import org.eclipse.edc.catalog.api.query.v4.CatalogsApiV4Controller;
 import org.eclipse.edc.catalog.spi.QueryService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
@@ -64,11 +64,11 @@ class FederatedCatalogApiExtensionTest {
     void initialize_shouldRegisterV3AndV4ManagementApiResources(FederatedCatalogApiExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(webService).registerResource(eq(MANAGEMENT), isA(FederatedCatalogApiV3Controller.class));
-        verify(webService).registerDynamicResource(eq(MANAGEMENT), eq(FederatedCatalogApiV3Controller.class), isA(JerseyJsonLdInterceptor.class));
+        verify(webService).registerResource(eq(MANAGEMENT), isA(CatalogsApiV3Controller.class));
+        verify(webService).registerDynamicResource(eq(MANAGEMENT), eq(CatalogsApiV3Controller.class), isA(JerseyJsonLdInterceptor.class));
 
-        verify(webService).registerResource(eq(MANAGEMENT), isA(FederatedCatalogApiV4Controller.class));
-        verify(webService).registerDynamicResource(eq(MANAGEMENT), eq(FederatedCatalogApiV4Controller.class), isA(JerseyJsonLdInterceptor.class));
+        verify(webService).registerResource(eq(MANAGEMENT), isA(CatalogsApiV4Controller.class));
+        verify(webService).registerDynamicResource(eq(MANAGEMENT), eq(CatalogsApiV4Controller.class), isA(JerseyJsonLdInterceptor.class));
 
         verify(jsonLd).registerContext(DSPACE_CONTEXT_2025_1, MANAGEMENT_SCOPE);
         verify(jsonLd).registerContext(EDC_DSPACE_CONTEXT, MANAGEMENT_SCOPE);

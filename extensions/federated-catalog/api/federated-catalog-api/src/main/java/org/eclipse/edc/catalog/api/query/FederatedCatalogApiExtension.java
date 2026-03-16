@@ -15,8 +15,8 @@
 package org.eclipse.edc.catalog.api.query;
 
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
-import org.eclipse.edc.catalog.api.query.v3.FederatedCatalogApiV3Controller;
-import org.eclipse.edc.catalog.api.query.v4.FederatedCatalogApiV4Controller;
+import org.eclipse.edc.catalog.api.query.v3.CatalogsApiV3Controller;
+import org.eclipse.edc.catalog.api.query.v4.CatalogsApiV4Controller;
 import org.eclipse.edc.catalog.spi.QueryService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -66,10 +66,10 @@ public class FederatedCatalogApiExtension implements ServiceExtension {
         jsonLd.registerContext(DSPACE_CONTEXT_2025_1, MANAGEMENT_SCOPE);
         jsonLd.registerContext(EDC_DSPACE_CONTEXT, MANAGEMENT_SCOPE);
 
-        webService.registerResource(ApiContext.MANAGEMENT, new FederatedCatalogApiV3Controller(queryService, managementApiTransformerRegistry));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, FederatedCatalogApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
+        webService.registerResource(ApiContext.MANAGEMENT, new CatalogsApiV3Controller(queryService, managementApiTransformerRegistry));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogsApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
 
-        webService.registerResource(ApiContext.MANAGEMENT, new FederatedCatalogApiV4Controller(queryService, managementApiTransformerRegistry));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, FederatedCatalogApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerResource(ApiContext.MANAGEMENT, new CatalogsApiV4Controller(queryService, managementApiTransformerRegistry));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogsApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
     }
 }
