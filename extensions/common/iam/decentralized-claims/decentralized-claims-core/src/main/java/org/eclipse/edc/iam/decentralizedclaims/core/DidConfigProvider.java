@@ -56,6 +56,7 @@ public class DidConfigProvider implements Function<String, String> {
             return participantDidDeprecated;
         }
 
+        monitor.severe("Participant DID has not been configured correctly, please set it on %s or %s".formatted(PARTICIPANT_ID, PARTICIPANT_DID));
         return null;
     }
 }

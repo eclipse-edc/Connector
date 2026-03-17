@@ -16,12 +16,14 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:protocol-spi"))
     api(project(":spi:common:transform-spi"))
     api(project(":spi:control-plane:asset-spi"))
     api(project(":spi:control-plane:policy-spi"))
     api(project(":spi:control-plane:transfer-spi"))
 
     implementation(project(":core:common:lib:transform-lib"))
+    implementation(project(":core:common:lib:state-machine-lib"))
     implementation(project(":core:control-plane:lib:control-plane-transfer-provision-lib"))
     implementation(libs.opentelemetry.instrumentation.annotations)
     implementation(libs.jakarta.json.api)

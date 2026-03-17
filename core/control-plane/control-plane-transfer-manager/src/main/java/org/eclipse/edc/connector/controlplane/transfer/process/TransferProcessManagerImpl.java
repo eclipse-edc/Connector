@@ -18,53 +18,37 @@
 package org.eclipse.edc.connector.controlplane.transfer.process;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
-import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
+import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessors;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
-import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessStartedData;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessAck;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRemoteMessage;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.WaitStrategy;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.statemachine.AbstractStateEntityManager;
 import org.eclipse.edc.statemachine.Processor;
 import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.StateMachineManager;
-import org.eclipse.edc.statemachine.retry.processor.RetryProcessor;
 
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
@@ -76,8 +60,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
-import static org.eclipse.edc.statemachine.retry.processor.Process.futureResult;
-import static org.eclipse.edc.statemachine.retry.processor.Process.result;
 
 /**
  * This transfer process manager receives a {@link TransferProcess} and transitions it through its internal state
@@ -102,14 +84,11 @@ import static org.eclipse.edc.statemachine.retry.processor.Process.result;
  */
 public class TransferProcessManagerImpl extends AbstractStateEntityManager<TransferProcess, TransferProcessStore>
         implements TransferProcessManager {
-    private RemoteMessageDispatcherRegistry dispatcherRegistry;
-    private DataFlowController dataFlowController;
     private TransferProcessObservable observable;
-    private DataAddressResolver addressResolver;
     private PolicyArchive policyArchive;
-    private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
     private TransferProcessPendingGuard pendingGuard = tp -> false;
     private DataAddressStore dataAddressStore;
+    private TransferProcessors transferProcessors;
 
     private TransferProcessManagerImpl() {
     }
@@ -166,367 +145,19 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
     @Override
     protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
         return builder
-                .processor(processConsumerTransfersInState(INITIAL, this::processConsumerInitial))
-                .processor(processProviderTransfersInState(INITIAL, this::processProviderInitial))
-                .processor(processConsumerTransfersInState(REQUESTING, this::processRequesting))
-                .processor(processProviderTransfersInState(STARTING, this::processStarting))
-                .processor(processConsumerTransfersInState(STARTUP_REQUESTED, this::processStartupRequested))
-                .processor(processTransfersInState(SUSPENDING, this::processSuspending))
-                .processor(processTransfersInState(SUSPENDING_REQUESTED, this::processSuspending))
-                .processor(processProviderTransfersInState(RESUMING, this::processProviderResuming))
-                .processor(processConsumerTransfersInState(RESUMING, this::processConsumerResuming))
-                .processor(processTransfersInState(COMPLETING, this::processCompleting))
-                .processor(processTransfersInState(COMPLETING_REQUESTED, this::processCompleting))
-                .processor(processTransfersInState(TERMINATING, this::processTerminating))
-                .processor(processTransfersInState(TERMINATING_REQUESTED, this::processTerminating));
-    }
-
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processConsumerInitial(TransferProcess process) {
-        var contractId = process.getContractId();
-        var policy = policyArchive.findPolicyForContract(contractId);
-
-        if (policy == null) {
-            var message = "Policy not found for contract: " + contractId;
-            transitionToTerminated(process, message);
-            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
-        }
-
-        return entityRetryProcessFactory.retryProcessor(process)
-                .doProcess(result("prepare data flow", (t, ignored) -> dataFlowController.prepare(process, policy)))
-                .doProcess(result("store eventual data address", (t, response) -> {
-                    if (response.getDataAddress() == null) {
-                        return StatusResult.success(response);
-                    }
-                    return dataAddressStore.store(response.getDataAddress(), process).flatMap(StatusResult::from)
-                            .map(it -> response);
-                }))
-                .onSuccess((t, response) -> {
-                    process.setDataPlaneId(response.getDataPlaneId());
-                    if (response.isAsync()) {
-                        process.transitionPreparationRequested();
-                        observable.invokeForEach(l -> l.preparationRequested(process));
-                    } else {
-                        process.transitionRequesting();
-                    }
-                    update(process);
-                })
-                .onFailure((t, throwable) -> transitionToInitial(t))
-                .onFinalFailure(this::transitionToTerminated)
-                .execute();
-    }
-
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processProviderInitial(TransferProcess process) {
-        var contractId = process.getContractId();
-        var policy = policyArchive.findPolicyForContract(contractId);
-
-        if (policy == null) {
-            var message = "Policy not found for contract: " + contractId;
-            transitionToTerminated(process, message);
-            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
-        }
-
-        eventuallySetContentDataAddress(process);
-
-        return entityRetryProcessFactory.retryProcessor(process)
-                .doProcess(result("start data flow", (t, ignored) -> dataFlowController.start(process, policy)))
-                .doProcess(result("eventually store data address", (t, response) -> {
-                    process.setDataPlaneId(response.getDataPlaneId());
-                    if (response.isAsync()) {
-                        process.transitionStartupRequested();
-                    } else {
-                        process.transitionStarting();
-
-                        var dataPlaneDataAddress = response.getDataAddress();
-                        if (dataPlaneDataAddress != null) {
-                            return dataAddressStore.store(dataPlaneDataAddress, process).flatMap(StatusResult::from);
-                        }
-                    }
-
-                    return StatusResult.success();
-                }))
-                .onSuccess((t, response) -> update(t))
-                .onFailure((t, throwable) -> transitionToInitial(t))
-                .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
-                .execute();
-
-    }
-
-    /**
-     * this is to support the legacy data plane signaling, it will be deleted when the legacy protocol will be dismissed
-     *
-     * @deprecated can be deleted as soon as the legacy data plane signaling protocol is dismissed.
-     */
-    @Deprecated(since = "0.16.0")
-    private void eventuallySetContentDataAddress(TransferProcess process) {
-        var assetId = process.getAssetId();
-        var dataAddress = addressResolver.resolveForAsset(assetId);
-        if (dataAddress != null) {
-            process.setContentDataAddress(dataAddress);
-        }
-    }
-
-    /**
-     * Process REQUESTING transfer<p> If CONSUMER, send request to the provider, should never be PROVIDER
-     *
-     * @param process the REQUESTING transfer fetched
-     * @return if the transfer has been processed or not
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processRequesting(TransferProcess process) {
-        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(process.getProtocol());
-
-        if (callbackAddress == null) {
-            var message = "No callback address found for protocol: " + process.getProtocol();
-            transitionToTerminated(process, message);
-            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
-        }
-
-        var agreementId = policyArchive.getAgreementIdForContract(process.getContractId());
-
-        if (agreementId == null) {
-            var message = "No agreement found for contract: " + process.getContractId();
-            transitionToTerminated(process, message);
-            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
-        }
-
-        var dataAddress = dataAddressStore.resolve(process).orElse(f -> null);
-
-        var messageBuilder = TransferRequestMessage.Builder.newInstance()
-                .callbackAddress(callbackAddress.url())
-                .dataAddress(dataAddress)
-                .transferType(process.getTransferType())
-                .contractId(agreementId);
-
-        return entityRetryProcessFactory.retryProcessor(process)
-                .doProcess(futureResult("Dispatch TransferRequestMessage to " + process.getCounterPartyAddress(),
-                        (t, c) -> dispatch(messageBuilder, t, TransferProcessAck.class))
-                )
-                .onSuccess(this::transitionToRequested)
-                .onFailure((t, throwable) -> transitionToRequesting(t))
-                .onFinalFailure(this::transitionToTerminated)
-                .execute();
-
-    }
-
-    /**
-     * Process STARTUP_REQUESTED transfer for consumer<p> Notify data-plane that data flow has been started
-     *
-     * @param process the STARTUP_REQUESTED transfer fetched
-     * @return if the transfer has been processed or not
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processStartupRequested(TransferProcess process) {
-        return entityRetryProcessFactory.retryProcessor(process)
-                .doProcess(result("Notify started to data plane " + process.getCounterPartyAddress(), (t, r) ->
-                        dataFlowController.started(process))
-                )
-                .onSuccess((t, c) -> transitionToStarted(t))
-                .onFailure((t, throwable) -> transitionToStartupRequested(t))
-                .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
-                .execute();
-    }
-
-    /**
-     * Process STARTING transfer<p> If PROVIDER, starts data transfer and send message to consumer, should never be CONSUMER
-     *
-     * @param process the STARTING transfer fetched
-     * @return if the transfer has been processed or not
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processStarting(TransferProcess process) {
-        Function<RetryProcessor<TransferProcess, ?>, RetryProcessor<TransferProcess, DataAddress>> preProcessing = r -> r
-                .doProcess(result("resolve data address", (p, ignored) -> StatusResult.success(dataAddressStore.resolve(p).orElse(f -> null))));
-
-        return sendStartMessage(process, this::transitionToStarting, preProcessing);
-    }
-
-    /**
-     * Process RESUMING transfer for PROVIDER.
-     *
-     * @param process the RESUMING transfer fetched
-     * @return if the transfer has been processed or not
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processProviderResuming(TransferProcess process) {
-        var policy = policyArchive.findPolicyForContract(process.getContractId());
-
-        Function<RetryProcessor<TransferProcess, ?>, RetryProcessor<TransferProcess, DataAddress>> preProcess = r -> r
-                .doProcess(result("Data Plane resume", (t, ignored) -> dataFlowController.start(process, policy)))
-                .doProcess(result("Forward DataAddress", (t, response) -> StatusResult.success(response.getDataAddress())));
-
-        return sendStartMessage(process, this::transitionToResuming, preProcess);
-    }
-
-    private CompletableFuture<StatusResult<Void>> sendStartMessage(TransferProcess process, Consumer<TransferProcess> onFailure, Function<RetryProcessor<TransferProcess, ?>, RetryProcessor<TransferProcess, DataAddress>> preProcessing) {
-        return preProcessing.apply(entityRetryProcessFactory.retryProcessor(process))
-                .doProcess(futureResult("Dispatch TransferRequestMessage to: " + process.getCounterPartyAddress(), (t, dataAddress) -> {
-                    var messageBuilder = TransferStartMessage.Builder.newInstance().dataAddress(dataAddress);
-                    return dispatch(messageBuilder, t, Object.class)
-                            .thenApply((Function<StatusResult<Object>, StatusResult<DataAddress>>) i -> i.map(a -> dataAddress));
-                }))
-                .doProcess(result("Store eventual DataAddress", (t, dataAddress) -> {
-                    if (dataAddress == null) {
-                        return StatusResult.success();
-                    }
-                    return dataAddressStore.store(dataAddress, t).flatMap(StatusResult::from);
-                }))
-                .onSuccess((t, dataAddress) -> {
-                    t.transitionStarted();
-                    update(t);
-                    observable.invokeForEach(l -> l.started(t, TransferProcessStartedData.Builder.newInstance().build()));
-                })
-                .onFailure((t, throwable) -> onFailure.accept(t))
-                .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
-                .execute();
-    }
-
-    /**
-     * Process STARTING transfer that was SUSPENDED
-     *
-     * @param process the STARTING transfer fetched
-     * @return if the transfer has been processed or not
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processConsumerResuming(TransferProcess process) {
-        var messageBuilder = TransferStartMessage.Builder.newInstance();
-
-        return entityRetryProcessFactory.retryProcessor(process)
-                .doProcess(futureResult("Dispatch TransferStartMessage for transfer resume to " + process.getCounterPartyAddress(),
-                        (t, dataFlowResponse) -> dispatch(messageBuilder, t, Object.class))
-                )
-                .onSuccess((t, c) -> transitionToResumed(t))
-                .onFailure((t, throwable) -> transitionToResuming(t))
-                .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
-                .execute();
-    }
-
-    /**
-     * Process COMPLETING transfer<p> Send COMPLETED message to counter-part
-     *
-     * @param process the COMPLETING transfer fetched
-     * @return if the transfer has been processed or not
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processCompleting(TransferProcess process) {
-        var builder = TransferCompletionMessage.Builder.newInstance();
-
-        return entityRetryProcessFactory.retryProcessor(process)
-                .doProcess(futureResult("Dispatch TransferCompletionMessage to " + process.getCounterPartyAddress(),
-                        (t, dataFlowResponse) -> {
-                            if (t.completionWasRequestedByCounterParty()) {
-                                var result = dataFlowController.completed(t);
-                                return completedFuture(result.mapEmpty());
-                            } else {
-                                return dispatch(builder, t, Object.class);
-                            }
-                        })
-                )
-                .onSuccess((t, c) -> transitionToCompleted(t))
-                .onFailure((t, throwable) -> transitionToCompleting(t))
-                .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
-                .execute();
-    }
-
-    /**
-     * Process SUSPENDING transfer<p>
-     * Suspend data flow unless it's CONSUMER and send SUSPENDED message to counter-part.
-     *
-     * @param process the SUSPENDING transfer fetched
-     * @return if the transfer has been processed or not
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processSuspending(TransferProcess process) {
-        var builder = TransferSuspensionMessage.Builder.newInstance()
-                .reason(process.getErrorDetail());
-
-        return entityRetryProcessFactory.retryProcessor(process)
-                .doProcess(result("Suspend DataFlow", (t, c) -> dataFlowController.suspend(process)))
-                .doProcess(futureResult("Dispatch TransferSuspensionMessage to " + process.getCounterPartyAddress(),
-                        (t, dataFlowResponse) -> {
-                            if (t.suspensionWasRequestedByCounterParty()) {
-                                return completedFuture(StatusResult.success(null));
-                            } else {
-                                return dispatch(builder, t, Object.class);
-                            }
-                        })
-                )
-                .onSuccess((t, content) -> transitionToSuspended(t))
-                .onFailure((t, throwable) -> {
-                    if (t.suspensionWasRequestedByCounterParty()) {
-                        transitionToSuspendingRequested(t, throwable.getMessage());
-                    } else {
-                        transitionToSuspending(t, throwable.getMessage());
-                    }
-                })
-                .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
-                .execute();
-    }
-
-    /**
-     * Process TERMINATING transfer<p>
-     * Stop data flow unless it's CONSUMER and send TERMINATED message to counter-part.
-     *
-     * @param process the TERMINATING transfer fetched
-     * @return if the transfer has been processed or not
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processTerminating(TransferProcess process) {
-        if (process.getType() == CONSUMER && process.getState() < REQUESTED.code()) {
-            transitionToTerminated(process);
-            return CompletableFuture.completedFuture(StatusResult.success());
-        }
-
-        return entityRetryProcessFactory.retryProcessor(process)
-                .doProcess(result("Terminate DataFlow", (p, i) -> dataFlowController.terminate(process)))
-                .doProcess(futureResult("Dispatch TransferTerminationMessage", (t, n) -> {
-                    if (t.terminationWasRequestedByCounterParty()) {
-                        return completedFuture(StatusResult.success(null));
-                    } else {
-                        return dispatch(TransferTerminationMessage.Builder.newInstance().reason(t.getErrorDetail()), t, Object.class);
-                    }
-                }))
-                .onSuccess((t, c) -> transitionToTerminated(t))
-                .onFailure((t, throwable) -> {
-                    if (t.terminationWasRequestedByCounterParty()) {
-                        transitionToTerminatingRequested(t, throwable.getMessage());
-                    } else {
-                        transitionToTerminating(t, throwable.getMessage());
-                    }
-                })
-                .onFinalFailure(this::transitionToTerminated)
-                .execute();
-    }
-
-    private <T, M extends TransferRemoteMessage, B extends TransferRemoteMessage.Builder<M, B>> CompletableFuture<StatusResult<T>> dispatch(B messageBuilder, TransferProcess process, Class<T> responseType) {
-
-        var contractPolicy = policyArchive.findPolicyForContract(process.getContractId());
-
-        messageBuilder.protocol(process.getProtocol())
-                .counterPartyAddress(process.getCounterPartyAddress())
-                .processId(Optional.ofNullable(process.getCorrelationId()).orElse(process.getId()))
-                .policy(contractPolicy);
-
-        if (process.lastSentProtocolMessage() != null) {
-            messageBuilder.id(process.lastSentProtocolMessage());
-        }
-
-        if (process.getType() == PROVIDER) {
-            messageBuilder.consumerPid(process.getCorrelationId())
-                    .providerPid(process.getId())
-                    .counterPartyId(contractPolicy.getAssignee());
-        } else {
-            messageBuilder.consumerPid(process.getId())
-                    .providerPid(process.getCorrelationId())
-                    .counterPartyId(contractPolicy.getAssigner());
-        }
-
-        var message = messageBuilder.build();
-
-        process.lastSentProtocolMessage(message.getId());
-
-        return dispatcherRegistry.dispatch(process.getParticipantContextId(), responseType, message);
+                .processor(processConsumerTransfersInState(INITIAL, transferProcessors::processConsumerInitial))
+                .processor(processProviderTransfersInState(INITIAL, transferProcessors::processProviderInitial))
+                .processor(processConsumerTransfersInState(REQUESTING, transferProcessors::processRequesting))
+                .processor(processProviderTransfersInState(STARTING, transferProcessors::processStarting))
+                .processor(processConsumerTransfersInState(STARTUP_REQUESTED, transferProcessors::processStartupRequested))
+                .processor(processTransfersInState(SUSPENDING, transferProcessors::processSuspending))
+                .processor(processTransfersInState(SUSPENDING_REQUESTED, transferProcessors::processSuspending))
+                .processor(processProviderTransfersInState(RESUMING, transferProcessors::processProviderResuming))
+                .processor(processConsumerTransfersInState(RESUMING, transferProcessors::processConsumerResuming))
+                .processor(processTransfersInState(COMPLETING, transferProcessors::processCompleting))
+                .processor(processTransfersInState(COMPLETING_REQUESTED, transferProcessors::processCompleting))
+                .processor(processTransfersInState(TERMINATING, transferProcessors::processTerminating))
+                .processor(processTransfersInState(TERMINATING_REQUESTED, transferProcessors::processTerminating));
     }
 
     private Processor processConsumerTransfersInState(TransferProcessStates state, Function<TransferProcess, CompletableFuture<StatusResult<Void>>> function) {
@@ -558,108 +189,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         return CompletableFuture.completedFuture(StatusResult.success());
     }
 
-    private void transitionToInitial(TransferProcess process) {
-        process.transitionInitial();
-        update(process);
-    }
-
-    private void transitionToRequesting(TransferProcess process) {
-        process.transitionRequesting();
-        update(process);
-    }
-
-    private void transitionToRequested(TransferProcess transferProcess, TransferProcessAck ack) {
-        transferProcess.transitionRequested();
-        transferProcess.setCorrelationId(ack.getProviderPid());
-        update(transferProcess);
-        observable.invokeForEach(l -> l.requested(transferProcess));
-    }
-
-    private void transitionToStarting(TransferProcess transferProcess) {
-        transferProcess.transitionStarting();
-        update(transferProcess);
-    }
-
-    private void transitionToStarted(TransferProcess transferProcess) {
-        transferProcess.transitionStarted();
-        update(transferProcess);
-        var transferStartedData = TransferProcessStartedData.Builder.newInstance()
-                .dataAddress(transferProcess.getContentDataAddress())
-                .build();
-        observable.invokeForEach(l -> l.started(transferProcess, transferStartedData));
-    }
-
-    private void transitionToStartupRequested(TransferProcess transferProcess) {
-        transferProcess.transitionStartupRequested();
-        update(transferProcess);
-    }
-
-    private void transitionToResuming(TransferProcess process) {
-        process.transitionResuming();
-        update(process);
-    }
-
-    private void transitionToResumed(TransferProcess process) {
-        process.transitionResumed();
-        update(process);
-    }
-
-    private void transitionToCompleting(TransferProcess process) {
-        process.transitionCompleting();
-        update(process);
-    }
-
-    private void transitionToCompleted(TransferProcess transferProcess) {
-        transferProcess.transitionCompleted();
-        update(transferProcess).compose(i -> dataAddressStore.remove(transferProcess))
-                .onSuccess(i -> observable.invokeForEach(l -> l.completed(transferProcess)));
-    }
-
-    private void transitionToSuspending(TransferProcess process, String message) {
-        process.transitionSuspending(message);
-        update(process);
-    }
-
-    private void transitionToSuspendingRequested(TransferProcess process, String message, Throwable... errors) {
-        monitor.warning(message, errors);
-        process.transitionSuspendingRequested(message);
-        update(process);
-    }
-
-    private void transitionToSuspended(TransferProcess process) {
-        process.transitionSuspended();
-        update(process);
-        observable.invokeForEach(l -> l.suspended(process));
-    }
-
-    private void transitionToTerminating(TransferProcess process, String message, Throwable... errors) {
-        monitor.warning(message, errors);
-        process.transitionTerminating(message);
-        update(process);
-    }
-
-    private void transitionToTerminatingRequested(TransferProcess process, String message, Throwable... errors) {
-        monitor.warning(message, errors);
-        process.transitionTerminatingRequested(message);
-        update(process);
-    }
-
-    private void transitionToTerminated(TransferProcess process, Throwable throwable) {
-        transitionToTerminated(process, throwable.getMessage());
-    }
-
-    private void transitionToTerminated(TransferProcess process, String message) {
-        process.setErrorDetail(message);
-        monitor.warning(message);
-        transitionToTerminated(process);
-    }
-
-    private void transitionToTerminated(TransferProcess process) {
-        process.transitionTerminated();
-        update(process).compose(i -> dataAddressStore.remove(process))
-                .onSuccess(i -> observable.invokeForEach(l -> l.terminated(process)));
-    }
-
     public static class Builder
             extends AbstractStateEntityManager.Builder<TransferProcess, TransferProcessStore, TransferProcessManagerImpl, Builder> {
 
@@ -679,23 +208,9 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
         @Override
         public TransferProcessManagerImpl build() {
             super.build();
-            Objects.requireNonNull(manager.dataFlowController, "dataFlowController cannot be null");
-            Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry cannot be null");
-            Objects.requireNonNull(manager.observable, "observable cannot be null");
-            Objects.requireNonNull(manager.policyArchive, "policyArchive cannot be null");
-            Objects.requireNonNull(manager.addressResolver, "addressResolver cannot be null");
+            Objects.requireNonNull(manager.transferProcessors, "transferProcessors cannot be null");
 
             return manager;
-        }
-
-        public Builder dataFlowController(DataFlowController dataFlowController) {
-            manager.dataFlowController = dataFlowController;
-            return this;
-        }
-
-        public Builder dispatcherRegistry(RemoteMessageDispatcherRegistry registry) {
-            manager.dispatcherRegistry = registry;
-            return this;
         }
 
         public Builder observable(TransferProcessObservable observable) {
@@ -708,16 +223,6 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             return this;
         }
 
-        public Builder addressResolver(DataAddressResolver addressResolver) {
-            manager.addressResolver = addressResolver;
-            return this;
-        }
-
-        public Builder dataspaceProfileContextRegistry(DataspaceProfileContextRegistry dataspaceProfileContextRegistry) {
-            manager.dataspaceProfileContextRegistry = dataspaceProfileContextRegistry;
-            return this;
-        }
-
         public Builder pendingGuard(TransferProcessPendingGuard pendingGuard) {
             manager.pendingGuard = pendingGuard;
             return this;
@@ -725,6 +230,11 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
 
         public Builder dataAddressStore(DataAddressStore dataAddressStore) {
             manager.dataAddressStore = dataAddressStore;
+            return this;
+        }
+
+        public Builder transferProcessors(TransferProcessors transferProcessors) {
+            manager.transferProcessors = transferProcessors;
             return this;
         }
     }
