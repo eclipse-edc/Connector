@@ -25,12 +25,14 @@ import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.statemachine.AbstractStateEntityManager;
 import org.eclipse.edc.statemachine.Processor;
 import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.StateMachineManager;
 
 import java.time.Instant;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates.STARTED;
@@ -69,25 +71,27 @@ public class PolicyMonitorManagerImpl extends AbstractStateEntityManager<PolicyM
                 .processor(processEntriesInState(STARTED, this::processMonitoring));
     }
 
-    private boolean processMonitoring(PolicyMonitorEntry entry) {
+    private CompletableFuture<StatusResult<Void>> processMonitoring(PolicyMonitorEntry entry) {
         var transferProcess = transferProcessService.findById(entry.getId());
         if (transferProcess == null) {
-            entry.transitionToFailed("TransferProcess %s does not exist".formatted(entry.getId()));
+            var message = "TransferProcess %s does not exist".formatted(entry.getId());
+            entry.transitionToFailed(message);
             update(entry);
-            return true;
+            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
         }
 
         if (transferProcess.getState() >= TransferProcessStates.COMPLETING.code()) {
             entry.transitionToCompleted();
             update(entry);
-            return true;
+            return CompletableFuture.completedFuture(StatusResult.success());
         }
 
         var contractAgreement = contractAgreementService.findById(entry.getContractId());
         if (contractAgreement == null) {
-            entry.transitionToFailed("ContractAgreement %s does not exist".formatted(entry.getContractId()));
+            var message = "ContractAgreement %s does not exist".formatted(entry.getContractId());
+            entry.transitionToFailed(message);
             update(entry);
-            return true;
+            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
         }
 
         var policy = contractAgreement.getPolicy();
@@ -101,21 +105,22 @@ public class PolicyMonitorManagerImpl extends AbstractStateEntityManager<PolicyM
             if (terminationResult.succeeded()) {
                 entry.transitionToCompleted();
                 update(entry);
-                return true;
+                return CompletableFuture.completedFuture(StatusResult.success());
             }
         }
 
         // we update the state timestamp ensure fairness on polling on  `STARTED` state
         // the lease will be broken in `onNotProcessed`
         entry.updateStateTimestamp();
-        return false;
+        update(entry);
+        return CompletableFuture.completedFuture(StatusResult.success());
     }
 
-    private Processor processEntriesInState(PolicyMonitorEntryStates state, Function<PolicyMonitorEntry, Boolean> function) {
+    private Processor processEntriesInState(PolicyMonitorEntryStates state, Function<PolicyMonitorEntry, CompletableFuture<StatusResult<Void>>> function) {
         var filter = new Criterion[]{ hasState(state.code()) };
-        return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter))
+        return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter), entityRetryProcessConfiguration, clock, monitor)
                 .process(telemetry.contextPropagationMiddleware(function))
-                .onNotProcessed(this::update)
+                .onNotProcessed(this::breakLease)
                 .build();
     }
 

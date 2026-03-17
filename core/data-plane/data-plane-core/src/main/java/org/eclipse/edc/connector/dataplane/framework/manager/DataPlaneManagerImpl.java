@@ -52,6 +52,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -316,16 +317,16 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         update(dataFlow);
     }
 
-    private boolean updateFlowLease(DataFlow dataFlow) {
+    private CompletableFuture<StatusResult<Void>> updateFlowLease(DataFlow dataFlow) {
         dataFlow.setModified();
         store.save(dataFlow);
-        return true;
+        return CompletableFuture.completedFuture(StatusResult.success());
     }
 
-    private boolean restartFlow(DataFlow dataFlow) {
+    private CompletableFuture<StatusResult<Void>> restartFlow(DataFlow dataFlow) {
         monitor.debug("Restarting interrupted flow %s, it was owned by runtime %s".formatted(dataFlow.getId(), dataFlow.getRuntimeId()));
         start(dataFlow);
-        return true;
+        return CompletableFuture.completedFuture(StatusResult.success());
     }
 
     private StatusResult<DataFlow> stop(DataFlow dataFlow) {
@@ -376,7 +377,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
         return ServiceResult.success();
     }
 
-    private boolean processProvisioning(DataFlow dataFlow) {
+    private CompletableFuture<StatusResult<Void>> processProvisioning(DataFlow dataFlow) {
         return entityRetryProcessFactory.retryProcessor(dataFlow)
                 .doProcess(future("provisioning", (flow, e) -> provisionerManager.provision(flow.resourcesToBeProvisioned())))
                 .onSuccess((flow, results) -> {
@@ -406,7 +407,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .execute();
     }
 
-    private boolean processProvisionNotifying(DataFlow dataFlow) {
+    private CompletableFuture<StatusResult<Void>> processProvisionNotifying(DataFlow dataFlow) {
         return entityRetryProcessFactory.retryProcessor(dataFlow)
                 .doProcess(result("provision notifying", (flow, e) -> transferProcessClient.provisioned(flow)))
                 .onSuccess((flow, v) -> {
@@ -429,7 +430,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .execute();
     }
 
-    private boolean processDeprovisioning(DataFlow dataFlow) {
+    private CompletableFuture<StatusResult<Void>> processDeprovisioning(DataFlow dataFlow) {
         return entityRetryProcessFactory.retryProcessor(dataFlow)
                 .doProcess(future("deprovisioning", (flow, e) -> provisionerManager.deprovision(flow.resourcesToBeDeprovisioned())))
                 .onSuccess((flow, results) -> {
@@ -456,14 +457,15 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .execute();
     }
 
-    private boolean processReceived(DataFlow dataFlow) {
+    private CompletableFuture<StatusResult<Void>> processReceived(DataFlow dataFlow) {
         var request = dataFlow.toRequest();
         var transferService = transferServiceRegistry.resolveTransferService(request);
 
         if (transferService == null) {
-            dataFlow.transitToFailed("No transferService available for DataFlow " + dataFlow.getId());
+            var message = "No transferService available for DataFlow " + dataFlow.getId();
+            dataFlow.transitToFailed(message);
             update(dataFlow);
-            return true;
+            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
         }
 
         return entityRetryProcessFactory.retryProcessor(dataFlow)
@@ -508,7 +510,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 });
     }
 
-    private boolean processCompleted(DataFlow dataFlow) {
+    private CompletableFuture<StatusResult<Void>> processCompleted(DataFlow dataFlow) {
         return entityRetryProcessFactory.retryProcessor(dataFlow)
                 .doProcess(Process.result("Complete data flow", (d, v) -> transferProcessClient.completed(dataFlow)))
                 .onSuccess((d, v) -> {
@@ -530,7 +532,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
                 .execute();
     }
 
-    private boolean processFailed(DataFlow dataFlow) {
+    private CompletableFuture<StatusResult<Void>> processFailed(DataFlow dataFlow) {
         return entityRetryProcessFactory.retryProcessor(dataFlow)
                 .doProcess(Process.result("Fail data flow", (d, v) -> transferProcessClient.failed(dataFlow, dataFlow.getErrorDetail())))
                 .onSuccess((d, v) -> {
@@ -549,7 +551,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
     }
 
     @SafeVarargs
-    private Processor processDataFlowInState(DataFlowStates state, Function<DataFlow, Boolean> function, Supplier<Criterion>... additionalCriteria) {
+    private Processor processDataFlowInState(DataFlowStates state, Function<DataFlow, CompletableFuture<StatusResult<Void>>> function, Supplier<Criterion>... additionalCriteria) {
         Supplier<Collection<DataFlow>> entitiesSupplier = () -> {
             var additional = Arrays.stream(additionalCriteria).map(Supplier::get);
             var filter = Stream.concat(Stream.of(new Criterion[]{hasState(state.code())}), additional)
@@ -557,7 +559,7 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
             return store.nextNotLeased(batchSize, filter);
         };
 
-        return ProcessorImpl.Builder.newInstance(entitiesSupplier)
+        return ProcessorImpl.Builder.newInstance(entitiesSupplier, entityRetryProcessConfiguration, clock, monitor)
                 .process(telemetry.contextPropagationMiddleware(function))
                 .onNotProcessed(this::breakLease)
                 .build();

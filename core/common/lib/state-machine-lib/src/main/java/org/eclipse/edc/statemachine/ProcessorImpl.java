@@ -14,8 +14,16 @@
 
 package org.eclipse.edc.statemachine;
 
+import org.eclipse.edc.spi.entity.StatefulEntity;
+import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
+import org.jetbrains.annotations.NotNull;
+
+import java.time.Clock;
 import java.util.Collection;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -36,50 +44,86 @@ import static java.util.function.Predicate.isEqual;
  *
  * @param <E> the entity that is processed
  */
-public class ProcessorImpl<E> implements Processor {
+public class ProcessorImpl<E extends StatefulEntity<E>> implements Processor {
 
     private final Supplier<Collection<E>> entities;
-    private Function<E, Boolean> process;
+    private final EntityRetryProcessConfiguration configuration;
+    private final Clock clock;
+    private final Monitor monitor;
+    private Function<E, CompletableFuture<StatusResult<Void>>> process;
     private Guard<E> guard = Guard.noop();
     private Consumer<E> onNotProcessed = e -> {};
 
-    private ProcessorImpl(Supplier<Collection<E>> entitiesSupplier) {
+    private ProcessorImpl(Supplier<Collection<E>> entitiesSupplier, EntityRetryProcessConfiguration entityRetryProcessConfiguration, Clock clock, Monitor monitor) {
         entities = entitiesSupplier;
+        configuration = entityRetryProcessConfiguration;
+        this.clock = clock;
+        this.monitor = monitor;
     }
 
     @Override
     public Long process() {
         return entities.get().stream()
-                .map(entity -> {
-                    var actualProcess = guard.predicate().test(entity) ? guard.process() : process;
-                    var hasBeenProcessed = actualProcess.apply(entity);
-                    if (!hasBeenProcessed) {
-                        onNotProcessed.accept(entity);
-                    }
-                    return hasBeenProcessed;
-                })
+                .map(this::process)
                 .filter(isEqual(true))
                 .count();
     }
 
-    public static class Builder<E> {
+    private @NotNull Boolean process(E entity) {
+        if (isRetry(entity)) {
+            var delay = delayMillis(entity);
+            if (delay > 0) {
+                monitor.debug(String.format("Entity %s %s retry #%d will not be attempted before %d ms.", entity.getId(), entity.getClass().getSimpleName(), entity.getStateCount() - 1, delay));
+                onNotProcessed.accept(entity);
+                return false;
+            } else {
+                monitor.debug(String.format("Entity %s %s retry #%d of %d.", entity.getId(), entity.getClass().getSimpleName(), entity.getStateCount() - 1, configuration.retryLimit()));
+            }
+        }
+
+        var actualProcess = guard.predicate().test(entity) ? guard.process() : process;
+        actualProcess.apply(entity);
+        return true;
+    }
+
+    private boolean isRetry(E entity) {
+        return entity.getStateCount() - 1 > 0;
+    }
+
+    private long delayMillis(E entity) {
+        var delayStrategy = configuration.delayStrategySupplier().get();
+
+        // Set the WaitStrategy to have observed <retryCount> previous failures.
+        // This is relevant for stateful strategies such as exponential wait.
+        delayStrategy.failures(entity.getStateCount() - 1);
+
+        // Get the delay time following the number of failures.
+        var waitMillis = delayStrategy.retryInMillis();
+
+        return entity.getStateTimestamp() + waitMillis - clock.millis();
+    }
+
+    public static class Builder<E extends StatefulEntity<E>> {
 
         private final ProcessorImpl<E> processor;
 
-        public Builder(Supplier<Collection<E>> entitiesSupplier) {
-            processor = new ProcessorImpl<>(entitiesSupplier);
+        private Builder(Supplier<Collection<E>> entitiesSupplier, EntityRetryProcessConfiguration entityRetryProcessConfiguration,
+                        Clock clock, Monitor monitor) {
+            processor = new ProcessorImpl<>(entitiesSupplier, entityRetryProcessConfiguration, clock, monitor);
         }
 
-        public static <E> Builder<E> newInstance(Supplier<Collection<E>> entitiesSupplier) {
-            return new Builder<>(entitiesSupplier);
+        public static <E extends StatefulEntity<E>> Builder<E> newInstance(Supplier<Collection<E>> entitiesSupplier,
+                                                                           EntityRetryProcessConfiguration entityRetryProcessConfiguration,
+                                                                           Clock clock, Monitor monitor) {
+            return new Builder<>(entitiesSupplier, entityRetryProcessConfiguration, clock, monitor);
         }
 
-        public Builder<E> process(Function<E, Boolean> process) {
+        public Builder<E> process(Function<E, CompletableFuture<StatusResult<Void>>> process) {
             processor.process = process;
             return this;
         }
 
-        public Builder<E> guard(Predicate<E> predicate, Function<E, Boolean> process) {
+        public Builder<E> guard(Predicate<E> predicate, Function<E, CompletableFuture<StatusResult<Void>>> process) {
             processor.guard = new Guard<>(predicate, process);
             return this;
         }
@@ -102,9 +146,9 @@ public class ProcessorImpl<E> implements Processor {
         }
     }
 
-    private record Guard<E>(Predicate<E> predicate, Function<E, Boolean> process) {
+    private record Guard<E>(Predicate<E> predicate, Function<E, CompletableFuture<StatusResult<Void>>> process) {
         static <E> Guard<E> noop() {
-            return new Guard<>(e -> false, e -> false);
+            return new Guard<>(e -> false, e -> CompletableFuture.completedFuture(StatusResult.success()));
         }
     }
 }
