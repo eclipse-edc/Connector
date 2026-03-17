@@ -30,6 +30,8 @@ dependencies {
     api(project(":core:control-plane:control-plane-core"))
     api(project(":core:data-plane-selector:data-plane-selector-core"))
     api(project(":core:policy-monitor:policy-monitor-core"))
+    api(project(":core:federated-catalog-core"))
+    api(project(":core:federated-catalog-core-2025"))
     api(project(":data-protocols:dsp"))
 
     // extension dependencies
@@ -54,6 +56,7 @@ dependencies {
     api(project(":extensions:control-plane:callback:callback-http-dispatcher"))
     api(project(":extensions:control-plane:callback:callback-static-endpoint"))
     api(project(":extensions:control-plane:edr:edr-store-receiver"))
+    api(project(":extensions:federated-catalog:api:federated-catalog-api"))
 
 
     // libs

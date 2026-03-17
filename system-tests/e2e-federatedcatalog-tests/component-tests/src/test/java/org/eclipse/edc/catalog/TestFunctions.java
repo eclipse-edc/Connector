@@ -49,16 +49,16 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 public class TestFunctions {
-    public static final String CATALOG_QUERY_BASE_PATH = "/catalog";
-    public static final int CATALOG_QUERY_PORT = getFreePort();
-    private static final String PATH = "/v1alpha/catalog/query";
+    public static final String MANAGEMENT_BASE_PATH = "/api/management";
+    public static final int MANAGEMENT_PORT = getFreePort();
+    private static final String PATH = "/v3/catalogs/request";
     private static final TypeReference<List<Map<String, Object>>> MAP_TYPE = new TypeReference<>() {
     };
 
     private static RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:" + CATALOG_QUERY_PORT)
-                .basePath(CATALOG_QUERY_BASE_PATH)
+                .baseUri("http://localhost:" + MANAGEMENT_PORT)
+                .basePath(MANAGEMENT_BASE_PATH)
                 .contentType(ContentType.JSON)
                 .when();
     }

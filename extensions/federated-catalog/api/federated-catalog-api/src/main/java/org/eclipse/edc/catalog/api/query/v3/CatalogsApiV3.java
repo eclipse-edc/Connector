@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.catalog.api.query;
+package org.eclipse.edc.catalog.api.query.v3;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,23 +29,23 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.ApiCoreSchema;
 
 @OpenAPIDefinition(
-        info = @Info(description = "This represents the Federated Catalog API. It serves the cached Catalogs fetched from the data providers.",
-                title = "Federated Catalog API", version = "v1"))
-@Tag(name = "Federated Catalog")
-public interface FederatedCatalogApi {
-    @Operation(description = "Obtains all Catalog currently held by this cache instance",
+        info = @Info(description = "This represents the Catalogs API. It serves the cached catalogs fetched from data providers.",
+                title = "Catalogs API", version = "v3"))
+@Tag(name = "Catalogs V3")
+public interface CatalogsApiV3 {
+    @Operation(description = "Obtains all catalogs currently held by this cache instance",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))),
             parameters = @Parameter(name = "flatten", description = "Whether the resulting root catalog should be 'flattened' or contain a hierarchy of catalogs"),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "A list of Catalog is returned, potentially empty",
+                    @ApiResponse(responseCode = "200", description = "A list of catalogs is returned, potentially empty",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = CatalogSchema.class)))),
-                    @ApiResponse(responseCode = "500", description = "A Query could not be completed due to an internal error")
+                    @ApiResponse(responseCode = "500", description = "A query could not be completed due to an internal error")
             }
 
     )
-    JsonArray getCachedCatalog(JsonObject querySpec, boolean flatten);
+    JsonArray requestCatalogsV3(JsonObject querySpec, boolean flatten);
 
-    @Schema(name = "Catalog", description = "DCAT catalog", example = CatalogSchema.CATALOG_EXAMPLE)
+    @Schema(name = "CatalogV3", description = "DCAT catalog", example = CatalogSchema.CATALOG_EXAMPLE)
     record CatalogSchema(
     ) {
         public static final String CATALOG_EXAMPLE = """
@@ -116,4 +116,3 @@ public interface FederatedCatalogApi {
                 """;
     }
 }
-

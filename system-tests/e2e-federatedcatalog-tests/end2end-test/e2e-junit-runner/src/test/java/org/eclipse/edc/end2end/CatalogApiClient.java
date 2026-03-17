@@ -70,7 +70,7 @@ class CatalogApiClient {
     }
 
     public String queryCatalogs(JsonObject querySpec) {
-        var rq = createPostRequest(querySpec, catalog("/v1alpha/catalog/query"));
+        var rq = createPostRequest(querySpec, catalog("/v3/catalogs/request"));
 
         try (var response = getClient().newCall(rq).execute()) {
             if (response.isSuccessful()) {

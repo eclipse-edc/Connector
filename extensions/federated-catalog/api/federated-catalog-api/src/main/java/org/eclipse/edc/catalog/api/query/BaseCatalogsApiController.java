@@ -16,12 +16,6 @@ package org.eclipse.edc.catalog.api.query;
 
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.DefaultValue;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
 import org.eclipse.edc.catalog.spi.QueryService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.federatedcatalog.util.FederatedCatalogUtil;
@@ -32,25 +26,19 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
-import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
-@Consumes(APPLICATION_JSON)
-@Produces(APPLICATION_JSON)
-@Path("/v1alpha/catalog/query")
-public class FederatedCatalogApiController implements FederatedCatalogApi {
+public abstract class BaseCatalogsApiController {
 
     private final QueryService queryService;
     private final TypeTransformerRegistry transformerRegistry;
 
-    public FederatedCatalogApiController(QueryService queryService, TypeTransformerRegistry transformerRegistry) {
+    public BaseCatalogsApiController(QueryService queryService, TypeTransformerRegistry transformerRegistry) {
         this.queryService = queryService;
         this.transformerRegistry = transformerRegistry;
     }
 
-    @Override
-    @POST
-    public JsonArray getCachedCatalog(JsonObject querySpecJson, @DefaultValue("false") @QueryParam("flatten") boolean flatten) {
+    public JsonArray requestCatalogs(JsonObject querySpecJson, boolean flatten) {
         var querySpec = querySpecJson == null
                 ? QuerySpec.none()
                 : transformerRegistry.transform(querySpecJson, QuerySpec.class)

@@ -14,34 +14,29 @@
 
 package org.eclipse.edc.catalog.api.query;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.catalog.api.query.v3.CatalogsApiV3Controller;
+import org.eclipse.edc.catalog.api.query.v4.CatalogsApiV4Controller;
 import org.eclipse.edc.catalog.spi.QueryService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.apiversion.ApiVersionService;
-import org.eclipse.edc.spi.system.apiversion.VersionRecord;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
-import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebService;
-import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.eclipse.edc.catalog.api.query.FederatedCatalogApiExtension.CATALOG_QUERY_SCOPE;
-import static org.eclipse.edc.catalog.spi.FccApiContexts.CATALOG_QUERY;
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_CONTEXT_2025_1;
 import static org.eclipse.edc.jsonld.spi.Namespaces.EDC_DSPACE_CONTEXT;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.eclipse.edc.web.spi.configuration.ApiContext.MANAGEMENT;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
@@ -52,9 +47,7 @@ class FederatedCatalogApiExtensionTest {
     private final JsonLd jsonLd = mock();
     private final TypeManager typeManager = mock();
     private final QueryService queryService = mock();
-    private final ApiVersionService apiVersionService = mock();
-    private final PortMappingRegistry portMappingRegistry = mock();
-    private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper();
+    private final JsonObjectValidatorRegistry validatorRegistry = mock();
 
     @BeforeEach
     void setUp(ServiceExtensionContext context) {
@@ -63,36 +56,21 @@ class FederatedCatalogApiExtensionTest {
         context.registerService(JsonLd.class, jsonLd);
         context.registerService(TypeManager.class, typeManager);
         context.registerService(QueryService.class, queryService);
-        context.registerService(ApiVersionService.class, apiVersionService);
-        context.registerService(PortMappingRegistry.class, portMappingRegistry);
-        when(typeManager.getMapper()).thenReturn(mapper);
+        context.registerService(JsonObjectValidatorRegistry.class, validatorRegistry);
+        when(transformerRegistry.forContext("management-api")).thenReturn(transformerRegistry);
     }
 
     @Test
-    void initialize_shouldRegisterStandaloneCatalogApiResources(FederatedCatalogApiExtension extension, ServiceExtensionContext context) {
+    void initialize_shouldRegisterV3AndV4ManagementApiResources(FederatedCatalogApiExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(portMappingRegistry).register(argThat(mapping ->
-                mapping.name().equals(CATALOG_QUERY) && mapping.port() == 17171 && mapping.path().equals("/api/catalog")));
-        verify(webService).registerResource(eq(CATALOG_QUERY), isA(FederatedCatalogApiController.class));
-        verify(webService).registerResource(eq(CATALOG_QUERY), isA(ObjectMapperProvider.class));
-        verify(webService).registerResource(eq(CATALOG_QUERY), isA(JerseyJsonLdInterceptor.class));
-        verify(apiVersionService).addRecord(eq(CATALOG_QUERY), argThat(this::isCatalogApiVersion));
-        verifyNoInteractions(transformerRegistry);
-    }
+        verify(webService).registerResource(eq(MANAGEMENT), isA(CatalogsApiV3Controller.class));
+        verify(webService).registerDynamicResource(eq(MANAGEMENT), eq(CatalogsApiV3Controller.class), isA(JerseyJsonLdInterceptor.class));
 
-    @Test
-    void initialize_shouldRegisterNamespaces(FederatedCatalogApiExtension extension, ServiceExtensionContext context) {
-        extension.initialize(context);
+        verify(webService).registerResource(eq(MANAGEMENT), isA(CatalogsApiV4Controller.class));
+        verify(webService).registerDynamicResource(eq(MANAGEMENT), eq(CatalogsApiV4Controller.class), isA(JerseyJsonLdInterceptor.class));
 
-        verify(jsonLd).registerContext(DSPACE_CONTEXT_2025_1, CATALOG_QUERY_SCOPE);
-        verify(jsonLd).registerContext(EDC_DSPACE_CONTEXT, CATALOG_QUERY_SCOPE);
-    }
-
-    private boolean isCatalogApiVersion(VersionRecord versionRecord) {
-        return versionRecord != null &&
-                "1.0.0-alpha".equals(versionRecord.version()) &&
-                "/v1alpha".equals(versionRecord.urlPath()) &&
-                versionRecord.maturity() == null;
+        verify(jsonLd).registerContext(DSPACE_CONTEXT_2025_1, MANAGEMENT_SCOPE);
+        verify(jsonLd).registerContext(EDC_DSPACE_CONTEXT, MANAGEMENT_SCOPE);
     }
 }

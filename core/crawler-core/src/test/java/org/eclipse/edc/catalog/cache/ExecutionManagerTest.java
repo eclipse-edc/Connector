@@ -159,6 +159,17 @@ class ExecutionManagerTest {
     }
 
     @Test
+    void executePlan_shouldNotRunPlanWhenGloballyDisabled() {
+        manager = createManagerBuilder().configuration(disabledCrawler()).build();
+        var mockPlan = mock(ExecutionPlan.class);
+        manager.executePlan(mockPlan);
+
+        verify(monitorMock).warning(anyString());
+        verifyNoInteractions(mockPlan);
+        verifyNoInteractions(preExecutionTaskMock, queryAdapterMock, successHandler, postExecutionTask);
+    }
+
+    @Test
     void shutdownPlan_shouldNotStopPlanWhenGloballyDisabled() {
 
         manager = createManagerBuilder().configuration(disabledCrawler()).build();
