@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":spi:common:participant-spi"))
     implementation(project(":spi:common:participant-context-config-spi"))
     implementation(project(":spi:common:protocol-spi"))
+
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:crypto-common-lib"))
     implementation(project(":core:common:lib:token-lib"))

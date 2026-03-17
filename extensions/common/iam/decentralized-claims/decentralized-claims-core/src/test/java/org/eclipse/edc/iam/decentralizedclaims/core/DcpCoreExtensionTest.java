@@ -46,6 +46,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.DCP_SELF_ISSUED_TOKEN_CONTEXT;
+import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.DEPRECATED_ISSUER_ID_KEY;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -54,7 +55,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(DependencyInjectionExtension.class)
 class DcpCoreExtensionTest {
 
-    private static final String CONNECTOR_DID_PROPERTY = "edc.iam.issuer.id";
     private static final String CLEANUP_PERIOD = "edc.sql.store.jti.cleanup.period";
     private final JtiValidationStore storeMock = mock();
     private final TypeTransformerRegistry transformerRegistry = mock();
@@ -70,9 +70,8 @@ class DcpCoreExtensionTest {
         context.registerService(TokenValidationRulesRegistry.class, rulesRegistry);
 
         var config = ConfigFactory.fromMap(Map.of(
-                CONNECTOR_DID_PROPERTY, "did:web:test",
+                DEPRECATED_ISSUER_ID_KEY, "did:web:test",
                 CLEANUP_PERIOD, "1"
-
         ));
         when(context.getConfig()).thenReturn(config);
     }
@@ -104,7 +103,6 @@ class DcpCoreExtensionTest {
         assertThat(rulesRegistry.getRules(DCP_SELF_ISSUED_TOKEN_CONTEXT))
                 .extracting(TokenValidationRule::getClass)
                 .containsExactlyInAnyOrderElementsOf(expectedRules);
-
     }
 
     @Test
@@ -139,4 +137,14 @@ class DcpCoreExtensionTest {
                 .untilAsserted(() -> verify(storeMock, atLeastOnce()).deleteExpired());
     }
 
+    @Test
+    void shouldFallbackToParticipantId_whenDidNotSet(ServiceExtensionContext context, ObjectFactory objectFactory) {
+        var config = ConfigFactory.fromMap(Map.of(
+                "edc.participant.id", "did:web:test",
+                CLEANUP_PERIOD, "1"
+        ));
+        when(context.getConfig()).thenReturn(config);
+
+        objectFactory.constructInstance(DcpCoreExtension.class);
+    }
 }

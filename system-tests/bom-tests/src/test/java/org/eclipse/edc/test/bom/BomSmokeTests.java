@@ -73,7 +73,7 @@ public class BomSmokeTests {
                                     put("web.http.management.path", "/api/management");
                                     put("edc.iam.sts.privatekey.alias", "privatekey");
                                     put("edc.iam.sts.publickey.id", "publickey");
-                                    put("edc.iam.issuer.id", "did:web:someone");
+                                    put("edc.participant.did", "did:web:someone");
                                 }})
                         )
         );
@@ -97,7 +97,7 @@ public class BomSmokeTests {
                                 put("web.http.catalog.path", "/api/catalog");
                                 put("web.http.version.port", String.valueOf(getFreePort()));
                                 put("edc.catalog.cache.execution.period.seconds", "5");
-                                put("edc.iam.issuer.id", "did:web:testparticipant");
+                                put("edc.participant.did", "did:web:testparticipant");
                                 put("edc.iam.sts.privatekey.alias", "private-alias");
                                 put("edc.iam.sts.publickey.id", "public-key-id");
                                 put("edc.catalog.cache.execution.delay.seconds", "0");
