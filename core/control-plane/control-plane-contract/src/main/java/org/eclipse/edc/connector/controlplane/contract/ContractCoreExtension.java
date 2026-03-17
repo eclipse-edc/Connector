@@ -20,26 +20,35 @@ package org.eclipse.edc.connector.controlplane.contract;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.listener.ContractNegotiationEventListener;
+import org.eclipse.edc.connector.controlplane.contract.negotiation.NegotiationProcessorsImpl;
 import org.eclipse.edc.connector.controlplane.contract.policy.PolicyEquality;
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.NegotiationProcessors;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.policy.ContractNegotiationPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.policy.TransferProcessPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.controlplane.contract.validation.ContractValidationServiceImpl;
 import org.eclipse.edc.connector.controlplane.policy.contract.ContractExpiryCheckFunction;
+import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.Permission;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
+import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.event.EventRouter;
+import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.statemachine.StateMachineConfiguration;
 
 import java.time.Clock;
 
@@ -57,32 +66,34 @@ public class ContractCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Contract Core";
 
+    @SettingContext("edc.negotiation")
+    @Configuration
+    private StateMachineConfiguration stateMachineConfiguration;
+
     @Inject
     private AssetIndex assetIndex;
-
     @Inject
     private PolicyEngine policyEngine;
-
     @Inject
     private Monitor monitor;
-
-    @Inject
-    private Telemetry telemetry;
-
     @Inject
     private Clock clock;
-
     @Inject
     private EventRouter eventRouter;
-
     @Inject
     private TypeManager typeManager;
-
     @Inject
     private RuleBindingRegistry ruleBindingRegistry;
-
     @Inject
     private ContractNegotiationObservable observable;
+    @Inject
+    private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
+    @Inject
+    private ContractNegotiationStore store;
+    @Inject
+    private ParticipantIdentityResolver identityResolver;
+    @Inject
+    private RemoteMessageDispatcherRegistry dispatcherRegistry;
 
     @Override
     public String name() {
@@ -96,6 +107,13 @@ public class ContractCoreExtension implements ServiceExtension {
         policyEngine.registerScope(NEGOTIATION_SCOPE, ContractNegotiationPolicyContext.class);
         policyEngine.registerScope(TRANSFER_SCOPE, TransferProcessPolicyContext.class);
         registerServices(context);
+    }
+
+    @Provider
+    public NegotiationProcessors negotiationProcessors() {
+        return new NegotiationProcessorsImpl(monitor, dataspaceProfileContextRegistry, observable, store,
+                identityResolver, clock, dispatcherRegistry, stateMachineConfiguration.entityRetryProcessConfiguration()
+        );
     }
 
     private void registerServices(ServiceExtensionContext context) {

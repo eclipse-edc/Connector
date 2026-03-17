@@ -18,22 +18,18 @@ import org.eclipse.edc.connector.controlplane.contract.negotiation.ConsumerContr
 import org.eclipse.edc.connector.controlplane.contract.negotiation.ProviderContractNegotiationManagerImpl;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuard;
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.NegotiationProcessors;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.NegotiationWaitStrategy;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
-import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
-import org.eclipse.edc.spi.retry.WaitStrategy;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -48,46 +44,26 @@ public class ContractManagerExtension implements ServiceExtension {
 
     public static final String NAME = "Contract Manager";
 
-    @SettingContext("edc.negotiation.consumer")
+    @SettingContext("edc.negotiation")
     @Configuration
-    private StateMachineConfiguration consumerStateMachineConfiguration;
-
-    @SettingContext("edc.negotiation.provider")
-    @Configuration
-    private StateMachineConfiguration providerStateMachineConfiguration;
-
-    @Inject
-    private RemoteMessageDispatcherRegistry dispatcherRegistry;
+    private StateMachineConfiguration stateMachineConfiguration;
 
     @Inject
     private ContractNegotiationStore store;
-
-    @Inject
-    private PolicyDefinitionStore policyStore;
-
     @Inject
     private Monitor monitor;
-
     @Inject
     private Telemetry telemetry;
-
     @Inject
     private Clock clock;
-
-    @Inject
-    private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
-
     @Inject
     private ContractNegotiationObservable observable;
-
     @Inject
     private ContractNegotiationPendingGuard pendingGuard;
-
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
-
     @Inject
-    private ParticipantIdentityResolver identityResolver;
+    private NegotiationProcessors negotiationProcessors;
 
     private ConsumerContractNegotiationManagerImpl consumerNegotiationManager;
     private ProviderContractNegotiationManagerImpl providerNegotiationManager;
@@ -99,7 +75,43 @@ public class ContractManagerExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        registerServices(context);
+        checkConfigurationGroup(context, "edc.negotiation.provider");
+        checkConfigurationGroup(context, "edc.negotiation.consumer");
+
+        var waitStrategy = context.hasService(NegotiationWaitStrategy.class)
+                ? context.getService(NegotiationWaitStrategy.class)
+                : stateMachineConfiguration.iterationWaitExponentialWaitStrategy();
+
+        consumerNegotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
+                .negotiationProcessors(negotiationProcessors)
+                .waitStrategy(waitStrategy)
+                .monitor(monitor)
+                .observable(observable)
+                .clock(clock)
+                .telemetry(telemetry)
+                .executorInstrumentation(executorInstrumentation)
+                .store(store)
+                .batchSize(stateMachineConfiguration.batchSize())
+                .entityRetryProcessConfiguration(stateMachineConfiguration.entityRetryProcessConfiguration())
+                .pendingGuard(pendingGuard)
+                .build();
+
+        providerNegotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
+                .negotiationProcessors(negotiationProcessors)
+                .waitStrategy(waitStrategy)
+                .monitor(monitor)
+                .observable(observable)
+                .clock(clock)
+                .telemetry(telemetry)
+                .executorInstrumentation(executorInstrumentation)
+                .store(store)
+                .batchSize(stateMachineConfiguration.batchSize())
+                .entityRetryProcessConfiguration(stateMachineConfiguration.entityRetryProcessConfiguration())
+                .pendingGuard(pendingGuard)
+                .build();
+
+        context.registerService(ConsumerContractNegotiationManager.class, consumerNegotiationManager);
+        context.registerService(ProviderContractNegotiationManager.class, providerNegotiationManager);
     }
 
     @Override
@@ -119,47 +131,13 @@ public class ContractManagerExtension implements ServiceExtension {
         }
     }
 
-    private void registerServices(ServiceExtensionContext context) {
-        consumerNegotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
-                .waitStrategy(getWaitStrategy(context, consumerStateMachineConfiguration.iterationWaitExponentialWaitStrategy()))
-                .dispatcherRegistry(dispatcherRegistry)
-                .monitor(monitor)
-                .observable(observable)
-                .clock(clock)
-                .telemetry(telemetry)
-                .executorInstrumentation(executorInstrumentation)
-                .store(store)
-                .policyStore(policyStore)
-                .batchSize(consumerStateMachineConfiguration.batchSize())
-                .entityRetryProcessConfiguration(consumerStateMachineConfiguration.entityRetryProcessConfiguration())
-                .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
-                .identityResolver(identityResolver)
-                .pendingGuard(pendingGuard)
-                .build();
-
-        providerNegotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
-                .waitStrategy(getWaitStrategy(context, providerStateMachineConfiguration.iterationWaitExponentialWaitStrategy()))
-                .dispatcherRegistry(dispatcherRegistry)
-                .monitor(monitor)
-                .observable(observable)
-                .clock(clock)
-                .telemetry(telemetry)
-                .executorInstrumentation(executorInstrumentation)
-                .store(store)
-                .policyStore(policyStore)
-                .batchSize(providerStateMachineConfiguration.batchSize())
-                .entityRetryProcessConfiguration(providerStateMachineConfiguration.entityRetryProcessConfiguration())
-                .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
-                .identityResolver(identityResolver)
-                .pendingGuard(pendingGuard)
-                .build();
-
-        context.registerService(ConsumerContractNegotiationManager.class, consumerNegotiationManager);
-        context.registerService(ProviderContractNegotiationManager.class, providerNegotiationManager);
-    }
-
-    private WaitStrategy getWaitStrategy(ServiceExtensionContext context, ExponentialWaitStrategy fallback) {
-        return context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : fallback;
+    @Deprecated(since = "0.17.0")
+    private void checkConfigurationGroup(ServiceExtensionContext context, String configurationGroup) {
+        if (!context.getConfig(configurationGroup).getEntries().isEmpty()) {
+            var message = "The configuration group '" + configurationGroup + "' needs to be migrated into 'edc.negotiation'";
+            monitor.severe(message);
+            throw new EdcException(message);
+        }
     }
 
 }

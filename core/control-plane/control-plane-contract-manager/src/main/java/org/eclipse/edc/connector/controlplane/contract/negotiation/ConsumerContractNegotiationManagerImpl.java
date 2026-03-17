@@ -20,22 +20,14 @@ package org.eclipse.edc.connector.controlplane.contract.negotiation;
 
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementVerificationMessage;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage.Type;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.statemachine.StateMachineManager;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
-import static java.lang.String.format;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage.Type.ACCEPTED;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTING;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.AGREED;
@@ -75,7 +67,9 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
                 .build();
 
         negotiation.addContractOffer(request.getContractOffer());
-        transitionToInitial(negotiation);
+        negotiation.transitionInitial();
+        update(negotiation);
+        observable.invokeForEach(l -> l.initiated(negotiation));
 
         return StatusResult.success(negotiation);
     }
@@ -88,100 +82,12 @@ public class ConsumerContractNegotiationManagerImpl extends AbstractContractNego
     @Override
     protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
         return builder
-                .processor(processNegotiationsInState(INITIAL, this::processInitial))
-                .processor(processNegotiationsInState(REQUESTING, this::processRequesting))
-                .processor(processNegotiationsInState(ACCEPTING, this::processAccepting))
-                .processor(processNegotiationsInState(AGREED, this::processAgreed))
-                .processor(processNegotiationsInState(VERIFYING, this::processVerifying))
-                .processor(processNegotiationsInState(TERMINATING, this::processTerminating));
-    }
-
-    /**
-     * Processes {@link ContractNegotiation} in state INITIAL. Transition ContractNegotiation to REQUESTING.
-     *
-     * @return true if processed, false otherwise
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processInitial(ContractNegotiation negotiation) {
-        transitionToRequesting(negotiation);
-        return CompletableFuture.completedFuture(StatusResult.success());
-    }
-
-    /**
-     * Processes {@link ContractNegotiation} in state REQUESTING. Tries to send the current offer to the respective
-     * provider. If this succeeds, the ContractNegotiation is transitioned to state REQUESTED. Else, it is transitioned
-     * to REQUESTING for a retry.
-     *
-     * @return true if processed, false otherwise
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processRequesting(ContractNegotiation negotiation) {
-        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol());
-        if (callbackAddress == null) {
-            var message = "No callback address found for protocol: %s".formatted(negotiation.getProtocol());
-            transitionToTerminated(negotiation, message);
-            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
-        }
-
-        var type = negotiation.getContractOffers().size() == 1 ? Type.INITIAL : Type.COUNTER_OFFER;
-
-        var messageBuilder = ContractRequestMessage.Builder.newInstance()
-                .contractOffer(negotiation.getLastContractOffer())
-                .callbackAddress(callbackAddress.url())
-                .type(type);
-
-        return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class, "[Consumer] send request")
-                .onSuccess(this::transitionToRequested)
-                .onFailure((n, throwable) -> transitionToRequesting(n))
-                .onFinalFailure((n, throwable) -> transitionToTerminated(n, format("Failed to request contract to provider: %s", throwable.getMessage())))
-                .execute();
-    }
-
-    /**
-     * Processes {@link ContractNegotiation} in state ACCEPTING. If the dispatch succeeds, the
-     * ContractNegotiation is transitioned to state ACCEPTED. Else, it is transitioned to ACCEPTING for a retry.
-     *
-     * @return true if processed, false otherwise
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processAccepting(ContractNegotiation negotiation) {
-        var messageBuilder = ContractNegotiationEventMessage.Builder.newInstance().type(ACCEPTED);
-        messageBuilder.policy(negotiation.getLastContractOffer().getPolicy());
-        return dispatch(messageBuilder, negotiation, Object.class, "[consumer] send acceptance")
-                .onSuccess((n, result) -> transitionToAccepted(n))
-                .onFailure((n, throwable) -> transitionToAccepting(n))
-                .onFinalFailure((n, throwable) -> transitionToTerminating(n, format("Failed to send acceptance to provider: %s", throwable.getMessage())))
-                .execute();
-    }
-
-    /**
-     * Processes {@link ContractNegotiation} in state AGREED. It transitions to VERIFYING to make the verification process start.
-     *
-     * @return true if processed, false otherwise
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processAgreed(ContractNegotiation negotiation) {
-        transitionToVerifying(negotiation);
-        return CompletableFuture.completedFuture(StatusResult.success());
-    }
-
-    /**
-     * Processes {@link ContractNegotiation} in state VERIFYING. Verifies the Agreement and send the
-     * {@link ContractAgreementVerificationMessage} to the provider and transition the negotiation to the VERIFIED
-     * state.
-     *
-     * @return true if processed, false otherwise
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processVerifying(ContractNegotiation negotiation) {
-        var messageBuilder = ContractAgreementVerificationMessage.Builder.newInstance()
-                .policy(negotiation.getContractAgreement().getPolicy());
-
-        return dispatch(messageBuilder, negotiation, Object.class, "[consumer] send verification")
-                .onSuccess((n, result) -> transitionToVerified(n))
-                .onFailure((n, throwable) -> transitionToVerifying(n))
-                .onFinalFailure((n, throwable) -> transitionToTerminating(n, format("Failed to send verification to provider: %s", throwable.getMessage())))
-                .execute();
+                .processor(processNegotiationsInState(INITIAL, negotiationProcessors::processInitial))
+                .processor(processNegotiationsInState(REQUESTING, negotiationProcessors::processRequesting))
+                .processor(processNegotiationsInState(ACCEPTING, negotiationProcessors::processAccepting))
+                .processor(processNegotiationsInState(AGREED, negotiationProcessors::processAgreed))
+                .processor(processNegotiationsInState(VERIFYING, negotiationProcessors::processVerifying))
+                .processor(processNegotiationsInState(TERMINATING, negotiationProcessors::processTerminating));
     }
 
     /**
