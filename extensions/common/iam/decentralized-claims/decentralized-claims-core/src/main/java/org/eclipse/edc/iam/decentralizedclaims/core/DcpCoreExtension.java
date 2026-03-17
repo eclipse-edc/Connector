@@ -23,7 +23,6 @@ import org.eclipse.edc.iam.decentralizedclaims.spi.ClaimTokenCreatorFunction;
 import org.eclipse.edc.iam.decentralizedclaims.spi.DcpParticipantAgentServiceExtension;
 import org.eclipse.edc.iam.decentralizedclaims.spi.PresentationRequestService;
 import org.eclipse.edc.iam.decentralizedclaims.spi.SecureTokenService;
-import org.eclipse.edc.iam.decentralizedclaims.spi.validation.TokenValidationAction;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.SignatureSuiteRegistry;
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
@@ -57,7 +56,6 @@ import org.eclipse.edc.verifiablecredentials.jwt.rules.SubJwkIsNullRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.TokenNotNullRule;
 import org.eclipse.edc.verifiablecredentials.linkeddata.DidMethodResolver;
 import org.eclipse.edc.verifiablecredentials.linkeddata.LdpVerifier;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.URISyntaxException;
 import java.time.Clock;
@@ -76,66 +74,64 @@ public class DcpCoreExtension implements ServiceExtension {
     public static final String JSON_2020_SIGNATURE_SUITE = "JsonWebSignature2020";
     public static final long DEFAULT_CLEANUP_PERIOD_SECONDS = 60;
 
-    @Setting(description = "DID of the participant")
-    private static final String ISSUER_ID_KEY = "edc.iam.issuer.id";
-    @Setting(description = "The period of the JTI entry reaper thread in seconds", defaultValue = DEFAULT_CLEANUP_PERIOD_SECONDS + "", key = "edc.sql.store.jti.cleanup.period")
+    @Setting(description = "DID of the participant, only needed if different from the value in edc.participant.id", required = false)
+    public static final String PARTICIPANT_DID = "edc.participant.did";
+
+    @Setting(description = "DEPRECATED: DID of the participant, please refer to " + PARTICIPANT_DID)
+    @Deprecated(since = "0.17.0")
+    public static final String DEPRECATED_ISSUER_ID_KEY = "edc.iam.issuer.id";
+
+    @Setting(
+            key = "edc.sql.store.jti.cleanup.period",
+            description = "The period of the JTI entry reaper thread in seconds",
+            defaultValue = DEFAULT_CLEANUP_PERIOD_SECONDS + "")
     private long reaperCleanupPeriod;
-    @Setting(description = "Activate or deactivate JTI validation", key = "edc.iam.accesstoken.jti.validation", defaultValue = "true")
+
+    @Setting(
+            key = "edc.iam.accesstoken.jti.validation",
+            description = "Activate or deactivate JTI validation",
+            defaultValue = "true")
     private boolean activateJtiValidation;
 
     @Inject
     private SecureTokenService secureTokenService;
-
     @Inject
     private TrustedIssuerRegistry trustedIssuerRegistry;
-
     @Inject
     private TypeManager typeManager;
-
     @Inject
     private SignatureSuiteRegistry signatureSuiteRegistry;
-
     @Inject
     private JsonLd jsonLd;
-
     @Inject
     private Clock clock;
     @Inject
     private DidResolverRegistry didResolverRegistry;
-
     @Inject
     private TokenValidationService tokenValidationService;
-
     @Inject
     private TokenValidationRulesRegistry rulesRegistry;
     @Inject
     private DidPublicKeyResolver didPublicKeyResolver;
     @Inject
     private ClaimTokenCreatorFunction claimTokenFunction;
-
     @Inject
     private ParticipantAgentService participantAgentService;
-
     @Inject(required = false)
     private DcpParticipantAgentServiceExtension participantAgentServiceExtension;
-
     @Inject
     private RevocationServiceRegistry revocationServiceRegistry;
-
     @Inject
     private ParticipantContextConfig participantContextConfig;
-
     @Inject
     private JtiValidationStore jtiValidationStore;
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
-
     @Inject
     private PresentationRequestService presentationRequestService;
 
     private PresentationVerifier presentationVerifier;
     private ScheduledFuture<?> jtiEntryReaperThread;
-
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -188,12 +184,13 @@ public class DcpCoreExtension implements ServiceExtension {
 
     @Provider
     public IdentityService createIdentityService(ServiceExtensionContext context) {
-        var validationAction = tokenValidationAction();
+        var didConfigProvider = new DidConfigProvider(participantContextConfig, context.getMonitor());
+        var validationAction = new SelfIssueIdTokenValidationAction(tokenValidationService, rulesRegistry, didPublicKeyResolver, didConfigProvider);
 
         var credentialValidationService = new VerifiableCredentialValidationServiceImpl(createPresentationVerifier(context),
                 trustedIssuerRegistry, revocationServiceRegistry, clock, typeManager.getMapper());
 
-        return new DcpIdentityService(secureTokenService, this::didResolver, validationAction,
+        return new DcpIdentityService(secureTokenService, didConfigProvider, validationAction,
                 presentationRequestService, claimTokenFunction, credentialValidationService);
     }
 
@@ -213,15 +210,6 @@ public class DcpCoreExtension implements ServiceExtension {
             presentationVerifier = new MultiFormatPresentationVerifier(jwtVerifier, ldpVerifier);
         }
         return presentationVerifier;
-    }
-
-    private String didResolver(String participantContext) {
-        return participantContextConfig.getString(participantContext, ISSUER_ID_KEY);
-    }
-
-    @NotNull
-    private TokenValidationAction tokenValidationAction() {
-        return new SelfIssueIdTokenValidationAction(tokenValidationService, rulesRegistry, didPublicKeyResolver, this::didResolver);
     }
 
 }

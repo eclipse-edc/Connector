@@ -95,7 +95,7 @@ public class DcpPresentationFlowWithDockerTest {
                             "web.http.port", String.valueOf(getFreePort()),
                             "web.http.protocol.path", PROTOCOL_API_PATH,
                             "web.http.protocol.port", PROTOCOL_API_PORT,
-                            "edc.iam.issuer.id", VERIFIER_DID,
+                            "edc.participant.did", VERIFIER_DID,
                             "edc.iam.sts.oauth.token.url", "https://example.com/token",
                             "edc.iam.sts.oauth.client.id", "test-client-id",
                             "edc.iam.sts.oauth.client.secret.alias", "test-secret-alias"

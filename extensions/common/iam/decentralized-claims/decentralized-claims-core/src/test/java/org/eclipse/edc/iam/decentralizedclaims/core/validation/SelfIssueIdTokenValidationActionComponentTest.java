@@ -50,6 +50,7 @@ import java.util.Date;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.PARTICIPANT_DID;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.TestFunctions.createToken;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -64,7 +65,6 @@ public class SelfIssueIdTokenValidationActionComponentTest {
     public static final String CONSUMER_DID = "did:web:consumer";
     public static final String CONSUMER_DID_KEY = "did:web:consumer#key";
     public static final String EXPECTED_AUDIENCE = "did:web:test";
-    private static final String CONNECTOR_DID_PROPERTY = "edc.iam.issuer.id";
     private static final String CLEANUP_PERIOD = "edc.sql.store.jti.cleanup.period";
     private static final ECKeyGenerator EC_KEY_GENERATOR = new ECKeyGenerator(Curve.P_256);
     private final JtiValidationStore storeMock = mock();
@@ -94,7 +94,7 @@ public class SelfIssueIdTokenValidationActionComponentTest {
         context.registerService(TokenValidationService.class, tokenValidationService);
 
         var config = ConfigFactory.fromMap(Map.of(
-                CONNECTOR_DID_PROPERTY, EXPECTED_AUDIENCE,
+                PARTICIPANT_DID, EXPECTED_AUDIENCE,
                 CLEANUP_PERIOD, "1"
         ));
         when(context.getConfig()).thenReturn(config);
