@@ -651,6 +651,7 @@ components:
           example: https://w3id.org/edc/v0.0.1/ns/DataAddress
         type:
           type: string
+      additionalProperties: true
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -690,6 +691,7 @@ components:
           type: string
         properties:
           type: object
+          additionalProperties: true
         sourceDataAddress:
           $ref: "#/components/schemas/DataAddress_1"
         transferType:
@@ -715,6 +717,7 @@ components:
           key: value
     Properties:
       type: object
+      additionalProperties: true
     DataPlaneInstanceSchema:
       required:
       - '@context'

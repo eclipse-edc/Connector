@@ -3265,8 +3265,10 @@ components:
           $ref: "#/components/schemas/DataAddress_1"
         privateProperties:
           type: object
+          additionalProperties: true
         properties:
           type: object
+          additionalProperties: true
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -3287,8 +3289,10 @@ components:
           example: https://w3id.org/edc/v0.0.1/ns/DataAddress
         type:
           type: string
+      additionalProperties: true
     Properties:
       type: object
+      additionalProperties: true
     ApiErrorDetail:
       type: object
       properties:
@@ -5271,8 +5275,10 @@ components:
           $ref: "#/components/schemas/DataAddress_1"
         privateProperties:
           type: object
+          additionalProperties: true
         properties:
           type: object
+          additionalProperties: true
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
@@ -5944,6 +5950,7 @@ components:
           type: string
         privateProperties:
           type: object
+          additionalProperties: true
         protocol:
           type: string
         state:
@@ -6930,6 +6937,7 @@ components:
           $ref: "#/components/schemas/DataAddress_1"
         privateProperties:
           type: object
+          additionalProperties: true
         protocol:
           type: string
         transferType:
