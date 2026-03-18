@@ -195,6 +195,8 @@ include(":extensions:federated-catalog:store:sql:target-node-directory-sql")
 include(":extensions:common:api:control-api-configuration")
 include(":extensions:common:api:management-api-configuration")
 include(":extensions:common:api:management-api-schema-validator")
+include(":extensions:common:api:management-api-authorization")
+include(":extensions:common:api:management-api-oauth2-authentication")
 include(":extensions:federated-catalog:api:federated-catalog-api")
 
 include(":extensions:control-plane:api:control-plane-api")
