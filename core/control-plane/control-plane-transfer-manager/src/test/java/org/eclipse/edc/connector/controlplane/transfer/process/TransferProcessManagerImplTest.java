@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
+import org.eclipse.edc.connector.controlplane.transfer.processors.TransferProcessorsImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
@@ -47,6 +48,7 @@ import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
+import org.eclipse.edc.statemachine.retry.EntityRetryProcessFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -153,19 +155,20 @@ class TransferProcessManagerImplTest {
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
         var entityRetryProcessConfiguration = new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L));
+        var entityRetryProcessFactory = new EntityRetryProcessFactory(mock(), clock, entityRetryProcessConfiguration);
+        var transformerProcessors = new TransferProcessorsImpl(policyArchive, entityRetryProcessFactory,
+                dataFlowController, dataAddressStore, observable, transferProcessStore, mock(), addressResolver,
+                dataspaceProfileContextRegistry, dispatcherRegistry);
         manager = TransferProcessManagerImpl.Builder.newInstance()
-                .dataFlowController(dataFlowController)
+                .transferProcessors(transformerProcessors)
                 .waitStrategy(() -> 10000L)
                 .batchSize(TRANSFER_MANAGER_BATCHSIZE)
-                .dispatcherRegistry(dispatcherRegistry)
                 .monitor(mock())
                 .clock(clock)
                 .observable(observable)
                 .store(transferProcessStore)
                 .policyArchive(policyArchive)
-                .addressResolver(addressResolver)
                 .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
-                .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
                 .pendingGuard(pendingGuard)
                 .dataAddressStore(dataAddressStore)
                 .build();

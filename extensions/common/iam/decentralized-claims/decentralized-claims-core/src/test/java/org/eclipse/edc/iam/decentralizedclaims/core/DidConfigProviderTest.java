@@ -42,6 +42,7 @@ class DidConfigProviderTest {
         var did = provider.apply("participantContextId");
 
         assertThat(did).isNull();
+        verify(monitor).severe(anyString());
     }
 
     @Test

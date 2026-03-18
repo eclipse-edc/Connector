@@ -110,9 +110,8 @@ public class PolicyMonitorManagerImpl extends AbstractStateEntityManager<PolicyM
         }
 
         // we update the state timestamp ensure fairness on polling on  `STARTED` state
-        // the lease will be broken in `onNotProcessed`
         entry.updateStateTimestamp();
-        update(entry);
+        store.save(entry);
         return CompletableFuture.completedFuture(StatusResult.success());
     }
 
