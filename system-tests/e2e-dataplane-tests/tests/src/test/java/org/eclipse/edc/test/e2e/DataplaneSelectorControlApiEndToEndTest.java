@@ -20,6 +20,7 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.protocol.spi.ProtocolWebhook;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.Order;
@@ -53,6 +54,7 @@ public class DataplaneSelectorControlApiEndToEndTest {
             ":extensions:data-plane:data-plane-signaling:data-plane-signaling-client",
             ":extensions:data-plane-selector:data-plane-selector-control-api")
             .registerServiceMock(ProtocolWebhook.class, mock())
+            .registerServiceMock(DataspaceProfileContextRegistry.class, mock())
             .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
                     "web.http.control.port", String.valueOf(controlPort),
                     "web.http.control.path", "/control",

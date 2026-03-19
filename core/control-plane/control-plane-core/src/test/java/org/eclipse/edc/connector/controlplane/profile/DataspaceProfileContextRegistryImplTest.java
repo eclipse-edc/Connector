@@ -54,23 +54,27 @@ class DataspaceProfileContextRegistryImplTest {
     }
 
     @Nested
-    class Resolve {
-
+    class GetProfiles {
         @Test
-        void shouldReturnNull_whenNoWebhookFound() {
-            var result = registry.getWebhook("unexistent");
+        void shouldReturnProfiles_whenContextsRegisteredDefault() {
+            var version = new ProtocolVersion("version name", "/path", "binding");
+            var profile = new DataspaceProfileContext("profile", version, () -> "url", ct -> "id");
+            registry.registerDefault(profile);
 
-            assertThat(result).isNull();
+            assertThat(registry.getProfiles()).hasSize(1).containsExactly(profile);
         }
 
         @Test
-        void shouldReturnWebhookForName() {
-            var version = new ProtocolVersion("version name", "/path", "binding");
-            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", ct -> "id"));
+        void shouldIgnoreDefaultContexts_whenStandardAreRegistered() {
+            var defaultVersion = new ProtocolVersion("default", "/path", "binding");
+            var standardVersion = new ProtocolVersion("default", "/path", "binding");
+            var defaultProfile = new DataspaceProfileContext("default", defaultVersion, () -> "url", ct -> "id");
+            var standardProfile = new DataspaceProfileContext("standard", standardVersion, () -> "url", ct -> "id");
 
-            var result = registry.getWebhook("profile");
-
-            assertThat(result.url()).isEqualTo("url");
+            registry.registerDefault(defaultProfile);
+            registry.register(standardProfile);
+            
+            assertThat(registry.getProfiles()).hasSize(1).containsExactly(standardProfile);
         }
     }
 

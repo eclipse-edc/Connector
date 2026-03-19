@@ -31,7 +31,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -65,14 +65,14 @@ public class TransferProcessorsImpl implements TransferProcessors {
     private final TransferProcessStore store;
     private final Monitor monitor;
     private final DataAddressResolver addressResolver;
-    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
+    private final ProtocolWebhookResolver protocolWebhookResolver;
     private final RemoteMessageDispatcherRegistry dispatcherRegistry;
 
     public TransferProcessorsImpl(PolicyArchive policyArchive, EntityRetryProcessFactory entityRetryProcessFactory,
                                   DataFlowController dataFlowController, DataAddressStore dataAddressStore,
                                   TransferProcessObservable observable, TransferProcessStore store, Monitor monitor,
                                   DataAddressResolver addressResolver,
-                                  DataspaceProfileContextRegistry dataspaceProfileContextRegistry,
+                                  ProtocolWebhookResolver protocolWebhookResolver,
                                   RemoteMessageDispatcherRegistry dispatcherRegistry) {
         this.policyArchive = policyArchive;
         this.entityRetryProcessFactory = entityRetryProcessFactory;
@@ -82,7 +82,7 @@ public class TransferProcessorsImpl implements TransferProcessors {
         this.store = store;
         this.monitor = monitor;
         this.addressResolver = addressResolver;
-        this.dataspaceProfileContextRegistry = dataspaceProfileContextRegistry;
+        this.protocolWebhookResolver = protocolWebhookResolver;
         this.dispatcherRegistry = dispatcherRegistry;
     }
 
@@ -163,7 +163,7 @@ public class TransferProcessorsImpl implements TransferProcessors {
     @WithSpan
     @Override
     public CompletableFuture<StatusResult<Void>> processRequesting(TransferProcess process) {
-        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(process.getProtocol());
+        var callbackAddress = protocolWebhookResolver.getWebhook(process.getParticipantContextId(), process.getProtocol());
 
         if (callbackAddress == null) {
             var message = "No callback address found for protocol: " + process.getProtocol();

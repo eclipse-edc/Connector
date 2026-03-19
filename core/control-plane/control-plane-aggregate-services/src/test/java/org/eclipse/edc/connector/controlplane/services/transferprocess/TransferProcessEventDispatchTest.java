@@ -44,6 +44,7 @@ import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventRouter;
@@ -101,7 +102,8 @@ public class TransferProcessEventDispatchTest {
             .registerServiceMock(ParticipantAgentService.class, mock())
             .registerServiceMock(DataPlaneClientFactory.class, mock())
             .registerServiceMock(DataFlowController.class, mock())
-            .registerServiceMock(DataAddressStore.class, mock());
+            .registerServiceMock(DataAddressStore.class, mock())
+            .registerServiceMock(ProtocolWebhookResolver.class, mock());
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
             .participantContextId("participantContextId")
             .identity("participantId")
@@ -109,8 +111,8 @@ public class TransferProcessEventDispatchTest {
     private final EventSubscriber eventSubscriber = mock();
 
     @BeforeEach
-    void setup(DataFlowController dataFlowController, DataAddressStore dataAddressStore, DataspaceProfileContextRegistry dataspaceProfileContextRegistry) {
-        when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> "http://dummy");
+    void setup(DataFlowController dataFlowController, DataAddressStore dataAddressStore, DataspaceProfileContextRegistry dataspaceProfileContextRegistry, ProtocolWebhookResolver protocolWebhookResolver) {
+        when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> "http://dummy");
         when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> "id");
         when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
         when(dataFlowController.started(any())).thenReturn(StatusResult.success());

@@ -16,6 +16,8 @@ package org.eclipse.edc.protocol.spi;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 /**
  * A registry of configured {@link DataspaceProfileContext}.
  * Profile contexts can be of 2 types: default and standard.
@@ -49,16 +51,6 @@ public interface DataspaceProfileContextRegistry {
     ProtocolVersions getProtocolVersions();
 
     /**
-     * Resolve a webhook for a protocol.
-     *
-     * @param protocol The protocol
-     * @return The webhook for the protocol, or null if no webhook is registered for the protocol
-     */
-    @Nullable
-    ProtocolWebhook getWebhook(String protocol);
-
-
-    /**
      * Get the protocol version for a given protocol.
      *
      * @param protocol The protocol name
@@ -66,7 +58,7 @@ public interface DataspaceProfileContextRegistry {
      */
     @Nullable
     ProtocolVersion getProtocolVersion(String protocol);
-    
+
     /**
      * Get the function for participant id extraction for a given protocol.
      *
@@ -75,4 +67,11 @@ public interface DataspaceProfileContextRegistry {
      */
     @Nullable
     ParticipantIdExtractionFunction getIdExtractionFunction(String protocol);
+
+    /**
+     * Get all the registered profiles, if a standard profile is registered, only the standard ones are returned, otherwise all the default ones are returned.
+     *
+     * @return a list of profile contexts. Always not null.
+     */
+    List<DataspaceProfileContext> getProfiles();
 }
