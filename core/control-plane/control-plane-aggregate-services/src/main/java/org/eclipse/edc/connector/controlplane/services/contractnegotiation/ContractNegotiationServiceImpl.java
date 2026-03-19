@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.controlplane.services.contractnegotiation;
 
-import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.command.InitiateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
@@ -38,16 +38,14 @@ import static java.util.Optional.ofNullable;
 public class ContractNegotiationServiceImpl implements ContractNegotiationService {
 
     private final ContractNegotiationStore store;
-    private final ConsumerContractNegotiationManager consumerManager;
     private final TransactionContext transactionContext;
     private final CommandHandlerRegistry commandHandlerRegistry;
     private final QueryValidator queryValidator;
 
-    public ContractNegotiationServiceImpl(ContractNegotiationStore store, ConsumerContractNegotiationManager consumerManager,
+    public ContractNegotiationServiceImpl(ContractNegotiationStore store,
                                           TransactionContext transactionContext, CommandHandlerRegistry commandHandlerRegistry,
                                           QueryValidator queryValidator) {
         this.store = store;
-        this.consumerManager = consumerManager;
         this.transactionContext = transactionContext;
         this.commandHandlerRegistry = commandHandlerRegistry;
         this.queryValidator = queryValidator;
@@ -84,8 +82,16 @@ public class ContractNegotiationServiceImpl implements ContractNegotiationServic
     }
 
     @Override
-    public ContractNegotiation initiateNegotiation(ParticipantContext participantContext, ContractRequest request) {
-        return transactionContext.execute(() -> consumerManager.initiate(participantContext, request).getContent());
+    public ServiceResult<ContractNegotiation> initiateNegotiation(ParticipantContext participantContext, ContractRequest request) {
+        return transactionContext.execute(() -> commandHandlerRegistry
+                .execute(new InitiateNegotiationCommand(participantContext, request))
+                .flatMap(result -> {
+                    if (result.succeeded()) {
+                        return ServiceResult.success((ContractNegotiation) result.getContent());
+                    } else {
+                        return ServiceResult.from(result);
+                    }
+                }));
     }
 
     @Override

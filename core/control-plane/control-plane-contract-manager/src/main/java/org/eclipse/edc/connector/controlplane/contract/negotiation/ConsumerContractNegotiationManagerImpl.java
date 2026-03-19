@@ -18,15 +18,9 @@
 
 package org.eclipse.edc.connector.controlplane.contract.negotiation;
 
-import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.statemachine.StateMachineManager;
-
-import java.util.UUID;
 
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTING;
@@ -42,36 +36,6 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 public class ConsumerContractNegotiationManagerImpl extends AbstractContractNegotiationManager implements ConsumerContractNegotiationManager {
 
     private ConsumerContractNegotiationManagerImpl() {
-    }
-
-    /**
-     * Initiates a new {@link ContractNegotiation}. The ContractNegotiation is created and persisted, which moves it to
-     * state REQUESTING.
-     *
-     * @param request Container object containing all relevant request parameters.
-     * @return a {@link StatusResult}: OK
-     */
-    @WithSpan
-    @Override
-    public StatusResult<ContractNegotiation> initiate(ParticipantContext participantContext, ContractRequest request) {
-        var id = UUID.randomUUID().toString();
-        var negotiation = ContractNegotiation.Builder.newInstance()
-                .id(id)
-                .protocol(request.getProtocol())
-                .counterPartyId(request.getProviderId())
-                .counterPartyAddress(request.getCounterPartyAddress())
-                .callbackAddresses(request.getCallbackAddresses())
-                .traceContext(telemetry.getCurrentTraceContext())
-                .participantContextId(participantContext.getParticipantContextId())
-                .type(CONSUMER)
-                .build();
-
-        negotiation.addContractOffer(request.getContractOffer());
-        negotiation.transitionInitial();
-        update(negotiation);
-        observable.invokeForEach(l -> l.initiated(negotiation));
-
-        return StatusResult.success(negotiation);
     }
 
     @Override

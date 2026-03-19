@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.controlplane.services.contractnegotiation;
 
-import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.command.InitiateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
@@ -28,7 +28,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.command.CommandResult;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -65,12 +64,11 @@ import static org.mockito.Mockito.when;
 class ContractNegotiationServiceImplTest {
 
     private final ContractNegotiationStore store = mock();
-    private final ConsumerContractNegotiationManager consumerManager = mock();
     private final CommandHandlerRegistry commandHandlerRegistry = mock();
     private final TransactionContext transactionContext = new NoopTransactionContext();
     private final QueryValidator queryValidator = mock();
 
-    private final ContractNegotiationService service = new ContractNegotiationServiceImpl(store, consumerManager, transactionContext, commandHandlerRegistry, queryValidator);
+    private final ContractNegotiationService service = new ContractNegotiationServiceImpl(store, transactionContext, commandHandlerRegistry, queryValidator);
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
             .participantContextId("participantContextId")
             .identity("participantId")
@@ -183,20 +181,42 @@ class ContractNegotiationServiceImplTest {
         assertThat(result).isNull();
     }
 
-    @Test
-    void initiateNegotiation_callsManager() {
-        var contractNegotiation = createContractNegotiation("negotiationId");
-        when(consumerManager.initiate(isA(ParticipantContext.class), isA(ContractRequest.class))).thenReturn(StatusResult.success(contractNegotiation));
+    @Nested
+    class InitiateNegotiation {
 
-        var request = ContractRequest.Builder.newInstance()
-                .counterPartyAddress("address")
-                .protocol("protocol")
-                .contractOffer(createContractOffer())
-                .build();
+        @Test
+        void initiateNegotiation_shouldExecuteCommand() {
+            var contractNegotiation = createContractNegotiation("negotiationId");
+            when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success(contractNegotiation));
 
-        var result = service.initiateNegotiation(participantContext, request);
+            var request = ContractRequest.Builder.newInstance()
+                    .counterPartyAddress("address")
+                    .protocol("protocol")
+                    .contractOffer(createContractOffer())
+                    .build();
 
-        assertThat(result).matches(it -> it.getId().equals("negotiationId"));
+            var result = service.initiateNegotiation(participantContext, request);
+
+            assertThat(result).isSucceeded().satisfies(negotiation -> {
+                assertThat(negotiation.getId()).isEqualTo("negotiationId");
+            });
+            verify(commandHandlerRegistry).execute(isA(InitiateNegotiationCommand.class));
+        }
+
+        @Test
+        void shouldReturnNull_whenCommandExecutionFails() {
+            when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.notExecutable("error"));
+
+            var request = ContractRequest.Builder.newInstance()
+                    .counterPartyAddress("address")
+                    .protocol("protocol")
+                    .contractOffer(createContractOffer())
+                    .build();
+
+            var result = service.initiateNegotiation(participantContext, request);
+
+            assertThat(result).isFailed();
+        }
     }
 
     @Test

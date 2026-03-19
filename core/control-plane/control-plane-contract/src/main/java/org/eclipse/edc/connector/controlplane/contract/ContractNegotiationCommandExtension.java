@@ -14,13 +14,16 @@
 
 package org.eclipse.edc.connector.controlplane.contract;
 
+import org.eclipse.edc.connector.controlplane.contract.negotiation.command.handlers.InitiateNegotiationCommandHandler;
 import org.eclipse.edc.connector.controlplane.contract.negotiation.command.handlers.TerminateNegotiationCommandHandler;
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.telemetry.Telemetry;
 
 import static org.eclipse.edc.connector.controlplane.contract.ContractNegotiationCommandExtension.NAME;
 
@@ -40,12 +43,16 @@ public class ContractNegotiationCommandExtension implements ServiceExtension {
 
     @Inject
     private ContractNegotiationStore store;
-
     @Inject
     private CommandHandlerRegistry registry;
+    @Inject
+    private ContractNegotiationObservable observable;
+    @Inject
+    private Telemetry telemetry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        registry.register(new InitiateNegotiationCommandHandler(store, observable, telemetry, context.getMonitor()));
         registry.register(new TerminateNegotiationCommandHandler(store));
     }
 

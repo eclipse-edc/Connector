@@ -37,6 +37,7 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -329,69 +330,104 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
         verifyNoMoreInteractions(transformerRegistry, service);
     }
 
-    @Test
-    void initiate() {
-        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        var contractNegotiation = createContractNegotiation("cn1");
-        var responseBody = createObjectBuilder().add(TYPE, ID_RESPONSE_TYPE).add(ID, contractNegotiation.getId()).build();
+    @Nested
+    class Initiate {
+        @Test
+        void shouldInitiateNegotiation() {
+            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+            var contractNegotiation = createContractNegotiation("cn1");
+            var responseBody = createObjectBuilder().add(TYPE, ID_RESPONSE_TYPE).add(ID, contractNegotiation.getId()).build();
 
-        when(transformerRegistry.transform(any(JsonObject.class), eq(ContractRequest.class))).thenReturn(Result.success(
-                ContractRequest.Builder.newInstance()
-                        .protocol("test-protocol")
-                        .counterPartyAddress("test-cb")
-                        .contractOffer(ContractOffer.Builder.newInstance()
-                                .id("test-offer-id")
-                                .assetId(randomUUID().toString())
-                                .policy(Policy.Builder.newInstance().build())
-                                .build())
-                        .build()));
+            when(transformerRegistry.transform(any(JsonObject.class), eq(ContractRequest.class))).thenReturn(Result.success(
+                    ContractRequest.Builder.newInstance()
+                            .protocol("test-protocol")
+                            .counterPartyAddress("test-cb")
+                            .contractOffer(ContractOffer.Builder.newInstance()
+                                    .id("test-offer-id")
+                                    .assetId(randomUUID().toString())
+                                    .policy(Policy.Builder.newInstance().build())
+                                    .build())
+                            .build()));
 
-        when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
-        when(service.initiateNegotiation(any(ParticipantContext.class), any(ContractRequest.class))).thenReturn(contractNegotiation);
+            when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
+            when(service.initiateNegotiation(any(ParticipantContext.class), any(ContractRequest.class))).thenReturn(ServiceResult.success(contractNegotiation));
 
-        when(transformerRegistry.transform(any(IdResponse.class), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
+            when(transformerRegistry.transform(any(IdResponse.class), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
 
-        baseRequest()
-                .contentType(JSON)
-                .body(createObjectBuilder().build())
-                .post()
-                .then()
-                .statusCode(200)
-                .body(ID, is(contractNegotiation.getId()));
+            baseRequest()
+                    .contentType(JSON)
+                    .body(createObjectBuilder().build())
+                    .post()
+                    .then()
+                    .statusCode(200)
+                    .body(ID, is(contractNegotiation.getId()));
 
-        verify(service).initiateNegotiation(any(), any());
-        verify(transformerRegistry).transform(any(JsonObject.class), eq(ContractRequest.class));
-        verify(transformerRegistry).transform(any(IdResponse.class), eq(JsonObject.class));
-        verifyNoMoreInteractions(transformerRegistry, service);
-    }
+            verify(service).initiateNegotiation(any(), any());
+            verify(transformerRegistry).transform(any(JsonObject.class), eq(ContractRequest.class));
+            verify(transformerRegistry).transform(any(IdResponse.class), eq(JsonObject.class));
+            verifyNoMoreInteractions(transformerRegistry, service);
+        }
 
-    @Test
-    void initiate_shouldReturnBadRequest_whenValidationFails() {
-        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("error", "path")));
+        @Test
+        void shouldFail_whenServiceFails() {
+            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+            var contractNegotiation = createContractNegotiation("cn1");
+            var responseBody = createObjectBuilder().add(TYPE, ID_RESPONSE_TYPE).add(ID, contractNegotiation.getId()).build();
+            when(transformerRegistry.transform(any(JsonObject.class), eq(ContractRequest.class))).thenReturn(Result.success(
+                    ContractRequest.Builder.newInstance()
+                            .protocol("test-protocol")
+                            .counterPartyAddress("test-cb")
+                            .contractOffer(ContractOffer.Builder.newInstance()
+                                    .id("test-offer-id")
+                                    .assetId(randomUUID().toString())
+                                    .policy(Policy.Builder.newInstance().build())
+                                    .build())
+                            .build()));
 
-        baseRequest()
-                .contentType(JSON)
-                .body(createObjectBuilder().build())
-                .post()
-                .then()
-                .statusCode(400);
+            when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
+            when(service.initiateNegotiation(any(ParticipantContext.class), any(ContractRequest.class))).thenReturn(ServiceResult.unexpected("error"));
+            when(transformerRegistry.transform(any(IdResponse.class), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
 
-        verify(validatorRegistry).validate(eq(ContractRequest.CONTRACT_REQUEST_TYPE), any());
-        verifyNoInteractions(transformerRegistry, service);
-    }
+            baseRequest()
+                    .contentType(JSON)
+                    .body(createObjectBuilder().build())
+                    .post()
+                    .then()
+                    .statusCode(500);
 
-    @Test
-    void initiate_invalidRequest() {
-        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(transformerRegistry.transform(any(JsonObject.class), any())).thenReturn(Result.failure("test-failure"));
+            verify(service).initiateNegotiation(any(), any());
+            verify(transformerRegistry).transform(any(JsonObject.class), eq(ContractRequest.class));
+            verifyNoMoreInteractions(transformerRegistry, service);
+        }
 
-        baseRequest()
-                .contentType(JSON)
-                .body(createObjectBuilder().build())
-                .post()
-                .then()
-                .statusCode(400);
-        verifyNoMoreInteractions(service);
+        @Test
+        void shouldReturnBadRequest_whenValidationFails() {
+            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("error", "path")));
+
+            baseRequest()
+                    .contentType(JSON)
+                    .body(createObjectBuilder().build())
+                    .post()
+                    .then()
+                    .statusCode(400);
+
+            verify(validatorRegistry).validate(eq(ContractRequest.CONTRACT_REQUEST_TYPE), any());
+            verifyNoInteractions(transformerRegistry, service);
+        }
+
+        @Test
+        void invalidRequest() {
+            when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
+            when(transformerRegistry.transform(any(JsonObject.class), any())).thenReturn(Result.failure("test-failure"));
+
+            baseRequest()
+                    .contentType(JSON)
+                    .body(createObjectBuilder().build())
+                    .post()
+                    .then()
+                    .statusCode(400);
+            verifyNoMoreInteractions(service);
+        }
     }
 
     @Test
