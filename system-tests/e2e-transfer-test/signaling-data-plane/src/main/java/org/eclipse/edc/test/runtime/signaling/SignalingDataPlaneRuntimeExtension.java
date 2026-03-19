@@ -51,8 +51,8 @@ import static java.util.Collections.emptyList;
 
 public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
 
-    @Setting(key = "signaling.dataplane.controlplane.endpoint")
-    private String controlplaneEndpoint;
+    @Setting(key = "dataplane.id")
+    private String dataplaneId;
     @Configuration
     private ApiConfiguration apiConfiguration;
 
@@ -67,6 +67,7 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         dataplane = Dataplane.newInstance()
+                .id(dataplaneId)
                 .endpoint(apiConfiguration.dataFlowEndpoint())
                 .transferType("Finite-PUSH")
                 .transferType("Finite-PULL")
@@ -84,12 +85,6 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
         webService.registerResource(dataplane.controller());
         webService.registerResource(new DataController(monitor));
         webService.registerResource(new ControlController(monitor, dataplane, apiConfiguration));
-    }
-
-    @Override
-    public void start() {
-        dataplane.registerOn(controlplaneEndpoint)
-                .orElseThrow(e -> new RuntimeException("Cannot register dataplane on controlplane", e));
     }
 
     private class DataplaneOnStart implements OnStart {

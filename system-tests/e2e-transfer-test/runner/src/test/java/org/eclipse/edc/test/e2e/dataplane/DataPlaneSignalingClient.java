@@ -15,9 +15,12 @@
 package org.eclipse.edc.test.e2e.dataplane;
 
 import io.restassured.http.ContentType;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 
 import static io.restassured.RestAssured.given;
+import static jakarta.json.Json.createArrayBuilder;
+import static jakarta.json.Json.createObjectBuilder;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.equalTo;
 
@@ -63,4 +66,22 @@ public class DataPlaneSignalingClient {
                 .log().ifValidationFails()
                 .statusCode(204);
     }
+
+    public JsonObject getDataPlaneRegistrationMessage() {
+        var dataflowsEndpoint = context.getEndpoint("default").get() + "/v1/dataflows";
+
+        return createObjectBuilder()
+                .add("dataplaneId", context.getConfig().getString("dataplane.id"))
+                .add("endpoint", dataflowsEndpoint)
+                .add("transferTypes", createArrayBuilder()
+                        .add("Finite-PUSH")
+                        .add("Finite-PULL")
+                        .add("NonFinite-PUSH")
+                        .add("NonFinite-PULL")
+                        .add("AsyncPrepare-PUSH")
+                        .add("AsyncStart-PULL")
+                )
+                .build();
+    }
+
 }

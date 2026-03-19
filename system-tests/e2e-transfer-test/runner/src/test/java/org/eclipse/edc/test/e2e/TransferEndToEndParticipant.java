@@ -15,6 +15,7 @@
 package org.eclipse.edc.test.e2e;
 
 import io.restassured.common.mapper.TypeRef;
+import jakarta.json.JsonObject;
 import org.assertj.core.api.ThrowingConsumer;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participant;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
@@ -27,10 +28,13 @@ import java.util.Map;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.web.spi.configuration.ApiContext.CONTROL;
 import static org.eclipse.edc.web.spi.configuration.ApiContext.MANAGEMENT;
 import static org.eclipse.edc.web.spi.configuration.ApiContext.PROTOCOL;
 
 public class TransferEndToEndParticipant extends Participant {
+
+    private LazySupplier<URI> controlPlaneControl;
 
     protected TransferEndToEndParticipant() {
         super();
@@ -46,7 +50,8 @@ public class TransferEndToEndParticipant extends Participant {
                 .id(id)
                 .name(ctx.getName())
                 .managementUrl(ctx.getEndpoint(MANAGEMENT))
-                .protocolUrl(ctx.getEndpoint(PROTOCOL));
+                .protocolUrl(ctx.getEndpoint(PROTOCOL))
+                .controlUrl(ctx.getEndpoint(CONTROL));
     }
 
     /**
@@ -109,6 +114,17 @@ public class TransferEndToEndParticipant extends Participant {
         assertThat(data).satisfies(bodyAssertion);
     }
 
+    public void registerDataPlane(JsonObject dataPlaneRegistrationMessage) {
+        given()
+                .contentType(JSON)
+                .baseUri(controlPlaneControl.get() + "/dataplanes")
+                .when()
+                .body(dataPlaneRegistrationMessage)
+                .put()
+                .then()
+                .statusCode(200);
+    }
+
     public static class Builder extends Participant.Builder<TransferEndToEndParticipant, Builder> {
 
         protected Builder() {
@@ -124,8 +140,13 @@ public class TransferEndToEndParticipant extends Participant {
             return this;
         }
 
-        public Builder protocolUrl(LazySupplier<URI> managementUrl) {
-            participant.controlPlaneProtocol = managementUrl;
+        public Builder protocolUrl(LazySupplier<URI> protocolUrl) {
+            participant.controlPlaneProtocol = protocolUrl;
+            return this;
+        }
+
+        public Builder controlUrl(LazySupplier<URI> controlUrl) {
+            participant.controlPlaneControl = controlUrl;
             return this;
         }
 

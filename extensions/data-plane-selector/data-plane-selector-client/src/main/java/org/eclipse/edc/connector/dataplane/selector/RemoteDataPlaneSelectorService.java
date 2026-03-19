@@ -119,11 +119,6 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
     }
 
     @Override
-    public ServiceResult<Void> update(DataPlaneInstance instance) {
-        return ServiceResult.unexpected("DataPlaneSelectorService.update can only be called as embedded in the control-plane");
-    }
-
-    @Override
     public ServiceResult<DataPlaneInstance> findById(String id) {
         var requestBuilder = new Request.Builder().get().url(url + "/" + id);
 

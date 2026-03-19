@@ -27,7 +27,6 @@ import org.eclipse.edc.api.model.ApiCoreSchema;
 import org.eclipse.edc.signaling.domain.DataPlaneRegistrationMessage;
 
 import static jakarta.ws.rs.HttpMethod.DELETE;
-import static jakarta.ws.rs.HttpMethod.POST;
 import static jakarta.ws.rs.HttpMethod.PUT;
 
 @OpenAPIDefinition
@@ -35,30 +34,18 @@ import static jakarta.ws.rs.HttpMethod.PUT;
 public interface DataPlaneRegistrationApi {
 
     @Operation(
-            method = POST,
-            description = "Register a new Dataplane instance",
+            method = PUT,
+            description = "Register or update a Dataplane instance",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataPlaneRegistrationMessage.class))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "Dataplane instance correctly registered"),
-                    @ApiResponse(responseCode = "400", description = "Request was malformed",
-                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
-            }
-    )
-    Response register(DataPlaneRegistrationMessage registration);
-
-    @Operation(
-            method = PUT,
-            description = "Update a Dataplane instance",
-            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataPlaneRegistrationMessage.class))),
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Dataplane instance correctly updated"),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
                     @ApiResponse(responseCode = "404", description = "Not found",
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    Response update(String dataplaneId, DataPlaneRegistrationMessage registration);
+    Response register(DataPlaneRegistrationMessage registration);
 
 
     @Operation(
