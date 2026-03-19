@@ -24,13 +24,10 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
-import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.spi.EdcException;
@@ -40,7 +37,6 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,16 +90,11 @@ class ConsumerContractNegotiationManagerImplTest {
     private static final int RETRY_LIMIT = 1;
     private final ContractNegotiationStore store = mock();
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
-    private final PolicyDefinitionStore policyStore = mock();
     private final ContractNegotiationListener listener = mock();
     private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
     private final ParticipantIdentityResolver identityResolver = mock();
     private final String protocolWebhookUrl = "http://protocol.webhook/url";
     private final ContractNegotiationPendingGuard pendingGuard = mock();
-    private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
-            .participantContextId(PARTICIPANT_CONTEXT_ID)
-            .identity("participantId")
-            .build();
     private ConsumerContractNegotiationManagerImpl manager;
 
     @BeforeEach
@@ -117,40 +108,10 @@ class ConsumerContractNegotiationManagerImplTest {
         manager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .negotiationProcessors(negotiationProcessors)
                 .monitor(mock(Monitor.class))
-                .observable(observable)
                 .store(store)
                 .entityRetryProcessConfiguration(new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)))
                 .pendingGuard(pendingGuard)
                 .build();
-    }
-
-    @Test
-    void initiate_shouldSaveNewNegotiationInInitialState() {
-        var contractOffer = contractOffer();
-
-        var request = ContractRequest.Builder.newInstance()
-                .counterPartyAddress("callbackAddress")
-                .protocol("protocol")
-                .contractOffer(contractOffer)
-                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
-                        .uri("local://test")
-                        .build()))
-                .build();
-
-        var result = manager.initiate(participantContext, request);
-
-        assertThat(result.succeeded()).isTrue();
-        verify(store).save(argThat(negotiation ->
-                negotiation.getState() == INITIAL.code() &&
-                        negotiation.getCounterPartyId().equals("providerId") &&
-                        negotiation.getCounterPartyAddress().equals(request.getCounterPartyAddress()) &&
-                        negotiation.getProtocol().equals(request.getProtocol()) &&
-                        negotiation.getCorrelationId() == null &&
-                        negotiation.getContractOffers().size() == 1 &&
-                        negotiation.getLastContractOffer().equals(contractOffer) &&
-                        negotiation.getCallbackAddresses().size() == 1));
-
-        verify(listener).initiated(any());
     }
 
     @Test

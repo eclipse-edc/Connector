@@ -86,7 +86,7 @@ public class TracingEndToEndTest extends BaseTelemetryEndToEndTest {
                 .body(requestJson)
                 .post("/management/v3/contractnegotiations")
                 .then()
-                .log().ifError()
+                .log().ifValidationFails()
                 .statusCode(200)
                 .contentType(JSON)
                 .extract().jsonPath().getString(ID);
@@ -98,7 +98,7 @@ public class TracingEndToEndTest extends BaseTelemetryEndToEndTest {
                     assertThat(spans.stream())
                             .map(Span::getName)
                             .filteredOn(it -> !it.startsWith("HTTP"))
-                            .contains("ConsumerContractNegotiationManagerImpl.initiate");
+                            .contains("InitiateNegotiationCommandHandler.handle");
                 }
         );
     }

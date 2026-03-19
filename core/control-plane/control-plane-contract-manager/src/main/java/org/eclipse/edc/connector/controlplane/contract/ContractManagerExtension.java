@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractN
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.NegotiationProcessors;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.NegotiationWaitStrategy;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ProviderContractNegotiationManager;
-import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -57,8 +56,6 @@ public class ContractManagerExtension implements ServiceExtension {
     @Inject
     private Clock clock;
     @Inject
-    private ContractNegotiationObservable observable;
-    @Inject
     private ContractNegotiationPendingGuard pendingGuard;
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
@@ -86,7 +83,6 @@ public class ContractManagerExtension implements ServiceExtension {
                 .negotiationProcessors(negotiationProcessors)
                 .waitStrategy(waitStrategy)
                 .monitor(monitor)
-                .observable(observable)
                 .clock(clock)
                 .telemetry(telemetry)
                 .executorInstrumentation(executorInstrumentation)
@@ -100,7 +96,6 @@ public class ContractManagerExtension implements ServiceExtension {
                 .negotiationProcessors(negotiationProcessors)
                 .waitStrategy(waitStrategy)
                 .monitor(monitor)
-                .observable(observable)
                 .clock(clock)
                 .telemetry(telemetry)
                 .executorInstrumentation(executorInstrumentation)

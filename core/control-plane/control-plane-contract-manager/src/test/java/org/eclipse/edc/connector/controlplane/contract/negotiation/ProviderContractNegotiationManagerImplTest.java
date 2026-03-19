@@ -117,7 +117,6 @@ class ProviderContractNegotiationManagerImplTest {
         manager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .negotiationProcessors(negotiationProcessors)
                 .monitor(mock())
-                .observable(observable)
                 .store(store)
                 .entityRetryProcessConfiguration(new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)))
                 .pendingGuard(pendingGuard)

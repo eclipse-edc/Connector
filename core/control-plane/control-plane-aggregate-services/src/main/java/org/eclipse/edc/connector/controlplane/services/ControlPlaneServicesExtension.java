@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.controlplane.asset.spi.observe.AssetObservableI
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetResolver;
 import org.eclipse.edc.connector.controlplane.contract.spi.definition.observe.ContractDefinitionObservableImpl;
-import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.ConsumerOfferResolver;
@@ -124,8 +123,6 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Inject
     private ContractNegotiationStore contractNegotiationStore;
     @Inject
-    private ConsumerContractNegotiationManager consumerContractNegotiationManager;
-    @Inject
     private PolicyDefinitionStore policyDefinitionStore;
     @Inject
     private TransferProcessStore transferProcessStore;
@@ -222,7 +219,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Provider
     public ContractNegotiationService contractNegotiationService() {
-        return new ContractNegotiationServiceImpl(contractNegotiationStore, consumerContractNegotiationManager,
+        return new ContractNegotiationServiceImpl(contractNegotiationStore,
                 transactionContext, commandHandlerRegistry, QueryValidators.contractNegotiation());
     }
 

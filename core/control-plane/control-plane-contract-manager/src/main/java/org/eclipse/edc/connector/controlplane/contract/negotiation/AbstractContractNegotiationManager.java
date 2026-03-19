@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.contract.negotiation;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuard;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.NegotiationProcessors;
-import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
@@ -35,7 +34,6 @@ import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
 
 public abstract class AbstractContractNegotiationManager extends AbstractStateEntityManager<ContractNegotiation, ContractNegotiationStore> {
 
-    protected ContractNegotiationObservable observable;
     protected ContractNegotiationPendingGuard pendingGuard = it -> false;
     protected NegotiationProcessors negotiationProcessors;
 
@@ -73,11 +71,6 @@ public abstract class AbstractContractNegotiationManager extends AbstractStateEn
             super.build();
             Objects.requireNonNull(manager.negotiationProcessors, "negotiationProcessors");
             return manager;
-        }
-
-        public Builder<T> observable(ContractNegotiationObservable observable) {
-            manager.observable = observable;
-            return this;
         }
 
         public Builder<T> pendingGuard(ContractNegotiationPendingGuard pendingGuard) {

@@ -20,14 +20,18 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class CommandResult extends AbstractResult<Void, CommandFailure, CommandResult> {
+public class CommandResult extends AbstractResult<Object, CommandFailure, CommandResult> {
 
-    protected CommandResult(Void content, CommandFailure failure) {
+    protected CommandResult(Object content, CommandFailure failure) {
         super(content, failure);
     }
 
     public static CommandResult success() {
         return new CommandResult(null, null);
+    }
+
+    public static CommandResult success(Object content) {
+        return new CommandResult(content, null);
     }
 
     public static CommandResult notFound(String message) {

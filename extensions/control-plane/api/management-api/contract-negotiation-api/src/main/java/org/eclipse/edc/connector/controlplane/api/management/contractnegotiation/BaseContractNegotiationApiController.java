@@ -113,7 +113,8 @@ public class BaseContractNegotiationApiController {
         var contractRequest = transformerRegistry.transform(requestObject, ContractRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
-        var contractNegotiation = service.initiateNegotiation(participantContext, contractRequest);
+        var contractNegotiation = service.initiateNegotiation(participantContext, contractRequest)
+                .orElseThrow(exceptionMapper(ContractNegotiation.class));
 
         var responseDto = IdResponse.Builder.newInstance()
                 .id(contractNegotiation.getId())

@@ -64,9 +64,9 @@ public interface ContractNegotiationService {
      *
      * @param participantContext the participant context
      * @param request            the contract offer request
-     * @return the contract negotiation initiated
+     * @return success with the contract negotiation initiated, failure otherwise
      */
-    ContractNegotiation initiateNegotiation(ParticipantContext participantContext, ContractRequest request);
+    ServiceResult<ContractNegotiation> initiateNegotiation(ParticipantContext participantContext, ContractRequest request);
 
     /**
      * Terminate a contract negotiation
