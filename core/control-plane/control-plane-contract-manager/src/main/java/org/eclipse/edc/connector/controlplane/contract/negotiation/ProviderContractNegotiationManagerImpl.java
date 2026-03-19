@@ -19,22 +19,10 @@
 
 package org.eclipse.edc.connector.controlplane.contract.negotiation;
 
-import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ProviderContractNegotiationManager;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementMessage;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractNegotiationEventMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
-import org.eclipse.edc.policy.model.PolicyType;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.statemachine.StateMachineManager;
 
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
-import static java.lang.String.format;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTED;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
@@ -55,148 +43,18 @@ public class ProviderContractNegotiationManagerImpl extends AbstractContractNego
     @Override
     protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
         return builder
-                .processor(processNegotiationsInState(OFFERING, this::processOffering))
-                .processor(processNegotiationsInState(REQUESTED, this::processRequested))
-                .processor(processNegotiationsInState(ACCEPTED, this::processAccepted))
-                .processor(processNegotiationsInState(AGREEING, this::processAgreeing))
-                .processor(processNegotiationsInState(VERIFIED, this::processVerified))
-                .processor(processNegotiationsInState(FINALIZING, this::processFinalizing))
-                .processor(processNegotiationsInState(TERMINATING, this::processTerminating));
+                .processor(processNegotiationsInState(OFFERING, negotiationProcessors::processOffering))
+                .processor(processNegotiationsInState(REQUESTED, negotiationProcessors::processRequested))
+                .processor(processNegotiationsInState(ACCEPTED, negotiationProcessors::processAccepted))
+                .processor(processNegotiationsInState(AGREEING, negotiationProcessors::processAgreeing))
+                .processor(processNegotiationsInState(VERIFIED, negotiationProcessors::processVerified))
+                .processor(processNegotiationsInState(FINALIZING, negotiationProcessors::processFinalizing))
+                .processor(processNegotiationsInState(TERMINATING, negotiationProcessors::processTerminating));
     }
 
     @Override
     protected ContractNegotiation.Type type() {
         return PROVIDER;
-    }
-
-    /**
-     * Processes {@link ContractNegotiation} in state OFFERING. Tries to send the current offer to the
-     * respective consumer. If this succeeds, the ContractNegotiation is transitioned to state OFFERED. Else,
-     * it is transitioned to OFFERING for a retry.
-     *
-     * @return true if processed, false elsewhere
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processOffering(ContractNegotiation negotiation) {
-        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol());
-        if (callbackAddress == null) {
-            var message = "No callback address found for protocol: %s".formatted(negotiation.getProtocol());
-            transitionToTerminated(negotiation, message);
-            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
-        }
-
-        var messageBuilder = ContractOfferMessage.Builder.newInstance()
-                .contractOffer(negotiation.getLastContractOffer())
-                .callbackAddress(callbackAddress.url());
-
-        return dispatch(messageBuilder, negotiation, ContractNegotiationAck.class, "[Provider] send offer")
-                .onSuccess(this::transitionToOffered)
-                .onFailure((n, throwable) -> transitionToOffering(n))
-                .onFinalFailure((n, throwable) -> transitionToTerminating(n, format("Failed to send offer to consumer: %s", throwable.getMessage())))
-                .execute();
-
-    }
-
-    /**
-     * Processes {@link ContractNegotiation} in state REQUESTED. It transitions to AGREEING, because the automatic agreement.
-     *
-     * @return true if processed, false otherwise
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processRequested(ContractNegotiation negotiation) {
-        transitionToAgreeing(negotiation);
-        return CompletableFuture.completedFuture(StatusResult.success());
-    }
-
-    /**
-     * Processes {@link ContractNegotiation} in state ACCEPTED. It transitions to AGREEING.
-     *
-     * @return true if processed, false otherwise
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processAccepted(ContractNegotiation negotiation) {
-        transitionToAgreeing(negotiation);
-        return CompletableFuture.completedFuture(StatusResult.success());
-    }
-
-    /**
-     * Processes {@link ContractNegotiation} in state CONFIRMING. Tries to send a contract agreement to the respective
-     * consumer. If this succeeds, the ContractNegotiation is transitioned to state CONFIRMED. Else, it is transitioned
-     * to CONFIRMING for a retry.
-     *
-     * @return true if processed, false elsewhere
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processAgreeing(ContractNegotiation negotiation) {
-        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol());
-        if (callbackAddress == null) {
-            var message = "No callback address found for protocol: %s".formatted(negotiation.getProtocol());
-            transitionToTerminated(negotiation, message);
-            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
-        }
-
-        var agreement = Optional.ofNullable(negotiation.getContractAgreement())
-                .orElseGet(() -> {
-                    var lastOffer = negotiation.getLastContractOffer();
-                    var protocol = negotiation.getProtocol();
-                    var providerId = identityResolver.getParticipantId(negotiation.getParticipantContextId(), protocol);
-
-                    var contractPolicy = lastOffer.getPolicy().toBuilder().type(PolicyType.CONTRACT)
-                            .assignee(negotiation.getCounterPartyId())
-                            .assigner(providerId)
-                            .build();
-
-                    return ContractAgreement.Builder.newInstance()
-                            .contractSigningDate(clock.instant().getEpochSecond())
-                            .providerId(providerId)
-                            .consumerId(negotiation.getCounterPartyId())
-                            .policy(contractPolicy)
-                            .assetId(lastOffer.getAssetId())
-                            .participantContextId(negotiation.getParticipantContextId())
-                            .build();
-                });
-
-        var messageBuilder = ContractAgreementMessage.Builder.newInstance()
-                .callbackAddress(callbackAddress.url())
-                .contractAgreement(agreement);
-
-        return dispatch(messageBuilder, negotiation, Object.class, "[Provider] send agreement")
-                .onSuccess((n, result) -> transitionToAgreed(n, agreement))
-                .onFailure((n, throwable) -> transitionToAgreeing(n))
-                .onFinalFailure((n, throwable) -> transitionToTerminating(n, format("Failed to send agreement to consumer: %s", throwable.getMessage())))
-                .execute();
-
-    }
-
-    /**
-     * Processes {@link ContractNegotiation} in state VERIFIED. It transitions to FINALIZING to make the finalization process start.
-     *
-     * @return true if processed, false otherwise
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processVerified(ContractNegotiation negotiation) {
-        transitionToFinalizing(negotiation);
-        return CompletableFuture.completedFuture(StatusResult.success());
-    }
-
-    /**
-     * Processes {@link ContractNegotiation} in state OFFERING. Tries to send the current offer to the
-     * respective consumer. If this succeeds, the ContractNegotiation is transitioned to state OFFERED. Else,
-     * it is transitioned to OFFERING for a retry.
-     *
-     * @return true if processed, false elsewhere
-     */
-    @WithSpan
-    private CompletableFuture<StatusResult<Void>> processFinalizing(ContractNegotiation negotiation) {
-        var messageBuilder = ContractNegotiationEventMessage.Builder.newInstance()
-                .type(ContractNegotiationEventMessage.Type.FINALIZED)
-                .policy(negotiation.getContractAgreement().getPolicy());
-
-        return dispatch(messageBuilder, negotiation, Object.class, "[Provider] send finalization")
-                .onSuccess((n, result) -> transitionToFinalized(n))
-                .onFailure((n, throwable) -> transitionToFinalizing(n))
-                .onFinalFailure((n, throwable) -> transitionToTerminating(n, format("Failed to send finalization to consumer: %s", throwable.getMessage())))
-                .execute();
     }
 
     public static class Builder extends AbstractContractNegotiationManager.Builder<ProviderContractNegotiationManagerImpl> {

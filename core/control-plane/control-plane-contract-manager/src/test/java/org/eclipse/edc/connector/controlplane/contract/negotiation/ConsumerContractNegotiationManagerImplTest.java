@@ -111,16 +111,15 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.save(any())).thenReturn(StoreResult.success());
         var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(listener);
-
+        var negotiationProcessors = new NegotiationProcessorsImpl(mock(), dataspaceProfileContextRegistry, observable, store,
+                identityResolver, mock(), dispatcherRegistry, new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L))
+        );
         manager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
-                .dispatcherRegistry(dispatcherRegistry)
+                .negotiationProcessors(negotiationProcessors)
                 .monitor(mock(Monitor.class))
                 .observable(observable)
                 .store(store)
-                .policyStore(policyStore)
                 .entityRetryProcessConfiguration(new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)))
-                .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
-                .identityResolver(identityResolver)
                 .pendingGuard(pendingGuard)
                 .build();
     }

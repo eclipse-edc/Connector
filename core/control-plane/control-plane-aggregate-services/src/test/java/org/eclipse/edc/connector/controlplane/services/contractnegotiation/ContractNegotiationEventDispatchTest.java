@@ -91,8 +91,7 @@ class ContractNegotiationEventDispatchTest {
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api",
-                "edc.negotiation.consumer.send.retry.limit", "0",
-                "edc.negotiation.provider.send.retry.limit", "0"
+                "edc.negotiation.send.retry.limit", "0"
         ));
         extension.registerServiceMock(NegotiationWaitStrategy.class, () -> 1);
         extension.registerServiceMock(DataspaceProfileContextRegistry.class, dataspaceProfileContextRegistry);

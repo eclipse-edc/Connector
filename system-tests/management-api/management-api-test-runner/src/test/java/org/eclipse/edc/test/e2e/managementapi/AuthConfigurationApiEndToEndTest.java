@@ -15,6 +15,7 @@
 package org.eclipse.edc.test.e2e.managementapi;
 
 import io.restassured.http.ContentType;
+import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -34,6 +35,7 @@ import static org.hamcrest.Matchers.is;
 /**
  * Auth configuration end-to-end tests
  */
+@EndToEndTest
 public class AuthConfigurationApiEndToEndTest {
 
     private static final String API_KEY = "apiKey";

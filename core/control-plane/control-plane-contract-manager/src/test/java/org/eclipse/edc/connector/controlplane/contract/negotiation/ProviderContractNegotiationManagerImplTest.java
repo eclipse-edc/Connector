@@ -51,6 +51,7 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.mockito.ArgumentCaptor;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -110,16 +111,16 @@ class ProviderContractNegotiationManagerImplTest {
         when(store.save(any())).thenReturn(StoreResult.success());
         var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(listener);
+        var negotiationProcessors = new NegotiationProcessorsImpl(mock(), dataspaceProfileContextRegistry, observable, store,
+                identityResolver, Clock.systemDefaultZone(), dispatcherRegistry, new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L))
+        );
         manager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
-                .dispatcherRegistry(dispatcherRegistry)
+                .negotiationProcessors(negotiationProcessors)
                 .monitor(mock())
                 .observable(observable)
                 .store(store)
-                .policyStore(policyStore)
                 .entityRetryProcessConfiguration(new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)))
                 .pendingGuard(pendingGuard)
-                .dataspaceProfileContextRegistry(dataspaceProfileContextRegistry)
-                .identityResolver(identityResolver)
                 .build();
     }
 
