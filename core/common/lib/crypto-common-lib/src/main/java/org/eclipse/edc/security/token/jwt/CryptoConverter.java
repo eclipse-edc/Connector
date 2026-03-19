@@ -33,11 +33,14 @@ import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.util.Base64URL;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.jcajce.provider.asymmetric.util.EC5Util;
 import org.eclipse.edc.spi.EdcException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.security.AlgorithmParameters;
 import java.security.Key;
 import java.security.KeyFactory;
@@ -55,7 +58,6 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.ECParameterSpec;
 import java.security.spec.ECPoint;
 import java.security.spec.ECPublicKeySpec;
-import java.security.spec.EdECPoint;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
 import java.text.ParseException;
@@ -382,7 +384,7 @@ public class CryptoConverter {
         var curve = getCurveAllowing(edKey, ALGORITHM_ED25519);
 
 
-        var urlX = encodeX(edKey.getPoint());
+        var urlX = encodeX(publicKey);
         var okp = new OctetKeyPair.Builder(curve, urlX)
                 .build();
         return new Ed25519Verifier(okp);
@@ -434,7 +436,7 @@ public class CryptoConverter {
 
         // if the public key is not present, an empty byte array is set, because as with all elliptic curves the public
         // key can be recovered from the private key. OctetKeyPairs do this for us behind the scenes.
-        var urlX = ofNullable(pub).map(pubkey -> encodeX(pubkey.getPoint())).orElseGet(() -> Base64URL.encode(new byte[0]));
+        var urlX = ofNullable(pub).map(CryptoConverter::encodeX).orElseGet(() -> Base64URL.encode(new byte[0]));
         var urlD = ofNullable(priv).map(CryptoConverter::encodeD).orElse(null);
 
         var curveName = ofNullable((EdECKey) priv).orElse(pub).getParams().getName();
@@ -458,16 +460,20 @@ public class CryptoConverter {
      * Encodes the public key part of an EdDSA key as {@link Base64URL}
      */
     @NotNull
-    private static Base64URL encodeX(EdECPoint point) {
-        var bytes = reverseArray(point.getY().toByteArray());
+    private static Base64URL encodeX(PublicKey publicKey) {
+        var encoded = publicKey.getEncoded();
 
-        // when the X-coordinate of the curve is odd, we flip the highest-order bit of the first (or last, since we reversed) byte
-        if (point.isXOdd()) {
-            var mask = (byte) 128; // is 1000 0000 binary
-            bytes[bytes.length - 1] ^= mask; // XOR means toggle the left-most bit
+        if (encoded == null || encoded.length == 0) {
+            throw new IllegalArgumentException("Encoded bytes are null or empty.");
         }
 
-        return Base64URL.encode(bytes);
+        try {
+            var spki = SubjectPublicKeyInfo.getInstance(ASN1Primitive.fromByteArray(encoded));
+            var bytes = spki.getPublicKeyData().getBytes();
+            return Base64URL.encode(bytes);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Failed to parse the public key ASN.1 structure. The key bytes may be corrupted.", e);
+        }
     }
 
     private static String notSupportedError(String algorithm) {
