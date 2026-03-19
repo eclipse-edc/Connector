@@ -16,7 +16,6 @@ package org.eclipse.edc.signaling.port.api;
 
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -40,26 +39,18 @@ public class DataPlaneRegistrationApiController implements DataPlaneRegistration
         this.dataPlaneSelectorService = dataPlaneSelectorService;
     }
 
-    @Path("/register")
-    @POST
+    @Path("/")
+    @PUT
     @Override
     public Response register(DataPlaneRegistrationMessage registration) {
-        var dataPlaneInstance = toDataPlaneInstance(registration.dataplaneId(), registration);
+        var dataPlaneInstance = DataPlaneInstance.Builder.newInstance()
+                .id(registration.dataplaneId())
+                .url(registration.endpoint())
+                .allowedTransferType(registration.transferTypes())
+                .build();
 
         dataPlaneSelectorService.register(dataPlaneInstance)
                 .orElseThrow(it -> mapToException(it, DataPlaneInstance.class, registration.dataplaneId()));
-
-        return Response.ok().build();
-    }
-
-    @Path("/{dataplaneId}")
-    @PUT
-    @Override
-    public Response update(@PathParam("dataplaneId") String dataplaneId, DataPlaneRegistrationMessage registration) {
-        var dataPlaneInstance = toDataPlaneInstance(dataplaneId, registration);
-
-        dataPlaneSelectorService.update(dataPlaneInstance)
-                .orElseThrow(it -> mapToException(it, DataPlaneInstance.class, dataplaneId));
 
         return Response.ok().build();
     }
@@ -74,11 +65,4 @@ public class DataPlaneRegistrationApiController implements DataPlaneRegistration
         return Response.ok().build();
     }
 
-    private DataPlaneInstance toDataPlaneInstance(String dataplaneId, DataPlaneRegistrationMessage registration) {
-        return DataPlaneInstance.Builder.newInstance()
-                .id(dataplaneId)
-                .url(registration.endpoint())
-                .allowedTransferType(registration.transferTypes())
-                .build();
-    }
 }

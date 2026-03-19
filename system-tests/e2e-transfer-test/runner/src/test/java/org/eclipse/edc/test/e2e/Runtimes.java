@@ -22,8 +22,8 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
-import static java.util.Collections.emptyMap;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 public interface Runtimes {
@@ -128,7 +128,7 @@ public interface Runtimes {
                 .endpoint("default", () -> URI.create("http://localhost:" + getFreePort() + "/api"));
 
         static Config config() {
-            return ConfigFactory.fromMap(emptyMap());
+            return ConfigFactory.fromMap(Map.of("dataplane.id", UUID.randomUUID().toString()));
         }
     }
 }

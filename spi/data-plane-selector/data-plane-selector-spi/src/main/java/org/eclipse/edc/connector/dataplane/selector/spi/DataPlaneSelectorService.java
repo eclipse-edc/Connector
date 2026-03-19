@@ -57,7 +57,8 @@ public interface DataPlaneSelectorService {
     ServiceResult<DataPlaneInstance> selectFor(TransferProcess transferProcess);
 
     /**
-     * Register a data plane instance
+     * Register a data plane instance. The method follows upsert semantics: when a dataplane with the same id exists, it
+     * gets updated.
      */
     ServiceResult<Void> register(DataPlaneInstance instance);
 
@@ -73,14 +74,6 @@ public interface DataPlaneSelectorService {
      * @return successful result if operation completed, failure otherwise.
      */
     ServiceResult<Void> unregister(String instanceId);
-
-    /**
-     * Update a Data Plane instance.
-     *
-     * @param instance the updated instance;
-     * @return successful result if operation completed, failure otherwise
-     */
-    ServiceResult<Void> update(DataPlaneInstance instance);
 
     /**
      * Delete a Data Plane instance.

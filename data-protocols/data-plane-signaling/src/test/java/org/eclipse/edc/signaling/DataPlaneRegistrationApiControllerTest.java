@@ -46,8 +46,6 @@ public class DataPlaneRegistrationApiControllerTest extends RestControllerTestBa
             when(dataPlaneSelectorService.register(any())).thenReturn(ServiceResult.success());
             var requestBody = Map.of(
                     "dataplaneId", "dataplane-id",
-                    "name", "dataplane-name",
-                    "description", "dataplane-description",
                     "endpoint", "http://dataplane-endpoint",
                     "transferTypes", List.of("transferType-PUSH", "transferType-PULL"),
                     "labels", List.of("label-1", "label-2")
@@ -56,7 +54,7 @@ public class DataPlaneRegistrationApiControllerTest extends RestControllerTestBa
             baseRequest()
                     .contentType(ContentType.JSON)
                     .body(requestBody)
-                    .post("/dataplanes/register")
+                    .put("/dataplanes/")
                     .then()
                     .statusCode(200);
 
@@ -74,8 +72,6 @@ public class DataPlaneRegistrationApiControllerTest extends RestControllerTestBa
 
             var requestBody = Map.of(
                     "dataplaneId", "dataplane-id",
-                    "name", "dataplane-name",
-                    "description", "dataplane-description",
                     "endpoint", "http://dataplane-endpoint",
                     "transferTypes", List.of("transferType-PUSH", "transferType-PULL"),
                     "labels", List.of("label-1", "label-2")
@@ -84,58 +80,7 @@ public class DataPlaneRegistrationApiControllerTest extends RestControllerTestBa
             baseRequest()
                     .contentType(ContentType.JSON)
                     .body(requestBody)
-                    .post("/dataplanes/register")
-                    .then()
-                    .statusCode(409);
-        }
-    }
-
-    @Nested
-    class Update {
-        @Test
-        void shouldUpdateExistingDataPlan() {
-            when(dataPlaneSelectorService.update(any())).thenReturn(ServiceResult.success());
-            var requestBody = Map.of(
-                    "dataplaneId", "dataplane-id",
-                    "name", "dataplane-name",
-                    "description", "dataplane-description",
-                    "endpoint", "http://dataplane-endpoint",
-                    "transferTypes", List.of("transferType-PUSH", "transferType-PULL"),
-                    "labels", List.of("label-1", "label-2")
-            );
-
-            baseRequest()
-                    .contentType(ContentType.JSON)
-                    .body(requestBody)
-                    .put("/dataplanes/dataplane-id")
-                    .then()
-                    .statusCode(200);
-
-            var captor = ArgumentCaptor.forClass(DataPlaneInstance.class);
-            verify(dataPlaneSelectorService).update(captor.capture());
-            var instance = captor.getValue();
-            assertThat(instance.getId()).isEqualTo("dataplane-id");
-            assertThat(instance.getUrl().toString()).isEqualTo("http://dataplane-endpoint");
-            assertThat(instance.getAllowedTransferTypes()).containsExactly("transferType-PUSH", "transferType-PULL");
-        }
-
-        @Test
-        void shouldReturnError_whenUpdateFails() {
-            when(dataPlaneSelectorService.update(any())).thenReturn(ServiceResult.conflict("error"));
-
-            var requestBody = Map.of(
-                    "dataplaneId", "dataplane-id",
-                    "name", "dataplane-name",
-                    "description", "dataplane-description",
-                    "endpoint", "http://dataplane-endpoint",
-                    "transferTypes", List.of("transferType-PUSH", "transferType-PULL"),
-                    "labels", List.of("label-1", "label-2")
-            );
-
-            baseRequest()
-                    .contentType(ContentType.JSON)
-                    .body(requestBody)
-                    .put("/dataplanes/dataplane-id")
+                    .put("/dataplanes/")
                     .then()
                     .statusCode(409);
         }

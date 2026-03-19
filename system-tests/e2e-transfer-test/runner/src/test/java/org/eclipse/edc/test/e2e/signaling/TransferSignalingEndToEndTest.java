@@ -24,6 +24,7 @@ import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.Runtimes;
 import org.eclipse.edc.test.e2e.TransferEndToEndParticipant;
 import org.eclipse.edc.test.e2e.dataplane.DataPlaneSignalingClient;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -56,6 +57,17 @@ import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.PROVIDER_ID;
 
 
 interface TransferSignalingEndToEndTest {
+
+    @BeforeAll
+    static void beforeAll(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
+                          @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                          @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
+                          @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+
+        provider.registerDataPlane(providerDataPlane.getDataPlaneRegistrationMessage());
+        consumer.registerDataPlane(consumerDataPlane.getDataPlaneRegistrationMessage());
+
+    }
 
     @Test
     default void shouldTransferFiniteDataWithPush(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
@@ -218,9 +230,9 @@ interface TransferSignalingEndToEndTest {
 
     @Test
     default void shouldSupportAsyncStartup(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
-                                   @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                   @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
-                                   @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+                                           @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                           @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
+                                           @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
         var assetId = createOffer(provider);
         var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
                 .withTransferType("AsyncStart-PULL").execute();
@@ -291,7 +303,6 @@ interface TransferSignalingEndToEndTest {
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
-                .configurationProvider(() -> Runtimes.ControlPlane.controlPlaneEndpointOf(PROVIDER_ENDPOINTS))
                 .paramProvider(DataPlaneSignalingClient.class, DataPlaneSignalingClient::new)
                 .build();
 
@@ -302,7 +313,6 @@ interface TransferSignalingEndToEndTest {
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
-                .configurationProvider(() -> Runtimes.ControlPlane.controlPlaneEndpointOf(CONSUMER_ENDPOINTS))
                 .paramProvider(DataPlaneSignalingClient.class, DataPlaneSignalingClient::new)
                 .build();
     }
@@ -363,7 +373,6 @@ interface TransferSignalingEndToEndTest {
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
-                .configurationProvider(() -> Runtimes.ControlPlane.controlPlaneEndpointOf(CONSUMER_ENDPOINTS))
                 .paramProvider(DataPlaneSignalingClient.class, DataPlaneSignalingClient::new)
                 .build();
 
@@ -374,7 +383,6 @@ interface TransferSignalingEndToEndTest {
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
-                .configurationProvider(() -> Runtimes.ControlPlane.controlPlaneEndpointOf(PROVIDER_ENDPOINTS))
                 .paramProvider(DataPlaneSignalingClient.class, DataPlaneSignalingClient::new)
                 .build();
     }
