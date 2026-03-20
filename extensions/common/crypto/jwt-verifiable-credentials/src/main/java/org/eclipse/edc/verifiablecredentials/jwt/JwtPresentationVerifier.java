@@ -63,11 +63,6 @@ import java.util.Optional;
  */
 public class JwtPresentationVerifier implements CredentialVerifier {
 
-    public static final String JWT_VC_TOKEN_CONTEXT = "dcp-vc";
-    public static final String JWT_VP_TOKEN_CONTEXT = "dcp-vp";
-    public static final String VERIFIABLE_CREDENTIAL_JSON_KEY = "verifiableCredential";
-    public static final String VP_CLAIM = "vp";
-    public static final String VC_CLAIM = "vc";
     private final TypeManager typeManager;
     private final String typeContext;
     private final TokenValidationService tokenValidationService;
@@ -89,8 +84,9 @@ public class JwtPresentationVerifier implements CredentialVerifier {
     @Override
     public boolean canHandle(String rawInput) {
         try {
-            SignedJWT.parse(rawInput);
-            return true;
+            var signedJwt = SignedJWT.parse(rawInput);
+            return signedJwt.getJWTClaimsSet().getClaims().containsKey("vp") ||
+                    signedJwt.getJWTClaimsSet().getClaims().containsKey("vc");
         } catch (ParseException e) {
             return false;
         }
@@ -115,25 +111,25 @@ public class JwtPresentationVerifier implements CredentialVerifier {
             var signedJwt = SignedJWT.parse(serializedJwt);
             var keyId = signedJwt.getHeader().getKeyID();
             if (isCredential(signedJwt)) {
-                var rules = new ArrayList<>(tokenValidationRulesRegistry.getRules(JWT_VC_TOKEN_CONTEXT));
+                var rules = new ArrayList<>(tokenValidationRulesRegistry.getRules(Constants.JWT_VC_TOKEN_CONTEXT));
                 rules.add(new IssuerKeyIdValidationRule(keyId));
                 return tokenValidationService.validate(serializedJwt, publicKeyResolver, rules)
                         .mapEmpty();
             }
 
             if (!isPresentation(signedJwt)) {
-                return Result.failure("Either '%s' or '%s' claim must be present in JWT.".formatted(VP_CLAIM, VC_CLAIM));
+                return Result.failure("Either '%s' or '%s' claim must be present in JWT.".formatted(Constants.VP_CLAIM, Constants.VC_CLAIM));
             }
 
             //we can be sure to have a presentation token
             verificationResult = tokenValidationService.validate(serializedJwt, publicKeyResolver, vpValidationRules(context.getAudience(), keyId));
 
-            var vpClaim = (Map<String, Object>) signedJwt.getJWTClaimsSet().getClaim(VP_CLAIM);
+            var vpClaim = (Map<String, Object>) signedJwt.getJWTClaimsSet().getClaim(Constants.VP_CLAIM);
 
-            if (!vpClaim.containsKey(VERIFIABLE_CREDENTIAL_JSON_KEY)) {
-                return Result.failure("Presentation object did not contain mandatory object: " + VERIFIABLE_CREDENTIAL_JSON_KEY);
+            if (!vpClaim.containsKey(Constants.VERIFIABLE_CREDENTIAL_JSON_KEY)) {
+                return Result.failure("Presentation object did not contain mandatory object: " + Constants.VERIFIABLE_CREDENTIAL_JSON_KEY);
             }
-            var rawCredentials = extractCredentials(vpClaim.get(VERIFIABLE_CREDENTIAL_JSON_KEY));
+            var rawCredentials = extractCredentials(vpClaim.get(Constants.VERIFIABLE_CREDENTIAL_JSON_KEY));
 
             if (rawCredentials.isEmpty()) {
                 // todo: this is allowed by the spec, but it is semantic nonsense. Should we return failure or not?
@@ -153,7 +149,7 @@ public class JwtPresentationVerifier implements CredentialVerifier {
 
     private List<TokenValidationRule> vpValidationRules(String audience, String keyId) {
 
-        var rules = new ArrayList<>(tokenValidationRulesRegistry.getRules(JWT_VP_TOKEN_CONTEXT));
+        var rules = new ArrayList<>(tokenValidationRulesRegistry.getRules(Constants.JWT_VP_TOKEN_CONTEXT));
         rules.add(new IssuerKeyIdValidationRule(keyId));
         return Optional.ofNullable(audience)
                 .map(aud -> {
@@ -167,11 +163,11 @@ public class JwtPresentationVerifier implements CredentialVerifier {
     }
 
     private boolean isCredential(SignedJWT jwt) throws ParseException {
-        return jwt.getJWTClaimsSet().getClaims().containsKey(VC_CLAIM);
+        return jwt.getJWTClaimsSet().getClaims().containsKey(Constants.VC_CLAIM);
     }
 
     private boolean isPresentation(SignedJWT jwt) throws ParseException {
-        return jwt.getJWTClaimsSet().getClaims().containsKey(VP_CLAIM);
+        return jwt.getJWTClaimsSet().getClaims().containsKey(Constants.VP_CLAIM);
     }
 
     @SuppressWarnings("unchecked")
