@@ -25,6 +25,7 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -53,44 +54,52 @@ class Vcdm20JosePresentationVerifierTest {
 
     @ParameterizedTest
     @ValueSource(strings = { TestConstants.VP_SIMPLE_JOSE_ENVELOPED_CREDENTIAL, TestConstants.VP_ENVELOPED_JOSE_ENVELOPED_CREDENTIAL })
+    @DisplayName("canHandle should return true for valid JOSE enveloped credentials")
     void canHandle(String rawJose) {
         assertThat(verifier.canHandle(rawJose)).isTrue();
     }
 
     @Test
+    @DisplayName("canHandle should return false for VCDM 1.1 format")
     void canHandle_vcdm11() {
         assertThat(verifier.canHandle(TestConstants.VP_EXAMPLE_VCDM11)).isFalse();
     }
 
     @Test
+    @DisplayName("canHandle should return false for non-VP token")
     void canHandle_notVpToken() {
         assertThat(verifier.canHandle(TestConstants.RANDOM_JWT)).isFalse();
     }
 
     @Test
+    @DisplayName("canHandle should return false for non-JWT string")
     void canHandle_notJwt() {
         assertThat(verifier.canHandle("not a jwt")).isFalse();
     }
 
 
     @Test
+    @DisplayName("verify should succeed for enveloped JOSE credential")
     void verify_enveloped() {
         assertThat(verifier.verify(TestConstants.VP_ENVELOPED_JOSE_ENVELOPED_CREDENTIAL, mock())).isSucceeded();
     }
 
     @Test
+    @DisplayName("verify should succeed for simple JOSE enveloped credential")
     void verify_simple() {
         assertThat(verifier.verify(TestConstants.VP_SIMPLE_JOSE_ENVELOPED_CREDENTIAL, mock())).isSucceeded();
 
     }
 
     @Test
+    @DisplayName("verify should fail for random JWT missing type claim")
     void verify_randomJwt_expectFailure() {
         assertThat(verifier.verify(TestConstants.RANDOM_JWT, mock())).isFailed()
                 .detail().contains("Not a valid VP token - missing the 'type' claim");
     }
 
     @Test
+    @DisplayName("verify should fail when token validation service fails")
     void verify_tokenValidationFailed_expectFailure() {
         when(tokenValidationService.validate(anyString(), any())).thenReturn(Result.failure("test-failure"));
         assertThat(verifier.verify(TestConstants.VP_ENVELOPED_JOSE_ENVELOPED_CREDENTIAL, mock())).isFailed()
@@ -99,6 +108,7 @@ class Vcdm20JosePresentationVerifierTest {
 
     @ParameterizedTest
     @ValueSource(strings = { TestConstants.VP_SIMPLE_JOSE_ENVELOPED_CREDENTIAL, TestConstants.VP_ENVELOPED_JOSE_ENVELOPED_CREDENTIAL })
+    @DisplayName("verify should fail when one of multiple VCs is invalid")
     void verify_multipleVc_oneInvalid(String vpToken) {
         when(tokenValidationService.validate(anyString(), any(PublicKeyResolver.class)))
                 .thenReturn(Result.success(ClaimToken.Builder.newInstance().build())) // VP token
@@ -110,23 +120,27 @@ class Vcdm20JosePresentationVerifierTest {
     }
 
     @Test
+    @DisplayName("canHandle should return false for unknown type")
     void canHandle_unknownType() {
         assertThat(verifier.canHandle(jwt("{\"type\":\"UnknownType\"}"))).isFalse();
     }
 
     @Test
+    @DisplayName("verify should fail for unknown type")
     void verify_unknownType_expectFailure() {
         assertThat(verifier.verify(jwt("{\"type\":\"UnknownType\"}"), mock())).isFailed()
                 .detail().contains("unknown type 'UnknownType'");
     }
 
     @Test
+    @DisplayName("verify should fail for enveloped presentation missing id claim")
     void verify_envelopedPresentation_missingId_expectFailure() {
         assertThat(verifier.verify(jwt("{\"type\":\"EnvelopedVerifiablePresentation\"}"), mock())).isFailed()
                 .detail().contains("No enveloped credential found in 'id' claim");
     }
 
     @Test
+    @DisplayName("verify should fail for enveloped presentation with incorrect prefix")
     void verify_envelopedPresentation_incorrectPrefix_expectFailure() {
         var token = jwt("{\"type\":\"EnvelopedVerifiablePresentation\",\"id\":\"wrongprefix,somedata\"}");
         assertThat(verifier.verify(token, mock())).isFailed()
@@ -134,6 +148,7 @@ class Vcdm20JosePresentationVerifierTest {
     }
 
     @Test
+    @DisplayName("verify should fail for VP token with wrong credential type")
     void verify_vpToken_wrongCredentialType_expectFailure() {
         var token = jwt("{\"type\":\"VerifiablePresentation\",\"verifiableCredential\":[{\"type\":\"WrongType\",\"id\":\"data:application/vc+jwt,x\"}]}");
         assertThat(verifier.verify(token, mock())).isFailed()
@@ -141,6 +156,7 @@ class Vcdm20JosePresentationVerifierTest {
     }
 
     @Test
+    @DisplayName("verify should fail for VP token with non-string credential id")
     void verify_vpToken_nonStringCredentialId_expectFailure() {
         var token = jwt("{\"type\":\"VerifiablePresentation\",\"verifiableCredential\":[{\"type\":\"EnvelopedVerifiableCredential\",\"id\":12345}]}");
         assertThat(verifier.verify(token, mock())).isFailed()
@@ -148,12 +164,14 @@ class Vcdm20JosePresentationVerifierTest {
     }
 
     @Test
+    @DisplayName("verify should succeed for VP token with empty credential list")
     void verify_vpToken_emptyCredentialList() {
         var token = jwt("{\"type\":\"VerifiablePresentation\",\"verifiableCredential\":[]}");
         assertThat(verifier.verify(token, mock())).isSucceeded();
     }
 
     @Test
+    @DisplayName("verify should fail for VP token missing verifiableCredential claim")
     void verify_vpToken_missingCredentialClaim_expectFailure() {
         var token = jwt("{\"type\":\"VerifiablePresentation\"}");
         assertThat(verifier.verify(token, mock())).isFailed()
@@ -161,6 +179,7 @@ class Vcdm20JosePresentationVerifierTest {
     }
 
     @Test
+    @DisplayName("verify should fail for credential envelope with incorrect prefix")
     void verify_credentialEnvelope_incorrectPrefix_expectFailure() {
         var token = jwt("{\"type\":\"VerifiablePresentation\",\"verifiableCredential\":[{\"type\":\"EnvelopedVerifiableCredential\",\"id\":\"wrongprefix,x\"}]}");
         assertThat(verifier.verify(token, mock())).isFailed()

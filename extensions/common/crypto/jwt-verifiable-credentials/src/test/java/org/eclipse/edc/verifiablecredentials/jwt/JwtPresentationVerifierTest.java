@@ -264,7 +264,7 @@ class JwtPresentationVerifierTest {
         assertThat(verifier.canHandle(VP_EXAMPLE_VCDM11)).isTrue();
     }
 
-    @DisplayName("Verifies that the verifier can handle VCDM 2.0 JWTs")
+    @DisplayName("Verifies that the verifier rejects VCDM 2.0 JWTs")
     @Test
     void canHandle_vcdm20_rejects() {
         assertThat(verifier.canHandle(VP_ENVELOPED_JOSE_ENVELOPED_CREDENTIAL)).isFalse();
