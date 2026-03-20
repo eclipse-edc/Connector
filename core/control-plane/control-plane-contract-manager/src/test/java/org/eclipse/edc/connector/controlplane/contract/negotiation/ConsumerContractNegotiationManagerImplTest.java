@@ -29,7 +29,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractO
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -91,7 +91,7 @@ class ConsumerContractNegotiationManagerImplTest {
     private final ContractNegotiationStore store = mock();
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
     private final ContractNegotiationListener listener = mock();
-    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
+    private final ProtocolWebhookResolver protocolWebhookResolver = mock();
     private final ParticipantIdentityResolver identityResolver = mock();
     private final String protocolWebhookUrl = "http://protocol.webhook/url";
     private final ContractNegotiationPendingGuard pendingGuard = mock();
@@ -102,7 +102,7 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.save(any())).thenReturn(StoreResult.success());
         var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(listener);
-        var negotiationProcessors = new NegotiationProcessorsImpl(mock(), dataspaceProfileContextRegistry, observable, store,
+        var negotiationProcessors = new NegotiationProcessorsImpl(mock(), protocolWebhookResolver, observable, store,
                 identityResolver, mock(), dispatcherRegistry, new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L))
         );
         manager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
@@ -133,7 +133,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").build();
         when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
-        when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> protocolWebhookUrl);
+        when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> protocolWebhookUrl);
 
 
         manager.start();
@@ -160,7 +160,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").build();
         when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
-        when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> protocolWebhookUrl);
+        when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> protocolWebhookUrl);
 
 
         manager.start();
@@ -184,7 +184,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").build();
         when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
-        when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> protocolWebhookUrl);
+        when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> protocolWebhookUrl);
 
         manager.start();
 
@@ -210,7 +210,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").build();
         when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
-        when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(null);
+        when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(null);
 
 
         manager.start();
@@ -313,7 +313,7 @@ class ConsumerContractNegotiationManagerImplTest {
         when(store.nextNotLeased(anyInt(), stateIs(starting.code()))).thenReturn(List.of(negotiation)).thenReturn(emptyList());
         when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(result);
         when(store.findById(negotiation.getId())).thenReturn(negotiation);
-        when(dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol())).thenReturn(() -> protocolWebhookUrl);
+        when(protocolWebhookResolver.getWebhook(negotiation.getParticipantContextId(), negotiation.getProtocol())).thenReturn(() -> protocolWebhookUrl);
 
         manager.start();
 

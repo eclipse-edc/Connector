@@ -35,7 +35,7 @@ import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolv
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
 import org.eclipse.edc.policy.model.Permission;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -87,7 +87,7 @@ public class ContractCoreExtension implements ServiceExtension {
     @Inject
     private ContractNegotiationObservable observable;
     @Inject
-    private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
+    private ProtocolWebhookResolver protocolWebhookResolver;
     @Inject
     private ContractNegotiationStore store;
     @Inject
@@ -111,7 +111,7 @@ public class ContractCoreExtension implements ServiceExtension {
 
     @Provider
     public NegotiationProcessors negotiationProcessors() {
-        return new NegotiationProcessorsImpl(monitor, dataspaceProfileContextRegistry, observable, store,
+        return new NegotiationProcessorsImpl(monitor, protocolWebhookResolver, observable, store,
                 identityResolver, clock, dispatcherRegistry, stateMachineConfiguration.entityRetryProcessConfiguration()
         );
     }

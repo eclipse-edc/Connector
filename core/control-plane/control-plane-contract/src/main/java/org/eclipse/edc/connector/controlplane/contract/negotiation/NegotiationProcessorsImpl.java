@@ -29,7 +29,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.policy.model.PolicyType;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -50,7 +50,7 @@ import static org.eclipse.edc.statemachine.retry.processor.Process.futureResult;
 public class NegotiationProcessorsImpl implements NegotiationProcessors {
 
     private final Monitor monitor;
-    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
+    private final ProtocolWebhookResolver protocolWebhookResolver;
     private final ContractNegotiationObservable observable;
     private final ContractNegotiationStore store;
     private final EntityRetryProcessFactory entityRetryProcessFactory;
@@ -58,13 +58,13 @@ public class NegotiationProcessorsImpl implements NegotiationProcessors {
     private final Clock clock;
     private final RemoteMessageDispatcherRegistry dispatcherRegistry;
 
-    public NegotiationProcessorsImpl(Monitor monitor, DataspaceProfileContextRegistry dataspaceProfileContextRegistry,
+    public NegotiationProcessorsImpl(Monitor monitor, ProtocolWebhookResolver protocolWebhookResolver,
                                      ContractNegotiationObservable observable, ContractNegotiationStore store,
                                      ParticipantIdentityResolver identityResolver, Clock clock,
                                      RemoteMessageDispatcherRegistry dispatcherRegistry,
                                      EntityRetryProcessConfiguration entityRetryProcessConfiguration) {
         this.monitor = monitor;
-        this.dataspaceProfileContextRegistry = dataspaceProfileContextRegistry;
+        this.protocolWebhookResolver = protocolWebhookResolver;
         this.observable = observable;
         this.store = store;
         this.identityResolver = identityResolver;
@@ -83,7 +83,7 @@ public class NegotiationProcessorsImpl implements NegotiationProcessors {
     @WithSpan
     @Override
     public CompletableFuture<StatusResult<Void>> processRequesting(ContractNegotiation negotiation) {
-        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol());
+        var callbackAddress = protocolWebhookResolver.getWebhook(negotiation.getParticipantContextId(), negotiation.getProtocol());
         if (callbackAddress == null) {
             var message = "No callback address found for protocol: %s".formatted(negotiation.getProtocol());
             transitionToTerminated(negotiation, message);
@@ -139,7 +139,7 @@ public class NegotiationProcessorsImpl implements NegotiationProcessors {
     @WithSpan
     @Override
     public CompletableFuture<StatusResult<Void>> processOffering(ContractNegotiation negotiation) {
-        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol());
+        var callbackAddress = protocolWebhookResolver.getWebhook(negotiation.getParticipantContextId(), negotiation.getProtocol());
         if (callbackAddress == null) {
             var message = "No callback address found for protocol: %s".formatted(negotiation.getProtocol());
             transitionToTerminated(negotiation, message);
@@ -174,7 +174,7 @@ public class NegotiationProcessorsImpl implements NegotiationProcessors {
     @WithSpan
     @Override
     public CompletableFuture<StatusResult<Void>> processAgreeing(ContractNegotiation negotiation) {
-        var callbackAddress = dataspaceProfileContextRegistry.getWebhook(negotiation.getProtocol());
+        var callbackAddress = protocolWebhookResolver.getWebhook(negotiation.getParticipantContextId(), negotiation.getProtocol());
         if (callbackAddress == null) {
             var message = "No callback address found for protocol: %s".formatted(negotiation.getProtocol());
             transitionToTerminated(negotiation, message);
