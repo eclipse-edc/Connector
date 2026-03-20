@@ -18,7 +18,7 @@ import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.Trans
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.signaling.port.api.DataPlaneRegistrationApiController;
+import org.eclipse.edc.signaling.port.api.DataPlaneRegistrationApiV4Controller;
 import org.eclipse.edc.signaling.port.api.DataPlaneTransferApiController;
 import org.eclipse.edc.signaling.port.transformer.DataAddressToDspDataAddressTransformer;
 import org.eclipse.edc.signaling.port.transformer.DataFlowResponseMessageToDataFlowResponseTransformer;
@@ -56,7 +56,8 @@ public class DataPlaneSignalingApiExtension implements ServiceExtension {
         typeTransformerRegistry.register(new DataAddressToDspDataAddressTransformer());
         typeTransformerRegistry.register(new DataFlowResponseMessageToDataFlowResponseTransformer());
         typeTransformerRegistry.register(new DspDataAddressToDataAddressTransformer());
-        webService.registerResource(ApiContext.CONTROL, new DataPlaneRegistrationApiController(dataPlaneSelectorService));
+
+        webService.registerResource(ApiContext.MANAGEMENT, new DataPlaneRegistrationApiV4Controller(dataPlaneSelectorService));
         webService.registerResource(ApiContext.CONTROL, new DataPlaneTransferApiController(transferProcessService, typeTransformerRegistry));
     }
 

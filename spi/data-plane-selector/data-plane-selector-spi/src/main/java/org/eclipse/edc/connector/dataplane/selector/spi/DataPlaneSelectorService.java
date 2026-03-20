@@ -62,11 +62,6 @@ public interface DataPlaneSelectorService {
      */
     ServiceResult<Void> register(DataPlaneInstance instance);
 
-    @Deprecated(since = "0.15.0")
-    default ServiceResult<Void> addInstance(DataPlaneInstance instance) {
-        return register(instance);
-    }
-
     /**
      * Unregister a Data Plane instance. The state will transition to {@link DataPlaneInstanceStates#UNREGISTERED}.
      *

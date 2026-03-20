@@ -28,13 +28,10 @@ import java.util.Map;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.web.spi.configuration.ApiContext.CONTROL;
 import static org.eclipse.edc.web.spi.configuration.ApiContext.MANAGEMENT;
 import static org.eclipse.edc.web.spi.configuration.ApiContext.PROTOCOL;
 
 public class TransferEndToEndParticipant extends Participant {
-
-    private LazySupplier<URI> controlPlaneControl;
 
     protected TransferEndToEndParticipant() {
         super();
@@ -50,8 +47,7 @@ public class TransferEndToEndParticipant extends Participant {
                 .id(id)
                 .name(ctx.getName())
                 .managementUrl(ctx.getEndpoint(MANAGEMENT))
-                .protocolUrl(ctx.getEndpoint(PROTOCOL))
-                .controlUrl(ctx.getEndpoint(CONTROL));
+                .protocolUrl(ctx.getEndpoint(PROTOCOL));
     }
 
     /**
@@ -115,12 +111,10 @@ public class TransferEndToEndParticipant extends Participant {
     }
 
     public void registerDataPlane(JsonObject dataPlaneRegistrationMessage) {
-        given()
+        baseManagementRequest()
                 .contentType(JSON)
-                .baseUri(controlPlaneControl.get() + "/dataplanes")
-                .when()
                 .body(dataPlaneRegistrationMessage)
-                .put()
+                .put("/dataplanes")
                 .then()
                 .statusCode(200);
     }
@@ -142,11 +136,6 @@ public class TransferEndToEndParticipant extends Participant {
 
         public Builder protocolUrl(LazySupplier<URI> protocolUrl) {
             participant.controlPlaneProtocol = protocolUrl;
-            return this;
-        }
-
-        public Builder controlUrl(LazySupplier<URI> controlUrl) {
-            participant.controlPlaneControl = controlUrl;
             return this;
         }
 

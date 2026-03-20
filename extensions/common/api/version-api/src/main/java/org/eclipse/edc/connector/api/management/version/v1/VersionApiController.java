@@ -38,7 +38,6 @@ public class VersionApiController implements VersionApi {
     }
 
     @GET
-    @Path("/")
     @Override
     public Map<String, List<VersionRecord>> getVersion() {
         return apiVersionService.getRecords();
