@@ -18,13 +18,13 @@ package org.eclipse.edc.connector.controlplane.services.transferprocess;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.CompleteTransferCommand;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.InitiateTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyPreparedCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyStartedCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.ResumeTransferCommand;
@@ -34,7 +34,6 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.command.EntityCommand;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.result.AbstractResult;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -49,7 +48,6 @@ import static java.lang.String.format;
 
 public class TransferProcessServiceImpl implements TransferProcessService {
     private final TransferProcessStore transferProcessStore;
-    private final TransferProcessManager manager;
     private final TransactionContext transactionContext;
     private final QueryValidator queryValidator;
     private final DataAddressValidatorRegistry dataAddressValidator;
@@ -57,12 +55,11 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     private final TransferTypeParser transferTypeParser;
     private final ContractNegotiationStore contractNegotiationStore;
 
-    public TransferProcessServiceImpl(TransferProcessStore transferProcessStore, TransferProcessManager manager,
+    public TransferProcessServiceImpl(TransferProcessStore transferProcessStore,
                                       TransactionContext transactionContext, DataAddressValidatorRegistry dataAddressValidator,
                                       CommandHandlerRegistry commandHandlerRegistry, TransferTypeParser transferTypeParser,
                                       ContractNegotiationStore contractNegotiationStore, QueryValidator queryValidator) {
         this.transferProcessStore = transferProcessStore;
-        this.manager = manager;
         this.transactionContext = transactionContext;
         this.dataAddressValidator = dataAddressValidator;
         this.commandHandlerRegistry = commandHandlerRegistry;
@@ -134,14 +131,15 @@ public class TransferProcessServiceImpl implements TransferProcessService {
             }
         }
 
-        return transactionContext.execute(() -> {
-            var transferInitiateResult = manager.initiateConsumerRequest(participantContext, request);
-            return Optional.ofNullable(transferInitiateResult)
-                    .filter(AbstractResult::succeeded)
-                    .map(AbstractResult::getContent)
-                    .map(ServiceResult::success)
-                    .orElse(ServiceResult.conflict("Request couldn't be initialised."));
-        });
+        return transactionContext.execute(() -> commandHandlerRegistry
+                .execute(new InitiateTransferCommand(participantContext, request))
+                .flatMap(result -> {
+                    if (result.succeeded()) {
+                        return ServiceResult.success((TransferProcess) result.getContent());
+                    } else {
+                        return ServiceResult.from(result);
+                    }
+                }));
     }
 
     @Override

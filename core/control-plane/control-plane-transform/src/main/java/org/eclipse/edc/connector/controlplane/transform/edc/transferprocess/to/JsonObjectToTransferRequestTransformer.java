@@ -52,7 +52,6 @@ public class JsonObjectToTransferRequestTransformer extends AbstractJsonLdTransf
     public @Nullable TransferRequest transform(@NotNull JsonObject input, @NotNull TransformerContext context) {
         var builder = TransferRequest.Builder.newInstance();
 
-        builder.id(nodeId(input));
         visitProperties(input, key -> switch (key) {
             case TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS -> value ->
                     builder.counterPartyAddress(transformString(value, context));

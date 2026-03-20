@@ -16,7 +16,6 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.process;
 
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
@@ -29,14 +28,12 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStor
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessAck;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.spi.EdcException;
@@ -46,7 +43,6 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,7 +58,6 @@ import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.UnaryOperator;
@@ -93,7 +88,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING_REQUESTED;
-import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
@@ -165,12 +159,9 @@ class TransferProcessManagerImplTest {
                 .batchSize(TRANSFER_MANAGER_BATCHSIZE)
                 .monitor(mock())
                 .clock(clock)
-                .observable(observable)
                 .store(transferProcessStore)
-                .policyArchive(policyArchive)
                 .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
                 .pendingGuard(pendingGuard)
-                .dataAddressStore(dataAddressStore)
                 .build();
     }
 
@@ -504,107 +495,6 @@ class TransferProcessManagerImplTest {
             });
         }
 
-    }
-
-    @Nested
-    class InitiateConsumerRequest {
-        @Test
-        void shouldStoreTransferProcessAndDataAddress() {
-            when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().target("assetId").build());
-            when(transferProcessStore.findForCorrelationId("1")).thenReturn(null);
-            var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
-            var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().label("label").build();
-            var dataAddress = DataAddress.Builder.newInstance().type("test").build();
-            var transferRequest = TransferRequest.Builder.newInstance()
-                    .id("1")
-                    .dataDestination(dataAddress)
-                    .callbackAddresses(List.of(callback))
-                    .dataplaneMetadata(dataplaneMetadata)
-                    .build();
-            var participantContext = ParticipantContext.Builder.newInstance().participantContextId("id")
-                    .identity("identity")
-                    .build();
-            when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
-
-            var result = manager.initiateConsumerRequest(participantContext, transferRequest);
-
-            assertThat(result).isSucceeded().isNotNull();
-            var captor = ArgumentCaptor.forClass(TransferProcess.class);
-            verify(transferProcessStore, times(RETRY_LIMIT)).save(captor.capture());
-            var transferProcess = captor.getValue();
-            assertThat(transferProcess.getId()).isEqualTo("1");
-            assertThat(transferProcess.getCorrelationId()).isNull();
-            assertThat(transferProcess.getCallbackAddresses()).usingRecursiveFieldByFieldElementComparator().contains(callback);
-            assertThat(transferProcess.getAssetId()).isEqualTo("assetId");
-            assertThat(transferProcess.getDataplaneMetadata()).isSameAs(dataplaneMetadata);
-            assertThat(transferProcess.getDataDestination()).isNull();
-            verify(listener).initiated(any());
-            verify(dataAddressStore).store(dataAddress, transferProcess);
-        }
-
-        @Test
-        void shouldNotStoreDataAddress_whenItsNotProvided() {
-            when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().target("assetId").build());
-            when(transferProcessStore.findForCorrelationId("1")).thenReturn(null);
-            var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
-            var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().label("label").build();
-            var transferRequest = TransferRequest.Builder.newInstance()
-                    .id("1")
-                    .callbackAddresses(List.of(callback))
-                    .dataplaneMetadata(dataplaneMetadata)
-                    .build();
-            var participantContext = ParticipantContext.Builder.newInstance().participantContextId("id")
-                    .identity("identity")
-                    .build();
-
-            var result = manager.initiateConsumerRequest(participantContext, transferRequest);
-
-            assertThat(result).isSucceeded().isNotNull();
-            verifyNoInteractions(dataAddressStore);
-        }
-
-        @Test
-        void shouldFail_whenPolicyNotAvailable() {
-            when(policyArchive.findPolicyForContract(any())).thenReturn(null);
-            when(transferProcessStore.findForCorrelationId("1")).thenReturn(null);
-
-            var transferRequest = TransferRequest.Builder.newInstance()
-                    .id("1")
-                    .contractId("contractId")
-                    .dataDestination(DataAddress.Builder.newInstance().type("test").build())
-                    .build();
-
-            var participantContext = ParticipantContext.Builder.newInstance()
-                    .participantContextId("participantContextId").identity("id").build();
-            var result = manager.initiateConsumerRequest(participantContext, transferRequest);
-
-            assertThat(result).isFailed();
-        }
-
-        @Test
-        void shouldFail_whenDataAddressStorageFails() {
-            when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().target("assetId").build());
-            when(transferProcessStore.findForCorrelationId("1")).thenReturn(null);
-            var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
-            var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().label("label").build();
-            var dataAddress = DataAddress.Builder.newInstance().type("test").build();
-            var transferRequest = TransferRequest.Builder.newInstance()
-                    .id("1")
-                    .dataDestination(dataAddress)
-                    .callbackAddresses(List.of(callback))
-                    .dataplaneMetadata(dataplaneMetadata)
-                    .build();
-            var participantContext = ParticipantContext.Builder.newInstance().participantContextId("id")
-                    .identity("identity")
-                    .build();
-            when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.generalError("error"));
-
-            var result = manager.initiateConsumerRequest(participantContext, transferRequest);
-
-            assertThat(result).isFailed();
-            verifyNoInteractions(listener);
-            verify(transferProcessStore, never()).save(any());
-        }
     }
 
     @Nested

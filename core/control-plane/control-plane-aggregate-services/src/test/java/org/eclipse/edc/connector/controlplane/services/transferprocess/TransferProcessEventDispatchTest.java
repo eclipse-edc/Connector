@@ -165,7 +165,7 @@ public class TransferProcessEventDispatchTest {
 
         var dataAddress = DataAddress.Builder.newInstance().type("test").build();
         var startMessage = TransferStartMessage.Builder.newInstance()
-                .processId("dataRequestId")
+                .processId(initiateResult.getContent().getId())
                 .protocol("any")
                 .counterPartyAddress("http://any")
                 .dataAddress(dataAddress)
@@ -261,7 +261,6 @@ public class TransferProcessEventDispatchTest {
 
     private TransferRequest createTransferRequest() {
         return TransferRequest.Builder.newInstance()
-                .id("dataRequestId")
                 .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .protocol("test")
                 .counterPartyAddress("http://an/address")

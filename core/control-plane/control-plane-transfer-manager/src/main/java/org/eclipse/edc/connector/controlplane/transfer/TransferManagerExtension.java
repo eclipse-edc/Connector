@@ -14,15 +14,12 @@
 
 package org.eclipse.edc.connector.controlplane.transfer;
 
-import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.process.TransferProcessManagerImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessors;
-import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.retry.TransferWaitStrategy;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -52,10 +49,6 @@ public class TransferManagerExtension implements ServiceExtension {
     @Inject
     private TransferProcessStore transferProcessStore;
     @Inject
-    private TransferProcessObservable observable;
-    @Inject
-    private PolicyArchive policyArchive;
-    @Inject
     private Clock clock;
     @Inject
     private Telemetry telemetry;
@@ -63,8 +56,6 @@ public class TransferManagerExtension implements ServiceExtension {
     private TransferProcessPendingGuard pendingGuard;
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
-    @Inject
-    private DataAddressStore dataAddressStore;
     @Inject
     private TransferProcessors transferProcessors;
 
@@ -89,18 +80,14 @@ public class TransferManagerExtension implements ServiceExtension {
                 .telemetry(telemetry)
                 .executorInstrumentation(executorInstrumentation)
                 .clock(clock)
-                .observable(observable)
                 .store(transferProcessStore)
-                .policyArchive(policyArchive)
                 .batchSize(stateMachineConfiguration.batchSize())
                 .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
                 .pendingGuard(pendingGuard)
-                .dataAddressStore(dataAddressStore)
                 .transferProcessors(transferProcessors)
                 .build();
 
         context.registerService(TransferProcessManager.class, processManager);
-
     }
 
     @Override
