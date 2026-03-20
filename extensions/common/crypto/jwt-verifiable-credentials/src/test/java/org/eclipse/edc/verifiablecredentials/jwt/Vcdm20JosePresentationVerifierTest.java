@@ -9,6 +9,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -83,5 +86,64 @@ class Vcdm20JosePresentationVerifierTest {
 
         assertThat(verifier.verify(vpToken, mock())).isFailed()
                 .detail().contains("test-failure");
+    }
+
+    @Test
+    void canHandle_unknownType() {
+        assertThat(verifier.canHandle(jwt("{\"type\":\"UnknownType\"}"))).isFalse();
+    }
+
+    @Test
+    void verify_unknownType_expectFailure() {
+        assertThat(verifier.verify(jwt("{\"type\":\"UnknownType\"}"), mock())).isFailed()
+                .detail().contains("unknown type 'UnknownType'");
+    }
+
+    @Test
+    void verify_envelopedPresentation_missingId_expectFailure() {
+        assertThat(verifier.verify(jwt("{\"type\":\"EnvelopedVerifiablePresentation\"}"), mock())).isFailed()
+                .detail().contains("No enveloped credential found in 'id' claim");
+    }
+
+    @Test
+    void verify_envelopedPresentation_incorrectPrefix_expectFailure() {
+        var token = jwt("{\"type\":\"EnvelopedVerifiablePresentation\",\"id\":\"wrongprefix,somedata\"}");
+        assertThat(verifier.verify(token, mock())).isFailed()
+                .detail().contains("Incorrect presentation envelope");
+    }
+
+    @Test
+    void verify_vpToken_wrongCredentialType_expectFailure() {
+        var token = jwt("{\"type\":\"VerifiablePresentation\",\"verifiableCredential\":[{\"type\":\"WrongType\",\"id\":\"data:application/vc+jwt,x\"}]}");
+        assertThat(verifier.verify(token, mock())).isFailed()
+                .detail().contains("Incorrect 'type' field in verifiable credential");
+    }
+
+    @Test
+    void verify_vpToken_nonStringCredentialId_expectFailure() {
+        var token = jwt("{\"type\":\"VerifiablePresentation\",\"verifiableCredential\":[{\"type\":\"EnvelopedVerifiableCredential\",\"id\":12345}]}");
+        assertThat(verifier.verify(token, mock())).isFailed()
+                .detail().contains("No enveloped credential found in 'id' claim");
+    }
+
+    @Test
+    void verify_vpToken_emptyCredentialList() {
+        var token = jwt("{\"type\":\"VerifiablePresentation\",\"verifiableCredential\":[]}");
+        assertThat(verifier.verify(token, mock())).isSucceeded();
+    }
+
+    @Test
+    void verify_credentialEnvelope_incorrectPrefix_expectFailure() {
+        var token = jwt("{\"type\":\"VerifiablePresentation\",\"verifiableCredential\":[{\"type\":\"EnvelopedVerifiableCredential\",\"id\":\"wrongprefix,x\"}]}");
+        assertThat(verifier.verify(token, mock())).isFailed()
+                .detail().contains("Incorrect credential envelope");
+    }
+
+    private static String jwt(String payloadJson) {
+        var header = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString("{\"alg\":\"ES256\"}".getBytes(StandardCharsets.UTF_8));
+        var payload = Base64.getUrlEncoder().withoutPadding()
+                .encodeToString(payloadJson.getBytes(StandardCharsets.UTF_8));
+        return header + "." + payload + ".AAAA";
     }
 }
