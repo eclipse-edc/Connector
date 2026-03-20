@@ -137,36 +137,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail_1"
-  /dataplanes:
-    put:
-      tags:
-      - Dataplane Signaling Registration
-      description: Register or update a Dataplane instance
-      operationId: register
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DataPlaneRegistrationMessage"
-      responses:
-        "200":
-          description: Dataplane instance correctly registered
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail_1"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail_1"
   /transfers/{transferId}/dataflow/completed:
     post:
       tags:
@@ -233,6 +203,36 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail_1"
+  /v4beta/dataplanes:
+    put:
+      tags:
+      - Dataplane Signaling Registration v4beta
+      description: Register or update a Dataplane instance
+      operationId: register
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DataPlaneRegistrationMessage"
+      responses:
+        "200":
+          description: Dataplane instance correctly registered
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail_1"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail_1"
   /v1/dataflows/{id}/terminate:
     post:
       tags:
@@ -283,31 +283,6 @@ paths:
           description: Prepared notification delivered correctly
         "404":
           description: Transfer process does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail_1"
-  /dataplanes/{dataplaneId}:
-    delete:
-      tags:
-      - Dataplane Signaling Registration
-      description: Update a Dataplane instance
-      operationId: delete
-      parameters:
-      - name: dataplaneId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Dataplane instance correctly deleted
-        "404":
-          description: Not found
           content:
             application/json:
               schema:
@@ -472,6 +447,31 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v4beta/dataplanes/{dataplaneId}:
+    delete:
+      tags:
+      - Dataplane Signaling Registration v4beta
+      description: Update a Dataplane instance
+      operationId: delete
+      parameters:
+      - name: dataplaneId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Dataplane instance correctly deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail_1"
   /v1/dataplanes:
     get:
       tags:
