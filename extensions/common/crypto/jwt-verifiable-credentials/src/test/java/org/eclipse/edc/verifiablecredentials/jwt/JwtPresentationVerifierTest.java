@@ -45,6 +45,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.Result.success;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.JWT_VP_TOKEN_CONTEXT;
@@ -55,7 +56,10 @@ import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.PRESENTER_
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.VC_CONTENT_CERTIFICATE_EXAMPLE;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.VC_CONTENT_DEGREE_EXAMPLE;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.VP_CONTENT_TEMPLATE;
+import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.VP_ENVELOPED_JOSE_ENVELOPED_CREDENTIAL;
+import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.VP_EXAMPLE_VCDM11;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.VP_HOLDER_ID;
+import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.VP_SIMPLE_JOSE_ENVELOPED_CREDENTIAL;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestFunctions.createPublicKey;
 import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.ArgumentMatchers.eq;
@@ -252,6 +256,19 @@ class JwtPresentationVerifierTest {
                 .build();
         var result = verifier.verify(vpJwt, context);
         assertThat(result).isFailed().detail().contains("Token audience claim (aud -> [invalid-vp-audience]) did not contain expected audience: did:web:myself");
+    }
+
+    @DisplayName("Verifies that the verifier can handle VCDM 1.1 JWTs")
+    @Test
+    void canHandle() {
+        assertThat(verifier.canHandle(VP_EXAMPLE_VCDM11)).isTrue();
+    }
+
+    @DisplayName("Verifies that the verifier can handle VCDM 2.0 JWTs")
+    @Test
+    void canHandle_vcdm20_rejects() {
+        assertThat(verifier.canHandle(VP_ENVELOPED_JOSE_ENVELOPED_CREDENTIAL)).isFalse();
+        assertThat(verifier.canHandle(VP_SIMPLE_JOSE_ENVELOPED_CREDENTIAL)).isFalse();
     }
 
     @Test

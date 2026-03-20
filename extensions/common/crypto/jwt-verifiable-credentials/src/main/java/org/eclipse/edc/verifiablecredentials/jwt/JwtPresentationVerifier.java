@@ -84,8 +84,9 @@ public class JwtPresentationVerifier implements CredentialVerifier {
     @Override
     public boolean canHandle(String rawInput) {
         try {
-            SignedJWT.parse(rawInput);
-            return true;
+            var signedJwt = SignedJWT.parse(rawInput);
+            return signedJwt.getJWTClaimsSet().getClaims().containsKey("vp") ||
+                    signedJwt.getJWTClaimsSet().getClaims().containsKey("vc");
         } catch (ParseException e) {
             return false;
         }

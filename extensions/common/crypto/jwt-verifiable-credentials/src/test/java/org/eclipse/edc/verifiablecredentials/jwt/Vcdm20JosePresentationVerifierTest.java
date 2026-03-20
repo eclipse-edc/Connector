@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2026 Metaform Systems, Inc.
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Metaform Systems, Inc. - initial API and implementation
+ *
+ */
+
 package org.eclipse.edc.verifiablecredentials.jwt;
 
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
@@ -30,6 +44,7 @@ class Vcdm20JosePresentationVerifierTest {
                 ClaimToken.Builder.newInstance().build()
         ));
     }
+
     @ParameterizedTest
     @ValueSource(strings = { TestConstants.VP_SIMPLE_JOSE_ENVELOPED_CREDENTIAL, TestConstants.VP_ENVELOPED_JOSE_ENVELOPED_CREDENTIAL })
     void canHandle(String rawJose) {
@@ -78,7 +93,7 @@ class Vcdm20JosePresentationVerifierTest {
 
     @ParameterizedTest
     @ValueSource(strings = { TestConstants.VP_SIMPLE_JOSE_ENVELOPED_CREDENTIAL, TestConstants.VP_ENVELOPED_JOSE_ENVELOPED_CREDENTIAL })
-    void verify_multipleVC_oneInvalid(String vpToken){
+    void verify_multipleVc_oneInvalid(String vpToken) {
         when(tokenValidationService.validate(anyString(), any(PublicKeyResolver.class)))
                 .thenReturn(Result.success(ClaimToken.Builder.newInstance().build())) // VP token
                 .thenReturn(Result.success(ClaimToken.Builder.newInstance().build())) // first VC

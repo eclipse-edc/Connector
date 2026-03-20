@@ -49,6 +49,7 @@ import org.eclipse.edc.token.rules.NotBeforeValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
+import org.eclipse.edc.verifiablecredentials.jwt.Vcdm20JosePresentationVerifier;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.HasSubjectRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerEqualsSubjectRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.JtiValidationRule;
@@ -207,7 +208,9 @@ public class DcpCoreExtension implements ServiceExtension {
                     .methodResolver(new DidMethodResolver(didResolverRegistry))
                     .build();
 
-            presentationVerifier = new MultiFormatPresentationVerifier(jwtVerifier, ldpVerifier);
+            var joseVerifier = new Vcdm20JosePresentationVerifier(tokenValidationService, didPublicKeyResolver);
+
+            presentationVerifier = new MultiFormatPresentationVerifier(jwtVerifier, ldpVerifier, joseVerifier);
         }
         return presentationVerifier;
     }

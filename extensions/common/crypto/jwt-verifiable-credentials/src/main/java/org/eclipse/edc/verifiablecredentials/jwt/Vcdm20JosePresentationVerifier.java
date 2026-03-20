@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2026 Metaform Systems, Inc.
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Metaform Systems, Inc. - initial API and implementation
+ *
+ */
+
 package org.eclipse.edc.verifiablecredentials.jwt;
 
 import com.nimbusds.jwt.SignedJWT;
@@ -10,7 +24,13 @@ import org.eclipse.edc.token.spi.TokenValidationService;
 import java.text.ParseException;
 import java.util.ArrayList;
 
-import static org.eclipse.edc.verifiablecredentials.jwt.Constants.*;
+import static org.eclipse.edc.verifiablecredentials.jwt.Constants.ENVELOPED_CREDENTIAL_CONTENT_TYPE;
+import static org.eclipse.edc.verifiablecredentials.jwt.Constants.ENVELOPED_CREDENTIAL_TYPE;
+import static org.eclipse.edc.verifiablecredentials.jwt.Constants.ENVELOPED_PRESENTATION_CONTENT_TYPE;
+import static org.eclipse.edc.verifiablecredentials.jwt.Constants.ENVELOPED_VERIFIABLE_PRESENTATION_TYPE;
+import static org.eclipse.edc.verifiablecredentials.jwt.Constants.TYPE;
+import static org.eclipse.edc.verifiablecredentials.jwt.Constants.VERIFIABLE_CREDENTIAL_JSON_KEY;
+import static org.eclipse.edc.verifiablecredentials.jwt.Constants.VERIFIABLE_PRESENTATION_TYPE;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.VP_CLAIM;
 
 public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
