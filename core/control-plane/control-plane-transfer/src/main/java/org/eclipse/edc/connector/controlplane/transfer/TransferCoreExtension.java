@@ -18,7 +18,6 @@ package org.eclipse.edc.connector.controlplane.transfer;
 import jakarta.json.Json;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
-import org.eclipse.edc.connector.controlplane.transfer.edr.DataAddressToEndpointDataReferenceTransformer;
 import org.eclipse.edc.connector.controlplane.transfer.listener.TransferProcessEventListener;
 import org.eclipse.edc.connector.controlplane.transfer.processors.TransferProcessorsImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessors;
@@ -96,7 +95,6 @@ public class TransferCoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var builderFactory = Json.createBuilderFactory(Collections.emptyMap());
-        typeTransformerRegistry.register(new DataAddressToEndpointDataReferenceTransformer());
         typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
         typeTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(builderFactory, typeManager, JSON_LD));
 
