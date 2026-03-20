@@ -26,4 +26,5 @@ public interface Constants {
     String ENVELOPED_CREDENTIAL_TYPE = "EnvelopedVerifiableCredential";
     String ENVELOPED_CREDENTIAL_CONTENT_TYPE = "data:application/vc+jwt";
     String ENVELOPED_PRESENTATION_CONTENT_TYPE = "data:application/vp+jwt";
+    String ID = "id";
 }

@@ -85,7 +85,7 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
 
 
         } catch (ParseException e) {
-            throw new RuntimeException(e);
+            return Result.failure("Error parsing JWT: " + e.getMessage());
         }
     }
 
@@ -100,7 +100,7 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
      * @throws ParseException if parsing one of the JWTs fails
      */
     private Result<Void> handleEnvelopedPresentation(SignedJWT signedJwt) throws ParseException {
-        var vpEnvelopeString = signedJwt.getJWTClaimsSet().getStringClaim("id");
+        var vpEnvelopeString = signedJwt.getJWTClaimsSet().getStringClaim(Constants.ID);
         if (vpEnvelopeString == null) {
             return Result.failure("No enveloped credential found in 'id' claim");
         }
@@ -110,9 +110,10 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
         var results = new ArrayList<Result<Void>>();
         for (var vpEnvelope : vpEnvelopes) {
             if (!vpEnvelope.startsWith(ENVELOPED_PRESENTATION_CONTENT_TYPE + ",")) {
-                return Result.failure("Incorrect presentation envelope. Must start with '%s,' but it did not.".formatted(ENVELOPED_CREDENTIAL_CONTENT_TYPE));
+                return Result.failure("Incorrect presentation envelope. Must start with '%s,' but it did not.".formatted(ENVELOPED_PRESENTATION_CONTENT_TYPE));
             }
-            vpEnvelope = vpEnvelope.substring(ENVELOPED_CREDENTIAL_CONTENT_TYPE.length() + 1);
+            vpEnvelope = vpEnvelope.substring(ENVELOPED_PRESENTATION_CONTENT_TYPE.length() + 1);
+            results.add(tokenValidationService.validate(vpEnvelope, publicKeyResolver).mapEmpty());
             results.add(handleVpToken(SignedJWT.parse(vpEnvelope)));
         }
         return results.stream().reduce(Result::merge).orElse(Result.success());
@@ -128,16 +129,20 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
     private Result<Void> handleVpToken(SignedJWT signedJwt) {
         try {
             var credentialObjectList = signedJwt.getJWTClaimsSet().getListClaim(VERIFIABLE_CREDENTIAL_JSON_KEY);
+            if (credentialObjectList == null) {
+                return Result.failure("No verifiable credential found in 'verifiableCredential' claim");
+            }
 
             var results = new ArrayList<Result<Void>>();
             for (var credential : credentialObjectList) {
+                //noinspection unchecked
                 var credentialObject = (java.util.Map<String, Object>) credential;
                 var credentialEnvelopeType = credentialObject.get("type");
                 if (!ENVELOPED_CREDENTIAL_TYPE.equals(credentialEnvelopeType)) {
                     return Result.failure("Incorrect 'type' field in verifiable credential. Must be '%s' but was '%s'".formatted(ENVELOPED_CREDENTIAL_TYPE, credentialEnvelopeType));
                 }
                 // expect enveloped credentials here. there can be multiple, separated by ";"
-                var credentialEnvelope = credentialObject.get("id");
+                var credentialEnvelope = credentialObject.get(Constants.ID);
                 if (credentialEnvelope instanceof String credentialEnvelopeString) {
                     results.add(handleCredentialEnvelope(credentialEnvelopeString));
                 } else {
