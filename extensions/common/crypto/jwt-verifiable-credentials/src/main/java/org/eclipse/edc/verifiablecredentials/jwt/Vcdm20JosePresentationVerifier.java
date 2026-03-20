@@ -23,6 +23,7 @@ import org.eclipse.edc.token.spi.TokenValidationService;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Map;
 
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.ENVELOPED_CREDENTIAL_CONTENT_TYPE;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.ENVELOPED_CREDENTIAL_TYPE;
@@ -33,6 +34,10 @@ import static org.eclipse.edc.verifiablecredentials.jwt.Constants.VERIFIABLE_CRE
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.VERIFIABLE_PRESENTATION_TYPE;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.VP_CLAIM;
 
+/**
+ * This verifier verifies a JWT that contains a Verifiable Presentation (VP) as JSON payload that conforms to the
+ * Verifiable Credentials Data Model (VCDM) 2.0 specification. Both enveloped presentations and simple VP tokens are supported.
+ */
 public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
     private final TokenValidationService tokenValidationService;
     private final PublicKeyResolver publicKeyResolver;
@@ -136,8 +141,8 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
             var results = new ArrayList<Result<Void>>();
             for (var credential : credentialObjectList) {
                 //noinspection unchecked
-                var credentialObject = (java.util.Map<String, Object>) credential;
-                var credentialEnvelopeType = credentialObject.get("type");
+                var credentialObject = (Map<String, Object>) credential;
+                var credentialEnvelopeType = credentialObject.get(TYPE);
                 if (!ENVELOPED_CREDENTIAL_TYPE.equals(credentialEnvelopeType)) {
                     return Result.failure("Incorrect 'type' field in verifiable credential. Must be '%s' but was '%s'".formatted(ENVELOPED_CREDENTIAL_TYPE, credentialEnvelopeType));
                 }
@@ -165,9 +170,8 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
      * @param credentialEnvelopeString A semicolon separated list of JWTS, prefixed with "data:application/vc+jwt,", for example:
      *                                 <pre>data:application/vc+jwt:,eyAB....,data:application/vc+jwt,eyXYZ...</pre>
      * @return a successful result only if all JWTs are valid (i.e. their signatures are correct).
-     * @throws ParseException when parsing one of the JWTs fails
      */
-    private Result<Void> handleCredentialEnvelope(String credentialEnvelopeString) throws ParseException {
+    private Result<Void> handleCredentialEnvelope(String credentialEnvelopeString)  {
         // a credential envelope can contain multiple credentials, prefixed with "data:application/vc+jwt," and separated by ";"
 
         var credentialEnvelopes = credentialEnvelopeString.split(";");

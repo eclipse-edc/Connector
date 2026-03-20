@@ -84,18 +84,30 @@ public interface TestConstants {
 
     // example generated with Claude Code/Sonnet 4.6
     String VP_EXAMPLE_VCDM11 = """
-            eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImRpZDpleGFtcGxlOmhvbGRlcjEyMyNrZXktMSJ9.eyJpc3MiOiJkaWQ6ZXhhbXB
-            sZTpob2xkZXIxMjMiLCJhdWQiOiJkaWQ6ZXhhbXBsZTp2ZXJpZmllcjQ1NiIsIm5iZiI6MTcxNjAwMDAwMCwiZXhwIjoxNzE2MDAwOTAwLCJ
-            qdGkiOiJ1cm46dXVpZDozYWRkOTRmNC0yOGVjLTQyYTctOGE1Zi05YTc4MTIzYjEyM2MiLCJub25jZSI6Im4tMFM2X1d6QTJNaiIsInZwIjp
-            7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sInR5cGUiOlsiVmVyaWZpYWJsZVByZXNlbnR
-            hdGlvbiJdLCJ2ZXJpZmlhYmxlQ3JlZGVudGlhbCI6WyJleUpoYkdjaU9pSkZVekkxTmlJc0luUjVjQ0k2SWtwWFZDSXNJbXRwWkNJNkltUnB
-            aRHBsZUdGdGNHeGxPbWx6YzNWbGNpTnJaWGt0TVNKOS5leUpwYzNNaU9pSmthV1E2WlhoaGJYQnNaVHBwYzNOMVpYSWlMQ0p6ZFdJaU9pSmt
-            hV1E2WlhoaGJYQnNaVHBvYjJ4a1pYSXhNak1pTENKdVltWWlPakUzTVRVd01EQXdNREFzSW1WNGNDSTZNVGMwTmpVek5qQXdNQ3dpYW5ScEl
-            qb2lkWEp1T25WMWFXUTZZV0pqWkRFeU16UXRaV1puYURVMk56Z2lMQ0oyWXlJNmV5SkFZMjl1ZEdWNGRDSTZXeUpvZEhSd2N6b3ZMM2QzZHk
-            1M015NXZjbWN2TWpBeE9DOWpjbVZrWlc1MGFXRnNjeTkyTVNKZExDSjBlWEJsSWpwYklsWmxjbWxtYVdGaWJHVkRjbVZrWlc1MGFXRnNJaXd
-            pUlcxd2JHOTViV1Z1ZEVOeVpXUmxiblJwWVd3aVhTd2lZM0psWkdWdWRHbGhiRk4xWW1wbFkzUWlPbnNpY205c1pTSTZJbE52Wm5SM1lYSmx
-            JRVZ1WjJsdVpXVnlJaXdpWlcxd2JHOTVaWElpT2lKQlkyMWxJRU52Y25BaWZYMTkuUExBQ0VIT0xERVJfVkNfU0lHTkFUVVJFIl19fQ.SflK
-            xwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+            eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImRpZDpleGFtcGxlOjB4YWJjI2tleTEifQ.eyJpc3MiOiJkaWQ6ZXhhbXBsZTplY
+            mZlYjFmNzEyZWJjNmYxYzI3NmUxMmVjMjEiLCJqdGkiOiJ1cm46dXVpZDozOTc4MzQ0Zi04NTk2LTRjM2EtYTk3OC04ZmNhYmEzOTAzYzUiL
+            CJhdWQiOiJkaWQ6ZXhhbXBsZTo0YTU3NTQ2OTczNDM2ZjZmNmM0YTRhNTc1NzMiLCJuYmYiOjE1NDE0OTM3MjQsImlhdCI6MTU0MTQ5MzcyN
+            CwiZXhwIjoxNTczMDI5NzIzLCJub25jZSI6IjM0M3MkRlNGRGEtIiwidnAiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwM
+            TgvY3JlZGVudGlhbHMvdjEiLCJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy9leGFtcGxlcy92MSJdLCJ0eXBlIjpbIlZlc
+            mlmaWFibGVQcmVzZW50YXRpb24iLCJDcmVkZW50aWFsTWFuYWdlclByZXNlbnRhdGlvbiJdLCJ2ZXJpZmlhYmxlQ3JlZGVudGlhbCI6WyJle
+            UpoYkdjaU9pSlNVekkxTmlJc0luUjVjQ0k2SWtwWFZDSXNJbXRwWkNJNkltUnBaRHBsZUdGdGNHeGxPbUZpWm1VeE0yWTNNVEl4TWpBME16R
+            mpNamMyWlRFeVpXTmhZaU5yWlhsekxURWlmUS5leUp6ZFdJaU9pSmthV1E2WlhoaGJYQnNaVHBsWW1abFlqRm1OekV5WldKak5tWXhZekkzT
+            m1VeE1tVmpNakVpTENKcWRHa2lPaUpvZEhSd09pOHZaWGhoYlhCc1pTNWxaSFV2WTNKbFpHVnVkR2xoYkhNdk16Y3pNaUlzSW1semN5STZJb
+            WgwZEhCek9pOHZaWGhoYlhCc1pTNWpiMjB2YTJWNWN5OW1iMjh1YW5kcklpd2libUptSWpveE5UUXhORGt6TnpJMExDSnBZWFFpT2pFMU5ER
+            TBPVE0zTWpRc0ltVjRjQ0k2TVRVM016QXlPVGN5TXl3aWJtOXVZMlVpT2lJMk5qQWhOak0wTlVaVFpYSWlMQ0oyWXlJNmV5SkFZMjl1ZEdWN
+            GRDSTZXeUpvZEhSd2N6b3ZMM2QzZHk1M015NXZjbWN2TWpBeE9DOWpjbVZrWlc1MGFXRnNjeTkyTVNJc0ltaDBkSEJ6T2k4dmQzZDNMbmN6T
+            G05eVp5OHlNREU0TDJOeVpXUmxiblJwWVd4ekwyVjRZVzF3YkdWekwzWXhJbDBzSW5SNWNHVWlPbHNpVm1WeWFXWnBZV0pzWlVOeVpXUmxib
+            lJwWVd3aUxDSlZibWwyWlhKemFYUjVSR1ZuY21WbFEzSmxaR1Z1ZEdsaGJDSmRMQ0pqY21Wa1pXNTBhV0ZzVTNWaWFtVmpkQ0k2ZXlKa1pXZ
+            HlaV1VpT25zaWRIbHdaU0k2SWtKaFkyaGxiRzl5UkdWbmNtVmxJaXdpYm1GdFpTSTZJanh6Y0dGdUlHeGhibWM5SjJaeUxVTkJKejVDWVdOa
+            llXeGhkWExEcVdGMElHVnVJRzExYzJseGRXVnpJRzUxYmNPcGNtbHhkV1Z6UEM5emNHRnVQaUo5ZlgxOS5LTEpvNUdBeUJORDNMRFRuOUg3R
+            lFva0VzVUVpOGpLd1hoR3ZvTjNKdFJhNTF4ck5EZ1hEYjBjcTFVVFlCLXJLNEZ0OVlWbVIxTklfWk9GOG9HY183d0FwOFBIYkYySGFXb2RRS
+            W9PQnh4VC00V05xQXhmdDdFVDZsa0gtNFM2VXgzclNHQW1jek1vaEVFZjhlQ2VOLWpDOFdla2RQbDZ6S1pRajBZUEIxcng2WDAteGxGQnM3Y
+            2w2V3Q4cmZCUF90WjlZZ1ZXclFtVVd5cFNpb2MwTVV5aXBobXlFYkxaYWdUeVBsVXlmbEdsRWRxclpBdjZlU2U2UnR4Snk2TTEtbEQ3YTVIV
+            HphbllUV0JQQVVIRFpHeUdLWGRKdy1XX3gwSVdDaEJ6STh0M2twRzI1M2ZnNlYzdFBnSGVLWEU5NGZ6X1FwWWZnLS03a0xzeUJBZlFHYmciX
+            X19.ft_Eq4IniBrr7gtzRfrYj8Vy1aPXuFZU-6_ai0wvaKcsrzI4JkQEKTvbJwdvIeuGuTqy7ipO-EYi7V4TvonPuTRdpB7ZHOlYlbZ4wA9W
+            J6mSVSqDACvYRiFvrOFmie8rgm6GacWatgO4m4NqiFKFko3r58LueFfGw47NK9RcfOkVQeHCq4btaDqksDKeoTrNysF4YS89INa-prWomrLR
+            AhnwLOo1Etp3E4ESAxg73CR2kA5AoMbf5KtFueWnMcSbQkMRdWcGC1VssC0tB0JffVjq7ZV6OTyV4kl1-UVgiPLXUTpupFfLRhf9QpqMBjYg
+            P62KvhIvW8BbkGUelYMetAthos
             """;
 
     // example taken from here: https://www.w3.org/TR/vc-jose-cose/#example-a-simple-example-of-a-verifiable-presentation-secured-with-jose-with-the-envelopedverifiablecredential-type
