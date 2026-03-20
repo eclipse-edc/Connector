@@ -65,7 +65,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLIST_2021_URL;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
-import static org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier.JWT_VC_TOKEN_CONTEXT;
+import static org.eclipse.edc.verifiablecredentials.jwt.Constants.JWT_VC_TOKEN_CONTEXT;
 
 @Extension("DCP Core Extension")
 public class DcpCoreExtension implements ServiceExtension {

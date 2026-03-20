@@ -47,7 +47,7 @@ import java.util.UUID;
 
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.Result.success;
-import static org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier.JWT_VP_TOKEN_CONTEXT;
+import static org.eclipse.edc.verifiablecredentials.jwt.Constants.JWT_VP_TOKEN_CONTEXT;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.CENTRAL_ISSUER_DID;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.CENTRAL_ISSUER_KEY_ID;
 import static org.eclipse.edc.verifiablecredentials.jwt.TestConstants.MY_OWN_DID;
