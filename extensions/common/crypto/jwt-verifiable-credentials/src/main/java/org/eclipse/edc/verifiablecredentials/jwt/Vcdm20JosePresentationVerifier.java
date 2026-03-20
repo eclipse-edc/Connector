@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.verifiablecredentials.jwt;
 
+import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.CredentialVerifier;
 import org.eclipse.edc.iam.decentralizedclaims.spi.verification.VerifierContext;
@@ -29,6 +30,7 @@ import static org.eclipse.edc.verifiablecredentials.jwt.Constants.ENVELOPED_CRED
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.ENVELOPED_CREDENTIAL_TYPE;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.ENVELOPED_PRESENTATION_CONTENT_TYPE;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.ENVELOPED_VERIFIABLE_PRESENTATION_TYPE;
+import static org.eclipse.edc.verifiablecredentials.jwt.Constants.ID;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.TYPE;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.VERIFIABLE_CREDENTIAL_JSON_KEY;
 import static org.eclipse.edc.verifiablecredentials.jwt.Constants.VERIFIABLE_PRESENTATION_TYPE;
@@ -51,11 +53,12 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
     public boolean canHandle(String rawInput) {
         try {
             var signedJwt = SignedJWT.parse(rawInput);
-            if (signedJwt.getJWTClaimsSet().getClaims().containsKey(VP_CLAIM)) { // VCDM1.1
+            var jwtClaimsSet = signedJwt.getJWTClaimsSet();
+            if (jwtClaimsSet.getClaims().containsKey(VP_CLAIM)) { // VCDM1.1
                 return false;
             }
 
-            var type = signedJwt.getJWTClaimsSet().getStringClaim(TYPE);
+            var type = jwtClaimsSet.getStringClaim(TYPE);
             if (type == null) {
                 return false;
             }
@@ -70,8 +73,8 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
     @Override
     public Result<Void> verify(String rawInput, VerifierContext verifierContext) {
         try {
-            var signedJwt = SignedJWT.parse(rawInput);
-            var type = signedJwt.getJWTClaimsSet().getStringClaim(TYPE);
+            var jwtClaimsSet = SignedJWT.parse(rawInput).getJWTClaimsSet();
+            var type = jwtClaimsSet.getStringClaim(TYPE);
             if (type == null) {
                 return Result.failure("Not a valid VP token - missing the 'type' claim");
             }
@@ -83,8 +86,8 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
             }
 
             return switch (type) {
-                case ENVELOPED_VERIFIABLE_PRESENTATION_TYPE -> handleEnvelopedPresentation(signedJwt);
-                case VERIFIABLE_PRESENTATION_TYPE -> handleVpToken(signedJwt);
+                case ENVELOPED_VERIFIABLE_PRESENTATION_TYPE -> verifyEnvelopedPresentation(jwtClaimsSet);
+                case VERIFIABLE_PRESENTATION_TYPE -> verifyVpToken(jwtClaimsSet);
                 default -> Result.failure("Not a valid VP token - unknown type '%s'".formatted(type));
             };
 
@@ -100,12 +103,12 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
      * claim contains a semicolon-separated list of JWTs, prefixed with "data:application/vp+jwt,", where each contains
      * a single Verifiable Presentation. Each of these JWTs represents a "Credential Envelope".
      *
-     * @param signedJwt the parsed JWT representing the enveloped VP
+     * @param claimsSet the parsed JWT claims representing the enveloped VP
      * @return a successful result only if all presentations and all JWTs in them are valid (i.e. their signatures are correct).
      * @throws ParseException if parsing one of the JWTs fails
      */
-    private Result<Void> handleEnvelopedPresentation(SignedJWT signedJwt) throws ParseException {
-        var vpEnvelopeString = signedJwt.getJWTClaimsSet().getStringClaim(Constants.ID);
+    private Result<Void> verifyEnvelopedPresentation(JWTClaimsSet claimsSet) throws ParseException {
+        var vpEnvelopeString = claimsSet.getStringClaim(ID);
         if (vpEnvelopeString == null) {
             return Result.failure("No enveloped credential found in 'id' claim");
         }
@@ -119,7 +122,7 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
             }
             vpEnvelope = vpEnvelope.substring(ENVELOPED_PRESENTATION_CONTENT_TYPE.length() + 1);
             results.add(tokenValidationService.validate(vpEnvelope, publicKeyResolver).mapEmpty());
-            results.add(handleVpToken(SignedJWT.parse(vpEnvelope)));
+            results.add(verifyVpToken(SignedJWT.parse(vpEnvelope).getJWTClaimsSet()));
         }
         return results.stream().reduce(Result::merge).orElse(Result.success());
     }
@@ -128,12 +131,12 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
     /**
      * This method validates a single "Presentation Envelope", which is a JWT token that carries a verifiable presentation as JSON payload.
      *
-     * @param signedJwt the parsed JWT representing the enveloped VP
+     * @param claimsSet the parsed JWT claims representing the enveloped VP
      * @return a successful result only if the JWT is valid (i.e. its signature is correct).
      */
-    private Result<Void> handleVpToken(SignedJWT signedJwt) {
+    private Result<Void> verifyVpToken(JWTClaimsSet claimsSet) {
         try {
-            var credentialObjectList = signedJwt.getJWTClaimsSet().getListClaim(VERIFIABLE_CREDENTIAL_JSON_KEY);
+            var credentialObjectList = claimsSet.getListClaim(VERIFIABLE_CREDENTIAL_JSON_KEY);
             if (credentialObjectList == null) {
                 return Result.failure("No verifiable credential found in 'verifiableCredential' claim");
             }
@@ -147,9 +150,9 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
                     return Result.failure("Incorrect 'type' field in verifiable credential. Must be '%s' but was '%s'".formatted(ENVELOPED_CREDENTIAL_TYPE, credentialEnvelopeType));
                 }
                 // expect enveloped credentials here. there can be multiple, separated by ";"
-                var credentialEnvelope = credentialObject.get(Constants.ID);
+                var credentialEnvelope = credentialObject.get(ID);
                 if (credentialEnvelope instanceof String credentialEnvelopeString) {
-                    results.add(handleCredentialEnvelope(credentialEnvelopeString));
+                    results.add(verifyCredentialEnvelope(credentialEnvelopeString));
                 } else {
                     return Result.failure("No enveloped credential found in 'id' claim");
                 }
@@ -171,7 +174,7 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
      *                                 <pre>data:application/vc+jwt:,eyAB....,data:application/vc+jwt,eyXYZ...</pre>
      * @return a successful result only if all JWTs are valid (i.e. their signatures are correct).
      */
-    private Result<Void> handleCredentialEnvelope(String credentialEnvelopeString)  {
+    private Result<Void> verifyCredentialEnvelope(String credentialEnvelopeString)  {
         // a credential envelope can contain multiple credentials, prefixed with "data:application/vc+jwt," and separated by ";"
 
         var credentialEnvelopes = credentialEnvelopeString.split(";");
