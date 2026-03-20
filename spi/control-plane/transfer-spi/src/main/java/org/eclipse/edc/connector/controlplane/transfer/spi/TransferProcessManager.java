@@ -14,22 +14,13 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.spi;
 
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.entity.StateEntityManager;
-import org.eclipse.edc.spi.response.StatusResult;
 
 /**
  * Manages data transfer processes. Currently synchronous and asynchronous data transfers are supported.
  */
 @ExtensionPoint
 public interface TransferProcessManager extends StateEntityManager {
-
-    /**
-     * Initiates a data transfer process on the consumer.
-     */
-    StatusResult<TransferProcess> initiateConsumerRequest(ParticipantContext participantContext, TransferRequest transferRequest);
 
 }

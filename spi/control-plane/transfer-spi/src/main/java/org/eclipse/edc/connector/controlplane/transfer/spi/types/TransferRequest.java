@@ -56,10 +56,6 @@ public class TransferRequest {
         return counterPartyAddress;
     }
 
-    public String getId() {
-        return id;
-    }
-
     public String getContractId() {
         return contractId;
     }

@@ -67,7 +67,6 @@ class JsonObjectToTransferRequestTransformerTest {
 
         var json = createObjectBuilder()
                 .add(TYPE, TRANSFER_REQUEST_TYPE)
-                .add(ID, "id")
                 .add(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS, "address")
                 .add(TRANSFER_REQUEST_CONTRACT_ID, "contractId")
                 .add(TRANSFER_REQUEST_DATA_DESTINATION, dataDestinationJson)
@@ -81,7 +80,6 @@ class JsonObjectToTransferRequestTransformerTest {
         var result = transformer.transform(json, context);
 
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo("id");
         assertThat(result.getCounterPartyAddress()).isEqualTo("address");
         assertThat(result.getContractId()).isEqualTo("contractId");
         assertThat(result.getDataDestination()).isSameAs(dataDestination);
