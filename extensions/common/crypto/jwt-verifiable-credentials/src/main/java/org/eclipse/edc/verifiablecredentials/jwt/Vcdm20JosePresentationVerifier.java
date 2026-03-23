@@ -52,8 +52,7 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
     @Override
     public boolean canHandle(String rawInput) {
         try {
-            var signedJwt = SignedJWT.parse(rawInput);
-            var jwtClaimsSet = signedJwt.getJWTClaimsSet();
+            var jwtClaimsSet = SignedJWT.parse(rawInput).getJWTClaimsSet();
             if (jwtClaimsSet.getClaims().containsKey(VP_CLAIM)) { // VCDM1.1
                 return false;
             }
@@ -110,7 +109,7 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
     private Result<Void> verifyEnvelopedPresentation(JWTClaimsSet claimsSet) throws ParseException {
         var vpEnvelopeString = claimsSet.getStringClaim(ID);
         if (vpEnvelopeString == null) {
-            return Result.failure("No enveloped credential found in 'id' claim");
+            return Result.failure("No enveloped credential found in '%s' claim".formatted(ID));
         }
 
         var vpEnvelopes = vpEnvelopeString.split(";");
@@ -138,7 +137,7 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
         try {
             var credentialObjectList = claimsSet.getListClaim(VERIFIABLE_CREDENTIAL_JSON_KEY);
             if (credentialObjectList == null) {
-                return Result.failure("No verifiable credential found in 'verifiableCredential' claim");
+                return Result.failure("No verifiable credential found in '%s' claim".formatted(VERIFIABLE_CREDENTIAL_JSON_KEY));
             }
 
             var results = new ArrayList<Result<Void>>();
@@ -147,14 +146,14 @@ public class Vcdm20JosePresentationVerifier implements CredentialVerifier {
                 var credentialObject = (Map<String, Object>) credential;
                 var credentialEnvelopeType = credentialObject.get(TYPE);
                 if (!ENVELOPED_CREDENTIAL_TYPE.equals(credentialEnvelopeType)) {
-                    return Result.failure("Incorrect 'type' field in verifiable credential. Must be '%s' but was '%s'".formatted(ENVELOPED_CREDENTIAL_TYPE, credentialEnvelopeType));
+                    return Result.failure("Incorrect '%s' field in verifiable credential. Must be '%s' but was '%s'".formatted(TYPE, ENVELOPED_CREDENTIAL_TYPE, credentialEnvelopeType));
                 }
                 // expect enveloped credentials here. there can be multiple, separated by ";"
                 var credentialEnvelope = credentialObject.get(ID);
                 if (credentialEnvelope instanceof String credentialEnvelopeString) {
                     results.add(verifyCredentialEnvelope(credentialEnvelopeString));
                 } else {
-                    return Result.failure("No enveloped credential found in 'id' claim");
+                    return Result.failure("No enveloped credential found in '%s' claim".formatted(ID));
                 }
             }
             return results.stream().reduce(Result::merge).orElse(Result.success());
