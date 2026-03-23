@@ -35,6 +35,13 @@ public interface Runtimes {
                 ":system-tests:management-api:management-api-test-runtime"
         };
 
+        String[] MT_MODULES = new String[]{
+                ":system-tests:management-api:management-api-test-runtime",
+                ":extensions:control-plane:api:management-api-v5",
+                ":extensions:common:api:management-api-authorization",
+                ":extensions:common:api:management-api-oauth2-authentication",
+        };
+
         String[] SQL_MODULES = new String[]{
                 ":dist:bom:controlplane-feature-sql-bom"
         };

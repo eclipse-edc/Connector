@@ -53,6 +53,7 @@ dependencies {
     testImplementation(project(":extensions:control-plane:transfer:transfer-data-plane-signaling"))
     testImplementation(project(":extensions:control-plane:api:management-api:edr-cache-api"))
     testImplementation(project(":extensions:data-plane-selector:data-plane-selector-api"))
+    testImplementation(testFixtures(project(":extensions:common:auth:auth-authentication-oauth2-lib")))
 }
 
 edcBuild {
