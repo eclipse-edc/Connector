@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -83,16 +82,6 @@ public class AssetApiV5Extension implements ServiceExtension {
         webService.registerResource(ApiContext.MANAGEMENT, new AssetApiV5Controller(assetService, managementTypeTransformerRegistry, validatorRegistry, monitor, authorizationService));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, AssetApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
 
-        authorizationService.addLookupFunction(ParticipantContext.class, this::findParticipant);
-
-    }
-
-    // TODO Temporary hack, to be placed into ParticipantContextManagementApiExtension once the participant context API is available
-    private ParticipantResource findParticipant(String resourceId, String id) {
-        if (resourceId.equals(id)) {
-            return participantContextService.getParticipantContext(id).orElse(serviceFailure -> null);
-        }
-        return null;
     }
 
     private ParticipantResource findAsset(String ownerId, String assetId) {

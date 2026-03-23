@@ -20,6 +20,8 @@ dependencies {
     api(project(":extensions:common:api:api-core"))
     api(project(":extensions:common:api:management-api-configuration"))
     api(project(":extensions:control-plane:api:management-api-v5:asset-api-v5"))
+    api(project(":extensions:control-plane:api:management-api-v5:participant-context-api-v5"))
+    api(project(":extensions:control-plane:api:management-api-v5:participant-context-config-api-v5"))
 }
 
 

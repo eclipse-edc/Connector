@@ -880,7 +880,7 @@ public class AssetApiV5EndToEndTest {
         @RegisterExtension
         static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
                 .name(Runtimes.ControlPlane.NAME)
-                .modules(Runtimes.ControlPlane.MT_MODULES)
+                .modules(Runtimes.ControlPlane.VIRTUAL_MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)
                 .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
@@ -911,7 +911,7 @@ public class AssetApiV5EndToEndTest {
         @RegisterExtension
         static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
                 .name(Runtimes.ControlPlane.NAME)
-                .modules(Runtimes.ControlPlane.MT_MODULES)
+                .modules(Runtimes.ControlPlane.VIRTUAL_MODULES)
                 .modules(Runtimes.ControlPlane.SQL_MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)
