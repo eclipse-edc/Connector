@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.boot.system.injection;
 
-import org.eclipse.edc.boot.system.testextensions.ConfigurationObject;
 import org.eclipse.edc.boot.system.testextensions.ExtensionWithConfigValue;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -45,7 +44,7 @@ class SettingInjectionPointTest {
         @Test
         void isRequired() {
             assertThat(getInjectionPoint().isRequired()).isTrue();
-            var ip2 = createInjectionPoint(getTargetObject(), "optionalVal", Long.class);
+            var ip2 = createInjectionPoint(getTargetObject(), "optionalVal");
             assertThat(ip2.isRequired()).isFalse();
         }
 
@@ -77,7 +76,7 @@ class SettingInjectionPointTest {
             var config = ConfigFactory.fromMap(Map.of());
             when(contextMock.getConfig()).thenReturn(config);
             when(contextMock.getMonitor()).thenReturn(mock());
-            var ip = createInjectionPoint(getInjectionPoint(), "requiredValWithDefault", ExtensionWithConfigValue.class);
+            var ip = createInjectionPoint(getInjectionPoint(), "requiredValWithDefault");
             assertThat(ip.resolve(contextMock, new InjectionPointDefaultServiceSupplier())).isEqualTo(ExtensionWithConfigValue.DEFAULT_VALUE);
         }
 
@@ -87,7 +86,7 @@ class SettingInjectionPointTest {
             var config = ConfigFactory.fromMap(Map.of());
             when(contextMock.getConfig()).thenReturn(config);
             when(contextMock.getMonitor()).thenReturn(mock());
-            var ip = createInjectionPoint(getTargetObject(), "requiredDoubleVal", ExtensionWithConfigValue.class);
+            var ip = createInjectionPoint(getTargetObject(), "requiredDoubleVal");
             assertThatThrownBy(() -> ip.resolve(contextMock, mock())).isInstanceOf(EdcInjectionException.class);
         }
 
@@ -112,13 +111,13 @@ class SettingInjectionPointTest {
             var contextMock = mock(ServiceExtensionContext.class);
             var config = ConfigFactory.fromMap(Map.of());
             when(contextMock.getConfig()).thenReturn(config);
-            var ip = createInjectionPoint(getTargetObject(), "optionalVal", ExtensionWithConfigValue.class);
+            var ip = createInjectionPoint(getTargetObject(), "optionalVal");
             assertThat(ip.resolve(contextMock, mock())).isNull();
         }
 
         @Test
         void isSatisfiedBy_whenOptional() {
-            var ip = createInjectionPoint(getTargetObject(), "optionalVal", ExtensionWithConfigValue.class);
+            var ip = createInjectionPoint(getTargetObject(), "optionalVal");
             var contextMock = mock(ServiceExtensionContext.class);
             var config = ConfigFactory.fromMap(Map.of());
             when(contextMock.getConfig()).thenReturn(config);
@@ -127,7 +126,7 @@ class SettingInjectionPointTest {
 
         @Test
         void isSatisfiedBy_whenRequired_satisfiedByDefaultValue() {
-            var ip = createInjectionPoint(getTargetObject(), "requiredValWithDefault", ExtensionWithConfigValue.class);
+            var ip = createInjectionPoint(getTargetObject(), "requiredValWithDefault");
             var contextMock = mock(ServiceExtensionContext.class);
             var config = ConfigFactory.fromMap(Map.of());
             when(contextMock.getConfig()).thenReturn(config);
@@ -137,7 +136,7 @@ class SettingInjectionPointTest {
 
         @Test
         void isSatisfiedBy_whenRequired_satisfiedByConfig() {
-            var ip = createInjectionPoint(getTargetObject(), "requiredVal", ExtensionWithConfigValue.class);
+            var ip = createInjectionPoint(getTargetObject(), "requiredVal");
             var contextMock = mock(ServiceExtensionContext.class);
             var config = ConfigFactory.fromMap(Map.of("test.key", "test.value"));
             when(contextMock.getConfig()).thenReturn(config);
@@ -147,7 +146,7 @@ class SettingInjectionPointTest {
 
         @Test
         void isSatisfiedBy_whenRequired_notSatisfied() {
-            var ip = createInjectionPoint(getTargetObject(), "requiredVal", ExtensionWithConfigValue.class);
+            var ip = createInjectionPoint(getTargetObject(), "requiredVal");
             var contextMock = mock(ServiceExtensionContext.class);
             var config = ConfigFactory.fromMap(Map.of());
             when(contextMock.getConfig()).thenReturn(config);
@@ -160,7 +159,7 @@ class SettingInjectionPointTest {
     class DeclaredOnExtension extends Tests {
 
         private final ExtensionWithConfigValue targetObject = new ExtensionWithConfigValue();
-        private final SettingInjectionPoint<?> injectionPoint = createInjectionPoint(targetObject, "requiredVal", targetObject.getClass());
+        private final SettingInjectionPoint<?> injectionPoint = createInjectionPoint(targetObject, "requiredVal");
 
         @Test
         void getTargetInstance() {
@@ -190,7 +189,7 @@ class SettingInjectionPointTest {
 
     @Nested
     class DeclaredOnConfigObject extends Tests {
-        private final SettingInjectionPoint<?> injectionPoint = createInjectionPoint(null, "requiredVal", ConfigurationObject.class);
+        private final SettingInjectionPoint<?> injectionPoint = createInjectionPoint(null, "requiredVal");
 
         @Test
         void getTargetInstance() {
@@ -198,7 +197,7 @@ class SettingInjectionPointTest {
         }
 
         @Test
-        void setTargetValue() throws IllegalAccessException {
+        void setTargetValue() {
             assertThat(getInjectionPoint().setTargetValue("test").succeeded()).isFalse();
         }
 
@@ -213,10 +212,9 @@ class SettingInjectionPointTest {
         }
     }
 
-
-    private SettingInjectionPoint<?> createInjectionPoint(Object targetObject, String fieldName, Class<?> targetClass) {
+    private SettingInjectionPoint<?> createInjectionPoint(Object targetObject, String fieldName) {
         var field = getDeclaredField(ExtensionWithConfigValue.class, fieldName);
-        return new SettingInjectionPoint<>(targetObject, field, field.getAnnotation(Setting.class), targetClass);
+        return new SettingInjectionPoint<>(targetObject, field, field.getAnnotation(Setting.class));
     }
 
 }

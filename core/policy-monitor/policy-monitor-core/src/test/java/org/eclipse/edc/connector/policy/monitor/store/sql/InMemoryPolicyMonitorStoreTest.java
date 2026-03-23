@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.policy.monitor.store.sql;
 
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
 import org.eclipse.edc.connector.policy.monitor.spi.testfixtures.store.PolicyMonitorStoreTestBase;
+import org.eclipse.edc.connector.policy.monitor.store.InMemoryPolicyMonitorStore;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 
 import java.time.Clock;

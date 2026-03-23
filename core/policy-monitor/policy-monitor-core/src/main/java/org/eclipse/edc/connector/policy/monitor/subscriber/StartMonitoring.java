@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.policy.monitor.subscriber;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
-import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
+import org.eclipse.edc.connector.policy.monitor.manager.PolicyMonitor;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventSubscriber;
@@ -27,16 +27,16 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
  */
 public class StartMonitoring implements EventSubscriber {
 
-    private final PolicyMonitorManager manager;
+    private final PolicyMonitor policyMonitor;
 
-    public StartMonitoring(PolicyMonitorManager manager) {
-        this.manager = manager;
+    public StartMonitoring(PolicyMonitor policyMonitor) {
+        this.policyMonitor = policyMonitor;
     }
 
     @Override
     public <E extends Event> void on(EventEnvelope<E> event) {
         if (event.getPayload() instanceof TransferProcessStarted started && PROVIDER.name().equals(started.getType())) {
-            manager.startMonitoring(started.getTransferProcessId(), started.getContractId());
+            policyMonitor.start(started.getTransferProcessId(), started.getContractId());
         }
     }
 }

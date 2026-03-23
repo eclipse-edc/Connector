@@ -17,6 +17,8 @@ package org.eclipse.edc.boot.system.testextensions;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 
+import java.time.Duration;
+
 public class ExtensionWithConfigValue implements ServiceExtension {
 
     public static final String DEFAULT_VALUE = "default-value";
@@ -31,4 +33,7 @@ public class ExtensionWithConfigValue implements ServiceExtension {
 
     @Setting(key = "test.key3", defaultValue = DEFAULT_VALUE)
     private Double requiredDoubleVal;
+
+    @Setting(key = "test.duration", defaultValue = "PT1H")
+    private Duration duration;
 }

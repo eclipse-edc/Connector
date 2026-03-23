@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.policy.monitor.subscriber;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
-import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
+import org.eclipse.edc.connector.policy.monitor.manager.PolicyMonitor;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.junit.jupiter.api.Test;
 
@@ -30,11 +30,11 @@ import static org.mockito.Mockito.verifyNoInteractions;
 class StartMonitoringTest {
 
     private long now;
-    private final PolicyMonitorManager manager = mock();
+    private final PolicyMonitor policyMonitor = mock();
 
     @Test
     void shouldStartMonitoring_whenTransferProcessIsProvider() {
-        var subscriber = new StartMonitoring(manager);
+        var subscriber = new StartMonitoring(policyMonitor);
         now = Instant.now().toEpochMilli();
         var event = TransferProcessStarted.Builder.newInstance()
                 .transferProcessId("transferProcessId")
@@ -44,12 +44,12 @@ class StartMonitoringTest {
 
         subscriber.on(envelope(event));
 
-        verify(manager).startMonitoring("transferProcessId", "contractId");
+        verify(policyMonitor).start("transferProcessId", "contractId");
     }
 
     @Test
     void shouldNotStartMonitoring_whenTransferProcessIsConsumer() {
-        var subscriber = new StartMonitoring(manager);
+        var subscriber = new StartMonitoring(policyMonitor);
         now = Instant.now().toEpochMilli();
         var event = TransferProcessStarted.Builder.newInstance()
                 .transferProcessId("transferProcessId")
@@ -59,7 +59,7 @@ class StartMonitoringTest {
 
         subscriber.on(envelope(event));
 
-        verifyNoInteractions(manager);
+        verifyNoInteractions(policyMonitor);
     }
 
 

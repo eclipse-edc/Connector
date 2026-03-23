@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.controlplane.policy.contract.ContractExpiryChec
 import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
+import org.eclipse.edc.connector.policy.monitor.manager.PolicyMonitor;
 import org.eclipse.edc.connector.policy.monitor.manager.PolicyMonitorManagerImpl;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorContext;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
@@ -36,7 +37,7 @@ import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
-import org.eclipse.edc.statemachine.StateMachineConfiguration;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.time.Clock;
 
@@ -53,62 +54,49 @@ public class PolicyMonitorExtension implements ServiceExtension {
 
     @SettingContext("edc.policy.monitor")
     @Configuration
-    private StateMachineConfiguration stateMachineConfiguration;
+    private PolicyMonitorConfiguration configuration;
 
     @Inject
     private ExecutorInstrumentation executorInstrumentation;
-
     @Inject
     private Telemetry telemetry;
-
     @Inject
     private Clock clock;
-
     @Inject
     private EventRouter eventRouter;
-
     @Inject
     private ContractAgreementService contractAgreementService;
-
     @Inject
     private PolicyEngine policyEngine;
-
     @Inject
     private TransferProcessService transferProcessService;
-
     @Inject
     private PolicyMonitorStore policyMonitorStore;
-
     @Inject
     private RuleBindingRegistry ruleBindingRegistry;
+    @Inject
+    private TransactionContext transactionContext;
 
     private PolicyMonitorManager manager;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
 
+        failWhenSettingsAreNotUpdated(context);
+
         policyEngine.registerScope(POLICY_MONITOR_SCOPE, PolicyMonitorContext.class);
         ruleBindingRegistry.bind(ODRL_USE_ACTION_ATTRIBUTE, POLICY_MONITOR_SCOPE);
         ruleBindingRegistry.bind(CONTRACT_EXPIRY_EVALUATION_KEY, POLICY_MONITOR_SCOPE);
         policyEngine.registerFunction(PolicyMonitorContext.class, Permission.class, CONTRACT_EXPIRY_EVALUATION_KEY, new ContractExpiryCheckFunction<>());
 
-        manager = PolicyMonitorManagerImpl.Builder.newInstance()
-                .clock(clock)
-                .batchSize(stateMachineConfiguration.batchSize())
-                .waitStrategy(stateMachineConfiguration.iterationWaitExponentialWaitStrategy())
-                .executorInstrumentation(executorInstrumentation)
-                .monitor(context.getMonitor())
-                .telemetry(telemetry)
-                .contractAgreementService(contractAgreementService)
-                .policyEngine(policyEngine)
-                .transferProcessService(transferProcessService)
-                .store(policyMonitorStore)
-                .entityRetryProcessConfiguration(stateMachineConfiguration.entityRetryProcessConfiguration())
-                .build();
+        var policyMonitor = new PolicyMonitor(policyMonitorStore, telemetry, transferProcessService,
+                contractAgreementService, policyEngine, context.getMonitor(), clock, transactionContext);
+
+        manager = new PolicyMonitorManagerImpl(policyMonitor, configuration, executorInstrumentation, context.getMonitor(), policyMonitorStore, clock);
 
         context.registerService(PolicyMonitorManager.class, manager);
 
-        eventRouter.registerSync(TransferProcessStarted.class, new StartMonitoring(manager));
+        eventRouter.registerSync(TransferProcessStarted.class, new StartMonitoring(policyMonitor));
     }
 
     @Override
@@ -120,6 +108,20 @@ public class PolicyMonitorExtension implements ServiceExtension {
     public void shutdown() {
         if (manager != null) {
             manager.stop();
+        }
+    }
+
+    @Deprecated(since = "0.17.0")
+    private void failWhenSettingsAreNotUpdated(ServiceExtensionContext context) {
+        if (!context.getConfig("edc.policy.monitor.state-machine").getEntries().isEmpty()) {
+            var message = """
+                    Policy Monitor model has been changed from a state machine to a watchdog, please
+                    review the configuration accordingly: 'edc.policy.manager.batch-size' to set up the batch size,
+                    'edc.policy.manager.period' to set up the period in ISO-8061 Duration format. The
+                    'edc.policy.manager.state-machine' settings must be deleted.
+                    """;
+            context.getMonitor().severe(message);
+            throw new RuntimeException(message);
         }
     }
 
