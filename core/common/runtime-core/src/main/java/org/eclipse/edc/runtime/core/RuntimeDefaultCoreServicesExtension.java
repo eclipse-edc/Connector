@@ -17,6 +17,7 @@ package org.eclipse.edc.runtime.core;
 import dev.failsafe.RetryPolicy;
 import okhttp3.EventListener;
 import okhttp3.OkHttpClient;
+import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.runtime.core.http.OkHttpClientConfiguration;
 import org.eclipse.edc.runtime.core.http.OkHttpClientFactory;
 import org.eclipse.edc.runtime.core.retry.RetryPolicyConfiguration;
@@ -27,6 +28,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.datasource.spi.DefaultDataSourceRegistry;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
@@ -75,6 +77,11 @@ public class RuntimeDefaultCoreServicesExtension implements ServiceExtension {
     @Provider
     public OkHttpClient okHttpClient(ServiceExtensionContext context) {
         return OkHttpClientFactory.create(configuration, okHttpEventListener, context.getMonitor());
+    }
+
+    @Provider
+    public TypeManager typeManager() {
+        return new JacksonTypeManager();
     }
     
 }

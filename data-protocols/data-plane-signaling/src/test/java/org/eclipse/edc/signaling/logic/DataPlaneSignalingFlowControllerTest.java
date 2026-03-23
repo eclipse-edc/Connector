@@ -63,7 +63,7 @@ public class DataPlaneSignalingFlowControllerTest {
     private final DataAddressStore dataAddressStore = mock();
 
     private final DataPlaneSignalingFlowController flowController = new DataPlaneSignalingFlowController(
-            () -> URI.create("http://localhost"), selectorService,
+            URI.create("http://localhost"), selectorService,
             typeTransformerRegistry, clientFactory, dataAddressStore);
 
     @Nested

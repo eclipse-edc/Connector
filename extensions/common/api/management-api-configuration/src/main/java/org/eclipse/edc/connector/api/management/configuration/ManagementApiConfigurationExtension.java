@@ -14,9 +14,7 @@
 
 package org.eclipse.edc.connector.api.management.configuration;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import jakarta.json.Json;
-import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
 import org.eclipse.edc.connector.controlplane.transform.edc.contractagreement.from.JsonObjectFromContractAgreementTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.from.JsonObjectFromAssetTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.from.JsonObjectFromDataplaneMetadataTransformer;
@@ -37,7 +35,6 @@ import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.apiversion.ApiVersionService;
-import org.eclipse.edc.spi.system.apiversion.VersionRecord;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromCriterionTransformer;
@@ -57,7 +54,6 @@ import org.eclipse.edc.web.spi.configuration.context.ManagementApiUrl;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
@@ -96,8 +92,6 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
 
     @Inject
     private WebService webService;
-    @Inject
-    private ApiAuthenticationRegistry authenticationRegistry;
     @Inject
     private PortMappingRegistry portMappingRegistry;
     @Inject
@@ -168,13 +162,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
 
     private void registerVersionInfo(ClassLoader resourceClassLoader) {
         try (var versionContent = resourceClassLoader.getResourceAsStream(API_VERSION_JSON_FILE)) {
-            if (versionContent == null) {
-                throw new EdcException("Version file not found or not readable.");
-            }
-            Stream.of(typeManager.getMapper()
-                            .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
-                            .readValue(versionContent, VersionRecord[].class))
-                    .forEach(vr -> apiVersionService.addRecord(ApiContext.MANAGEMENT, vr));
+            apiVersionService.registerVersionInfo(ApiContext.MANAGEMENT, versionContent);
         } catch (IOException e) {
             throw new EdcException(e);
         }

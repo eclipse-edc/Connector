@@ -52,6 +52,7 @@ public interface Runtimes {
 
         Endpoints.Builder ENDPOINTS = Endpoints.Builder.newInstance()
                 .endpoint("management", () -> URI.create("http://localhost:" + getFreePort() + "/management"))
+                .endpoint("signaling", () -> URI.create("http://localhost:" + getFreePort() + "/signaling"))
                 .endpoint("control", () -> URI.create("http://localhost:" + getFreePort() + "/control"))
                 .endpoint("protocol", () -> URI.create("http://localhost:" + getFreePort() + "/protocol"));
 

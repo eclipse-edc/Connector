@@ -23,6 +23,7 @@ dependencies {
     api(project(":spi:common:connector-participant-context-spi"))
 
     testImplementation(libs.awaitility)
+    testImplementation(project(":core:common:lib:json-lib"))
 }
 
 

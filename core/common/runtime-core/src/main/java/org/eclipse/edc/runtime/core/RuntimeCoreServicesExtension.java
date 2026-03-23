@@ -21,8 +21,8 @@ import org.eclipse.edc.encryption.EncryptionAlgorithmRegistry;
 import org.eclipse.edc.encryption.EncryptionAlgorithmRegistryImpl;
 import org.eclipse.edc.http.client.EdcHttpClientImpl;
 import org.eclipse.edc.http.spi.EdcHttpClient;
-import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
+import org.eclipse.edc.runtime.core.api.ApiVersionServiceImpl;
 import org.eclipse.edc.runtime.core.command.CommandHandlerRegistryImpl;
 import org.eclipse.edc.runtime.core.event.EventRouterImpl;
 import org.eclipse.edc.runtime.core.message.RemoteMessageDispatcherRegistryImpl;
@@ -38,6 +38,7 @@ import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.apiversion.ApiVersionService;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -75,15 +76,12 @@ public class RuntimeCoreServicesExtension implements ServiceExtension {
     private RetryPolicy<Response> retryPolicy;
     @Inject
     private Clock clock;
+    @Inject
+    private TypeManager typeManager;
 
     @Override
     public String name() {
         return NAME;
-    }
-
-    @Provider
-    public TypeManager typeManager() {
-        return new JacksonTypeManager();
     }
 
     @Provider
@@ -129,6 +127,11 @@ public class RuntimeCoreServicesExtension implements ServiceExtension {
     @Provider
     public EncryptionAlgorithmRegistry encryptionAlgorithmRegistry() {
         return new EncryptionAlgorithmRegistryImpl(failOnUnsupported);
+    }
+
+    @Provider
+    public ApiVersionService apiVersionService() {
+        return new ApiVersionServiceImpl(typeManager);
     }
 
 }

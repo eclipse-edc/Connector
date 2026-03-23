@@ -17,6 +17,7 @@ package org.eclipse.edc.signaling;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -27,7 +28,6 @@ import org.eclipse.edc.signaling.port.transformer.DataFlowResponseMessageToDataF
 import org.eclipse.edc.signaling.port.transformer.DspDataAddressToDataAddressTransformer;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 
 import static org.eclipse.edc.signaling.DataPlaneSignalingFlowControllerExtension.NAME;
 
@@ -37,10 +37,11 @@ public class DataPlaneSignalingFlowControllerExtension implements ServiceExtensi
 
     public static final String NAME = "Data Plane Signaling Api";
 
+    @Configuration
+    private SignalingApiConfiguration apiConfiguration;
+
     @Inject
     private TypeTransformerRegistry transformerRegistry;
-    @Inject
-    private ControlApiUrl controlApiUrl;
     @Inject
     private ClientFactory clientFactory;
     @Inject
@@ -59,7 +60,7 @@ public class DataPlaneSignalingFlowControllerExtension implements ServiceExtensi
         typeTransformerRegistry.register(new DataAddressToDspDataAddressTransformer());
         typeTransformerRegistry.register(new DataFlowResponseMessageToDataFlowResponseTransformer());
         typeTransformerRegistry.register(new DspDataAddressToDataAddressTransformer());
-        return new DataPlaneSignalingFlowController(controlApiUrl, dataPlaneSelectorService,
+        return new DataPlaneSignalingFlowController(apiConfiguration.createPublicUri(), dataPlaneSelectorService,
                 typeTransformerRegistry, clientFactory, dataAddressStore);
     }
 }

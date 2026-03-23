@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.boot;
 
-import org.eclipse.edc.boot.apiversion.ApiVersionServiceImpl;
 import org.eclipse.edc.boot.health.HealthCheckServiceImpl;
 import org.eclipse.edc.boot.system.ExtensionLoader;
 import org.eclipse.edc.boot.vault.InMemoryVault;
@@ -27,7 +26,6 @@ import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.apiversion.ApiVersionService;
 import org.eclipse.edc.spi.system.health.HealthCheckService;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 
@@ -76,11 +74,6 @@ public class BootServicesExtension implements ServiceExtension {
     }
 
     @Provider(isDefault = true)
-    public Vault vault(ServiceExtensionContext context) {
-        return createInmemVault(context);
-    }
-
-    @Provider(isDefault = true)
     public ExecutorInstrumentation defaultInstrumentation() {
         return ExecutorInstrumentation.noop();
     }
@@ -90,11 +83,5 @@ public class BootServicesExtension implements ServiceExtension {
         context.getMonitor().warning("Using the InMemoryVault is not suitable for production scenarios and should be replaced with an actual Vault!");
         return new InMemoryVault(context.getMonitor(), singleParticipantContextSupplier);
     }
-
-    @Provider
-    public ApiVersionService apiVersionService() {
-        return new ApiVersionServiceImpl();
-    }
-
 
 }

@@ -31,9 +31,9 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.URI;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
@@ -47,16 +47,16 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
  */
 public class DataPlaneSignalingFlowController implements DataFlowController {
 
-    private final ControlApiUrl callbackUrl;
+    private final URI callbackUri;
     private final DataPlaneSelectorService selectorClient;
     private final TypeTransformerRegistry typeTransformerRegistry;
     private final ClientFactory clientFactory;
     private final DataAddressStore dataAddressStore;
 
-    public DataPlaneSignalingFlowController(ControlApiUrl callbackUrl, DataPlaneSelectorService selectorClient,
+    public DataPlaneSignalingFlowController(URI callbackUri, DataPlaneSelectorService selectorClient,
                                             TypeTransformerRegistry typeTransformerRegistry, ClientFactory clientFactory,
                                             DataAddressStore dataAddressStore) {
-        this.callbackUrl = callbackUrl;
+        this.callbackUri = callbackUri;
         this.selectorClient = selectorClient;
         this.typeTransformerRegistry = typeTransformerRegistry;
         this.clientFactory = clientFactory;
@@ -83,7 +83,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .processId(transferProcess.getId())
                 .agreementId(transferProcess.getContractId())
                 .datasetId(transferProcess.getAssetId())
-                .callbackAddress(callbackUrl.get())
+                .callbackAddress(callbackUri)
                 .transferType(transferProcess.getTransferType());
 
         var dataplaneMetadata = transferProcess.getDataplaneMetadata();
@@ -115,7 +115,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .processId(transferProcess.getId())
                 .agreementId(transferProcess.getContractId())
                 .datasetId(transferProcess.getAssetId())
-                .callbackAddress(callbackUrl.get())
+                .callbackAddress(callbackUri)
                 .transferType(transferProcess.getTransferType());
 
         var dataAddress = dataAddressStore.resolve(transferProcess).orElse(f -> null);
