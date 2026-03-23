@@ -405,7 +405,6 @@ public class SerdeEndToEndTest {
             var transferRequest = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, TransferRequest.class);
 
             assertThat(transferRequest).isNotNull();
-            assertThat(transferRequest.getId()).isEqualTo(inputObject.getString(ID));
             assertThat(transferRequest.getCounterPartyAddress()).isEqualTo(inputObject.getString("counterPartyAddress"));
             assertThat(transferRequest.getContractId()).isEqualTo(inputObject.getString("contractId"));
             assertThat(transferRequest.getDataDestination()).extracting(DataAddress::getType).isEqualTo(inputObject.getJsonObject("dataDestination").getString("type"));
@@ -425,7 +424,6 @@ public class SerdeEndToEndTest {
             var transferRequest = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, TransferRequest.class);
 
             assertThat(transferRequest).isNotNull();
-            assertThat(transferRequest.getId()).isEqualTo(inputObject.getString(ID));
             assertThat(transferRequest.getCounterPartyAddress()).isEqualTo(inputObject.getString("counterPartyAddress"));
             assertThat(transferRequest.getContractId()).isEqualTo(inputObject.getString("contractId"));
             assertThat(transferRequest.getDataDestination()).extracting(DataAddress::getType).isEqualTo(inputObject.getJsonObject("dataDestination").getString("type"));

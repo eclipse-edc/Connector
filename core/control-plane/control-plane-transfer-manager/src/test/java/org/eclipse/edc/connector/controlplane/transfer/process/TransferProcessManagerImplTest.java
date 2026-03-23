@@ -16,7 +16,6 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.process;
 
-import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
@@ -29,16 +28,14 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStor
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessAck;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.Criterion;
@@ -46,7 +43,6 @@ import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,7 +58,6 @@ import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.UnaryOperator;
@@ -93,7 +88,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING_REQUESTED;
-import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
@@ -131,7 +125,7 @@ class TransferProcessManagerImplTest {
     private final DataFlowController dataFlowController = mock();
     private final Clock clock = Clock.systemUTC();
     private final TransferProcessListener listener = mock();
-    private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
+    private final ProtocolWebhookResolver protocolWebhookResolver = mock();
     private final DataAddressResolver addressResolver = mock();
     private final DataAddressStore dataAddressStore = mock();
     private final String protocolWebhookUrl = "http://protocol.webhook/url";
@@ -148,7 +142,7 @@ class TransferProcessManagerImplTest {
 
     @BeforeEach
     void setup() {
-        when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> protocolWebhookUrl);
+        when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> protocolWebhookUrl);
         when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().build());
         when(policyArchive.getAgreementIdForContract(any())).thenReturn("agreementId");
         when(transferProcessStore.save(any())).thenReturn(StoreResult.success());
@@ -158,19 +152,16 @@ class TransferProcessManagerImplTest {
         var entityRetryProcessFactory = new EntityRetryProcessFactory(mock(), clock, entityRetryProcessConfiguration);
         var transformerProcessors = new TransferProcessorsImpl(policyArchive, entityRetryProcessFactory,
                 dataFlowController, dataAddressStore, observable, transferProcessStore, mock(), addressResolver,
-                dataspaceProfileContextRegistry, dispatcherRegistry);
+                protocolWebhookResolver, dispatcherRegistry);
         manager = TransferProcessManagerImpl.Builder.newInstance()
                 .transferProcessors(transformerProcessors)
                 .waitStrategy(() -> 10000L)
                 .batchSize(TRANSFER_MANAGER_BATCHSIZE)
                 .monitor(mock())
                 .clock(clock)
-                .observable(observable)
                 .store(transferProcessStore)
-                .policyArchive(policyArchive)
                 .entityRetryProcessConfiguration(entityRetryProcessConfiguration)
                 .pendingGuard(pendingGuard)
-                .dataAddressStore(dataAddressStore)
                 .build();
     }
 
@@ -216,6 +207,76 @@ class TransferProcessManagerImplTest {
             });
             verify(dispatcherRegistry, only()).dispatch(any(), any(), any());
         });
+    }
+
+    private Criterion[] consumerStateIs(int state) {
+        return aryEq(new Criterion[]{hasState(state), isNotPending(), criterion("type", "=", CONSUMER.name())});
+    }
+
+    private Criterion[] providerStateIs(int state) {
+        return aryEq(new Criterion[]{hasState(state), isNotPending(), criterion("type", "=", PROVIDER.name())});
+    }
+
+    private Criterion[] stateIs(int state) {
+        return aryEq(new Criterion[]{hasState(state), isNotPending()});
+    }
+
+    private TransferProcess createTransferProcess(TransferProcessStates inState) {
+        return createTransferProcessBuilder(inState).build();
+    }
+
+    private TransferProcess.Builder createTransferProcessBuilder(TransferProcessStates state) {
+        var processId = UUID.randomUUID().toString();
+
+        return TransferProcess.Builder.newInstance()
+                .type(CONSUMER)
+                .id("test-process-" + processId)
+                .state(state.code())
+                .correlationId(UUID.randomUUID().toString())
+                .counterPartyAddress("http://an/address")
+                .contractId(UUID.randomUUID().toString())
+                .assetId(UUID.randomUUID().toString())
+                .dataDestination(DataAddress.Builder.newInstance().type(DESTINATION_TYPE).build())
+                .participantContextId(PARTICIPANT_CONTEXT_ID)
+                .protocol("protocol");
+    }
+
+    private static class DispatchFailureArguments implements ArgumentsProvider {
+
+        private static final int RETRIES_NOT_EXHAUSTED = RETRY_LIMIT;
+        private static final int RETRIES_EXHAUSTED = RETRIES_NOT_EXHAUSTED + 1;
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameters, ExtensionContext context) {
+            CompletableFuture<StatusResult<Object>> genericError = failedFuture(new EdcException("error"));
+            var fatalError = completedFuture(StatusResult.failure(FATAL_ERROR));
+            return Stream.of(
+                    // retries not exhausted
+                    new DispatchFailure(REQUESTING, REQUESTING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(STARTING, STARTING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER)),
+                    new DispatchFailure(COMPLETING, COMPLETING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(SUSPENDING, SUSPENDING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(RESUMING, RESUMING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER)),
+                    new DispatchFailure(RESUMING, RESUMING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(CONSUMER)),
+                    new DispatchFailure(TERMINATING, TERMINATING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    // retries exhausted
+                    new DispatchFailure(REQUESTING, TERMINATED, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(STARTING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(PROVIDER)),
+                    new DispatchFailure(COMPLETING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(SUSPENDING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    new DispatchFailure(RESUMING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(CONSUMER)),
+                    new DispatchFailure(RESUMING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(PROVIDER)),
+                    new DispatchFailure(TERMINATING, TERMINATED, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
+                    // fatal error, in this case retry should never be done
+                    new DispatchFailure(REQUESTING, TERMINATED, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(STARTING, TERMINATING, fatalError, b -> b.type(PROVIDER).stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(COMPLETING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(SUSPENDING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
+                    new DispatchFailure(RESUMING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(CONSUMER)),
+                    new DispatchFailure(RESUMING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER)),
+                    new DispatchFailure(TERMINATING, TERMINATED, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED))
+            );
+        }
     }
 
     @Nested
@@ -434,107 +495,6 @@ class TransferProcessManagerImplTest {
             });
         }
 
-    }
-
-    @Nested
-    class InitiateConsumerRequest {
-        @Test
-        void shouldStoreTransferProcessAndDataAddress() {
-            when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().target("assetId").build());
-            when(transferProcessStore.findForCorrelationId("1")).thenReturn(null);
-            var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
-            var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().label("label").build();
-            var dataAddress = DataAddress.Builder.newInstance().type("test").build();
-            var transferRequest = TransferRequest.Builder.newInstance()
-                    .id("1")
-                    .dataDestination(dataAddress)
-                    .callbackAddresses(List.of(callback))
-                    .dataplaneMetadata(dataplaneMetadata)
-                    .build();
-            var participantContext = ParticipantContext.Builder.newInstance().participantContextId("id")
-                    .identity("identity")
-                    .build();
-            when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
-
-            var result = manager.initiateConsumerRequest(participantContext, transferRequest);
-
-            assertThat(result).isSucceeded().isNotNull();
-            var captor = ArgumentCaptor.forClass(TransferProcess.class);
-            verify(transferProcessStore, times(RETRY_LIMIT)).save(captor.capture());
-            var transferProcess = captor.getValue();
-            assertThat(transferProcess.getId()).isEqualTo("1");
-            assertThat(transferProcess.getCorrelationId()).isNull();
-            assertThat(transferProcess.getCallbackAddresses()).usingRecursiveFieldByFieldElementComparator().contains(callback);
-            assertThat(transferProcess.getAssetId()).isEqualTo("assetId");
-            assertThat(transferProcess.getDataplaneMetadata()).isSameAs(dataplaneMetadata);
-            assertThat(transferProcess.getDataDestination()).isNull();
-            verify(listener).initiated(any());
-            verify(dataAddressStore).store(dataAddress, transferProcess);
-        }
-
-        @Test
-        void shouldNotStoreDataAddress_whenItsNotProvided() {
-            when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().target("assetId").build());
-            when(transferProcessStore.findForCorrelationId("1")).thenReturn(null);
-            var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
-            var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().label("label").build();
-            var transferRequest = TransferRequest.Builder.newInstance()
-                    .id("1")
-                    .callbackAddresses(List.of(callback))
-                    .dataplaneMetadata(dataplaneMetadata)
-                    .build();
-            var participantContext = ParticipantContext.Builder.newInstance().participantContextId("id")
-                    .identity("identity")
-                    .build();
-
-            var result = manager.initiateConsumerRequest(participantContext, transferRequest);
-
-            assertThat(result).isSucceeded().isNotNull();
-            verifyNoInteractions(dataAddressStore);
-        }
-
-        @Test
-        void shouldFail_whenPolicyNotAvailable() {
-            when(policyArchive.findPolicyForContract(any())).thenReturn(null);
-            when(transferProcessStore.findForCorrelationId("1")).thenReturn(null);
-
-            var transferRequest = TransferRequest.Builder.newInstance()
-                    .id("1")
-                    .contractId("contractId")
-                    .dataDestination(DataAddress.Builder.newInstance().type("test").build())
-                    .build();
-
-            var participantContext = ParticipantContext.Builder.newInstance()
-                    .participantContextId("participantContextId").identity("id").build();
-            var result = manager.initiateConsumerRequest(participantContext, transferRequest);
-
-            assertThat(result).isFailed();
-        }
-
-        @Test
-        void shouldFail_whenDataAddressStorageFails() {
-            when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().target("assetId").build());
-            when(transferProcessStore.findForCorrelationId("1")).thenReturn(null);
-            var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
-            var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().label("label").build();
-            var dataAddress = DataAddress.Builder.newInstance().type("test").build();
-            var transferRequest = TransferRequest.Builder.newInstance()
-                    .id("1")
-                    .dataDestination(dataAddress)
-                    .callbackAddresses(List.of(callback))
-                    .dataplaneMetadata(dataplaneMetadata)
-                    .build();
-            var participantContext = ParticipantContext.Builder.newInstance().participantContextId("id")
-                    .identity("identity")
-                    .build();
-            when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.generalError("error"));
-
-            var result = manager.initiateConsumerRequest(participantContext, transferRequest);
-
-            assertThat(result).isFailed();
-            verifyNoInteractions(listener);
-            verify(transferProcessStore, never()).save(any());
-        }
     }
 
     @Nested
@@ -1027,76 +987,6 @@ class TransferProcessManagerImplTest {
             });
         }
 
-    }
-
-    private Criterion[] consumerStateIs(int state) {
-        return aryEq(new Criterion[]{hasState(state), isNotPending(), criterion("type", "=", CONSUMER.name())});
-    }
-
-    private Criterion[] providerStateIs(int state) {
-        return aryEq(new Criterion[]{hasState(state), isNotPending(), criterion("type", "=", PROVIDER.name())});
-    }
-
-    private Criterion[] stateIs(int state) {
-        return aryEq(new Criterion[]{hasState(state), isNotPending()});
-    }
-
-    private TransferProcess createTransferProcess(TransferProcessStates inState) {
-        return createTransferProcessBuilder(inState).build();
-    }
-
-    private TransferProcess.Builder createTransferProcessBuilder(TransferProcessStates state) {
-        var processId = UUID.randomUUID().toString();
-
-        return TransferProcess.Builder.newInstance()
-                .type(CONSUMER)
-                .id("test-process-" + processId)
-                .state(state.code())
-                .correlationId(UUID.randomUUID().toString())
-                .counterPartyAddress("http://an/address")
-                .contractId(UUID.randomUUID().toString())
-                .assetId(UUID.randomUUID().toString())
-                .dataDestination(DataAddress.Builder.newInstance().type(DESTINATION_TYPE).build())
-                .participantContextId(PARTICIPANT_CONTEXT_ID)
-                .protocol("protocol");
-    }
-
-    private static class DispatchFailureArguments implements ArgumentsProvider {
-
-        private static final int RETRIES_NOT_EXHAUSTED = RETRY_LIMIT;
-        private static final int RETRIES_EXHAUSTED = RETRIES_NOT_EXHAUSTED + 1;
-
-        @Override
-        public Stream<? extends Arguments> provideArguments(ParameterDeclarations parameters, ExtensionContext context) {
-            CompletableFuture<StatusResult<Object>> genericError = failedFuture(new EdcException("error"));
-            var fatalError = completedFuture(StatusResult.failure(FATAL_ERROR));
-            return Stream.of(
-                    // retries not exhausted
-                    new DispatchFailure(REQUESTING, REQUESTING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(STARTING, STARTING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER)),
-                    new DispatchFailure(COMPLETING, COMPLETING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(SUSPENDING, SUSPENDING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(RESUMING, RESUMING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER)),
-                    new DispatchFailure(RESUMING, RESUMING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(CONSUMER)),
-                    new DispatchFailure(TERMINATING, TERMINATING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    // retries exhausted
-                    new DispatchFailure(REQUESTING, TERMINATED, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(STARTING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(PROVIDER)),
-                    new DispatchFailure(COMPLETING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(SUSPENDING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(RESUMING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(CONSUMER)),
-                    new DispatchFailure(RESUMING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(PROVIDER)),
-                    new DispatchFailure(TERMINATING, TERMINATED, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    // fatal error, in this case retry should never be done
-                    new DispatchFailure(REQUESTING, TERMINATED, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(STARTING, TERMINATING, fatalError, b -> b.type(PROVIDER).stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(COMPLETING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(SUSPENDING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(RESUMING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(CONSUMER)),
-                    new DispatchFailure(RESUMING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER)),
-                    new DispatchFailure(TERMINATING, TERMINATED, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED))
-            );
-        }
     }
 
 }

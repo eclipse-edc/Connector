@@ -18,7 +18,6 @@ package org.eclipse.edc.connector.controlplane.transfer;
 import jakarta.json.Json;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
-import org.eclipse.edc.connector.controlplane.transfer.edr.DataAddressToEndpointDataReferenceTransformer;
 import org.eclipse.edc.connector.controlplane.transfer.listener.TransferProcessEventListener;
 import org.eclipse.edc.connector.controlplane.transfer.processors.TransferProcessorsImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessors;
@@ -26,7 +25,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowControll
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -82,7 +81,7 @@ public class TransferCoreExtension implements ServiceExtension {
     @Inject
     private DataAddressResolver addressResolver;
     @Inject
-    private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
+    private ProtocolWebhookResolver protocolWebhookResolver;
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     @Inject
@@ -96,7 +95,6 @@ public class TransferCoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var builderFactory = Json.createBuilderFactory(Collections.emptyMap());
-        typeTransformerRegistry.register(new DataAddressToEndpointDataReferenceTransformer());
         typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
         typeTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(builderFactory, typeManager, JSON_LD));
 
@@ -108,7 +106,7 @@ public class TransferCoreExtension implements ServiceExtension {
         var entityRetryProcessConfiguration = stateMachineConfiguration.entityRetryProcessConfiguration();
         var entityRetryProcessFactory = new EntityRetryProcessFactory(monitor, clock, entityRetryProcessConfiguration);
         return new TransferProcessorsImpl(policyArchive, entityRetryProcessFactory, dataFlowController, dataAddressStore,
-                observable, store, monitor, addressResolver, dataspaceProfileContextRegistry, dispatcherRegistry);
+                observable, store, monitor, addressResolver, protocolWebhookResolver, dispatcherRegistry);
     }
 
 }

@@ -17,21 +17,14 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.process;
 
-import io.opentelemetry.instrumentation.annotations.WithSpan;
-import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessors;
-import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.WaitStrategy;
 import org.eclipse.edc.statemachine.AbstractStateEntityManager;
 import org.eclipse.edc.statemachine.Processor;
@@ -39,8 +32,6 @@ import org.eclipse.edc.statemachine.ProcessorImpl;
 import org.eclipse.edc.statemachine.StateMachineManager;
 
 import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
@@ -59,7 +50,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING_REQUESTED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.isNotPending;
-import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
  * This transfer process manager receives a {@link TransferProcess} and transitions it through its internal state
@@ -84,62 +74,10 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
  */
 public class TransferProcessManagerImpl extends AbstractStateEntityManager<TransferProcess, TransferProcessStore>
         implements TransferProcessManager {
-    private TransferProcessObservable observable;
-    private PolicyArchive policyArchive;
     private TransferProcessPendingGuard pendingGuard = tp -> false;
-    private DataAddressStore dataAddressStore;
     private TransferProcessors transferProcessors;
 
     private TransferProcessManagerImpl() {
-    }
-
-    /**
-     * Initiate a consumer request TransferProcess.
-     */
-    @WithSpan
-    @Override
-    public StatusResult<TransferProcess> initiateConsumerRequest(ParticipantContext participantContext, TransferRequest transferRequest) {
-        var id = Optional.ofNullable(transferRequest.getId()).orElseGet(() -> UUID.randomUUID().toString());
-        var existingTransferProcess = store.findForCorrelationId(id);
-        if (existingTransferProcess != null) {
-            return StatusResult.success(existingTransferProcess);
-        }
-
-        var policy = policyArchive.findPolicyForContract(transferRequest.getContractId());
-        if (policy == null) {
-            return StatusResult.failure(FATAL_ERROR, "No policy found for contract " + transferRequest.getContractId());
-        }
-
-        var process = TransferProcess.Builder.newInstance()
-                .id(id)
-                .assetId(policy.getTarget())
-                .counterPartyAddress(transferRequest.getCounterPartyAddress())
-                .contractId(transferRequest.getContractId())
-                .protocol(transferRequest.getProtocol())
-                .type(CONSUMER)
-                .clock(clock)
-                .transferType(transferRequest.getTransferType())
-                .privateProperties(transferRequest.getPrivateProperties())
-                .callbackAddresses(transferRequest.getCallbackAddresses())
-                .traceContext(telemetry.getCurrentTraceContext())
-                .participantContextId(participantContext.getParticipantContextId())
-                .dataplaneMetadata(transferRequest.getDataplaneMetadata())
-                .build();
-
-        var dataAddressStorage = Optional.ofNullable(transferRequest.getDataDestination())
-                .map(it -> dataAddressStore.store(it, process))
-                .orElse(StoreResult.success());
-
-        return  dataAddressStorage
-                .compose(v -> update(process))
-                .onSuccess(v -> observable.invokeForEach(l -> l.initiated(process)))
-                .flatMap(r -> {
-                    if (r.succeeded()) {
-                        return StatusResult.success(process);
-                    } else {
-                        return StatusResult.failure(FATAL_ERROR, "Failed to initiate Transfer Process: " + r.getFailureDetail());
-                    }
-                });
     }
 
     @Override
@@ -213,23 +151,8 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
             return manager;
         }
 
-        public Builder observable(TransferProcessObservable observable) {
-            manager.observable = observable;
-            return this;
-        }
-
-        public Builder policyArchive(PolicyArchive policyArchive) {
-            manager.policyArchive = policyArchive;
-            return this;
-        }
-
         public Builder pendingGuard(TransferProcessPendingGuard pendingGuard) {
             manager.pendingGuard = pendingGuard;
-            return this;
-        }
-
-        public Builder dataAddressStore(DataAddressStore dataAddressStore) {
-            manager.dataAddressStore = dataAddressStore;
             return this;
         }
 

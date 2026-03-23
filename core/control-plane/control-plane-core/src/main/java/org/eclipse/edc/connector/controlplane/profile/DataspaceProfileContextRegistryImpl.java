@@ -20,7 +20,6 @@ import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.protocol.spi.ParticipantIdExtractionFunction;
 import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.eclipse.edc.protocol.spi.ProtocolVersions;
-import org.eclipse.edc.protocol.spi.ProtocolWebhook;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -43,33 +42,28 @@ public class DataspaceProfileContextRegistryImpl implements DataspaceProfileCont
 
     @Override
     public ProtocolVersions getProtocolVersions() {
-        var versions = profiles().stream().map(DataspaceProfileContext::protocolVersion).distinct().toList();
+        var versions = getProfiles().stream().map(DataspaceProfileContext::protocolVersion).distinct().toList();
 
         return new ProtocolVersions(versions);
     }
 
     @Override
-    public @Nullable ProtocolWebhook getWebhook(String protocol) {
-        return profiles().stream().filter(it -> it.name().equals(protocol))
-                .map(DataspaceProfileContext::webhook).findAny().orElse(null);
-    }
-
-    @Override
     public @Nullable ProtocolVersion getProtocolVersion(String protocol) {
-        return profiles().stream().filter(it -> it.name().equals(protocol))
+        return getProfiles().stream().filter(it -> it.name().equals(protocol))
                 .map(DataspaceProfileContext::protocolVersion).findAny().orElse(null);
     }
 
     @Override
     public @Nullable ParticipantIdExtractionFunction getIdExtractionFunction(String protocol) {
-        return profiles().stream()
+        return getProfiles().stream()
                 .filter(it -> it.name().equals(protocol))
                 .map(DataspaceProfileContext::idExtractionFunction)
                 .findAny()
                 .orElse(null);
     }
 
-    private List<DataspaceProfileContext> profiles() {
+    @Override
+    public List<DataspaceProfileContext> getProfiles() {
         return standardProfiles.isEmpty() ? defaultProfiles : standardProfiles;
     }
 }

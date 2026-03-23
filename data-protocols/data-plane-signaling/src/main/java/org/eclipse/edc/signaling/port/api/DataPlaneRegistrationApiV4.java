@@ -16,6 +16,7 @@ package org.eclipse.edc.signaling.port.api;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -29,9 +30,9 @@ import org.eclipse.edc.signaling.domain.DataPlaneRegistrationMessage;
 import static jakarta.ws.rs.HttpMethod.DELETE;
 import static jakarta.ws.rs.HttpMethod.PUT;
 
-@OpenAPIDefinition
-@Tag(name = "Dataplane Signaling Registration")
-public interface DataPlaneRegistrationApi {
+@OpenAPIDefinition(info = @Info(version = "v4"))
+@Tag(name = "Dataplane Signaling Registration v4beta")
+public interface DataPlaneRegistrationApiV4 {
 
     @Operation(
             method = PUT,

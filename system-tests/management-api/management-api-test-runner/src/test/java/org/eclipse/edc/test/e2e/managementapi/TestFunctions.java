@@ -303,11 +303,9 @@ public class TestFunctions {
         var propertiesJson = Json.createObjectBuilder().add("foo", "bar").build();
         var privatePropertiesJson = Json.createObjectBuilder().add("fooPrivate", "bar").build();
 
-
         return createObjectBuilder()
                 .add(TYPE, "TransferRequest")
                 .add(CONTEXT, createContextBuilder(context).build())
-                .add(ID, "id")
                 .add("counterPartyAddress", "address")
                 .add("contractId", "contractId")
                 .add("dataDestination", dataDestination)

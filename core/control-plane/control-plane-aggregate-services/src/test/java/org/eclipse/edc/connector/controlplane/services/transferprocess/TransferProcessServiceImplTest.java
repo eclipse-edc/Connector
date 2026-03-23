@@ -19,12 +19,12 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.InitiateTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.ResumeTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.SuspendTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
@@ -33,7 +33,6 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.command.CommandResult;
 import org.eclipse.edc.spi.query.QuerySpec;
-import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -58,7 +57,7 @@ import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -72,7 +71,6 @@ class TransferProcessServiceImplTest {
     private final TransferProcess process2 = transferProcess();
     private final QuerySpec query = QuerySpec.Builder.newInstance().limit(5).offset(2).build();
     private final TransferProcessStore store = mock();
-    private final TransferProcessManager manager = mock();
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
     private final DataAddressValidatorRegistry dataAddressValidator = mock();
     private final CommandHandlerRegistry commandHandlerRegistry = mock();
@@ -80,7 +78,7 @@ class TransferProcessServiceImplTest {
     private final ContractNegotiationStore contractNegotiationStore = mock();
     private final QueryValidator queryValidator = mock();
 
-    private final TransferProcessService service = new TransferProcessServiceImpl(store, manager, transactionContext,
+    private final TransferProcessService service = new TransferProcessServiceImpl(store, transactionContext,
             dataAddressValidator, commandHandlerRegistry, transferTypeParser, contractNegotiationStore, queryValidator);
 
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
@@ -199,12 +197,13 @@ class TransferProcessServiceImplTest {
                     .thenReturn(createContractAgreement(transferProcess.getContractId(), "assetId"));
             when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
             when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
-            when(manager.initiateConsumerRequest(any(), eq(transferRequest))).thenReturn(StatusResult.success(transferProcess));
+            when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success(transferProcess));
 
             var result = service.initiateTransfer(participantContext, transferRequest);
 
             assertThat(result).isSucceeded().isEqualTo(transferProcess);
             verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
+            verify(commandHandlerRegistry).execute(isA(InitiateTransferCommand.class));
         }
 
         @Test
@@ -217,7 +216,6 @@ class TransferProcessServiceImplTest {
                     .extracting(ServiceFailure::getReason)
                     .isEqualTo(BAD_REQUEST);
             assertThat(result.getFailureDetail()).contains("cannot parse");
-            verifyNoInteractions(manager);
         }
 
         @Test
@@ -231,7 +229,6 @@ class TransferProcessServiceImplTest {
                     .extracting(ServiceFailure::getReason)
                     .isEqualTo(BAD_REQUEST);
             assertThat(result.getFailureMessages()).containsExactly("Contract agreement with id %s not found".formatted(transferRequest().getContractId()));
-            verifyNoInteractions(manager);
         }
 
         @Test
@@ -248,7 +245,21 @@ class TransferProcessServiceImplTest {
                     .extracting(ServiceFailure::getReason)
                     .isEqualTo(BAD_REQUEST);
             assertThat(result.getFailureMessages()).containsExactly("invalid data address");
-            verifyNoInteractions(manager);
+        }
+
+        @Test
+        void shouldFail_whenCommandFails() {
+            var transferRequest = transferRequest();
+            var transferProcess = transferProcess();
+            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
+                    .thenReturn(createContractAgreement(transferProcess.getContractId(), "assetId"));
+            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
+            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
+            when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.notExecutable("error"));
+
+            var result = service.initiateTransfer(participantContext, transferRequest);
+
+            assertThat(result).isFailed();
         }
 
         @Test
@@ -258,7 +269,7 @@ class TransferProcessServiceImplTest {
             when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
                     .thenReturn(createContractAgreement(transferProcess.getContractId(), "assetId"));
             when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
-            when(manager.initiateConsumerRequest(any(), eq(transferRequest))).thenReturn(StatusResult.success(transferProcess));
+            when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success(transferProcess));
 
             var result = service.initiateTransfer(participantContext, transferRequest);
 

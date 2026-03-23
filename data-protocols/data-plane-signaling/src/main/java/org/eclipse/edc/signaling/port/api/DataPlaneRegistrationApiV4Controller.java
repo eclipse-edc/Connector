@@ -28,18 +28,17 @@ import org.eclipse.edc.signaling.domain.DataPlaneRegistrationMessage;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToException;
 
-@Path("/dataplanes")
+@Path("/v4beta/dataplanes")
 @Produces(APPLICATION_JSON)
 @Consumes(APPLICATION_JSON)
-public class DataPlaneRegistrationApiController implements DataPlaneRegistrationApi {
+public class DataPlaneRegistrationApiV4Controller implements DataPlaneRegistrationApiV4 {
 
     private final DataPlaneSelectorService dataPlaneSelectorService;
 
-    public DataPlaneRegistrationApiController(DataPlaneSelectorService dataPlaneSelectorService) {
+    public DataPlaneRegistrationApiV4Controller(DataPlaneSelectorService dataPlaneSelectorService) {
         this.dataPlaneSelectorService = dataPlaneSelectorService;
     }
 
-    @Path("/")
     @PUT
     @Override
     public Response register(DataPlaneRegistrationMessage registration) {

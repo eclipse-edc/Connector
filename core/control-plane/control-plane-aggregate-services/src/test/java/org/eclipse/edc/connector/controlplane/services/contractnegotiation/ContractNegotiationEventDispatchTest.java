@@ -39,6 +39,7 @@ import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolv
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.iam.ClaimToken;
@@ -85,6 +86,7 @@ class ContractNegotiationEventDispatchTest {
             .build();
     protected DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
     protected ParticipantIdentityResolver identityResolver = mock();
+    protected ProtocolWebhookResolver protocolWebhookResolver = mock();
 
     @BeforeEach
     void setUp(RuntimeExtension extension) {
@@ -99,8 +101,10 @@ class ContractNegotiationEventDispatchTest {
         extension.registerServiceMock(IdentityService.class, identityService);
         extension.registerServiceMock(DataPlaneClientFactory.class, mock());
         extension.registerServiceMock(DataFlowController.class, mock());
+        extension.registerServiceMock(ProtocolWebhookResolver.class, protocolWebhookResolver);
 
-        when(dataspaceProfileContextRegistry.getWebhook(any())).thenReturn(() -> "http://callback.address");
+
+        when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> "http://callback.address");
         when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> CONSUMER);
     }
 

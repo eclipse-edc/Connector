@@ -14,7 +14,9 @@
 
 package org.eclipse.edc.connector.controlplane.transfer;
 
+import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.CompleteTransferCommandHandler;
+import org.eclipse.edc.connector.controlplane.transfer.command.handlers.InitiateTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.NotifyPreparedCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.NotifyStartedCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.ResumeTransferCommandHandler;
@@ -27,6 +29,9 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.telemetry.Telemetry;
+
+import java.time.Clock;
 
 /**
  * Registers command handlers that the core provides
@@ -39,11 +44,19 @@ public class TransferProcessCommandExtension implements ServiceExtension {
     private TransferProcessObservable observable;
     @Inject
     private DataAddressStore dataAddressStore;
+    @Inject
+    private PolicyArchive policyArchive;
+    @Inject
+    private Clock clock;
+    @Inject
+    private Telemetry telemetry;
+    @Inject
+    private CommandHandlerRegistry registry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var registry = context.getService(CommandHandlerRegistry.class);
-
+        registry.register(new InitiateTransferCommandHandler(policyArchive, store, dataAddressStore, observable, clock,
+                telemetry, context.getMonitor()));
         registry.register(new TerminateTransferCommandHandler(store));
         registry.register(new SuspendTransferCommandHandler(store));
         registry.register(new ResumeTransferCommandHandler(store));

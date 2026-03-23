@@ -61,7 +61,6 @@ import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.Trans
 import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessProtocolServiceImpl;
 import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessProviderFactory;
 import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessServiceImpl;
-import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
@@ -126,8 +125,6 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     private PolicyDefinitionStore policyDefinitionStore;
     @Inject
     private TransferProcessStore transferProcessStore;
-    @Inject
-    private TransferProcessManager transferProcessManager;
     @Inject
     private TransactionContext transactionContext;
     @Inject
@@ -240,7 +237,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
 
     @Provider
     public TransferProcessService transferProcessService() {
-        return new TransferProcessServiceImpl(transferProcessStore, transferProcessManager, transactionContext,
+        return new TransferProcessServiceImpl(transferProcessStore, transactionContext,
                 dataAddressValidator, commandHandlerRegistry, transferTypeParser, contractNegotiationStore,
                 QueryValidators.transferProcess());
     }

@@ -18,7 +18,7 @@ import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.signaling.port.api.DataPlaneRegistrationApiController;
+import org.eclipse.edc.signaling.port.api.DataPlaneRegistrationApiV4Controller;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Nested;
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class DataPlaneRegistrationApiControllerTest extends RestControllerTestBase {
+public class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
 
     private final DataPlaneSelectorService dataPlaneSelectorService = mock();
 
@@ -115,12 +115,13 @@ public class DataPlaneRegistrationApiControllerTest extends RestControllerTestBa
 
     @Override
     protected Object controller() {
-        return new DataPlaneRegistrationApiController(dataPlaneSelectorService);
+        return new DataPlaneRegistrationApiV4Controller(dataPlaneSelectorService);
     }
 
     private RequestSpecification baseRequest() {
         return given()
                 .baseUri("http://localhost:" + port)
+                .basePath("/v4beta")
                 .when();
     }
 }

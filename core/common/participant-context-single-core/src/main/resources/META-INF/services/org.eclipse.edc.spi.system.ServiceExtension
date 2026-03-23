@@ -13,3 +13,4 @@
 #
 
 org.eclipse.edc.participantcontext.single.SingleParticipantContextDefaultServicesExtension
+org.eclipse.edc.participantcontext.single.SingleParticipantContextServicesExtension
