@@ -34,7 +34,9 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jetbrains.annotations.Nullable;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Named;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -49,6 +51,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
+import java.security.interfaces.EdECPublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.ECGenParameterSpec;
@@ -62,6 +65,8 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileContentAsString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class CryptoConverterTest {
 
@@ -457,6 +462,64 @@ class CryptoConverterTest {
                     Arguments.of(Named.named("Ed25519 (Sun)", createEd25519(null)))
             );
         }
+    }
+
+    @Nested
+    @DisplayName("JWK creation")
+    class JwkCreationTest {
+
+        @Test
+        @DisplayName("Ed25519 key pair is valid")
+        void createJwk_whenKeyPairIsValid_expectException() throws NoSuchAlgorithmException {
+            var kp = createEd25519(null);
+            var jwk = CryptoConverter.createJwk(new KeyPair(kp.getPublic(), kp.getPrivate()));
+
+            assertThat(jwk).isInstanceOf(OctetKeyPair.class);
+            var okp = (OctetKeyPair) jwk;
+            assertThat(okp.getX()).isNotNull();
+            assertThat(okp.getD()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Key pair does not contain a public key")
+        void createJwk_whenKeyPairHasNoPublicKey_expectException() throws NoSuchAlgorithmException {
+            var kp = createEd25519(null);
+            var jwk = CryptoConverter.createJwk(new KeyPair(null, kp.getPrivate()));
+
+            assertThat(jwk).isInstanceOf(OctetKeyPair.class);
+            var okp = (OctetKeyPair) jwk;
+            assertThat(okp.getX()).isNotNull();
+            assertThat(okp.getD()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("Public key contains garbage bytes")
+        void createJwk_whenPublicKeyContainsGarbageBytes_expectException() {
+            var mockPublicKey = mock(EdECPublicKey.class);
+            when(mockPublicKey.getAlgorithm()).thenReturn("Ed25519");
+            when(mockPublicKey.getFormat()).thenReturn("X.509");
+            when(mockPublicKey.getEncoded()).thenReturn(new byte[]{(byte) 0xFF, (byte) 0xFF, (byte) 0xFF});
+
+            var keypair = new KeyPair(mockPublicKey, null);
+            assertThatThrownBy(() -> CryptoConverter.createJwk(keypair))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Failed to parse the public key ASN.1 structure. The key bytes may be corrupted.");
+        }
+
+        @Test
+        @DisplayName("Public key contains empty or null byte array")
+        void createJwk_whenPublicKeyHasEmptyEncoding_expectException() {
+            var mockPublicKey = mock(EdECPublicKey.class);
+            when(mockPublicKey.getAlgorithm()).thenReturn("Ed25519");
+            when(mockPublicKey.getFormat()).thenReturn("X.509");
+            when(mockPublicKey.getEncoded()).thenReturn(null);
+
+            var keypair = new KeyPair(mockPublicKey, null);
+            assertThatThrownBy(() -> CryptoConverter.createJwk(keypair))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Encoded bytes are null or empty.");
+        }
+
     }
 
 }
