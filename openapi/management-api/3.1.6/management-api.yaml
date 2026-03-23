@@ -1104,6 +1104,42 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v5alpha/participants/{participantContextId}/assets/request:
+    post:
+      tags:
+      - Asset v5alpha
+      description: Request all assets according to a particular query
+      operationId: queryAssetsV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The assets matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/asset-schema"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v4beta/transferprocesses/request:
     post:
       tags:
@@ -1290,6 +1326,140 @@ paths:
         "409":
           description: "Could not suspend the transfer process, because it is already\
             \ completed or terminated."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5alpha/participants/{id}:
+    get:
+      tags:
+      - Participant Context v5alpha
+      description: Gets ParticipantContexts by ID.
+      operationId: getParticipantV5
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The list of ParticipantContexts.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/participant-context-schema"
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A ParticipantContext with the given ID does not exist.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    put:
+      tags:
+      - Participant Context v5alpha
+      description: Updates a ParticipantContext object.
+      operationId: updateParticipantV5
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/participant-context-schema"
+      responses:
+        "204":
+          description: The ParticipantContext was updated successfully.
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: "Can't create the ParticipantContext, because a object with\
+            \ the same ID already exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    delete:
+      tags:
+      - Participant Context v5alpha
+      description: Delete a ParticipantContext.
+      operationId: deleteParticipantV5
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: The ParticipantContext was deleted successfully
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A ParticipantContext with the given ID does not exist.
           content:
             application/json:
               schema:
@@ -1780,6 +1950,84 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v5alpha/participants/{participantContextId}/assets:
+    put:
+      tags:
+      - Asset v5alpha
+      description: "Updates an asset with the given ID if it exists. If the asset\
+        \ is not found, no further action is taken. DANGER ZONE: Note that updating\
+        \ assets can have unexpected results, especially for contract offers that\
+        \ have been sent out or are ongoing in contract negotiations."
+      operationId: updateAssetV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/asset-schema"
+      responses:
+        "204":
+          description: Asset was updated successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: "Asset could not be updated, because it does not exist."
+    post:
+      tags:
+      - Asset v5alpha
+      description: Creates a new asset together with a data address
+      operationId: createAssetV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/asset-schema"
+      responses:
+        "200":
+          description: Asset was created successfully. Returns the asset Id and created
+            timestamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/id-response-schema"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "409":
+          description: "Could not create asset, because an asset with that ID already\
+            \ exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v3/contractagreements/request:
     post:
       tags:
@@ -2026,6 +2274,50 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v5alpha/participants/{participantContextId}/assets/{id}:
+    get:
+      tags:
+      - Asset v5alpha
+      description: Gets an asset with the given ID
+      operationId: getAssetV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The asset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/asset-schema"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An asset with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v4beta/transferprocesses/{id}/terminate:
     post:
       tags:
@@ -2205,6 +2497,99 @@ paths:
                   $ref: "#/components/schemas/policy-definition-schema"
         "400":
           description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5alpha/participants/{participantContextId}/config:
+    get:
+      tags:
+      - Participant Context config v5alpha
+      description: Gets ParticipantContexts config by ID.
+      operationId: getConfigV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The config of the ParticipantContext
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/participant-context-config-schema"
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A ParticipantContext with the given ID does not exist.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    put:
+      tags:
+      - Participant Context config v5alpha
+      description: Set ParticipantContext config.
+      operationId: setConfigV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/participant-context-config-schema"
+      responses:
+        "204":
+          description: The Config was set successfully
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: "Can't create the ParticipantContext, because a object with\
+            \ the same ID already exists"
           content:
             application/json:
               schema:
@@ -2794,6 +3179,102 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v5alpha/participants:
+    get:
+      tags:
+      - Participant Context v5alpha
+      description: Get all DID documents across all Participant Contexts. Requires
+        elevated access.
+      operationId: getAllParticipantsV5
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+          default: 50
+      responses:
+        "200":
+          description: The list of ParticipantContexts.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/participant-context-schema"
+        "400":
+          description: The query was malformed or was not understood by the server.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    post:
+      tags:
+      - Participant Context v5alpha
+      description: Creates a new ParticipantContext object.
+      operationId: createParticipantV5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/participant-context-schema"
+      responses:
+        "201":
+          description: "The ParticipantContext was created successfully, its API token\
+            \ is returned in the response body."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/id-response-schema"
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: "Can't create the ParticipantContext, because a object with\
+            \ the same ID already exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v4beta/contractdefinitions:
     put:
       tags:
@@ -3138,6 +3619,59 @@ paths:
                 id: $response.body#/id
         "400":
           description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v5alpha/participants/{participantContextId}/assets/{assetId}:
+    delete:
+      tags:
+      - Asset v5alpha
+      description: "Removes an asset with the given ID if possible. Deleting an asset\
+        \ is only possible if that asset is not yet referenced by a contract agreement,\
+        \ in which case an error is returned. DANGER ZONE: Note that deleting assets\
+        \ can have unexpected results, especially for contract offers that have been\
+        \ sent out or ongoing or contract negotiations."
+      operationId: removeAssetV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: assetId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Asset was deleted successfully
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An asset with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "409":
+          description: "The asset cannot be deleted, because it is referenced by a\
+            \ contract agreement"
           content:
             application/json:
               schema:
@@ -5257,6 +5791,45 @@ components:
           type: string
         reason:
           type: string
+    participant-context-schema:
+      title: ParticipantContextSchema
+      type: object
+      example:
+        '@type': '@type'
+        identity: identity
+        '@id': '@id'
+        state: CREATED
+        '@context': {}
+        properties: "{}"
+      allOf:
+      - $ref: "#/components/schemas/ParticipantContext"
+    ParticipantContext:
+      required:
+      - '@context'
+      - '@type'
+      - identity
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          example: {}
+          items:
+            type: string
+        '@type':
+          type: string
+        '@id':
+          type: string
+        identity:
+          type: string
+        properties:
+          type: object
+        state:
+          type: string
+          enum:
+          - CREATED
+          - ACTIVATED
+          - DEACTIVATED
     AssetInputV3:
       required:
       - '@context'
@@ -5728,6 +6301,35 @@ components:
             xone:
             - null
             - null
+    participant-context-config-schema:
+      title: ParticipantContextConfigSchema
+      type: object
+      example:
+        entries: "{}"
+        '@type': '@type'
+        '@context': {}
+        privateEntries: "{}"
+      allOf:
+      - $ref: "#/components/schemas/ParticipantContextConfig"
+    ParticipantContextConfig:
+      required:
+      - '@context'
+      - '@type'
+      - entries
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          example: {}
+          items:
+            type: string
+        '@type':
+          type: string
+        entries:
+          type: object
+        privateEntries:
+          type: object
     DataPlaneInstanceSchemaV3:
       required:
       - '@context'
