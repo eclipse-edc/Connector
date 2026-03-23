@@ -10,5 +10,11 @@
     "urlPath": "/v4beta",
     "lastUpdated": "2026-03-20T08:43:01Z",
     "maturity": "beta"
+  },
+  {
+    "version": "5.0.0-alpha",
+    "urlPath": "/v5alpha",
+    "lastUpdated": "2026-03-23T08:43:01Z",
+    "maturity": "alpha"
   }
 ]

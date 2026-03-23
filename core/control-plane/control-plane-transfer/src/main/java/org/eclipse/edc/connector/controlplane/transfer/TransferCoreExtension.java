@@ -42,6 +42,7 @@ import org.eclipse.edc.statemachine.retry.EntityRetryProcessFactory;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromDataAddressTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 
 import java.time.Clock;
 import java.util.Collections;
@@ -97,6 +98,7 @@ public class TransferCoreExtension implements ServiceExtension {
         var builderFactory = Json.createBuilderFactory(Collections.emptyMap());
         typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
         typeTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(builderFactory, typeManager, JSON_LD));
+        typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, JSON_LD));
 
         observable.registerListener(new TransferProcessEventListener(eventRouter));
     }

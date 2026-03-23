@@ -28,6 +28,7 @@ dependencies {
     testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:edr-store-core"))
     testImplementation(project(":core:control-plane:control-plane-transform"))
+    testImplementation(project(":core:common:participant-context-config-core"))
 
     //useful for generic DTOs etc.
     testImplementation(project(":spi:control-plane:policy-spi"))
@@ -53,6 +54,7 @@ dependencies {
     testImplementation(project(":extensions:control-plane:transfer:transfer-data-plane-signaling"))
     testImplementation(project(":extensions:control-plane:api:management-api:edr-cache-api"))
     testImplementation(project(":extensions:data-plane-selector:data-plane-selector-api"))
+    testImplementation(testFixtures(project(":extensions:common:auth:auth-authentication-oauth2-lib")))
 }
 
 edcBuild {
