@@ -49,6 +49,7 @@ import org.eclipse.edc.token.rules.NotBeforeValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier;
+import org.eclipse.edc.verifiablecredentials.jwt.Vcdm20JosePresentationVerifier;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.HasSubjectRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.IssuerEqualsSubjectRule;
 import org.eclipse.edc.verifiablecredentials.jwt.rules.JtiValidationRule;
@@ -65,7 +66,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.edc.iam.verifiablecredentials.spi.VcConstants.STATUSLIST_2021_URL;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
-import static org.eclipse.edc.verifiablecredentials.jwt.JwtPresentationVerifier.JWT_VC_TOKEN_CONTEXT;
+import static org.eclipse.edc.verifiablecredentials.jwt.Constants.JWT_VC_TOKEN_CONTEXT;
 
 @Extension("DCP Core Extension")
 public class DcpCoreExtension implements ServiceExtension {
@@ -207,7 +208,9 @@ public class DcpCoreExtension implements ServiceExtension {
                     .methodResolver(new DidMethodResolver(didResolverRegistry))
                     .build();
 
-            presentationVerifier = new MultiFormatPresentationVerifier(jwtVerifier, ldpVerifier);
+            var joseVerifier = new Vcdm20JosePresentationVerifier(tokenValidationService, didPublicKeyResolver);
+
+            presentationVerifier = new MultiFormatPresentationVerifier(jwtVerifier, ldpVerifier, joseVerifier);
         }
         return presentationVerifier;
     }
