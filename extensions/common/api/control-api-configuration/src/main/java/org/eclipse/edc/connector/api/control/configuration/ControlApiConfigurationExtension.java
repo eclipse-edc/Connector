@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.api.control.configuration;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -27,7 +26,6 @@ import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.apiversion.ApiVersionService;
-import org.eclipse.edc.spi.system.apiversion.VersionRecord;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
@@ -39,7 +37,6 @@ import org.eclipse.edc.web.spi.configuration.context.ControlApiUrl;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
@@ -108,13 +105,7 @@ public class ControlApiConfigurationExtension implements ServiceExtension {
 
     private void registerVersionInfo(ClassLoader resourceClassLoader) {
         try (var versionContent = resourceClassLoader.getResourceAsStream(API_VERSION_JSON_FILE)) {
-            if (versionContent == null) {
-                throw new EdcException("Version file not found or not readable.");
-            }
-            Stream.of(typeManager.getMapper()
-                            .enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
-                            .readValue(versionContent, VersionRecord[].class))
-                    .forEach(vr -> apiVersionService.addRecord(ApiContext.CONTROL, vr));
+            apiVersionService.registerVersionInfo(ApiContext.CONTROL, versionContent);
         } catch (IOException e) {
             throw new EdcException(e);
         }

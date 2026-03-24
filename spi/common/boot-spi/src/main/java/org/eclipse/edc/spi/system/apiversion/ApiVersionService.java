@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.spi.system.apiversion;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +23,15 @@ import java.util.Map;
  * Extensions, that register API controllers should also add a {@link VersionRecord} using their context alias.
  */
 public interface ApiVersionService {
+
+    /**
+     * Register version info given the version file.
+     *
+     * @param apiContext the api context
+     * @param versionContent stream pointing at the version file
+     */
+    void registerVersionInfo(String apiContext, InputStream versionContent);
+
     /**
      * Register a {@link VersionRecord}
      *
