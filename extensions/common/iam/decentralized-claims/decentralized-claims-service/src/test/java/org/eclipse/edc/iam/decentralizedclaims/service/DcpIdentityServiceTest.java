@@ -95,7 +95,7 @@ class DcpIdentityServiceTest {
     private VerificationContext verificationContext() {
         return VerificationContext.Builder.newInstance()
                 .policy(Policy.Builder.newInstance().build())
-                .scopes(List.of("org.eclipse.edc.vc.type:test-type:read"))
+                .scopes(List.of("org.eclipse.dspace.dcp.vc.type:test-type:read"))
                 .build();
     }
 
@@ -345,7 +345,7 @@ class DcpIdentityServiceTest {
 
             var context = VerificationContext.Builder.newInstance()
                     .policy(Policy.Builder.newInstance().build())
-                    .scopes(List.of("org.eclipse.edc.vc.type:test-type:read", "org.eclipse.edc.vc.type:not-provided-type:read")) //should trigger a failure
+                    .scopes(List.of("org.eclipse.dspace.dcp.vc.type:test-type:read", "org.eclipse.dspace.dcp.vc.type:not-provided-type:read")) //should trigger a failure
                     .build();
 
             var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, context);
@@ -362,7 +362,7 @@ class DcpIdentityServiceTest {
                     .holder(CONSUMER_DID)
                     .type("VerifiablePresentation")
                     .credentials(List.of(createCredentialBuilder()
-                            .type("org.eclipse.edc.vc.type:test-type:read")
+                            .type("org.eclipse.dspace.dcp.vc.type:test-type:read")
                             .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
                                     .id(CONSUMER_DID)
                                     .claim("some-claim", "some-val")
@@ -376,7 +376,7 @@ class DcpIdentityServiceTest {
 
             var context = VerificationContext.Builder.newInstance()
                     .policy(Policy.Builder.newInstance().build())
-                    .scopes(List.of("org.eclipse.edc.vc.type:not-provided-type:read")) //should trigger a failure
+                    .scopes(List.of("org.eclipse.dspace.dcp.vc.type:not-provided-type:read")) //should trigger a failure
                     .build();
 
             var result = service.verifyJwtToken(PARTICIPANT_CONTEXT_ID, token, context);

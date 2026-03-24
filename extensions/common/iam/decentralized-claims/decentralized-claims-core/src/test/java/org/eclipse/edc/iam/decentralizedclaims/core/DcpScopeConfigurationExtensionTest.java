@@ -48,7 +48,7 @@ public class DcpScopeConfigurationExtensionTest {
     void initialize(ServiceExtensionContext context, DynamicDcpScopeConfigurationExtension ext) {
         var cfg = ConfigFactory.fromMap(Map.of(
                 "membership.id", "membership-scope",
-                "membership.value", "org.eclipse.edc.vc.type:MembershipCredential:read",
+                "membership.value", "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read",
                 "membership.type", "DEFAULT"));
         when(context.getConfig("edc.iam.dcp.scopes")).thenReturn(cfg);
 
@@ -59,7 +59,7 @@ public class DcpScopeConfigurationExtensionTest {
 
         assertThat(captor.getValue().getId()).satisfies(scope -> {
             assertThat(scope).isEqualTo("membership-scope");
-            assertThat(captor.getValue().getValue()).isEqualTo("org.eclipse.edc.vc.type:MembershipCredential:read");
+            assertThat(captor.getValue().getValue()).isEqualTo("org.eclipse.dspace.dcp.vc.type:MembershipCredential:read");
             assertThat(captor.getValue().getType()).isEqualTo(DcpScope.Type.DEFAULT);
         });
     }
@@ -69,7 +69,7 @@ public class DcpScopeConfigurationExtensionTest {
         var cfg = ConfigFactory.fromMap(Map.of(
                 "membership.id", "membership-scope",
                 "membership.prefix-mapping", "Membership.",
-                "membership.value", "org.eclipse.edc.vc.type:MembershipCredential:read",
+                "membership.value", "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read",
                 "membership.type", "POLICY"));
         when(context.getConfig("edc.iam.dcp.scopes")).thenReturn(cfg);
 
@@ -80,7 +80,7 @@ public class DcpScopeConfigurationExtensionTest {
 
         assertThat(captor.getValue()).satisfies(scope -> {
             assertThat(scope.getId()).isEqualTo("membership-scope");
-            assertThat(scope.getValue()).isEqualTo("org.eclipse.edc.vc.type:MembershipCredential:read");
+            assertThat(scope.getValue()).isEqualTo("org.eclipse.dspace.dcp.vc.type:MembershipCredential:read");
             assertThat(scope.getType()).isEqualTo(DcpScope.Type.POLICY);
             assertThat(scope.getPrefixMapping()).isEqualTo("Membership.");
         });

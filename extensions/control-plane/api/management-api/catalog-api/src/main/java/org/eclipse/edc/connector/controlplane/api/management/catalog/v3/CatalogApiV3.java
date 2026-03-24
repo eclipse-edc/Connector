@@ -85,7 +85,7 @@ public interface CatalogApiV3 {
                     "counterPartyAddress": "http://provider-address",
                     "counterPartyId": "providerId",
                     "protocol": "dataspace-protocol-http:2025-1",
-                    "additionalScopes": [ "org.eclipse.edc.vc.type:SomeCredential:read", "org.eclipse.edc.vc.type:AnotherCredential:write" ],
+                    "additionalScopes": [ "org.eclipse.dspace.dcp.vc.type:SomeCredential:read", "org.eclipse.dspace.dcp.vc.type:AnotherCredential:write" ],
                     "querySpec": {
                         "offset": 0,
                         "limit": 50,

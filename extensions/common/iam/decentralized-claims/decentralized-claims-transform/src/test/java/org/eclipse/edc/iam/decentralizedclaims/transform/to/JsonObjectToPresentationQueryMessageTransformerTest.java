@@ -60,8 +60,8 @@ class JsonObjectToPresentationQueryMessageTransformerTest {
                   ],
                   "@type": "PresentationQueryMessage",
                   "scope": [
-                    "org.eclipse.edc.vc.type:TestCredential:read",
-                    "org.eclipse.edc.vc.type:AnotherCredential:all"
+                    "org.eclipse.dspace.dcp.vc.type:TestCredential:read",
+                    "org.eclipse.dspace.dcp.vc.type:AnotherCredential:all"
                   ]
                 }
                 """.formatted(ctx.context());
@@ -73,8 +73,8 @@ class JsonObjectToPresentationQueryMessageTransformerTest {
         assertThat(query).isNotNull();
         assertThat(query.getScopes()).hasSize(2)
                 .containsExactlyInAnyOrder(
-                        "org.eclipse.edc.vc.type:TestCredential:read",
-                        "org.eclipse.edc.vc.type:AnotherCredential:all");
+                        "org.eclipse.dspace.dcp.vc.type:TestCredential:read",
+                        "org.eclipse.dspace.dcp.vc.type:AnotherCredential:all");
         assertThat(query.getPresentationDefinition()).isNull();
     }
 
@@ -142,7 +142,7 @@ class JsonObjectToPresentationQueryMessageTransformerTest {
                   ],
                   "@type": "PresentationQueryMessage",
                   "scope": [
-                    "org.eclipse.edc.vc.type:TestCredential:read org.eclipse.edc.vc.type:AnotherCredential:all"
+                    "org.eclipse.dspace.dcp.vc.type:TestCredential:read org.eclipse.dspace.dcp.vc.type:AnotherCredential:all"
                   ]
                 }
                 """.formatted(ctx.context());
@@ -154,8 +154,8 @@ class JsonObjectToPresentationQueryMessageTransformerTest {
         assertThat(query).isNotNull();
         assertThat(query.getScopes()).hasSize(2)
                 .containsExactlyInAnyOrder(
-                        "org.eclipse.edc.vc.type:TestCredential:read",
-                        "org.eclipse.edc.vc.type:AnotherCredential:all");
+                        "org.eclipse.dspace.dcp.vc.type:TestCredential:read",
+                        "org.eclipse.dspace.dcp.vc.type:AnotherCredential:all");
         assertThat(query.getPresentationDefinition()).isNull();
     }
 
