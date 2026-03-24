@@ -102,7 +102,7 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
     public DataspaceProfileContextRegistry dataspaceProfileContextRegistry() {
         return new DataspaceProfileContextRegistryImpl();
     }
-
+    
     private ContractDefinitionStore getContractDefinitionStore() {
         if (contractDefinitionStore == null) {
             contractDefinitionStore = new InMemoryContractDefinitionStore(criterionOperatorRegistry);

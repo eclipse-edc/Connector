@@ -39,5 +39,4 @@ public class ParticipantContextDefaultServicesExtension implements ServiceExtens
     public ParticipantContextStore participantContextStore() {
         return new InMemoryParticipantContextStore(criterionOperatorRegistry);
     }
-
 }

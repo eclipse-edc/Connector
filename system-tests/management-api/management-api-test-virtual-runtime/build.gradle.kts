@@ -20,7 +20,9 @@ dependencies {
     implementation(project(":core:common:token-core"))
     implementation(project(":core:common:runtime-core"))
     implementation(project(":core:control-plane:control-plane-core"))
-    implementation(project(":core:common::participant-context-single-core"))
+    implementation(project(":core:common::participant-context-connector-core"))
+    // todo remove after dsp 2025 of edc-v is fully adopted
+    implementation(project(":core:common::participant-context-connector-classic-core"))
     implementation(project(":data-protocols:dsp"))
     implementation(project(":data-protocols:dsp:dsp-2025"))
     implementation(project(":extensions:common:http"))
@@ -29,6 +31,7 @@ dependencies {
     implementation(project(":extensions:common:api:control-api-configuration"))
     implementation(project(":extensions:common:api:management-api-schema-validator"))
     implementation(project(":extensions:control-plane:api:management-api"))
+
     implementation(project(":extensions:control-plane:api:management-api:secrets-api"))
     implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"))
 
