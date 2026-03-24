@@ -20,8 +20,14 @@ dependencies {
     api(project(":extensions:common:api:api-core"))
     api(project(":extensions:common:api:management-api-configuration"))
     api(project(":extensions:control-plane:api:management-api-v5:asset-api-v5"))
+    api(project(":extensions:control-plane:api:management-api-v5:contract-definition-api-v5"))
+    api(project(":extensions:control-plane:api:management-api-v5:policy-definition-api-v5"))
+    api(project(":extensions:control-plane:api:management-api-v5:contract-negotiation-api-v5"))
+    api(project(":extensions:control-plane:api:management-api-v5:contract-agreement-api-v5"))
+    api(project(":extensions:control-plane:api:management-api-v5:transfer-process-api-v5"))
     api(project(":extensions:control-plane:api:management-api-v5:participant-context-api-v5"))
     api(project(":extensions:control-plane:api:management-api-v5:participant-context-config-api-v5"))
+    api(project(":extensions:control-plane:api:management-api-v5:cel-api-v5"))
 }
 
 

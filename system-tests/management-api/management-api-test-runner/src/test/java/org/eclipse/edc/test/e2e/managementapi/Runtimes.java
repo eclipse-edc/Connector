@@ -40,10 +40,15 @@ public interface Runtimes {
                 ":extensions:control-plane:api:management-api-v5",
                 ":extensions:common:api:management-api-authorization",
                 ":extensions:common:api:management-api-oauth2-authentication",
+                ":core:common:cel-core",
         };
 
         String[] SQL_MODULES = new String[]{
                 ":dist:bom:controlplane-feature-sql-bom"
+        };
+
+        String[] VIRTUAL_SQL_MODULES = new String[]{
+                ":extensions:common:store:sql:cel-store-sql",
         };
 
         Endpoints.Builder ENDPOINTS = Endpoints.Builder.newInstance()
