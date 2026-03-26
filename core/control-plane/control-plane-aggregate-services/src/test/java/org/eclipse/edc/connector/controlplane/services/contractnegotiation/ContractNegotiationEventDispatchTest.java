@@ -91,6 +91,8 @@ class ContractNegotiationEventDispatchTest {
     @BeforeEach
     void setUp(RuntimeExtension extension) {
         extension.setConfiguration(Map.of(
+                "edc.participant.id", "participantId",
+                "edc.participant.context.id", "participantContextId",
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api",
                 "edc.negotiation.send.retry.limit", "0"

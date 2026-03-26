@@ -37,7 +37,7 @@ public interface Dsp2025Runtime {
                 ":extensions:common:http",
                 ":core:common:connector-core",
                 ":core:common:runtime-core",
-                ":core:common:participant-context-single-core"
+                ":core:common:participant-context-connector-classic-core"
         );
 
         var modules = Stream.concat(baseModules, Arrays.stream(additionalModules)).toArray(String[]::new);

@@ -37,7 +37,7 @@ public class ParticipantContextServicesExtension implements ServiceExtension {
     public String name() {
         return NAME;
     }
-    
+
     @Provider
     public ParticipantContextService participantContextService() {
         return new ParticipantContextServiceImpl(participantContextStore, transactionContext);
