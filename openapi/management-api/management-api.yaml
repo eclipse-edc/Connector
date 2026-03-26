@@ -9,66 +9,6 @@ info:
 servers:
 - url: /
 paths:
-  /v5alpha/participants/{participantContextId}/transferprocesses/{id}/suspend:
-    post:
-      tags:
-      - Transfer Process v5alpha
-      description: "Requests the suspension of a transfer process. Due to the asynchronous\
-        \ nature of transfers, a successful response only indicates that the request\
-        \ was successfully received. This may take a long time, so clients must poll\
-        \ the /{id}/state endpoint to track the state."
-      operationId: suspendTransferProcessV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/transfer-suspend-schema"
-      responses:
-        "204":
-          description: Request to suspend the transfer process was successfully received
-          links:
-            poll-state:
-              operationId: suspendTransferProcessV3
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: A transfer process with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "409":
-          description: "Could not suspend the transfer process, because it is already\
-            \ completed or terminated."
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v3/assets/{id}:
     get:
       tags:
@@ -151,6 +91,66 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v5alpha/participants/{participantContextId}/transferprocesses/{id}/suspend:
+    post:
+      tags:
+      - Transfer Process v5alpha
+      description: "Requests the suspension of a transfer process. Due to the asynchronous\
+        \ nature of transfers, a successful response only indicates that the request\
+        \ was successfully received. This may take a long time, so clients must poll\
+        \ the /{id}/state endpoint to track the state."
+      operationId: suspendTransferProcessV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/transfer-suspend-schema"
+      responses:
+        "204":
+          description: Request to suspend the transfer process was successfully received
+          links:
+            poll-state:
+              operationId: suspendTransferProcessV3
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A transfer process with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: "Could not suspend the transfer process, because it is already\
+            \ completed or terminated."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v4beta/transferprocesses/{id}/state:
     get:
       tags:
@@ -410,6 +410,34 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v4beta/contractdefinitions/request:
+    post:
+      tags:
+      - Contract Definition v4beta
+      description: Returns all contract definitions according to a query
+      operationId: queryContractDefinitionsV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The contract definitions matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/contract-definition-schema"
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v3/contractnegotiations/{id}/agreement:
     get:
       tags:
@@ -449,34 +477,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /v4beta/contractdefinitions/request:
-    post:
-      tags:
-      - Contract Definition v4beta
-      description: Returns all contract definitions according to a query
-      operationId: queryContractDefinitionsV4
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The contract definitions matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/contract-definition-schema"
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v3/edrs/{transferProcessId}/dataaddress:
     get:
       tags:
@@ -509,34 +509,6 @@ paths:
         "404":
           description: An EDR data address with the given transfer process ID does
             not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-  /v3/contractnegotiations/request:
-    post:
-      tags:
-      - Contract Negotiation V3
-      description: Returns all contract negotiations according to a query
-      operationId: queryNegotiationsV3
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/QuerySpec"
-      responses:
-        "200":
-          description: The contract negotiations that match the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ContractNegotiation"
-        "400":
-          description: Request was malformed
           content:
             application/json:
               schema:
@@ -600,6 +572,34 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ContractDefinitionOutputV3"
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v3/contractnegotiations/request:
+    post:
+      tags:
+      - Contract Negotiation V3
+      description: Returns all contract negotiations according to a query
+      operationId: queryNegotiationsV3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuerySpec"
+      responses:
+        "200":
+          description: The contract negotiations that match the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContractNegotiation"
         "400":
           description: Request was malformed
           content:
@@ -1115,34 +1115,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /v4beta/transferprocesses/request:
-    post:
-      tags:
-      - Transfer Process v4beta
-      description: Returns all transfer process according to a query
-      operationId: queryTransferProcessesV4
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The transfer processes matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/transfer-process-schema"
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v5alpha/participants/{participantContextId}/contractnegotiations/{id}/terminate:
     post:
       tags:
@@ -1185,6 +1157,34 @@ paths:
                   $ref: "#/components/schemas/api-error-schema"
         "404":
           description: A contract negotiation with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v4beta/transferprocesses/request:
+    post:
+      tags:
+      - Transfer Process v4beta
+      description: Returns all transfer process according to a query
+      operationId: queryTransferProcessesV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The transfer processes matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/transfer-process-schema"
+        "400":
+          description: Request was malformed
           content:
             application/json:
               schema:
@@ -1680,34 +1680,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v3/contractagreements/request:
-    post:
-      tags:
-      - Contract Agreement V3
-      description: Gets all contract agreements according to a particular query
-      operationId: queryAgreementsV3
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/QuerySpec"
-      responses:
-        "200":
-          description: The contract agreements matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ContractAgreement_1"
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v3/policydefinitions/{id}:
     get:
       tags:
@@ -1821,6 +1793,34 @@ paths:
         "409":
           description: "The policy definition cannot be deleted, because it is referenced\
             \ by a contract definition"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v3/contractagreements/request:
+    post:
+      tags:
+      - Contract Agreement V3
+      description: Gets all contract agreements according to a particular query
+      operationId: queryAgreementsV3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuerySpec"
+      responses:
+        "200":
+          description: The contract agreements matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ContractAgreement_1"
+        "400":
+          description: Request body was malformed
           content:
             application/json:
               schema:
@@ -2265,42 +2265,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v5alpha/participants/{participantContextId}/policydefinitions/request:
-    post:
-      tags:
-      - Policy Definition v5alpha
-      description: Returns all policy definitions according to a query
-      operationId: queryPolicyDefinitionsV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The policy definitions matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/policy-definition-schema"
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v3/policydefinitions:
     post:
       tags:
@@ -2337,6 +2301,42 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v5alpha/participants/{participantContextId}/policydefinitions/request:
+    post:
+      tags:
+      - Policy Definition v5alpha
+      description: Returns all policy definitions according to a query
+      operationId: queryPolicyDefinitionsV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The policy definitions matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/policy-definition-schema"
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v3/transferprocesses/{id}/resume:
     post:
       tags:
@@ -2376,6 +2376,35 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v3/policydefinitions/{id}/validate:
+    post:
+      tags:
+      - Policy Definition v3
+      description: "Validates an existing Policy, If the Policy is not found, an error\
+        \ is reported"
+      operationId: validatePolicyDefinitionV3
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Returns the validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyValidationResultSchemaV3"
+        "404":
+          description: "policy definition could not be validated, because it does\
+            \ not exists"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiErrorDetail"
   /v3/contractagreements/{id}/negotiation:
     get:
       tags:
@@ -2413,35 +2442,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /v3/policydefinitions/{id}/validate:
-    post:
-      tags:
-      - Policy Definition v3
-      description: "Validates an existing Policy, If the Policy is not found, an error\
-        \ is reported"
-      operationId: validatePolicyDefinitionV3
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Returns the validation result
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PolicyValidationResultSchemaV3"
-        "404":
-          description: "policy definition could not be validated, because it does\
-            \ not exists"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ApiErrorDetail"
   /v4beta/edrs/request:
     post:
       tags:
@@ -2536,37 +2536,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v4beta/catalogs/request:
-    post:
-      tags:
-      - Catalogs v4beta
-      description: Obtains all catalogs currently held by this cache instance
-      operationId: requestCatalogsV4
-      parameters:
-      - name: flatten
-        in: query
-        required: false
-        style: form
-        explode: true
-        schema:
-          type: boolean
-          default: false
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: "A list of catalogs is returned, potentially empty"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/catalog-schema"
-        "500":
-          description: A query could not be completed due to an internal error
   /v4beta/policydefinitions/{id}:
     get:
       tags:
@@ -2686,6 +2655,37 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v4beta/catalogs/request:
+    post:
+      tags:
+      - Catalogs v4beta
+      description: Obtains all catalogs currently held by this cache instance
+      operationId: requestCatalogsV4
+      parameters:
+      - name: flatten
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: boolean
+          default: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: "A list of catalogs is returned, potentially empty"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/catalog-schema"
+        "500":
+          description: A query could not be completed due to an internal error
   /v4beta/catalog/dataset/request:
     post:
       tags:
@@ -2819,6 +2819,34 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v3/assets/request:
+    post:
+      tags:
+      - Asset V3
+      description: Request all assets according to a particular query
+      operationId: requestAssetsV3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuerySpec"
+      responses:
+        "200":
+          description: The assets matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AssetOutputV3"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v4beta/edrs/{transferProcessId}/dataaddress:
     get:
       tags:
@@ -2857,34 +2885,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v3/assets/request:
-    post:
-      tags:
-      - Asset V3
-      description: Request all assets according to a particular query
-      operationId: requestAssetsV3
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/QuerySpec"
-      responses:
-        "200":
-          description: The assets matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/AssetOutputV3"
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v5alpha/participants/{participantContextId}/transferprocesses/{id}/terminate:
     post:
       tags:
@@ -3147,42 +3147,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v5alpha/participants/{participantContextId}/policydefinitions/{id}/validate:
-    post:
-      tags:
-      - Policy Definition v5alpha
-      description: "Validates an existing Policy, If the Policy is not found, an error\
-        \ is reported"
-      operationId: validatePolicyDefinitionV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Returns the validation result
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/policy-validation-result-schema"
-        "404":
-          description: "policy definition could not be validated, because it does\
-            \ not exists"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/api-error-schema"
   /v3/secrets:
     put:
       tags:
@@ -3243,6 +3207,42 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v5alpha/participants/{participantContextId}/policydefinitions/{id}/validate:
+    post:
+      tags:
+      - Policy Definition v5alpha
+      description: "Validates an existing Policy, If the Policy is not found, an error\
+        \ is reported"
+      operationId: validatePolicyDefinitionV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Returns the validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/policy-validation-result-schema"
+        "404":
+          description: "policy definition could not be validated, because it does\
+            \ not exists"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api-error-schema"
   /v4beta/contractnegotiations/{id}/agreement:
     get:
       tags:
@@ -3964,49 +3964,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v5alpha/participants/{participantContextId}/transferprocesses:
-    post:
-      tags:
-      - Transfer Process v5alpha
-      description: "Initiates a data transfer with the given parameters. Due to the\
-        \ asynchronous nature of transfers, a successful response only indicates that\
-        \ the request was successfully received. This may take a long time, so clients\
-        \ must poll the /{id}/state endpoint to track the state."
-      operationId: initiateTransferProcessV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/transfer-request-schema"
-      responses:
-        "200":
-          description: The transfer was successfully initiated. Returns the transfer
-            process ID and created timestamp
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/id-response-schema"
-          links:
-            poll-state:
-              operationId: getTransferProcessStateV3
-              parameters:
-                id: $response.body#/id
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v5alpha/participants/{participantContextId}/assets:
     put:
       tags:
@@ -4085,6 +4042,49 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v5alpha/participants/{participantContextId}/transferprocesses:
+    post:
+      tags:
+      - Transfer Process v5alpha
+      description: "Initiates a data transfer with the given parameters. Due to the\
+        \ asynchronous nature of transfers, a successful response only indicates that\
+        \ the request was successfully received. This may take a long time, so clients\
+        \ must poll the /{id}/state endpoint to track the state."
+      operationId: initiateTransferProcessV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/transfer-request-schema"
+      responses:
+        "200":
+          description: The transfer was successfully initiated. Returns the transfer
+            process ID and created timestamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/id-response-schema"
+          links:
+            poll-state:
+              operationId: getTransferProcessStateV3
+              parameters:
+                id: $response.body#/id
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v5alpha/celexpressions:
     post:
       tags:
@@ -4169,34 +4169,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v4beta/contractagreements/request:
-    post:
-      tags:
-      - Contract Agreement v4beta
-      description: Gets all contract agreements according to a particular query
-      operationId: queryAgreementsV4
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The contract agreements matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/contract-agreement-schema"
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v3/policydefinitions/{id}/evaluationplan:
     post:
       tags:
@@ -4231,6 +4203,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiErrorDetail"
+  /v4beta/contractagreements/request:
+    post:
+      tags:
+      - Contract Agreement v4beta
+      description: Gets all contract agreements according to a particular query
+      operationId: queryAgreementsV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The contract agreements matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/contract-agreement-schema"
+        "400":
+          description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v4beta/policydefinitions/request:
     post:
       tags:
@@ -4488,34 +4488,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v3/transferprocesses/request:
-    post:
-      tags:
-      - Transfer Process V3
-      description: Returns all transfer process according to a query
-      operationId: queryTransferProcessesV3
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/QuerySpec"
-      responses:
-        "200":
-          description: The transfer processes matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/TransferProcessV3"
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v5alpha/participants/{participantContextId}/contractnegotiations:
     post:
       tags:
@@ -4559,6 +4531,34 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v3/transferprocesses/request:
+    post:
+      tags:
+      - Transfer Process V3
+      description: Returns all transfer process according to a query
+      operationId: queryTransferProcessesV3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuerySpec"
+      responses:
+        "200":
+          description: The transfer processes matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TransferProcessV3"
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v3/transferprocesses/{id}:
     get:
       tags:
@@ -4720,6 +4720,40 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v4beta/policydefinitions/{id}/evaluationplan:
+    post:
+      tags:
+      - Policy Definition v4beta
+      description: "Creates an execution plane for an existing Policy, If the Policy\
+        \ is not found, an error is reported"
+      operationId: createExecutionPlanV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/policy-evaluation-plan-request-schema"
+      responses:
+        "200":
+          description: Returns the evaluation plan
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/policy-evaluation-plan-schema"
+        "404":
+          description: "An evaluation plan could not be created, because the policy\
+            \ definition does not exists"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/api-error-schema"
   /v3/contractdefinitions/{id}:
     get:
       tags:
@@ -4792,40 +4826,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /v4beta/policydefinitions/{id}/evaluationplan:
-    post:
-      tags:
-      - Policy Definition v4beta
-      description: "Creates an execution plane for an existing Policy, If the Policy\
-        \ is not found, an error is reported"
-      operationId: createExecutionPlanV4
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/policy-evaluation-plan-request-schema"
-      responses:
-        "200":
-          description: Returns the evaluation plan
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/policy-evaluation-plan-schema"
-        "404":
-          description: "An evaluation plan could not be created, because the policy\
-            \ definition does not exists"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/api-error-schema"
   /v5alpha/participants/{participantContextId}/contractdefinitions/request:
     post:
       tags:
@@ -5198,63 +5198,6 @@ paths:
                   $ref: "#/components/schemas/ApiErrorDetail"
 components:
   schemas:
-    api-error-schema:
-      title: ApiErrorSchema
-      type: object
-      example:
-        path: path
-        message: message
-        type: type
-        invalidValue: invalidValue
-      allOf:
-      - $ref: "#/components/schemas/ApiError"
-    ApiError:
-      required:
-      - message
-      - type
-      type: object
-      properties:
-        message:
-          type: string
-        type:
-          type: string
-        path:
-          type: string
-        invalidValue:
-          type: string
-    transfer-suspend-schema:
-      title: TransferSuspendSchema
-      type: object
-      allOf:
-      - $ref: "#/components/schemas/SuspendTransfer"
-    SuspendTransfer:
-      required:
-      - '@context'
-      - '@type'
-      type: object
-      properties:
-        '@context':
-          title: ContextSchema
-          type: array
-          example: {}
-          items:
-            type: string
-        '@type':
-          type: string
-        reason:
-          type: string
-    context-schema:
-      title: ContextSchema
-      type: array
-      example: {}
-      items:
-        type: string
-    ContextSchema:
-      type: array
-      items:
-        type: array
-        items:
-          type: string
     AssetOutputV3:
       type: object
       properties:
@@ -5317,6 +5260,63 @@ components:
         type: ErrorType
         path: object.error.path
         invalidValue: this value is not valid
+    api-error-schema:
+      title: ApiErrorSchema
+      type: object
+      example:
+        path: path
+        message: message
+        type: type
+        invalidValue: invalidValue
+      allOf:
+      - $ref: "#/components/schemas/ApiError"
+    ApiError:
+      required:
+      - message
+      - type
+      type: object
+      properties:
+        message:
+          type: string
+        type:
+          type: string
+        path:
+          type: string
+        invalidValue:
+          type: string
+    transfer-suspend-schema:
+      title: TransferSuspendSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/SuspendTransfer"
+    SuspendTransfer:
+      required:
+      - '@context'
+      - '@type'
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          example: {}
+          items:
+            type: string
+        '@type':
+          type: string
+        reason:
+          type: string
+    context-schema:
+      title: ContextSchema
+      type: array
+      example: {}
+      items:
+        type: string
+    ContextSchema:
+      type: array
+      items:
+        type: array
+        items:
+          type: string
     TransferState:
       required:
       - '@context'
@@ -5770,73 +5770,6 @@ components:
             type: array
             items:
               $ref: "#/components/schemas/Constraint"
-    ContractAgreement:
-      type: object
-      properties:
-        '@id':
-          type: string
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/ContractAgreement
-        assetId:
-          type: string
-        consumerId:
-          type: string
-        contractSigningDate:
-          type: integer
-          format: int64
-        policy:
-          type: object
-          description: ODRL policy
-          example:
-            '@context': http://www.w3.org/ns/odrl.jsonld
-            '@id': 0949ba30-680c-44e6-bc7d-1688cbe1847e
-            '@type': odrl:Set
-            permission:
-              target: http://example.com/asset:9898.movie
-              action:
-                type: http://www.w3.org/ns/odrl/2/use
-              constraint:
-                leftOperand: https://w3id.org/edc/v0.0.1/ns/left
-                operator: eq
-                rightOperand: value
-            prohibition: []
-            obligation: []
-        providerId:
-          type: string
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': https://w3id.org/edc/v0.0.1/ns/ContractAgreement
-        '@id': negotiation-id
-        providerId: provider-id
-        consumerId: consumer-id
-        assetId: asset-id
-        contractSigningDate: 1688465655
-        policy:
-          '@context': http://www.w3.org/ns/odrl.jsonld
-          '@type': Set
-          '@id': offer-id
-          permission:
-          - target: asset-id
-            action: display
-    Policy:
-      type: object
-      description: ODRL policy
-      example:
-        '@context': http://www.w3.org/ns/odrl.jsonld
-        '@id': 0949ba30-680c-44e6-bc7d-1688cbe1847e
-        '@type': odrl:Set
-        permission:
-          target: http://example.com/asset:9898.movie
-          action:
-            type: http://www.w3.org/ns/odrl/2/use
-          constraint:
-            leftOperand: https://w3id.org/edc/v0.0.1/ns/left
-            operator: eq
-            rightOperand: value
-        prohibition: []
-        obligation: []
     contract-definition-schema:
       title: ContractDefinitionSchema
       type: object
@@ -5962,130 +5895,73 @@ components:
           '@type': '@type'
           operandLeft: operandLeft
           operator: operator
-    ContractNegotiation:
+    ContractAgreement:
       type: object
       properties:
         '@id':
           type: string
         '@type':
           type: string
-          example: https://w3id.org/edc/v0.0.1/ns/ContractNegotiation
-        callbackAddresses:
-          type: array
-          items:
-            $ref: "#/components/schemas/CallbackAddress"
-        contractAgreementId:
+          example: https://w3id.org/edc/v0.0.1/ns/ContractAgreement
+        assetId:
           type: string
-        counterPartyAddress:
+        consumerId:
           type: string
-        counterPartyId:
+        contractSigningDate:
+          type: integer
+          format: int64
+        policy:
+          type: object
+          description: ODRL policy
+          example:
+            '@context': http://www.w3.org/ns/odrl.jsonld
+            '@id': 0949ba30-680c-44e6-bc7d-1688cbe1847e
+            '@type': odrl:Set
+            permission:
+              target: http://example.com/asset:9898.movie
+              action:
+                type: http://www.w3.org/ns/odrl/2/use
+              constraint:
+                leftOperand: https://w3id.org/edc/v0.0.1/ns/left
+                operator: eq
+                rightOperand: value
+            prohibition: []
+            obligation: []
+        providerId:
           type: string
-        errorDetail:
-          type: string
-        protocol:
-          type: string
-        state:
-          type: string
-        type:
-          type: string
-          enum:
-          - CONSUMER
-          - PROVIDER
       example:
         '@context':
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': https://w3id.org/edc/v0.0.1/ns/ContractNegotiation
+        '@type': https://w3id.org/edc/v0.0.1/ns/ContractAgreement
         '@id': negotiation-id
-        type: PROVIDER
-        protocol: dataspace-protocol-http:2025-1
-        counterPartyId: counter-party-id
-        counterPartyAddress: http://counter/party/address
-        state: VERIFIED
-        contractAgreementId: contract:agreement:id
-        errorDetail: eventual-error-detail
-        createdAt: 1688465655
-        callbackAddresses:
-        - transactional: false
-          uri: http://callback/url
-          events:
-          - contract.negotiation
-          - transfer.process
-          authKey: auth-key
-          authCodeId: auth-code-id
-    CallbackAddress:
+        providerId: provider-id
+        consumerId: consumer-id
+        assetId: asset-id
+        contractSigningDate: 1688465655
+        policy:
+          '@context': http://www.w3.org/ns/odrl.jsonld
+          '@type': Set
+          '@id': offer-id
+          permission:
+          - target: asset-id
+            action: display
+    Policy:
       type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/CallbackAddress
-        authCodeId:
-          type: string
-        authKey:
-          type: string
-        events:
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-        transactional:
-          type: boolean
-        uri:
-          type: string
-    QuerySpec_1:
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
-        filterExpression:
-          type: array
-          items:
-            $ref: "#/components/schemas/Criterion_1"
-        limit:
-          type: integer
-          format: int32
-        offset:
-          type: integer
-          format: int32
-        sortField:
-          type: string
-        sortOrder:
-          type: string
-          enum:
-          - ASC
-          - DESC
+      description: ODRL policy
       example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': QuerySpec
-        offset: 5
-        limit: 10
-        sortOrder: DESC
-        sortField: fieldName
-        filterExpression: []
-    Criterion_1:
-      required:
-      - operandLeft
-      - operandRight
-      - operator
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/Criterion
-        operandLeft:
-          type: object
-        operandRight:
-          type: object
-        operator:
-          type: string
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': Criterion
-        operandLeft: fieldName
-        operator: =
-        operandRight: some value
+        '@context': http://www.w3.org/ns/odrl.jsonld
+        '@id': 0949ba30-680c-44e6-bc7d-1688cbe1847e
+        '@type': odrl:Set
+        permission:
+          target: http://example.com/asset:9898.movie
+          action:
+            type: http://www.w3.org/ns/odrl/2/use
+          constraint:
+            leftOperand: https://w3id.org/edc/v0.0.1/ns/left
+            operator: eq
+            rightOperand: value
+        prohibition: []
+        obligation: []
     ContractAgreement_1:
       type: object
       properties:
@@ -6163,6 +6039,130 @@ components:
         contractPolicyId: contract-policy-id
         assetsSelector: []
         createdAt: 1688465655
+    Criterion_1:
+      required:
+      - operandLeft
+      - operandRight
+      - operator
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/Criterion
+        operandLeft:
+          type: object
+        operandRight:
+          type: object
+        operator:
+          type: string
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@type': Criterion
+        operandLeft: fieldName
+        operator: =
+        operandRight: some value
+    QuerySpec_1:
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
+        filterExpression:
+          type: array
+          items:
+            $ref: "#/components/schemas/Criterion_1"
+        limit:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        sortField:
+          type: string
+        sortOrder:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@type': QuerySpec
+        offset: 5
+        limit: 10
+        sortOrder: DESC
+        sortField: fieldName
+        filterExpression: []
+    ContractNegotiation:
+      type: object
+      properties:
+        '@id':
+          type: string
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/ContractNegotiation
+        callbackAddresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/CallbackAddress"
+        contractAgreementId:
+          type: string
+        counterPartyAddress:
+          type: string
+        counterPartyId:
+          type: string
+        errorDetail:
+          type: string
+        protocol:
+          type: string
+        state:
+          type: string
+        type:
+          type: string
+          enum:
+          - CONSUMER
+          - PROVIDER
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@type': https://w3id.org/edc/v0.0.1/ns/ContractNegotiation
+        '@id': negotiation-id
+        type: PROVIDER
+        protocol: dataspace-protocol-http:2025-1
+        counterPartyId: counter-party-id
+        counterPartyAddress: http://counter/party/address
+        state: VERIFIED
+        contractAgreementId: contract:agreement:id
+        errorDetail: eventual-error-detail
+        createdAt: 1688465655
+        callbackAddresses:
+        - transactional: false
+          uri: http://callback/url
+          events:
+          - contract.negotiation
+          - transfer.process
+          authKey: auth-key
+          authCodeId: auth-code-id
+    CallbackAddress:
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/CallbackAddress
+        authCodeId:
+          type: string
+        authKey:
+          type: string
+        events:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        transactional:
+          type: boolean
+        uri:
+          type: string
     QuerySpec_2:
       type: object
       properties:
@@ -7314,38 +7314,6 @@ components:
           type: string
         value:
           type: string
-    QuerySpec_3:
-      type: object
-      properties:
-        '@type':
-          type: string
-          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
-        filterExpression:
-          type: array
-          items:
-            $ref: "#/components/schemas/Criterion_1"
-        limit:
-          type: integer
-          format: int32
-        offset:
-          type: integer
-          format: int32
-        sortField:
-          type: string
-        sortOrder:
-          type: string
-          enum:
-          - ASC
-          - DESC
-      example:
-        '@context':
-          '@vocab': https://w3id.org/edc/v0.0.1/ns/
-        '@type': QuerySpec
-        offset: 5
-        limit: 10
-        sortOrder: DESC
-        sortField: fieldName
-        filterExpression: []
     PolicyDefinitionOutputV3:
       type: object
       properties:
@@ -7435,6 +7403,38 @@ components:
               operator: eq
               rightOperand: https://www.wikidata.org/wiki/Q183
               comment: i.e Germany
+    QuerySpec_3:
+      type: object
+      properties:
+        '@type':
+          type: string
+          example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
+        filterExpression:
+          type: array
+          items:
+            $ref: "#/components/schemas/Criterion_1"
+        limit:
+          type: integer
+          format: int32
+        offset:
+          type: integer
+          format: int32
+        sortField:
+          type: string
+        sortOrder:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      example:
+        '@context':
+          '@vocab': https://w3id.org/edc/v0.0.1/ns/
+        '@type': QuerySpec
+        offset: 5
+        limit: 10
+        sortOrder: DESC
+        sortField: fieldName
+        filterExpression: []
     EndpointDataReferenceEntryV3:
       type: object
       properties:
@@ -8833,33 +8833,6 @@ components:
           type: array
           items:
             type: string
-    DataAddressRoot:
-      required:
-      - '@context'
-      - '@type'
-      type: object
-      example:
-        '@type': '@type'
-        type: type
-        '@context': {}
-        example: ""
-      allOf:
-      - properties:
-          '@context':
-            $ref: "#/components/schemas/context-schema"
-      - $ref: "#/components/schemas/DataAddress_1"
-    DataAddress_1:
-      required:
-      - '@type'
-      - type
-      type: object
-      properties:
-        '@type':
-          type: string
-        type:
-          type: string
-        example:
-          type: type
     QuerySpec_6:
       type: object
       properties:
@@ -8892,6 +8865,33 @@ components:
         sortOrder: DESC
         sortField: fieldName
         filterExpression: []
+    DataAddressRoot:
+      required:
+      - '@context'
+      - '@type'
+      type: object
+      example:
+        '@type': '@type'
+        type: type
+        '@context': {}
+        example: ""
+      allOf:
+      - properties:
+          '@context':
+            $ref: "#/components/schemas/context-schema"
+      - $ref: "#/components/schemas/DataAddress_1"
+    DataAddress_1:
+      required:
+      - '@type'
+      - type
+      type: object
+      properties:
+        '@type':
+          type: string
+        type:
+          type: string
+        example:
+          type: type
     QuerySpec_7:
       type: object
       properties:
