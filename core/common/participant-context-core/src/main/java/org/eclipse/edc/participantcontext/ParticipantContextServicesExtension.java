@@ -20,7 +20,6 @@ import org.eclipse.edc.participantcontext.spi.store.ParticipantContextStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
@@ -33,9 +32,7 @@ public class ParticipantContextServicesExtension implements ServiceExtension {
     private ParticipantContextStore participantContextStore;
     @Inject
     private TransactionContext transactionContext;
-    @Inject
-    private Monitor monitor;
-    
+
     @Override
     public String name() {
         return NAME;

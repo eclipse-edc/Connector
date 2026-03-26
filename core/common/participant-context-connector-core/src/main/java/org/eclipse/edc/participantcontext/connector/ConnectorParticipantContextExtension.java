@@ -15,7 +15,7 @@
 package org.eclipse.edc.participantcontext.connector;
 
 import org.eclipse.edc.participantcontext.connector.identity.ParticipantContextIdentityResolverImpl;
-import org.eclipse.edc.participantcontext.connector.webook.ParticipantWebhookResolverImpl;
+import org.eclipse.edc.participantcontext.connector.webhook.ParticipantWebhookResolverImpl;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;

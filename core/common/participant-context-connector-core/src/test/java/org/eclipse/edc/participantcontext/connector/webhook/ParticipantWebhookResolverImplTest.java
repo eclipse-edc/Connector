@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.participantcontext.connector.webook;
+package org.eclipse.edc.participantcontext.connector.webhook;
 
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
