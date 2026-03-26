@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2026 Metaform Systems, Inc.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,11 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Metaform Systems, Inc. - initial API and implementation
  *
  */
 
-package org.eclipse.edc.protocol.dsp.version.http.api;
+package org.eclipse.edc.protocol.dsp.metadata.http.api;
 
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.protocol.dsp.version.transformer.JsonObjectFromProtocolVersionsTransformer;
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(DependencyInjectionExtension.class)
-class DspVersionApiExtensionTest {
+class DspMetadataApiExtensionTest {
 
     private final WebService webService = mock();
     private final TypeTransformerRegistry transformerRegistry = mock();
@@ -42,10 +42,10 @@ class DspVersionApiExtensionTest {
     }
 
     @Test
-    void shouldRegisterApiController(DspVersionApiExtension extension, ServiceExtensionContext context) {
+    void shouldRegisterApiController(DspMetadataApiExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(webService).registerResource(eq(ApiContext.PROTOCOL), isA(DspVersionApiController.class));
+        verify(webService).registerResource(eq(ApiContext.PROTOCOL), isA(DspMetadataApiController.class));
         verify(transformerRegistry).register(isA(JsonObjectFromProtocolVersionsTransformer.class));
     }
 }

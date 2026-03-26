@@ -91,6 +91,7 @@ include(":data-protocols:data-plane-signaling")
 include(":data-protocols:dsp:dsp-spi")
 include(":data-protocols:dsp:dsp-http-spi")
 include(":data-protocols:dsp:dsp-version:dsp-version-http-api")
+include(":data-protocols:dsp:dsp-virtual:dsp-metadata-http-api-virtual")
 
 // dsp core
 include(":data-protocols:dsp:dsp-core")
@@ -113,6 +114,7 @@ include(":data-protocols:dsp:dsp-lib:dsp-transfer-process-lib")
 include(":data-protocols:dsp:dsp-lib:dsp-transfer-process-lib:dsp-transfer-process-validation-lib")
 include(":data-protocols:dsp:dsp-lib:dsp-transfer-process-lib:dsp-transfer-process-transform-lib")
 include(":data-protocols:dsp:dsp-lib:dsp-transfer-process-lib:dsp-transfer-process-http-api-lib")
+include(":data-protocols:dsp:dsp-lib:dsp-version-transform-lib")
 
 // dsp version 2025/1
 include(":data-protocols:dsp:dsp-2025")
@@ -128,6 +130,9 @@ include(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025:dsp-transfer-pro
 include(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025:dsp-negotiation-http-api-2025")
 include(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025:dsp-negotiation-transform-2025")
+
+// dsp version 2025/1 virtual variant
+
 
 // modules for technology- or cloud-provider extensions --------------------------------------------
 include(":extensions:common:api:api-core")
