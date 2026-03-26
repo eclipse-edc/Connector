@@ -68,6 +68,7 @@ public interface Runtimes {
                     put("edc.negotiation.state-machine.iteration-wait-millis", "50");
                     put("edc.data.plane.selector.state-machine.iteration-wait-millis", "100");
                     put("edc.core.retry.retries.max", "1");
+                    put("edc.policy.monitor.period", "PT2S");
                 }
             });
         }

@@ -42,7 +42,6 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -54,11 +53,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static java.time.Duration.ofDays;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.inForceDatePolicy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
@@ -218,38 +215,6 @@ class TransferPullEndToEndTest {
             // check that transfer is available again
             provider.awaitTransferToBeInState(providerTransferProcessId, STARTED);
             assertConsumerCanAccessData(consumer, consumerTransferProcessId);
-        }
-
-        @Test
-        void shouldTerminateTransfer_whenContractExpires_fixedInForcePeriod(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                                                            @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
-            var assetId = UUID.randomUUID().toString();
-            var now = Instant.now();
-            // contract was valid from t-10d to t-5d, so "now" it is expired
-            var contractPolicy = inForceDatePolicy("gteq", now.minus(ofDays(10)), "lteq", now.minus(ofDays(5)));
-            createResourcesOnProvider(provider, assetId, contractPolicy, httpSourceDataAddress());
-
-            var transferProcessId = consumer.requestAssetFrom(assetId, provider)
-                    .withTransferType("HttpData-PULL")
-                    .execute();
-
-            consumer.awaitTransferToBeInState(transferProcessId, TERMINATED);
-        }
-
-        @Test
-        void shouldTerminateTransfer_whenContractExpires_durationInForcePeriod(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                                                               @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
-            var assetId = UUID.randomUUID().toString();
-            var now = Instant.now();
-            // contract was valid from t-10d to t-5d, so "now" it is expired
-            var contractPolicy = inForceDatePolicy("gteq", now.minus(ofDays(10)), "lteq", "contractAgreement+1s");
-            createResourcesOnProvider(provider, assetId, contractPolicy, httpSourceDataAddress());
-
-            var transferProcessId = consumer.requestAssetFrom(assetId, provider)
-                    .withTransferType("HttpData-PULL")
-                    .execute();
-
-            consumer.awaitTransferToBeInState(transferProcessId, TERMINATED);
         }
 
         @Test

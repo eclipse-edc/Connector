@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.policy.monitor;
 
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
-import org.eclipse.edc.connector.policy.monitor.store.sql.InMemoryPolicyMonitorStore;
+import org.eclipse.edc.connector.policy.monitor.store.InMemoryPolicyMonitorStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;

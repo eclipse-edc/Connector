@@ -14,145 +14,103 @@
 
 package org.eclipse.edc.connector.policy.monitor.manager;
 
-import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
-import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
-import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorContext;
+import org.eclipse.edc.connector.policy.monitor.PolicyMonitorConfiguration;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntry;
-import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorManager;
 import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorStore;
-import org.eclipse.edc.policy.engine.spi.PolicyEngine;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
-import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.statemachine.AbstractStateEntityManager;
-import org.eclipse.edc.statemachine.Processor;
-import org.eclipse.edc.statemachine.ProcessorImpl;
-import org.eclipse.edc.statemachine.StateMachineManager;
+import org.eclipse.edc.spi.system.ExecutorInstrumentation;
+import org.jetbrains.annotations.NotNull;
 
-import java.time.Instant;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
+import java.time.Clock;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorEntryStates.STARTED;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 /**
- * Implementation of the {@link PolicyMonitorManager}
+ * Implementation of the {@link PolicyMonitorManager}.
+ * <p>
+ * Acts as a watchdog: on a fixed schedule it queries all active policy monitor entries and
+ * evaluates their policies, terminating the associated transfer process when a policy is no
+ * longer satisfied.
  */
-public class PolicyMonitorManagerImpl extends AbstractStateEntityManager<PolicyMonitorEntry, PolicyMonitorStore>
-        implements PolicyMonitorManager {
+public class PolicyMonitorManagerImpl implements PolicyMonitorManager {
 
-    private PolicyEngine policyEngine;
-    private TransferProcessService transferProcessService;
-    private ContractAgreementService contractAgreementService;
+    private final PolicyMonitorStore store;
+    private final Monitor monitor;
+    private final ExecutorInstrumentation executorInstrumentation;
+    private final PolicyMonitor policyMonitor;
+    private final PolicyMonitorConfiguration configuration;
 
-    private PolicyMonitorManagerImpl() {
+    private ScheduledExecutorService scheduler;
+    private final Clock clock;
 
+    public PolicyMonitorManagerImpl(PolicyMonitor policyMonitor, PolicyMonitorConfiguration configuration,
+                                    ExecutorInstrumentation executorInstrumentation, Monitor monitor,
+                                    PolicyMonitorStore store, Clock clock) {
+        this.policyMonitor = policyMonitor;
+        this.configuration = configuration;
+        this.executorInstrumentation = executorInstrumentation;
+        this.monitor = monitor.withPrefix(getClass().getSimpleName());
+        this.store = store;
+        this.clock = clock;
+        scheduler = executorInstrumentation.instrument(
+                Executors.newSingleThreadScheduledExecutor(r -> {
+                    var thread = Executors.defaultThreadFactory().newThread(r);
+                    thread.setName("policy-monitor-watchdog");
+                    return thread;
+                }), "policy-monitor");
     }
 
     @Override
-    public void startMonitoring(String transferProcessId, String contractId) {
-        var entry = PolicyMonitorEntry.Builder.newInstance()
-                .id(transferProcessId)
-                .contractId(contractId)
-                .traceContext(telemetry.getCurrentTraceContext())
-                .build();
+    public void start() {
+        scheduler = executorInstrumentation.instrument(
+                Executors.newSingleThreadScheduledExecutor(r -> {
+                    var thread = Executors.defaultThreadFactory().newThread(r);
+                    thread.setName("policy-monitor-watchdog");
+                    return thread;
+                }), "policy-monitor");
 
-        entry.transitionToStarted();
-
-        update(entry);
+        scheduler.schedule(this::checkPolicies, 0, TimeUnit.SECONDS);
     }
 
     @Override
-    protected StateMachineManager.Builder configureStateMachineManager(StateMachineManager.Builder builder) {
-        return builder
-                .processor(processEntriesInState(STARTED, this::processMonitoring));
-    }
-
-    private CompletableFuture<StatusResult<Void>> processMonitoring(PolicyMonitorEntry entry) {
-        var transferProcess = transferProcessService.findById(entry.getId());
-        if (transferProcess == null) {
-            var message = "TransferProcess %s does not exist".formatted(entry.getId());
-            entry.transitionToFailed(message);
-            update(entry);
-            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
-        }
-
-        if (transferProcess.getState() >= TransferProcessStates.COMPLETING.code()) {
-            entry.transitionToCompleted();
-            update(entry);
-            return CompletableFuture.completedFuture(StatusResult.success());
-        }
-
-        var contractAgreement = contractAgreementService.findById(entry.getContractId());
-        if (contractAgreement == null) {
-            var message = "ContractAgreement %s does not exist".formatted(entry.getContractId());
-            entry.transitionToFailed(message);
-            update(entry);
-            return CompletableFuture.completedFuture(StatusResult.fatalError(message));
-        }
-
-        var policy = contractAgreement.getPolicy();
-        var policyContext = new PolicyMonitorContext(Instant.now(clock), contractAgreement);
-
-        var result = policyEngine.evaluate(policy, policyContext);
-        if (result.failed()) {
-            monitor.debug(() -> "[policy-monitor] Policy evaluation for TP %s failed: %s".formatted(entry.getId(), result.getFailureDetail()));
-            var command = new TerminateTransferCommand(entry.getId(), result.getFailureDetail());
-            var terminationResult = transferProcessService.terminate(command);
-            if (terminationResult.succeeded()) {
-                entry.transitionToCompleted();
-                update(entry);
-                return CompletableFuture.completedFuture(StatusResult.success());
+    public void stop() {
+        if (scheduler != null) {
+            scheduler.shutdown();
+            try {
+                if (!scheduler.awaitTermination(10, TimeUnit.SECONDS)) {
+                    scheduler.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                monitor.severe("PolicyMonitorManager await termination failed", e);
+                scheduler.shutdownNow();
+                Thread.currentThread().interrupt();
             }
         }
-
-        // we update the state timestamp ensure fairness on polling on  `STARTED` state
-        entry.updateStateTimestamp();
-        store.save(entry);
-        return CompletableFuture.completedFuture(StatusResult.success());
     }
 
-    private Processor processEntriesInState(PolicyMonitorEntryStates state, Function<PolicyMonitorEntry, CompletableFuture<StatusResult<Void>>> function) {
-        var filter = new Criterion[]{ hasState(state.code()) };
-        return ProcessorImpl.Builder.newInstance(() -> store.nextNotLeased(batchSize, filter), entityRetryProcessConfiguration, clock, monitor)
-                .process(telemetry.contextPropagationMiddleware(function))
-                .onNotProcessed(this::breakLease)
-                .build();
+    private void checkPolicies() {
+        var count = 0;
+        List<PolicyMonitorEntry> entries;
+        do {
+            entries = store.nextNotLeased(configuration.batchSize(), hasState(STARTED.code()), notYetProcessed());
+            entries.forEach(policyMonitor::monitor);
+            count += entries.size();
+        } while (entries.size() >= configuration.batchSize());
+
+        var period = configuration.period();
+        scheduler.schedule(this::checkPolicies, period.getSeconds(), TimeUnit.SECONDS);
+        monitor.debug("watchdog completed: %d entries evaluated. Next execution in %s".formatted(count, period));
     }
 
-    public static class Builder
-            extends AbstractStateEntityManager.Builder<PolicyMonitorEntry, PolicyMonitorStore, PolicyMonitorManagerImpl, Builder> {
-
-        private Builder() {
-            super(new PolicyMonitorManagerImpl());
-        }
-
-        public static Builder newInstance() {
-            return new Builder();
-        }
-
-        public Builder contractAgreementService(ContractAgreementService contractAgreementService) {
-            manager.contractAgreementService = contractAgreementService;
-            return this;
-        }
-
-        public Builder policyEngine(PolicyEngine policyEngine) {
-            manager.policyEngine = policyEngine;
-            return this;
-        }
-
-        public Builder transferProcessService(TransferProcessService transferProcessService) {
-            manager.transferProcessService = transferProcessService;
-            return this;
-        }
-
-        @Override
-        public Builder self() {
-            return this;
-        }
+    private @NotNull Criterion notYetProcessed() {
+        return criterion("updatedAt", "<", clock.millis() - configuration.period().toMillis());
     }
-
 }

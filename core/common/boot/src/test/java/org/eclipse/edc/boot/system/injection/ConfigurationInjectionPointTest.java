@@ -21,6 +21,7 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,7 +56,7 @@ class ConfigurationInjectionPointTest {
 
         @Test
         void setTargetValue() {
-            var result = injectionPoint.setTargetValue(new ConfigurationObject("foo", 42L, null, 3.14159));
+            var result = injectionPoint.setTargetValue(new ConfigurationObject("foo", 42L, null, 3.14159, Duration.ofSeconds(3)));
 
             assertThat(result.succeeded()).isTrue();
         }
@@ -76,11 +77,17 @@ class ConfigurationInjectionPointTest {
         void resolve_objectIsRecord() {
             var context = mock(ServiceExtensionContext.class);
             when(context.getMonitor()).thenReturn(mock());
-            when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("foo.bar.baz", "asdf",
-                    "test.key3", "42")));
+            when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
+                    "foo.bar.baz", "asdf",
+                    "test.key3", "42",
+                    "test.duration", "PT10S"
+            )));
 
             var res = injectionPoint.resolve(context, mock());
-            assertThat(res).isInstanceOf(ConfigurationObject.class);
+
+            assertThat(res).isInstanceOfSatisfying(ConfigurationObject.class, configurationObject -> {
+                assertThat(configurationObject.duration()).isEqualTo(Duration.ofSeconds(10));
+            });
         }
 
         @Test

@@ -189,9 +189,9 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
                 .filter(f -> f.getAnnotation(Setting.class) != null)
                 .map(f -> {
                     if (settingContext == null) {
-                        return new SettingInjectionPoint<>(null, f, f.getAnnotation(Setting.class), targetInstance.getClass());
+                        return new SettingInjectionPoint<>(null, f, f.getAnnotation(Setting.class));
                     } else {
-                        return new SettingInjectionPoint<>(null, f, f.getAnnotation(Setting.class), targetInstance.getClass(), settingContext);
+                        return new SettingInjectionPoint<>(null, f, f.getAnnotation(Setting.class), settingContext);
                     }
                 });
     }

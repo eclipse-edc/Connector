@@ -46,7 +46,7 @@ public class InjectionPointScanner {
                 .filter(f -> f.getAnnotation(Setting.class) != null && !Setting.NULL.equals(f.getAnnotation(Setting.class).key()))
                 .map(f -> {
                     var annotation = f.getAnnotation(Setting.class);
-                    return new SettingInjectionPoint<>(instance, f, annotation, targetClass);
+                    return new SettingInjectionPoint<>(instance, f, annotation);
                 });
 
         // scan configuration injection points

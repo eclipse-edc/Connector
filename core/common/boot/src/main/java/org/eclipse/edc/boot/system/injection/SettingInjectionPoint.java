@@ -22,6 +22,8 @@ import org.eclipse.edc.spi.system.ValueProvider;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
+import java.time.Duration;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +49,6 @@ public class SettingInjectionPoint<T> implements InjectionPoint<T> {
     private final T objectInstance;
     private final Field targetField;
     private final Setting annotationValue;
-    private final Class<?> declaringClass;
     private final String key;
 
     /**
@@ -56,16 +57,14 @@ public class SettingInjectionPoint<T> implements InjectionPoint<T> {
      * @param objectInstance  The object instance that contains the annotated field. May be null in case the declaring class is not a {@link org.eclipse.edc.spi.system.SystemExtension}
      * @param targetField     The annotated {@link Field}
      * @param annotationValue The concrete annotation instance (needed to obtain its attributes)
-     * @param declaringClass  The class where the annotated field is declared. Usually, this is {@code objectInstance.getClass()}.
      */
-    public SettingInjectionPoint(T objectInstance, Field targetField, Setting annotationValue, Class<?> declaringClass) {
-        this(objectInstance, targetField, annotationValue, declaringClass, null);
+    public SettingInjectionPoint(T objectInstance, Field targetField, Setting annotationValue) {
+        this(objectInstance, targetField, annotationValue, null);
     }
 
-    public SettingInjectionPoint(T objectInstance, Field targetField, Setting annotationValue, Class<?> declaringClass, SettingContext settingContext) {
+    public SettingInjectionPoint(T objectInstance, Field targetField, Setting annotationValue, SettingContext settingContext) {
         this.objectInstance = objectInstance;
         this.targetField = targetField;
-        this.declaringClass = declaringClass;
         this.targetField.setAccessible(true);
         this.annotationValue = annotationValue;
         this.key = settingContext == null ? annotationValue.key() : settingContext.value() + "." + annotationValue.key();
@@ -201,9 +200,13 @@ public class SettingInjectionPoint<T> implements InjectionPoint<T> {
             if (valueType == Double.class || valueType == double.class) {
                 return Double.parseDouble(string);
             }
-        } catch (NumberFormatException e) {
+            if (valueType == Duration.class) {
+                return Duration.parse(string);
+            }
+        } catch (NumberFormatException | DateTimeParseException e) {
             throw new EdcInjectionException("Config field '%s' is of type '%s', but the value resolved from key '%s' is \"%s\" which cannot be interpreted as %s.".formatted(targetField.getName(), valueType, key, string, valueType));
         }
+
         if (valueType == Boolean.class || valueType == boolean.class) {
             return Boolean.parseBoolean(string);
         }

@@ -21,11 +21,4 @@ import org.eclipse.edc.spi.entity.StateEntityManager;
  */
 public interface PolicyMonitorManager extends StateEntityManager {
 
-    /**
-     * Start to monitor a transfer process to ensure that
-     *
-     * @param transferProcessId the transfer process id
-     * @param contractId the contract id
-     */
-    void startMonitoring(String transferProcessId, String contractId);
 }
