@@ -132,6 +132,8 @@ include(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025:dsp-negotiation-http-
 include(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025:dsp-negotiation-transform-2025")
 
 // dsp version 2025/1 virtual variant
+include(":data-protocols:dsp:dsp-virtual:dsp-2025-virtual")
+include(":data-protocols:dsp:dsp-virtual:dsp-2025-virtual:dsp-catalog-http-api-2025-virtual")
 
 
 // modules for technology- or cloud-provider extensions --------------------------------------------
