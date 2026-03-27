@@ -59,7 +59,7 @@ public class DspRequestHandlerImpl implements DspRequestHandler {
         monitor.debug(() -> "DSP: Incoming resource request for %s id %s".formatted(request.getResultClass(), request.getId()));
 
         var token = request.getToken();
-        if (token == null && request.isAuthRequired()) {
+        if (token == null) {
             return unauthorized(request);
         }
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).build();

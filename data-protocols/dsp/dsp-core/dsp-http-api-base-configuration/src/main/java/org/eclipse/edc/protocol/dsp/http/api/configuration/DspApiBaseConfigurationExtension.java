@@ -32,6 +32,7 @@ import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
+import org.jetbrains.annotations.NotNull;
 
 import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
@@ -39,18 +40,18 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(DspApiBaseConfigurationExtension.NAME)
 public class DspApiBaseConfigurationExtension implements ServiceExtension {
-    
+
     public static final String NAME = "Dataspace Protocol API Base Configuration Extension";
-    
+
     static final String DEFAULT_PROTOCOL_PATH = "/api/protocol";
     static final int DEFAULT_PROTOCOL_PORT = 8282;
-    
+
     @Setting(description = "Configures endpoint for reaching the Protocol API in the form \"<hostname:protocol.port/protocol.path>\"", key = "edc.dsp.callback.address", required = false)
     private String callbackAddress;
-    
+
     @Configuration
     private DspApiConfiguration apiConfiguration;
-    
+
     @Inject
     private Hostname hostname;
     @Inject
@@ -59,41 +60,49 @@ public class DspApiBaseConfigurationExtension implements ServiceExtension {
     private WebService webService;
     @Inject
     private TypeManager typeManager;
-    
+
     @Override
     public String name() {
         return NAME;
     }
-    
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var portMapping = new PortMapping(ApiContext.PROTOCOL, apiConfiguration.port(), apiConfiguration.path());
         portMappingRegistry.register(portMapping);
-        
+
         webService.registerResource(ApiContext.PROTOCOL, new ObjectMapperProvider(typeManager, JSON_LD));
     }
-    
+
     @Override
     public void prepare() {
         var mapper = typeManager.getMapper(JSON_LD);
         mapper.registerSubtypes(AtomicConstraint.class, LiteralExpression.class);
     }
-    
+
     @Provider
     public DspBaseWebhookAddress dspBaseWebhookAddress() {
         var dspWebhookAddress = ofNullable(callbackAddress)
-                .orElseGet(() -> format("http://%s:%s%s", hostname.get(), apiConfiguration.port(), apiConfiguration.path()));
-        
+                .orElseGet(this::defaultWebhookAddress);
+
         return () -> dspWebhookAddress;
     }
-    
+
+    private @NotNull String defaultWebhookAddress() {
+        var basePath = format("http://%s:%s%s", hostname.get(), apiConfiguration.port(), apiConfiguration.path());
+        return apiConfiguration.virtual() ? basePath + "/%s" : basePath;
+    }
+
     @Settings
     record DspApiConfiguration(
             @Setting(key = "web.http." + ApiContext.PROTOCOL + ".port", description = "Port for " + ApiContext.PROTOCOL + " api context", defaultValue = DEFAULT_PROTOCOL_PORT + "")
             int port,
             @Setting(key = "web.http." + ApiContext.PROTOCOL + ".path", description = "Path for " + ApiContext.PROTOCOL + " api context", defaultValue = DEFAULT_PROTOCOL_PATH)
-            String path
+            String path,
+            @Setting(key = "web.http." + ApiContext.PROTOCOL + ".virtual", description = "Fill the participant context param in the protocol path in case the callback address is not configured", defaultValue = "false")
+            boolean virtual
+
     ) {
-    
+
     }
 }

@@ -18,4 +18,5 @@ plugins {
 
 dependencies {
     api(project(":data-protocols:dsp:dsp-virtual:dsp-metadata-http-api-virtual"))
+    api(project(":data-protocols:dsp:dsp-virtual:dsp-2025-virtual"))
 }
