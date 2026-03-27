@@ -26,5 +26,7 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-2025:dsp-catalog-2025:dsp-catalog-transform-2025"))
     api(project(":data-protocols:dsp:dsp-virtual:dsp-2025-virtual:dsp-negotiation-http-api-2025-virtual"))
     api(project(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025:dsp-negotiation-transform-2025"))
+    api(project(":data-protocols:dsp:dsp-virtual:dsp-2025-virtual:dsp-transfer-process-http-api-2025-virtual"))
+    api(project(":data-protocols:dsp:dsp-2025:dsp-transfer-process-2025:dsp-transfer-process-transform-2025"))
     api(project(":data-protocols:dsp:dsp-virtual:dsp-metadata-http-api-virtual"))
 }
