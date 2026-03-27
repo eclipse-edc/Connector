@@ -23,7 +23,6 @@ public class GetDspRequest<I extends RemoteMessage, R, E extends ErrorMessage> e
 
     private I message;
     private String id;
-    private boolean authRequired = true;
 
     private GetDspRequest(Class<I> messageClass, Class<R> resultClass, Class<E> errorClass) {
         super(messageClass, resultClass, errorClass);
@@ -35,10 +34,6 @@ public class GetDspRequest<I extends RemoteMessage, R, E extends ErrorMessage> e
 
     public String getId() {
         return id;
-    }
-
-    public boolean isAuthRequired() {
-        return authRequired;
     }
 
     public static class Builder<I extends RemoteMessage, R, E extends ErrorMessage> extends DspRequest.Builder<I, R, GetDspRequest<I, R, E>, E, Builder<I, R, E>> {
@@ -58,11 +53,6 @@ public class GetDspRequest<I extends RemoteMessage, R, E extends ErrorMessage> e
 
         public Builder<I, R, E> id(String id) {
             super.message.id = id;
-            return this;
-        }
-        
-        public Builder<I, R, E> authRequired(boolean authRequired) {
-            super.message.authRequired = authRequired;
             return this;
         }
 
