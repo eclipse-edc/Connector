@@ -36,11 +36,7 @@ public interface Runtimes {
         };
 
         String[] VIRTUAL_MODULES = new String[]{
-                ":system-tests:management-api:management-api-test-virtual-runtime",
-                ":extensions:control-plane:api:management-api-v5",
-                ":extensions:common:api:management-api-authorization",
-                ":extensions:common:api:management-api-oauth2-authentication",
-                ":core:common:cel-core",
+                ":system-tests:management-api:management-api-test-virtual-runtime"
         };
 
         String[] SQL_MODULES = new String[]{

@@ -22,6 +22,7 @@ dependencies {
     api(project(":extensions:control-plane:api:management-api-v5:asset-api-v5"))
     api(project(":extensions:control-plane:api:management-api-v5:contract-definition-api-v5"))
     api(project(":extensions:control-plane:api:management-api-v5:policy-definition-api-v5"))
+    api(project(":extensions:control-plane:api:management-api-v5:catalog-api-v5"))
     api(project(":extensions:control-plane:api:management-api-v5:contract-negotiation-api-v5"))
     api(project(":extensions:control-plane:api:management-api-v5:contract-agreement-api-v5"))
     api(project(":extensions:control-plane:api:management-api-v5:transfer-process-api-v5"))
