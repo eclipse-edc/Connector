@@ -45,15 +45,7 @@ dependencies {
     testImplementation(project(":extensions:common:transaction:transaction-local"))
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.postgres)
-
-    testImplementation(project(":extensions:control-plane:api:management-api:contract-definition-api"))
-    testImplementation(project(":extensions:control-plane:api:management-api:contract-negotiation-api"))
-    testImplementation(project(":extensions:control-plane:api:management-api:policy-definition-api"))
-    testImplementation(project(":extensions:control-plane:api:management-api:transfer-process-api"))
-    testImplementation(project(":extensions:control-plane:api:management-api:secrets-api"))
-    testImplementation(project(":extensions:control-plane:transfer:transfer-data-plane-signaling"))
-    testImplementation(project(":extensions:control-plane:api:management-api:edr-cache-api"))
-    testImplementation(project(":extensions:data-plane-selector:data-plane-selector-api"))
+    
     testImplementation(testFixtures(project(":extensions:common:auth:auth-authentication-oauth2-lib")))
 }
 
