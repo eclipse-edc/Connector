@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.version.http.api.transformer;
+package org.eclipse.edc.protocol.dsp.version.transformer;
 
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2026 Metaform Systems, Inc.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,17 +8,18 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Metaform Systems, Inc. - initial API and implementation
  *
  */
 
-package org.eclipse.edc.protocol.dsp.version.http.api;
+package org.eclipse.edc.protocol.dsp.metadata.http.api;
 
 import jakarta.json.Json;
-import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionProtocolService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.protocol.dsp.version.transformer.JsonObjectFromProtocolVersionsTransformer;
 import org.eclipse.edc.protocol.dsp.version.transformer.JsonObjectFromVersionsError;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -30,15 +31,15 @@ import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import java.util.Map;
 
-import static org.eclipse.edc.protocol.dsp.version.http.api.DspVersionApiExtension.NAME;
+import static org.eclipse.edc.protocol.dsp.metadata.http.api.DspMetadataApiExtension.NAME;
 
 /**
  * Provide API for the protocol versions.
  */
 @Extension(NAME)
-public class DspVersionApiExtension implements ServiceExtension {
+public class DspMetadataApiExtension implements ServiceExtension {
 
-    public static final String NAME = "Dataspace Protocol Version Api";
+    public static final String NAME = "Dataspace Protocol Metadata Api";
 
     @Inject
     private WebService webService;
@@ -47,12 +48,15 @@ public class DspVersionApiExtension implements ServiceExtension {
     private TypeTransformerRegistry transformerRegistry;
 
     @Inject
-    private VersionProtocolService service;
+    private DataspaceProfileContextRegistry profileContextRegistry;
 
     @Inject
     private JsonLd jsonLd;
     @Inject
     private TypeManager typeManager;
+
+    @Inject
+    private ParticipantContextService participantContextService;
 
 
     @Override
@@ -68,7 +72,7 @@ public class DspVersionApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectFromProtocolVersionsTransformer(jsonFactory));
         transformerRegistry.register(new JsonObjectFromVersionsError(jsonFactory));
 
-        webService.registerResource(ApiContext.PROTOCOL, new DspVersionApiController(service, transformerRegistry));
+        webService.registerResource(ApiContext.PROTOCOL, new DspMetadataApiController(participantContextService, profileContextRegistry, transformerRegistry));
     }
 
 }
