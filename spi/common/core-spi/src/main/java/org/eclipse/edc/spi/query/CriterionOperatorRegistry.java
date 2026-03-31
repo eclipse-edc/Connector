@@ -38,8 +38,21 @@ public interface CriterionOperatorRegistry {
      *
      * @param operator  the operator, case-insensitive.
      * @param predicate the operator predicate.
+     * @deprecated please use {@link #registerOperator(String, Class, OperatorPredicate)}
      */
-    void registerOperatorPredicate(String operator, OperatorPredicate predicate);
+    @Deprecated(since = "0.17.0")
+    default void registerOperatorPredicate(String operator, OperatorPredicate predicate) {
+        registerOperator(operator, Object.class, predicate);
+    }
+
+    /**
+     * Register an operator.
+     *
+     * @param operator the operator, case-insensitive
+     * @param rightOperandType the right operand type.
+     * @param predicate the operator predicate.
+     */
+    void registerOperator(String operator, Class<?> rightOperandType, OperatorPredicate predicate);
 
     /**
      * Register a {@link PropertyLookup} instance, that will be called as first one to extract property from an object.
@@ -52,7 +65,9 @@ public interface CriterionOperatorRegistry {
      * Unregister an operator.
      *
      * @param operator the operator, case-insensitive.
+     * @deprecated not necessary.
      */
+    @Deprecated(since = "0.17.0")
     void unregister(String operator);
 
     /**
@@ -68,6 +83,16 @@ public interface CriterionOperatorRegistry {
      *
      * @param operator the operator, case-insensitive.
      * @return true if the operator is supported, false otherwise.
+     * @deprecated use {@link #get(String)}
      */
+    @Deprecated(since = "0.17.0")
     boolean isSupported(String operator);
+
+    /**
+     * Returns the operator.
+     *
+     * @param representation the string representation, case-insensitive.
+     * @return the criterion operator, null if it does not exist.
+     */
+    CriterionOperator get(String representation);
 }

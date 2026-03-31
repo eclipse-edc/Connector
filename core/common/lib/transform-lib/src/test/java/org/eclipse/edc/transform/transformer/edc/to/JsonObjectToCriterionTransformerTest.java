@@ -18,6 +18,8 @@ import jakarta.json.Json;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.query.CriterionOperator;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,9 +40,10 @@ import static org.mockito.Mockito.when;
 
 
 class JsonObjectToCriterionTransformerTest {
-    private final TypeManager typeManager = mock();
 
-    private final JsonObjectToCriterionTransformer transformer = new JsonObjectToCriterionTransformer();
+    private final TypeManager typeManager = mock();
+    private final CriterionOperatorRegistry criterionOperatorRegistry = mock();
+    private final JsonObjectToCriterionTransformer transformer = new JsonObjectToCriterionTransformer(criterionOperatorRegistry);
     private final JsonValueToGenericTypeTransformer genericTypeTransformer = new JsonValueToGenericTypeTransformer(typeManager, "test");
     
     @BeforeEach
@@ -50,6 +53,7 @@ class JsonObjectToCriterionTransformerTest {
 
     @Test
     void transform() {
+        when(criterionOperatorRegistry.get(any())).thenReturn(new CriterionOperator("=", Object.class, (a, b) -> true));
         var context = mock(TransformerContext.class);
         when(context.transform(any(JsonValue.class), eq(Object.class))).thenAnswer(a -> genericTypeTransformer.transform(a.getArgument(0), context));
         var json = Json.createObjectBuilder()
@@ -68,7 +72,8 @@ class JsonObjectToCriterionTransformerTest {
     }
 
     @Test
-    void transform_shouldConsiderRightAsList_whenOperatorIsIn() {
+    void transform_shouldConsiderRightAsList_whenOperatorRightOperandIsIterable() {
+        when(criterionOperatorRegistry.get(any())).thenReturn(new CriterionOperator("in", Iterable.class, (a, b) -> true));
         var context = mock(TransformerContext.class);
         when(context.transform(any(JsonValue.class), eq(Object.class))).thenAnswer(a -> genericTypeTransformer.transform(a.getArgument(0), context));
         var json = Json.createObjectBuilder()
@@ -88,6 +93,7 @@ class JsonObjectToCriterionTransformerTest {
 
     @Test
     void transform_rightOperandIsNumber() {
+        when(criterionOperatorRegistry.get(any())).thenReturn(new CriterionOperator("=", Object.class, (a, b) -> true));
         var context = mock(TransformerContext.class);
         when(context.transform(any(JsonValue.class), eq(Object.class))).thenAnswer(a -> genericTypeTransformer.transform(a.getArgument(0), context));
         when(context.problem()).thenReturn(mock());

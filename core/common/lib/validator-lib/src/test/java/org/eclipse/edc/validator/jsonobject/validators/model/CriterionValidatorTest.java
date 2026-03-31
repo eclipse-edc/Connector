@@ -17,6 +17,7 @@ package org.eclipse.edc.validator.jsonobject.validators.model;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.spi.query.CriterionOperator;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationFailure;
 import org.eclipse.edc.validator.spi.Validator;
@@ -43,7 +44,7 @@ class CriterionValidatorTest {
 
     @Test
     void shouldSucceed_whenObjectIsValid() {
-        when(criterionOperatorRegistry.isSupported(any())).thenReturn(true);
+        when(criterionOperatorRegistry.get(any())).thenReturn(new CriterionOperator("=", Object.class, (a, b) -> true));
         var input = Json.createObjectBuilder()
                 .add(CRITERION_OPERAND_LEFT, value("operand left"))
                 .add(CRITERION_OPERATOR, value("="))
@@ -57,7 +58,7 @@ class CriterionValidatorTest {
 
     @Test
     void shouldFail_whenOperatorIsNotSupported() {
-        when(criterionOperatorRegistry.isSupported(any())).thenReturn(false);
+        when(criterionOperatorRegistry.get(any())).thenReturn(null);
         var input = Json.createObjectBuilder()
                 .add(CRITERION_OPERAND_LEFT, value("operand left"))
                 .add(CRITERION_OPERATOR, value("not-supported"))
@@ -87,7 +88,7 @@ class CriterionValidatorTest {
 
     @Test
     void shouldFail_whenOperandRightIsEmpty() {
-        when(criterionOperatorRegistry.isSupported(any())).thenReturn(true);
+        when(criterionOperatorRegistry.get(any())).thenReturn(new CriterionOperator("=", Object.class, (a, b) -> true));
         var input = Json.createObjectBuilder()
                 .add(CRITERION_OPERAND_LEFT, value("operand left"))
                 .add(CRITERION_OPERATOR, value("="))
@@ -105,8 +106,8 @@ class CriterionValidatorTest {
     }
 
     @Test
-    void shouldFail_whenOperandRightHasMultipleValuesAndOperatorIsNotIn() {
-        when(criterionOperatorRegistry.isSupported(any())).thenReturn(true);
+    void shouldFail_whenOperandRightHasMultipleValuesAndOperatorDoesNotExpectIterable() {
+        when(criterionOperatorRegistry.get(any())).thenReturn(new CriterionOperator("=", Object.class, (a, b) -> true));
         var input = Json.createObjectBuilder()
                 .add(CRITERION_OPERAND_LEFT, value("operand left"))
                 .add(CRITERION_OPERATOR, value("="))
@@ -121,6 +122,23 @@ class CriterionValidatorTest {
         assertThat(result).isFailed().extracting(ValidationFailure::getViolations).asInstanceOf(list(Violation.class))
                 .hasSize(1)
                 .anySatisfy(violation -> assertThat(violation.path()).isEqualTo(CRITERION_OPERAND_RIGHT));
+    }
+
+    @Test
+    void shouldPass_whenOperandRightHasMultipleValuesAndOperatorExpectsIterable() {
+        when(criterionOperatorRegistry.get(any())).thenReturn(new CriterionOperator("in", Iterable.class, (a, b) -> true));
+        var input = Json.createObjectBuilder()
+                .add(CRITERION_OPERAND_LEFT, value("operand left"))
+                .add(CRITERION_OPERATOR, value("in"))
+                .add(CRITERION_OPERAND_RIGHT, createArrayBuilder()
+                        .add(createObjectBuilder().add(VALUE, "value1"))
+                        .add(createObjectBuilder().add(VALUE, "value2"))
+                )
+                .build();
+
+        var result = validator.validate(input);
+
+        assertThat(result).isSucceeded();
     }
 
     private JsonArrayBuilder value(String value) {

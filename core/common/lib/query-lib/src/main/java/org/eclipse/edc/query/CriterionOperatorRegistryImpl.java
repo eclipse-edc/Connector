@@ -15,6 +15,7 @@
 package org.eclipse.edc.query;
 
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.CriterionOperator;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.OperatorPredicate;
 import org.eclipse.edc.spi.query.PropertyLookup;
@@ -34,29 +35,29 @@ import static org.eclipse.edc.query.NotOperatorPredicate.not;
  */
 public class CriterionOperatorRegistryImpl implements CriterionOperatorRegistry {
 
-    private final Map<String, OperatorPredicate> operatorPredicates = new HashMap<>();
+    private final Map<String, CriterionOperator> operators = new HashMap<>();
     private final List<PropertyLookup> propertyLookups = new ArrayList<>();
 
     public static CriterionOperatorRegistry ofDefaults() {
         var registry = new CriterionOperatorRegistryImpl();
         registry.registerPropertyLookup(new ReflectionPropertyLookup());
-        registry.registerOperatorPredicate(EQUAL, new EqualOperatorPredicate());
-        registry.registerOperatorPredicate(NOT_EQUAL, not(new EqualOperatorPredicate()));
-        registry.registerOperatorPredicate(IN, InOperatorPredicate.in());
-        registry.registerOperatorPredicate(NOT_IN, InOperatorPredicate.notIn());
-        registry.registerOperatorPredicate(LIKE, new LikeOperatorPredicate());
-        registry.registerOperatorPredicate(ILIKE, new IlikeOperatorPredicate());
-        registry.registerOperatorPredicate(CONTAINS, new ContainsOperatorPredicate());
-        registry.registerOperatorPredicate(LESS_THAN, NumberStringOperatorPredicate.lessThan());
-        registry.registerOperatorPredicate(LESS_THAN_EQUAL, NumberStringOperatorPredicate.lessThanEqual());
-        registry.registerOperatorPredicate(GREATER_THAN, NumberStringOperatorPredicate.greaterThan());
-        registry.registerOperatorPredicate(GREATER_THAN_EQUAL, NumberStringOperatorPredicate.greaterThanEqual());
+        registry.registerOperator(EQUAL, Object.class, new EqualOperatorPredicate());
+        registry.registerOperator(NOT_EQUAL, Object.class, not(new EqualOperatorPredicate()));
+        registry.registerOperator(IN, Iterable.class, InOperatorPredicate.in());
+        registry.registerOperator(NOT_IN, Iterable.class, InOperatorPredicate.notIn());
+        registry.registerOperator(LIKE, Object.class, new LikeOperatorPredicate());
+        registry.registerOperator(ILIKE, Object.class, new IlikeOperatorPredicate());
+        registry.registerOperator(CONTAINS, Object.class, new ContainsOperatorPredicate());
+        registry.registerOperator(LESS_THAN, Object.class, NumberStringOperatorPredicate.lessThan());
+        registry.registerOperator(LESS_THAN_EQUAL, Object.class, NumberStringOperatorPredicate.lessThanEqual());
+        registry.registerOperator(GREATER_THAN, Object.class, NumberStringOperatorPredicate.greaterThan());
+        registry.registerOperator(GREATER_THAN_EQUAL, Object.class, NumberStringOperatorPredicate.greaterThanEqual());
         return registry;
     }
 
     @Override
-    public void registerOperatorPredicate(String operator, OperatorPredicate converter) {
-        operatorPredicates.put(operator.toLowerCase(), converter);
+    public void registerOperator(String operator, Class<?> rightOperandType, OperatorPredicate predicate) {
+        operators.put(operator.toLowerCase(), new CriterionOperator(operator.toLowerCase(), rightOperandType, predicate));
     }
 
     @Override
@@ -66,13 +67,13 @@ public class CriterionOperatorRegistryImpl implements CriterionOperatorRegistry 
 
     @Override
     public void unregister(String operator) {
-        operatorPredicates.remove(operator.toLowerCase());
+        operators.remove(operator.toLowerCase());
     }
 
     @Override
     public <T> Predicate<T> toPredicate(Criterion criterion) {
-        var predicate = operatorPredicates.get(criterion.getOperator().toLowerCase());
-        if (predicate == null) {
+        var operator = operators.get(criterion.getOperator().toLowerCase());
+        if (operator == null) {
             throw new IllegalArgumentException(format("Operator [%s] is not supported.", criterion.getOperator()));
         }
 
@@ -90,14 +91,19 @@ public class CriterionOperatorRegistryImpl implements CriterionOperatorRegistry 
                 return false;
             }
 
-            return predicate.test(property, criterion.getOperandRight());
+            return operator.predicate().test(property, criterion.getOperandRight());
         };
 
     }
 
     @Override
     public boolean isSupported(String operator) {
-        return operatorPredicates.containsKey(operator.toLowerCase());
+        return operators.containsKey(operator.toLowerCase());
+    }
+
+    @Override
+    public CriterionOperator get(String representation) {
+        return operators.get(representation.toLowerCase());
     }
 
 }
