@@ -73,6 +73,15 @@ public interface ContractNegotiationListener {
     }
 
     /**
+     * Called after a {@link ContractNegotiation} termination was requested.
+     *
+     * @param negotiation the contract negotiation that has been requested to terminate.
+     */
+    default void terminating(ContractNegotiation negotiation) {
+
+    }
+
+    /**
      * Called after a {@link ContractNegotiation} was agreed by the provider.
      *
      * @param negotiation the contract negotiation that has been confirmed.

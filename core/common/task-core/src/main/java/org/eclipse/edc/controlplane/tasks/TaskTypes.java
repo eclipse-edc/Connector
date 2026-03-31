@@ -14,10 +14,8 @@
 
 package org.eclipse.edc.controlplane.tasks;
 
-import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.AcceptNegotiation;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.AgreeNegotiation;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.FinalizeNegotiation;
-import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.OfferNegotiation;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.RequestNegotiation;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendAccept;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendAgreement;
@@ -47,10 +45,8 @@ public class TaskTypes {
     public static final List<Class<?>> TYPES = List.of(
             RequestNegotiation.class,
             SendRequestNegotiation.class,
-            AcceptNegotiation.class,
             SendAccept.class,
             AgreeNegotiation.class,
-            OfferNegotiation.class,
             SendAgreement.class,
             SendOffer.class,
             SendTerminateNegotiation.class,

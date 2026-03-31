@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transfer.command.handlers;
 
 
+import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
@@ -28,8 +29,11 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
  */
 public class ResumeTransferCommandHandler extends EntityCommandHandler<ResumeTransferCommand, TransferProcess> {
 
-    public ResumeTransferCommandHandler(TransferProcessStore store) {
+    private final TransferProcessObservable observable;
+
+    public ResumeTransferCommandHandler(TransferProcessStore store, TransferProcessObservable observable) {
         super(store);
+        this.observable = observable;
     }
 
     @Override
@@ -47,4 +51,8 @@ public class ResumeTransferCommandHandler extends EntityCommandHandler<ResumeTra
         return false;
     }
 
+    @Override
+    public void postActions(TransferProcess entity, ResumeTransferCommand command) {
+        observable.invokeForEach(l -> l.resuming(entity));
+    }
 }
