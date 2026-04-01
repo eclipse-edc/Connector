@@ -111,6 +111,15 @@ public interface TransferProcessListener {
     }
 
     /**
+     * Called after a {@link TransferProcess} completing was requested.
+     *
+     * @param process the transfer process that has been requested to complete.
+     */
+    default void completing(TransferProcess process) {
+
+    }
+
+    /**
      * Called after a {@link TransferProcess} was completed.
      *
      * @param process the transfer process that has been completed.
@@ -125,6 +134,15 @@ public interface TransferProcessListener {
      * @param process the transfer process that has been requested to terminate.
      */
     default void terminatingRequested(TransferProcess process) {
+
+    }
+
+    /**
+     * Called after a {@link TransferProcess} termination was requested.
+     *
+     * @param process the transfer process that has been requested to terminate.
+     */
+    default void terminating(TransferProcess process) {
 
     }
 
@@ -152,6 +170,24 @@ public interface TransferProcessListener {
      * @param process the transfer process that has been requested to suspend.
      */
     default void suspendingRequested(TransferProcess process) {
+
+    }
+
+    /**
+     * Called after a {@link TransferProcess} suspend was requested.
+     *
+     * @param process the transfer process that has been requested to suspend.
+     */
+    default void suspending(TransferProcess process) {
+
+    }
+
+    /**
+     * Called after a {@link TransferProcess} resume was requested.
+     *
+     * @param process the transfer process that has been requested to resume.
+     */
+    default void resuming(TransferProcess process) {
 
     }
 

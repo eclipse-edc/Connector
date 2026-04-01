@@ -57,10 +57,10 @@ public class TransferProcessCommandExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         registry.register(new InitiateTransferCommandHandler(policyArchive, store, dataAddressStore, observable, clock,
                 telemetry, context.getMonitor()));
-        registry.register(new TerminateTransferCommandHandler(store));
-        registry.register(new SuspendTransferCommandHandler(store));
-        registry.register(new ResumeTransferCommandHandler(store));
-        registry.register(new CompleteTransferCommandHandler(store));
+        registry.register(new TerminateTransferCommandHandler(store, observable));
+        registry.register(new SuspendTransferCommandHandler(store, observable));
+        registry.register(new ResumeTransferCommandHandler(store, observable));
+        registry.register(new CompleteTransferCommandHandler(store, observable));
         registry.register(new NotifyPreparedCommandHandler(store, observable, dataAddressStore));
         registry.register(new NotifyStartedCommandHandler(store, observable, dataAddressStore));
     }

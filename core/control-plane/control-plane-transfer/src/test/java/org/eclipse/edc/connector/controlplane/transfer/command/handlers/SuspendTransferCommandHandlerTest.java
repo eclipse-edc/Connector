@@ -14,6 +14,9 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.command.handlers;
 
+import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
+import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
+import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.SuspendTransferCommand;
@@ -24,11 +27,13 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class SuspendTransferCommandHandlerTest {
 
+    private final TransferProcessObservable observable = new TransferProcessObservableImpl();
     private final TransferProcessStore store = mock();
-    private final SuspendTransferCommandHandler handler = new SuspendTransferCommandHandler(store);
+    private final SuspendTransferCommandHandler handler = new SuspendTransferCommandHandler(store, observable);
 
     @Test
     void verifyCorrectType() {
@@ -57,5 +62,17 @@ class SuspendTransferCommandHandlerTest {
         assertThat(result).isFalse();
         assertThat(entity.getState()).isEqualTo(COMPLETED.code());
         assertThat(entity.getErrorDetail()).isNull();
+    }
+
+    @Test
+    void postAction_shouldCallSuspending() {
+        var command = new SuspendTransferCommand("test-id", "a reason");
+        var entity = TransferProcess.Builder.newInstance().state(STARTED.code()).build();
+        var listener = mock(TransferProcessListener.class);
+        observable.registerListener(listener);
+
+        handler.postActions(entity, command);
+
+        verify(listener).suspending(entity);
     }
 }

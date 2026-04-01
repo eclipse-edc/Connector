@@ -14,6 +14,9 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.command.handlers;
 
+import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
+import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
+import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.CompleteTransferCommand;
@@ -24,10 +27,12 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class CompleteTransferCommandHandlerTest {
 
-    private final CompleteTransferCommandHandler handler = new CompleteTransferCommandHandler(mock(TransferProcessStore.class));
+    private final TransferProcessObservable observable = new TransferProcessObservableImpl();
+    private final CompleteTransferCommandHandler handler = new CompleteTransferCommandHandler(mock(TransferProcessStore.class), observable);
 
     @Test
     void shouldModify_whenItIsCompletable() {
@@ -50,6 +55,18 @@ class CompleteTransferCommandHandlerTest {
 
         assertThat(result).isFalse();
         assertThat(entity.getState()).isEqualTo(TERMINATED.code());
+    }
+
+    @Test
+    void postAction_shouldCallCompleting() {
+        var command = new CompleteTransferCommand("test-id");
+        var entity = TransferProcess.Builder.newInstance().state(STARTED.code()).build();
+        var listener = mock(TransferProcessListener.class);
+        observable.registerListener(listener);
+
+        handler.postActions(entity, command);
+
+        verify(listener).completing(entity);
     }
 
     @Test

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.command.handlers;
 
+import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
@@ -25,8 +26,11 @@ import org.eclipse.edc.spi.command.EntityCommandHandler;
  */
 public class TerminateTransferCommandHandler extends EntityCommandHandler<TerminateTransferCommand, TransferProcess> {
 
-    public TerminateTransferCommandHandler(TransferProcessStore store) {
+    private final TransferProcessObservable observable;
+
+    public TerminateTransferCommandHandler(TransferProcessStore store, TransferProcessObservable observable) {
         super(store);
+        this.observable = observable;
     }
 
     @Override
@@ -44,4 +48,8 @@ public class TerminateTransferCommandHandler extends EntityCommandHandler<Termin
         return false;
     }
 
+    @Override
+    public void postActions(TransferProcess entity, TerminateTransferCommand command) {
+        observable.invokeForEach(l -> l.terminating(entity));
+    }
 }
