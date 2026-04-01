@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyEvaluationPlanRequest;
@@ -444,6 +445,15 @@ public class SerdeEndToEndTest {
         }
 
         @Test
+        void de_TerminateNegotiation_v4(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            var inputObject = terminateNegotiationObject(jsonLdContext());
+            var terminateNegotiation = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, TerminateNegotiation.class);
+
+            assertThat(terminateNegotiation).isNotNull();
+            assertThat(terminateNegotiation.reason()).isEqualTo(inputObject.getString("reason"));
+        }
+
+        @Test
         void de_TerminateTransfer(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var inputObject = terminateTransferObject(jsonLdContext());
             var terminateTransfer = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, TerminateTransfer.class);
@@ -658,6 +668,12 @@ public class SerdeEndToEndTest {
         @Disabled
         void de_CatalogRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             super.de_CatalogRequest(typeTransformerRegistry, validatorRegistry, jsonLd);
+        }
+
+        @Override
+        @Disabled
+        void de_TerminateNegotiation_v4(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            super.de_TerminateNegotiation_v4(typeTransformerRegistry, validatorRegistry, jsonLd);
         }
 
         @Override

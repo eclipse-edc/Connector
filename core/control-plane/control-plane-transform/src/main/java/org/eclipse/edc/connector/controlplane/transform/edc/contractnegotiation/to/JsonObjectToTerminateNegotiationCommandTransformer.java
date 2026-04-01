@@ -21,8 +21,11 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand.TERMINATE_NEGOTIATION_REASON;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_REASON;
 
+/// @deprecated This transformer is only used by the management API v3 and should be removed once v3 are removed.
+/// This expects an `@id` field which is not used in API v4 and v5
+@Deprecated(since = "0.17.0")
 public class JsonObjectToTerminateNegotiationCommandTransformer extends AbstractJsonLdTransformer<JsonObject, TerminateNegotiationCommand> {
 
     public JsonObjectToTerminateNegotiationCommandTransformer() {

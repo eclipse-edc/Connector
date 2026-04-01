@@ -24,17 +24,25 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.BaseContractNegotiationApiController;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.eclipse.edc.web.spi.exception.InvalidRequestException;
+import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import org.eclipse.edc.web.spi.validation.SchemaType;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand.TERMINATE_NEGOTIATION_TYPE_TERM;
+import static org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.ContractNegotiationApiExtension.V_4_PREFIX;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE_TERM;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_TYPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
+import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
@@ -84,6 +92,17 @@ public class ContractNegotiationApiV4Controller extends BaseContractNegotiationA
     @Override
     public void terminateNegotiationV4(@PathParam("id") String id, @SchemaType(TERMINATE_NEGOTIATION_TYPE_TERM) JsonObject terminateNegotiation) {
         terminateNegotiation(id, terminateNegotiation);
+    }
+
+    @Override
+    public void terminateNegotiation(String id, JsonObject terminateNegotiation) {
+        validatorRegistry.validate(V_4_PREFIX + TERMINATE_NEGOTIATION_TYPE, terminateNegotiation)
+                .orElseThrow(ValidationFailureException::new);
+
+        var terminate = transformerRegistry.transform(terminateNegotiation, TerminateNegotiation.class)
+                .orElseThrow(InvalidRequestException::new);
+
+        service.terminate(new TerminateNegotiationCommand(id, terminate.reason())).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
     }
 
     @DELETE

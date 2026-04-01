@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.
 import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToContractOfferTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToContractRequestTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToTerminateNegotiationCommandTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToTerminateNegotiationTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
@@ -92,6 +93,7 @@ public class ContractNegotiationApiV5Extension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectToContractRequestTransformer());
         managementApiTransformerRegistry.register(new JsonObjectToContractOfferTransformer());
         managementApiTransformerRegistry.register(new JsonObjectToTerminateNegotiationCommandTransformer());
+        managementApiTransformerRegistry.register(new JsonObjectToTerminateNegotiationTransformer());
         managementApiTransformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(factory));
         managementApiTransformerRegistry.register(new JsonObjectFromNegotiationStateTransformer(factory));
         managementApiTransformerRegistry.register(new JsonObjectFromContractAgreementTransformer(factory));
