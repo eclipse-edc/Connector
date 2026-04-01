@@ -60,7 +60,7 @@ class ApiCoreSchemaTest {
     @BeforeEach
     void setUp() {
         transformer.register(new JsonObjectToQuerySpecTransformer());
-        transformer.register(new JsonObjectToCriterionTransformer());
+        transformer.register(new JsonObjectToCriterionTransformer(criterionOperatorRegistry));
         transformer.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
         transformer.register(new JsonObjectToDataAddressTransformer());
         when(typeManager.getMapper("test")).thenReturn(objectMapper);

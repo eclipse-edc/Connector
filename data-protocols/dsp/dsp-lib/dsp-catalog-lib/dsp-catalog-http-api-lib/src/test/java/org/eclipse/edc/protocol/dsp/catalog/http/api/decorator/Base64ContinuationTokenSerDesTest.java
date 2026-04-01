@@ -19,6 +19,7 @@ import jakarta.json.Json;
 import org.apache.commons.codec.binary.Base64;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
@@ -60,7 +61,7 @@ class Base64ContinuationTokenSerDesTest {
         typeTransformerRegistry.register(new JsonObjectFromCriterionTransformer(builderFactory, typeManager, "test"));
         typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
         typeTransformerRegistry.register(new JsonObjectToQuerySpecTransformer());
-        typeTransformerRegistry.register(new JsonObjectToCriterionTransformer());
+        typeTransformerRegistry.register(new JsonObjectToCriterionTransformer(CriterionOperatorRegistryImpl.ofDefaults()));
         when(typeManager.getMapper("test")).thenReturn(objectMapper);
     }
 

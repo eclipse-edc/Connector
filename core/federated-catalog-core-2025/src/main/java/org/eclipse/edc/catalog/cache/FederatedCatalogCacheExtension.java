@@ -34,6 +34,7 @@ import org.eclipse.edc.protocol.dsp.catalog.transform.v2025.from.JsonObjectFromC
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -70,6 +71,8 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     private TypeTransformerRegistry transformerRegistry;
     @Inject
     private SingleParticipantContextSupplier participantContextSupplier;
+    @Inject
+    private CriterionOperatorRegistry criterionOperatorRegistry;
 
     @Override
     public String name() {
@@ -92,7 +95,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectToDataServiceTransformer());
         transformerRegistry.register(new JsonObjectToDistributionTransformer());
         transformerRegistry.register(new JsonObjectToQuerySpecTransformer());
-        transformerRegistry.register(new JsonObjectToCriterionTransformer());
+        transformerRegistry.register(new JsonObjectToCriterionTransformer(criterionOperatorRegistry));
 
         var jsonFactory = Json.createBuilderFactory(Map.of());
         transformerRegistry.register(new JsonObjectFromCatalogV2025Transformer(jsonFactory, typeManager, JSON_LD, participantIdMapper, DSP_NAMESPACE_V_2025_1));

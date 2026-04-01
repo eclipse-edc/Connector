@@ -31,6 +31,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -104,10 +105,10 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
     private ParticipantIdMapper participantIdMapper;
     @Inject
     private Hostname hostname;
-
+    @Inject
+    private CriterionOperatorRegistry criterionOperatorRegistry;
     @Inject
     private ApiVersionService apiVersionService;
-
 
     @Override
     public String name() {
@@ -148,7 +149,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         OdrlTransformersFactory.jsonObjectToOdrlTransformers(participantIdMapper).forEach(managementApiTransformerRegistry::register);
         managementApiTransformerRegistry.register(new JsonObjectToDataAddressTransformer());
         managementApiTransformerRegistry.register(new JsonObjectToQuerySpecTransformer());
-        managementApiTransformerRegistry.register(new JsonObjectToCriterionTransformer());
+        managementApiTransformerRegistry.register(new JsonObjectToCriterionTransformer(criterionOperatorRegistry));
         managementApiTransformerRegistry.register(new JsonObjectToAssetTransformer());
         managementApiTransformerRegistry.register(new JsonObjectToDataplaneMetadataTransformer());
         managementApiTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, JSON_LD));

@@ -24,6 +24,7 @@ dependencies {
     api(project(":spi:common:json-ld-spi"))
     api(project(":spi:common:participant-context-single-spi"))
 
+    testImplementation(project(":core:common:lib:query-lib"))
     testImplementation(project(":core:common:lib:transform-lib"))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
     testImplementation(libs.restAssured)

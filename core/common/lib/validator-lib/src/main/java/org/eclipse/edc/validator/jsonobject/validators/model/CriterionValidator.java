@@ -26,7 +26,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_LEFT;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_RIGHT;
@@ -43,26 +42,8 @@ public class CriterionValidator {
         return builder
                 .verify(CRITERION_OPERAND_LEFT, MandatoryValue::new)
                 .verify(CRITERION_OPERATOR, MandatoryValue::new)
-                .verify(CRITERION_OPERATOR, path -> new OperatorValidator(path, criterionOperatorRegistry))
                 .verify(CRITERION_OPERAND_RIGHT, MandatoryArray.min(1))
-                .verify(OperandRightValidator::new);
-    }
-
-    private record OperandRightValidator(JsonLdPath path) implements Validator<JsonObject> {
-
-        @Override
-        public ValidationResult validate(JsonObject input) {
-            var operator = getOperator(input);
-
-            if (operator == null || "in".equals(operator)) {
-                return ValidationResult.success();
-            }
-
-            return Optional.ofNullable(input.getJsonArray(CRITERION_OPERAND_RIGHT))
-                    .filter(it -> it.size() < 2)
-                    .map(it -> ValidationResult.success())
-                    .orElse(ValidationResult.failure(violation(format("%s cannot contain multiple values as the operator is not 'in'", path.append(CRITERION_OPERAND_RIGHT)), CRITERION_OPERAND_RIGHT)));
-        }
+                .verify(path -> new OperatorValidator(path, criterionOperatorRegistry));
     }
 
     private record OperatorValidator(JsonLdPath path, CriterionOperatorRegistry criterionOperatorRegistry) implements Validator<JsonObject> {
@@ -70,12 +51,26 @@ public class CriterionValidator {
         @Override
         public ValidationResult validate(JsonObject input) {
             var operator = getOperator(input);
-
-            if (operator == null || criterionOperatorRegistry.isSupported(operator)) {
+            if (operator == null) {
                 return ValidationResult.success();
-            } else {
-                return ValidationResult.failure(violation("Operator %s is not supported".formatted(operator), path.toString(), operator));
             }
+
+            var criterionOperator = criterionOperatorRegistry.get(operator);
+            if (criterionOperator == null) {
+                return ValidationResult.failure(violation("Operator %s is not supported"
+                        .formatted(operator), path.append(CRITERION_OPERATOR).toString(), operator));
+            }
+
+            if (Iterable.class.isAssignableFrom(criterionOperator.rightOperandClass())) {
+                return ValidationResult.success();
+            }
+
+            return Optional.ofNullable(input.getJsonArray(CRITERION_OPERAND_RIGHT))
+                    .filter(it -> it.size() < 2)
+                    .map(it -> ValidationResult.success())
+                    .orElse(ValidationResult.failure(violation(
+                            "%s cannot contain multiple values as the operator %s cannot be applied on an Iterable right operand"
+                                    .formatted(path.append(CRITERION_OPERAND_RIGHT), operator), CRITERION_OPERAND_RIGHT)));
         }
     }
 

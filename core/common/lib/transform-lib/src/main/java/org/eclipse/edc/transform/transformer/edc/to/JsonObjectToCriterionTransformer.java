@@ -17,19 +17,22 @@ package org.eclipse.edc.transform.transformer.edc.to;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.spi.query.Criterion;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import static java.util.stream.Collectors.toList;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_LEFT;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_RIGHT;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERATOR;
 
 public class JsonObjectToCriterionTransformer extends AbstractJsonLdTransformer<JsonObject, Criterion> {
 
-    public JsonObjectToCriterionTransformer() {
+    private final CriterionOperatorRegistry criterionOperatorRegistry;
+
+    public JsonObjectToCriterionTransformer(CriterionOperatorRegistry criterionOperatorRegistry) {
         super(JsonObject.class, Criterion.class);
+        this.criterionOperatorRegistry = criterionOperatorRegistry;
     }
 
     @Override
@@ -42,8 +45,8 @@ public class JsonObjectToCriterionTransformer extends AbstractJsonLdTransformer<
         builder.operator(operator);
 
         var operandRight = object.get(CRITERION_OPERAND_RIGHT);
-        if ("in".equals(operator)) {
-            builder.operandRight(operandRight.asJsonArray().stream().map(this::nodeValue).collect(toList()));
+        if (Iterable.class.isAssignableFrom(criterionOperatorRegistry.get(operator).rightOperandClass())) {
+            builder.operandRight(operandRight.asJsonArray().stream().map(this::nodeValue).toList());
         } else {
             builder.operandRight(transformGenericProperty(operandRight, context));
         }

@@ -31,6 +31,7 @@ class CriterionOperatorRegistryImplTest {
 
     private final CriterionOperatorRegistryImpl registry = new CriterionOperatorRegistryImpl();
 
+    @Deprecated(since = "0.17.0")
     @Nested
     class IsSupported {
         @Test
@@ -42,7 +43,7 @@ class CriterionOperatorRegistryImplTest {
 
         @Test
         void shouldReturnTrue_whenOperatorIsRegistered() {
-            registry.registerOperatorPredicate("operator", mock());
+            registry.registerOperator("operator", Object.class, mock());
 
             var result = registry.isSupported("operator");
 
@@ -51,7 +52,7 @@ class CriterionOperatorRegistryImplTest {
 
         @Test
         void shouldReturnTrue_whenOperatorIsRegisteredWithDifferentCase() {
-            registry.registerOperatorPredicate("OpERaTOr", mock());
+            registry.registerOperator("OpERaTOr", Object.class, mock());
 
             var result = registry.isSupported("OPERATOR");
 
@@ -60,7 +61,7 @@ class CriterionOperatorRegistryImplTest {
 
         @Test
         void shouldReturnFalse_whenOperatorHasBeenUnregistered() {
-            registry.registerOperatorPredicate("operator", mock());
+            registry.registerOperator("operator", Object.class, mock());
             registry.unregister("OPERATOR");
 
             var result = registry.isSupported("OPERATOR");
@@ -82,7 +83,7 @@ class CriterionOperatorRegistryImplTest {
         void shouldConvertUsingTheRegisteredConverter() {
             OperatorPredicate predicate = mock();
             when(predicate.test(any(), any())).thenReturn(true);
-            registry.registerOperatorPredicate("operator", predicate);
+            registry.registerOperator("operator", Object.class, predicate);
             registry.registerPropertyLookup((key, object) -> "propertyValue");
             var criterion = criterion("any", "operator", "operandRight");
 
@@ -96,7 +97,7 @@ class CriterionOperatorRegistryImplTest {
         void shouldIgnoreOperatorCase() {
             OperatorPredicate predicate = mock();
             when(predicate.test(any(), any())).thenReturn(true);
-            registry.registerOperatorPredicate("OPerATOr", predicate);
+            registry.registerOperator("OPerATOr", Object.class, predicate);
             registry.registerPropertyLookup((key, object) -> "propertyValue");
             var criterion = criterion("any", "OPERATOR", "any");
 
@@ -110,7 +111,7 @@ class CriterionOperatorRegistryImplTest {
         void shouldReturnAlwaysFalsePredicate_whenPropertyCannotBeFound() {
             OperatorPredicate predicate = mock();
             when(predicate.test(any(), any())).thenReturn(true);
-            registry.registerOperatorPredicate("operator", predicate);
+            registry.registerOperator("operator", Object.class, predicate);
             registry.registerPropertyLookup((key, object) -> null);
             var criterion = criterion("any", "operator", "operandRight");
 
@@ -129,7 +130,7 @@ class CriterionOperatorRegistryImplTest {
             registry.registerPropertyLookup((key, object) -> "firstOne");
             registry.registerPropertyLookup((key, object) -> "secondOne");
             OperatorPredicate operatorPredicate = mock();
-            registry.registerOperatorPredicate("=", operatorPredicate);
+            registry.registerOperator("=", Object.class, operatorPredicate);
 
             registry.toPredicate(criterion("any", "=", "value")).test("any");
 
@@ -141,7 +142,7 @@ class CriterionOperatorRegistryImplTest {
             registry.registerPropertyLookup((key, object) -> "firstOne");
             registry.registerPropertyLookup((key, object) -> null);
             OperatorPredicate operatorPredicate = mock();
-            registry.registerOperatorPredicate("=", operatorPredicate);
+            registry.registerOperator("=", Object.class, operatorPredicate);
 
             registry.toPredicate(criterion("any", "=", "value")).test("any");
 

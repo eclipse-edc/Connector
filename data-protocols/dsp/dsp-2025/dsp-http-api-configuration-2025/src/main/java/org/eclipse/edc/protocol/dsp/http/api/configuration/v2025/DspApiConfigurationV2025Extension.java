@@ -28,6 +28,7 @@ import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -74,6 +75,8 @@ public class DspApiConfigurationV2025Extension implements ServiceExtension {
     private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
     @Inject
     private DefaultParticipantIdExtractionFunction participantIdExtractionFunction;
+    @Inject
+    private CriterionOperatorRegistry criterionOperatorRegistry;
 
     @Override
     public String name() {
@@ -111,7 +114,7 @@ public class DspApiConfigurationV2025Extension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, JSON_LD));
         dspApiTransformerRegistry.register(new JsonObjectToAssetTransformer());
         dspApiTransformerRegistry.register(new JsonObjectToQuerySpecTransformer());
-        dspApiTransformerRegistry.register(new JsonObjectToCriterionTransformer());
+        dspApiTransformerRegistry.register(new JsonObjectToCriterionTransformer(criterionOperatorRegistry));
         dspApiTransformerRegistry.register(new JsonObjectToDataAddressDspaceTransformer(DSP_NAMESPACE_V_2025_1));
         dspApiTransformerRegistry.register(new JsonObjectFromPolicyTransformer(jsonBuilderFactory, participantIdMapper, new JsonObjectFromPolicyTransformer.TransformerConfig(true, true)));
         dspApiTransformerRegistry.register(new JsonObjectFromDataAddressDspaceTransformer(jsonBuilderFactory, typeManager, JSON_LD, DSP_NAMESPACE_V_2025_1));
