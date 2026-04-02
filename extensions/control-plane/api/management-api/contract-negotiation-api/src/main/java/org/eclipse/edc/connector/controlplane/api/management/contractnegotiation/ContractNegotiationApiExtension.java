@@ -26,6 +26,7 @@ import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.
 import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToContractOfferTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToContractRequestTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToTerminateNegotiationCommandTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToTerminateNegotiationTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -41,16 +42,19 @@ import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import java.util.Map;
 
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_V_4;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand.TERMINATE_NEGOTIATION_TYPE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(value = ContractNegotiationApiExtension.NAME)
 public class ContractNegotiationApiExtension implements ServiceExtension {
 
     public static final String NAME = "Management API: Contract Negotiation";
+
+    public static final String V_4_PREFIX = MANAGEMENT_API_V_4 + ":";
 
     @Inject
     private WebService webService;
@@ -88,11 +92,13 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectToContractRequestTransformer());
         managementApiTransformerRegistry.register(new JsonObjectToContractOfferTransformer());
         managementApiTransformerRegistry.register(new JsonObjectToTerminateNegotiationCommandTransformer());
+        managementApiTransformerRegistry.register(new JsonObjectToTerminateNegotiationTransformer());
         managementApiTransformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(factory));
         managementApiTransformerRegistry.register(new JsonObjectFromNegotiationStateTransformer(factory));
 
         validatorRegistry.register(CONTRACT_REQUEST_TYPE, ContractRequestValidator.instance());
         validatorRegistry.register(TERMINATE_NEGOTIATION_TYPE, TerminateNegotiationValidator.instance());
+        validatorRegistry.register(V_4_PREFIX + TERMINATE_NEGOTIATION_TYPE, TerminateNegotiationValidator.instanceV4());
 
         webService.registerResource(ApiContext.MANAGEMENT, new ContractNegotiationApiV3Controller(service, managementApiTransformerRegistry, monitor, validatorRegistry, participantContextSupplier));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractNegotiationApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));

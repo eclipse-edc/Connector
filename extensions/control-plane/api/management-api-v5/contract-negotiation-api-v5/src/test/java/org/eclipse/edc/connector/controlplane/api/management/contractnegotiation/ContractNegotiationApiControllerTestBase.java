@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
@@ -59,6 +60,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -160,26 +162,26 @@ public abstract class ContractNegotiationApiControllerTestBase extends RestContr
 
         @Test
         void terminate_shouldCallService() {
-            var command = new TerminateNegotiationCommand("id", "reason");
-            when(transformerRegistry.transform(any(JsonObject.class), eq(TerminateNegotiationCommand.class))).thenReturn(Result.success(command));
+            var command = new TerminateNegotiation("reason");
+            when(transformerRegistry.transform(any(JsonObject.class), eq(TerminateNegotiation.class))).thenReturn(Result.success(command));
             when(service.terminate(any())).thenReturn(ServiceResult.success());
 
             baseRequest(participantContextId)
-                    .body(Json.createObjectBuilder().add(ID, "id").build())
+                    .body(Json.createObjectBuilder().build())
                     .contentType(JSON)
                     .post("/contractnegotiations/cn1/terminate")
                     .then()
                     .statusCode(204);
 
-            verify(service).terminate(command);
+            verify(service).terminate(refEq(new TerminateNegotiationCommand("cn1", command.reason())));
         }
 
         @Test
         void terminate_shouldReturnBadRequest_whenTransformerFails() {
-            when(transformerRegistry.transform(any(JsonObject.class), eq(TerminateNegotiationCommand.class))).thenReturn(Result.failure("error"));
+            when(transformerRegistry.transform(any(JsonObject.class), eq(TerminateNegotiation.class))).thenReturn(Result.failure("error"));
 
             baseRequest(participantContextId)
-                    .body(Json.createObjectBuilder().add(ID, "id").build())
+                    .body(Json.createObjectBuilder().build())
                     .contentType(JSON)
                     .post("/contractnegotiations/cn1/terminate")
                     .then()
@@ -190,8 +192,8 @@ public abstract class ContractNegotiationApiControllerTestBase extends RestContr
 
         @Test
         void terminate_shouldReturnError_whenServiceFails() {
-            var command = new TerminateNegotiationCommand("id", "reason");
-            when(transformerRegistry.transform(any(JsonObject.class), eq(TerminateNegotiationCommand.class))).thenReturn(Result.success(command));
+            var command = new TerminateNegotiation("reason");
+            when(transformerRegistry.transform(any(JsonObject.class), eq(TerminateNegotiation.class))).thenReturn(Result.success(command));
             when(service.terminate(any())).thenReturn(ServiceResult.conflict("conflict"));
 
             baseRequest(participantContextId)

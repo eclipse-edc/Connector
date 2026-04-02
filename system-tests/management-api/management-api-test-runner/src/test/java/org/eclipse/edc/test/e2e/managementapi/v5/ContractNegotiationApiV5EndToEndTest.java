@@ -518,7 +518,6 @@ public class ContractNegotiationApiV5EndToEndTest {
             store.save(createContractNegotiationBuilder("cn1").build());
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
-                    .add(ID, "cn1")
                     .add(TYPE, "TerminateNegotiation")
                     .add("reason", "any good reason")
                     .build();
@@ -539,7 +538,6 @@ public class ContractNegotiationApiV5EndToEndTest {
             store.save(createContractNegotiationBuilder("cn1").build());
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
-                    .add(ID, "cn1")
                     .add(TYPE, "TerminateNegotiation")
                     .add("reason", "any good reason")
                     .build();
@@ -564,7 +562,6 @@ public class ContractNegotiationApiV5EndToEndTest {
             store.save(createContractNegotiationBuilder("cn1").build());
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
-                    .add(ID, "cn1")
                     .add(TYPE, "TerminateNegotiation")
                     .add("reason", "any good reason")
                     .build();

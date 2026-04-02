@@ -20,12 +20,18 @@ import org.eclipse.edc.validator.jsonobject.validators.MandatoryIdNotBlank;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.spi.Validator;
 
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand.TERMINATE_NEGOTIATION_REASON;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_REASON;
 
 public class TerminateNegotiationValidator {
     public static Validator<JsonObject> instance() {
         return JsonObjectValidator.newValidator()
                 .verifyId(MandatoryIdNotBlank::new)
+                .verify(TERMINATE_NEGOTIATION_REASON, MandatoryValue::new)
+                .build();
+    }
+
+    public static Validator<JsonObject> instanceV4() {
+        return JsonObjectValidator.newValidator()
                 .verify(TERMINATE_NEGOTIATION_REASON, MandatoryValue::new)
                 .build();
     }

@@ -15,11 +15,9 @@
 package org.eclipse.edc.connector.controlplane.api.management.contractnegotiation;
 
 import io.restassured.specification.RequestSpecification;
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
-import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
@@ -47,7 +45,6 @@ import static jakarta.json.Json.createObjectBuilder;
 import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.edc.api.model.IdResponse.ID_RESPONSE_TYPE;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand.TERMINATE_NEGOTIATION_TYPE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState.NEGOTIATION_STATE_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -330,6 +327,73 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
         verifyNoMoreInteractions(transformerRegistry, service);
     }
 
+    @Test
+    void delete_shouldCallService() {
+        when(service.delete(any())).thenReturn(ServiceResult.success());
+
+        baseRequest()
+                .contentType(JSON)
+                .delete("/cn1")
+                .then()
+                .statusCode(204);
+
+        verify(service).delete("cn1");
+    }
+
+    @Test
+    void delete_shouldFailDueToWrongState() {
+        when(service.delete(any())).thenReturn(ServiceResult.conflict(format("Cannot delete negotiation in state: %s".formatted(ContractNegotiationStates.AGREED.name()))));
+
+        baseRequest()
+                .contentType(JSON)
+                .delete("/cn1")
+                .then()
+                .statusCode(409);
+
+        verify(service).delete("cn1");
+    }
+
+    @Test
+    void delete_shouldFailDueToNegotiationNotFound() {
+        when(service.delete(any())).thenReturn(ServiceResult.notFound("ContractNegotiation negotiationId not found"));
+
+        baseRequest()
+                .contentType(JSON)
+                .delete("/cn1")
+                .then()
+                .statusCode(404);
+
+        verify(service).delete("cn1");
+    }
+
+    protected abstract RequestSpecification baseRequest();
+
+    private ContractNegotiation createContractNegotiation(String negotiationId) {
+        return createContractNegotiationBuilder(negotiationId)
+                .build();
+    }
+
+    private ContractAgreement createContractAgreement(String negotiationId) {
+        return ContractAgreement.Builder.newInstance()
+                .id(negotiationId)
+                .consumerId("test-consumer")
+                .providerId("test-provider")
+                .assetId(randomUUID().toString())
+                .policy(Policy.Builder.newInstance().build())
+                .build();
+    }
+
+    private ContractNegotiation.Builder createContractNegotiationBuilder(String negotiationId) {
+        return ContractNegotiation.Builder.newInstance()
+                .id(negotiationId)
+                .counterPartyId(randomUUID().toString())
+                .counterPartyAddress("address")
+                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
+                        .uri("local://test")
+                        .build()))
+                .protocol("protocol");
+    }
+
     @Nested
     class Initiate {
         @Test
@@ -428,134 +492,5 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
                     .statusCode(400);
             verifyNoMoreInteractions(service);
         }
-    }
-
-    @Test
-    void terminate_shouldCallService() {
-        var command = new TerminateNegotiationCommand("id", "reason");
-        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(transformerRegistry.transform(any(JsonObject.class), eq(TerminateNegotiationCommand.class))).thenReturn(Result.success(command));
-        when(service.terminate(any())).thenReturn(ServiceResult.success());
-
-        baseRequest()
-                .body(Json.createObjectBuilder().add(ID, "id").build())
-                .contentType(JSON)
-                .post("/cn1/terminate")
-                .then()
-                .statusCode(204);
-
-        verify(service).terminate(command);
-    }
-
-    @Test
-    void terminate_shouldReturnBadRequest_whenValidationFails() {
-        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(transformerRegistry.transform(any(JsonObject.class), eq(TerminateNegotiationCommand.class))).thenReturn(Result.failure("error"));
-
-        baseRequest()
-                .body(Json.createObjectBuilder().add(ID, "id").build())
-                .contentType(JSON)
-                .post("/cn1/terminate")
-                .then()
-                .statusCode(400);
-
-        verifyNoInteractions(service);
-    }
-
-    @Test
-    void terminate_shouldReturnError_whenServiceFails() {
-        var command = new TerminateNegotiationCommand("id", "reason");
-        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
-        when(transformerRegistry.transform(any(JsonObject.class), eq(TerminateNegotiationCommand.class))).thenReturn(Result.success(command));
-        when(service.terminate(any())).thenReturn(ServiceResult.conflict("conflict"));
-
-        baseRequest()
-                .body(Json.createObjectBuilder().add(ID, "id").build())
-                .contentType(JSON)
-                .post("/cn1/terminate")
-                .then()
-                .statusCode(409);
-    }
-
-    @Test
-    void terminate_shouldReturnBadRequest_whenTransformationFails() {
-        when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("error", "path")));
-
-        baseRequest()
-                .body(Json.createObjectBuilder().add(ID, "id").build())
-                .contentType(JSON)
-                .post("/cn1/terminate")
-                .then()
-                .statusCode(400);
-
-        verify(validatorRegistry).validate(eq(TERMINATE_NEGOTIATION_TYPE), any());
-        verifyNoInteractions(transformerRegistry, service);
-    }
-
-    @Test
-    void delete_shouldCallService() {
-        when(service.delete(any())).thenReturn(ServiceResult.success());
-
-        baseRequest()
-                .contentType(JSON)
-                .delete("/cn1")
-                .then()
-                .statusCode(204);
-
-        verify(service).delete("cn1");
-    }
-
-    @Test
-    void delete_shouldFailDueToWrongState() {
-        when(service.delete(any())).thenReturn(ServiceResult.conflict(format("Cannot delete negotiation in state: %s".formatted(ContractNegotiationStates.AGREED.name()))));
-
-        baseRequest()
-                .contentType(JSON)
-                .delete("/cn1")
-                .then()
-                .statusCode(409);
-
-        verify(service).delete("cn1");
-    }
-
-    @Test
-    void delete_shouldFailDueToNegotiationNotFound() {
-        when(service.delete(any())).thenReturn(ServiceResult.notFound("ContractNegotiation negotiationId not found"));
-
-        baseRequest()
-                .contentType(JSON)
-                .delete("/cn1")
-                .then()
-                .statusCode(404);
-
-        verify(service).delete("cn1");
-    }
-
-    protected abstract RequestSpecification baseRequest();
-
-    private ContractNegotiation createContractNegotiation(String negotiationId) {
-        return createContractNegotiationBuilder(negotiationId)
-                .build();
-    }
-
-    private ContractAgreement createContractAgreement(String negotiationId) {
-        return ContractAgreement.Builder.newInstance()
-                .id(negotiationId)
-                .consumerId("test-consumer")
-                .providerId("test-provider")
-                .assetId(randomUUID().toString())
-                .policy(Policy.Builder.newInstance().build())
-                .build();
-    }
-
-    private ContractNegotiation.Builder createContractNegotiationBuilder(String negotiationId) {
-        return ContractNegotiation.Builder.newInstance()
-                .id(negotiationId)
-                .counterPartyId(randomUUID().toString())
-                .counterPartyAddress("address")
-                .callbackAddresses(List.of(CallbackAddress.Builder.newInstance()
-                        .uri("local://test")
-                        .build()))
-                .protocol("protocol");
     }
 }

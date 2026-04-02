@@ -34,6 +34,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.command.Termina
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
@@ -51,8 +52,8 @@ import java.util.Optional;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
-import static org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand.TERMINATE_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE_TERM;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.filterByParticipantContextId;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
@@ -202,10 +203,10 @@ public class ContractNegotiationApiV5Controller implements ContractNegotiationAp
         authorizationService.authorize(securityContext, participantContextId, id, ContractNegotiation.class)
                 .orElseThrow(exceptionMapper(ContractNegotiation.class, id));
 
-        var command = transformerRegistry.transform(terminateNegotiation, TerminateNegotiationCommand.class)
+        var terminate = transformerRegistry.transform(terminateNegotiation, TerminateNegotiation.class)
                 .orElseThrow(InvalidRequestException::new);
 
-        service.terminate(command).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
+        service.terminate(new TerminateNegotiationCommand(id, terminate.reason())).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
     }
 
     @DELETE
