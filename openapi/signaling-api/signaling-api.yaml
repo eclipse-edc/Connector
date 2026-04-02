@@ -170,6 +170,12 @@ components:
     DataPlaneRegistrationMessage:
       type: object
       properties:
+        authorization:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              type: object
         dataplaneId:
           type: string
         endpoint:
@@ -185,6 +191,9 @@ components:
           items:
             type: string
       example:
+        authorization:
+        - key: "{}"
+        - key: "{}"
         dataplaneId: dataplaneId
         endpoint: endpoint
         transferTypes:
