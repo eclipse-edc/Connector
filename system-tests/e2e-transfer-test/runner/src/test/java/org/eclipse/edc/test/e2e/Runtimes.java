@@ -37,7 +37,9 @@ public interface Runtimes {
 
         String[] SIGNALING_MODULES = new String[]{
                 ":system-tests:e2e-transfer-test:control-plane",
-                ":data-protocols:data-plane-signaling"
+                ":data-protocols:data-plane-signaling:data-plane-signaling-core",
+                ":data-protocols:data-plane-signaling:data-plane-signaling-oauth2",
+                ":extensions:common:iam:oauth2:oauth2-client"
         };
 
         String[] EMBEDDED_DP_MODULES = new String[]{
@@ -77,13 +79,6 @@ public interface Runtimes {
             var controlEndpoint = Objects.requireNonNull(endpoints.getEndpoint("control"));
             return ConfigFactory.fromMap(Map.of(
                     "edc.dpf.selector.url", controlEndpoint.get() + "/v1/dataplanes"
-            ));
-        }
-
-        static Config controlPlaneEndpointOf(Endpoints endpoints) {
-            var controlEndpoint = Objects.requireNonNull(endpoints.getEndpoint("control"));
-            return ConfigFactory.fromMap(Map.of(
-                    "signaling.dataplane.controlplane.endpoint", controlEndpoint.get().toString()
             ));
         }
     }

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.oauth2.client;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import okhttp3.FormBody;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -41,6 +42,8 @@ public class Oauth2ClientImpl implements Oauth2Client {
     private static final String APPLICATION_JSON = "application/json";
     private static final String RESPONSE_ACCESS_TOKEN_CLAIM = "access_token";
     private static final String RESPONSE_EXPIRES_IN_CLAIM = "expires_in";
+    public static final TypeReference<Map<String, Object>> AS_MAP = new TypeReference<>() {
+    };
 
     private final EdcHttpClient httpClient;
     private final TypeManager typeManager;
@@ -50,31 +53,13 @@ public class Oauth2ClientImpl implements Oauth2Client {
         this.typeManager = typeManager;
     }
 
-    private static Request toRequest(Oauth2CredentialsRequest request) {
-        return new Request.Builder()
-                .url(request.getUrl())
-                .addHeader(ACCEPT, APPLICATION_JSON)
-                .addHeader(CONTENT_TYPE, FORM_URLENCODED)
-                .post(createRequestBody(request))
-                .build();
-    }
-
-    private static FormBody createRequestBody(Oauth2CredentialsRequest request) {
-        var builder = new FormBody.Builder();
-        request.getParams().entrySet().stream()
-                .filter(entry -> entry.getValue() != null)
-                .forEach(entry -> builder.add(entry.getKey(), entry.getValue().toString()));
-        return builder.build();
-    }
-
     @Override
     public Result<TokenRepresentation> requestToken(Oauth2CredentialsRequest request) {
         return httpClient.execute(toRequest(request), List.of(retryWhenStatusIsNot(200)), this::handleResponse);
     }
 
     private Result<TokenRepresentation> handleResponse(Response response) {
-        return getStringBody(response)
-                .map(it -> typeManager.readValue(it, Map.class))
+        return readBody(response)
                 .map(this::mapResponse);
     }
 
@@ -101,17 +86,32 @@ public class Oauth2ClientImpl implements Oauth2Client {
     }
 
     @NotNull
-    private Result<String> getStringBody(Response response) {
+    private Result<Map<String, Object>> readBody(Response response) {
         try (var body = response.body()) {
-            if (body != null) {
-                return Result.success(body.string());
-            } else {
-                return Result.failure("Body is null");
-            }
+            var inputStream = body.byteStream();
+            var deserialized = typeManager.getMapper().readValue(inputStream, AS_MAP);
+            return Result.success(deserialized);
         } catch (IOException e) {
             return Result.failure("Cannot read response body as String: " + e.getMessage());
         }
-
     }
+
+    private Request toRequest(Oauth2CredentialsRequest request) {
+        return new Request.Builder()
+                .url(request.getUrl())
+                .addHeader(ACCEPT, APPLICATION_JSON)
+                .addHeader(CONTENT_TYPE, FORM_URLENCODED)
+                .post(createRequestBody(request))
+                .build();
+    }
+
+    private FormBody createRequestBody(Oauth2CredentialsRequest request) {
+        var builder = new FormBody.Builder();
+        request.getParams().entrySet().stream()
+                .filter(entry -> entry.getValue() != null)
+                .forEach(entry -> builder.add(entry.getKey(), entry.getValue().toString()));
+        return builder.build();
+    }
+
 
 }

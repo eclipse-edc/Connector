@@ -15,6 +15,7 @@
 package org.eclipse.edc.test.e2e.dataplane;
 
 import io.restassured.http.ContentType;
+import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 
@@ -68,10 +69,27 @@ public class DataPlaneSignalingClient {
     }
 
     public JsonObject getDataPlaneRegistrationMessage() {
+        return getDataPlaneRegistrationMessage(null);
+    }
+
+    public void registerControlPlane(JsonObject message) {
+        var uri = context.getEndpoint("default").get();
+
+        given()
+                .baseUri(uri.toString())
+                .contentType(ContentType.JSON)
+                .body(message.toString())
+                .put("/v1/controlplanes/")
+                .then()
+                .log().ifValidationFails()
+                .statusCode(200);
+    }
+
+    public JsonObject getDataPlaneRegistrationMessage(JsonObject authorizationProfile) {
         var dataflowsEndpoint = context.getEndpoint("default").get() + "/v1/dataflows";
 
-        return createObjectBuilder()
-                .add("dataplaneId", context.getConfig().getString("dataplane.id"))
+        var builder = createObjectBuilder()
+                .add("dataplaneId", dataPlaneId())
                 .add("endpoint", dataflowsEndpoint)
                 .add("transferTypes", createArrayBuilder()
                         .add("Finite-PUSH")
@@ -80,8 +98,16 @@ public class DataPlaneSignalingClient {
                         .add("NonFinite-PULL")
                         .add("AsyncPrepare-PUSH")
                         .add("AsyncStart-PULL")
-                )
-                .build();
+                );
+
+        if (authorizationProfile != null) {
+            builder.add("authorization", Json.createArrayBuilder().add(authorizationProfile));
+        }
+
+        return builder.build();
     }
 
+    public String dataPlaneId() {
+        return context.getConfig().getString("dataplane.id");
+    }
 }

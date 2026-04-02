@@ -20,6 +20,7 @@ import org.eclipse.dataplane.Dataplane;
 import org.eclipse.dataplane.domain.DataAddress;
 import org.eclipse.dataplane.domain.Result;
 import org.eclipse.dataplane.domain.dataflow.DataFlow;
+import org.eclipse.dataplane.domain.registration.Oauth2ClientCredentialsAuthorization;
 import org.eclipse.dataplane.logic.OnPrepare;
 import org.eclipse.dataplane.logic.OnStart;
 import org.eclipse.dataplane.logic.OnStarted;
@@ -66,8 +67,9 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        dataplane = Dataplane.newInstance()
+        var builder = Dataplane.newInstance()
                 .id(dataplaneId)
+                .registerAuthorization(new Oauth2ClientCredentialsAuthorization())
                 .endpoint(apiConfiguration.dataFlowEndpoint())
                 .transferType("Finite-PUSH")
                 .transferType("Finite-PULL")
@@ -80,9 +82,12 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
                 .onStarted(new DataplaneOnStarted())
                 .onSuspend(this::stopDataFlow)
                 .onCompleted(Result::success)
-                .onTerminate(this::stopDataFlow)
-                .build();
+                .onTerminate(this::stopDataFlow);
+
+        dataplane = builder.build();
+
         webService.registerResource(dataplane.controller());
+        webService.registerResource(dataplane.registrationController());
         webService.registerResource(new DataController(monitor));
         webService.registerResource(new ControlController(monitor, dataplane, apiConfiguration));
     }
@@ -237,8 +242,8 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
             return "http://localhost:%d%s/data/source".formatted(port, path);
         }
 
-        public String dataFlowEndpoint() {
-            return "http://localhost:%d%s/v1/dataflows".formatted(port, path);
+        public URI dataFlowEndpoint() {
+            return URI.create("http://localhost:%d%s/v1/dataflows".formatted(port, path));
         }
     }
 }

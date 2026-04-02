@@ -1,3 +1,0 @@
-org.eclipse.edc.signaling.DataPlaneSignalingApiExtension
-org.eclipse.edc.signaling.DataPlaneSignalingAvailabilityCheckerExtension
-org.eclipse.edc.signaling.DataPlaneSignalingFlowControllerExtension

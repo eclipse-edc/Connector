@@ -90,6 +90,9 @@ include(":core:policy-monitor:policy-monitor-core")
 
 // data plane signaling
 include(":data-protocols:data-plane-signaling")
+include(":data-protocols:data-plane-signaling:data-plane-signaling-core")
+include(":data-protocols:data-plane-signaling:data-plane-signaling-oauth2")
+include(":data-protocols:data-plane-signaling:data-plane-signaling-spi")
 
 // modules that provide implementations for data ingress/egress ------------------------------------
 include(":data-protocols:dsp:dsp-spi")

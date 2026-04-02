@@ -40,7 +40,9 @@ public class DataPlaneSelectorApiV4EndToEndTest {
 
         @Test
         void getAllDataPlaneInstancesV4(ManagementEndToEndTestContext context, DataPlaneInstanceStore store) {
-            var instance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any").build();
+            var instance = DataPlaneInstance.Builder.newInstance()
+                    .url("http://localhost/any")
+                    .build();
             store.save(instance);
 
             context.baseRequest()
