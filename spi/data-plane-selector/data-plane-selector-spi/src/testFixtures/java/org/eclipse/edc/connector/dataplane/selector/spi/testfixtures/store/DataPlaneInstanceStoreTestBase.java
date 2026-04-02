@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.dataplane.selector.spi.testfixtures.store;
 
+import org.eclipse.edc.connector.dataplane.selector.spi.instance.AuthorizationProfile;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.spi.entity.Entity;
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.Map;
 import java.util.UUID;
 
 import static java.util.stream.IntStream.range;
@@ -116,6 +118,7 @@ public abstract class DataPlaneInstanceStoreTestBase {
                     .allowedTransferType("transfer-type")
                     .allowedSourceType("source-type")
                     .label("label")
+                    .authorizationProfile(new AuthorizationProfile("test-type", Map.of("key", "value")))
                     .build();
             getStore().save(entry);
 

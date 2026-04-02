@@ -24,6 +24,7 @@ import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.Runtimes;
 import org.eclipse.edc.test.e2e.TransferEndToEndParticipant;
 import org.eclipse.edc.test.e2e.dataplane.DataPlaneSignalingClient;
+import org.eclipse.edc.test.e2e.signaling.Oauth2Extension;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
@@ -59,11 +60,28 @@ public interface PolicyMonitorEndToEndTest {
     static void beforeAll(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
                           @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
                           @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
-                          @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+                          @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane,
+                          Oauth2Extension oauth2) {
 
-        provider.registerDataPlane(providerDataPlane.getDataPlaneRegistrationMessage());
-        consumer.registerDataPlane(consumerDataPlane.getDataPlaneRegistrationMessage());
+        var consumerDataPlaneOauth2Profile = oauth2.registerClient(consumerDataPlane.dataPlaneId());
+        var consumerControlPlaneOauth2Profile = oauth2.registerClient(consumer.getId());
+        var providerDataPlaneOauth2Profile = oauth2.registerClient(providerDataPlane.dataPlaneId());
+        var providerControlPlaneOauth2Profile = oauth2.registerClient(provider.getId());
 
+        consumer.registerDataPlane(consumerDataPlane.getDataPlaneRegistrationMessage(consumerControlPlaneOauth2Profile));
+        provider.registerDataPlane(providerDataPlane.getDataPlaneRegistrationMessage(providerControlPlaneOauth2Profile));
+
+        providerDataPlane.registerControlPlane(createObjectBuilder()
+                .add("controlplaneId", provider.getId())
+                .add("endpoint", provider.getSignalingEndpointUrl().toString())
+                .add("authorization", createArrayBuilder().add(providerDataPlaneOauth2Profile))
+                .build());
+
+        consumerDataPlane.registerControlPlane(createObjectBuilder()
+                .add("controlplaneId", consumer.getId())
+                .add("endpoint", consumer.getSignalingEndpointUrl().toString())
+                .add("authorization", createArrayBuilder().add(consumerDataPlaneOauth2Profile))
+                .build());
     }
 
     @Test
@@ -145,6 +163,10 @@ public interface PolicyMonitorEndToEndTest {
 
         @RegisterExtension
         @Order(0)
+        static final Oauth2Extension OAUTH_SERVER = new Oauth2Extension();
+
+        @RegisterExtension
+        @Order(0)
         static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
                 .name(CONSUMER_CP)
                 .modules(Runtimes.ControlPlane.SIGNALING_MODULES)
@@ -194,6 +216,10 @@ public interface PolicyMonitorEndToEndTest {
 
         static final String CONSUMER_DB = "consumer";
         static final String PROVIDER_DB = "provider";
+
+        @RegisterExtension
+        @Order(0)
+        static final Oauth2Extension OAUTH_SERVER = new Oauth2Extension();
 
         @Order(0)
         @RegisterExtension

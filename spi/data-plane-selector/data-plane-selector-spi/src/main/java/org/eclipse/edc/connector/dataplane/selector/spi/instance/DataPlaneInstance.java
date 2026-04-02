@@ -25,9 +25,11 @@ import org.jetbrains.annotations.Nullable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -69,6 +71,7 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
     private URL url;
     private String participantContextId;
     private final Set<String> labels = new HashSet<>();
+    private final List<AuthorizationProfile> authorizationProfiles = new ArrayList<>();
 
     private DataPlaneInstance() {
     }
@@ -89,7 +92,8 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
                 .properties(properties)
                 .destinationProvisionTypes(destinationProvisionTypes)
                 .participantContextId(participantContextId)
-                .labels(labels);
+                .labels(labels)
+                .authorizationProfiles(authorizationProfiles);
 
         return copy(builder);
     }
@@ -156,11 +160,16 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
         return labels;
     }
 
+    public List<AuthorizationProfile> getAuthorizationProfiles() {
+        return authorizationProfiles;
+    }
+
     @Override
     public String getParticipantContextId() {
         return participantContextId;
     }
 
+    @Deprecated(since = "0.17.0")
     public boolean canProvisionDestination(@Nullable DataAddress destination) {
         return destination != null && destinationProvisionTypes.contains(destination.getType());
     }
@@ -278,11 +287,22 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
             return this;
         }
 
+        public Builder authorizationProfile(AuthorizationProfile authorizationProfile) {
+            entity.authorizationProfiles.add(authorizationProfile);
+            return this;
+        }
+
+        public Builder authorizationProfiles(List<AuthorizationProfile> authorizationProfiles) {
+            entity.authorizationProfiles.addAll(authorizationProfiles);
+            return this;
+        }
+
         @Override
         public Builder self() {
             return this;
         }
 
+        @Override
         public DataPlaneInstance build() {
             Objects.requireNonNull(entity.url, "DataPlaneInstance must have an URL");
 

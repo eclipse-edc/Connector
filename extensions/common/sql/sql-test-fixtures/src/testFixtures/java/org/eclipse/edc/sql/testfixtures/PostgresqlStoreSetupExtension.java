@@ -29,7 +29,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -44,9 +44,9 @@ import java.util.UUID;
  */
 public class PostgresqlStoreSetupExtension implements BeforeEachCallback, BeforeAllCallback, AfterAllCallback, ParameterResolver {
 
-    private static final String DEFAULT_IMAGE = "postgres:17.3";
+    private static final String DEFAULT_IMAGE = "postgres:18.3";
 
-    private final PostgreSQLContainer<?> postgres;
+    private final PostgreSQLContainer postgres;
     private final QueryExecutor queryExecutor = new SqlQueryExecutor();
     private final TransactionContext transactionContext = new NoopTransactionContext();
     private final DataSourceRegistry dataSourceRegistry = new DefaultDataSourceRegistry();
@@ -57,7 +57,7 @@ public class PostgresqlStoreSetupExtension implements BeforeEachCallback, Before
     }
 
     public PostgresqlStoreSetupExtension(String dockerImageName) {
-        postgres = new PostgreSQLContainer<>(dockerImageName);
+        postgres = new PostgreSQLContainer(dockerImageName);
     }
 
     @Override

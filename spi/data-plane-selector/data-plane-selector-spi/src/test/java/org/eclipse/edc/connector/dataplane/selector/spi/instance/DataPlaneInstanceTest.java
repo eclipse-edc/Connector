@@ -18,7 +18,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.MalformedURLException;
@@ -26,22 +25,16 @@ import java.net.URL;
 import java.time.Instant;
 import java.util.Set;
 
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DataPlaneInstanceTest {
 
-    private ObjectMapper mapper;
-
-    @BeforeEach
-    void setup() {
-        var tm = new JacksonTypeManager();
-        tm.registerTypes(DataPlaneInstance.class);
-        mapper = tm.getMapper();
-    }
+    private ObjectMapper mapper = new JacksonTypeManager().getMapper();
 
     @Test
     void verifySerialization() throws MalformedURLException, JsonProcessingException {
-        var inst = DataPlaneInstance.Builder.newInstance()
+        var instance = DataPlaneInstance.Builder.newInstance()
                 .id("test-id")
                 .turnCount(7)
                 .lastActive(Instant.now().toEpochMilli())
@@ -51,9 +44,10 @@ class DataPlaneInstanceTest {
                 .allowedSourceType("allowedSrc2")
                 .allowedDestType("allowedDest1")
                 .allowedDestType("allowedDest2")
+                .authorizationProfile(new AuthorizationProfile("test-type", emptyMap()))
                 .build();
 
-        var json = mapper.writeValueAsString(inst);
+        var json = mapper.writeValueAsString(instance);
 
         assertThat(json).isNotNull()
                 .contains("url\":\"http://localhost:8234/some/path\"")
@@ -61,7 +55,7 @@ class DataPlaneInstanceTest {
                 .contains("\"someprop\":\"someval\"");
 
         var deserialized = mapper.readValue(json, DataPlaneInstance.class).copy();
-        assertThat(deserialized).usingRecursiveComparison().isEqualTo(inst);
+        assertThat(deserialized).usingRecursiveComparison().isEqualTo(instance);
     }
 
     @Test
@@ -106,4 +100,5 @@ class DataPlaneInstanceTest {
     private DataAddress createAddress(String type) {
         return DataAddress.Builder.newInstance().type(type).build();
     }
+
 }

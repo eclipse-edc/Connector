@@ -30,8 +30,11 @@ import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.web.spi.configuration.ApiContext.MANAGEMENT;
 import static org.eclipse.edc.web.spi.configuration.ApiContext.PROTOCOL;
+import static org.eclipse.edc.web.spi.configuration.ApiContext.SIGNALING;
 
 public class TransferEndToEndParticipant extends Participant {
+
+    private LazySupplier<URI> signalingUrl;
 
     protected TransferEndToEndParticipant() {
         super();
@@ -47,7 +50,8 @@ public class TransferEndToEndParticipant extends Participant {
                 .id(id)
                 .name(ctx.getName())
                 .managementUrl(ctx.getEndpoint(MANAGEMENT))
-                .protocolUrl(ctx.getEndpoint(PROTOCOL));
+                .protocolUrl(ctx.getEndpoint(PROTOCOL))
+                .signalingUrl(ctx.getEndpoint(SIGNALING));
     }
 
     /**
@@ -119,6 +123,10 @@ public class TransferEndToEndParticipant extends Participant {
                 .statusCode(200);
     }
 
+    public URI getSignalingEndpointUrl() {
+        return signalingUrl.get();
+    }
+
     public static class Builder extends Participant.Builder<TransferEndToEndParticipant, Builder> {
 
         protected Builder() {
@@ -139,6 +147,10 @@ public class TransferEndToEndParticipant extends Participant {
             return this;
         }
 
+        public Builder signalingUrl(LazySupplier<URI> signalingUrl) {
+            participant.signalingUrl = signalingUrl;
+            return this;
+        }
     }
 
 }
