@@ -18,9 +18,14 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
+import org.eclipse.edc.validator.jsonobject.validators.MandatoryIdNotBlank;
+import org.eclipse.edc.validator.jsonobject.validators.MandatoryObject;
 import org.eclipse.edc.validator.jsonobject.validators.TypeIs;
 import org.eclipse.edc.validator.spi.Validator;
 
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM;
 
 /**
@@ -31,6 +36,13 @@ public class ContractAgreementMessageValidator {
     public static Validator<JsonObject> instance(JsonLdNamespace namespace) {
         return JsonObjectValidator.newValidator()
                 .verify(path -> new TypeIs(path, namespace.toIri(DSPACE_TYPE_CONTRACT_AGREEMENT_MESSAGE_TERM)))
+                .verify(namespace.toIri(DSPACE_PROPERTY_AGREEMENT_TERM), MandatoryObject::new)
+                .verifyObject(namespace.toIri(DSPACE_PROPERTY_AGREEMENT_TERM), builder -> builder
+                        .verify(ODRL_ASSIGNER_ATTRIBUTE, MandatoryObject::new)
+                        .verifyObject(ODRL_ASSIGNER_ATTRIBUTE, b -> b.verifyId(MandatoryIdNotBlank::new))
+                        .verify(ODRL_ASSIGNEE_ATTRIBUTE, MandatoryObject::new)
+                        .verifyObject(ODRL_ASSIGNEE_ATTRIBUTE, b -> b.verifyId(MandatoryIdNotBlank::new))
+                )
                 .build();
     }
 }

@@ -43,21 +43,6 @@ class PolicyArchiveImplTest {
     }
 
     @Test
-    void shouldGetPolicyFromAgreement_WithAssigneeAndAssignedInferred() {
-        var policy = Policy.Builder.newInstance().build();
-        var contractAgreement = createContractAgreement(policy);
-        when(contractNegotiationStore.findContractAgreement("contractId")).thenReturn(contractAgreement);
-
-        var result = policyArchive.findPolicyForContract("contractId");
-
-        assertThat(result).usingRecursiveComparison().ignoringFields("assignee", "assigner").isEqualTo(policy);
-
-        assertThat(result.getAssigner()).isEqualTo(contractAgreement.getProviderId());
-        assertThat(result.getAssignee()).isEqualTo(contractAgreement.getConsumerId());
-    }
-
-
-    @Test
     void shouldReturnNullIfContractDoesNotExist() {
         when(contractNegotiationStore.findContractAgreement("contractId")).thenReturn(null);
 
