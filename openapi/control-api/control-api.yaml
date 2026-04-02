@@ -137,31 +137,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail_1"
-  /transfers/{transferId}/dataflow/completed:
-    post:
-      tags:
-      - Data Plane Transfer events
-      description: Notify a completed transfer
-      operationId: completed
-      parameters:
-      - name: transferId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Completed notification delivered correctly
-        "404":
-          description: Transfer process does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail_1"
   /v1/dataplanes/{id}/unregister:
     put:
       tags:
@@ -203,36 +178,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail_1"
-  /v4beta/dataplanes:
-    put:
-      tags:
-      - Dataplane Signaling Registration v4beta
-      description: Register or update a Dataplane instance
-      operationId: register
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DataPlaneRegistrationMessage"
-      responses:
-        "200":
-          description: Dataplane instance correctly registered
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail_1"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail_1"
   /v1/dataflows/{id}/terminate:
     post:
       tags:
@@ -259,66 +204,6 @@ paths:
           description: Data transfer not handled by the data plane
         "409":
           description: Cannot terminate the transfer
-  /transfers/{transferId}/dataflow/prepared:
-    post:
-      tags:
-      - Data Plane Transfer events
-      description: Notify a prepared transfer
-      operationId: prepared
-      parameters:
-      - name: transferId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DataFlowResponseMessage"
-      responses:
-        "200":
-          description: Prepared notification delivered correctly
-        "404":
-          description: Transfer process does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail_1"
-  /transfers/{transferId}/dataflow/started:
-    post:
-      tags:
-      - Data Plane Transfer events
-      description: Notify a started transfer
-      operationId: started
-      parameters:
-      - name: transferId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DataFlowResponseMessage"
-      responses:
-        "200":
-          description: Started notification delivered correctly
-        "404":
-          description: Transfer process does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail_1"
   /v1/dataflows/start:
     post:
       tags:
@@ -447,31 +332,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /v4beta/dataplanes/{dataplaneId}:
-    delete:
-      tags:
-      - Dataplane Signaling Registration v4beta
-      description: Update a Dataplane instance
-      operationId: delete
-      parameters:
-      - name: dataplaneId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Dataplane instance correctly deleted
-        "404":
-          description: Not found
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail_1"
   /v1/dataplanes:
     get:
       tags:
@@ -746,32 +606,6 @@ components:
         type: ErrorType
         path: object.error.path
         invalidValue: this value is not valid
-    DataPlaneRegistrationMessage:
-      type: object
-      properties:
-        dataplaneId:
-          type: string
-        endpoint:
-          type: string
-        labels:
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-        transferTypes:
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-      example:
-        dataplaneId: dataplaneId
-        endpoint: endpoint
-        transferTypes:
-        - transferTypes
-        - transferTypes
-        labels:
-        - labels
-        - labels
     DataFlowTerminateMessage:
       type: object
       properties:
@@ -785,39 +619,6 @@ components:
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
         '@type': DataFlowTerminateMessage
         reason: reason
-    DataFlowResponseMessage_1:
-      type: object
-      properties:
-        dataAddress:
-          $ref: "#/components/schemas/DspDataAddress"
-        dataplaneId:
-          type: string
-        error:
-          type: string
-        state:
-          type: string
-    DspDataAddress:
-      type: object
-      properties:
-        '@type':
-          type: string
-        endpoint:
-          type: string
-        endpointProperties:
-          type: array
-          items:
-            $ref: "#/components/schemas/EndpointProperty"
-        endpointType:
-          type: string
-    EndpointProperty:
-      type: object
-      properties:
-        '@type':
-          type: string
-        name:
-          type: string
-        value:
-          type: string
     DataFlowState:
       type: object
       properties:
