@@ -16,13 +16,17 @@ package org.eclipse.edc.junit.extensions;
 
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.EdcException;
+import org.jspecify.annotations.NonNull;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.joining;
 
 /**
  * Read the classpath entries of the gradle modules.
@@ -50,17 +54,40 @@ public class ClasspathReader {
 
             var exec = Runtime.getRuntime().exec(command);
 
-            try (var reader = exec.inputReader()) {
-                return reader.lines().map(line -> line.split(":|\\s"))
-                        .flatMap(Arrays::stream)
-                        .filter(s -> !s.isBlank())
-                        .map(File::new)
-                        .flatMap(ClasspathReader::resolveClasspathEntry)
-                        .toArray(URL[]::new);
+            var classpath = readClasspath(exec.inputReader());
+            var errorOutput = readErrorOutput(exec.errorReader());
+
+            try {
+                var exitCode = exec.waitFor();
+                if (exitCode != 0) {
+                    throw new EdcException("Gradle command failed with exit code " + exitCode + ":\n" + errorOutput);
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new EdcException("Interrupted while waiting for Gradle command", e);
             }
+
+            return classpath;
 
         } catch (IOException e) {
             throw new EdcException(e);
+        }
+    }
+
+    private static URL @NonNull [] readClasspath(BufferedReader reader) throws IOException {
+        try (reader) {
+            return reader.lines().map(line -> line.split(":|\\s"))
+                    .flatMap(Arrays::stream)
+                    .filter(s -> !s.isBlank())
+                    .map(File::new)
+                    .flatMap(ClasspathReader::resolveClasspathEntry)
+                    .toArray(URL[]::new);
+        }
+    }
+
+    private static @NonNull String readErrorOutput(BufferedReader errorReader) throws IOException {
+        try (errorReader) {
+            return errorReader.lines().collect(joining(" "));
         }
     }
 
