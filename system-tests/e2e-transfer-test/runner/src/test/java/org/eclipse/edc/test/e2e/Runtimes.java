@@ -29,10 +29,29 @@ import static org.eclipse.edc.util.io.Ports.getFreePort;
 public interface Runtimes {
 
     interface ControlPlane {
+        String NAME = "controlplane";
 
         String[] MODULES = new String[]{
                 ":system-tests:e2e-transfer-test:control-plane",
                 ":extensions:control-plane:transfer:transfer-data-plane-signaling"
+        };
+
+        String[] VIRTUAL_MODULES = new String[]{
+                ":system-tests:management-api:management-api-test-virtual-runtime"
+        };
+
+        String[] VIRTUAL_SQL_MODULES = new String[]{
+                ":extensions:common:store:sql:cel-store-sql",
+                ":extensions:common:store:sql:task-store-sql",
+                ":extensions:control-plane:store:sql:participantcontext-store-sql",
+                ":extensions:control-plane:store:sql:participantcontext-config-store-sql",
+        };
+
+        String[] VIRTUAL_NATS_MODULES = new String[]{
+                ":extensions:control-plane:tasks:nats:publisher:negotiation-tasks-publisher-nats",
+                ":extensions:control-plane:tasks:nats:publisher:transfer-tasks-publisher-nats",
+                ":extensions:control-plane:tasks:nats:subscriber:negotiation-tasks-subscriber-nats",
+                ":extensions:control-plane:tasks:nats:subscriber:transfer-tasks-subscriber-nats",
         };
 
         String[] SIGNALING_MODULES = new String[]{
@@ -114,7 +133,7 @@ public interface Runtimes {
     }
 
     interface SignalingDataPlane {
-        String[] MODULES = new String[] {
+        String[] MODULES = new String[]{
                 ":system-tests:e2e-transfer-test:signaling-data-plane"
         };
 

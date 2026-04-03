@@ -45,6 +45,8 @@ public interface Runtimes {
 
         String[] VIRTUAL_SQL_MODULES = new String[]{
                 ":extensions:common:store:sql:cel-store-sql",
+                ":extensions:control-plane:store:sql:participantcontext-store-sql",
+                ":extensions:control-plane:store:sql:participantcontext-config-store-sql",
         };
 
         Endpoints.Builder ENDPOINTS = Endpoints.Builder.newInstance()

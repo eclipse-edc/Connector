@@ -56,6 +56,7 @@ import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.PROVIDER_DP;
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.PROVIDER_ID;
 
 
+@SuppressWarnings("JUnitMalformedDeclaration")
 interface TransferSignalingEndToEndTest {
 
     @BeforeAll

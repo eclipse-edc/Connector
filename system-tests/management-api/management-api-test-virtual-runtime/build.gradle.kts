@@ -19,8 +19,14 @@ plugins {
 dependencies {
     implementation(project(":core:common:token-core"))
     implementation(project(":core:common:runtime-core"))
-    implementation(project(":core:control-plane:control-plane-core"))
-    implementation(project(":core:common::participant-context-connector-core"))
+    implementation(project(":core:control-plane:control-plane-core")) {
+        exclude("org.eclipse.edc", "control-plane-contract-manager")
+        exclude("org.eclipse.edc", "control-plane-transfer-manager")
+    }
+    implementation(project(":core:control-plane:control-plane-contract-task-executor"))
+    implementation(project(":core:control-plane:control-plane-transfer-task-executor"))
+    implementation(project(":core:common:participant-context-connector-core"))
+    implementation(project(":core:common:task-core"))
     implementation(project(":data-protocols:dsp:dsp-virtual"))
     implementation(project(":extensions:common:http"))
     implementation(project(":extensions:common:iam:iam-mock"))
@@ -32,9 +38,10 @@ dependencies {
     implementation(project(":extensions:common:api:management-api-authorization"))
     implementation(project(":extensions:common:api:management-api-oauth2-authentication"))
     implementation(project(":core:common:cel-core"))
-
-    implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"))
-    implementation(project(":extensions:control-plane:transfer:transfer-data-plane-signaling"))
+    
+    implementation(project(":data-protocols:data-plane-signaling:data-plane-signaling-core"))
+    implementation(project(":data-protocols:data-plane-signaling:data-plane-signaling-oauth2"))
+    implementation(project(":extensions:common:iam:oauth2:oauth2-client"))
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))
 }
 

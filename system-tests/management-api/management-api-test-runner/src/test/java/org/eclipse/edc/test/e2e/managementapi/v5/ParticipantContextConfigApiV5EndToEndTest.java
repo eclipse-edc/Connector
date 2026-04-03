@@ -21,10 +21,8 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
-import org.eclipse.edc.participantcontext.config.defaults.store.InMemoryParticipantContextConfigStore;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
-import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
@@ -186,9 +184,7 @@ public class ParticipantContextConfigApiV5EndToEndTest {
                 .configurationProvider(Runtimes.ControlPlane::config)
                 .paramProvider(ManagementEndToEndV5TestContext.class, ManagementEndToEndV5TestContext::forContext)
                 .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
-                .build()
-                // TODO remove this we currently hardcode this to override SingleParticipantContextConfigStore
-                .registerServiceMock(ParticipantContextConfigStore.class, new InMemoryParticipantContextConfigStore());
+                .build();
     }
 
     @Nested
@@ -215,14 +211,12 @@ public class ParticipantContextConfigApiV5EndToEndTest {
                 .name(Runtimes.ControlPlane.NAME)
                 .modules(Runtimes.ControlPlane.VIRTUAL_MODULES)
                 .modules(Runtimes.ControlPlane.SQL_MODULES)
+                .modules(Runtimes.ControlPlane.VIRTUAL_SQL_MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)
                 .configurationProvider(() -> POSTGRES_EXTENSION.configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
                 .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .paramProvider(ManagementEndToEndV5TestContext.class, ManagementEndToEndV5TestContext::forContext)
-                .build()
-                // TODO remove this we currently hardcode this to override SingleParticipantContextConfigStore
-                .registerServiceMock(ParticipantContextConfigStore.class, new InMemoryParticipantContextConfigStore());
-
+                .build();
     }
 }
