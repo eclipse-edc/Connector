@@ -24,6 +24,7 @@ dependencies {
     testFixturesApi(project(":spi:control-plane:contract-spi"))
     testFixturesApi(project(":core:common:lib:util-lib"))
     testFixturesApi(project(":core:common:lib:json-ld-lib"))
+    testFixturesApi(testFixtures(project(":extensions:common:auth:auth-authentication-oauth2-lib")))
 
     testFixturesImplementation(libs.restAssured)
     testFixturesImplementation(libs.awaitility)

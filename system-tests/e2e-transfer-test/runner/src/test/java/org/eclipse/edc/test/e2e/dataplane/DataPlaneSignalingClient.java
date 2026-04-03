@@ -86,11 +86,9 @@ public class DataPlaneSignalingClient {
     }
 
     public JsonObject getDataPlaneRegistrationMessage(JsonObject authorizationProfile) {
-        var dataflowsEndpoint = context.getEndpoint("default").get() + "/v1/dataflows";
-
         var builder = createObjectBuilder()
                 .add("dataplaneId", dataPlaneId())
-                .add("endpoint", dataflowsEndpoint)
+                .add("endpoint", getDataFlowsEndpoint())
                 .add("transferTypes", createArrayBuilder()
                         .add("Finite-PUSH")
                         .add("Finite-PULL")
@@ -109,5 +107,9 @@ public class DataPlaneSignalingClient {
 
     public String dataPlaneId() {
         return context.getConfig().getString("dataplane.id");
+    }
+
+    public String getDataFlowsEndpoint() {
+        return context.getEndpoint("default").get() + "/v1/dataflows";
     }
 }

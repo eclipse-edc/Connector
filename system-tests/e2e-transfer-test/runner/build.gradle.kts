@@ -20,6 +20,7 @@ dependencies {
     testImplementation(project(":spi:control-plane:transfer-spi"))
     testImplementation(project(":spi:common:cel-spi"))
     testImplementation(project(":spi:data-plane:data-plane-spi"))
+    testImplementation(project(":spi:data-plane-selector:data-plane-selector-spi"))
     testImplementation(project(":extensions:common:sql:sql-core"))
     testImplementation(project(":extensions:common:transaction:transaction-local"))
 
@@ -27,6 +28,7 @@ dependencies {
     testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":core:common:lib:http-lib")))
+    testImplementation(testFixtures(project(":core:common:lib:nats-lib")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
     testImplementation(testFixtures(project(":extensions:control-plane:api:management-api:management-api-test-fixtures")))
     testImplementation(project(":extensions:common:json-ld"))
@@ -38,7 +40,9 @@ dependencies {
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.kafka)
     testImplementation(libs.testcontainers.postgres)
-    testImplementation(libs.wiremock)
+    testImplementation(libs.wiremock) {
+        exclude("com.networknt", "json-schema-validator")
+    }
     testImplementation(libs.nimbus.jwt)
 
     testCompileOnly(project(":system-tests:e2e-transfer-test:control-plane"))
