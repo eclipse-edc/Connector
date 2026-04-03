@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema;
 
+import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.postgres.ContractAgreementMapping;
+import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.postgres.ContractNegotiationMapping;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.translation.SqlOperatorTranslator;
@@ -53,49 +55,6 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
     }
 
     @Override
-    public String getUpdateNegotiationTemplate() {
-        return executeStatement()
-                .column(getStateColumn())
-                .column(getStateCountColumn())
-                .column(getStateTimestampColumn())
-                .column(getErrorDetailColumn())
-                .jsonColumn(getContractOffersColumn())
-                .jsonColumn(getCallbackAddressesColumn())
-                .jsonColumn(getTraceContextColumn())
-                .column(getContractAgreementIdFkColumn())
-                .column(getUpdatedAtColumn())
-                .column(getPendingColumn())
-                .column(getCorrelationIdColumn())
-                .jsonColumn(getProtocolMessagesColumn())
-                .update(getContractNegotiationTable(), getIdColumn());
-    }
-
-    @Override
-    public String getInsertNegotiationTemplate() {
-        return executeStatement()
-                .column(getIdColumn())
-                .column(getCorrelationIdColumn())
-                .column(getCounterPartyIdColumn())
-                .column(getCounterPartyAddressColumn())
-                .column(getTypeColumn())
-                .column(getProtocolColumn())
-                .column(getStateColumn())
-                .column(getStateCountColumn())
-                .column(getStateTimestampColumn())
-                .column(getErrorDetailColumn())
-                .column(getContractAgreementIdFkColumn())
-                .jsonColumn(getContractOffersColumn())
-                .jsonColumn(getCallbackAddressesColumn())
-                .jsonColumn(getTraceContextColumn())
-                .column(getCreatedAtColumn())
-                .column(getUpdatedAtColumn())
-                .column(getPendingColumn())
-                .jsonColumn(getProtocolMessagesColumn())
-                .column(getParticipantContextIdColumn())
-                .insertInto(getContractNegotiationTable());
-    }
-
-    @Override
     public String getDeleteTemplate() {
         return executeStatement()
                 .delete(getContractNegotiationTable(), equalTo(getIdColumn()), isNull(getContractAgreementIdFkColumn()));
@@ -128,7 +87,6 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
 
     @Override
     public String getSelectFromAgreementsTemplate() {
-        // todo: add WHERE ... AND ... ORDER BY... statements here
         return format("SELECT * FROM %s", getContractAgreementTable());
     }
 
@@ -143,6 +101,7 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
                 .jsonColumn(getPolicyColumn())
                 .column(getAgreementParticipantContextIdColumn())
                 .column(getContractAgreementContractIdColumn())
+                .jsonColumn(getClaimsColumn())
                 .upsertInto(getContractAgreementTable(), getContractAgreementIdColumn());
     }
 
@@ -153,15 +112,14 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
 
     @Override
     public SqlQueryStatement createNegotiationsQuery(QuerySpec querySpec) {
-        // for generic SQL, only the limit and offset fields are used!
-        var sql = getSelectNegotiationsTemplate();
-        return new SqlQueryStatement(sql, querySpec.getLimit(), querySpec.getOffset());
+        var selectStmt = getSelectNegotiationsTemplate();
+        return new SqlQueryStatement(selectStmt, querySpec, new ContractNegotiationMapping(this), operatorTranslator);
     }
 
     @Override
     public SqlQueryStatement createNegotiationNextNotLeaseQuery(QuerySpec querySpec) {
         var queryTemplate = "%s LEFT JOIN %s l ON %s.%s = l.%s".formatted(getSelectNegotiationsTemplate(), leaseStatements.getLeaseTableName(), getContractNegotiationTable(), getIdColumn(), leaseStatements.getResourceIdColumn());
-        return new SqlQueryStatement(queryTemplate, querySpec.getLimit(), querySpec.getOffset())
+        return new SqlQueryStatement(queryTemplate, querySpec, new ContractNegotiationMapping(this), operatorTranslator)
                 .addWhereClause(getNotLeasedFilter(), clock.millis(), getContractNegotiationTable());
     }
 
@@ -172,9 +130,8 @@ public class BaseSqlDialectStatements implements ContractNegotiationStatements {
 
     @Override
     public SqlQueryStatement createAgreementsQuery(QuerySpec querySpec) {
-        // for generic SQL, only the limit and offset fields are used!
-        var sql = "SELECT * FROM " + getContractAgreementTable();
-        return new SqlQueryStatement(sql, querySpec.getLimit(), querySpec.getOffset());
+        var selectStmt = getSelectFromAgreementsTemplate();
+        return new SqlQueryStatement(selectStmt, querySpec, new ContractAgreementMapping(this), operatorTranslator);
     }
 
 }

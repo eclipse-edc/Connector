@@ -28,10 +28,6 @@ public interface ContractNegotiationStatements extends StatefulEntityStatements,
 
     String getFindContractAgreementTemplate();
 
-    String getUpdateNegotiationTemplate();
-
-    String getInsertNegotiationTemplate();
-
     String getDeleteTemplate();
 
     String getUpsertNegotiationTemplate();
@@ -134,6 +130,9 @@ public interface ContractNegotiationStatements extends StatefulEntityStatements,
         return "agr_agreement_id";
     }
 
+    default String getClaimsColumn() {
+        return "claims";
+    }
 
     SqlQueryStatement createNegotiationsQuery(QuerySpec querySpec);
 

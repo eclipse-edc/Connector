@@ -11,10 +11,7 @@ CREATE TABLE IF NOT EXISTS edc_lease
 );
 
 COMMENT ON COLUMN edc_lease.leased_at IS 'posix timestamp of lease';
-
 COMMENT ON COLUMN edc_lease.lease_duration IS 'duration of lease in milliseconds';
-
-
 
 CREATE TABLE IF NOT EXISTS edc_contract_agreement
 (
@@ -30,9 +27,9 @@ CREATE TABLE IF NOT EXISTS edc_contract_agreement
     policy            JSON,
     agr_participant_context_id VARCHAR NOT NULL,
     agr_agreement_id VARCHAR NOT NULL,
+    claims            JSON,
     UNIQUE (agr_agreement_id, agr_participant_context_id)
 );
-
 
 CREATE TABLE IF NOT EXISTS edc_contract_negotiation
 (
@@ -62,11 +59,8 @@ CREATE TABLE IF NOT EXISTS edc_contract_negotiation
 );
 
 COMMENT ON COLUMN edc_contract_negotiation.agreement_id IS 'ContractAgreement serialized as JSON';
-
 COMMENT ON COLUMN edc_contract_negotiation.contract_offers IS 'List<ContractOffer> serialized as JSON';
-
 COMMENT ON COLUMN edc_contract_negotiation.trace_context IS 'Map<String,String> serialized as JSON';
-
 
 CREATE INDEX IF NOT EXISTS contract_negotiation_correlationid_index
     ON edc_contract_negotiation (correlation_id);

@@ -30,6 +30,7 @@ dependencies {
     api(project(":spi:control-plane:catalog-spi"))
 
     testImplementation(project(":core:common:junit-base"));
+    testImplementation(project(":core:common:lib:json-lib"))
     testImplementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":core:common:lib:transform-lib"))
 }

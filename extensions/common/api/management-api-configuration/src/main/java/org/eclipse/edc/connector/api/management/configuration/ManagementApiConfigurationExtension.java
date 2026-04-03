@@ -138,7 +138,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         var managementApiTransformerRegistry = transformerRegistry.forContext(MANAGEMENT_API_CONTEXT);
 
         var factory = Json.createBuilderFactory(Map.of());
-        managementApiTransformerRegistry.register(new JsonObjectFromContractAgreementTransformer(factory));
+        managementApiTransformerRegistry.register(new JsonObjectFromContractAgreementTransformer(factory, () -> typeManager.getMapper(JSON_LD)));
         managementApiTransformerRegistry.register(new JsonObjectFromDataAddressTransformer(factory, typeManager, JSON_LD));
         managementApiTransformerRegistry.register(new JsonObjectFromDataplaneMetadataTransformer(factory, () -> typeManager.getMapper(JSON_LD)));
         managementApiTransformerRegistry.register(new JsonObjectFromAssetTransformer(factory, typeManager, JSON_LD));
