@@ -16,11 +16,9 @@ package org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.sto
 
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.BaseSqlDialectStatements;
 import org.eclipse.edc.connector.controlplane.store.sql.contractnegotiation.store.schema.ContractNegotiationStatements;
-import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.sql.dialect.PostgresDialect;
 import org.eclipse.edc.sql.lease.spi.LeaseStatements;
 import org.eclipse.edc.sql.translation.PostgresqlOperatorTranslator;
-import org.eclipse.edc.sql.translation.SqlQueryStatement;
 import org.eclipse.edc.sql.translation.TranslationMapping;
 
 import java.time.Clock;
@@ -38,26 +36,6 @@ public class PostgresDialectStatements extends BaseSqlDialectStatements {
     public PostgresDialectStatements(LeaseStatements leaseStatements, Clock clock) {
         super(new PostgresqlOperatorTranslator(), leaseStatements, clock);
     }
-
-    @Override
-    public SqlQueryStatement createNegotiationsQuery(QuerySpec querySpec) {
-        var selectStmt = getSelectNegotiationsTemplate();
-        return new SqlQueryStatement(selectStmt, querySpec, new ContractNegotiationMapping(this), operatorTranslator);
-    }
-
-    @Override
-    public SqlQueryStatement createNegotiationNextNotLeaseQuery(QuerySpec querySpec) {
-        var queryTemplate = "%s LEFT JOIN %s l ON %s.%s = l.%s".formatted(getSelectNegotiationsTemplate(), leaseStatements.getLeaseTableName(), getContractNegotiationTable(), getIdColumn(), leaseStatements.getResourceIdColumn());
-        return new SqlQueryStatement(queryTemplate, querySpec, new ContractNegotiationMapping(this), operatorTranslator)
-                .addWhereClause(getNotLeasedFilter(), clock.millis(), getContractNegotiationTable());
-    }
-
-    @Override
-    public SqlQueryStatement createAgreementsQuery(QuerySpec querySpec) {
-        var selectStmt = getSelectFromAgreementsTemplate();
-        return new SqlQueryStatement(selectStmt, querySpec, new ContractAgreementMapping(this), operatorTranslator);
-    }
-
 
     /**
      * Overridable operator to convert strings to JSON. For postgres, this is the "::json" operator

@@ -14,15 +14,20 @@
 
 package org.eclipse.edc.connector.controlplane.transform.edc.contractagreement.from;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Supplier;
+
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_ASSET_ID;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_CLAIMS;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_CONSUMER_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement.CONTRACT_AGREEMENT_POLICY;
@@ -34,15 +39,17 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 public class JsonObjectFromContractAgreementTransformer extends AbstractJsonLdTransformer<ContractAgreement, JsonObject> {
     private final JsonBuilderFactory jsonFactory;
+    private final Supplier<ObjectMapper> objectMapperSupplier;
 
-    public JsonObjectFromContractAgreementTransformer(JsonBuilderFactory jsonFactory) {
+    public JsonObjectFromContractAgreementTransformer(JsonBuilderFactory jsonFactory, Supplier<ObjectMapper> objectMapperSupplier) {
         super(ContractAgreement.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
+        this.objectMapperSupplier = objectMapperSupplier;
     }
 
     @Override
     public @Nullable JsonObject transform(@NotNull ContractAgreement agreement, @NotNull TransformerContext context) {
-        return jsonFactory.createObjectBuilder()
+        JsonObjectBuilder builder = jsonFactory.createObjectBuilder()
                 .add(TYPE, CONTRACT_AGREEMENT_TYPE)
                 .add(ID, agreement.getId())
                 .add(CONTRACT_AGREEMENT_ASSET_ID, agreement.getAssetId())
@@ -50,7 +57,15 @@ public class JsonObjectFromContractAgreementTransformer extends AbstractJsonLdTr
                 .add(CONTRACT_AGREEMENT_POLICY, context.transform(agreement.getPolicy(), JsonObject.class))
                 .add(CONTRACT_AGREEMENT_SIGNING_DATE, agreement.getContractSigningDate())
                 .add(CONTRACT_AGREEMENT_CONSUMER_ID, agreement.getConsumerId())
-                .add(CONTRACT_AGREEMENT_PROVIDER_ID, agreement.getProviderId())
+                .add(CONTRACT_AGREEMENT_PROVIDER_ID, agreement.getProviderId());
+
+        if (agreement.getClaims() != null) {
+            var propBuilder = jsonFactory.createObjectBuilder();
+            transformProperties(agreement.getClaims(), propBuilder, objectMapperSupplier.get(), context);
+            builder.add(CONTRACT_AGREEMENT_CLAIMS, propBuilder);
+        }
+
+        return builder
                 .build();
     }
 }

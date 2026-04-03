@@ -22,6 +22,7 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.eclipse.edc.policy.model.Policy;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -42,6 +43,7 @@ public class ContractAgreement implements ParticipantResource {
     public static final String CONTRACT_AGREEMENT_CONSUMER_ID = EDC_NAMESPACE + "consumerId";
     public static final String CONTRACT_AGREEMENT_SIGNING_DATE = EDC_NAMESPACE + "contractSigningDate";
     public static final String CONTRACT_AGREEMENT_POLICY = EDC_NAMESPACE + "policy";
+    public static final String CONTRACT_AGREEMENT_CLAIMS = EDC_NAMESPACE + "claims";
 
     private String id;
     private String providerId;
@@ -51,6 +53,7 @@ public class ContractAgreement implements ParticipantResource {
     private Policy policy;
     private String participantContextId;
     private String agreementId;
+    private Map<String, Object> claims;
 
     private ContractAgreement() {
     }
@@ -132,6 +135,15 @@ public class ContractAgreement implements ParticipantResource {
         return participantContextId;
     }
 
+    /**
+     * Claims of the counter-party.
+     *
+     * @return the claims map;
+     */
+    public Map<String, Object> getClaims() {
+        return claims;
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(id, providerId, consumerId, contractSigningDate, assetId, policy, participantContextId, agreementId);
@@ -161,7 +173,8 @@ public class ContractAgreement implements ParticipantResource {
                 .assetId(assetId)
                 .policy(policy)
                 .participantContextId(participantContextId)
-                .agreementId(agreementId);
+                .agreementId(agreementId)
+                .claims(claims);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -179,42 +192,47 @@ public class ContractAgreement implements ParticipantResource {
         }
 
         public Builder id(String id) {
-            this.instance.id = id;
+            instance.id = id;
             return this;
         }
 
         public Builder providerId(String providerId) {
-            this.instance.providerId = providerId;
+            instance.providerId = providerId;
             return this;
         }
 
         public Builder consumerId(String consumerId) {
-            this.instance.consumerId = consumerId;
+            instance.consumerId = consumerId;
             return this;
         }
 
         public Builder contractSigningDate(long contractSigningDate) {
-            this.instance.contractSigningDate = contractSigningDate;
+            instance.contractSigningDate = contractSigningDate;
             return this;
         }
 
         public Builder assetId(String assetId) {
-            this.instance.assetId = assetId;
+            instance.assetId = assetId;
             return this;
         }
 
         public Builder policy(Policy policy) {
-            this.instance.policy = policy;
+            instance.policy = policy;
             return this;
         }
 
         public Builder participantContextId(String participantContextId) {
-            this.instance.participantContextId = participantContextId;
+            instance.participantContextId = participantContextId;
             return this;
         }
 
         public Builder agreementId(String agreementId) {
-            this.instance.agreementId = agreementId;
+            instance.agreementId = agreementId;
+            return this;
+        }
+
+        public Builder claims(Map<String, Object> claims) {
+            instance.claims = claims;
             return this;
         }
 

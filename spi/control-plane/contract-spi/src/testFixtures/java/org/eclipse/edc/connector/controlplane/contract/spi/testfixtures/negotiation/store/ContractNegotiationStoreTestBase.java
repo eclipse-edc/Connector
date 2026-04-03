@@ -40,6 +40,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -182,12 +183,15 @@ public abstract class ContractNegotiationStoreTestBase {
         }
 
         @Test
-        void shouldSave_whenAgreementExists() {
-            var agreement = createAgreement(ContractOfferId.create("definition", "asset"));
+        void shouldSaveAndRetrieve_whenAgreementExists() {
+            var agreement = TestFunctions.createAgreementBuilder(ContractOfferId.create("definition", "asset").toString())
+                    .claims(Map.of("claim", "value"))
+                    .build();
             var negotiation = createNegotiation("test-negotiation", agreement);
-            getContractNegotiationStore().save(negotiation);
 
+            getContractNegotiationStore().save(negotiation);
             var actual = getContractNegotiationStore().findById(negotiation.getId());
+
             assertThat(actual)
                     .isNotNull()
                     .usingRecursiveComparison()
@@ -756,6 +760,23 @@ public abstract class ContractNegotiationStoreTestBase {
             assertThat(all).hasSize(1);
         }
 
+        @Test
+        void filterByClaim() {
+            range(0, 10).mapToObj(i -> "value-" + i).forEach(claim -> {
+                var contractId = ContractOfferId.create(UUID.randomUUID().toString(), "asset").toString();
+                var contractAgreement = createAgreementBuilder(contractId).assetId("asset")
+                        .claims(Map.of("key", claim)).build();
+                var negotiation = createNegotiation(UUID.randomUUID().toString(), contractAgreement);
+                getContractNegotiationStore().save(negotiation);
+            });
+
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(criterion("claims.key", "=", "value-2"))
+                    .build();
+            var all = getContractNegotiationStore().queryAgreements(query);
+
+            assertThat(all).hasSize(1);
+        }
     }
 
     @Nested

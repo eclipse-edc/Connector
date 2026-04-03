@@ -94,7 +94,7 @@ public class ContractNegotiationApiV5Extension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectToTerminateNegotiationCommandTransformer());
         managementApiTransformerRegistry.register(new JsonObjectFromContractNegotiationTransformer(factory));
         managementApiTransformerRegistry.register(new JsonObjectFromNegotiationStateTransformer(factory));
-        managementApiTransformerRegistry.register(new JsonObjectFromContractAgreementTransformer(factory));
+        managementApiTransformerRegistry.register(new JsonObjectFromContractAgreementTransformer(factory, () -> typeManager.getMapper(JSON_LD)));
 
         authorizationService.addLookupFunction(ContractNegotiation.class, this::findContractNegotiation);
 

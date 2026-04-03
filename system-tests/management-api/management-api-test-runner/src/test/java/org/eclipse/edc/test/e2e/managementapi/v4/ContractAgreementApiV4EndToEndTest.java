@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -79,13 +80,22 @@ public class ContractAgreementApiV4EndToEndTest {
 
         @Test
         void getById(ManagementEndToEndTestContext context, ContractNegotiationStore store) {
-            var agreement = createContractAgreement("cn1");
+            var agreement = ContractAgreement.Builder.newInstance()
+                    .id("cn1")
+                    .assetId(UUID.randomUUID().toString())
+                    .consumerId(UUID.randomUUID() + "-consumer")
+                    .providerId(UUID.randomUUID() + "-provider")
+                    .policy(Policy.Builder.newInstance().assignee("assignee").assigner("assigner").build())
+                    .participantContextId("participantContextId")
+                    .claims(Map.of("http://example.com/key", "value"))
+                    .build();
             store.save(createContractNegotiationBuilder("cn1").contractAgreement(agreement).build());
 
             context.baseRequest()
                     .contentType(JSON)
                     .get("/v4beta/contractagreements/cn1")
                     .then()
+                    .log().ifValidationFails()
                     .statusCode(200)
                     .contentType(JSON)
                     .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
@@ -93,8 +103,9 @@ public class ContractAgreementApiV4EndToEndTest {
                     .body(ID, is(agreement.getId()))
                     .body("agreementId", is(agreement.getAgreementId()))
                     .body("assetId", notNullValue())
-                    .body("policy.assignee", is(agreement.getPolicy().getAssignee()))
-                    .body("policy.assigner", is(agreement.getPolicy().getAssigner()));
+                    .body("policy.assignee", is("assignee"))
+                    .body("policy.assigner", is("assigner"))
+                    .body("claims.'http://example.com/key'", is("value"));
 
         }
 

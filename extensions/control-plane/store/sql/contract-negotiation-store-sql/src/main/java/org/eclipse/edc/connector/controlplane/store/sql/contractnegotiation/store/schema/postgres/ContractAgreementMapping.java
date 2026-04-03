@@ -23,26 +23,17 @@ import org.eclipse.edc.sql.translation.TranslationMapping;
  * Maps fields of a {@link ContractAgreement} onto
  * the corresponding SQL schema (= column names)
  */
-class ContractAgreementMapping extends TranslationMapping {
+public class ContractAgreementMapping extends TranslationMapping {
 
-
-    public static final String FIELD_PARTICIPANT_CONTEXT_ID = "participantContextId";
-    private static final String FIELD_ID = "id";
-    private static final String FIELD_AGREEMENT_ID = "agreementId";
-    private static final String FIELD_PROVIDER_AGENT_ID = "providerId";
-    private static final String FIELD_CONSUMER_AGENT_ID = "consumerId";
-    private static final String FIELD_CONTRACT_SIGNING_DATE = "contractSigningDate";
-    private static final String FIELD_ASSET_ID = "assetId";
-    private static final String FIELD_POLICY = "policy";
-
-    ContractAgreementMapping(ContractNegotiationStatements statements) {
-        add(FIELD_ID, statements.getContractAgreementIdColumn());
-        add(FIELD_PROVIDER_AGENT_ID, statements.getProviderAgentColumn());
-        add(FIELD_CONSUMER_AGENT_ID, statements.getConsumerAgentColumn());
-        add(FIELD_CONTRACT_SIGNING_DATE, statements.getSigningDateColumn());
-        add(FIELD_ASSET_ID, statements.getAssetIdColumn());
-        add(FIELD_POLICY, new JsonFieldTranslator("policy"));
-        add(FIELD_PARTICIPANT_CONTEXT_ID, statements.getAgreementParticipantContextIdColumn());
-        add(FIELD_AGREEMENT_ID, statements.getContractAgreementContractIdColumn());
+    public ContractAgreementMapping(ContractNegotiationStatements statements) {
+        add("id", statements.getContractAgreementIdColumn());
+        add("providerId", statements.getProviderAgentColumn());
+        add("consumerId", statements.getConsumerAgentColumn());
+        add("contractSigningDate", statements.getSigningDateColumn());
+        add("assetId", statements.getAssetIdColumn());
+        add("policy", new JsonFieldTranslator(statements.getPolicyColumn()));
+        add("participantContextId", statements.getAgreementParticipantContextIdColumn());
+        add("agreementId", statements.getContractAgreementContractIdColumn());
+        add("claims", new JsonFieldTranslator(statements.getClaimsColumn()));
     }
 }

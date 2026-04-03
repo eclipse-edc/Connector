@@ -163,8 +163,9 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     public ServiceResult<ContractNegotiation> notifyAgreed(ParticipantContext participantContext, ContractAgreementMessage message, TokenRepresentation tokenRepresentation) {
         return transactionContext.execute(() -> getNegotiation(participantContext, message.getProcessId())
                 .compose(contractNegotiation -> verifyRequest(participantContext, tokenRepresentation, contractNegotiation.getLastContractOffer().getPolicy(), message)
-                        .compose(agent -> validateAgreed(message, agent, contractNegotiation)))
-                .compose(cn -> onMessageDo(participantContext, message, contractNegotiation -> agreedAction(message, contractNegotiation))));
+                        .compose(agent -> validateAgreed(message, agent, contractNegotiation))
+                )
+                .compose(agent -> onMessageDo(participantContext, message, negotiation -> agreedAction(message, negotiation, agent))));
     }
 
     @Override
@@ -266,16 +267,16 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     }
 
     @NotNull
-    private ServiceResult<ContractNegotiation> validateAgreed(ContractAgreementMessage message, ParticipantAgent agent, ContractNegotiation negotiation) {
+    private ServiceResult<ParticipantAgent> validateAgreed(ContractAgreementMessage message, ParticipantAgent agent, ContractNegotiation negotiation) {
         var agreement = message.getContractAgreement();
         var result = validationService.validateConfirmed(agent, agreement, negotiation.getLastContractOffer());
         if (result.failed()) {
             var msg = "Contract agreement received. Validation failed: " + result.getFailureDetail();
             monitor.debug("[Consumer] " + msg);
             return ServiceResult.badRequest(msg);
-        } else {
-            return ServiceResult.success(negotiation);
         }
+
+        return ServiceResult.success(agent);
     }
 
     @NotNull
@@ -302,11 +303,12 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     }
 
     @NotNull
-    private ServiceResult<ContractNegotiation> agreedAction(ContractAgreementMessage message, ContractNegotiation negotiation) {
+    private ServiceResult<ContractNegotiation> agreedAction(ContractAgreementMessage message, ContractNegotiation negotiation, ParticipantAgent agent) {
         if (negotiation.getType().equals(CONSUMER) && negotiation.canBeAgreedConsumer()) {
 
             var agreement = message.getContractAgreement().toBuilder()
                     .participantContextId(negotiation.getParticipantContextId())
+                    .claims(agent.getClaims())
                     .build();
 
             negotiation.protocolMessageReceived(message.getId());

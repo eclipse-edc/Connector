@@ -128,7 +128,8 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                             contractAgreement.getAssetId(),
                             toJson(contractAgreement.getPolicy()),
                             contractAgreement.getParticipantContextId(),
-                            contractAgreement.getAgreementId()
+                            contractAgreement.getAgreementId(),
+                            toJson(contractAgreement.getClaims())
                     );
                 }
 
@@ -261,6 +262,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 .policy(fromJson(resultSet.getString(statements.getPolicyColumn()), Policy.class))
                 .participantContextId(resultSet.getString(statements.getAgreementParticipantContextIdColumn()))
                 .agreementId(resultSet.getString(statements.getContractAgreementContractIdColumn()))
+                .claims(fromJson(resultSet.getString(statements.getClaimsColumn())))
                 .build();
     }
 
@@ -269,14 +271,14 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
     }
 
     private ResultSetMapper<ContractNegotiation> contractNegotiationWithAgreementMapper(Connection connection) {
-        return (resultSet -> mapContractNegotiation(resultSet, rs -> {
+        return resultSet -> mapContractNegotiation(resultSet, rs -> {
             var agreementId = rs.getString(statements.getContractAgreementIdFkColumn());
             if (agreementId == null) {
                 return null;
             } else {
                 return findContractAgreementInternal(connection, agreementId);
             }
-        }));
+        });
     }
 
     private ContractNegotiation mapContractNegotiation(ResultSet resultSet, ResultSetMapper<ContractAgreement> agreementMapper) throws Exception {
@@ -297,7 +299,6 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 .errorDetail(resultSet.getString(statements.getErrorDetailColumn()))
                 .traceContext(fromJson(resultSet.getString(statements.getTraceContextColumn()), new TypeReference<>() {
                 }))
-                // will throw an exception if the value is outside the Type.values() range
                 .type(ContractNegotiation.Type.valueOf(resultSet.getString(statements.getTypeColumn())))
                 .createdAt(resultSet.getLong(statements.getCreatedAtColumn()))
                 .updatedAt(resultSet.getLong(statements.getUpdatedAtColumn()))

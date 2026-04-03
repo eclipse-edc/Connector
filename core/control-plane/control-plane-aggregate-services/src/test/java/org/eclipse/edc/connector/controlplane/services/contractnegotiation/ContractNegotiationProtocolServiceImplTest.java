@@ -49,6 +49,7 @@ import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -57,14 +58,17 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.support.ParameterDeclarations;
 import org.mockito.ArgumentCaptor;
 
 import java.time.Instant;
-import java.util.Collections;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTED;
@@ -150,44 +154,55 @@ class ContractNegotiationProtocolServiceImplTest {
         verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
     }
 
-    @Test
-    void notifyAgreed_shouldTransitionToAgreed() {
-        var negotiationConsumerRequested = createContractNegotiationRequested();
-        var participantAgent = participantAgent();
-        var tokenRepresentation = tokenRepresentation();
+    @Nested
+    class NotifyAgreed {
 
-        var contractAgreement = ContractAgreement.Builder.newInstance()
-                .providerId("providerId")
-                .consumerId("consumerId")
-                .assetId("assetId")
-                .policy(Policy.Builder.newInstance().build())
-                .participantContextId("participantContextId")
-                .build();
-        var message = ContractAgreementMessage.Builder.newInstance()
-                .protocol("protocol")
-                .counterPartyAddress("http://any")
-                .processId("processId")
-                .consumerPid("consumerPid")
-                .providerPid("providerPid")
-                .contractAgreement(contractAgreement)
-                .build();
+        @Test
+        void shouldTransitionToAgreed() {
+            var negotiationConsumerRequested = createContractNegotiationRequested();
+            var participantAgent = new ParticipantAgent("counterPartyId", Map.of("claim", "value"), emptyMap());
+            var tokenRepresentation = tokenRepresentation();
 
-        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-        when(store.findById(any())).thenReturn(negotiationConsumerRequested);
-        when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiationConsumerRequested));
-        when(validationService.validateConfirmed(eq(participantAgent), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.success());
+            var contractAgreement = ContractAgreement.Builder.newInstance()
+                    .providerId("providerId")
+                    .consumerId("consumerId")
+                    .assetId("assetId")
+                    .policy(Policy.Builder.newInstance().build())
+                    .participantContextId("participantContextId")
+                    .build();
+            var message = ContractAgreementMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .counterPartyAddress("http://any")
+                    .processId("processId")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .contractAgreement(contractAgreement)
+                    .build();
 
-        var result = service.notifyAgreed(participantContext, message, tokenRepresentation);
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById(any())).thenReturn(negotiationConsumerRequested);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiationConsumerRequested));
+            when(validationService.validateConfirmed(eq(participantAgent), eq(contractAgreement), any(ContractOffer.class))).thenReturn(Result.success());
 
-        assertThat(result).isSucceeded();
-        verify(store).findById("processId");
-        verify(store).findByIdAndLease("processId");
-        verify(store).save(argThat(negotiation ->
-                negotiation.getState() == AGREED.code() && negotiation.getContractAgreement().equals(contractAgreement)
-        ));
-        verify(validationService).validateConfirmed(eq(participantAgent), eq(contractAgreement), any(ContractOffer.class));
-        verify(listener).agreed(any());
-        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+            var result = service.notifyAgreed(participantContext, message, tokenRepresentation);
+
+            assertThat(result).isSucceeded();
+            verify(store).findById("processId");
+            verify(store).findByIdAndLease("processId");
+            ArgumentCaptor<ContractNegotiation> negotiationCaptor = ArgumentCaptor.forClass(ContractNegotiation.class);
+            verify(store).save(negotiationCaptor.capture());
+            ContractNegotiation storedNegotiation = negotiationCaptor.getValue();
+            assertThat(storedNegotiation.stateAsString()).isEqualTo(AGREED.name());
+            assertThat(storedNegotiation.getContractAgreement()).satisfies(storedAgreement -> {
+                assertThat(storedAgreement.getProviderId()).isEqualTo("providerId");
+                assertThat(storedAgreement.getConsumerId()).isEqualTo("consumerId");
+                assertThat(storedAgreement.getClaims()).hasSize(1).containsExactly(entry("claim", "value"));
+            });
+            verify(validationService).validateConfirmed(eq(participantAgent), eq(contractAgreement), any(ContractOffer.class));
+            verify(listener).agreed(any());
+            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+        }
+
     }
 
     @Test
@@ -433,7 +448,7 @@ class ContractNegotiationProtocolServiceImplTest {
 
 
     private ParticipantAgent participantAgent() {
-        return new ParticipantAgent("counterPartyId", Collections.emptyMap(), Collections.emptyMap());
+        return new ParticipantAgent("counterPartyId", emptyMap(), emptyMap());
     }
 
     private ContractNegotiation createContractNegotiationRequested() {
@@ -501,7 +516,7 @@ class ContractNegotiationProtocolServiceImplTest {
     private static class NotifyArguments implements ArgumentsProvider {
 
         @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext extensionContext) {
+        public @NonNull Stream<? extends Arguments> provideArguments(@NonNull ParameterDeclarations parameters, @NonNull ExtensionContext context) {
             MethodCall<ContractRequestMessage> requested = ContractNegotiationProtocolService::notifyRequested;
             MethodCall<ContractOfferMessage> offered = ContractNegotiationProtocolService::notifyOffered;
             MethodCall<ContractAgreementMessage> agreed = ContractNegotiationProtocolService::notifyAgreed;
