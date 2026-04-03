@@ -215,7 +215,8 @@
         "consumerId": "edc:consumerId",
         "assetId": "edc:assetId",
         "agreementId": "edc:agreementId",
-        "contractSigningDate": "edc:contractSigningDate"
+        "contractSigningDate": "edc:contractSigningDate",
+        "claims": "edc:claims"
       }
     },
     "TransferRequest": {
