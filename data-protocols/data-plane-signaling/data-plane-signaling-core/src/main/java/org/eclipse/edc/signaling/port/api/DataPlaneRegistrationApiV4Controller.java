@@ -26,8 +26,6 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.AuthorizationPr
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.signaling.domain.DataPlaneRegistrationMessage;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -47,12 +45,12 @@ public class DataPlaneRegistrationApiV4Controller implements DataPlaneRegistrati
     @PUT
     @Override
     public Response register(DataPlaneRegistrationMessage registration) {
-        toAuthorizationProfiles(registration.authorization());
+        toAuthorizationProfile(registration.authorization());
         var dataPlaneInstance = DataPlaneInstance.Builder.newInstance()
                 .id(registration.dataplaneId())
                 .url(registration.endpoint())
                 .allowedTransferType(registration.transferTypes())
-                .authorizationProfiles(toAuthorizationProfiles(registration.authorization()))
+                .authorizationProfile(toAuthorizationProfile(registration.authorization()))
                 .build();
 
         dataPlaneSelectorService.register(dataPlaneInstance)
@@ -71,14 +69,12 @@ public class DataPlaneRegistrationApiV4Controller implements DataPlaneRegistrati
         return Response.ok().build();
     }
 
-    private List<AuthorizationProfile> toAuthorizationProfiles(List<Map<String, Object>> authorization) {
+    private AuthorizationProfile toAuthorizationProfile(Map<String, Object> authorization) {
         if (authorization == null) {
-            return Collections.emptyList();
+            return null;
         }
 
-        return authorization.stream()
-                .map(map -> new AuthorizationProfile((String) map.get("type"), map))
-                .toList();
+        return new AuthorizationProfile((String) authorization.get("type"), authorization);
     }
 
 }

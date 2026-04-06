@@ -132,11 +132,10 @@ public class DataPlaneSignalingClient {
     }
 
     private Result<Request.Builder> setupAuthorization(Request.Builder requestBuilder) {
-        var profiles = dataPlane.getAuthorizationProfiles();
-        if (profiles.isEmpty()) {
+        var authorizationProfile = dataPlane.getAuthorizationProfile();
+        if (authorizationProfile == null) {
             return Result.success(requestBuilder);
         }
-        var authorizationProfile = profiles.get(0);
         var authorization = authorizationRegistry.findByType(authorizationProfile.type());
         if (authorization == null) {
             return Result.failure("Authorization %s not supported".formatted(authorizationProfile.type()));

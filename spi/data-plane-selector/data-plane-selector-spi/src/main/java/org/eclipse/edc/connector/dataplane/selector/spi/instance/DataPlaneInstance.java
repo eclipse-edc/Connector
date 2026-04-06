@@ -25,11 +25,9 @@ import org.jetbrains.annotations.Nullable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -71,7 +69,7 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
     private URL url;
     private String participantContextId;
     private final Set<String> labels = new HashSet<>();
-    private final List<AuthorizationProfile> authorizationProfiles = new ArrayList<>();
+    private AuthorizationProfile authorizationProfile;
 
     private DataPlaneInstance() {
     }
@@ -93,7 +91,7 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
                 .destinationProvisionTypes(destinationProvisionTypes)
                 .participantContextId(participantContextId)
                 .labels(labels)
-                .authorizationProfiles(authorizationProfiles);
+                .authorizationProfile(authorizationProfile);
 
         return copy(builder);
     }
@@ -160,8 +158,8 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
         return labels;
     }
 
-    public List<AuthorizationProfile> getAuthorizationProfiles() {
-        return authorizationProfiles;
+    public AuthorizationProfile getAuthorizationProfile() {
+        return authorizationProfile;
     }
 
     @Override
@@ -288,12 +286,7 @@ public class DataPlaneInstance extends StatefulEntity<DataPlaneInstance> impleme
         }
 
         public Builder authorizationProfile(AuthorizationProfile authorizationProfile) {
-            entity.authorizationProfiles.add(authorizationProfile);
-            return this;
-        }
-
-        public Builder authorizationProfiles(List<AuthorizationProfile> authorizationProfiles) {
-            entity.authorizationProfiles.addAll(authorizationProfiles);
+            entity.authorizationProfile = authorizationProfile;
             return this;
         }
 

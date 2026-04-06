@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.signaling.domain;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,6 +22,6 @@ public record DataPlaneRegistrationMessage(
         String endpoint,
         Set<String> transferTypes,
         Set<String> labels,
-        List<Map<String, Object>> authorization
+        Map<String, Object> authorization
 ) {
 }
