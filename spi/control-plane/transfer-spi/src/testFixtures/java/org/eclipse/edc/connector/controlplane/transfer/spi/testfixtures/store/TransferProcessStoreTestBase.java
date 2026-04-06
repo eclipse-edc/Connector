@@ -39,6 +39,7 @@ import java.util.UUID;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.testfixtures.store.TestFunctions.createTransferProcess;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
@@ -91,6 +92,7 @@ public abstract class TransferProcessStoreTestBase {
                     .callbackAddresses(callbacks)
                     .dataplaneMetadata(dataplaneMetadata)
                     .dataAddressAlias("dataAddressAlias")
+                    .claims(Map.of("claim", "value"))
                     .build();
             getTransferProcessStore().save(transferProcess);
 
@@ -102,6 +104,7 @@ public abstract class TransferProcessStoreTestBase {
             assertThat(retrieved.getDataPlaneId()).isEqualTo("dataPlaneId");
             assertThat(retrieved.getDataplaneMetadata()).usingRecursiveComparison().isEqualTo(dataplaneMetadata);
             assertThat(retrieved.getCallbackAddresses()).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsAll(callbacks);
+            assertThat(retrieved.getClaims()).hasSize(1).contains(entry("claim", "value"));
         }
 
         @Test
@@ -521,6 +524,22 @@ public abstract class TransferProcessStoreTestBase {
                     .build();
 
             var result = getTransferProcessStore().findAll(query).toList();
+            assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(tp);
+        }
+
+        @Test
+        void queryByClaim() {
+            var tp = TestFunctions.createTransferProcessBuilder("testprocess1")
+                    .participantContextId("customParticipantContextId").state(800)
+                    .claims(Map.of("claim", "value"))
+                    .build();
+            getTransferProcessStore().save(tp);
+            var query = QuerySpec.Builder.newInstance()
+                    .filter(criterion("claims.claim", "=", "value"))
+                    .build();
+
+            var result = getTransferProcessStore().findAll(query);
+
             assertThat(result).hasSize(1).usingRecursiveFieldByFieldElementComparator().containsExactly(tp);
         }
 

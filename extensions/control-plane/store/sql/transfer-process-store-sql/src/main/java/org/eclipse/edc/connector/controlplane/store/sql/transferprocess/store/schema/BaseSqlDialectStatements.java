@@ -68,6 +68,7 @@ public class BaseSqlDialectStatements implements TransferProcessStoreStatements 
                 .column(getParticipantContextIdColumn())
                 .jsonColumn(getDataplaneMetadataColumn())
                 .column(getDataAddressAliasColumn())
+                .jsonColumn(getClaimsColumn())
                 .upsertInto(getTransferProcessTableName(), getIdColumn());
     }
 

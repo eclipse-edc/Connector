@@ -111,7 +111,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     private String dataPlaneId;
     private String participantContextId;
     private DataplaneMetadata dataplaneMetadata;
-
+    private Map<String, Object> claims;
 
     private TransferProcess() {
     }
@@ -151,6 +151,15 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     @Override
     public String getParticipantContextId() {
         return participantContextId;
+    }
+
+    /**
+     * Claims of the counter-party.
+     *
+     * @return the claims map;
+     */
+    public Map<String, Object> getClaims() {
+        return claims;
     }
 
     public void lastSentProtocolMessage(String id) {
@@ -388,7 +397,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
                 .dataPlaneId(dataPlaneId)
                 .participantContextId(participantContextId)
                 .dataplaneMetadata(dataplaneMetadata)
-                .dataAddressAlias(dataAddressAlias);
+                .dataAddressAlias(dataAddressAlias)
+                .claims(claims);
         return copy(builder);
     }
 
@@ -557,6 +567,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
 
         public Builder dataplaneMetadata(DataplaneMetadata dataplaneMetadata) {
             entity.dataplaneMetadata = dataplaneMetadata;
+            return this;
+        }
+
+        public Builder claims(Map<String, Object> claims) {
+            entity.claims = claims;
             return this;
         }
 

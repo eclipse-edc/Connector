@@ -19,11 +19,15 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
+import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
@@ -42,13 +46,16 @@ class TransferProcessProviderFactoryTest {
         var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().build();
         when(assetIndex.findById("assetId")).thenReturn(Asset.Builder.newInstance().id("assetId").dataplaneMetadata(dataplaneMetadata).build());
         var contractAgreement = createAgreementBuilder().assetId("assetId").build();
+        Map<String, Object> claims = Map.of("claim", "value");
+        var participantAgent = new ParticipantAgent("id", claims, emptyMap());
 
-        var result = factory.create(createParticipantContext("participantContextId"), createMessage(), contractAgreement);
+        var result = factory.create(createParticipantContext("participantContextId"), createMessage(), contractAgreement, participantAgent);
 
         assertThat(result).isSucceeded().satisfies(transferProcess -> {
             assertThat(transferProcess.getId()).isNotBlank();
             assertThat(transferProcess.getParticipantContextId()).isEqualTo("participantContextId");
             assertThat(transferProcess.getDataplaneMetadata()).isSameAs(dataplaneMetadata);
+            assertThat(transferProcess.getClaims()).isSameAs(claims);
         });
         verify(assetIndex).findById("assetId");
     }
@@ -57,8 +64,10 @@ class TransferProcessProviderFactoryTest {
     void shouldReturnError_whenAssetNotFound() {
         when(assetIndex.findById(any())).thenReturn(null);
         var contractAgreement = createAgreementBuilder().assetId("assetId").build();
+        var participantAgent = new ParticipantAgent("id", emptyMap(), emptyMap());
+        var participantContext = createParticipantContext("participantContextId");
 
-        var result = factory.create(createParticipantContext("participantContextId"), createMessage(), contractAgreement);
+        var result = factory.create(participantContext, createMessage(), contractAgreement, participantAgent);
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
     }

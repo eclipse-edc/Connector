@@ -142,7 +142,8 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                         toJson(entity.getDataDestination()),
                         entity.getParticipantContextId(),
                         toJson(entity.getDataplaneMetadata()),
-                        entity.getDataAddressAlias());
+                        entity.getDataAddressAlias(),
+                        toJson(entity.getClaims()));
 
                 return leaseContext.withConnection(conn).breakLease(entity.getId());
             } catch (SQLException e) {
@@ -232,13 +233,9 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
     @Nullable
     private <T> T single(List<T> list) {
         if (list.size() > 1) {
-            throw new IllegalStateException(getMultiplicityError(1, list.size()));
+            throw new IllegalStateException(String.format("Expected to find %d items, but found %d", 1, list.size()));
         }
         return list.isEmpty() ? null : list.get(0);
-    }
-
-    private String getMultiplicityError(int expectedSize, int actualSize) {
-        return format("Expected to find %d items, but found %d", expectedSize, actualSize);
     }
 
     private TransferProcess mapTransferProcess(ResultSet resultSet) throws SQLException {
@@ -269,6 +266,7 @@ public class SqlTransferProcessStore extends AbstractSqlStore implements Transfe
                 .participantContextId(resultSet.getString(statements.getParticipantContextIdColumn()))
                 .dataplaneMetadata(fromJson(resultSet.getString(statements.getDataplaneMetadataColumn()), DataplaneMetadata.class))
                 .dataAddressAlias(resultSet.getString(statements.getDataAddressAliasColumn()))
+                .claims(fromJson(resultSet.getString(statements.getClaimsColumn()), getTypeRef()))
                 .build();
     }
 

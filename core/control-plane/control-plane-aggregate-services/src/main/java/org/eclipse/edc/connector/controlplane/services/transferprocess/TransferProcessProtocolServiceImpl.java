@@ -103,7 +103,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         return transactionContext.execute(() -> fetchNotifyRequestContext(participantContext, message)
                 .compose(context -> verifyRequest(participantContext, tokenRepresentation, context, message))
                 .compose(context -> validateRequestMessage(message, context))
-                .compose(context -> requestedAction(participantContext, message, context.agreement())));
+                .compose(context -> requestedAction(participantContext, message, context)));
     }
 
     @Override
@@ -159,13 +159,13 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     }
 
     @NotNull
-    private ServiceResult<TransferProcess> requestedAction(ParticipantContext participantContext, TransferRequestMessage message, ContractAgreement contractAgreement) {
+    private ServiceResult<TransferProcess> requestedAction(ParticipantContext participantContext, TransferRequestMessage message, ClaimTokenContext claimTokenContext) {
         var existingTransferProcess = transferProcessStore.findForCorrelationId(message.getConsumerPid());
         if (existingTransferProcess != null) {
             return ServiceResult.success(existingTransferProcess);
         }
 
-        return transferProcessProviderFactory.create(participantContext, message, contractAgreement)
+        return transferProcessProviderFactory.create(participantContext, message, claimTokenContext.agreement(), claimTokenContext.participantAgent())
                 .compose(process -> {
                     var dataAddressStorage = message.getDataAddress() == null
                             ? StoreResult.success()
