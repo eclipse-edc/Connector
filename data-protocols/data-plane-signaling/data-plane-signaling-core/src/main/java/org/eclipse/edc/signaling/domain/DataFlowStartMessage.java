@@ -32,6 +32,7 @@ public final class DataFlowStartMessage {
     private DspDataAddress dataAddress;
     private List<String> labels;
     private Map<String, Object> metadata;
+    private Map<String, Object> claims;
 
     private DataFlowStartMessage() {
     }
@@ -82,6 +83,10 @@ public final class DataFlowStartMessage {
 
     public Map<String, Object> getMetadata() {
         return metadata;
+    }
+
+    public Map<String, Object> getClaims() {
+        return claims;
     }
 
     public static class Builder {
@@ -157,6 +162,11 @@ public final class DataFlowStartMessage {
 
         public Builder metadata(Map<String, Object> metadata) {
             instance.metadata = metadata;
+            return this;
+        }
+
+        public Builder claims(Map<String, Object> claims) {
+            instance.claims = claims;
             return this;
         }
 

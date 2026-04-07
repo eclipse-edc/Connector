@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowResponseMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DspDataAddress;
 import org.eclipse.edc.signaling.port.ClientFactory;
 import org.eclipse.edc.signaling.port.DataPlaneSignalingClient;
@@ -37,9 +38,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -72,7 +75,8 @@ public class DataPlaneSignalingFlowControllerTest {
         @Test
         void shouldCallPrepareOnDataPlane() {
             var dataPlaneInstance = createDataPlaneInstance();
-            var transferProcess = transferProcessBuilder().build();
+            Map<String, Object> claims = Map.of("key", "value");
+            var transferProcess = transferProcessBuilder().claims(claims).build();
             when(selectorService.selectFor(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
             var flowResponseMessage = DataFlowResponseMessage.Builder.newInstance()
@@ -86,7 +90,10 @@ public class DataPlaneSignalingFlowControllerTest {
             var result = flowController.prepare(transferProcess, policyBuilder().build());
 
             assertThat(result).isSucceeded().isSameAs(response);
-            verify(dataPlaneClient).prepare(isA(DataFlowPrepareMessage.class));
+            var captor = ArgumentCaptor.forClass(DataFlowPrepareMessage.class);
+            verify(dataPlaneClient).prepare(captor.capture());
+            var message = captor.getValue();
+            assertThat(message.getClaims()).isSameAs(claims);
         }
 
         @Test
@@ -107,7 +114,9 @@ public class DataPlaneSignalingFlowControllerTest {
         @Test
         void shouldSelectAndCallStartOnDataplane() {
             var policy = Policy.Builder.newInstance().assignee("participantId").build();
+            Map<String, Object> claims = Map.of("key", "value");
             var transferProcess = transferProcessBuilder()
+                    .claims(claims)
                     .transferType(HTTP_DATA_PULL)
                     .contentDataAddress(testDataAddress())
                     .build();
@@ -125,6 +134,10 @@ public class DataPlaneSignalingFlowControllerTest {
             var result = flowController.start(transferProcess, policy);
 
             assertThat(result).isSucceeded().isSameAs(response);
+            var captor = ArgumentCaptor.forClass(DataFlowStartMessage.class);
+            verify(dataPlaneClient).start(captor.capture());
+            var message = captor.getValue();
+            assertThat(message.getClaims()).isSameAs(claims);
         }
 
         @Test

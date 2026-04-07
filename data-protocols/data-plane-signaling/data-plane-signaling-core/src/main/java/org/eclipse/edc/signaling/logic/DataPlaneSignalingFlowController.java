@@ -84,7 +84,8 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .agreementId(transferProcess.getContractId())
                 .datasetId(transferProcess.getAssetId())
                 .callbackAddress(callbackUri)
-                .transferType(transferProcess.getTransferType());
+                .transferType(transferProcess.getTransferType())
+                .claims(transferProcess.getClaims());
 
         var dataplaneMetadata = transferProcess.getDataplaneMetadata();
         if (dataplaneMetadata != null) {
@@ -116,7 +117,8 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .agreementId(transferProcess.getContractId())
                 .datasetId(transferProcess.getAssetId())
                 .callbackAddress(callbackUri)
-                .transferType(transferProcess.getTransferType());
+                .transferType(transferProcess.getTransferType())
+                .claims(transferProcess.getClaims());
 
         var dataAddress = dataAddressStore.resolve(transferProcess).orElse(f -> null);
         if (dataAddress != null) {
