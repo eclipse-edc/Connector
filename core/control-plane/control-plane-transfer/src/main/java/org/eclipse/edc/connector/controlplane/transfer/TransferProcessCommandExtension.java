@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.transfer;
 
-import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.CompleteTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.InitiateTransferCommandHandler;
 import org.eclipse.edc.connector.controlplane.transfer.command.handlers.NotifyPreparedCommandHandler;
@@ -45,18 +45,18 @@ public class TransferProcessCommandExtension implements ServiceExtension {
     @Inject
     private DataAddressStore dataAddressStore;
     @Inject
-    private PolicyArchive policyArchive;
-    @Inject
     private Clock clock;
     @Inject
     private Telemetry telemetry;
     @Inject
     private CommandHandlerRegistry registry;
+    @Inject
+    private ContractNegotiationStore contractNegotiationStore;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        registry.register(new InitiateTransferCommandHandler(policyArchive, store, dataAddressStore, observable, clock,
-                telemetry, context.getMonitor()));
+        registry.register(new InitiateTransferCommandHandler(store, dataAddressStore, observable, clock, telemetry,
+                context.getMonitor(), contractNegotiationStore));
         registry.register(new TerminateTransferCommandHandler(store, observable));
         registry.register(new SuspendTransferCommandHandler(store, observable));
         registry.register(new ResumeTransferCommandHandler(store, observable));

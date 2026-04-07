@@ -15,7 +15,8 @@
 package org.eclipse.edc.connector.controlplane.transfer.command.handlers;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
-import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
@@ -37,9 +38,11 @@ import org.mockito.ArgumentCaptor;
 
 import java.time.Clock;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -50,7 +53,6 @@ import static org.mockito.Mockito.when;
 
 class InitiateTransferCommandHandlerTest {
 
-    private final PolicyArchive policyArchive = mock();
     private final TransferProcessStore store = mock();
     private final DataAddressStore dataAddressStore = mock();
     private final TransferProcessListener listener = mock();
@@ -58,8 +60,9 @@ class InitiateTransferCommandHandlerTest {
     private final Telemetry telemetry = mock();
     private final Monitor monitor = mock();
     private final TransferProcessObservable observable = new TransferProcessObservableImpl();
-    private final InitiateTransferCommandHandler handler = new InitiateTransferCommandHandler(policyArchive, store,
-            dataAddressStore, observable, clock, telemetry, monitor);
+    private final ContractNegotiationStore contractNegotiationStore = mock();
+    private final InitiateTransferCommandHandler handler = new InitiateTransferCommandHandler(store,
+            dataAddressStore, observable, clock, telemetry, monitor, contractNegotiationStore);
 
     @BeforeEach
     void setUp() {
@@ -68,7 +71,13 @@ class InitiateTransferCommandHandlerTest {
 
     @Test
     void shouldStoreTransferProcessAndDataAddress() {
-        when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().target("assetId").build());
+        when(contractNegotiationStore.findContractAgreement(any())).thenReturn(ContractAgreement.Builder.newInstance()
+                .consumerId("consumerId")
+                .providerId("providerId")
+                .assetId("assetId")
+                .policy(Policy.Builder.newInstance().target("assetId").build())
+                .claims(Map.of("key", "value"))
+                .build());
         when(store.save(any())).thenReturn(StoreResult.success());
         var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
         var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().label("label").build();
@@ -96,13 +105,20 @@ class InitiateTransferCommandHandlerTest {
         assertThat(transferProcess.getAssetId()).isEqualTo("assetId");
         assertThat(transferProcess.getDataplaneMetadata()).isSameAs(dataplaneMetadata);
         assertThat(transferProcess.getDataDestination()).isNull();
+        assertThat(transferProcess.getClaims()).hasSize(1).containsExactly(entry("key", "value"));
         verify(listener).initiated(any());
         verify(dataAddressStore).store(dataAddress, transferProcess);
     }
 
     @Test
     void shouldNotStoreDataAddress_whenItsNotProvided() {
-        when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().target("assetId").build());
+        when(contractNegotiationStore.findContractAgreement(any())).thenReturn(ContractAgreement.Builder.newInstance()
+                .consumerId("consumerId")
+                .providerId("providerId")
+                .assetId("assetId")
+                .policy(Policy.Builder.newInstance().target("assetId").build())
+                .claims(Map.of("key", "value"))
+                .build());
         when(store.save(any())).thenReturn(StoreResult.success());
         var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
         var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().label("label").build();
@@ -121,8 +137,8 @@ class InitiateTransferCommandHandlerTest {
     }
 
     @Test
-    void shouldFail_whenPolicyNotAvailable() {
-        when(policyArchive.findPolicyForContract(any())).thenReturn(null);
+    void shouldFail_whenAgreementNotAvailable() {
+        when(contractNegotiationStore.findContractAgreement(any())).thenReturn(null);
 
         var transferRequest = TransferRequest.Builder.newInstance()
                 .contractId("contractId")
@@ -138,7 +154,13 @@ class InitiateTransferCommandHandlerTest {
 
     @Test
     void shouldFail_whenDataAddressStorageFails() {
-        when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().target("assetId").build());
+        when(contractNegotiationStore.findContractAgreement(any())).thenReturn(ContractAgreement.Builder.newInstance()
+                .consumerId("consumerId")
+                .providerId("providerId")
+                .assetId("assetId")
+                .policy(Policy.Builder.newInstance().target("assetId").build())
+                .claims(Map.of("key", "value"))
+                .build());
         var callback = CallbackAddress.Builder.newInstance().uri("local://test").events(Set.of("test")).build();
         var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().label("label").build();
         var dataAddress = DataAddress.Builder.newInstance().type("test").build();
