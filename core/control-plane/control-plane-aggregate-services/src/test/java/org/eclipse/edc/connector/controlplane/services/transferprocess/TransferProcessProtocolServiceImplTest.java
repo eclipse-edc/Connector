@@ -326,7 +326,7 @@ class TransferProcessProtocolServiceImplTest {
             when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
             when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
             var transferProcess = transferProcess(INITIAL, "transferProcessId");
-            when(transferProcessProviderFactory.create(any(), any(), any())).thenReturn(ServiceResult.success(transferProcess));
+            when(transferProcessProviderFactory.create(any(), any(), any(), any())).thenReturn(ServiceResult.success(transferProcess));
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
@@ -358,7 +358,7 @@ class TransferProcessProtocolServiceImplTest {
             when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
             when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.generalError("error"));
-            when(transferProcessProviderFactory.create(any(), any(), any())).thenReturn(ServiceResult.success(transferProcess(INITIAL, "transferProcessId")));
+            when(transferProcessProviderFactory.create(any(), any(), any(), any())).thenReturn(ServiceResult.success(transferProcess(INITIAL, "transferProcessId")));
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
@@ -385,7 +385,7 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
             when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
-            when(transferProcessProviderFactory.create(any(), any(), any())).thenReturn(ServiceResult.badRequest("cannot create transfer process"));
+            when(transferProcessProviderFactory.create(any(), any(), any(), any())).thenReturn(ServiceResult.badRequest("cannot create transfer process"));
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 

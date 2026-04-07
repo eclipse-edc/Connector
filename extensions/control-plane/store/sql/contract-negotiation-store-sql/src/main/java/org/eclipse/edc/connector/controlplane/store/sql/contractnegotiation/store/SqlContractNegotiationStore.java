@@ -262,7 +262,7 @@ public class SqlContractNegotiationStore extends AbstractSqlStore implements Con
                 .policy(fromJson(resultSet.getString(statements.getPolicyColumn()), Policy.class))
                 .participantContextId(resultSet.getString(statements.getAgreementParticipantContextIdColumn()))
                 .agreementId(resultSet.getString(statements.getContractAgreementContractIdColumn()))
-                .claims(fromJson(resultSet.getString(statements.getClaimsColumn())))
+                .claims(fromJson(resultSet.getString(statements.getClaimsColumn()), getTypeRef()))
                 .build();
     }
 

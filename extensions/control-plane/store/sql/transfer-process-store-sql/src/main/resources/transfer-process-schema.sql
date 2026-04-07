@@ -40,7 +40,8 @@ CREATE TABLE IF NOT EXISTS edc_transfer_process
     data_destination           JSON,
     participant_context_id     VARCHAR NOT NULL,
     dataplane_metadata         JSON,
-    data_address_alias         TEXT
+    data_address_alias         TEXT,
+    claims                     JSON
 );
 
 COMMENT ON COLUMN edc_transfer_process.trace_context IS 'Java Map serialized as JSON';

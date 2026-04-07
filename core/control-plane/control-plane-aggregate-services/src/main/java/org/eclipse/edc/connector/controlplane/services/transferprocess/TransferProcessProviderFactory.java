@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
+import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
@@ -54,7 +55,8 @@ public class TransferProcessProviderFactory {
      * @return a {@link ServiceResult} containing the successfully created {@link TransferProcess},
      *         or an error message if the asset could not be found
      */
-    public ServiceResult<TransferProcess> create(ParticipantContext participantContext, TransferRequestMessage message, ContractAgreement contractAgreement) {
+    public ServiceResult<TransferProcess> create(ParticipantContext participantContext, TransferRequestMessage message,
+                                                 ContractAgreement contractAgreement, ParticipantAgent participantAgent) {
         var asset = assetIndex.findById(contractAgreement.getAssetId());
         if (asset == null) {
             return ServiceResult.badRequest("Asset " + contractAgreement.getAssetId() + " not found");
@@ -73,6 +75,7 @@ public class TransferProcessProviderFactory {
                 .traceContext(telemetry.getCurrentTraceContext())
                 .participantContextId(participantContext.getParticipantContextId())
                 .dataplaneMetadata(asset.getDataplaneMetadata())
+                .claims(participantAgent.getClaims())
                 .build();
 
         return ServiceResult.success(process);

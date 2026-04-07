@@ -75,10 +75,6 @@ public abstract class AbstractSqlStore {
         }
     }
 
-    protected <T> T fromJson(String json) {
-        return fromJson(json, objectMapper.constructType(getTypeRef()));
-    }
-
     protected <T> T fromJson(String json, TypeReference<T> typeReference) {
         return fromJson(json, objectMapper.constructType(typeReference));
     }

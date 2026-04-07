@@ -109,6 +109,10 @@ public interface TransferProcessStoreStatements extends StatefulEntityStatements
         return "data_address_alias";
     }
 
+    default String getClaimsColumn() {
+        return "claims";
+    }
+
     SqlQueryStatement createQuery(QuerySpec querySpec);
 
     SqlQueryStatement createNextNotLeaseQuery(QuerySpec querySpec);

@@ -26,38 +26,22 @@ import org.eclipse.edc.sql.translation.JsonFieldTranslator;
  */
 public class TransferProcessMapping extends StatefulEntityMapping {
 
-    public static final String FIELD_PARTICIPANT_CONTEXT_ID = "participantContextId";
-    private static final String FIELD_TYPE = "type";
-    private static final String FIELD_CREATED_TIMESTAMP = "createdAt";
-    private static final String FIELD_DATAADDRESS = "dataAddress";
-    private static final String FIELD_CONTENTDATAADDRESS = "contentDataAddress";
-    private static final String FIELD_PRIVATE_PROPERTIES = "privateProperties";
-    private static final String FIELD_PENDING = "pending";
-    private static final String FIELD_TRANSFER_TYPE = "transferType";
-    private static final String FIELD_DATA_PLANE_ID = "dataPlaneId";
-    private static final String FIELD_CORRELATION_ID = "correlationId";
-    private static final String FIELD_COUNTER_PARTY_ADDRESS = "counterPartyAddress";
-    private static final String FIELD_PROTOCOL = "protocol";
-    private static final String FIELD_ASSET_ID = "assetId";
-    private static final String FIELD_CONTRACT_ID = "contractId";
-    private static final String FIELD_DATA_DESTINATION = "dataDestination";
-
     public TransferProcessMapping(TransferProcessStoreStatements statements) {
         super(statements, state -> TransferProcessStates.valueOf(state).code());
-        add(FIELD_TYPE, statements.getTypeColumn());
-        add(FIELD_CREATED_TIMESTAMP, statements.getCreatedAtColumn());
-        add(FIELD_CORRELATION_ID, statements.getCorrelationIdColumn());
-        add(FIELD_COUNTER_PARTY_ADDRESS, statements.getCounterPartyAddressColumn());
-        add(FIELD_PROTOCOL, statements.getProtocolColumn());
-        add(FIELD_ASSET_ID, statements.getAssetIdColumn());
-        add(FIELD_CONTRACT_ID, statements.getContractIdColumn());
-        add(FIELD_DATA_DESTINATION, new JsonFieldTranslator(statements.getDataDestinationColumn()));
-        add(FIELD_DATAADDRESS, new JsonFieldTranslator(statements.getContentDataAddressColumn()));
-        add(FIELD_CONTENTDATAADDRESS, new JsonFieldTranslator(statements.getContentDataAddressColumn()));
-        add(FIELD_PRIVATE_PROPERTIES, new JsonFieldTranslator(statements.getPrivatePropertiesColumn()));
-        add(FIELD_PENDING, statements.getPendingColumn());
-        add(FIELD_TRANSFER_TYPE, statements.getTransferTypeColumn());
-        add(FIELD_DATA_PLANE_ID, statements.getDataPlaneIdColumn());
-        add(FIELD_PARTICIPANT_CONTEXT_ID, statements.getParticipantContextIdColumn());
+        add("type", statements.getTypeColumn());
+        add("correlationId", statements.getCorrelationIdColumn());
+        add("counterPartyAddress", statements.getCounterPartyAddressColumn());
+        add("protocol", statements.getProtocolColumn());
+        add("assetId", statements.getAssetIdColumn());
+        add("contractId", statements.getContractIdColumn());
+        add("dataDestination", new JsonFieldTranslator(statements.getDataDestinationColumn()));
+        add("dataAddress", new JsonFieldTranslator(statements.getContentDataAddressColumn()));
+        add("contentDataAddress", new JsonFieldTranslator(statements.getContentDataAddressColumn()));
+        add("privateProperties", new JsonFieldTranslator(statements.getPrivatePropertiesColumn()));
+        add("pending", statements.getPendingColumn());
+        add("transferType", statements.getTransferTypeColumn());
+        add("dataPlaneId", statements.getDataPlaneIdColumn());
+        add("participantContextId", statements.getParticipantContextIdColumn());
+        add("claims", new JsonFieldTranslator(statements.getClaimsColumn()));
     }
 }
