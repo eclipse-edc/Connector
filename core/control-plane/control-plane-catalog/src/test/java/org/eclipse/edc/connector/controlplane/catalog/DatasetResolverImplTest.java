@@ -90,7 +90,7 @@ class DatasetResolverImplTest {
     }
 
     private Asset.Builder createAsset(String id) {
-        return Asset.Builder.newInstance().id(id).name("test asset " + id);
+        return Asset.Builder.newInstance().id(id);
     }
 
     private ParticipantAgent createParticipantAgent() {

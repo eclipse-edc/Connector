@@ -205,57 +205,9 @@ public class AssetApiV5EndToEndTest {
         }
 
         @Test
-        void queryAsset_byContentType(ManagementEndToEndV5TestContext context, AssetIndex assetIndex) {
-            // insert one asset into the index
-            var id = UUID.randomUUID().toString();
-            var asset = Asset.Builder.newInstance()
-                    .id(id)
-                    .contentType("application/octet-stream")
-                    .dataAddress(createDataAddress().build())
-                    .participantContextId(PARTICIPANT_CONTEXT_ID)
-                    .build();
-            assetIndex.create(asset);
-            // not matching asset
-            assetIndex.create(Asset.Builder.newInstance()
-                    .id(UUID.randomUUID().toString())
-                    .dataAddress(createDataAddress().build())
-                    .participantContextId(PARTICIPANT_CONTEXT_ID)
-                    .build());
-
-            var query = createObjectBuilder()
-                    .add(CONTEXT, jsonLdContext())
-                    .add(TYPE, "QuerySpec")
-                    .add("filterExpression", createArrayBuilder()
-                            .add(createObjectBuilder()
-                                    .add(TYPE, "Criterion")
-                                    .add("operandLeft", EDC_NAMESPACE + "id")
-                                    .add("operator", "=")
-                                    .add("operandRight", id))
-                            .add(createObjectBuilder()
-                                    .add(TYPE, "Criterion")
-                                    .add("operandLeft",
-                                            EDC_NAMESPACE + "contenttype")
-                                    .add("operator", "=")
-                                    .add("operandRight",
-                                            "application/octet-stream")))
-                    .build()
-                    .toString();
-
-            context.baseRequest(participantTokenJwt)
-                    .contentType(ContentType.JSON)
-                    .body(query)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
-                    .then()
-                    .log().ifError()
-                    .statusCode(200)
-                    .body("size()", is(1));
-        }
-
-        @Test
         void queryAsset_byCustomStringProperty(ManagementEndToEndV5TestContext context, AssetIndex assetIndex) {
             assetIndex.create(Asset.Builder.newInstance()
                     .id("test-asset")
-                    .contentType("application/octet-stream")
                     .property("myProp", "myVal")
                     .dataAddress(createDataAddress().build())
                     .participantContextId(PARTICIPANT_CONTEXT_ID)
@@ -319,7 +271,6 @@ public class AssetApiV5EndToEndTest {
             assetIndex.create(Asset.Builder.newInstance()
                     .property(Asset.PROPERTY_IS_CATALOG, true)
                     .id(id)
-                    .contentType("application/octet-stream")
                     .dataAddress(createDataAddress().build())
                     .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .build());
@@ -351,7 +302,6 @@ public class AssetApiV5EndToEndTest {
                         // create assets for participant
                         assetIndex.create(Asset.Builder.newInstance()
                                         .id(UUID.randomUUID().toString())
-                                        .contentType("application/octet-stream")
                                         .property("quizz", "quazz")
                                         .dataAddress(createDataAddress().build())
                                         .participantContextId(PARTICIPANT_CONTEXT_ID)
@@ -716,11 +666,8 @@ public class AssetApiV5EndToEndTest {
             assertThat(body).isNotNull();
             assertThat(body.getString(ID)).isEqualTo(id);
             assertThat(body.getMap("properties"))
-                    .hasSize(5)
-                    .containsEntry("name", "test-asset")
-                    .containsEntry("description", "test description")
-                    .containsEntry("contenttype", "application/json")
-                    .containsEntry("version", "0.4.2");
+                    .hasSize(2)
+                    .containsEntry("description", "test description");
             assertThat(body.getMap("'dataAddress'"))
                     .containsEntry("type", "addressType");
             assertThat(body.getMap("'dataAddress'.'complex'"))
@@ -784,11 +731,8 @@ public class AssetApiV5EndToEndTest {
             assertThat(body).isNotNull();
             assertThat(body.getString(ID)).isEqualTo(id);
             assertThat(body.getMap("properties"))
-                    .hasSize(5)
-                    .containsEntry("name", "test-asset")
-                    .containsEntry("description", "test description")
-                    .containsEntry("contenttype", "application/json")
-                    .containsEntry("version", "0.4.2");
+                    .hasSize(2)
+                    .containsEntry("description", "test description");
             assertThat(body.getMap("'dataAddress'"))
                     .containsEntry("type", "addressType");
             assertThat(body.getMap("'dataAddress'.'complex'"))
@@ -845,10 +789,7 @@ public class AssetApiV5EndToEndTest {
         private Asset.Builder createAsset() {
             return Asset.Builder.newInstance()
                     .id(UUID.randomUUID().toString())
-                    .name("test-asset")
                     .description("test description")
-                    .contentType("application/json")
-                    .version("0.4.2")
                     .dataAddress(createDataAddress().build())
                     .participantContextId(PARTICIPANT_CONTEXT_ID);
         }

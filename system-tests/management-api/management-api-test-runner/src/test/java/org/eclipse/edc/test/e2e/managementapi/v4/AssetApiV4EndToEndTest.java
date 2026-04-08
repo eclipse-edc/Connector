@@ -268,49 +268,9 @@ public class AssetApiV4EndToEndTest {
         }
 
         @Test
-        void queryAsset_byContentType(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
-            //insert one asset into the index
-            var id = UUID.randomUUID().toString();
-            var asset = Asset.Builder.newInstance().id(id).contentType("application/octet-stream").dataAddress(createDataAddress().build())
-                    .participantContextId("participantContextId")
-                    .build();
-            assetIndex.create(asset);
-            // not matching asset
-            assetIndex.create(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).dataAddress(createDataAddress().build())
-                    .participantContextId("participantContextId")
-                    .build());
-
-            var query = createObjectBuilder()
-                    .add(CONTEXT, jsonLdContext())
-                    .add(TYPE, "QuerySpec")
-                    .add("filterExpression", createArrayBuilder()
-                            .add(createObjectBuilder()
-                                    .add(TYPE, "Criterion")
-                                    .add("operandLeft", EDC_NAMESPACE + "id")
-                                    .add("operator", "=")
-                                    .add("operandRight", id))
-                            .add(createObjectBuilder()
-                                    .add(TYPE, "Criterion")
-                                    .add("operandLeft", EDC_NAMESPACE + "contenttype")
-                                    .add("operator", "=")
-                                    .add("operandRight", "application/octet-stream"))
-                    ).build();
-
-            context.baseRequest()
-                    .contentType(ContentType.JSON)
-                    .body(query)
-                    .post("/v4beta/assets/request")
-                    .then()
-                    .log().ifError()
-                    .statusCode(200)
-                    .body("size()", is(1));
-        }
-
-        @Test
         void queryAsset_byCustomStringProperty(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
             assetIndex.create(Asset.Builder.newInstance()
                     .id("test-asset")
-                    .contentType("application/octet-stream")
                     .property("myProp", "myVal")
                     .dataAddress(createDataAddress().build())
                     .participantContextId("participantContextId")
@@ -373,7 +333,6 @@ public class AssetApiV4EndToEndTest {
             assetIndex.create(Asset.Builder.newInstance()
                     .property(Asset.PROPERTY_IS_CATALOG, true)
                     .id(id)
-                    .contentType("application/octet-stream")
                     .dataAddress(createDataAddress().build())
                     .participantContextId("participantContextId")
                     .build());

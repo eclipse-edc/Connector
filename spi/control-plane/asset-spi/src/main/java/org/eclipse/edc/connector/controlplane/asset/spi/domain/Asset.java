@@ -37,13 +37,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class Asset extends AbstractParticipantResource {
 
     public static final String PROPERTY_ID = EDC_NAMESPACE + "id";
-    @Deprecated(since = "0.15.0")
-    public static final String PROPERTY_NAME = EDC_NAMESPACE + "name";
     public static final String PROPERTY_DESCRIPTION = EDC_NAMESPACE + "description";
-    @Deprecated(since = "0.15.0")
-    public static final String PROPERTY_VERSION = EDC_NAMESPACE + "version";
-    @Deprecated(since = "0.15.0")
-    public static final String PROPERTY_CONTENT_TYPE = EDC_NAMESPACE + "contenttype";
     public static final String PROPERTY_IS_CATALOG = EDC_NAMESPACE + "isCatalog";
     public static final String EDC_ASSET_TYPE_TERM = "Asset";
     public static final String EDC_ASSET_TYPE = EDC_NAMESPACE + EDC_ASSET_TYPE_TERM;
@@ -67,27 +61,8 @@ public class Asset extends AbstractParticipantResource {
     }
 
     @JsonIgnore
-    @Deprecated(since = "0.15.0")
-    public String getName() {
-        return ofNullable(getPropertyAsString(PROPERTY_NAME))
-                .orElse(getPropertyAsString("name"));
-    }
-
-    @JsonIgnore
     public String getDescription() {
         return ofNullable(getPropertyAsString(PROPERTY_DESCRIPTION)).orElse(getPropertyAsString("description"));
-    }
-
-    @JsonIgnore
-    @Deprecated(since = "0.15.0")
-    public String getVersion() {
-        return ofNullable(getPropertyAsString(PROPERTY_VERSION)).orElse(getPropertyAsString("version"));
-    }
-
-    @JsonIgnore
-    @Deprecated(since = "0.15.0")
-    public String getContentType() {
-        return ofNullable(getPropertyAsString(PROPERTY_CONTENT_TYPE)).orElse(getPropertyAsString("contenttype"));
     }
 
     @JsonIgnore
@@ -193,26 +168,8 @@ public class Asset extends AbstractParticipantResource {
             return entity;
         }
 
-        @Deprecated(since = "0.15.0")
-        public Builder name(String title) {
-            entity.properties.put(PROPERTY_NAME, title);
-            return self();
-        }
-
         public Builder description(String description) {
             entity.properties.put(PROPERTY_DESCRIPTION, description);
-            return self();
-        }
-
-        @Deprecated(since = "0.15.0")
-        public Builder version(String version) {
-            entity.properties.put(PROPERTY_VERSION, version);
-            return self();
-        }
-
-        @Deprecated(since = "0.15.0")
-        public Builder contentType(String contentType) {
-            entity.properties.put(PROPERTY_CONTENT_TYPE, contentType);
             return self();
         }
 

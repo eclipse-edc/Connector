@@ -197,7 +197,6 @@ class DatasetResolverImplIntegrationTest {
     private Asset.Builder createAsset(String id) {
         return Asset.Builder.newInstance()
                 .id(id)
-                .name("test asset " + id)
                 .participantContextId("participantContextId")
                 .dataAddress(DataAddress.Builder.newInstance().type("test-type").build());
     }

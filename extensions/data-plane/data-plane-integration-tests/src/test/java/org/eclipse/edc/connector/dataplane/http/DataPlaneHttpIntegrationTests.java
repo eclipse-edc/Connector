@@ -253,7 +253,7 @@ public class DataPlaneHttpIntegrationTests {
                     .contentType(ContentType.JSON)
                     .body(payload)
                     .when()
-                    .post("/control/v1/dataflows");
+                    .post("/control/v1/dataflows/start");
         }
 
         private void expectState(String processId, DataFlowStates expectedState) {

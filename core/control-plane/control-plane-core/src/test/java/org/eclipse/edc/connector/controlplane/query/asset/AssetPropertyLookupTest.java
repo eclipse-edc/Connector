@@ -19,6 +19,7 @@ import org.eclipse.edc.spi.query.PropertyLookup;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 class AssetPropertyLookupTest {
 
@@ -27,31 +28,17 @@ class AssetPropertyLookupTest {
     @Test
     void shouldGetProperty() {
         var asset = Asset.Builder.newInstance()
-                .name("test-asset")
+                .property(EDC_NAMESPACE + "name", "test-asset")
                 .build();
 
-        var property = propertyLookup.getProperty(Asset.PROPERTY_NAME, asset);
+        var property = propertyLookup.getProperty(EDC_NAMESPACE + "name", asset);
 
         assertThat(property).isEqualTo("test-asset");
     }
 
     @Test
-    void shouldGetCustomProperty() {
-        var asset = Asset.Builder.newInstance()
-                .name("test-asset")
-                .version("6.9")
-                .property("test-property", "some-value")
-                .build();
-
-        var property = propertyLookup.getProperty("test-property", asset);
-
-        assertThat(property).isEqualTo("some-value");
-    }
-
-    @Test
     void shouldGetPrivateProperty() {
         var asset = Asset.Builder.newInstance()
-                .name("test-asset")
                 .property("test-property", "some-value")
                 .privateProperty("test-private-property", "somePrivateValue")
                 .build();

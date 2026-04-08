@@ -39,10 +39,7 @@ class AssetQueryValidatorTest {
     @ParameterizedTest
     @ValueSource(strings = {
             Asset.PROPERTY_ID,
-            Asset.PROPERTY_NAME,
             Asset.PROPERTY_DESCRIPTION,
-            Asset.PROPERTY_VERSION,
-            Asset.PROPERTY_CONTENT_TYPE,
             "someCustomVal",
             "_anotherValidVal",
             "'http://some.url/property'.nestedvalue"
