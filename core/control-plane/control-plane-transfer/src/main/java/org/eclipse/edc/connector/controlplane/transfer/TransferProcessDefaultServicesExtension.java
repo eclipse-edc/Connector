@@ -28,21 +28,24 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+
+import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(value = TransferProcessDefaultServicesExtension.NAME)
 public class TransferProcessDefaultServicesExtension implements ServiceExtension {
 
     public static final String NAME = "Transfer Process Default Services";
-
+    private final DataPlaneProtocolInUse dataPlaneProtocolInUse = new DataPlaneProtocolInUse();
     @Inject
     private Vault vault;
     @Inject
     private TypeTransformerRegistry typeTransformerRegistry;
     @Inject
     private JsonLd jsonLd;
-
-    private final DataPlaneProtocolInUse dataPlaneProtocolInUse = new DataPlaneProtocolInUse();
+    @Inject
+    private TypeManager typeManager;
 
     @Override
     public String name() {
@@ -66,7 +69,7 @@ public class TransferProcessDefaultServicesExtension implements ServiceExtension
 
     @Provider
     public DataAddressStore dataAddressStore() {
-        return new VaultDataAddressStore(vault, typeTransformerRegistry, jsonLd, dataPlaneProtocolInUse);
+        return new VaultDataAddressStore(vault, typeTransformerRegistry, jsonLd, dataPlaneProtocolInUse, () -> typeManager.getMapper(JSON_LD));
     }
 
     @Provider

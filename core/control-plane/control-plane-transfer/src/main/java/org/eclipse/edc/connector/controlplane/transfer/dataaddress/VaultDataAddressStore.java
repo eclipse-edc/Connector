@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.dataaddress;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
@@ -29,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.StringReader;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_SECRET;
 
@@ -38,21 +41,30 @@ public class VaultDataAddressStore implements DataAddressStore {
     private final TypeTransformerRegistry typeTransformerRegistry;
     private final JsonLd jsonLd;
     private final DataPlaneProtocolInUse dataPlaneProtocolInUse;
+    private final Supplier<ObjectMapper> objectMapperSupplier;
 
     public VaultDataAddressStore(Vault vault, TypeTransformerRegistry typeTransformerRegistry, JsonLd jsonLd,
-                                 DataPlaneProtocolInUse dataPlaneProtocolInUse) {
+                                 DataPlaneProtocolInUse dataPlaneProtocolInUse, Supplier<ObjectMapper> objectMapperSupplier) {
         this.vault = vault;
         this.typeTransformerRegistry = typeTransformerRegistry;
         this.jsonLd = jsonLd;
         this.dataPlaneProtocolInUse = dataPlaneProtocolInUse;
+        this.objectMapperSupplier = objectMapperSupplier;
+    }
+
+    private static Result<JsonObject> readJsonObject(String json) {
+        try {
+            var jsonObject = Json.createReader(new StringReader(json)).readObject();
+            return Result.success(jsonObject);
+        } catch (Exception e) {
+            return Result.failure("Cannot deserialize data address");
+        }
     }
 
     @Override
     public StoreResult<Void> store(DataAddress dataAddress, TransferProcess transferProcess) {
         var alias = "transfer-process-" + transferProcess.getId() + "-data-address";
-        return typeTransformerRegistry.transform(dataAddress, JsonObject.class)
-                .compose(jsonLd::expand)
-                .map(Object::toString)
+        return toJson(dataAddress).map(Object::toString)
                 .compose(json -> vault.storeSecret(transferProcess.getParticipantContextId(), alias, json))
                 .flatMap(this::toStoreResult)
                 .onSuccess(o -> {
@@ -63,6 +75,35 @@ public class VaultDataAddressStore implements DataAddressStore {
                         transferProcess.updateDestination(null);
                     }
                 });
+    }
+
+    private Result<String> toJson(DataAddress dataAddress) {
+        if (dataPlaneProtocolInUse.isLegacy()) {
+            return typeTransformerRegistry.transform(dataAddress, JsonObject.class)
+                    .compose(jsonLd::expand)
+                    .map(Object::toString);
+        } else {
+            try {
+                return Result.success(objectMapperSupplier.get().writeValueAsString(dataAddress));
+            } catch (JsonProcessingException e) {
+                return Result.failure(e.getMessage());
+            }
+        }
+
+    }
+
+    private Result<DataAddress> fromJson(String json) {
+        return readJsonObject(json).compose(jsonObject -> {
+            if (dataPlaneProtocolInUse.isLegacy()) {
+                return typeTransformerRegistry.transform(jsonObject, DataAddress.class);
+            } else {
+                try {
+                    return Result.success(objectMapperSupplier.get().readValue(json, DataAddress.class));
+                } catch (JsonProcessingException e) {
+                    return Result.failure(e.getMessage());
+                }
+            }
+        });
     }
 
     @Override
@@ -84,8 +125,7 @@ public class VaultDataAddressStore implements DataAddressStore {
         }
 
         var json = vault.resolveSecret(transferProcess.getParticipantContextId(), dataAddressAlias);
-        return readJsonObject(json).compose(jsonObject -> typeTransformerRegistry.transform(jsonObject, DataAddress.class))
-                .flatMap(this::toStoreResult);
+        return fromJson(json).flatMap(this::toStoreResult);
     }
 
     @Override
@@ -101,15 +141,6 @@ public class VaultDataAddressStore implements DataAddressStore {
             return StoreResult.success();
         } else {
             return StoreResult.generalError(result.getFailureDetail());
-        }
-    }
-
-    private static Result<JsonObject> readJsonObject(String json) {
-        try {
-            var jsonObject = Json.createReader(new StringReader(json)).readObject();
-            return Result.success(jsonObject);
-        } catch (Exception e) {
-            return Result.failure("Cannot deserialize data address");
         }
     }
 
