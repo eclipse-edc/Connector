@@ -25,10 +25,13 @@ import java.util.List;
 
 /**
  * Stores and queries metadata {@link EndpointDataReferenceEntry} associated with an EDR ({@link DataAddress})
+ *
+ * @deprecated since management-api:v3*
  */
+@Deprecated(since = "management-api:v3")
 @ExtensionPoint
 public interface EndpointDataReferenceEntryIndex {
-    
+
     String ENDPOINT_DATA_REFERENCE_ENTRY_FOUND = "Endpoint DataReference Entry with ID %s not found";
 
     /**
