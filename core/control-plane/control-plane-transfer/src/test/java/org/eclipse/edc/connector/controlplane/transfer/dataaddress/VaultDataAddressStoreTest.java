@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.dataaddress;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataPlaneProtocolInUse;
@@ -43,12 +45,15 @@ class VaultDataAddressStoreTest {
     private final TypeTransformerRegistry typeTransformerRegistry = mock();
     private final JsonLd jsonLd = mock();
     private final DataPlaneProtocolInUse dataPlaneProtocolInUse = mock();
-    private final VaultDataAddressStore store = new VaultDataAddressStore(vault, typeTransformerRegistry, jsonLd, dataPlaneProtocolInUse);
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final VaultDataAddressStore store = new VaultDataAddressStore(vault, typeTransformerRegistry, jsonLd, dataPlaneProtocolInUse, () -> objectMapper);
 
     @Nested
     class Store {
         @Test
-        void shouldStoreDataAddressInTheVault() {
+        void shouldStoreDataAddressInTheVaultLegacy() {
+            when(dataPlaneProtocolInUse.isLegacy()).thenReturn(true);
             var dataAddress = DataAddress.Builder.newInstance().type("test").build();
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("tp-id")
@@ -68,7 +73,25 @@ class VaultDataAddressStoreTest {
         }
 
         @Test
-        void shouldEventuallyRemoveDataDestinationFromTransferProcess() {
+        void shouldStoreDataAddressInTheVault() throws JsonProcessingException {
+            when(dataPlaneProtocolInUse.isLegacy()).thenReturn(false);
+            var dataAddress = DataAddress.Builder.newInstance().type("test").build();
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("tp-id")
+                    .participantContextId("participant-context-id")
+                    .build();
+            when(vault.storeSecret(any(), any(), any())).thenReturn(Result.success());
+
+            var result = store.store(dataAddress, transferProcess);
+
+            assertThat(result).isSucceeded();
+            var alias = "transfer-process-tp-id-data-address";
+            assertThat(transferProcess.getDataAddressAlias()).isEqualTo(alias);
+            verify(vault).storeSecret("participant-context-id", alias, objectMapper.writeValueAsString(dataAddress));
+        }
+
+        @Test
+        void shouldEventuallyRemoveDataDestinationFromTransferProcess() throws JsonProcessingException {
             var dataAddress = DataAddress.Builder.newInstance().type("test").build();
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("tp-id")
@@ -76,15 +99,14 @@ class VaultDataAddressStoreTest {
                     .dataDestination(DataAddress.Builder.newInstance().type("test").property("previous-data-address", "stored-in-database").build())
                     .build();
             when(typeTransformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(Json.createObjectBuilder().build()));
-            var expandedJson = Json.createObjectBuilder().add("type", "any").add("this is", "the json data address").build();
-            when(jsonLd.expand(any())).thenReturn(Result.success(expandedJson));
+
             when(vault.storeSecret(any(), any(), any())).thenReturn(Result.success());
 
             var result = store.store(dataAddress, transferProcess);
 
             assertThat(result).isSucceeded();
             assertThat(transferProcess.getDataDestination()).isNull();
-            verify(vault).storeSecret("participant-context-id", "transfer-process-tp-id-data-address", expandedJson.toString());
+            verify(vault).storeSecret("participant-context-id", "transfer-process-tp-id-data-address", objectMapper.writeValueAsString(dataAddress));
         }
 
         @Test
@@ -110,6 +132,7 @@ class VaultDataAddressStoreTest {
 
         @Test
         void shouldFailWhenTransformationFails() {
+            when(dataPlaneProtocolInUse.isLegacy()).thenReturn(true);
             var dataAddress = DataAddress.Builder.newInstance().type("test").build();
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("tp-id")
@@ -124,6 +147,7 @@ class VaultDataAddressStoreTest {
 
         @Test
         void shouldFailWhenJsonLdExpansionFails() {
+            when(dataPlaneProtocolInUse.isLegacy()).thenReturn(true);
             var dataAddress = DataAddress.Builder.newInstance().type("test").build();
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("tp-id")
@@ -160,7 +184,8 @@ class VaultDataAddressStoreTest {
     @Nested
     class Resolve {
         @Test
-        void shouldResolveDataAddressFromTheVault() {
+        void shouldResolveDataAddressFromTheVaultLegacy() {
+            when(dataPlaneProtocolInUse.isLegacy()).thenReturn(true);
             var transferProcess = TransferProcess.Builder.newInstance()
                     .id("tp-id")
                     .participantContextId("participant-context-id")
@@ -173,6 +198,22 @@ class VaultDataAddressStoreTest {
             var result = store.resolve(transferProcess);
 
             assertThat(result).isSucceeded().isEqualTo(dataAddress);
+        }
+
+        @Test
+        void shouldResolveDataAddressFromTheVault() throws JsonProcessingException {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("tp-id")
+                    .participantContextId("participant-context-id")
+                    .dataAddressAlias("data-address-alias")
+                    .build();
+            var dataAddress = DataAddress.Builder.newInstance().type("type").build();
+
+            when(vault.resolveSecret(any(), any())).thenReturn(objectMapper.writeValueAsString(dataAddress));
+
+            var result = store.resolve(transferProcess);
+
+            assertThat(result).isSucceeded().usingRecursiveComparison().isEqualTo(dataAddress);
         }
 
         @Test
