@@ -100,6 +100,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.MANAGEMENT_API_CONTEXT;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.MANAGEMENT_API_SCOPE;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.assetObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.assetObjectWithMetadata;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogAsset;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogRequestObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.celExpression;
@@ -593,6 +594,7 @@ public class SerdeEndToEndTest {
 
                 return Stream.of(
                         Arguments.of(assetObject(jsonLdContext), Asset.class, null),
+                        Arguments.of(assetObjectWithMetadata(jsonLdContext), Asset.class, null),
                         Arguments.of(catalogAsset(jsonLdContext), Asset.class, null),
                         Arguments.of(contractDefinitionObject(jsonLdContext), ContractDefinition.class, null),
                         Arguments.of(secretObject(jsonLdContext), Secret.class, null),
@@ -639,9 +641,12 @@ public class SerdeEndToEndTest {
                 .build();
 
         private static boolean shouldSkipV3(JsonObject inputObject, Class<?> klass) {
-            return !klass.equals(DataPlaneInstance.class) && !klass.equals(ParticipantContext.class) &&
-                    !klass.equals(CelExpression.class) &&
-                    !klass.equals(ParticipantContextConfiguration.class) && !inputObject.getString(TYPE).equals("CatalogAsset");
+            return klass.equals(DataPlaneInstance.class) ||
+                    klass.equals(ParticipantContext.class) ||
+                    klass.equals(CelExpression.class) ||
+                    klass.equals(ParticipantContextConfiguration.class) ||
+                    inputObject.getString(TYPE).equals("CatalogAsset") ||
+                    (inputObject.getString(TYPE).equals("Asset") && inputObject.containsKey("dataplaneMetadata"));
         }
 
         /**
@@ -653,7 +658,7 @@ public class SerdeEndToEndTest {
         void serde(JsonObject inputObject, Class<?> klass, Function<JsonObject, JsonObject> mapper,
                    JsonLd jsonLd, JsonObjectValidatorRegistry validatorRegistry,
                    TypeTransformerRegistry typeTransformerRegistry) {
-            if (shouldSkipV3(inputObject, klass)) {
+            if (!shouldSkipV3(inputObject, klass)) {
                 verifySerde(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, klass, mapper);
             }
         }

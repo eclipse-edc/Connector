@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.transform.edc.from;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
@@ -23,20 +22,18 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Supplier;
-
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata.EDC_DATAPLANE_METADATA_TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.JSON;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 
 public class JsonObjectFromDataplaneMetadataTransformer extends AbstractJsonLdTransformer<DataplaneMetadata, JsonObject> {
 
     private final JsonBuilderFactory jsonFactory;
-    private final Supplier<ObjectMapper> mapperSupplier;
 
-    public JsonObjectFromDataplaneMetadataTransformer(JsonBuilderFactory jsonFactory, Supplier<ObjectMapper> mapperSupplier) {
+    public JsonObjectFromDataplaneMetadataTransformer(JsonBuilderFactory jsonFactory) {
         super(DataplaneMetadata.class, JsonObject.class);
         this.jsonFactory = jsonFactory;
-        this.mapperSupplier = mapperSupplier;
     }
 
     @Override
@@ -52,9 +49,10 @@ public class JsonObjectFromDataplaneMetadataTransformer extends AbstractJsonLdTr
         }
 
         if (dataplaneMetadata.getProperties() != null && !dataplaneMetadata.getProperties().isEmpty()) {
-            var privatePropBuilder = jsonFactory.createObjectBuilder();
-            transformProperties(dataplaneMetadata.getProperties(), privatePropBuilder, mapperSupplier.get(), context);
-            builder.add(DataplaneMetadata.EDC_DATAPLANE_METADATA_PROPERTIES, privatePropBuilder);
+            builder.add(DataplaneMetadata.EDC_DATAPLANE_METADATA_PROPERTIES, jsonFactory.createObjectBuilder()
+                    .add(VALUE, jsonFactory.createObjectBuilder(dataplaneMetadata.getProperties()))
+                    .add(TYPE, JSON)
+                    .build());
         }
 
         return builder.build();

@@ -80,6 +80,20 @@ public class TestFunctions {
     }
 
     public static JsonObject assetObject(String context) {
+        return assetObjectBuilder(context).build();
+    }
+
+    public static JsonObject assetObjectWithMetadata(String context) {
+        return assetObjectBuilder(context)
+                .add("dataplaneMetadata",
+                        createObjectBuilder().add("@type", "DataplaneMetadata")
+                                .add("labels", createArrayBuilder().add("label1").add("label2"))
+                                .add("properties", createObjectBuilder().add("key1", "value1").add("key2", "value2"))
+                                .build())
+                .build();
+    }
+
+    private static JsonObjectBuilder assetObjectBuilder(String context) {
         return createObjectBuilder()
                 .add(CONTEXT, createContextBuilder(context).build())
                 .add(TYPE, "Asset")
@@ -98,8 +112,7 @@ public class TestFunctions {
                         .add("version", TEST_ASSET_VERSION)
                         .add("contenttype", TEST_ASSET_CONTENTTYPE)
                         .build())
-                .add("dataAddress", createObjectBuilder().add("@type", "DataAddress").add("type", "address-type"))
-                .build();
+                .add("dataAddress", createObjectBuilder().add("@type", "DataAddress").add("type", "address-type"));
     }
 
     public static JsonObject catalogAsset(String context) {
