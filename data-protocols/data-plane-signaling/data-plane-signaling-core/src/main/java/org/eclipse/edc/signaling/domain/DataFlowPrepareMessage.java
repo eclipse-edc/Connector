@@ -30,6 +30,7 @@ public final class DataFlowPrepareMessage {
     private String transferType;
     private List<String> labels;
     private Map<String, Object> metadata;
+    private Map<String, Object> claims;
 
     private DataFlowPrepareMessage() {
     }
@@ -76,6 +77,10 @@ public final class DataFlowPrepareMessage {
 
     public Map<String, Object> getMetadata() {
         return metadata;
+    }
+
+    public Map<String, Object> getClaims() {
+        return claims;
     }
 
     public static class Builder {
@@ -146,6 +151,11 @@ public final class DataFlowPrepareMessage {
 
         public Builder metadata(Map<String, Object> metadata) {
             instance.metadata = metadata;
+            return this;
+        }
+
+        public Builder claims(Map<String, Object> claims) {
+            instance.claims = claims;
             return this;
         }
 
