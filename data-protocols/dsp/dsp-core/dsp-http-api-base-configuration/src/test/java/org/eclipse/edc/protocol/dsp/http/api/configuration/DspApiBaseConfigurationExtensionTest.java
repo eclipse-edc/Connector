@@ -16,6 +16,7 @@ package org.eclipse.edc.protocol.dsp.http.api.configuration;
 
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -37,7 +38,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class DspApiBaseConfigurationExtensionTest {
@@ -53,8 +53,7 @@ class DspApiBaseConfigurationExtensionTest {
     }
     
     @Test
-    void shouldComposeProtocolWebhook_whenNotConfigured(DspApiBaseConfigurationExtension extension, ServiceExtensionContext context) {
-        when(context.getConfig()).thenReturn(ConfigFactory.empty());
+    void shouldComposeProtocolWebhook_whenNotConfigured(DspApiBaseConfigurationExtension extension, TestExtensionContext context) {
         var expectedWebhook = "http://hostname:%s%s".formatted(DEFAULT_PROTOCOL_PORT, DEFAULT_PROTOCOL_PATH);
         
         extension.initialize(context);
@@ -64,13 +63,12 @@ class DspApiBaseConfigurationExtensionTest {
     }
     
     @Test
-    void shouldUseConfiguredProtocolWebhook(ServiceExtensionContext context, ObjectFactory factory) {
+    void shouldUseConfiguredProtocolWebhook(TestExtensionContext context, ObjectFactory factory) {
         var webhookAddress = "http://webhook";
-        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
+        context.setConfig(ConfigFactory.fromMap(Map.of(
                 "web.http.protocol.port", String.valueOf(1234),
                 "web.http.protocol.path", "/path",
-                "edc.dsp.callback.address", webhookAddress))
-        );
+                "edc.dsp.callback.address", webhookAddress)));
         var extension = factory.constructInstance(DspApiBaseConfigurationExtension.class);
         
         extension.initialize(context);

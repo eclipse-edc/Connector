@@ -16,6 +16,7 @@ package org.eclipse.edc.web.jetty;
 
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -32,7 +33,6 @@ import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class JettyExtensionTest {
@@ -45,9 +45,9 @@ class JettyExtensionTest {
     }
 
     @Test
-    void shouldRegisterPortMapping(ServiceExtensionContext context, ObjectFactory objectFactory) {
+    void shouldRegisterPortMapping(TestExtensionContext context, ObjectFactory objectFactory) {
         var settings = Map.of("web.http.port", "11111", "web.http.path", "/path");
-        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(settings));
+        context.setConfig(ConfigFactory.fromMap(settings));
 
         var extension = objectFactory.constructInstance(JettyExtension.class);
 

@@ -14,14 +14,12 @@
 
 package org.eclipse.edc.connector.api.management.configuration;
 
-import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
-import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -30,7 +28,6 @@ import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,10 +55,8 @@ import static org.mockito.Mockito.when;
 class ManagementApiConfigurationExtensionTest {
 
     private final PortMappingRegistry portMappingRegistry = mock();
-    private final Monitor monitor = mock();
     private final WebService webService = mock();
     private final JsonLd jsonLd = mock();
-    private ManagementApiConfigurationExtension extension;
 
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
@@ -74,13 +69,13 @@ class ManagementApiConfigurationExtensionTest {
         context.registerService(TypeTransformerRegistry.class, typeTransformerRegistry);
         context.registerService(TypeManager.class, new JacksonTypeManager());
         context.registerService(JsonLd.class, jsonLd);
-        extension = factory.constructInstance(ManagementApiConfigurationExtension.class);
     }
 
     @Test
-    void initialize_shouldConfigureAndRegisterResource() {
-        var context = contextWithConfig(ConfigFactory.empty());
+    void initialize_shouldConfigureAndRegisterResource(ObjectFactory factory, TestExtensionContext context) {
+        context.setConfig(ConfigFactory.empty());
 
+        var extension = factory.constructInstance(ManagementApiConfigurationExtension.class);
         extension.initialize(context);
 
         verify(portMappingRegistry).register(new PortMapping(ApiContext.MANAGEMENT, DEFAULT_MANAGEMENT_PORT, DEFAULT_MANAGEMENT_PATH));
@@ -92,8 +87,9 @@ class ManagementApiConfigurationExtensionTest {
     }
 
     @Test
-    void initialize_withContextEnabled(ObjectFactory factory, ServiceExtensionContext context) {
-        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("edc.management.context.enabled", "true")));
+    void initialize_withContextEnabled(ObjectFactory factory, TestExtensionContext context) {
+        context.setConfig(ConfigFactory.fromMap(Map.of("edc.management.context.enabled", "true")));
+
 
         factory.constructInstance(ManagementApiConfigurationExtension.class).initialize(context);
 
@@ -101,10 +97,4 @@ class ManagementApiConfigurationExtensionTest {
         verify(jsonLd).registerContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT, MANAGEMENT_SCOPE);
     }
 
-    @NotNull
-    private DefaultServiceExtensionContext contextWithConfig(Config config) {
-        var context = new DefaultServiceExtensionContext(monitor, config);
-        context.initialize();
-        return context;
-    }
 }

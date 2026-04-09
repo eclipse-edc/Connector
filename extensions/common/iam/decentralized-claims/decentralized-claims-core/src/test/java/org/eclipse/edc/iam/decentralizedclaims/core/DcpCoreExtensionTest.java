@@ -19,6 +19,7 @@ import org.eclipse.edc.iam.decentralizedclaims.service.DcpIdentityService;
 import org.eclipse.edc.iam.decentralizedclaims.spi.SecureTokenService;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -50,7 +51,6 @@ import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.DEPR
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class DcpCoreExtensionTest {
@@ -68,16 +68,10 @@ class DcpCoreExtensionTest {
         context.registerService(ExecutorInstrumentation.class, ExecutorInstrumentation.noop());
         context.registerService(TypeTransformerRegistry.class, transformerRegistry);
         context.registerService(TokenValidationRulesRegistry.class, rulesRegistry);
-
-        var config = ConfigFactory.fromMap(Map.of(
-                DEPRECATED_ISSUER_ID_KEY, "did:web:test",
-                CLEANUP_PERIOD, "1"
-        ));
-        when(context.getConfig()).thenReturn(config);
     }
 
     @Test
-    void verifyCorrectService(ServiceExtensionContext context, ObjectFactory objectFactory) {
+    void verifyCorrectService(TestExtensionContext context, ObjectFactory objectFactory) {
         var is = objectFactory.constructInstance(DcpCoreExtension.class).createIdentityService(context);
         assertThat(is).isInstanceOf(DcpIdentityService.class);
     }
@@ -85,11 +79,11 @@ class DcpCoreExtensionTest {
     // unfortunately, this cannot be a parameterized test, because then we'd have 2 competing parameter resolvers: DependencyInjectionExtension and
     // the Parameterized test method resolver
     @Test
-    void verifyCorrectRules_jtiValidationActive(ServiceExtensionContext context, ObjectFactory objectFactory) {
+    void verifyCorrectRules_jtiValidationActive(TestExtensionContext context, ObjectFactory objectFactory) {
         var oldConfig = context.getConfig();
         var newConfig = new HashMap<>(oldConfig.getEntries());
         newConfig.put("edc.iam.accesstoken.jti.validation", "true");
-        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(newConfig));
+        context.setConfig(ConfigFactory.fromMap(newConfig));
 
         var expectedRules = Arrays.asList(IssuerEqualsSubjectRule.class,
                 SubJwkIsNullRule.class,
@@ -106,11 +100,11 @@ class DcpCoreExtensionTest {
     }
 
     @Test
-    void verifyCorrectRules_jtiValidationNotActive(ServiceExtensionContext context, ObjectFactory objectFactory) {
+    void verifyCorrectRules_jtiValidationNotActive(TestExtensionContext context, ObjectFactory objectFactory) {
         var oldConfig = context.getConfig();
         var newConfig = new HashMap<>(oldConfig.getEntries());
         newConfig.put("edc.iam.accesstoken.jti.validation", "false");
-        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(newConfig));
+        context.setConfig(ConfigFactory.fromMap(newConfig));
 
         var expectedRules = Arrays.asList(IssuerEqualsSubjectRule.class,
                 SubJwkIsNullRule.class,
@@ -128,7 +122,12 @@ class DcpCoreExtensionTest {
     }
 
     @Test
-    void assertReaperThreadRunning(ServiceExtensionContext context, ObjectFactory objectFactory) {
+    void assertReaperThreadRunning(TestExtensionContext context, ObjectFactory objectFactory) {
+        var config = ConfigFactory.fromMap(Map.of(
+                DEPRECATED_ISSUER_ID_KEY, "did:web:test",
+                CLEANUP_PERIOD, "1"
+        ));
+        context.setConfig(config);
         var extension = objectFactory.constructInstance(DcpCoreExtension.class);
         extension.initialize(context);
         extension.start();
@@ -138,12 +137,12 @@ class DcpCoreExtensionTest {
     }
 
     @Test
-    void shouldFallbackToParticipantId_whenDidNotSet(ServiceExtensionContext context, ObjectFactory objectFactory) {
+    void shouldFallbackToParticipantId_whenDidNotSet(TestExtensionContext context, ObjectFactory objectFactory) {
         var config = ConfigFactory.fromMap(Map.of(
                 "edc.participant.id", "did:web:test",
                 CLEANUP_PERIOD, "1"
         ));
-        when(context.getConfig()).thenReturn(config);
+        context.setConfig(config);
 
         objectFactory.constructInstance(DcpCoreExtension.class);
     }

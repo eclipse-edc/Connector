@@ -17,8 +17,8 @@ package org.eclipse.edc.iam.decentralizedclaims.core;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScope;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScopeRegistry;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,19 +39,17 @@ public class DcpScopeConfigurationExtensionTest {
     private final DcpScopeRegistry registry = mock();
 
     @BeforeEach
-    void setup(ServiceExtensionContext context) {
+    void setup(TestExtensionContext context) {
         context.registerService(DcpScopeRegistry.class, registry);
         when(registry.register(any())).thenReturn(ServiceResult.success());
     }
 
     @Test
-    void initialize(ServiceExtensionContext context, DynamicDcpScopeConfigurationExtension ext) {
-        var cfg = ConfigFactory.fromMap(Map.of(
-                "membership.id", "membership-scope",
-                "membership.value", "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read",
-                "membership.type", "DEFAULT"));
-        when(context.getConfig("edc.iam.dcp.scopes")).thenReturn(cfg);
-
+    void initialize(TestExtensionContext context, DynamicDcpScopeConfigurationExtension ext) {
+        context.setConfig(ConfigFactory.fromMap(Map.of(
+                "edc.iam.dcp.scopes.membership.id", "membership-scope",
+                "edc.iam.dcp.scopes.membership.value", "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read",
+                "edc.iam.dcp.scopes.membership.type", "DEFAULT")));
         ext.initialize(context);
 
         var captor = ArgumentCaptor.forClass(DcpScope.class);
@@ -65,13 +63,12 @@ public class DcpScopeConfigurationExtensionTest {
     }
 
     @Test
-    void initialize_withPolicyType(ServiceExtensionContext context, DynamicDcpScopeConfigurationExtension ext) {
-        var cfg = ConfigFactory.fromMap(Map.of(
-                "membership.id", "membership-scope",
-                "membership.prefix-mapping", "Membership.",
-                "membership.value", "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read",
-                "membership.type", "POLICY"));
-        when(context.getConfig("edc.iam.dcp.scopes")).thenReturn(cfg);
+    void initialize_withPolicyType(TestExtensionContext context, DynamicDcpScopeConfigurationExtension ext) {
+        context.setConfig(ConfigFactory.fromMap(Map.of(
+                "edc.iam.dcp.scopes.membership.id", "membership-scope",
+                "edc.iam.dcp.scopes.membership.prefix-mapping", "Membership.",
+                "edc.iam.dcp.scopes.membership.value", "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read",
+                "edc.iam.dcp.scopes.membership.type", "POLICY")));
 
         ext.initialize(context);
 
