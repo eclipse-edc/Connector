@@ -381,29 +381,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail_1"
-  /v1/dataflows:
-    post:
-      tags:
-      - Data Plane Signaling api API
-      description: "Initiates a data transfer for the given start message. If the\
-        \ data transfer is handled by the data plane, it will be performed asynchronously.\
-        \ If it's a consumer-pull scenario, a data address will be returned"
-      operationId: startOrPrepare
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DataFlowStartMessage"
-      responses:
-        "200":
-          description: Data transfer initiated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DataFlowResponseMessage"
-        "400":
-          description: Failed to validate request
-      deprecated: true
   /transferprocess/{processId}/complete:
     post:
       tags:
