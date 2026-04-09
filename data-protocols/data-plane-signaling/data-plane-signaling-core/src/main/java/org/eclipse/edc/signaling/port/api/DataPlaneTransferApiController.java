@@ -19,8 +19,6 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.container.ContainerRequestContext;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
@@ -53,7 +51,7 @@ public class DataPlaneTransferApiController implements DataPlaneTransferApi {
     @Path("/{transferId}/dataflow/prepared")
     @POST
     @Override
-    public Response prepared(@PathParam("transferId") String transferId, DataFlowResponseMessage message, @Context ContainerRequestContext context) {
+    public Response prepared(@PathParam("transferId") String transferId, DataFlowResponseMessage message) {
         typeTransformerRegistry.transform(message, DataFlowResponse.class)
                 .map(ServiceResult::success)
                 .orElse(failure -> ServiceResult.badRequest(failure.getMessages()))

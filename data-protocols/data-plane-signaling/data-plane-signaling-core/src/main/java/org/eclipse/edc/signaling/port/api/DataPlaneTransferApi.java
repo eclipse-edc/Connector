@@ -21,7 +21,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.api.model.ApiCoreSchema;
 import org.eclipse.edc.signaling.domain.DataFlowResponseMessage;
@@ -41,7 +40,7 @@ public interface DataPlaneTransferApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    Response prepared(String transferId, DataFlowResponseMessage message, ContainerRequestContext context);
+    Response prepared(String transferId, DataFlowResponseMessage message);
 
     @Operation(
             method = POST,

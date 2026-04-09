@@ -80,7 +80,7 @@ public class DataPlaneSignalingApiExtension implements ServiceExtension {
         typeTransformerRegistry.register(new DspDataAddressToDataAddressTransformer());
 
         webService.registerResource(ApiContext.MANAGEMENT, new DataPlaneRegistrationApiV4Controller(dataPlaneSelectorService));
-        webService.registerResource(ApiContext.SIGNALING, new DataPlaneTransferAuthorizationFilter(signalingAuthorizationRegistry));
+        webService.registerResource(ApiContext.SIGNALING, new DataPlaneTransferAuthorizationFilter(signalingAuthorizationRegistry, transferProcessService, dataPlaneSelectorService));
         webService.registerResource(ApiContext.SIGNALING, new DataPlaneTransferApiController(transferProcessService, typeTransformerRegistry));
 
         try (var versionContent = getClass().getClassLoader().getResourceAsStream(API_VERSION_JSON_FILE)) {
