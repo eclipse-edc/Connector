@@ -73,21 +73,6 @@ Module `api-core`
 _None_
 
 ### Extensions
-#### Class: `org.eclipse.edc.api.ApiCoreDefaultServicesExtension`
-**Name:** "ApiCoreDefaultServicesExtension"
-
-**Overview:** No overview provided.
-
-
-### Configuration_None_
-
-#### Provided services
-- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry`
-- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry`
-
-#### Referenced (injected) services
-_None_
-
 #### Class: `org.eclipse.edc.api.ApiCoreExtension`
 **Name:** "API Core"
 
@@ -103,6 +88,21 @@ _None_
 - `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
 - `org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry` (required)
 - `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
+
+#### Class: `org.eclipse.edc.api.ApiCoreDefaultServicesExtension`
+**Name:** "ApiCoreDefaultServicesExtension"
+
+**Overview:** No overview provided.
+
+
+### Configuration_None_
+
+#### Provided services
+- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry`
+- `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry`
+
+#### Referenced (injected) services
+_None_
 
 Module `api-observability`
 --------------------------
@@ -303,9 +303,9 @@ Module `auth-spi`
 **Categories:** _None_
 
 ### Extension points
-  - `org.eclipse.edc.api.auth.spi.AuthenticationService`
-  - `org.eclipse.edc.api.auth.spi.ApiAuthenticationProvider`
   - `org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry`
+  - `org.eclipse.edc.api.auth.spi.ApiAuthenticationProvider`
+  - `org.eclipse.edc.api.auth.spi.AuthenticationService`
 
 ### Extensions
 Module `auth-tokenbased`
@@ -563,20 +563,6 @@ Module `cel-core`
 _None_
 
 ### Extensions
-#### Class: `org.eclipse.edc.policy.cel.CelPolicyDefaultServicesExtension`
-**Name:** "Common Expression Language Policy Core Extension"
-
-**Overview:** No overview provided.
-
-
-### Configuration_None_
-
-#### Provided services
-- `org.eclipse.edc.policy.cel.store.CelExpressionStore`
-
-#### Referenced (injected) services
-- `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
-
 #### Class: `org.eclipse.edc.policy.cel.CelPolicyCoreExtension`
 **Name:** "Common Expression Language Policy Core Extension"
 
@@ -596,6 +582,20 @@ _None_
 - `org.eclipse.edc.transaction.spi.TransactionContext` (required)
 - `org.eclipse.edc.policy.engine.spi.RuleBindingRegistry` (required)
 - `org.eclipse.edc.spi.monitor.Monitor` (required)
+
+#### Class: `org.eclipse.edc.policy.cel.CelPolicyDefaultServicesExtension`
+**Name:** "Common Expression Language Policy Core Extension"
+
+**Overview:** No overview provided.
+
+
+### Configuration_None_
+
+#### Provided services
+- `org.eclipse.edc.policy.cel.store.CelExpressionStore`
+
+#### Referenced (injected) services
+- `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
 
 Module `cel-store-sql`
 ----------------------
@@ -669,30 +669,50 @@ Module `connector-core`
 _None_
 
 ### Extensions
-#### Class: `org.eclipse.edc.connector.core.CoreServicesExtension`
-**Name:** "Core Services"
+#### Class: `org.eclipse.edc.connector.core.CoreDefaultServicesExtension`
+**Name:** "CoreDefaultServicesExtension"
 
-**Overview:** No overview provided.
+**Overview:**  This extension provides default/standard implementation for the {@link PrivateKeyResolver}
+ Those provider methods CANNOT be implemented in {@link CoreDefaultServicesExtension}, because that could potentially cause
+ a conflict with injecting/providing the {@link Vault}
+
 
 
 ### Configuration_None_
 
 #### Provided services
-- `org.eclipse.edc.participant.spi.ParticipantAgentService`
-- `org.eclipse.edc.policy.engine.spi.RuleBindingRegistry`
-- `org.eclipse.edc.policy.engine.spi.PolicyEngine`
-- `org.eclipse.edc.validator.spi.DataAddressValidatorRegistry`
-- `org.eclipse.edc.http.spi.ControlApiHttpClient`
+- `org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider`
+- `org.eclipse.edc.participant.spi.ParticipantIdMapper`
 
 #### Referenced (injected) services
+_None_
+
+#### Class: `org.eclipse.edc.connector.core.SecurityDefaultServicesExtension`
+**Name:** "Security Default Services Extension"
+
+**Overview:**  This extension provides default/standard implementation for the {@link PrivateKeyResolver}
+ Those provider methods CANNOT be implemented in {@link CoreDefaultServicesExtension}, because that could potentially cause
+ a conflict with injecting/providing the {@link Vault}
+
+
+
+### Configuration_None_
+
+#### Provided services
+- `org.eclipse.edc.keys.spi.PrivateKeyResolver`
+- `org.eclipse.edc.keys.spi.KeyParserRegistry`
+
+#### Referenced (injected) services
+- `org.eclipse.edc.spi.security.Vault` (required)
 - `org.eclipse.edc.spi.types.TypeManager` (required)
-- `org.eclipse.edc.http.spi.EdcHttpClient` (required)
-- `org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider` (required)
 
 #### Class: `org.eclipse.edc.connector.core.LocalPublicKeyDefaultExtension`
 **Name:** "Security Default Services Extension"
 
-**Overview:** No overview provided.
+**Overview:**  This extension provides default/standard implementation for the {@link PrivateKeyResolver}
+ Those provider methods CANNOT be implemented in {@link CoreDefaultServicesExtension}, because that could potentially cause
+ a conflict with injecting/providing the {@link Vault}
+
 
 
 ### Configuration
@@ -710,36 +730,28 @@ _None_
 - `org.eclipse.edc.keys.spi.KeyParserRegistry` (required)
 - `org.eclipse.edc.spi.security.Vault` (required)
 
-#### Class: `org.eclipse.edc.connector.core.CoreDefaultServicesExtension`
-**Name:** "CoreDefaultServicesExtension"
+#### Class: `org.eclipse.edc.connector.core.CoreServicesExtension`
+**Name:** "Core Services"
 
-**Overview:** No overview provided.
+**Overview:**  This extension provides default/standard implementation for the {@link PrivateKeyResolver}
+ Those provider methods CANNOT be implemented in {@link CoreDefaultServicesExtension}, because that could potentially cause
+ a conflict with injecting/providing the {@link Vault}
 
-
-### Configuration_None_
-
-#### Provided services
-- `org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider`
-- `org.eclipse.edc.participant.spi.ParticipantIdMapper`
-
-#### Referenced (injected) services
-_None_
-
-#### Class: `org.eclipse.edc.connector.core.SecurityDefaultServicesExtension`
-**Name:** "Security Default Services Extension"
-
-**Overview:** No overview provided.
 
 
 ### Configuration_None_
 
 #### Provided services
-- `org.eclipse.edc.keys.spi.PrivateKeyResolver`
-- `org.eclipse.edc.keys.spi.KeyParserRegistry`
+- `org.eclipse.edc.participant.spi.ParticipantAgentService`
+- `org.eclipse.edc.policy.engine.spi.RuleBindingRegistry`
+- `org.eclipse.edc.policy.engine.spi.PolicyEngine`
+- `org.eclipse.edc.validator.spi.DataAddressValidatorRegistry`
+- `org.eclipse.edc.http.spi.ControlApiHttpClient`
 
 #### Referenced (injected) services
-- `org.eclipse.edc.spi.security.Vault` (required)
 - `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.http.spi.EdcHttpClient` (required)
+- `org.eclipse.edc.api.auth.spi.ControlClientAuthenticationProvider` (required)
 
 Module `connector-runtime`
 --------------------------
@@ -1021,13 +1033,13 @@ Module `contract-spi`
 
 ### Extension points
   - `org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore`
-  - `org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService`
-  - `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ProviderContractNegotiationManager`
-  - `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.NegotiationWaitStrategy`
-  - `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore`
-  - `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager`
   - `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable`
+  - `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ConsumerContractNegotiationManager`
+  - `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore`
+  - `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.NegotiationWaitStrategy`
+  - `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ProviderContractNegotiationManager`
   - `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuard`
+  - `org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService`
 
 ### Extensions
 Module `control-api-configuration`
@@ -1242,12 +1254,46 @@ Module `control-plane-contract`
 _None_
 
 ### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.contract.ContractNegotiationCommandExtension`
+**Name:** "Contract Negotiation command handlers"
+
+**Overview:** No overview provided.
+
+
+### Configuration_None_
+
+#### Provided services
+_None_
+
+#### Referenced (injected) services
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore` (required)
+- `org.eclipse.edc.spi.command.CommandHandlerRegistry` (required)
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable` (required)
+- `org.eclipse.edc.spi.telemetry.Telemetry` (required)
+
+#### Class: `org.eclipse.edc.connector.controlplane.contract.ContractNegotiationDefaultServicesExtension`
+**Name:** "Contract Negotiation Default Services"
+
+**Overview:** No overview provided.
+
+
+### Configuration_None_
+
+#### Provided services
+- `org.eclipse.edc.connector.controlplane.contract.spi.offer.ConsumerOfferResolver`
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable`
+- `org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive`
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuard`
+
+#### Referenced (injected) services
+- `org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore` (required)
+- `org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore` (required)
+- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore` (required)
+
 #### Class: `org.eclipse.edc.connector.controlplane.contract.ContractCoreExtension`
 **Name:** "Contract Core"
 
-**Overview:**  Adds a {@link CommandHandlerRegistry} to the context and registers the
- handlers the core provides.
-
+**Overview:** No overview provided.
 
 
 ### Configuration
@@ -1276,46 +1322,6 @@ _None_
 - `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore` (required)
 - `org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver` (required)
 - `org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry` (required)
-
-#### Class: `org.eclipse.edc.connector.controlplane.contract.ContractNegotiationCommandExtension`
-**Name:** "Contract Negotiation command handlers"
-
-**Overview:**  Adds a {@link CommandHandlerRegistry} to the context and registers the
- handlers the core provides.
-
-
-
-### Configuration_None_
-
-#### Provided services
-_None_
-
-#### Referenced (injected) services
-- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore` (required)
-- `org.eclipse.edc.spi.command.CommandHandlerRegistry` (required)
-- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable` (required)
-- `org.eclipse.edc.spi.telemetry.Telemetry` (required)
-
-#### Class: `org.eclipse.edc.connector.controlplane.contract.ContractNegotiationDefaultServicesExtension`
-**Name:** "Contract Negotiation Default Services"
-
-**Overview:**  Adds a {@link CommandHandlerRegistry} to the context and registers the
- handlers the core provides.
-
-
-
-### Configuration_None_
-
-#### Provided services
-- `org.eclipse.edc.connector.controlplane.contract.spi.offer.ConsumerOfferResolver`
-- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.observe.ContractNegotiationObservable`
-- `org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive`
-- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.ContractNegotiationPendingGuard`
-
-#### Referenced (injected) services
-- `org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore` (required)
-- `org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore` (required)
-- `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore` (required)
 
 Module `control-plane-contract-manager`
 ---------------------------------------
@@ -1429,10 +1435,33 @@ Module `control-plane-transfer`
 _None_
 
 ### Extensions
+#### Class: `org.eclipse.edc.connector.controlplane.transfer.TransferProcessDefaultServicesExtension`
+**Name:** "Transfer Process Default Services"
+
+**Overview:**  Provides core data transfer services to the system.
+
+
+
+### Configuration_None_
+
+#### Provided services
+- `org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable`
+- `org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard`
+- `org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser`
+- `org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore`
+- `org.eclipse.edc.connector.controlplane.transfer.spi.types.DataPlaneProtocolInUse`
+
+#### Referenced (injected) services
+- `org.eclipse.edc.spi.security.Vault` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
 #### Class: `org.eclipse.edc.connector.controlplane.transfer.TransferCoreExtension`
 **Name:** "Transfer Core"
 
-**Overview:** No overview provided.
+**Overview:**  Provides core data transfer services to the system.
+
 
 
 ### Configuration
@@ -1462,31 +1491,11 @@ _None_
 - `org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry` (required)
 - `java.time.Clock` (required)
 
-#### Class: `org.eclipse.edc.connector.controlplane.transfer.TransferProcessDefaultServicesExtension`
-**Name:** "Transfer Process Default Services"
-
-**Overview:** No overview provided.
-
-
-### Configuration_None_
-
-#### Provided services
-- `org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable`
-- `org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard`
-- `org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser`
-- `org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore`
-- `org.eclipse.edc.connector.controlplane.transfer.spi.types.DataPlaneProtocolInUse`
-
-#### Referenced (injected) services
-- `org.eclipse.edc.spi.security.Vault` (required)
-- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
-- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
-- `org.eclipse.edc.spi.types.TypeManager` (required)
-
 #### Class: `org.eclipse.edc.connector.controlplane.transfer.TransferProcessCommandExtension`
 **Name:** "TransferProcessCommandExtension"
 
-**Overview:** No overview provided.
+**Overview:**  Provides core data transfer services to the system.
+
 
 
 ### Configuration_None_
@@ -1581,8 +1590,8 @@ Module `core-spi`
 ### Extension points
   - `org.eclipse.edc.spi.event.EventRouter`
   - `org.eclipse.edc.spi.command.CommandHandlerRegistry`
-  - `org.eclipse.edc.spi.iam.AudienceResolver`
   - `org.eclipse.edc.spi.iam.IdentityService`
+  - `org.eclipse.edc.spi.iam.AudienceResolver`
   - `org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry`
 
 ### Extensions
@@ -1594,8 +1603,8 @@ Module `crawler-spi`
 **Categories:** _None_
 
 ### Extension points
-  - `org.eclipse.edc.crawler.spi.TargetNodeDirectory`
   - `org.eclipse.edc.crawler.spi.TargetNodeFilter`
+  - `org.eclipse.edc.crawler.spi.TargetNodeDirectory`
 
 ### Extensions
 Module `data-plane`
@@ -1630,6 +1639,31 @@ Module `data-plane-core`
 _None_
 
 ### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.framework.DataPlaneDefaultServicesExtension`
+**Name:** "Data Plane Framework Default Services"
+
+**Overview:**  Provides core services for the Data Plane Framework.
+
+ @deprecated please look into Data Plane Signaling.
+
+
+
+### Configuration_None_
+
+#### Provided services
+- `org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore`
+- `org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore`
+- `org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService`
+- `org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService`
+- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService`
+- `org.eclipse.edc.connector.dataplane.spi.edr.EndpointDataReferenceServiceRegistry`
+- `org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager`
+- `org.eclipse.edc.connector.dataplane.spi.provision.ProvisionerManager`
+
+#### Referenced (injected) services
+- `java.time.Clock` (required)
+- `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
+
 #### Class: `org.eclipse.edc.connector.dataplane.framework.DataPlaneFrameworkExtension`
 **Name:** "Data Plane Framework"
 
@@ -1666,31 +1700,6 @@ _None_
 - `org.eclipse.edc.connector.dataplane.spi.edr.EndpointDataReferenceServiceRegistry` (required)
 - `org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager` (required)
 - `org.eclipse.edc.connector.dataplane.spi.provision.ProvisionerManager` (required)
-
-#### Class: `org.eclipse.edc.connector.dataplane.framework.DataPlaneDefaultServicesExtension`
-**Name:** "Data Plane Framework Default Services"
-
-**Overview:**  Provides core services for the Data Plane Framework.
-
- @deprecated please look into Data Plane Signaling.
-
-
-
-### Configuration_None_
-
-#### Provided services
-- `org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore`
-- `org.eclipse.edc.connector.dataplane.spi.store.AccessTokenDataStore`
-- `org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService`
-- `org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService`
-- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService`
-- `org.eclipse.edc.connector.dataplane.spi.edr.EndpointDataReferenceServiceRegistry`
-- `org.eclipse.edc.connector.dataplane.spi.provision.ResourceDefinitionGeneratorManager`
-- `org.eclipse.edc.connector.dataplane.spi.provision.ProvisionerManager`
-
-#### Referenced (injected) services
-- `java.time.Clock` (required)
-- `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
 
 Module `data-plane-http`
 ------------------------
@@ -1764,28 +1773,6 @@ Module `data-plane-iam`
 _None_
 
 ### Extensions
-#### Class: `org.eclipse.edc.connector.dataplane.iam.DataPlaneIamExtension`
-**Name:** "Data Plane IAM"
-
-**Overview:** No overview provided.
-
-
-### Configuration
-
-| Key                  | Required | Type     | Default     | Pattern | Min | Max | Description                                                          |
-| -------------------- | -------- | -------- | ----------- | ------- | --- | --- | -------------------------------------------------------------------- |
-| `edc.participant.id` | `*`      | `string` | `anonymous` |         |     |     | Configures the participant id this runtime is operating on behalf of |
-
-#### Provided services
-- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService`
-
-#### Referenced (injected) services
-- `java.time.Clock` (required)
-- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService` (required)
-- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService` (required)
-- `org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService` (required)
-- `org.eclipse.edc.connector.dataplane.spi.edr.EndpointDataReferenceServiceRegistry` (required)
-
 #### Class: `org.eclipse.edc.connector.dataplane.iam.DataPlaneIamDefaultServicesExtension`
 **Name:** "Data Plane Default IAM Services"
 
@@ -1808,6 +1795,28 @@ _None_
 - `org.eclipse.edc.token.spi.TokenValidationService` (required)
 - `org.eclipse.edc.keys.spi.LocalPublicKeyService` (required)
 - `org.eclipse.edc.jwt.signer.spi.JwsSignerProvider` (required)
+
+#### Class: `org.eclipse.edc.connector.dataplane.iam.DataPlaneIamExtension`
+**Name:** "Data Plane IAM"
+
+**Overview:** No overview provided.
+
+
+### Configuration
+
+| Key                  | Required | Type     | Default     | Pattern | Min | Max | Description                                                          |
+| -------------------- | -------- | -------- | ----------- | ------- | --- | --- | -------------------------------------------------------------------- |
+| `edc.participant.id` | `*`      | `string` | `anonymous` |         |     |     | Configures the participant id this runtime is operating on behalf of |
+
+#### Provided services
+- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAuthorizationService`
+
+#### Referenced (injected) services
+- `java.time.Clock` (required)
+- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService` (required)
+- `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService` (required)
+- `org.eclipse.edc.connector.dataplane.spi.iam.PublicEndpointGeneratorService` (required)
+- `org.eclipse.edc.connector.dataplane.spi.edr.EndpointDataReferenceServiceRegistry` (required)
 
 Module `data-plane-instance-store-sql`
 --------------------------------------
@@ -2014,6 +2023,22 @@ Module `data-plane-selector-core`
 _None_
 
 ### Extensions
+#### Class: `org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorDefaultServicesExtension`
+**Name:** "DataPlaneSelectorDefaultServicesExtension"
+
+**Overview:** No overview provided.
+
+
+### Configuration_None_
+
+#### Provided services
+- `org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore`
+- `org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry`
+
+#### Referenced (injected) services
+- `java.time.Clock` (required)
+- `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
+
 #### Class: `org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorExtension`
 **Name:** "Data Plane Selector core"
 
@@ -2033,22 +2058,6 @@ _None_
 - `org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore` (required)
 - `org.eclipse.edc.transaction.spi.TransactionContext` (required)
 - `org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry` (required)
-
-#### Class: `org.eclipse.edc.connector.dataplane.selector.DataPlaneSelectorDefaultServicesExtension`
-**Name:** "DataPlaneSelectorDefaultServicesExtension"
-
-**Overview:** No overview provided.
-
-
-### Configuration_None_
-
-#### Provided services
-- `org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore`
-- `org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry`
-
-#### Referenced (injected) services
-- `java.time.Clock` (required)
-- `org.eclipse.edc.spi.query.CriterionOperatorRegistry` (required)
 
 Module `data-plane-selector-spi`
 --------------------------------
@@ -2132,22 +2141,6 @@ Module `data-plane-signaling-client`
 _None_
 
 ### Extensions
-#### Class: `org.eclipse.edc.connector.dataplane.client.DataPlaneSignalingClientTransformExtension`
-**Name:** "Legacy Data Plane Signaling transform Client"
-
-**Overview:**  This extension registers all the transformers relevant for the data plane signaling protocol
-
-
-
-### Configuration_None_
-
-#### Provided services
-_None_
-
-#### Referenced (injected) services
-- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
-- `org.eclipse.edc.spi.types.TypeManager` (required)
-
 #### Class: `org.eclipse.edc.connector.dataplane.client.LegacyDataPlaneSignalingClientExtension`
 **Name:** "Legacy Data Plane Signaling Client"
 
@@ -2167,6 +2160,22 @@ _None_
 - `org.eclipse.edc.jsonld.spi.JsonLd` (required)
 - `org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager` (optional)
 
+#### Class: `org.eclipse.edc.connector.dataplane.client.DataPlaneSignalingClientTransformExtension`
+**Name:** "Legacy Data Plane Signaling transform Client"
+
+**Overview:**  This extension registers all the transformers relevant for the data plane signaling protocol
+
+
+
+### Configuration_None_
+
+#### Provided services
+_None_
+
+#### Referenced (injected) services
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+
 Module `data-plane-signaling-core`
 ----------------------------------
 **Artifact:** org.eclipse.edc:data-plane-signaling-core:0.17.0-SNAPSHOT
@@ -2177,6 +2186,32 @@ Module `data-plane-signaling-core`
 _None_
 
 ### Extensions
+#### Class: `org.eclipse.edc.signaling.DataPlaneSignalingApiExtension`
+**Name:** "Data Plane Signaling Api"
+
+**Overview:** No overview provided.
+
+
+### Configuration
+
+| Key                             | Required | Type     | Default          | Pattern | Min | Max | Description                                                                             |
+| ------------------------------- | -------- | -------- | ---------------- | ------- | --- | --- | --------------------------------------------------------------------------------------- |
+| `web.http.signaling.port`       | `*`      | `string` | `8182`           |         |     |     | Port for signaling api context                                                          |
+| `web.http.signaling.path`       | `*`      | `string` | `/api/signaling` |         |     |     | Path for signaling api context                                                          |
+| `web.http.signaling.public.uri` |          | `string` | ``               |         |     |     | Public uri for signaling api context. If not defined, the 'localhost' one will be used. |
+
+#### Provided services
+_None_
+
+#### Referenced (injected) services
+- `org.eclipse.edc.web.spi.configuration.PortMappingRegistry` (required)
+- `org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService` (required)
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService` (required)
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.spi.system.apiversion.ApiVersionService` (required)
+- `org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistry` (required)
+
 #### Class: `org.eclipse.edc.signaling.DataPlaneSignalingExtension`
 **Name:** "Data Plane Signaling"
 
@@ -2217,32 +2252,6 @@ _None_
 - `org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService` (required)
 - `org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore` (required)
 
-#### Class: `org.eclipse.edc.signaling.DataPlaneSignalingApiExtension`
-**Name:** "Data Plane Signaling Api"
-
-**Overview:** No overview provided.
-
-
-### Configuration
-
-| Key                             | Required | Type     | Default          | Pattern | Min | Max | Description                                                                             |
-| ------------------------------- | -------- | -------- | ---------------- | ------- | --- | --- | --------------------------------------------------------------------------------------- |
-| `web.http.signaling.port`       | `*`      | `string` | `8182`           |         |     |     | Port for signaling api context                                                          |
-| `web.http.signaling.path`       | `*`      | `string` | `/api/signaling` |         |     |     | Path for signaling api context                                                          |
-| `web.http.signaling.public.uri` |          | `string` | ``               |         |     |     | Public uri for signaling api context. If not defined, the 'localhost' one will be used. |
-
-#### Provided services
-_None_
-
-#### Referenced (injected) services
-- `org.eclipse.edc.web.spi.configuration.PortMappingRegistry` (required)
-- `org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService` (required)
-- `org.eclipse.edc.web.spi.WebService` (required)
-- `org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService` (required)
-- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
-- `org.eclipse.edc.spi.system.apiversion.ApiVersionService` (required)
-- `org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistry` (required)
-
 Module `data-plane-signaling-oauth2`
 ------------------------------------
 **Artifact:** org.eclipse.edc:data-plane-signaling-oauth2:0.17.0-SNAPSHOT
@@ -2273,12 +2282,12 @@ Module `data-plane-spi`
 **Categories:** _None_
 
 ### Extension points
+  - `org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry`
   - `org.eclipse.edc.connector.dataplane.spi.pipeline.PipelineService`
-  - `org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager`
   - `org.eclipse.edc.connector.dataplane.spi.port.TransferProcessApiClient`
   - `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessTokenService`
   - `org.eclipse.edc.connector.dataplane.spi.iam.DataPlaneAccessControlService`
-  - `org.eclipse.edc.connector.dataplane.spi.registry.TransferServiceRegistry`
+  - `org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager`
 
 ### Extensions
 Module `data-plane-store-sql`
@@ -2353,6 +2362,62 @@ Module `decentralized-claims-core`
 _None_
 
 ### Extensions
+#### Class: `org.eclipse.edc.iam.decentralizedclaims.core.DcpTransformExtension`
+**Name:** "DCP Transform Extension"
+
+**Overview:** No overview provided.
+
+
+### Configuration_None_
+
+#### Provided services
+_None_
+
+#### Referenced (injected) services
+- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
+- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.spi.monitor.Monitor` (required)
+
+#### Class: `org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension`
+**Name:** "DCP Core Extension"
+
+**Overview:** No overview provided.
+
+
+### Configuration
+
+| Key                                  | Required | Type     | Default | Pattern | Min | Max | Description                                                                           |
+| ------------------------------------ | -------- | -------- | ------- | ------- | --- | --- | ------------------------------------------------------------------------------------- |
+| `edc.participant.did`                |          | `string` | ``      |         |     |     | DID of the participant, only needed if different from the value in edc.participant.id |
+| ~~edc.iam.issuer.id~~                | `*`      | `string` | ``      |         |     |     | DEPRECATED: DID of the participant, please refer to edc.participant.did               |
+| `edc.sql.store.jti.cleanup.period`   | `*`      | `string` | `60`    |         |     |     | The period of the JTI entry reaper thread in seconds                                  |
+| `edc.iam.accesstoken.jti.validation` | `*`      | `string` | `true`  |         |     |     | Activate or deactivate JTI validation                                                 |
+
+#### Provided services
+- `org.eclipse.edc.spi.iam.IdentityService`
+- `org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier`
+
+#### Referenced (injected) services
+- `org.eclipse.edc.iam.decentralizedclaims.spi.SecureTokenService` (required)
+- `org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry` (required)
+- `org.eclipse.edc.spi.types.TypeManager` (required)
+- `org.eclipse.edc.iam.decentralizedclaims.spi.verification.SignatureSuiteRegistry` (required)
+- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
+- `java.time.Clock` (required)
+- `org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry` (required)
+- `org.eclipse.edc.token.spi.TokenValidationService` (required)
+- `org.eclipse.edc.token.spi.TokenValidationRulesRegistry` (required)
+- `org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver` (required)
+- `org.eclipse.edc.iam.decentralizedclaims.spi.ClaimTokenCreatorFunction` (required)
+- `org.eclipse.edc.participant.spi.ParticipantAgentService` (required)
+- `org.eclipse.edc.iam.decentralizedclaims.spi.DcpParticipantAgentServiceExtension` (optional)
+- `org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry` (required)
+- `org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig` (required)
+- `org.eclipse.edc.jwt.validation.jti.JtiValidationStore` (required)
+- `org.eclipse.edc.spi.system.ExecutorInstrumentation` (required)
+- `org.eclipse.edc.iam.decentralizedclaims.spi.PresentationRequestService` (required)
+
 #### Class: `org.eclipse.edc.iam.decentralizedclaims.core.DcpDefaultServicesExtension`
 **Name:** "DCP Extension to register default services"
 
@@ -2405,39 +2470,6 @@ _None_
 - `org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScopeRegistry` (required)
 - `org.eclipse.edc.spi.monitor.Monitor` (required)
 
-#### Class: `org.eclipse.edc.iam.decentralizedclaims.core.DcpScopeExtractorExtension`
-**Name:** "DCP scope extractor extension"
-
-**Overview:** No overview provided.
-
-
-### Configuration_None_
-
-#### Provided services
-_None_
-
-#### Referenced (injected) services
-- `org.eclipse.edc.policy.engine.spi.PolicyEngine` (required)
-- `org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractorRegistry` (required)
-- `org.eclipse.edc.spi.monitor.Monitor` (required)
-
-#### Class: `org.eclipse.edc.iam.decentralizedclaims.core.DcpTransformExtension`
-**Name:** "DCP Transform Extension"
-
-**Overview:** No overview provided.
-
-
-### Configuration_None_
-
-#### Provided services
-_None_
-
-#### Referenced (injected) services
-- `org.eclipse.edc.transform.spi.TypeTransformerRegistry` (required)
-- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
-- `org.eclipse.edc.spi.types.TypeManager` (required)
-- `org.eclipse.edc.spi.monitor.Monitor` (required)
-
 #### Class: `org.eclipse.edc.iam.decentralizedclaims.core.DynamicDcpScopeExtension`
 **Name:** "DCP Dynamic Scope Extension"
 
@@ -2454,6 +2486,22 @@ _None_
 - `org.eclipse.edc.transaction.spi.TransactionContext` (required)
 - `org.eclipse.edc.iam.decentralizedclaims.spi.scope.store.DcpScopeStore` (required)
 - `org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractorRegistry` (required)
+
+#### Class: `org.eclipse.edc.iam.decentralizedclaims.core.DcpScopeExtractorExtension`
+**Name:** "DCP scope extractor extension"
+
+**Overview:** No overview provided.
+
+
+### Configuration_None_
+
+#### Provided services
+_None_
+
+#### Referenced (injected) services
+- `org.eclipse.edc.policy.engine.spi.PolicyEngine` (required)
+- `org.eclipse.edc.iam.decentralizedclaims.spi.scope.ScopeExtractorRegistry` (required)
+- `org.eclipse.edc.spi.monitor.Monitor` (required)
 
 #### Class: `org.eclipse.edc.iam.decentralizedclaims.core.DcpPresentationRequestExtension`
 **Name:** "DCP Presentation Request Extension"
@@ -2474,45 +2522,6 @@ _None_
 - `org.eclipse.edc.spi.types.TypeManager` (required)
 - `org.eclipse.edc.http.spi.EdcHttpClient` (required)
 - `org.eclipse.edc.jsonld.spi.JsonLd` (required)
-
-#### Class: `org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension`
-**Name:** "DCP Core Extension"
-
-**Overview:** No overview provided.
-
-
-### Configuration
-
-| Key                                  | Required | Type     | Default | Pattern | Min | Max | Description                                                                           |
-| ------------------------------------ | -------- | -------- | ------- | ------- | --- | --- | ------------------------------------------------------------------------------------- |
-| `edc.participant.did`                |          | `string` | ``      |         |     |     | DID of the participant, only needed if different from the value in edc.participant.id |
-| ~~edc.iam.issuer.id~~                | `*`      | `string` | ``      |         |     |     | DEPRECATED: DID of the participant, please refer to edc.participant.did               |
-| `edc.sql.store.jti.cleanup.period`   | `*`      | `string` | `60`    |         |     |     | The period of the JTI entry reaper thread in seconds                                  |
-| `edc.iam.accesstoken.jti.validation` | `*`      | `string` | `true`  |         |     |     | Activate or deactivate JTI validation                                                 |
-
-#### Provided services
-- `org.eclipse.edc.spi.iam.IdentityService`
-- `org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier`
-
-#### Referenced (injected) services
-- `org.eclipse.edc.iam.decentralizedclaims.spi.SecureTokenService` (required)
-- `org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry` (required)
-- `org.eclipse.edc.spi.types.TypeManager` (required)
-- `org.eclipse.edc.iam.decentralizedclaims.spi.verification.SignatureSuiteRegistry` (required)
-- `org.eclipse.edc.jsonld.spi.JsonLd` (required)
-- `java.time.Clock` (required)
-- `org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry` (required)
-- `org.eclipse.edc.token.spi.TokenValidationService` (required)
-- `org.eclipse.edc.token.spi.TokenValidationRulesRegistry` (required)
-- `org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver` (required)
-- `org.eclipse.edc.iam.decentralizedclaims.spi.ClaimTokenCreatorFunction` (required)
-- `org.eclipse.edc.participant.spi.ParticipantAgentService` (required)
-- `org.eclipse.edc.iam.decentralizedclaims.spi.DcpParticipantAgentServiceExtension` (optional)
-- `org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry` (required)
-- `org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig` (required)
-- `org.eclipse.edc.jwt.validation.jti.JtiValidationStore` (required)
-- `org.eclipse.edc.spi.system.ExecutorInstrumentation` (required)
-- `org.eclipse.edc.iam.decentralizedclaims.spi.PresentationRequestService` (required)
 
 Module `decentralized-claims-issuers-configuration`
 ---------------------------------------------------
@@ -3557,8 +3566,8 @@ Module `identity-did-spi`
 ### Extension points
   - `org.eclipse.edc.iam.did.spi.credentials.CredentialsVerifier`
   - `org.eclipse.edc.iam.did.spi.store.DidStore`
-  - `org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver`
   - `org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry`
+  - `org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver`
 
 ### Extensions
 Module `identity-did-web`
@@ -4454,8 +4463,8 @@ Module `policy-engine-spi`
 **Categories:** _None_
 
 ### Extension points
-  - `org.eclipse.edc.policy.engine.spi.RuleBindingRegistry`
   - `org.eclipse.edc.policy.engine.spi.PolicyEngine`
+  - `org.eclipse.edc.policy.engine.spi.RuleBindingRegistry`
 
 ### Extensions
 Module `policy-monitor-core`
@@ -4552,8 +4561,8 @@ Module `policy-spi`
 **Categories:** _None_
 
 ### Extension points
-  - `org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore`
   - `org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive`
+  - `org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore`
 
 ### Extensions
 Module `runtime-core`
@@ -4947,6 +4956,32 @@ Module `tck-extension`
 _None_
 
 ### Extensions
+#### Class: `org.eclipse.edc.tck.dsp.controller.TckControllerExtension`
+**Name:** "TckControllerExtension"
+
+**Overview:**  Loads customizations and seed data for the TCK.
+
+
+
+### Configuration
+
+| Key                 | Required | Type     | Default | Pattern | Min | Max | Description              |
+| ------------------- | -------- | -------- | ------- | ------- | --- | --- | ------------------------ |
+| `web.http.tck.port` | `*`      | `string` | `8687`  |         |     |     | Port for tck api context |
+| `web.http.tck.path` | `*`      | `string` | `/tck`  |         |     |     | Path for tck api context |
+
+#### Provided services
+_None_
+
+#### Referenced (injected) services
+- `org.eclipse.edc.web.spi.configuration.PortMappingRegistry` (required)
+- `org.eclipse.edc.web.spi.WebService` (required)
+- `org.eclipse.edc.web.spi.WebServer` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService` (required)
+- `org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService` (required)
+- `org.eclipse.edc.spi.monitor.Monitor` (required)
+- `org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier` (required)
+
 #### Class: `org.eclipse.edc.tck.dsp.guard.TckGuardExtension`
 **Name:** "TckGuardExtension"
 
@@ -4988,32 +5023,6 @@ _None_
 - `org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService` (required)
 - `org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService` (required)
 - `org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore` (required)
-
-#### Class: `org.eclipse.edc.tck.dsp.controller.TckControllerExtension`
-**Name:** "TckControllerExtension"
-
-**Overview:**  Loads customizations and seed data for the TCK.
-
-
-
-### Configuration
-
-| Key                 | Required | Type     | Default | Pattern | Min | Max | Description              |
-| ------------------- | -------- | -------- | ------- | ------- | --- | --- | ------------------------ |
-| `web.http.tck.port` | `*`      | `string` | `8687`  |         |     |     | Port for tck api context |
-| `web.http.tck.path` | `*`      | `string` | `/tck`  |         |     |     | Path for tck api context |
-
-#### Provided services
-_None_
-
-#### Referenced (injected) services
-- `org.eclipse.edc.web.spi.configuration.PortMappingRegistry` (required)
-- `org.eclipse.edc.web.spi.WebService` (required)
-- `org.eclipse.edc.web.spi.WebServer` (required)
-- `org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService` (required)
-- `org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService` (required)
-- `org.eclipse.edc.spi.monitor.Monitor` (required)
-- `org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier` (required)
 
 #### Class: `org.eclipse.edc.tck.dsp.transfer.TckDataPlaneExtension`
 **Name:** "TckDataPlaneExtension"
@@ -5327,11 +5336,11 @@ Module `transfer-spi`
 **Categories:** _None_
 
 ### Extension points
-  - `org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore`
-  - `org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard`
-  - `org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager`
-  - `org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider`
   - `org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable`
+  - `org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard`
+  - `org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore`
+  - `org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider`
+  - `org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessManager`
 
 ### Extensions
 Module `transfer-tasks-publisher-nats`
@@ -5609,8 +5618,8 @@ Module `web-spi`
 **Categories:** _None_
 
 ### Extension points
-  - `org.eclipse.edc.web.spi.WebServer`
   - `org.eclipse.edc.web.spi.WebService`
   - `org.eclipse.edc.web.spi.validation.InterceptorFunctionRegistry`
+  - `org.eclipse.edc.web.spi.WebServer`
 
 ### Extensions
