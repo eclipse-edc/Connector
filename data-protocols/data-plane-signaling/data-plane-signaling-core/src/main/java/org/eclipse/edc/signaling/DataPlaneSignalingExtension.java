@@ -60,7 +60,7 @@ public class DataPlaneSignalingExtension implements ServiceExtension {
     @Override
     public void start() {
         if (signalingAuthorizationRegistry.getAll().isEmpty()) {
-            monitor.warning("No Signaling Authorization profiles are supported: communication with Data Plane will be un-authorized.");
+            monitor.warning("No Signaling Authorization profiles are supported: this could cause issues in interactions with data-planes");
         }
     }
 }

@@ -54,109 +54,112 @@ import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.PROVIDER_CP;
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.PROVIDER_DP;
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.PROVIDER_ID;
 
-public interface PolicyMonitorEndToEndTest {
+class PolicyMonitorEndToEndTest {
 
-    @BeforeAll
-    static void beforeAll(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
-                          @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                          @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
-                          @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane,
-                          Oauth2Extension oauth2) {
+    interface Tests {
 
-        var consumerDataPlaneOauth2Profile = oauth2.registerClient(consumerDataPlane.dataPlaneId());
-        var consumerControlPlaneOauth2Profile = oauth2.registerClient(consumer.getId());
-        var providerDataPlaneOauth2Profile = oauth2.registerClient(providerDataPlane.dataPlaneId());
-        var providerControlPlaneOauth2Profile = oauth2.registerClient(provider.getId());
+        @BeforeAll
+        static void beforeAll(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
+                              @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                              @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
+                              @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane,
+                              Oauth2Extension oauth2) {
 
-        consumer.registerDataPlane(consumerDataPlane.getDataPlaneRegistrationMessage(consumerControlPlaneOauth2Profile));
-        provider.registerDataPlane(providerDataPlane.getDataPlaneRegistrationMessage(providerControlPlaneOauth2Profile));
+            var consumerDataPlaneOauth2Profile = oauth2.registerClient(consumerDataPlane.dataPlaneId());
+            var consumerControlPlaneOauth2Profile = oauth2.registerClient(consumer.getId());
+            var providerDataPlaneOauth2Profile = oauth2.registerClient(providerDataPlane.dataPlaneId());
+            var providerControlPlaneOauth2Profile = oauth2.registerClient(provider.getId());
 
-        providerDataPlane.registerControlPlane(createObjectBuilder()
-                .add("controlplaneId", provider.getId())
-                .add("endpoint", provider.getSignalingEndpointUrl().toString())
-                .add("authorization", createArrayBuilder().add(providerDataPlaneOauth2Profile))
-                .build());
+            consumer.registerDataPlane(consumerDataPlane.getDataPlaneRegistrationMessage(consumerControlPlaneOauth2Profile));
+            provider.registerDataPlane(providerDataPlane.getDataPlaneRegistrationMessage(providerControlPlaneOauth2Profile));
 
-        consumerDataPlane.registerControlPlane(createObjectBuilder()
-                .add("controlplaneId", consumer.getId())
-                .add("endpoint", consumer.getSignalingEndpointUrl().toString())
-                .add("authorization", createArrayBuilder().add(consumerDataPlaneOauth2Profile))
-                .build());
-    }
+            providerDataPlane.registerControlPlane(createObjectBuilder()
+                    .add("controlplaneId", provider.getId())
+                    .add("endpoint", provider.getSignalingEndpointUrl().toString())
+                    .add("authorization", createArrayBuilder().add(providerDataPlaneOauth2Profile))
+                    .build());
 
-    @Test
-    default void shouldTerminateTransfer_whenContractExpires_fixedInForcePeriod(
-            @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
-            @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-            @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
-            @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+            consumerDataPlane.registerControlPlane(createObjectBuilder()
+                    .add("controlplaneId", consumer.getId())
+                    .add("endpoint", consumer.getSignalingEndpointUrl().toString())
+                    .add("authorization", createArrayBuilder().add(consumerDataPlaneOauth2Profile))
+                    .build());
+        }
 
-        var now = Instant.now();
-        // contract is valid from t-10s to t+10s, so it will be expired after some seconds
-        var contractPolicy = inForceDatePolicy("gteq", now.minus(ofSeconds(10)), "lteq", now.plus(ofSeconds(10)));
-        var contractPolicyId = provider.createPolicyDefinition(contractPolicy);
-        var assetId = createOffer(provider, contractPolicyId);
-        var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
-                .withTransferType("NonFinite-PULL").execute();
+        @Test
+        default void shouldTerminateTransfer_whenContractExpires_fixedInForcePeriod(
+                @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
+                @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
+                @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
 
-        consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
-        var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
-        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
-        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
+            var now = Instant.now();
+            // contract is valid from t-10s to t+10s, so it will be expired after some seconds
+            var contractPolicy = inForceDatePolicy("gteq", now.minus(ofSeconds(10)), "lteq", now.plus(ofSeconds(10)));
+            var contractPolicyId = provider.createPolicyDefinition(contractPolicy);
+            var assetId = createOffer(provider, contractPolicyId);
+            var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
+                    .withTransferType("NonFinite-PULL").execute();
 
-        // policy monitor should terminate the transfer
+            consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+            var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
+            consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
+            providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
 
-        consumer.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
-        provider.awaitTransferToBeInState(providerTransferProcessId, TERMINATED);
-        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "TERMINATED");
-        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "TERMINATED");
-    }
+            // policy monitor should terminate the transfer
 
-    @Test
-    default void shouldTerminateTransfer_whenContractExpires_durationInForcePeriod(
-            @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
-            @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-            @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
-            @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+            consumer.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
+            provider.awaitTransferToBeInState(providerTransferProcessId, TERMINATED);
+            consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "TERMINATED");
+            providerDataPlane.awaitFlowToBe(providerTransferProcessId, "TERMINATED");
+        }
 
-        var now = Instant.now();
-        // contract is valid until 5s after agreement
-        var contractPolicy = inForceDatePolicy("gteq", now.minus(ofSeconds(10)), "lteq", "contractAgreement+5s");
-        var contractPolicyId = provider.createPolicyDefinition(contractPolicy);
-        var assetId = createOffer(provider, contractPolicyId);
-        var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
-                .withTransferType("NonFinite-PULL").execute();
+        @Test
+        default void shouldTerminateTransfer_whenContractExpires_durationInForcePeriod(
+                @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
+                @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
+                @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
 
-        consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
-        var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
-        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
-        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
+            var now = Instant.now();
+            // contract is valid until 5s after agreement
+            var contractPolicy = inForceDatePolicy("gteq", now.minus(ofSeconds(10)), "lteq", "contractAgreement+5s");
+            var contractPolicyId = provider.createPolicyDefinition(contractPolicy);
+            var assetId = createOffer(provider, contractPolicyId);
+            var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
+                    .withTransferType("NonFinite-PULL").execute();
 
-        // policy monitor should terminate the transfer
+            consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+            var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
+            consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
+            providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
 
-        consumer.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
-        provider.awaitTransferToBeInState(providerTransferProcessId, TERMINATED);
-        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "TERMINATED");
-        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "TERMINATED");
-    }
+            // policy monitor should terminate the transfer
 
-    private String createOffer(TransferEndToEndParticipant provider, String contractPolicyId) {
-        var createAssetRequestBody = createObjectBuilder()
-                .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
-                .add(TYPE, EDC_ASSET_TYPE_TERM)
-                .add("properties", createObjectBuilder()
-                        .add("name", "test-asset"))
-                .build();
+            consumer.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
+            provider.awaitTransferToBeInState(providerTransferProcessId, TERMINATED);
+            consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "TERMINATED");
+            providerDataPlane.awaitFlowToBe(providerTransferProcessId, "TERMINATED");
+        }
 
-        var noConstraintPolicyId = provider.createPolicyDefinition(noConstraintPolicy());
-        var assetId = provider.createAsset(createAssetRequestBody);
-        provider.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, contractPolicyId);
-        return assetId;
+        private String createOffer(TransferEndToEndParticipant provider, String contractPolicyId) {
+            var createAssetRequestBody = createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, EDC_ASSET_TYPE_TERM)
+                    .add("properties", createObjectBuilder()
+                            .add("name", "test-asset"))
+                    .build();
+
+            var noConstraintPolicyId = provider.createPolicyDefinition(noConstraintPolicy());
+            var assetId = provider.createAsset(createAssetRequestBody);
+            provider.createContractDefinition(assetId, UUID.randomUUID().toString(), noConstraintPolicyId, contractPolicyId);
+            return assetId;
+        }
     }
 
     @Nested
     @EndToEndTest
-    class InMemoryTest implements PolicyMonitorEndToEndTest {
+    class InMemoryTest implements Tests {
 
         static final Endpoints CONSUMER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
         static final Endpoints PROVIDER_ENDPOINTS = Runtimes.ControlPlane.ENDPOINTS.build();
@@ -212,7 +215,7 @@ public interface PolicyMonitorEndToEndTest {
 
     @Nested
     @PostgresqlIntegrationTest
-    class PostgresTest implements PolicyMonitorEndToEndTest {
+    class PostgresTest implements Tests {
 
         static final String CONSUMER_DB = "consumer";
         static final String PROVIDER_DB = "provider";
