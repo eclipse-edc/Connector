@@ -171,11 +171,9 @@ components:
       type: object
       properties:
         authorization:
-          type: array
-          items:
+          type: object
+          additionalProperties:
             type: object
-            additionalProperties:
-              type: object
         dataplaneId:
           type: string
         endpoint:
@@ -192,8 +190,7 @@ components:
             type: string
       example:
         authorization:
-        - key: "{}"
-        - key: "{}"
+          key: "{}"
         dataplaneId: dataplaneId
         endpoint: endpoint
         transferTypes:
