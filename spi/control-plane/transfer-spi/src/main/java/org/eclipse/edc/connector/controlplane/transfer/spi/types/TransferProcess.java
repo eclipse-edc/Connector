@@ -103,6 +103,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     private String dataAddressAlias;
     private String assetId;
     private String contractId;
+    @Deprecated(since = "0.16.0")
     private DataAddress contentDataAddress;
     private Map<String, Object> privateProperties = new HashMap<>();
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
@@ -120,10 +121,12 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
         return type;
     }
 
+    @Deprecated(since = "0.16.0")
     public DataAddress getContentDataAddress() {
         return contentDataAddress;
     }
 
+    @Deprecated(since = "0.16.0")
     public void setContentDataAddress(DataAddress dataAddress) {
         contentDataAddress = dataAddress;
     }
@@ -271,12 +274,6 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
 
     public void transitionSuspendingRequested() {
         transition(SUSPENDING_REQUESTED, state -> canBeSuspended());
-    }
-
-    @Deprecated(since = "0.15.0")
-    public void transitionSuspended(String reason) {
-        this.errorDetail = reason;
-        transitionSuspended();
     }
 
     public void transitionResumed() {

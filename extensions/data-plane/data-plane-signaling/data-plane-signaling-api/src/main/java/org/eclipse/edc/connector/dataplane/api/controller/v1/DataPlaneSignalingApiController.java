@@ -53,21 +53,6 @@ public class DataPlaneSignalingApiController implements DataPlaneSignalingApi {
     }
 
     @POST
-    @Override
-    public JsonObject startOrPrepare(JsonObject message) {
-        var type = message.getJsonArray(TYPE).getString(0);
-
-        var response = switch (type) {
-            case DataFlowStartMessage.EDC_DATA_FLOW_START_MESSAGE_TYPE -> startFlow(message);
-            case DataFlowProvisionMessage.EDC_DATA_FLOW_PROVISION_MESSAGE_TYPE -> provisionFlow(message);
-            default -> throw new InvalidRequestException("Type " + type + " not valid");
-        };
-
-        return typeTransformerRegistry.transform(response, JsonObject.class)
-                    .orElseThrow(f -> new EdcException(f.getFailureDetail()));
-    }
-
-    @POST
     @Path("/prepare")
     @Override
     public JsonObject prepare(JsonObject message) {

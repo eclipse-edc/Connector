@@ -91,7 +91,6 @@ public class TestFunctions {
 
     private static JsonObjectBuilder createPropertiesBuilder(String id) {
         return Json.createObjectBuilder()
-                .add(Asset.PROPERTY_NAME, "test-asset-" + id)
                 .add(Asset.PROPERTY_ID, id);
     }
 

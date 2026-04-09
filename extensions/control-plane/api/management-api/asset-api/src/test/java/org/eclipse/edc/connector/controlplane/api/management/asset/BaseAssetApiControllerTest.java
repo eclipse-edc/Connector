@@ -443,10 +443,7 @@ public abstract class BaseAssetApiControllerTest extends RestControllerTestBase 
 
     private Asset.Builder createAssetBuilder() {
         return Asset.Builder.newInstance()
-                .name(TEST_ASSET_NAME)
                 .id(TEST_ASSET_ID)
-                .contentType(TEST_ASSET_CONTENTTYPE)
-                .description(TEST_ASSET_DESCRIPTION)
-                .version(TEST_ASSET_VERSION);
+                .description(TEST_ASSET_DESCRIPTION);
     }
 }

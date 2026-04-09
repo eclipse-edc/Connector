@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
@@ -260,40 +259,9 @@ public class AssetApiEndToEndTest {
         }
 
         @Test
-        void queryAsset_byContentType(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
-            //insert one asset into the index
-            var id = UUID.randomUUID().toString();
-            var asset = Asset.Builder.newInstance().id(id).contentType("application/octet-stream").dataAddress(createDataAddress().build()).participantContextId("participantContextId").build();
-            assetIndex.create(asset);
-
-            var query = createObjectBuilder()
-                    .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                    .add("filterExpression", createArrayBuilder()
-                            .add(createObjectBuilder()
-                                    .add("operandLeft", EDC_NAMESPACE + "id")
-                                    .add("operator", "=")
-                                    .add("operandRight", id))
-                            .add(createObjectBuilder()
-                                    .add("operandLeft", EDC_NAMESPACE + "contenttype")
-                                    .add("operator", "=")
-                                    .add("operandRight", "application/octet-stream"))
-                    ).build();
-
-            context.baseRequest()
-                    .contentType(ContentType.JSON)
-                    .body(query)
-                    .post("/v3/assets/request")
-                    .then()
-                    .log().ifError()
-                    .statusCode(200)
-                    .body("size()", is(1));
-        }
-
-        @Test
         void queryAsset_byCustomStringProperty(ManagementEndToEndTestContext context, AssetIndex assetIndex) {
             assetIndex.create(Asset.Builder.newInstance()
                     .id("test-asset")
-                    .contentType("application/octet-stream")
                     .property("myProp", "myVal")
                     .dataAddress(createDataAddress().build())
                     .participantContextId("participantContextId")
@@ -356,7 +324,6 @@ public class AssetApiEndToEndTest {
             assetIndex.create(Asset.Builder.newInstance()
                     .property(Asset.PROPERTY_IS_CATALOG, true)
                     .id(id)
-                    .contentType("application/octet-stream")
                     .dataAddress(createDataAddress().build())
                     .participantContextId("participantContextId")
                     .build());

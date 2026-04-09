@@ -41,19 +41,6 @@ import static org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage.EDC
                 "to the Data Plane after the contract has been successfully negotiated and agreed between the two participants. ")
 public interface DataPlaneSignalingApi {
 
-    @Operation(description = "Initiates a data transfer for the given start message. If the data transfer is handled by the data plane, it will be performed asynchronously. " +
-            "If it's a consumer-pull scenario, a data address will be returned",
-            deprecated = true,
-            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataFlowStartMessageSchema.class))),
-            responses = {
-                    @ApiResponse(responseCode = "400", description = "Failed to validate request"),
-                    @ApiResponse(responseCode = "200", description = "Data transfer initiated",
-                            content = @Content(schema = @Schema(implementation = DataFlowResponseMessageSchema.class))),
-            }
-    )
-    @Deprecated(since = "0.15.0")
-    JsonObject startOrPrepare(JsonObject dataFlowStartMessage);
-
     @Operation(description = "Prepares a data flow. Intended to be called on consumer side.",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataFlowStartMessageSchema.class))),
             responses = {
