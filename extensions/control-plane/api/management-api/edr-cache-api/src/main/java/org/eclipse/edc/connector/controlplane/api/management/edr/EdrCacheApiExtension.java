@@ -15,10 +15,8 @@
 package org.eclipse.edc.connector.controlplane.api.management.edr;
 
 import jakarta.json.Json;
-import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.api.management.edr.transform.JsonObjectFromEndpointDataReferenceEntryTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.edr.v3.EdrCacheApiV3Controller;
-import org.eclipse.edc.connector.controlplane.api.management.edr.v4.EdrCacheApiV4Controller;
 import org.eclipse.edc.edr.spi.store.EndpointDataReferenceStore;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -36,7 +34,6 @@ import org.eclipse.edc.web.spi.configuration.ApiContext;
 import java.util.Map;
 
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
-import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
 import static org.eclipse.edc.connector.controlplane.api.management.edr.EdrCacheApiExtension.NAME;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
@@ -76,9 +73,6 @@ public class EdrCacheApiExtension implements ServiceExtension {
 
         webService.registerResource(ApiContext.MANAGEMENT, new EdrCacheApiV3Controller(edrStore, managementTypeTransformerRegistry, validator, monitor));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, EdrCacheApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
-
-        webService.registerResource(ApiContext.MANAGEMENT, new EdrCacheApiV4Controller(edrStore, managementTypeTransformerRegistry, validator, monitor));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, EdrCacheApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validator, ManagementApiJsonSchema.V4.version()));
 
     }
 }

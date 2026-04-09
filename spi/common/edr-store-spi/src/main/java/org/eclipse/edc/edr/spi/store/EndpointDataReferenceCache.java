@@ -20,7 +20,10 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 
 /**
  * Client side Cache for {@link DataAddress} associated to a transfer process in PULL scenario
+ *
+ * @deprecated since management-api:v
  */
+@Deprecated(since = "management-api:v3")
 @ExtensionPoint
 public interface EndpointDataReferenceCache {
 

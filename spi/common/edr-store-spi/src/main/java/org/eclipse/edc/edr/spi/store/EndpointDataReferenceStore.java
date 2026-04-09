@@ -28,7 +28,10 @@ import java.util.List;
  * in the underlying storage/cache. Implementors of {@link EndpointDataReferenceStore}
  * can decide to split the storage in two parts by using {@link EndpointDataReferenceCache} for caching
  * the actual EDRs in a secured environment and {@link EndpointDataReferenceEntryIndex} for storing the associated metadata.
+ *
+ * @deprecated since management-api:v3
  */
+@Deprecated(since = "management-api:v3")
 @ExtensionPoint
 public interface EndpointDataReferenceStore {
 

@@ -22,7 +22,10 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
  * Represents metadata associated with an EDR
+ *
+ * @deprecated since management-api:v3
  */
+@Deprecated(since = "management-api:v3")
 public class EndpointDataReferenceEntry extends AbstractParticipantResource {
 
     public static final String EDR_ENTRY_TYPE_TERM = "EndpointDataReferenceEntry";
