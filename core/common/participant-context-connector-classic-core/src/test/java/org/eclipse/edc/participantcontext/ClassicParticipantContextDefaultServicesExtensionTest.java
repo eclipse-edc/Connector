@@ -16,46 +16,41 @@ package org.eclipse.edc.participantcontext;
 
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.participantcontext.connector.ClassicParticipantContextDefaultServicesExtension;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 public class ClassicParticipantContextDefaultServicesExtensionTest {
 
-    @BeforeEach
-    void setup(ServiceExtensionContext context) {
-        var config = ConfigFactory.fromMap(Map.of(
-                "edc.participant.id", "participantId"
-
-        ));
-        when(context.getConfig()).thenReturn(config);
-    }
-
     @Test
-    void verifyParticipantContextSupplier(ClassicParticipantContextDefaultServicesExtension extension) {
+    void verifyParticipantContextSupplier(TestExtensionContext context, ObjectFactory factory) {
+        context.setConfig(ConfigFactory.fromMap(Map.of(
+                "edc.participant.id", "participantId"
+        )));
+
+        var extension = factory.constructInstance(ClassicParticipantContextDefaultServicesExtension.class);
+
         var supplier = extension.participantContextSupplier();
         assertThat(supplier.get().getContent()).extracting(ParticipantContext::getParticipantContextId).isEqualTo("participantId");
     }
 
     @Test
-    void verifyParticipantContextSupplierWithConfiguredParticipantContextId(ServiceExtensionContext context, ObjectFactory factory) {
-        var config = ConfigFactory.fromMap(Map.of(
+    void verifyParticipantContextSupplierWithConfiguredParticipantContextId(TestExtensionContext context, ObjectFactory factory) {
+        context.setConfig(ConfigFactory.fromMap(Map.of(
                 "edc.participant.id", "participantId",
                 "edc.participant.context.id", "participantContextId"
+        )));
 
-        ));
-        when(context.getConfig()).thenReturn(config);
         var extension = factory.constructInstance(ClassicParticipantContextDefaultServicesExtension.class);
+
         var supplier = extension.participantContextSupplier();
         assertThat(supplier.get().getContent()).extracting(ParticipantContext::getParticipantContextId).isEqualTo("participantContextId");
     }

@@ -48,8 +48,8 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     }
 
     @Override
-    public Config getConfig(String path) {
-        return config.getConfig(path);
+    public Config getConfig() {
+        return config;
     }
 
     @Override
