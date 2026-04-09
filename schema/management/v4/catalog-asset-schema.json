@@ -30,16 +30,12 @@
         },
         "isCatalog": {
           "type": "boolean"
-        },
-        "dataAddress": {
-          "$ref": "https://w3id.org/edc/connector/management/schema/v4/data-address-schema.json"
         }
       },
       "required": [
         "@context",
         "@type",
-        "properties",
-        "dataAddress"
+        "properties"
       ]
     }
   }
