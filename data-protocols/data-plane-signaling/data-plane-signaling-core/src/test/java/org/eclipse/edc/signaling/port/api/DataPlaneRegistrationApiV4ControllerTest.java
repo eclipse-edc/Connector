@@ -22,7 +22,6 @@ import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -58,15 +57,16 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
                     instance.getId().equals("dp-id") &&
                     instance.getUrl().toString().equals("http://dataplane/endpoint") &&
                     instance.getAllowedTransferTypes().contains("HttpData-PUSH") &&
-                    instance.getAuthorizationProfiles().isEmpty()
+                    instance.getAuthorizationProfile() == null
             ));
         }
 
         @Test
-        void shouldRegisterDataPlane_withAuthorizationProfiles() {
+        void shouldRegisterDataPlane_withAuthorizationProfile() {
             when(dataPlaneSelectorService.register(any())).thenReturn(ServiceResult.success());
             var authProfile = Map.<String, Object>of("type", "oauth2", "tokenUrl", "http://token-url");
-            var message = new DataPlaneRegistrationMessage("dp-id", "http://dataplane/endpoint", Set.of("HttpData-PUSH"), Set.of(), List.of(authProfile));
+            var message = new DataPlaneRegistrationMessage("dp-id", "http://dataplane/endpoint",
+                    Set.of("HttpData-PUSH"), Set.of(), authProfile);
 
             given()
                     .port(port)
@@ -78,8 +78,8 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
                     .statusCode(200);
 
             verify(dataPlaneSelectorService).register(argThat(instance ->
-                    instance.getAuthorizationProfiles().size() == 1 &&
-                    instance.getAuthorizationProfiles().get(0).type().equals("oauth2")
+                    instance.getAuthorizationProfile() != null &&
+                    instance.getAuthorizationProfile().type().equals("oauth2")
             ));
         }
 

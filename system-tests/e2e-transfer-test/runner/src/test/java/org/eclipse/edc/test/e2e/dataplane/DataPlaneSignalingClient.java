@@ -15,7 +15,6 @@
 package org.eclipse.edc.test.e2e.dataplane;
 
 import io.restassured.http.ContentType;
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 
@@ -68,10 +67,6 @@ public class DataPlaneSignalingClient {
                 .statusCode(204);
     }
 
-    public JsonObject getDataPlaneRegistrationMessage() {
-        return getDataPlaneRegistrationMessage(null);
-    }
-
     public void registerControlPlane(JsonObject message) {
         var uri = context.getEndpoint("default").get();
 
@@ -99,7 +94,7 @@ public class DataPlaneSignalingClient {
                 );
 
         if (authorizationProfile != null) {
-            builder.add("authorization", Json.createArrayBuilder().add(authorizationProfile));
+            builder.add("authorization", authorizationProfile);
         }
 
         return builder.build();

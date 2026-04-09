@@ -110,21 +110,6 @@ class DataPlaneSignalingClientTest {
             server.verify(0, postRequestedFor(anyUrl()));
         }
 
-        @Test
-        void shouldUseFirstProfile_whenMultipleAuthorizationProfilesPresent() {
-            server.stubFor(post(anyUrl()).willReturn(ok()));
-            var firstProfile = new AuthorizationProfile("oauth2", Map.of());
-            var secondProfile = new AuthorizationProfile("api-key", Map.of());
-            var firstAuthorization = mock(SignalingAuthorization.class);
-            when(authorizationRegistry.findByType("oauth2")).thenReturn(firstAuthorization);
-            when(firstAuthorization.evaluate(firstProfile)).thenReturn(Result.success(new Header("Authorization", "Bearer first-token")));
-
-            var result = createClient(dataPlane(firstProfile, secondProfile)).terminate("flow-id");
-
-            assertThat(result.succeeded()).isTrue();
-            server.verify(postRequestedFor(urlPathEqualTo("/flow-id/terminate"))
-                    .withHeader("Authorization", containing("Bearer first-token")));
-        }
     }
 
     @Nested
