@@ -36,10 +36,16 @@ public class JsonObjectToDataplaneMetadataTransformer extends AbstractJsonLdTran
             transformArray(labels, Object.class, context).forEach(label -> builder.label(label.toString()));
         }
 
-        var properties = jsonObject.getJsonArray(DataplaneMetadata.EDC_DATAPLANE_METADATA_PROPERTIES);
+        var properties = jsonObject.get(DataplaneMetadata.EDC_DATAPLANE_METADATA_PROPERTIES);
         if (properties != null) {
-            properties.forEach(v -> visitProperties(v.asJsonObject(), key -> value ->
-                    builder.property(key, transformGenericProperty(value, context))));
+            var jsonValue = nodeJsonValue(properties);
+            if (jsonValue instanceof JsonObject json) {
+                visitProperties(json, (key, value) -> builder.property(key, transformGenericProperty(value, context)));
+            } else {
+                context.reportProblem("Expected properties to be a JsonObject");
+                return null;
+
+            }
         }
 
         return builder.build();

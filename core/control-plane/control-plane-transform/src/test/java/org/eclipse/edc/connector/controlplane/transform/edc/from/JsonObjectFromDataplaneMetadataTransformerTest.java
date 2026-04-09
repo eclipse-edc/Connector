@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.controlplane.transform.edc.from;
 import jakarta.json.Json;
 import jakarta.json.JsonString;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
-import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.transform.TransformerContextImpl;
 import org.junit.jupiter.api.Test;
 
@@ -27,13 +26,13 @@ import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneM
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata.EDC_DATAPLANE_METADATA_PROPERTIES;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata.EDC_DATAPLANE_METADATA_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.mockito.Mockito.mock;
 
 class JsonObjectFromDataplaneMetadataTransformerTest {
 
     private final JsonObjectFromDataplaneMetadataTransformer transformer = new JsonObjectFromDataplaneMetadataTransformer(
-            Json.createBuilderFactory(emptyMap()),
-            JacksonJsonLd::createObjectMapper
+            Json.createBuilderFactory(emptyMap())
     );
 
     @Test
@@ -47,9 +46,11 @@ class JsonObjectFromDataplaneMetadataTransformerTest {
         assertThat(result.getString(TYPE)).isEqualTo(EDC_DATAPLANE_METADATA_TYPE);
         assertThat(result.getJsonArray(EDC_DATAPLANE_METADATA_LABELS)).hasSize(1).first()
                 .extracting(JsonString.class::cast).extracting(JsonString::getString).isEqualTo("label");
-        assertThat(result.getJsonObject(EDC_DATAPLANE_METADATA_PROPERTIES)).hasSize(1)
-                .satisfies(properties ->
-                        assertThat(properties.get("key")).isInstanceOfSatisfying(JsonString.class, jsonString ->
-                                assertThat(jsonString.getString()).isEqualTo("value")));
+        assertThat(result.getJsonObject(EDC_DATAPLANE_METADATA_PROPERTIES)).hasSize(2).satisfies(jsonValue -> {
+                    var properties = jsonValue.get(VALUE).asJsonObject();
+                    assertThat(properties.get("key")).isInstanceOfSatisfying(JsonString.class, jsonString ->
+                            assertThat(jsonString.getString()).isEqualTo("value"));
+                }
+        );
     }
 }

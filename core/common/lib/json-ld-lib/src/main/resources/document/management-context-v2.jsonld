@@ -35,7 +35,10 @@
           "@id": "edc:labels",
           "@container": "@set"
         },
-        "properties": "edc:properties"
+        "properties": {
+          "@id": "edc:properties",
+          "@type": "@json"
+        }
       }
     },
     "CatalogAsset": {
