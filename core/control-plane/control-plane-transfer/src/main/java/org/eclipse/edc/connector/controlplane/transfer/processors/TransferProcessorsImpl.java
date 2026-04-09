@@ -394,12 +394,6 @@ public class TransferProcessorsImpl implements TransferProcessors {
         return dispatcherRegistry.dispatch(process.getParticipantContextId(), responseType, message);
     }
 
-    private CompletableFuture<StatusResult<Void>> setPending(TransferProcess transferProcess) {
-        transferProcess.setPending(true);
-        update(transferProcess);
-        return CompletableFuture.completedFuture(StatusResult.success());
-    }
-
     private void transitionToInitial(TransferProcess process) {
         process.transitionInitial();
         update(process);

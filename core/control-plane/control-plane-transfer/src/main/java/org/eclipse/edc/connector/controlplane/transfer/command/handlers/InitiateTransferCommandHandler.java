@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.command.handlers;
 
-import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
+import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
@@ -36,24 +36,24 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
  */
 public class InitiateTransferCommandHandler implements CommandHandler<InitiateTransferCommand> {
 
-    private final PolicyArchive policyArchive;
     private final TransferProcessStore store;
     private final DataAddressStore dataAddressStore;
     private final TransferProcessObservable observable;
     private final Clock clock;
     private final Telemetry telemetry;
     private final Monitor monitor;
+    private final ContractNegotiationStore contractNegotiationStore;
 
-    public InitiateTransferCommandHandler(PolicyArchive policyArchive, TransferProcessStore store,
+    public InitiateTransferCommandHandler(TransferProcessStore store,
                                           DataAddressStore dataAddressStore, TransferProcessObservable observable,
-                                          Clock clock, Telemetry telemetry, Monitor monitor) {
-        this.policyArchive = policyArchive;
+                                          Clock clock, Telemetry telemetry, Monitor monitor, ContractNegotiationStore contractNegotiationStore) {
         this.store = store;
         this.dataAddressStore = dataAddressStore;
         this.observable = observable;
         this.clock = clock;
         this.telemetry = telemetry;
         this.monitor = monitor;
+        this.contractNegotiationStore = contractNegotiationStore;
     }
 
     @Override
@@ -66,14 +66,15 @@ public class InitiateTransferCommandHandler implements CommandHandler<InitiateTr
         var transferRequest = command.getRequest();
         var participantContext = command.getParticipantContext();
 
-        var policy = policyArchive.findPolicyForContract(transferRequest.getContractId());
-        if (policy == null) {
-            return CommandResult.notExecutable("No policy found for contract " + transferRequest.getContractId());
+        var contractAgreement = contractNegotiationStore.findContractAgreement(transferRequest.getContractId());
+        if (contractAgreement == null) {
+            return CommandResult.notExecutable("No ContractAgreement %s found".formatted(transferRequest.getContractId()));
         }
 
         var process = TransferProcess.Builder.newInstance()
                 .id(command.getEntityId())
-                .assetId(policy.getTarget())
+                .claims(contractAgreement.getClaims())
+                .assetId(contractAgreement.getAssetId())
                 .counterPartyAddress(transferRequest.getCounterPartyAddress())
                 .contractId(transferRequest.getContractId())
                 .protocol(transferRequest.getProtocol())
