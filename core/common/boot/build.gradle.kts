@@ -24,6 +24,8 @@ dependencies {
     implementation(project(":core:common:lib:boot-lib"))
 
     implementation(libs.opentelemetry.api)
+
+    testImplementation(project(":core:common:junit"))
 }
 
 

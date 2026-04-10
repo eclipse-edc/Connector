@@ -19,6 +19,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -28,6 +29,8 @@ import java.util.stream.Stream;
  * in a {@link Set}
  */
 public class InjectionPointScanner {
+
+    private final ConfigurationObjectFactory configurationObjectFactory = new ConfigurationObjectFactory();
 
     public <T> Stream<InjectionPoint<T>> getInjectionPoints(T instance) {
 
@@ -44,15 +47,17 @@ public class InjectionPointScanner {
         // scan value injection points
         var values = Arrays.stream(targetClass.getDeclaredFields())
                 .filter(f -> f.getAnnotation(Setting.class) != null && !Setting.NULL.equals(f.getAnnotation(Setting.class).key()))
-                .map(f -> {
-                    var annotation = f.getAnnotation(Setting.class);
-                    return new SettingInjectionPoint<>(instance, f, annotation);
-                });
+                .map(f -> new SettingInjectionPoint<>(instance, f));
 
         // scan configuration injection points
         var configObjects = Arrays.stream(targetClass.getDeclaredFields())
                 .filter(f -> f.getAnnotation(Configuration.class) != null)
-                .map(f -> new ConfigurationInjectionPoint<>(instance, f));
+                .map(f -> {
+                    if (Map.class.isAssignableFrom(f.getType())) {
+                        return new ConfigurationMapInjectionPoint<>(instance, f, configurationObjectFactory);
+                    }
+                    return new ConfigurationInjectionPoint<>(instance, f, configurationObjectFactory);
+                });
 
         return Stream.of(fields, values, configObjects).flatMap(Function.identity());
     }

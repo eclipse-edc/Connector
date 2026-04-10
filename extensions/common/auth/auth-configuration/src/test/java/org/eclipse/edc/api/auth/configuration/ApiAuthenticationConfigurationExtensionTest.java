@@ -18,11 +18,12 @@ import org.eclipse.edc.api.auth.spi.ApiAuthenticationProvider;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry;
 import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
+import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,23 +46,25 @@ class ApiAuthenticationConfigurationExtensionTest {
     private final ApiAuthenticationProviderRegistry providerRegistry = mock();
 
     @BeforeEach
-    void setUp(ServiceExtensionContext context) {
+    void setUp(TestExtensionContext context) {
         context.registerService(ApiAuthenticationRegistry.class, authenticationRegistry);
         context.registerService(ApiAuthenticationProviderRegistry.class, providerRegistry);
         context.registerService(Monitor.class, monitor);
     }
 
     @Test
-    void prepare(ApiAuthenticationConfigurationExtension extension, ServiceExtensionContext context) {
+    void prepare(ObjectFactory factory, TestExtensionContext context) {
         var authType = "testAuth";
-        var config = ConfigFactory.fromMap(Map.of("test.auth.type", authType, "test.auth.custom", "custom", "test.auth.context", "test-ctx"));
+        context.setConfig(ConfigFactory.fromMap(Map.of(
+                "web.http.test.auth.type", authType,
+                "web.http.test.auth.custom", "custom",
+                "web.http.test.auth.context", "test-ctx")));
         var provider = mock(ApiAuthenticationProvider.class);
         var authentication = mock(AuthenticationService.class);
-        when(context.getConfig("web.http")).thenReturn(config);
         when(providerRegistry.resolve(authType)).thenReturn(provider);
         when(provider.provide(any())).thenReturn(Result.success(authentication));
 
-        extension.initialize(context);
+        var extension = factory.constructInstance(ApiAuthenticationConfigurationExtension.class);
         extension.prepare();
 
         verify(providerRegistry).resolve(authType);
@@ -70,16 +73,16 @@ class ApiAuthenticationConfigurationExtensionTest {
     }
 
     @Test
-    void prepare_whenEmptyConfig(ApiAuthenticationConfigurationExtension extension, ServiceExtensionContext context) {
+    void prepare_whenNoAuthSet(ObjectFactory factory, TestExtensionContext context) {
         var authType = "testAuth";
-        var config = ConfigFactory.fromMap(Map.of());
         var provider = mock(ApiAuthenticationProvider.class);
         var authentication = mock(AuthenticationService.class);
-        when(context.getConfig("web.http")).thenReturn(config);
         when(providerRegistry.resolve(authType)).thenReturn(provider);
         when(provider.provide(any())).thenReturn(Result.success(authentication));
+        context.setConfig(ConfigFactory.fromMap(Map.of(
+                "web.http.test.port", "9999")));
 
-        extension.initialize(context);
+        var extension = factory.constructInstance(ApiAuthenticationConfigurationExtension.class);
         extension.prepare();
 
         verifyNoMoreInteractions(providerRegistry);
@@ -88,14 +91,16 @@ class ApiAuthenticationConfigurationExtensionTest {
     }
 
     @Test
-    void prepare_whenNoProvider(ApiAuthenticationConfigurationExtension extension, ServiceExtensionContext context) {
+    void prepare_whenNoProvider(ObjectFactory factory, TestExtensionContext context) {
         var authType = "testAuth";
-        var config = ConfigFactory.fromMap(Map.of("test.auth.type", authType, "test.auth.custom", "custom"));
         var provider = mock(ApiAuthenticationProvider.class);
-        when(context.getConfig("web.http")).thenReturn(config);
+        context.setConfig(ConfigFactory.fromMap(Map.of(
+                "web.http.test.auth.type", authType,
+                "web.http.test.auth.custom", "custom"))
+        );
         when(providerRegistry.resolve(authType)).thenReturn(null);
 
-        extension.initialize(context);
+        var extension = factory.constructInstance(ApiAuthenticationConfigurationExtension.class);
 
         assertThatThrownBy(extension::prepare).isInstanceOf(EdcException.class).hasMessageContaining(authType);
 
@@ -105,15 +110,17 @@ class ApiAuthenticationConfigurationExtensionTest {
     }
 
     @Test
-    void prepare_whenProviderFails(ApiAuthenticationConfigurationExtension extension, ServiceExtensionContext context) {
+    void prepare_whenProviderFails(ObjectFactory factory, TestExtensionContext context) {
         var authType = "testAuth";
-        var config = ConfigFactory.fromMap(Map.of("test.auth.type", authType, "test.auth.custom", "custom"));
+        context.setConfig(ConfigFactory.fromMap(Map.of(
+                "web.http.test.auth.type", authType,
+                "web.http.test.auth.custom", "custom"))
+        );
         var provider = mock(ApiAuthenticationProvider.class);
-        when(context.getConfig("web.http")).thenReturn(config);
         when(providerRegistry.resolve(authType)).thenReturn(provider);
         when(provider.provide(any())).thenReturn(Result.failure("Auth failure"));
 
-        extension.initialize(context);
+        var extension = factory.constructInstance(ApiAuthenticationConfigurationExtension.class);
 
         assertThatThrownBy(extension::prepare).isInstanceOf(EdcException.class).hasMessageContaining("Auth failure");
 

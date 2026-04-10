@@ -14,13 +14,16 @@
 
 package org.eclipse.edc.boot.system.injection;
 
-import org.eclipse.edc.boot.system.testextensions.ExtensionWithConfigValue;
+import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,71 +51,91 @@ class SettingInjectionPointTest {
             assertThat(ip2.isRequired()).isFalse();
         }
 
-
         @Test
         void getDefaultServiceProvider() {
             assertThat(getInjectionPoint().getDefaultValueProvider()).isNull();
         }
 
-        @Test
-        void setDefaultServiceProvider() {
-            //noop
-        }
+        @Nested
+        class Resolve {
 
-        @Test
-        void resolve_whenRequired_andNotFound_andNoDefault_expectException() {
-            var contextMock = mock(ServiceExtensionContext.class);
-            var config = ConfigFactory.fromMap(Map.of());
-            when(contextMock.getConfig()).thenReturn(config);
+            private final TestExtensionContext context = new TestExtensionContext();
 
-            assertThatThrownBy(() -> getInjectionPoint().resolve(contextMock, mock()))
-                    .isInstanceOf(EdcInjectionException.class)
-                    .hasMessageContaining("No config value and no default value found for injected field");
-        }
+            @Test
+            void shouldThrowException_whenNoValueForRequiredWithoutDefault() {
+                context.setConfig(ConfigFactory.empty());
+                var injectionPoint = createInjectionPoint(getTargetObject(), "requiredVal");
 
-        @Test
-        void resolve_whenRequired_andNotFound_hasDefault() {
-            var contextMock = mock(ServiceExtensionContext.class);
-            var config = ConfigFactory.fromMap(Map.of());
-            when(contextMock.getConfig()).thenReturn(config);
-            when(contextMock.getMonitor()).thenReturn(mock());
-            var ip = createInjectionPoint(getInjectionPoint(), "requiredValWithDefault");
-            assertThat(ip.resolve(contextMock, new InjectionPointDefaultServiceSupplier())).isEqualTo(ExtensionWithConfigValue.DEFAULT_VALUE);
-        }
+                assertThatThrownBy(() -> injectionPoint.resolve(context, mock()))
+                        .isInstanceOf(EdcInjectionException.class)
+                        .hasMessageContaining("No config value and no default value found for injected field");
+            }
 
-        @Test
-        void resolve_whenRequired_andNotFound_hasDefaultOfWrongType() {
-            var contextMock = mock(ServiceExtensionContext.class);
-            var config = ConfigFactory.fromMap(Map.of());
-            when(contextMock.getConfig()).thenReturn(config);
-            when(contextMock.getMonitor()).thenReturn(mock());
-            var ip = createInjectionPoint(getTargetObject(), "requiredDoubleVal");
-            assertThatThrownBy(() -> ip.resolve(contextMock, mock())).isInstanceOf(EdcInjectionException.class);
-        }
+            @Test
+            void shouldResolve_whenNoValueForRequiredWithDefault() {
+                context.setConfig(ConfigFactory.empty());
+                var injectionPoint = createInjectionPoint(getTargetObject(), "requiredValWithDefault");
 
-        @Test
-        void resolve_whenRequired_andHasConfig() {
-            var contextMock = mock(ServiceExtensionContext.class);
-            var config = ConfigFactory.fromMap(Map.of("test.key", "test.value"));
-            when(contextMock.getConfig()).thenReturn(config);
-            assertThat(getInjectionPoint().resolve(contextMock, mock())).isEqualTo("test.value");
-        }
+                var resolved = injectionPoint.resolve(context, new InjectionPointDefaultServiceSupplier());
 
-        @Test
-        void resolve_whenRequired_andHasConfigOfWrongType() {
-            var contextMock = mock(ServiceExtensionContext.class);
-            var config = ConfigFactory.fromMap(Map.of("test.key3", "this-should-be-a-double"));
-            when(contextMock.getConfig()).thenReturn(config);
-            assertThatThrownBy(() -> getInjectionPoint().resolve(contextMock, mock())).isInstanceOf(EdcInjectionException.class);
-        }
+                assertThat(resolved).isEqualTo(ExtensionWithConfigValue.DEFAULT_VALUE);
+            }
 
-        @Test
-        void resolve_whenNotRequired_notFound_shouldReturnNull() {
-            var contextMock = mock(ServiceExtensionContext.class);
-            var config = ConfigFactory.fromMap(Map.of());
-            when(contextMock.getConfig()).thenReturn(config);
-            var ip = createInjectionPoint(getTargetObject(), "optionalVal");
-            assertThat(ip.resolve(contextMock, mock())).isNull();
+            @Test
+            void shouldThrowException_whenDefaultWrongType() {
+                context.setConfig(ConfigFactory.empty());
+
+                var injectionPoint = createInjectionPoint(getTargetObject(), "requiredDoubleValue");
+
+                assertThatThrownBy(() -> injectionPoint.resolve(context, mock())).isInstanceOf(EdcInjectionException.class);
+            }
+
+            @Test
+            void shouldResolve() {
+                var config = ConfigFactory.fromMap(Map.of("test.key", "test.value"));
+                context.setConfig(config);
+                var injectionPoint = createInjectionPoint(getTargetObject(), "requiredVal");
+
+                var resolved = injectionPoint.resolve(context, mock());
+
+                assertThat(resolved).isEqualTo("test.value");
+            }
+
+            @Test
+            void shouldThrowException_whenWrongType() {
+                var config = ConfigFactory.fromMap(Map.of("test.key3", "this-should-be-a-double"));
+                context.setConfig(config);
+                var injectionPoint = createInjectionPoint(getTargetObject(), "requiredDoubleValue");
+
+                assertThatThrownBy(() -> injectionPoint.resolve(context, mock())).isInstanceOf(EdcInjectionException.class);
+            }
+
+            @Test
+            void shouldResolveNull_whenNotRequiredWithoutSetting() {
+                context.setConfig(ConfigFactory.empty());
+                var injectionPoint = createInjectionPoint(getTargetObject(), "optionalVal");
+
+                var resolved = injectionPoint.resolve(context, mock());
+
+                assertThat(resolved).isNull();
+            }
+
+            @Test
+            void shouldResolveConfigObject() {
+                context.setConfig(ConfigFactory.fromMap(Map.of(
+                        "subconfig.key", "value",
+                        "other.settings", "any"
+                )));
+                var injectionPoint = createInjectionPoint(getTargetObject(), "subconfig");
+
+                var resolved = injectionPoint.resolve(context, mock());
+
+                assertThat(resolved).isInstanceOfSatisfying(Config.class, subconfig -> {
+                    assertThat(subconfig.getEntries()).hasSize(1);
+                    assertThat(subconfig.currentNode()).isEqualTo("subconfig");
+                    assertThat(subconfig.getString("key")).isEqualTo("value");
+                });
+            }
         }
 
         @Test
@@ -152,6 +175,11 @@ class SettingInjectionPointTest {
             when(contextMock.getConfig()).thenReturn(config);
 
             assertThat(ip.getProviders(Map.of(), contextMock).succeeded()).isFalse();
+        }
+
+        protected SettingInjectionPoint<?> createInjectionPoint(Object targetObject, String fieldName) {
+            var field = getDeclaredField(ExtensionWithConfigValue.class, fieldName);
+            return new SettingInjectionPoint<>(targetObject, field);
         }
     }
 
@@ -212,9 +240,26 @@ class SettingInjectionPointTest {
         }
     }
 
-    private SettingInjectionPoint<?> createInjectionPoint(Object targetObject, String fieldName) {
-        var field = getDeclaredField(ExtensionWithConfigValue.class, fieldName);
-        return new SettingInjectionPoint<>(targetObject, field, field.getAnnotation(Setting.class));
-    }
+    public static class ExtensionWithConfigValue implements ServiceExtension {
 
+        public static final String DEFAULT_VALUE = "default-value";
+
+        @Setting(key = "test.key")
+        private String requiredVal;
+
+        @Setting(key = "test.optional.value", required = false)
+        private Long optionalVal;
+
+        @Setting(key = "test.key2", defaultValue = DEFAULT_VALUE)
+        private String requiredValWithDefault;
+
+        @Setting(key = "test.key3", defaultValue = DEFAULT_VALUE)
+        private Double requiredDoubleValue;
+
+        @Setting(key = "test.duration", defaultValue = "PT1H")
+        private Duration duration;
+
+        @Setting(key = "subconfig")
+        private Config subconfig;
+    }
 }
