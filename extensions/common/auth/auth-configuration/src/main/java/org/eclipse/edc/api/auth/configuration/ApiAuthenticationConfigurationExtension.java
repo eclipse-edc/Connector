@@ -18,21 +18,21 @@ import org.eclipse.edc.api.auth.spi.AuthenticationRequestFilter;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry;
 import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationRegistry;
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
+import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.web.spi.WebService;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.eclipse.edc.api.auth.configuration.ApiAuthenticationConfigurationExtension.NAME;
 
@@ -41,13 +41,9 @@ public class ApiAuthenticationConfigurationExtension implements ServiceExtension
 
     public static final String NAME = "Api Authentication Configuration Extension";
 
-    public static final String AUTH_KEY = "auth";
-    public static final String CONFIG_ALIAS = "web.http.<context>." + AUTH_KEY + ".";
-
-    @Setting(context = CONFIG_ALIAS, value = "The type of the authentication provider.")
-    public static final String TYPE_KEY = "type";
-
-    private Map<String, Config> authConfiguration = new HashMap<>();
+    @SettingContext("web.http")
+    @Configuration
+    private Map<String, AuthenticationConfiguration> authenticationConfigurationMap;
 
     @Inject
     private ApiAuthenticationProviderRegistry providerRegistry;
@@ -67,31 +63,31 @@ public class ApiAuthenticationConfigurationExtension implements ServiceExtension
     }
 
     @Override
-    public void initialize(ServiceExtensionContext context) {
-        authConfiguration = context.getConfig("web.http")
-                .partition().filter(config -> config.getString(AUTH_KEY + "." + TYPE_KEY, null) != null)
-                .map(cfg -> Map.entry(cfg.currentNode(), cfg.getConfig(AUTH_KEY)))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
-    @Override
     public void prepare() {
-        for (var entry : authConfiguration.entrySet()) {
-            var serviceResult = configureService(entry.getValue());
-            if (serviceResult.failed()) {
-                throw new EdcException("Failed to configure authentication for context %s: %s".formatted(entry.getKey(), serviceResult.getFailureDetail()));
-            }
-            authenticationRegistry.register(entry.getKey(), serviceResult.getContent());
-            var authenticationFilter = new AuthenticationRequestFilter(authenticationRegistry, entry.getKey());
-            webService.registerResource(entry.getKey(), authenticationFilter);
-            monitor.debug("Configured %s authentication for context %s".formatted(entry.getValue().getString(TYPE_KEY), entry.getKey()));
-        }
+        authenticationConfigurationMap.entrySet().stream()
+                .filter(entry -> entry.getValue().type() != null)
+                .forEach(entry -> {
+                    var serviceResult = configureService(entry.getValue());
+                    if (serviceResult.failed()) {
+                        throw new EdcException("Failed to configure authentication for context %s: %s".formatted(entry.getKey(), serviceResult.getFailureDetail()));
+                    }
+                    authenticationRegistry.register(entry.getKey(), serviceResult.getContent());
+                    var authenticationFilter = new AuthenticationRequestFilter(authenticationRegistry, entry.getKey());
+                    webService.registerResource(entry.getKey(), authenticationFilter);
+                    monitor.debug("Configured %s authentication for context %s".formatted(entry.getValue().type(), entry.getKey()));
+                });
     }
 
-    private Result<AuthenticationService> configureService(Config config) {
-        var type = config.getString(TYPE_KEY);
+    private Result<AuthenticationService> configureService(AuthenticationConfiguration configuration) {
+        var type = configuration.type();
         return Optional.ofNullable(providerRegistry.resolve(type))
-                .map(provider -> provider.provide(config))
+                .map(provider -> provider.provide(configuration.config()))
                 .orElseGet(() -> Result.failure("Authentication provider for type %s not found".formatted(type)));
+    }
+
+    @Settings
+    private record AuthenticationConfiguration(
+            @Setting(key = "auth.type", required = false) String type,
+            @Setting(key = "auth") Config config) {
     }
 }

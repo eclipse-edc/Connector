@@ -17,22 +17,22 @@ package org.eclipse.edc.jsonld;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.transformer.JsonLdTransformer;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
+import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.constants.CoreConstants;
-import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 
-import static java.lang.String.format;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
@@ -46,23 +46,21 @@ public class JsonLdExtension implements ServiceExtension {
 
     public static final String NAME = "JSON-LD Extension";
     public static final String EDC_JSONLD_DOCUMENT_PREFIX = "edc.jsonld.document";
-    public static final String EDC_JSONLD_DOCUMENT_CONFIG_ALIAS = EDC_JSONLD_DOCUMENT_PREFIX + ".<documentAlias>.";
 
-    @Setting(context = EDC_JSONLD_DOCUMENT_CONFIG_ALIAS, value = "Path of the JSON-LD document to cache", required = true)
-    public static final String CONFIG_VALUE_PATH = "path";
-    @Setting(context = EDC_JSONLD_DOCUMENT_CONFIG_ALIAS, value = "URL of the JSON-LD document to cache", required = true)
-    public static final String CONFIG_VALUE_URL = "url";
+    @SettingContext(EDC_JSONLD_DOCUMENT_PREFIX)
+    @Configuration
+    private Map<String, JsonLdDocumentConfiguration> jsonLdConfigurations = new HashMap<>();
 
     private static final boolean DEFAULT_HTTP_HTTPS_RESOLUTION = false;
     private static final boolean DEFAULT_AVOID_VOCAB_CONTEXT = false;
     private static final boolean DEFAULT_CHECK_PREFIXES = true;
     @Setting(description = "If set enable http json-ld document resolution", defaultValue = DEFAULT_HTTP_HTTPS_RESOLUTION + "", key = "edc.jsonld.http.enabled")
     private boolean httpResolutionEnabled;
-    @Setting(description = "If set enable https json-ld document resolution", type = "boolean", defaultValue = DEFAULT_HTTP_HTTPS_RESOLUTION + "", key = "edc.jsonld.https.enabled")
+    @Setting(description = "If set enable https json-ld document resolution", defaultValue = DEFAULT_HTTP_HTTPS_RESOLUTION + "", key = "edc.jsonld.https.enabled")
     private boolean httpsResolutionEnabled;
     @Setting(description = "If true disable the @vocab context definition. This could be used to avoid api breaking changes", defaultValue = DEFAULT_AVOID_VOCAB_CONTEXT + "", key = "edc.jsonld.vocab.disable")
     private boolean avoidVocab;
-    @Setting(description = "If true a validation on expended object will be made against configured prefixes", type = "boolean", defaultValue = DEFAULT_CHECK_PREFIXES + "", key = "edc.jsonld.prefixes.check")
+    @Setting(description = "If true a validation on expended object will be made against configured prefixes", defaultValue = DEFAULT_CHECK_PREFIXES + "", key = "edc.jsonld.prefixes.check")
     private boolean checkPrefixes;
 
     @Inject
@@ -94,37 +92,22 @@ public class JsonLdExtension implements ServiceExtension {
                 .onFailure(failure -> monitor.warning("Failed to register cached json-ld document: " + failure.getFailureDetail()))
         );
 
-        registerCachedDocumentsFromConfig(context, service);
+        jsonLdConfigurations
+                .forEach((alias, config) -> {
+                    service.registerCachedDocument(config.url(), new File(config.path()).toURI());
+                });
 
         return service;
     }
 
-    private void registerCachedDocumentsFromConfig(ServiceExtensionContext context, TitaniumJsonLd service) {
-        context.getConfig()
-                .getConfig(EDC_JSONLD_DOCUMENT_PREFIX)
-                .partition()
-                .forEach(config -> {
-                    var tuple = config.getRelativeEntries();
-                    if (tuple.containsKey(CONFIG_VALUE_PATH) && tuple.containsKey(CONFIG_VALUE_URL)) {
-                        service.registerCachedDocument(tuple.get(CONFIG_VALUE_URL), new File(tuple.get(CONFIG_VALUE_PATH)).toURI());
-                    } else {
-                        context.getMonitor().warning(format("Expected a '%s' and a '%s' entry for '%s.%s', but found only '%s'", CONFIG_VALUE_PATH, CONFIG_VALUE_URL, EDC_JSONLD_DOCUMENT_PREFIX, config.currentNode(), String.join("", tuple.keySet())));
-                    }
-                });
-    }
+    @Settings
+    private record JsonLdDocumentConfiguration(
+            @Setting(key = "path", description = "Path of the JSON-LD document to cache")
+            String path,
+            @Setting(key = "url", description = "URL of the JSON-LD document to cache")
+            String url
+    ) {
 
-    @NotNull
-    private Result<URI> getResourceUri(String name) {
-        var uri = getClass().getClassLoader().getResource(name);
-        if (uri == null) {
-            return Result.failure(format("Cannot find resource %s", name));
-        }
-
-        try {
-            return Result.success(uri.toURI());
-        } catch (URISyntaxException e) {
-            return Result.failure(format("Cannot read resource %s: %s", name, e.getMessage()));
-        }
     }
 
 }
