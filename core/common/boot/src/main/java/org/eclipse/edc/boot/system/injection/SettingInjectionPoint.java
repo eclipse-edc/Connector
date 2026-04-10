@@ -15,10 +15,10 @@
 package org.eclipse.edc.boot.system.injection;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.ValueProvider;
+import org.eclipse.edc.spi.system.configuration.Config;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
@@ -39,7 +39,14 @@ import static java.util.Optional.ofNullable;
  *   private String fooBarBaz;
  * }
  * </pre>
- * Currently, only {@link String}, {@link Double}, {@link Integer}, {@link Long} and {@link Boolean} are supported as data types
+ * Currently the supported data types for annotated fields are:
+ * - {@link String}
+ * - {@link Double}
+ * - {@link Integer}
+ * - {@link Long}
+ * - {@link Boolean}
+ * - {@link Config}
+ * - {@link Duration} (parses ISO-8601 duration strings)
  * for the annotated field.
  *
  * @param <T> The type of the declaring class.
@@ -51,27 +58,16 @@ public class SettingInjectionPoint<T> implements InjectionPoint<T> {
     private final Setting annotationValue;
     private final String key;
 
-    /**
-     * Constructs a new ValueInjectionPoint instance
-     *
-     * @param objectInstance  The object instance that contains the annotated field. May be null in case the declaring class is not a {@link org.eclipse.edc.spi.system.SystemExtension}
-     * @param targetField     The annotated {@link Field}
-     * @param annotationValue The concrete annotation instance (needed to obtain its attributes)
-     */
-    public SettingInjectionPoint(T objectInstance, Field targetField, Setting annotationValue) {
-        this(objectInstance, targetField, annotationValue, null);
+    public SettingInjectionPoint(T objectInstance, Field targetField) {
+        this(objectInstance, targetField, null);
     }
 
-    public SettingInjectionPoint(T objectInstance, Field targetField, Setting annotationValue, SettingContext settingContext) {
+    public SettingInjectionPoint(T objectInstance, Field targetField, String keyPrefix) {
         this.objectInstance = objectInstance;
         this.targetField = targetField;
         this.targetField.setAccessible(true);
-        this.annotationValue = annotationValue;
-        this.key = settingContext == null ? annotationValue.key() : settingContext.value() + "." + annotationValue.key();
-    }
-
-    public Field getTargetField() {
-        return targetField;
+        this.annotationValue = targetField.getAnnotation(Setting.class);
+        this.key = keyPrefix == null ? annotationValue.key() : keyPrefix + "." + annotationValue.key();
     }
 
     @Override
@@ -133,6 +129,10 @@ public class SettingInjectionPoint<T> implements InjectionPoint<T> {
         // value is found in the config
         if (config.hasKey(key)) {
             return parseEntry(config.getString(key), type);
+        }
+
+        if (type.isInstance(config)) {
+            return config.getConfig(key);
         }
 
         // not found in config, but there is a default value

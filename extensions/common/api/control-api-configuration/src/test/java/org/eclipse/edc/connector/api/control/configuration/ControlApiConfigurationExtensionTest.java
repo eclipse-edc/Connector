@@ -18,6 +18,7 @@ import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -48,7 +49,6 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 public class ControlApiConfigurationExtensionTest {
@@ -67,8 +67,8 @@ public class ControlApiConfigurationExtensionTest {
     }
 
     @Test
-    void shouldComposeControlApiUrl(ControlApiConfigurationExtension extension, ServiceExtensionContext context) {
-        when(context.getConfig()).thenReturn(ConfigFactory.empty());
+    void shouldComposeControlApiUrl(ControlApiConfigurationExtension extension, TestExtensionContext context) {
+        context.setConfig(ConfigFactory.empty());
 
         extension.initialize(context);
 
@@ -78,10 +78,9 @@ public class ControlApiConfigurationExtensionTest {
     }
 
     @Test
-    void shouldUseConfiguredControlApiUrl(ServiceExtensionContext context, ObjectFactory objectFactory) {
+    void shouldUseConfiguredControlApiUrl(TestExtensionContext context, ObjectFactory objectFactory) {
         var configuredEndpoint = "http://localhost:8080/test";
-        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("edc.control.endpoint", configuredEndpoint)));
-
+        context.setConfig(ConfigFactory.fromMap(Map.of("edc.control.endpoint", configuredEndpoint)));
         objectFactory.constructInstance(ControlApiConfigurationExtension.class).initialize(context);
 
         var url = context.getService(ControlApiUrl.class);
@@ -89,9 +88,9 @@ public class ControlApiConfigurationExtensionTest {
     }
 
     @Test
-    void shouldThrowError_whenUrlIsNotValid(ServiceExtensionContext context, ObjectFactory objectFactory) {
+    void shouldThrowError_whenUrlIsNotValid(TestExtensionContext context, ObjectFactory objectFactory) {
         var endpoint = "http:// invalid";
-        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("edc.control.endpoint", endpoint)));
+        context.setConfig(ConfigFactory.fromMap(Map.of("edc.control.endpoint", endpoint)));
 
         var extension = objectFactory.constructInstance(ControlApiConfigurationExtension.class);
 

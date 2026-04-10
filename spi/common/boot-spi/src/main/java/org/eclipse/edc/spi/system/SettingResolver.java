@@ -23,15 +23,15 @@ import org.eclipse.edc.spi.system.configuration.Config;
 public interface SettingResolver {
 
     /**
-     * Get the config for the specified path
-     */
-    Config getConfig(String path);
-
-    /**
      * Get the config from the root
      */
-    default Config getConfig() {
-        return getConfig("");
+    Config getConfig();
+
+    /**
+     * Get the config for the specified path
+     */
+    default Config getConfig(String path) {
+        return getConfig().getConfig(path);
     }
 
     /**

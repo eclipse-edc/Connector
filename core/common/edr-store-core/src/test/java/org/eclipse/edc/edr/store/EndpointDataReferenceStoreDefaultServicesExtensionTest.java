@@ -18,19 +18,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.edr.store.defaults.InMemoryEndpointDataReferenceEntryIndex;
 import org.eclipse.edc.edr.store.defaults.VaultEndpointDataReferenceCache;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.configuration.Config;
+import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -40,18 +41,16 @@ import static org.mockito.Mockito.when;
 public class EndpointDataReferenceStoreDefaultServicesExtensionTest {
 
     private final Vault vault = mock();
-
     private final TypeManager typeManager = mock();
 
     @BeforeEach
-    void setUp(ServiceExtensionContext context) {
+    void setUp(TestExtensionContext context) {
         context.registerService(Vault.class, vault);
         context.registerService(TypeManager.class, typeManager);
 
-        var config = mock(Config.class);
-        when(context.getConfig()).thenReturn(config);
-        when(config.hasKey(eq("edc.edr.vault.path"))).thenReturn(true);
-        when(config.getString(eq("edc.edr.vault.path"))).thenReturn("path/");
+        context.setConfig(ConfigFactory.fromMap(Map.of(
+                "edc.edr.vault.path", "path/"
+        )));
     }
 
     @Test
