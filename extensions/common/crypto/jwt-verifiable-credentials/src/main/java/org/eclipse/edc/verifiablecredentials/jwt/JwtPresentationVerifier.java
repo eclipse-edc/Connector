@@ -132,7 +132,6 @@ public class JwtPresentationVerifier implements CredentialVerifier {
             var rawCredentials = extractCredentials(vpClaim.get(Constants.VERIFIABLE_CREDENTIAL_JSON_KEY));
 
             if (rawCredentials.isEmpty()) {
-                // todo: this is allowed by the spec, but it is semantic nonsense. Should we return failure or not?
                 return Result.success();
             }
 

@@ -61,7 +61,6 @@ public class SecurityDefaultServicesExtension implements ServiceExtension {
     public KeyParserRegistry keyParserRegistry(ServiceExtensionContext context) {
         if (keyParserRegistry == null) {
             keyParserRegistry = new KeyParserRegistryImpl();
-            //todo: register  Pkcs12Parser
             var monitor = context.getMonitor().withPrefix("PrivateKeyResolution");
             keyParserRegistry.register(new JwkParser(typeManager.getMapper(), monitor));
             keyParserRegistry.register(new PemParser(monitor));

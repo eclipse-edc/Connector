@@ -96,8 +96,6 @@ public class DataPlaneManagerImpl extends AbstractStateEntityManager<DataFlow, D
 
     @Override
     public Result<Void> validate(DataFlowStartMessage dataRequest) {
-        // TODO for now no validation for pull scenario, since the transfer service registry
-        //      is not applicable here. Probably validation only on the source part required.
         if (PULL.equals(dataRequest.getFlowType())) {
             return success();
         } else {

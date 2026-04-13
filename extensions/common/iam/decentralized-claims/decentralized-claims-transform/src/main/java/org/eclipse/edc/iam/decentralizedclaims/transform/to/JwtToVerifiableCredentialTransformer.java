@@ -104,7 +104,7 @@ public class JwtToVerifiableCredentialTransformer extends AbstractJwtTransformer
                 // take issuer from JWT claim of from VC object
                 var issuer = ofNullable(claims.getIssuer()).or(() -> ofNullable(vc.get("issuer")).map(Object::toString)).orElse(null);
                 builder.issuer(new Issuer(issuer, Map.of()));
-                builder.name(claims.getSubject()); // todo: is this correct?
+                builder.name(claims.getSubject());
                 return builder.build();
             }
         } catch (ParseException e) {

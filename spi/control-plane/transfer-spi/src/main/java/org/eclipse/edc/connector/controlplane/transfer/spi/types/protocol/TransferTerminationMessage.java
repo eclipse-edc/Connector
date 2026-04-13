@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 public class TransferTerminationMessage extends TransferRemoteMessage {
 
     private String code;
-    private String reason; //TODO change to List  https://github.com/eclipse-edc/Connector/issues/2729
+    private String reason;
 
     public String getCode() {
         return code;

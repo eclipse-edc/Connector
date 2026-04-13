@@ -55,7 +55,6 @@ class JwsIssuer extends AbstractIssuer {
 
         var verifiable = Verifiable.of(version, object);
 
-        // TODO do something with exceptions, unify
         if (verifiable.isCredential() && verifiable.asCredential().isExpired()) {
             throw new SigningError(SigningError.Code.Expired);
         }

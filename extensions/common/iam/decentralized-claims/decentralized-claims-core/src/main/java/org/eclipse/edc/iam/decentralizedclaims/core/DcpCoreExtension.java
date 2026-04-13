@@ -179,7 +179,6 @@ public class DcpCoreExtension implements ServiceExtension {
 
     @Override
     public void prepare() {
-        // TODO move in a separated extension?
         signatureSuiteRegistry.register(JSON_2020_SIGNATURE_SUITE, new Jws2020SignatureSuite(typeManager.getMapper(JSON_LD)));
     }
 

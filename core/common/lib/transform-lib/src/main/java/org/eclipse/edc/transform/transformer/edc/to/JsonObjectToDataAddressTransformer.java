@@ -31,7 +31,6 @@ import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_RESP
  */
 public class JsonObjectToDataAddressTransformer extends AbstractJsonLdTransformer<JsonObject, DataAddress> {
 
-    //TODO: move into a module-level constants file
     public static final String PROPERTIES_KEY = EDC_NAMESPACE + "properties";
 
     public JsonObjectToDataAddressTransformer() {

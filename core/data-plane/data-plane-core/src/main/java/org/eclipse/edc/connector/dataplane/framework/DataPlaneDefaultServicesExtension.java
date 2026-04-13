@@ -67,7 +67,6 @@ public class DataPlaneDefaultServicesExtension implements ServiceExtension {
         return new PipelineServiceImpl(context.getMonitor());
     }
 
-    // todo: should this be a default service?
     @Provider(isDefault = true)
     public PublicEndpointGeneratorService publicEndpointGenerator() {
         return new PublicEndpointGeneratorServiceImpl();

@@ -114,7 +114,6 @@ public class DatasetResolverImpl implements DatasetResolver {
 
     private Dataset toDataset(List<ContractDefinition> contractDefinitions, Asset asset, Map<String, Policy> policies, String protocol) {
 
-        // TODO distribution resolver should be based on participant context
         var distributions = distributionResolver.getDistributions(protocol, asset);
         var datasetBuilder = buildDataset(asset)
                 .id(asset.getId())
