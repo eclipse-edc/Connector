@@ -38,7 +38,6 @@ public class DataFlowResponseMessageToDataFlowResponseTransformer implements Typ
     public @Nullable DataFlowResponse transform(@NotNull DataFlowResponseMessage dataFlowResponseMessage, @NotNull TransformerContext context) {
         return DataFlowResponse.Builder.newInstance()
                 .dataAddress(context.transform(dataFlowResponseMessage.getDataAddress(), DataAddress.class))
-                .dataPlaneId(dataFlowResponseMessage.getDataplaneId())
                 .async(dataFlowResponseMessage.getState().endsWith("ING"))
                 .build();
     }

@@ -95,9 +95,11 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
 
         var message = builder.build();
 
-        return clientFactory.createClient(selection.getContent())
+        var dataPlaneInstance = selection.getContent();
+        return clientFactory.createClient(dataPlaneInstance)
                 .prepare(message)
                 .compose(response -> typeTransformerRegistry.transform(response, DataFlowResponse.class)
+                        .<DataFlowResponse, Result<DataFlowResponse>>map(r -> r.toBuilder().dataPlaneId(dataPlaneInstance.getId()).build())
                         .flatMap(this::toStatusResult));
     }
 
@@ -137,9 +139,11 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
 
         var message = builder.build();
 
-        return clientFactory.createClient(selection.getContent())
+        var dataPlaneInstance = selection.getContent();
+        return clientFactory.createClient(dataPlaneInstance)
                 .start(message)
                 .compose(response -> typeTransformerRegistry.transform(response, DataFlowResponse.class)
+                        .<DataFlowResponse, Result<DataFlowResponse>>map(r -> r.toBuilder().dataPlaneId(dataPlaneInstance.getId()).build())
                         .flatMap(this::toStatusResult));
     }
 

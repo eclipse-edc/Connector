@@ -16,17 +16,12 @@ package org.eclipse.edc.signaling.domain;
 
 public final class DataFlowResponseMessage {
 
-    private String dataplaneId;
     private DspDataAddress dataAddress;
     private String state;
     private String error;
 
     private DataFlowResponseMessage() {
 
-    }
-
-    public String getDataplaneId() {
-        return dataplaneId;
     }
 
     public DspDataAddress getDataAddress() {
@@ -57,11 +52,6 @@ public final class DataFlowResponseMessage {
             return instance;
         }
 
-
-        public Builder dataplaneId(String dataplaneId) {
-            instance.dataplaneId = dataplaneId;
-            return this;
-        }
 
         public Builder dataAddress(DspDataAddress dataAddress) {
             instance.dataAddress = dataAddress;
