@@ -45,7 +45,7 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
     @Override
     protected Result<Void> preliminaryChecks(BitstringStatusListStatus credentialStatus) {
         var statusSize = credentialStatus.getStatusSize();
-        if (statusSize != 1) { //todo: support more statusSize entries in the future
+        if (statusSize != 1) {
             return Result.failure("Unsupported statusSize: currently only statusSize = 1 is supported. The VC contained statusSize = %d".formatted(statusSize));
         }
         return success();
@@ -67,16 +67,12 @@ public class BitstringStatusListRevocationService extends BaseRevocationListServ
         }
         var bitstring = compressedBitstring.getContent();
 
-        // todo: check that encodedList / statusSize == minimumLength (defaults to 131_072 = encodedList minimum length in bits),
-        // otherwise raise error
-        // todo: how to determine minimumLength? via config?
-
         var statusFlag = bitstring.get(credentialStatus.getStatusListIndex());
 
         var statusPurpose = credentialStatus.getStatusListPurpose();
         // if the purpose is "message", we need to check the statusMessage object for the actual string
         if (statusPurpose.equalsIgnoreCase("message")) {
-            var statusString = statusFlag ? "0x1" : "0x0"; //todo: change this when statusSize > 1 is supported
+            var statusString = statusFlag ? "0x1" : "0x0";
             statusPurpose = credentialStatus.getStatusMessage().stream().filter(sm -> sm.status().equals(statusString)).map(StatusMessage::message).findAny().orElse(statusPurpose);
 
             return success(statusPurpose);

@@ -24,7 +24,7 @@ import java.util.Objects;
 public class TokenBasedAuthenticationService implements AuthenticationService {
 
     private static final String API_KEY_HEADER_NAME = "x-api-key";
-    private final String hardCodedApiKey; //todo: have a list of API keys?
+    private final String hardCodedApiKey;
 
     public TokenBasedAuthenticationService(String hardCodedApiKey) {
         this.hardCodedApiKey = hardCodedApiKey;

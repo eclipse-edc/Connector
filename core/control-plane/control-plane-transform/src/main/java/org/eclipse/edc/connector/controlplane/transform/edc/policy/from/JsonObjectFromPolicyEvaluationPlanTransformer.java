@@ -147,7 +147,6 @@ public class JsonObjectFromPolicyEvaluationPlanTransformer extends AbstractJsonL
     }
 
     private JsonObject transformConstraintStep(ConstraintStep constraintStep) {
-        // TODO replace with pattern matching once we move to JDK 21
         if (constraintStep instanceof AtomicConstraintStep atomicConstraintStep) {
             return transformAtomicConstraintStep(atomicConstraintStep);
         } else if (constraintStep instanceof AndConstraintStep andConstraintStep) {

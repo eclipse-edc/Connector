@@ -60,7 +60,7 @@ public class DidPublicKeyResolverImpl extends AbstractPublicKeyResolver implemen
 
         var matcher = PATTERN_DID_WITH_OPTIONAL_FRAGMENT.matcher(id);
         if (!matcher.matches()) {
-            throw new IllegalArgumentException("The given ID must conform to 'did:method:identifier[:fragment]' but did not"); //todo: use Result?
+            return Result.failure("The given ID must conform to 'did:method:identifier[:fragment]' but did not");
         }
 
         var did = matcher.group(GROUP_DID);

@@ -53,7 +53,7 @@ public class DspMetadataApiController {
         if (participantContextResult.failed()) {
             return notFound();
         }
-        // TODO we should add if a participant context supports a certain profile
+
         var versions = profileContextRegistry.getProfiles().stream().map(DataspaceProfileContext::protocolVersion).distinct().toList();
 
         var protocolVersions = new ProtocolVersions(versions);

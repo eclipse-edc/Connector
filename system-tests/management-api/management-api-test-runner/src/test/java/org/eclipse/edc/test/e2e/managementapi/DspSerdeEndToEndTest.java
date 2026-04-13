@@ -332,12 +332,7 @@ public class DspSerdeEndToEndTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
 
-
             var skip = List.of("@id");
-            // TODO remove this. Currently the reason which is an array at protocol level but a single string in internal Objects
-            //      So the deserialization uses toString which ends up as a single string
-            //      "[{\"@value\":\"reason\"}]" instead of an actual array of strings ["reason"]
-            //      ref https://github.com/eclipse-edc/Connector/issues/2729
 
             var skipForTermination = List.of("@id", "reason");
 
@@ -358,18 +353,6 @@ public class DspSerdeEndToEndTest {
                     Arguments.of(contractNegotiationEventObject("FINALIZED"), ContractNegotiationEventMessage.class, skip),
                     Arguments.of(contractNegotiationTerminationObject(), ContractNegotiationTerminationMessage.class, skipForTermination)
             );
-        }
-
-        private JsonObject removeId(JsonObject compacted) {
-            var newElement = Json.createObjectBuilder(compacted);
-            newElement.remove("@id");
-            return newElement.build();
-        }
-
-        private JsonObject removeIdAndReason(JsonObject compacted) {
-            var newElement = Json.createObjectBuilder(removeId(compacted));
-            newElement.remove("reason");
-            return newElement.build();
         }
 
     }

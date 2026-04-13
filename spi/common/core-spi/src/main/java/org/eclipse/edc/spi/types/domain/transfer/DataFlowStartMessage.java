@@ -65,7 +65,7 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
     private URI callbackAddress;
 
     private Map<String, String> properties = new HashMap<>();
-    private Map<String, String> traceContext = Map.of(); // TODO: should this stay in the DataFlow class?
+    private Map<String, String> traceContext = Map.of();
     private TransferType transferType;
 
     private DataFlowStartMessage() {
@@ -162,7 +162,7 @@ public class DataFlowStartMessage implements Polymorphic, TraceCarrier {
     /**
      * Callback address for this request once it has completed
      */
-    public URI getCallbackAddress() { // TODO: this could be a URI
+    public URI getCallbackAddress() {
         return callbackAddress;
     }
 
