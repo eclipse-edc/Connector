@@ -201,7 +201,7 @@ class JwtPresentationVerifierTest {
                 .audience(MY_OWN_DID)
                 .build();
         var result = verifier.verify(vpJwt, context);
-        assertThat(result).isFailed().detail().contains("Token verification failed");
+        assertThat(result).isFailed().detail().contains("JWT signature not valid");
     }
 
     @DisplayName("VP-JWT with a spoofed signature - expect a failure")
@@ -221,7 +221,7 @@ class JwtPresentationVerifierTest {
                 .audience(MY_OWN_DID)
                 .build();
         var result = verifier.verify(vpJwt, context);
-        assertThat(result).isFailed().detail().contains("Token verification failed");
+        assertThat(result).isFailed().detail().contains("JWT signature not valid");
     }
 
     @DisplayName("VP-JWT with a missing claim - expect a failure")

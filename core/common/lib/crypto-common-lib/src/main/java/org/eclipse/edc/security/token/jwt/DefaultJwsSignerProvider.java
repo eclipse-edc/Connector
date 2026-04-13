@@ -15,7 +15,7 @@
 package org.eclipse.edc.security.token.jwt;
 
 import com.nimbusds.jose.JWSSigner;
-import org.eclipse.edc.jwt.signer.spi.JwsSignerProvider;
+import org.eclipse.edc.jwt.spi.signer.JwsSignerProvider;
 import org.eclipse.edc.keys.spi.PrivateKeyResolver;
 import org.eclipse.edc.spi.result.Result;
 

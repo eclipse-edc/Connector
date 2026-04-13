@@ -25,7 +25,6 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.token.TokenValidationRulesRegistryImpl;
 import org.eclipse.edc.token.TokenValidationServiceImpl;
 import org.eclipse.edc.token.spi.TokenValidationRule;
 import org.eclipse.edc.token.spi.TokenValidationService;
@@ -62,7 +61,6 @@ class TokenValidationServiceImplTest {
 
         when(publicKeyResolver.resolveKey(any())).thenReturn(Result.failure("not found"));
         when(publicKeyResolver.resolveKey(eq(publicKeyId))).thenReturn(Result.success(publicKey));
-        var rulesRegistry = new TokenValidationRulesRegistryImpl();
         tokenValidationService = new TokenValidationServiceImpl();
     }
 

@@ -18,7 +18,6 @@ plugins {
 
 dependencies {
     api(project(":spi:common:jwt-spi"))
-    api(project(":spi:common:jwt-signer-spi"))
     api(project(":spi:common:token-spi"))
     api(project(":spi:data-plane:data-plane-spi"))
 

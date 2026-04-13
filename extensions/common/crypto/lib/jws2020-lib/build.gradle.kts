@@ -17,7 +17,6 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":spi:common:jwt-spi"))
     implementation(project(":spi:common:json-ld-spi"))
     implementation(project(":extensions:common:json-ld"))
     implementation(project(":core:common:lib:util-lib"))

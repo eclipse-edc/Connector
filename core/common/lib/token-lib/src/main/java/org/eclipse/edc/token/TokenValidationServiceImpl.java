@@ -39,18 +39,10 @@ public class TokenValidationServiceImpl implements TokenValidationService {
         var additional = tokenRepresentation.getAdditional();
         try {
             var signedJwt = SignedJWT.parse(token);
-            var publicKeyId = signedJwt.getHeader().getKeyID();
 
-            var publicKeyResolutionResult = publicKeyResolver.resolveKey(publicKeyId);
-
-            if (publicKeyResolutionResult.failed()) {
-                return publicKeyResolutionResult.mapFailure();
-            }
-
-            var verifierCreationResult = CryptoConverter.createVerifierFor(publicKeyResolutionResult.getContent());
-
-            if (!signedJwt.verify(verifierCreationResult)) {
-                return Result.failure("Token verification failed");
+            var signatureVerification = verifySignature(signedJwt, publicKeyResolver);
+            if (signatureVerification.failed()) {
+                return signatureVerification.mapFailure();
             }
 
             var tokenBuilder = ClaimToken.Builder.newInstance();
@@ -76,10 +68,29 @@ public class TokenValidationServiceImpl implements TokenValidationService {
 
             return Result.success(claimToken);
 
-        } catch (JOSEException e) {
-            return Result.failure(e.getMessage());
         } catch (ParseException e) {
             return Result.failure("Failed to decode token");
+        }
+    }
+
+    private Result<Void> verifySignature(SignedJWT jwt, PublicKeyResolver publicKeyResolver) {
+        var publicKeyId = jwt.getHeader().getKeyID();
+        var publicKeyResolutionResult = publicKeyResolver.resolveKey(publicKeyId);
+
+        if (publicKeyResolutionResult.failed()) {
+            return publicKeyResolutionResult.mapFailure();
+        }
+
+        var verifierCreationResult = CryptoConverter.createVerifierFor(publicKeyResolutionResult.getContent());
+
+        try {
+            var result = jwt.verify(verifierCreationResult);
+            if (result) {
+                return Result.success();
+            }
+            return Result.failure("JWT signature not valid");
+        } catch (JOSEException e) {
+            return Result.failure("Cannot verify JWT signature: " + e.getMessage());
         }
     }
 
