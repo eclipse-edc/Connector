@@ -21,6 +21,7 @@ import org.eclipse.edc.crawler.spi.TargetNodeDirectory;
 import org.eclipse.edc.crawler.spi.TargetNodeFilter;
 import org.eclipse.edc.crawler.spi.model.ExecutionPlan;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -81,9 +82,8 @@ class FederatedCatalogCoreServicesExtensionTest {
     }
 
     @Test
-    void initialize_withDisabledExecution(ServiceExtensionContext context, ObjectFactory objectFactory) {
-        var mockedConfig = ConfigFactory.fromMap(Map.of("edc.catalog.cache.execution.enabled", Boolean.FALSE.toString()));
-        when(context.getConfig()).thenReturn(mockedConfig);
+    void initialize_withDisabledExecution(TestExtensionContext context, ObjectFactory objectFactory) {
+        context.setConfig(ConfigFactory.fromMap(Map.of("edc.catalog.cache.execution.enabled", Boolean.FALSE.toString())));
 
         var extension = objectFactory.constructInstance(FederatedCatalogCoreServicesExtension.class);
 
@@ -97,6 +97,5 @@ class FederatedCatalogCoreServicesExtensionTest {
     void start(ServiceExtensionContext context) {
         extension.initialize(context);
     }
-
 
 }

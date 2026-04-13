@@ -18,10 +18,8 @@ import org.eclipse.edc.boot.system.injection.InjectionPointScanner;
 import org.eclipse.edc.boot.system.injection.InjectorImpl;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.boot.system.injection.ServiceInjectionPoint;
-import org.eclipse.edc.boot.system.runtime.BaseRuntime;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
@@ -42,15 +40,14 @@ import static org.mockito.Mockito.spy;
  * instead.
  * The {@link ServiceExtensionContext} instance is wrapped by a Mockito Spy.
  */
-public class DependencyInjectionExtension extends BaseRuntime implements BeforeEachCallback, ParameterResolver {
+public class DependencyInjectionExtension implements BeforeEachCallback, ParameterResolver {
 
-    private ServiceExtensionContext context;
+    private TestExtensionContext context;
     private ObjectFactory factory;
 
     @Override
     public void beforeEach(ExtensionContext extensionContext) {
-        monitor = mock();
-        context = spy(super.createServiceExtensionContext(ConfigFactory.empty()));
+        context = spy(new TestExtensionContext());
         context.initialize();
         factory = new ReflectiveObjectFactory(
                 new InjectorImpl((ip, c) -> ofNullable(ip.getDefaultValueProvider())
@@ -72,7 +69,7 @@ public class DependencyInjectionExtension extends BaseRuntime implements BeforeE
         var type = parameterContext.getParameter().getParameterizedType();
         if (type.equals(ObjectFactory.class)) {
             return true;
-        } else if (type.equals(ServiceExtensionContext.class)) {
+        } else if (type.equals(ServiceExtensionContext.class) || type.equals(TestExtensionContext.class)) {
             return true;
         } else if (type instanceof Class<?> clazz) {
             if (ServiceExtension.class.isAssignableFrom(clazz)) {
@@ -86,7 +83,7 @@ public class DependencyInjectionExtension extends BaseRuntime implements BeforeE
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         var type = parameterContext.getParameter().getParameterizedType();
-        if (type.equals(ServiceExtensionContext.class)) {
+        if (type.equals(ServiceExtensionContext.class) || type.equals(TestExtensionContext.class)) {
             return context;
         } else if (type.equals(ObjectFactory.class)) {
             return factory;

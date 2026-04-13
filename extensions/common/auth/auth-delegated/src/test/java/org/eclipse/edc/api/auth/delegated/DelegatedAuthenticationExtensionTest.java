@@ -17,8 +17,8 @@ package org.eclipse.edc.api.auth.delegated;
 
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.spi.monitor.Monitor;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.token.rules.AudienceValidationRule;
@@ -46,10 +46,10 @@ import static org.mockito.Mockito.when;
 class DelegatedAuthenticationExtensionTest {
 
     private final Monitor monitor = mock();
-    private TokenValidationRulesRegistry tokenValidationRulesRegistry = mock();
+    private final TokenValidationRulesRegistry tokenValidationRulesRegistry = mock();
 
     @BeforeEach
-    void setUp(ServiceExtensionContext context) {
+    void setUp(TestExtensionContext context) {
         when(monitor.withPrefix(anyString())).thenReturn(monitor);
         when(context.getMonitor()).thenReturn(monitor);
         context.registerService(TokenValidationRulesRegistry.class, tokenValidationRulesRegistry);
@@ -72,22 +72,20 @@ class DelegatedAuthenticationExtensionTest {
     }
 
     @Test
-    void initializeWithAudience(ServiceExtensionContext context, ObjectFactory factory) {
+    void initializeWithAudience(TestExtensionContext context, ObjectFactory factory) {
         var audience = "http://consumer";
-        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
-                "web.http.management.auth.dac.audience", audience))
-        );
+        context.setConfig(ConfigFactory.fromMap(Map.of(
+                "web.http.management.auth.dac.audience", audience)));
         var extension = factory.constructInstance(DelegatedAuthenticationExtension.class);
 
         extension.initialize(context);
 
         verify(monitor, never()).warning("No audience configured for delegated authentication, defaulting to the participantId");
         verify(tokenValidationRulesRegistry).addRule(eq(MANAGEMENT_API_CONTEXT), any(AudienceValidationRule.class));
-
     }
 
     @Test
-    public void initializeWithNoAudience(DelegatedAuthenticationExtension extension, ServiceExtensionContext context) {
+    public void initializeWithNoAudience(DelegatedAuthenticationExtension extension, TestExtensionContext context) {
         extension.initialize(context);
         verify(monitor).warning("No audience configured for delegated authentication, defaulting to the participantId");
         verify(tokenValidationRulesRegistry).addRule(eq(MANAGEMENT_API_CONTEXT), any(AudienceValidationRule.class));
