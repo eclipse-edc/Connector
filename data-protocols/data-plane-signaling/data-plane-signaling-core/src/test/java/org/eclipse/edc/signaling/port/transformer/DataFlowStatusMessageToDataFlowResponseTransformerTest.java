@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.signaling.port.transformer;
 
-import org.eclipse.edc.signaling.domain.DataFlowResponseMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
 import org.eclipse.edc.signaling.domain.DspDataAddress;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -26,16 +26,16 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class DataFlowResponseMessageToDataFlowResponseTransformerTest {
+class DataFlowStatusMessageToDataFlowResponseTransformerTest {
 
-    private final DataFlowResponseMessageToDataFlowResponseTransformer transformer = new DataFlowResponseMessageToDataFlowResponseTransformer();
+    private final DataFlowStatusMessageToDataFlowResponseTransformer transformer = new DataFlowStatusMessageToDataFlowResponseTransformer();
     private final TransformerContext context = mock();
 
     @Test
     void shouldTransform() {
         var dataAddress = DataAddress.Builder.newInstance().type("any").build();
         when(context.transform(isA(DspDataAddress.class), any())).thenReturn(dataAddress);
-        var message = DataFlowResponseMessage.Builder.newInstance()
+        var message = DataFlowStatusMessage.Builder.newInstance()
                 .dataAddress(DspDataAddress.Builder.newInstance().build())
                 .state("STARTED")
                 .build();
@@ -51,7 +51,7 @@ class DataFlowResponseMessageToDataFlowResponseTransformerTest {
     void shouldBeAsync_whenStateEndsWithIng() {
         var dataAddress = DataAddress.Builder.newInstance().type("any").build();
         when(context.transform(isA(DspDataAddress.class), any())).thenReturn(dataAddress);
-        var message = DataFlowResponseMessage.Builder.newInstance()
+        var message = DataFlowStatusMessage.Builder.newInstance()
                 .dataAddress(DspDataAddress.Builder.newInstance().build())
                 .state("STARTING")
                 .build();

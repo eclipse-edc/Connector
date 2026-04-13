@@ -23,9 +23,9 @@ import okhttp3.Response;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
-import org.eclipse.edc.signaling.domain.DataFlowResponseMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartedNotificationMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistry;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
@@ -60,13 +60,13 @@ public class DataPlaneSignalingClient {
         this.authorizationRegistry = authorizationRegistry;
     }
 
-    public StatusResult<DataFlowResponseMessage> prepare(DataFlowPrepareMessage request) {
+    public StatusResult<DataFlowStatusMessage> prepare(DataFlowPrepareMessage request) {
         var url = "%s/prepare".formatted(dataPlane.getUrl());
         return createRequestBuilder(request, url)
                 .compose(builder -> execute(builder, this::handleResponse));
     }
 
-    public StatusResult<DataFlowResponseMessage> start(DataFlowStartMessage request) {
+    public StatusResult<DataFlowStatusMessage> start(DataFlowStartMessage request) {
         var url = "%s/start".formatted(dataPlane.getUrl());
         return createRequestBuilder(request, url)
                 .compose(builder -> execute(builder, this::handleResponse));
@@ -103,14 +103,14 @@ public class DataPlaneSignalingClient {
         }
     }
 
-    private Result<DataFlowResponseMessage> handleResponse(Response response) {
+    private Result<DataFlowStatusMessage> handleResponse(Response response) {
         if (!response.isSuccessful()) {
             return Result.failure("Data-plane responded with %d - %s".formatted(response.code(), response.message()));
         }
 
         try {
             var inputStream = response.body().byteStream();
-            var message = objectMapperSupplier.get().readValue(inputStream, DataFlowResponseMessage.class);
+            var message = objectMapperSupplier.get().readValue(inputStream, DataFlowStatusMessage.class);
             return Result.success(message);
         } catch (IOException e) {
             return Result.failure("Cannot parse response body: " + e.getMessage());

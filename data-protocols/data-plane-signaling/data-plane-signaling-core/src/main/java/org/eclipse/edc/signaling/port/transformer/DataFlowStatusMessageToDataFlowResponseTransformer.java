@@ -15,18 +15,18 @@
 package org.eclipse.edc.signaling.port.transformer;
 
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
-import org.eclipse.edc.signaling.domain.DataFlowResponseMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.transform.spi.TypeTransformer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DataFlowResponseMessageToDataFlowResponseTransformer implements TypeTransformer<DataFlowResponseMessage, DataFlowResponse> {
+public class DataFlowStatusMessageToDataFlowResponseTransformer implements TypeTransformer<DataFlowStatusMessage, DataFlowResponse> {
 
     @Override
-    public Class<DataFlowResponseMessage> getInputType() {
-        return DataFlowResponseMessage.class;
+    public Class<DataFlowStatusMessage> getInputType() {
+        return DataFlowStatusMessage.class;
     }
 
     @Override
@@ -35,10 +35,10 @@ public class DataFlowResponseMessageToDataFlowResponseTransformer implements Typ
     }
 
     @Override
-    public @Nullable DataFlowResponse transform(@NotNull DataFlowResponseMessage dataFlowResponseMessage, @NotNull TransformerContext context) {
+    public @Nullable DataFlowResponse transform(@NotNull DataFlowStatusMessage dataFlowStatusMessage, @NotNull TransformerContext context) {
         return DataFlowResponse.Builder.newInstance()
-                .dataAddress(context.transform(dataFlowResponseMessage.getDataAddress(), DataAddress.class))
-                .async(dataFlowResponseMessage.getState().endsWith("ING"))
+                .dataAddress(context.transform(dataFlowStatusMessage.getDataAddress(), DataAddress.class))
+                .async(dataFlowStatusMessage.getState().endsWith("ING"))
                 .build();
     }
 

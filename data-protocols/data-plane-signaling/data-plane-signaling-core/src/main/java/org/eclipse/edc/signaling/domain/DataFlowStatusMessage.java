@@ -14,13 +14,13 @@
 
 package org.eclipse.edc.signaling.domain;
 
-public final class DataFlowResponseMessage {
+public final class DataFlowStatusMessage {
 
     private DspDataAddress dataAddress;
     private String state;
     private String error;
 
-    private DataFlowResponseMessage() {
+    private DataFlowStatusMessage() {
 
     }
 
@@ -38,7 +38,7 @@ public final class DataFlowResponseMessage {
 
     public static class Builder {
 
-        private final DataFlowResponseMessage instance = new DataFlowResponseMessage();
+        private final DataFlowStatusMessage instance = new DataFlowStatusMessage();
 
         public static Builder newInstance() {
             return new Builder();
@@ -48,7 +48,7 @@ public final class DataFlowResponseMessage {
 
         }
 
-        public DataFlowResponseMessage build() {
+        public DataFlowStatusMessage build() {
             return instance;
         }
 
