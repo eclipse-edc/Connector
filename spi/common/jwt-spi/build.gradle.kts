@@ -19,8 +19,9 @@ plugins {
 }
 
 dependencies {
-    implementation(libs.edc.runtime.metamodel)
     api(project(":spi:common:core-spi"))
+    api(libs.nimbus.jwt)
+
     testFixturesImplementation(project(":core:common:junit-base"))
 }
 

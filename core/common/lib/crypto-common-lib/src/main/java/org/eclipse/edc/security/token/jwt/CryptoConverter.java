@@ -367,18 +367,6 @@ public class CryptoConverter {
         return (ECPublicKey) KeyFactory.getInstance("EC").generatePublic(spec);
     }
 
-    /**
-     * reverses an array in-place
-     */
-    private static byte[] reverseArray(byte[] array) {
-        for (var i = 0; i < array.length / 2; i++) {
-            var temp = array[i];
-            array[i] = array[array.length - 1 - i];
-            array[array.length - 1 - i] = temp;
-        }
-        return array;
-    }
-
     private static Ed25519Verifier createEdDsaVerifier(PublicKey publicKey) throws JOSEException {
         var edKey = (EdECPublicKey) publicKey;
         var curve = getCurveAllowing(edKey, ALGORITHM_ED25519);

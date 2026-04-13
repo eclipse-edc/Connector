@@ -21,7 +21,6 @@ dependencies {
     api(project(":spi:common:decentralized-claims-spi"))
     api(project(":spi:common:identity-did-spi"))
     api(project(":spi:common:http-spi"))
-    api(project(":spi:common:jwt-spi"))
     implementation(project(":core:common:lib:util-lib"))
 
     implementation(libs.jakarta.rsApi)
