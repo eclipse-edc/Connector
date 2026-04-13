@@ -57,7 +57,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/DataFlowResponseMessage"
+              $ref: "#/components/schemas/DataFlowStatusMessage"
       responses:
         "200":
           description: Prepared notification delivered correctly
@@ -87,7 +87,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/DataFlowResponseMessage"
+              $ref: "#/components/schemas/DataFlowStatusMessage"
       responses:
         "200":
           description: Started notification delivered correctly
@@ -199,19 +199,16 @@ components:
         labels:
         - labels
         - labels
-    DataFlowResponseMessage:
+    DataFlowStatusMessage:
       type: object
       properties:
         dataAddress:
           $ref: "#/components/schemas/DspDataAddress"
-        dataplaneId:
-          type: string
         error:
           type: string
         state:
           type: string
       example:
-        dataplaneId: dataplaneId
         dataAddress:
           endpoint: endpoint
           endpointType: endpointType
