@@ -24,7 +24,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.signaling.logic.DataPlaneSignalingFlowController;
 import org.eclipse.edc.signaling.port.ClientFactory;
 import org.eclipse.edc.signaling.port.transformer.DataAddressToDspDataAddressTransformer;
-import org.eclipse.edc.signaling.port.transformer.DataFlowResponseMessageToDataFlowResponseTransformer;
+import org.eclipse.edc.signaling.port.transformer.DataFlowStatusMessageToDataFlowResponseTransformer;
 import org.eclipse.edc.signaling.port.transformer.DspDataAddressToDataAddressTransformer;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -58,7 +58,7 @@ public class DataPlaneSignalingFlowControllerExtension implements ServiceExtensi
     public DataFlowController dataFlowController() {
         var typeTransformerRegistry = transformerRegistry.forContext("signaling-api");
         typeTransformerRegistry.register(new DataAddressToDspDataAddressTransformer());
-        typeTransformerRegistry.register(new DataFlowResponseMessageToDataFlowResponseTransformer());
+        typeTransformerRegistry.register(new DataFlowStatusMessageToDataFlowResponseTransformer());
         typeTransformerRegistry.register(new DspDataAddressToDataAddressTransformer());
         return new DataPlaneSignalingFlowController(apiConfiguration.createPublicUri(), dataPlaneSelectorService,
                 typeTransformerRegistry, clientFactory, dataAddressStore);

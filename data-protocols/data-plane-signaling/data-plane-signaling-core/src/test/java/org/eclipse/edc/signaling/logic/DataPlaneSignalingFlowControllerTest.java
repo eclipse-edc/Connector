@@ -22,8 +22,8 @@ import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
-import org.eclipse.edc.signaling.domain.DataFlowResponseMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
 import org.eclipse.edc.signaling.domain.DspDataAddress;
 import org.eclipse.edc.signaling.port.ClientFactory;
 import org.eclipse.edc.signaling.port.DataPlaneSignalingClient;
@@ -74,22 +74,24 @@ public class DataPlaneSignalingFlowControllerTest {
 
         @Test
         void shouldCallPrepareOnDataPlane() {
-            var dataPlaneInstance = createDataPlaneInstance();
+            var dataPlaneInstance = dataPlaneInstanceBuilder().id("data-plane-id").build();
             Map<String, Object> claims = Map.of("key", "value");
             var transferProcess = transferProcessBuilder().claims(claims).build();
             when(selectorService.selectFor(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
-            var flowResponseMessage = DataFlowResponseMessage.Builder.newInstance()
+            var flowResponseMessage = DataFlowStatusMessage.Builder.newInstance()
                     .dataAddress(createDspDataAddress())
                     .build();
             when(dataPlaneClient.prepare(any())).thenReturn(StatusResult.success(flowResponseMessage));
             when(typeTransformerRegistry.transform(isA(DataAddress.class), any())).thenReturn(Result.success(createDspDataAddress()));
-            var response = DataFlowResponse.Builder.newInstance().dataPlaneId("dataPlaneId").dataAddress(testDataAddress()).build();
-            when(typeTransformerRegistry.transform(isA(DataFlowResponseMessage.class), any())).thenReturn(Result.success(response));
+            var response = DataFlowResponse.Builder.newInstance().dataAddress(testDataAddress()).build();
+            when(typeTransformerRegistry.transform(isA(DataFlowStatusMessage.class), any())).thenReturn(Result.success(response));
 
             var result = flowController.prepare(transferProcess, policyBuilder().build());
 
-            assertThat(result).isSucceeded().isSameAs(response);
+            assertThat(result).isSucceeded().satisfies(actualResponse -> {
+                assertThat(actualResponse.getDataPlaneId()).isEqualTo("data-plane-id");
+            });
             var captor = ArgumentCaptor.forClass(DataFlowPrepareMessage.class);
             verify(dataPlaneClient).prepare(captor.capture());
             var message = captor.getValue();
@@ -120,20 +122,22 @@ public class DataPlaneSignalingFlowControllerTest {
                     .transferType(HTTP_DATA_PULL)
                     .contentDataAddress(testDataAddress())
                     .build();
-            var dataPlaneInstance = createDataPlaneInstance();
+            var dataPlaneInstance = dataPlaneInstanceBuilder().id("data-plane-id").build();
             when(selectorService.selectFor(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
             when(typeTransformerRegistry.transform(isA(DataAddress.class), any())).thenReturn(Result.success(createDspDataAddress()));
             var response = DataFlowResponse.Builder.newInstance().dataPlaneId("dataPlaneId").dataAddress(testDataAddress()).build();
-            when(typeTransformerRegistry.transform(isA(DataFlowResponseMessage.class), any())).thenReturn(Result.success(response));
-            when(dataPlaneClient.start(any())).thenReturn(StatusResult.success(DataFlowResponseMessage.Builder.newInstance()
+            when(typeTransformerRegistry.transform(isA(DataFlowStatusMessage.class), any())).thenReturn(Result.success(response));
+            when(dataPlaneClient.start(any())).thenReturn(StatusResult.success(DataFlowStatusMessage.Builder.newInstance()
                     .dataAddress(createDspDataAddress())
                     .build()));
             when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(DataAddress.Builder.newInstance().type("test").build()));
 
             var result = flowController.start(transferProcess, policy);
 
-            assertThat(result).isSucceeded().isSameAs(response);
+            assertThat(result).isSucceeded().satisfies(actualResponse -> {
+                assertThat(actualResponse.getDataPlaneId()).isEqualTo("data-plane-id");
+            });
             var captor = ArgumentCaptor.forClass(DataFlowStartMessage.class);
             verify(dataPlaneClient).start(captor.capture());
             var message = captor.getValue();
@@ -163,7 +167,7 @@ public class DataPlaneSignalingFlowControllerTest {
                     .build();
 
             when(dataPlaneClient.start(any())).thenReturn(StatusResult.failure(ResponseStatus.FATAL_ERROR, errorMsg));
-            var dataPlaneInstance = createDataPlaneInstance();
+            var dataPlaneInstance = dataPlaneInstanceBuilder().build();
             when(selectorService.selectFor(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
             when(typeTransformerRegistry.transform(isA(DataAddress.class), any())).thenReturn(Result.success(createDspDataAddress()));
@@ -424,10 +428,6 @@ public class DataPlaneSignalingFlowControllerTest {
     @NotNull
     private DataPlaneInstance.Builder dataPlaneInstanceBuilder() {
         return DataPlaneInstance.Builder.newInstance().url("http://any");
-    }
-
-    private DataPlaneInstance createDataPlaneInstance() {
-        return dataPlaneInstanceBuilder().build();
     }
 
     private DataAddress testDataAddress() {

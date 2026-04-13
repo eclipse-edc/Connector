@@ -23,7 +23,7 @@ import org.eclipse.edc.signaling.port.api.DataPlaneRegistrationApiV4Controller;
 import org.eclipse.edc.signaling.port.api.DataPlaneTransferApiController;
 import org.eclipse.edc.signaling.port.api.DataPlaneTransferAuthorizationFilter;
 import org.eclipse.edc.signaling.port.transformer.DataAddressToDspDataAddressTransformer;
-import org.eclipse.edc.signaling.port.transformer.DataFlowResponseMessageToDataFlowResponseTransformer;
+import org.eclipse.edc.signaling.port.transformer.DataFlowStatusMessageToDataFlowResponseTransformer;
 import org.eclipse.edc.signaling.port.transformer.DspDataAddressToDataAddressTransformer;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -76,7 +76,7 @@ public class DataPlaneSignalingApiExtension implements ServiceExtension {
 
         var typeTransformerRegistry = transformerRegistry.forContext("signaling-api");
         typeTransformerRegistry.register(new DataAddressToDspDataAddressTransformer());
-        typeTransformerRegistry.register(new DataFlowResponseMessageToDataFlowResponseTransformer());
+        typeTransformerRegistry.register(new DataFlowStatusMessageToDataFlowResponseTransformer());
         typeTransformerRegistry.register(new DspDataAddressToDataAddressTransformer());
 
         webService.registerResource(ApiContext.MANAGEMENT, new DataPlaneRegistrationApiV4Controller(dataPlaneSelectorService));

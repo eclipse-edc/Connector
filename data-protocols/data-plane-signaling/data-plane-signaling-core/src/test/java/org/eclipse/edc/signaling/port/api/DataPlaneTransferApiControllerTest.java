@@ -21,7 +21,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.AuthorizationProfile;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.signaling.domain.DataFlowResponseMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorization;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistry;
 import org.eclipse.edc.spi.result.Result;
@@ -59,7 +59,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
         void shouldReturnUnauthorized_whenTransferDoesNotExist() {
             when(transferProcessService.findById(any())).thenReturn(null);
             var transferId = UUID.randomUUID().toString();
-            var message = DataFlowResponseMessage.Builder.newInstance().build();
+            var message = DataFlowStatusMessage.Builder.newInstance().build();
 
             given()
                     .port(port)
@@ -80,7 +80,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
             when(transferProcessService.findById(any())).thenReturn(transferProcess);
             when(dataPlaneSelectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
             var transferId = UUID.randomUUID().toString();
-            var message = DataFlowResponseMessage.Builder.newInstance().build();
+            var message = DataFlowStatusMessage.Builder.newInstance().build();
 
             given()
                     .port(port)
@@ -102,7 +102,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
             var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://any").authorizationProfile(null).build();
             when(dataPlaneSelectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             var transferId = UUID.randomUUID().toString();
-            var message = DataFlowResponseMessage.Builder.newInstance().build();
+            var message = DataFlowStatusMessage.Builder.newInstance().build();
 
             when(typeTransformerRegistry.transform(any(), eq(DataFlowResponse.class))).thenReturn(Result.success(createDataFlowResponse()));
             when(transferProcessService.notifyPrepared(any())).thenReturn(ServiceResult.success());
@@ -129,7 +129,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
             when(dataPlaneSelectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             when(signalingAuthorizationRegistry.findByType(any())).thenReturn(null);
             var transferId = UUID.randomUUID().toString();
-            var message = DataFlowResponseMessage.Builder.newInstance().build();
+            var message = DataFlowStatusMessage.Builder.newInstance().build();
 
             given()
                     .port(port)
@@ -155,7 +155,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
             when(authorization.isAuthorized(any())).thenReturn(Result.failure("not authorized"));
             when(signalingAuthorizationRegistry.findByType(any())).thenReturn(authorization);
             var transferId = UUID.randomUUID().toString();
-            var message = DataFlowResponseMessage.Builder.newInstance().build();
+            var message = DataFlowStatusMessage.Builder.newInstance().build();
 
             given()
                     .port(port)
@@ -181,7 +181,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
             when(authorization.isAuthorized(any())).thenReturn(Result.success("dataPlaneId"));
             when(signalingAuthorizationRegistry.findByType(any())).thenReturn(authorization);
             var transferId = UUID.randomUUID().toString();
-            var message = DataFlowResponseMessage.Builder.newInstance().build();
+            var message = DataFlowStatusMessage.Builder.newInstance().build();
             when(typeTransformerRegistry.transform(any(), eq(DataFlowResponse.class))).thenReturn(Result.success(createDataFlowResponse()));
             when(transferProcessService.notifyPrepared(any())).thenReturn(ServiceResult.success());
 
@@ -209,7 +209,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
             when(authorization.isAuthorized(any())).thenReturn(Result.success("differentDataPlaneId"));
             when(signalingAuthorizationRegistry.findByType(any())).thenReturn(authorization);
             var transferId = UUID.randomUUID().toString();
-            var message = DataFlowResponseMessage.Builder.newInstance().build();
+            var message = DataFlowStatusMessage.Builder.newInstance().build();
 
             given()
                     .port(port)
@@ -236,7 +236,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
         @Test
         void shouldCallNotifyPrepared() {
             var transferId = UUID.randomUUID().toString();
-            var message = DataFlowResponseMessage.Builder.newInstance().build();
+            var message = DataFlowStatusMessage.Builder.newInstance().build();
             var dataFlowResponse = createDataFlowResponse();
 
             when(typeTransformerRegistry.transform(any(), eq(DataFlowResponse.class))).thenReturn(Result.success(dataFlowResponse));
@@ -251,7 +251,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
                     .log().ifValidationFails()
                     .statusCode(200);
 
-            verify(typeTransformerRegistry).transform(any(DataFlowResponseMessage.class), eq(DataFlowResponse.class));
+            verify(typeTransformerRegistry).transform(any(DataFlowStatusMessage.class), eq(DataFlowResponse.class));
             verify(transferProcessService).notifyPrepared(argThat(c -> c != null &&
                     c.getEntityId().equals(transferId) &&
                     c.getDataAddress().equals(dataFlowResponse.getDataAddress())));
@@ -260,7 +260,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
         @Test
         void shouldReturnBadRequest_whenTransformationFails() {
             var transferId = UUID.randomUUID().toString();
-            var message = DataFlowResponseMessage.Builder.newInstance().build();
+            var message = DataFlowStatusMessage.Builder.newInstance().build();
             when(typeTransformerRegistry.transform(any(), eq(DataFlowResponse.class))).thenReturn(Result.failure("error"));
 
             given()
@@ -276,7 +276,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
         @Test
         void shouldReturnConflict_whenServiceCallFails() {
             var transferId = UUID.randomUUID().toString();
-            var message = DataFlowResponseMessage.Builder.newInstance().build();
+            var message = DataFlowStatusMessage.Builder.newInstance().build();
             var dataFlowResponse = DataFlowResponse.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("test").build()).build();
             when(typeTransformerRegistry.transform(any(), eq(DataFlowResponse.class))).thenReturn(Result.success(dataFlowResponse));
             when(transferProcessService.notifyPrepared(any())).thenReturn(ServiceResult.conflict("error"));

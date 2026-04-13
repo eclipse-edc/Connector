@@ -26,8 +26,8 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyPreparedCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyStartedCommand;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
-import org.eclipse.edc.signaling.domain.DataFlowResponseMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
@@ -51,7 +51,7 @@ public class DataPlaneTransferApiController implements DataPlaneTransferApi {
     @Path("/{transferId}/dataflow/prepared")
     @POST
     @Override
-    public Response prepared(@PathParam("transferId") String transferId, DataFlowResponseMessage message) {
+    public Response prepared(@PathParam("transferId") String transferId, DataFlowStatusMessage message) {
         typeTransformerRegistry.transform(message, DataFlowResponse.class)
                 .map(ServiceResult::success)
                 .orElse(failure -> ServiceResult.badRequest(failure.getMessages()))
@@ -65,7 +65,7 @@ public class DataPlaneTransferApiController implements DataPlaneTransferApi {
     @Path("/{transferId}/dataflow/started")
     @POST
     @Override
-    public Response started(@PathParam("transferId") String transferId, DataFlowResponseMessage message) {
+    public Response started(@PathParam("transferId") String transferId, DataFlowStatusMessage message) {
         typeTransformerRegistry.transform(message, DataFlowResponse.class)
                 .map(ServiceResult::success)
                 .orElse(failure -> ServiceResult.badRequest(failure.getMessages()))

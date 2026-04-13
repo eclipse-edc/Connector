@@ -23,7 +23,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.api.model.ApiCoreSchema;
-import org.eclipse.edc.signaling.domain.DataFlowResponseMessage;
+import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
 
 import static jakarta.ws.rs.HttpMethod.POST;
 
@@ -40,7 +40,7 @@ public interface DataPlaneTransferApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    Response prepared(String transferId, DataFlowResponseMessage message);
+    Response prepared(String transferId, DataFlowStatusMessage message);
 
     @Operation(
             method = POST,
@@ -51,7 +51,7 @@ public interface DataPlaneTransferApi {
                             content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
             }
     )
-    Response started(String transferId, DataFlowResponseMessage message);
+    Response started(String transferId, DataFlowStatusMessage message);
 
     @Operation(
             method = POST,

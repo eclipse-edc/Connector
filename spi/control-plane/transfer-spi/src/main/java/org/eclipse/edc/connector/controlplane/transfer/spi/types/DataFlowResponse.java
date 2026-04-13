@@ -41,6 +41,13 @@ public class DataFlowResponse {
         return async;
     }
 
+    public Builder toBuilder() {
+        return Builder.newInstance()
+                .dataAddress(dataAddress)
+                .dataPlaneId(dataPlaneId)
+                .async(async);
+    }
+
     public static class Builder {
 
         DataFlowResponse response;
