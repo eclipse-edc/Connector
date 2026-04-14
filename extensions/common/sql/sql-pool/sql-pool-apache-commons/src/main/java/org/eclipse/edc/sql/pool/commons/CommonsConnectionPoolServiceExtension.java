@@ -14,9 +14,12 @@
 
 package org.eclipse.edc.sql.pool.commons;
 
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
+import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.security.Vault;
@@ -30,10 +33,11 @@ import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import javax.sql.DataSource;
 
 import static java.util.Optional.ofNullable;
@@ -44,41 +48,28 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
     public static final String NAME = "Commons Connection Pool";
 
     public static final String EDC_DATASOURCE_PREFIX = "edc.datasource";
-    private static final String EDC_DATASOURCE_CONFIG_CONTEXT = EDC_DATASOURCE_PREFIX + ".<name>";
-
-    @Setting(description = "JDBC url", required = true, context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String URL = "url";
-    @Setting(description = "Username to be used for the JDBC connection. Can be omitted if not required, or if the user is encoded in the JDBC url.", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String USER = "user";
-    @Setting(description = "Username to be used for the JDBC connection. Can be omitted if not required, or if the password is encoded in the JDBC url.", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String PASSWORD = "password";
-
-    @Setting(description = "Pool max idle connections", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTIONS_MAX_IDLE = "pool.connections.max-idle";
-    @Setting(description = "Pool max total connections",  context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTIONS_MAX_TOTAL = "pool.connections.max-total";
-    @Setting(description = "Pool min idle connections",  context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTIONS_MIN_IDLE = "pool.connections.min-idle";
-    @Setting(description = "Pool test on borrow", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTION_TEST_ON_BORROW = "pool.connection.test.on-borrow";
-    @Setting(description = "Pool test on create", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTION_TEST_ON_CREATE = "pool.connection.test.on-create";
-    @Setting(description = "Pool test on return", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTION_TEST_ON_RETURN = "pool.connection.test.on-return";
-    @Setting(description = "Pool test while idle", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTION_TEST_WHILE_IDLE = "pool.connection.test.while-idle";
-    @Setting(description = "Pool test query", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTION_TEST_QUERY = "pool.connection.test.query";
+
+    @SettingContext(EDC_DATASOURCE_PREFIX)
+    @Configuration
+    private Map<String, DatasourceConfiguration> datasources;
 
     @Inject
     private DataSourceRegistry dataSourceRegistry;
-
     @Inject
     private Monitor monitor;
-
     @Inject
     private ConnectionFactory connectionFactory;
-
     @Inject
     private Vault vault;
 
@@ -91,13 +82,13 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        context.getConfig(EDC_DATASOURCE_PREFIX).partition().forEach(config -> {
-            var dataSourceName = config.currentNode();
-            var dataSource = createDataSource(config);
-            var connectionPool = createConnectionPool(dataSource, config);
+        datasources.forEach((name, configuration) -> {
+            var rootPath = EDC_DATASOURCE_PREFIX + "." + name;
+            var dataSource = createDataSource(rootPath, configuration, context.getConfig(rootPath));
+            var connectionPool = createConnectionPool(dataSource, configuration);
             commonsConnectionPools.add(connectionPool);
             var connectionPoolDataSource = new ConnectionPoolDataSource(connectionPool);
-            dataSourceRegistry.register(dataSourceName, connectionPoolDataSource);
+            dataSourceRegistry.register(name, connectionPoolDataSource);
         });
     }
 
@@ -106,16 +97,14 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
         commonsConnectionPools.forEach(CommonsConnectionPool::close);
     }
 
-    private DataSource createDataSource(Config config) {
-        var rootPath = EDC_DATASOURCE_PREFIX + "." + config.currentNode();
-
-        var jdbcUrl = getSecretOrSetting(rootPath, URL, config)
-                .orElseThrow(() -> new EdcException("Mandatory url for datasource '%s' not found. Please provide a value for it, either as a secret in the vault or an application property.".formatted(config.currentNode())));
-        var jdbcUser = getSecretOrSetting(rootPath, USER, config);
-        var jdbcPassword = getSecretOrSetting(rootPath, PASSWORD, config);
+    private DataSource createDataSource(String rootPath, DatasourceConfiguration configuration, Config currentNode) {
+        var jdbcUrl = getSecretOrSetting(rootPath, URL, configuration.url())
+                .orElseThrow(() -> new EdcException("Mandatory url for datasource '%s' not found. Please provide a value for it, either as a secret in the vault or an application property.".formatted(currentNode.currentNode())));
+        var jdbcUser = getSecretOrSetting(rootPath, USER, configuration.user());
+        var jdbcPassword = getSecretOrSetting(rootPath, PASSWORD, configuration.password());
 
         var properties = new Properties();
-        properties.putAll(config.getRelativeEntries());
+        properties.putAll(currentNode.getRelativeEntries());
 
         jdbcUser.ifPresent(u -> properties.put(USER, u));
         jdbcPassword.ifPresent(p -> properties.put(PASSWORD, p));
@@ -123,34 +112,96 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
         return new ConnectionFactoryDataSource(connectionFactory, jdbcUrl, properties);
     }
 
-    private Optional<String> getSecretOrSetting(String rootPath, String key, Config config) {
+    private Optional<String> getSecretOrSetting(String rootPath, String key, String configValue) {
         var fullKey = rootPath + "." + key;
         return ofNullable(vault.resolveSecret(fullKey))
                 .or(() -> {
                     monitor.warning("Datasource configuration value '%s' not found in vault, will fall back to Config. Please consider putting datasource configuration into the vault.".formatted(fullKey));
-                    return Optional.ofNullable(config.getString(key, null));
+                    return Optional.ofNullable(configValue);
                 });
     }
 
-    private CommonsConnectionPool createConnectionPool(DataSource unPooledDataSource, Config config) {
+    private CommonsConnectionPool createConnectionPool(DataSource dataSource, DatasourceConfiguration configuration) {
         var builder = CommonsConnectionPoolConfig.Builder.newInstance();
 
-        setIfProvided(POOL_CONNECTIONS_MAX_IDLE, config::getInteger, builder::maxIdleConnections);
-        setIfProvided(POOL_CONNECTIONS_MAX_TOTAL, config::getInteger, builder::maxTotalConnections);
-        setIfProvided(POOL_CONNECTIONS_MIN_IDLE, config::getInteger, builder::minIdleConnections);
-        setIfProvided(POOL_CONNECTION_TEST_ON_BORROW, config::getBoolean, builder::testConnectionOnBorrow);
-        setIfProvided(POOL_CONNECTION_TEST_ON_CREATE, config::getBoolean, builder::testConnectionOnCreate);
-        setIfProvided(POOL_CONNECTION_TEST_ON_RETURN, config::getBoolean, builder::testConnectionOnReturn);
-        setIfProvided(POOL_CONNECTION_TEST_WHILE_IDLE, config::getBoolean, builder::testConnectionWhileIdle);
-        setIfProvided(POOL_CONNECTION_TEST_QUERY, config::getString, builder::testQuery);
+        setIfProvided(configuration::poolConnectionsMaxIdle, builder::maxIdleConnections);
+        setIfProvided(configuration::poolConnectionsMaxTotal, builder::maxTotalConnections);
+        setIfProvided(configuration::poolConnectionsMinIdle, builder::minIdleConnections);
+        setIfProvided(configuration::poolConnectionTestOnBorrow, builder::testConnectionOnBorrow);
+        setIfProvided(configuration::poolConnectionTestOnCreate, builder::testConnectionOnCreate);
+        setIfProvided(configuration::poolConnectionTestOnReturn, builder::testConnectionOnReturn);
+        setIfProvided(configuration::poolConnectionTestWhileIdle, builder::testConnectionWhileIdle);
+        setIfProvided(configuration::poolConnectionTestQuery, builder::testQuery);
 
-        return new CommonsConnectionPool(unPooledDataSource, builder.build(), monitor);
+        return new CommonsConnectionPool(dataSource, builder.build(), monitor);
     }
 
-    private <T> void setIfProvided(String key, BiFunction<String, T, T> getter, Consumer<T> setter) {
-        var value = getter.apply(key, null);
+    private <T> void setIfProvided(Supplier<T> supplier, Consumer<T> setter) {
+        var value = supplier.get();
         if (value != null) {
             setter.accept(value);
         }
+    }
+
+    @Settings
+    private record DatasourceConfiguration(
+            @Setting(
+                    key = URL,
+                    description = "JDBC url",
+                    required = false)
+            String url,
+            @Setting(
+                    key = USER,
+                    description = "Username to be used for the JDBC connection. Can be omitted if not required, or if the user is encoded in the JDBC url.",
+                    required = false)
+            String user,
+            @Setting(
+                    key = PASSWORD,
+                    description = "Username to be used for the JDBC connection. Can be omitted if not required, or if the password is encoded in the JDBC url.",
+                    required = false)
+            String password,
+
+            @Setting(
+                    key = POOL_CONNECTIONS_MAX_IDLE,
+                    description = "Pool max idle connections",
+                    required = false)
+            Integer poolConnectionsMaxIdle,
+            @Setting(
+                    key = POOL_CONNECTIONS_MAX_TOTAL,
+                    description = "Pool max total connections",
+                    required = false)
+            Integer poolConnectionsMaxTotal,
+            @Setting(
+                    key = POOL_CONNECTIONS_MIN_IDLE,
+                    description = "Pool min idle connections",
+                    required = false)
+            Integer poolConnectionsMinIdle,
+            @Setting(
+                    key = POOL_CONNECTION_TEST_ON_BORROW,
+                    description = "Pool test on borrow",
+                    required = false)
+            Boolean poolConnectionTestOnBorrow,
+            @Setting(
+                    key = POOL_CONNECTION_TEST_ON_CREATE,
+                    description = "Pool test on create",
+                    required = false)
+            Boolean poolConnectionTestOnCreate,
+            @Setting(
+                    key = POOL_CONNECTION_TEST_ON_RETURN,
+                    description = "Pool test on return",
+                    required = false)
+            Boolean poolConnectionTestOnReturn,
+            @Setting(
+                    key = POOL_CONNECTION_TEST_WHILE_IDLE,
+                    description = "Pool test while idle",
+                    required = false)
+            Boolean poolConnectionTestWhileIdle,
+            @Setting(
+                    key = POOL_CONNECTION_TEST_QUERY,
+                    description = "Pool test query",
+                    required = false)
+            String poolConnectionTestQuery
+    ) {
+
     }
 }
