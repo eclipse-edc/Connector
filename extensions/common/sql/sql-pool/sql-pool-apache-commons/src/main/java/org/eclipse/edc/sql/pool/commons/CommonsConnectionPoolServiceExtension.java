@@ -53,19 +53,19 @@ public class CommonsConnectionPoolServiceExtension implements ServiceExtension {
     @Setting(description = "Username to be used for the JDBC connection. Can be omitted if not required, or if the password is encoded in the JDBC url.", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String PASSWORD = "password";
 
-    @Setting(description = "Pool max idle connections", type = "int", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    @Setting(description = "Pool max idle connections", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTIONS_MAX_IDLE = "pool.connections.max-idle";
-    @Setting(description = "Pool max total connections", type = "int", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    @Setting(description = "Pool max total connections",  context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTIONS_MAX_TOTAL = "pool.connections.max-total";
-    @Setting(description = "Pool min idle connections", type = "int", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    @Setting(description = "Pool min idle connections",  context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTIONS_MIN_IDLE = "pool.connections.min-idle";
-    @Setting(description = "Pool test on borrow", type = "boolean", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    @Setting(description = "Pool test on borrow", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTION_TEST_ON_BORROW = "pool.connection.test.on-borrow";
-    @Setting(description = "Pool test on create", type = "boolean", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    @Setting(description = "Pool test on create", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTION_TEST_ON_CREATE = "pool.connection.test.on-create";
-    @Setting(description = "Pool test on return", type = "boolean", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    @Setting(description = "Pool test on return", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTION_TEST_ON_RETURN = "pool.connection.test.on-return";
-    @Setting(description = "Pool test while idle", type = "boolean", context = EDC_DATASOURCE_CONFIG_CONTEXT)
+    @Setting(description = "Pool test while idle", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTION_TEST_WHILE_IDLE = "pool.connection.test.while-idle";
     @Setting(description = "Pool test query", context = EDC_DATASOURCE_CONFIG_CONTEXT)
     public static final String POOL_CONNECTION_TEST_QUERY = "pool.connection.test.query";

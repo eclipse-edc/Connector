@@ -51,7 +51,7 @@ public class DelegatedAuthenticationExtension implements ServiceExtension {
     public static final String CONFIG_ALIAS = "web.http.<context>." + AUTH_KEY + ".";
     @Setting(context = CONFIG_ALIAS, description = "URL where the third-party IdP's public key(s) can be resolved for the configured <context>")
     public static final String AUTH_KEY_URL = "dac.key.url";
-    @Setting(context = CONFIG_ALIAS, description = "Duration (in ms) that the internal key cache is valid for the configured <context>", type = "Long", defaultValue = "" + DEFAULT_CACHE_TIME_TO_LIVE)
+    @Setting(context = CONFIG_ALIAS, description = "Duration (in ms) that the internal key cache is valid for the configured <context>", defaultValue = "" + DEFAULT_CACHE_TIME_TO_LIVE)
     public static final String AUTH_CACHE_VALIDITY_MS = "dac.cache.validity";
     public static final String AUDIENCE_KEY = "dac.audience";
     private static final int DEFAULT_VALIDATION_TOLERANCE = 5_000;
