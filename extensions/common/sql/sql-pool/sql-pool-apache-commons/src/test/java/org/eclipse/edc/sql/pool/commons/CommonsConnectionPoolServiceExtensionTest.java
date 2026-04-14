@@ -15,11 +15,12 @@
 package org.eclipse.edc.sql.pool.commons;
 
 import org.assertj.core.api.ThrowingConsumer;
+import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.boot.vault.InMemoryVault;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
+import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.security.Vault;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.sql.ConnectionFactory;
 import org.eclipse.edc.sql.datasource.ConnectionPoolDataSource;
@@ -54,7 +55,6 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(DependencyInjectionExtension.class)
 class CommonsConnectionPoolServiceExtensionTest {
@@ -63,7 +63,7 @@ class CommonsConnectionPoolServiceExtensionTest {
     private final ConnectionFactory connectionFactory = mock();
 
     @BeforeEach
-    void setUp(ServiceExtensionContext context) {
+    void setUp(TestExtensionContext context) {
         context.registerService(DataSourceRegistry.class, dataSourceRegistry);
         context.registerService(Vault.class, new InMemoryVault(mock(), null));
         context.registerService(ConnectionFactory.class, connectionFactory);
@@ -73,9 +73,10 @@ class CommonsConnectionPoolServiceExtensionTest {
     @ArgumentsSource(ConfigProvider.class)
     void initialize_withConfig(Map<String, String> configuration, ThrowingConsumer<CommonsConnectionPoolConfig> checker,
                                boolean isEnv,
-                               CommonsConnectionPoolServiceExtension extension, ServiceExtensionContext context) {
+                               ObjectFactory factory, TestExtensionContext context) {
         var config = isEnv ? ConfigFactory.fromEnvironment(configuration) : ConfigFactory.fromMap(configuration);
-        when(context.getConfig(EDC_DATASOURCE_PREFIX)).thenReturn(config);
+        context.setConfig(config);
+        var extension = factory.constructInstance(CommonsConnectionPoolServiceExtension.class);
 
         extension.initialize(context);
 
@@ -87,14 +88,14 @@ class CommonsConnectionPoolServiceExtensionTest {
     }
 
     @Test
-    void initialize_fromVault(CommonsConnectionPoolServiceExtension extension, ServiceExtensionContext context) {
-        when(context.getConfig(EDC_DATASOURCE_PREFIX))
-                .thenReturn(ConfigFactory.fromMap(Map.of("ds1.name", "ds1")));
+    void initialize_fromVault(ObjectFactory factory, TestExtensionContext context) {
+        context.setConfig(ConfigFactory.fromMap(Map.of(EDC_DATASOURCE_PREFIX + ".ds1.name", "ds1")));
         var vault = context.getService(Vault.class);
 
         vault.storeSecret("edc.datasource." + DS_1_NAME + ".user", "test-user");
         vault.storeSecret("edc.datasource." + DS_1_NAME + ".password", "test-pwd");
         vault.storeSecret("edc.datasource." + DS_1_NAME + ".url", "jdbc://whatever");
+        var extension = factory.constructInstance(CommonsConnectionPoolServiceExtension.class);
 
         extension.initialize(context);
 
@@ -112,17 +113,17 @@ class CommonsConnectionPoolServiceExtensionTest {
     }
 
     @Test
-    void initialize_fromVault_shouldOverrideConfig(CommonsConnectionPoolServiceExtension extension, ServiceExtensionContext context) {
-        when(context.getConfig(EDC_DATASOURCE_PREFIX))
-                .thenReturn(ConfigFactory.fromMap(
-                        Map.of("ds1.name", "ds1",
-                                "ds1.user", "this-should-be-ignored",
-                                "ds1.password", "this-as-well")));
+    void initialize_fromVault_shouldOverrideConfig(ObjectFactory factory, TestExtensionContext context) {
+        context.setConfig(ConfigFactory.fromMap(Map.of(
+                EDC_DATASOURCE_PREFIX + ".ds1.name", "ds1",
+                EDC_DATASOURCE_PREFIX + ".ds1.user", "this-should-be-ignored",
+                EDC_DATASOURCE_PREFIX + ".ds1.password", "this-as-well")));
         var vault = context.getService(Vault.class);
 
         vault.storeSecret("edc.datasource." + DS_1_NAME + ".user", "test-user");
         vault.storeSecret("edc.datasource." + DS_1_NAME + ".password", "test-pwd");
         vault.storeSecret("edc.datasource." + DS_1_NAME + ".url", "jdbc://whatever");
+        var extension = factory.constructInstance(CommonsConnectionPoolServiceExtension.class);
 
         extension.initialize(context);
 
@@ -141,18 +142,18 @@ class CommonsConnectionPoolServiceExtensionTest {
 
     static class ConfigProvider implements ArgumentsProvider {
 
-        private final Map<String, String> defaultConfig = Map.of(DS_1_NAME + ".url", DS_1_NAME);
+        private final Map<String, String> defaultConfig = Map.of(EDC_DATASOURCE_PREFIX + "." + DS_1_NAME + ".url", DS_1_NAME);
 
         private final Map<String, String> configuration = Map.of(
-                DS_1_NAME + ".url", DS_1_NAME,
-                DS_1_NAME + "." + POOL_CONNECTION_TEST_ON_CREATE, "false",
-                DS_1_NAME + "." + POOL_CONNECTION_TEST_ON_BORROW, "false",
-                DS_1_NAME + "." + POOL_CONNECTION_TEST_ON_RETURN, "true",
-                DS_1_NAME + "." + POOL_CONNECTION_TEST_WHILE_IDLE, "true",
-                DS_1_NAME + "." + POOL_CONNECTION_TEST_QUERY, "SELECT foo FROM bar;",
-                DS_1_NAME + "." + POOL_CONNECTIONS_MIN_IDLE, "10",
-                DS_1_NAME + "." + POOL_CONNECTIONS_MAX_IDLE, "10",
-                DS_1_NAME + "." + POOL_CONNECTIONS_MAX_TOTAL, "10");
+                EDC_DATASOURCE_PREFIX + "." + DS_1_NAME + ".url", DS_1_NAME,
+                EDC_DATASOURCE_PREFIX + "." + DS_1_NAME + "." + POOL_CONNECTION_TEST_ON_CREATE, "false",
+                EDC_DATASOURCE_PREFIX + "." + DS_1_NAME + "." + POOL_CONNECTION_TEST_ON_BORROW, "false",
+                EDC_DATASOURCE_PREFIX + "." + DS_1_NAME + "." + POOL_CONNECTION_TEST_ON_RETURN, "true",
+                EDC_DATASOURCE_PREFIX + "." + DS_1_NAME + "." + POOL_CONNECTION_TEST_WHILE_IDLE, "true",
+                EDC_DATASOURCE_PREFIX + "." + DS_1_NAME + "." + POOL_CONNECTION_TEST_QUERY, "SELECT foo FROM bar;",
+                EDC_DATASOURCE_PREFIX + "." + DS_1_NAME + "." + POOL_CONNECTIONS_MIN_IDLE, "10",
+                EDC_DATASOURCE_PREFIX + "." + DS_1_NAME + "." + POOL_CONNECTIONS_MAX_IDLE, "10",
+                EDC_DATASOURCE_PREFIX + "." + DS_1_NAME + "." + POOL_CONNECTIONS_MAX_TOTAL, "10");
 
 
         @Override
