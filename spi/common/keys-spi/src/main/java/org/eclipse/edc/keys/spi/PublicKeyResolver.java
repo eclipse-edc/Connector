@@ -26,7 +26,10 @@ import java.security.PublicKey;
 public interface PublicKeyResolver {
 
     /**
-     * Resolves the key or return null if not found.
+     * Resolves the public key.
+     *
+     * @param id the key id
+     * @return success with the key, it could be null if the key absence is not an issue. Failure if the key cannot be resolved.
      */
     Result<PublicKey> resolveKey(String id);
 }

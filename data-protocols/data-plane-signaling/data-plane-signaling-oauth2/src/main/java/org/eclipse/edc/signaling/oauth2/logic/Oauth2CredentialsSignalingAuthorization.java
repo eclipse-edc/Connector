@@ -14,15 +14,14 @@
 
 package org.eclipse.edc.signaling.oauth2.logic;
 
-import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.AuthorizationProfile;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
 import org.eclipse.edc.signaling.spi.authorization.Header;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorization;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.spi.TokenValidationService;
 
-import java.text.ParseException;
 import java.util.function.Function;
 
 /**
@@ -55,9 +54,11 @@ public class Oauth2CredentialsSignalingAuthorization implements SignalingAuthori
 
     private static final String BEARER = "Bearer ";
     private final Oauth2Client oauth2Client;
+    private final TokenValidationService tokenValidationService;
 
-    public Oauth2CredentialsSignalingAuthorization(Oauth2Client oauth2Client) {
+    public Oauth2CredentialsSignalingAuthorization(Oauth2Client oauth2Client, TokenValidationService tokenValidationService) {
         this.oauth2Client = oauth2Client;
+        this.tokenValidationService = tokenValidationService;
     }
 
     /**
@@ -87,16 +88,17 @@ public class Oauth2CredentialsSignalingAuthorization implements SignalingAuthori
 
         var token = authorization.substring(BEARER.length());
 
-        try {
-            var jwt = SignedJWT.parse(token);
-            var sub = jwt.getJWTClaimsSet().getClaims().get("sub");
-            if (sub instanceof String callerId) {
-                return Result.success(callerId);
-            }
-            return Result.failure("JWT sub claim %s is not a string".formatted(sub));
-        } catch (ParseException e) {
-            return Result.failure("JWT cannot be parsed correctly");
+        var tokenValidation = tokenValidationService.validate(token, i -> Result.success(null));
+        if (tokenValidation.failed()) {
+            return tokenValidation.mapFailure();
         }
+        var claimToken = tokenValidation.getContent();
+
+        var sub = claimToken.getStringClaim("sub");
+        if (sub == null) {
+            return Result.failure("No 'sub' claim exists in the token");
+        }
+        return Result.success(sub);
     }
 
     /**
