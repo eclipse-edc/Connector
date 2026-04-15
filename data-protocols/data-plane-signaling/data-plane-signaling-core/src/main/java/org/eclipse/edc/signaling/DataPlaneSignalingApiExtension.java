@@ -16,6 +16,7 @@ package org.eclipse.edc.signaling;
 
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -26,6 +27,7 @@ import org.eclipse.edc.signaling.port.transformer.DataAddressToDspDataAddressTra
 import org.eclipse.edc.signaling.port.transformer.DataFlowStatusMessageToDataFlowResponseTransformer;
 import org.eclipse.edc.signaling.port.transformer.DspDataAddressToDataAddressTransformer;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistry;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.system.apiversion.ApiVersionService;
@@ -64,6 +66,12 @@ public class DataPlaneSignalingApiExtension implements ServiceExtension {
     @Inject
     private SignalingAuthorizationRegistry signalingAuthorizationRegistry;
 
+    @Inject(required = false)
+    private SingleParticipantContextSupplier participantContextSupplier;
+
+    @Inject
+    private Monitor monitor;
+
     @Override
     public String name() {
         return NAME;
@@ -79,7 +87,12 @@ public class DataPlaneSignalingApiExtension implements ServiceExtension {
         typeTransformerRegistry.register(new DataFlowStatusMessageToDataFlowResponseTransformer());
         typeTransformerRegistry.register(new DspDataAddressToDataAddressTransformer());
 
-        webService.registerResource(ApiContext.MANAGEMENT, new DataPlaneRegistrationApiV4Controller(dataPlaneSelectorService));
+        if (participantContextSupplier != null) {
+            webService.registerResource(ApiContext.MANAGEMENT, new DataPlaneRegistrationApiV4Controller(dataPlaneSelectorService, participantContextSupplier));
+        } else {
+            monitor.debug("Running in virtual mode registration of DataPlaneRegistrationApiV4Controller will be skipped");
+        }
+
         webService.registerResource(ApiContext.SIGNALING, new DataPlaneTransferAuthorizationFilter(signalingAuthorizationRegistry, transferProcessService, dataPlaneSelectorService));
         webService.registerResource(ApiContext.SIGNALING, new DataPlaneTransferApiController(transferProcessService, typeTransformerRegistry));
 

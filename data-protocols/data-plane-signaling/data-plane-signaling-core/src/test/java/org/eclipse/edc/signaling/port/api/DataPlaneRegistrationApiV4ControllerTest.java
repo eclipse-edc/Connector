@@ -16,6 +16,8 @@ package org.eclipse.edc.signaling.port.api;
 
 import io.restassured.http.ContentType;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.signaling.domain.DataPlaneRegistrationMessage;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
@@ -36,6 +38,14 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
 
     private final DataPlaneSelectorService dataPlaneSelectorService = mock();
 
+    private final SingleParticipantContextSupplier participantContextSupplier = () ->
+            ServiceResult.success(ParticipantContext.Builder.newInstance().participantContextId("participant-context-id").identity("identity").build());
+
+    @Override
+    protected Object controller() {
+        return new DataPlaneRegistrationApiV4Controller(dataPlaneSelectorService, participantContextSupplier);
+    }
+
     @Nested
     class Register {
 
@@ -55,9 +65,9 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
 
             verify(dataPlaneSelectorService).register(argThat(instance ->
                     instance.getId().equals("dp-id") &&
-                    instance.getUrl().toString().equals("http://dataplane/endpoint") &&
-                    instance.getAllowedTransferTypes().contains("HttpData-PUSH") &&
-                    instance.getAuthorizationProfile() == null
+                            instance.getUrl().toString().equals("http://dataplane/endpoint") &&
+                            instance.getAllowedTransferTypes().contains("HttpData-PUSH") &&
+                            instance.getAuthorizationProfile() == null
             ));
         }
 
@@ -79,7 +89,7 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
 
             verify(dataPlaneSelectorService).register(argThat(instance ->
                     instance.getAuthorizationProfile() != null &&
-                    instance.getAuthorizationProfile().type().equals("oauth2")
+                            instance.getAuthorizationProfile().type().equals("oauth2")
             ));
         }
 
@@ -129,10 +139,5 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
                     .log().ifValidationFails()
                     .statusCode(404);
         }
-    }
-
-    @Override
-    protected Object controller() {
-        return new DataPlaneRegistrationApiV4Controller(dataPlaneSelectorService);
     }
 }

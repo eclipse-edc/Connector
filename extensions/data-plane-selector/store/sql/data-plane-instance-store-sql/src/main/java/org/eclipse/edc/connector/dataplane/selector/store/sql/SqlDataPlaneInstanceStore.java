@@ -162,6 +162,18 @@ public class SqlDataPlaneInstanceStore extends AbstractSqlStore implements DataP
         });
     }
 
+    @Override
+    public Stream<DataPlaneInstance> query(QuerySpec querySpec) {
+        return transactionContext.execute(() -> {
+            try {
+                var statement = statements.createQuery(querySpec);
+                return queryExecutor.query(getConnection(), true, this::mapResultSet, statement.getQueryAsString(), statement.getParameters());
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
     private DataPlaneInstance findByIdInternal(Connection connection, String id) {
         var sql = statements.getFindByIdTemplate();
         return queryExecutor.single(connection, false, this::mapResultSet, sql, id);

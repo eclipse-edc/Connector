@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.dataplane.selector.spi.store;
 
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.spi.persistence.StateEntityStore;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 
 import java.util.stream.Stream;
@@ -35,5 +36,8 @@ public interface DataPlaneInstanceStore extends StateEntityStore<DataPlaneInstan
     StoreResult<DataPlaneInstance> deleteById(String instanceId);
 
     Stream<DataPlaneInstance> getAll();
+
+    Stream<DataPlaneInstance> query(QuerySpec querySpec);
+
 
 }

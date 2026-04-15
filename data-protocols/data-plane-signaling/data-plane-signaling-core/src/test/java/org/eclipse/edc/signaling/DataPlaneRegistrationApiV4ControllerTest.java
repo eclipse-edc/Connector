@@ -18,6 +18,8 @@ import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
+import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.signaling.port.api.DataPlaneRegistrationApiV4Controller;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
@@ -38,6 +40,20 @@ import static org.mockito.Mockito.when;
 public class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
 
     private final DataPlaneSelectorService dataPlaneSelectorService = mock();
+    private final SingleParticipantContextSupplier participantContextSupplier = () ->
+            ServiceResult.success(ParticipantContext.Builder.newInstance().participantContextId("participant-context-id").identity("identity").build());
+
+    @Override
+    protected Object controller() {
+        return new DataPlaneRegistrationApiV4Controller(dataPlaneSelectorService, participantContextSupplier);
+    }
+
+    private RequestSpecification baseRequest() {
+        return given()
+                .baseUri("http://localhost:" + port)
+                .basePath("/v4beta")
+                .when();
+    }
 
     @Nested
     class Register {
@@ -111,17 +127,5 @@ public class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTest
                     .then()
                     .statusCode(409);
         }
-    }
-
-    @Override
-    protected Object controller() {
-        return new DataPlaneRegistrationApiV4Controller(dataPlaneSelectorService);
-    }
-
-    private RequestSpecification baseRequest() {
-        return given()
-                .baseUri("http://localhost:" + port)
-                .basePath("/v4beta")
-                .when();
     }
 }
