@@ -39,6 +39,7 @@ import static io.restassured.RestAssured.given;
 import static java.util.Collections.emptyMap;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -331,9 +332,35 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
         }
     }
 
+    @Nested
+    class Errored {
+        @BeforeEach
+        void setUp() {
+            setupValidAuthorization();
+        }
+
+        @Test
+        void shouldLogWarning() {
+            var transferId = UUID.randomUUID().toString();
+            when(transferProcessService.complete(any())).thenReturn(ServiceResult.success());
+            var message = DataFlowStatusMessage.Builder.newInstance().error("data-plane error").build();
+
+            given()
+                    .port(port)
+                    .contentType(ContentType.JSON)
+                    .body(message)
+                    .post("/transfers/{transferId}/dataflow/errored", transferId)
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200);
+
+            verify(monitor).warning(contains("data-plane error"));
+        }
+    }
+
     @Override
     protected Object controller() {
-        return new DataPlaneTransferApiController(transferProcessService, typeTransformerRegistry);
+        return new DataPlaneTransferApiController(transferProcessService, typeTransformerRegistry, monitor);
     }
 
     @Override

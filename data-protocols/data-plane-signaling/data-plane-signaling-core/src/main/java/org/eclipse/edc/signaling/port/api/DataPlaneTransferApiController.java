@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.NotifyS
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
@@ -42,10 +43,12 @@ public class DataPlaneTransferApiController implements DataPlaneTransferApi {
 
     private final TransferProcessService transferProcessService;
     private final TypeTransformerRegistry typeTransformerRegistry;
+    private final Monitor monitor;
 
-    public DataPlaneTransferApiController(TransferProcessService transferProcessService, TypeTransformerRegistry typeTransformerRegistry) {
+    public DataPlaneTransferApiController(TransferProcessService transferProcessService, TypeTransformerRegistry typeTransformerRegistry, Monitor monitor) {
         this.transferProcessService = transferProcessService;
         this.typeTransformerRegistry = typeTransformerRegistry;
+        this.monitor = monitor;
     }
 
     @Path("/{transferId}/dataflow/prepared")
@@ -83,5 +86,16 @@ public class DataPlaneTransferApiController implements DataPlaneTransferApi {
         transferProcessService.complete(transferId).orElseThrow(exceptionMapper(TransferProcess.class, transferId));
         return Response.ok().build();
     }
+
+    @Path("/{transferId}/dataflow/errored")
+    @POST
+    @Override
+    public Response errored(@PathParam("transferId") String transferId, DataFlowStatusMessage message) {
+        monitor.warning("Errored DataFlow notification received about TransferProcess %s: %s".formatted(transferId, message.getError()));
+        return Response.ok().build();
+    }
+
+
+
 
 }
