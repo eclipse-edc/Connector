@@ -64,5 +64,15 @@ public interface DataPlaneTransferApi {
     )
     Response completed(String transferId);
 
+    @Operation(
+            method = POST,
+            description = "Notify an errored transfer",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Errored notification delivered correctly"),
+                    @ApiResponse(responseCode = "404", description = "Transfer process does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+            }
+    )
+    Response errored(String transferId, DataFlowStatusMessage message);
 
 }
