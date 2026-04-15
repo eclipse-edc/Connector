@@ -73,6 +73,7 @@ public abstract class VirtualTransferEndToEndTestBase {
                 .url(consumerDataPlane.getDataFlowsEndpoint())
                 .allowedTransferType("NonFinite-PULL")
                 .authorizationProfile(toAuthorizationProfile(consumerControlPlaneOauth2Profile))
+                .participantContextId(participants.consumer().contextId())
                 .build();
 
         dataPlaneSelectorService.register(consumerDp)
@@ -83,6 +84,7 @@ public abstract class VirtualTransferEndToEndTestBase {
                 .url(providerDataPlane.getDataFlowsEndpoint())
                 .allowedTransferType("NonFinite-PULL")
                 .authorizationProfile(toAuthorizationProfile(providerControlPlaneOauth2Profile))
+                .participantContextId(participants.provider().contextId())
                 .build();
 
         dataPlaneSelectorService.register(providerDp)

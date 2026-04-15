@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.UNREGISTERED;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
 
 public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorService {
 
@@ -85,7 +86,7 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
             return ServiceResult.badRequest("Strategy " + selectionStrategy + " was not found");
         }
         return transactionContext.execute(() -> {
-            try (var stream = store.getAll()) {
+            try (var stream = store.query(queryByParticipantContextId(transferProcess.getParticipantContextId()).build())) {
                 var dataPlanes = stream
                         .filter(it -> it.getState() != UNREGISTERED.code())
                         .filter(it -> it.getAllowedTransferTypes().contains(transferProcess.getTransferType()))

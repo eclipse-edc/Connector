@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.store.InMemoryStatefulEntityStore;
 
@@ -51,5 +52,10 @@ public class InMemoryDataPlaneInstanceStore extends InMemoryStatefulEntityStore<
     @Override
     public Stream<DataPlaneInstance> getAll() {
         return findAll();
+    }
+
+    @Override
+    public Stream<DataPlaneInstance> query(QuerySpec querySpec) {
+        return findAll(querySpec);
     }
 }

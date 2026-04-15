@@ -31,6 +31,7 @@ public class DataPlaneInstanceMapping extends StatefulEntityMapping {
         add("stateCount", data);
         add("stateTimestamp", data);
         add("createdAt", data);
+        add("participantContextId", data);
         add("traceContext", new JsonFieldTranslator(statements.getTraceContextColumn()));
         add("errorDetail", data);
     }

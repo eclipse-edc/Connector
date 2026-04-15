@@ -54,6 +54,20 @@ public class EmbeddedDataPlaneSelectorServiceTest {
     private final String configuredSelectionStrategy = "strategy";
     private final DataPlaneSelectorService service = new EmbeddedDataPlaneSelectorService(store, selectionStrategyRegistry, new NoopTransactionContext(), configuredSelectionStrategy);
 
+    private DataPlaneInstance.Builder createInstanceBuilder(String id) {
+        return DataPlaneInstance.Builder.newInstance()
+                .id(id)
+                .url("http://any");
+    }
+
+    private DataAddress createAddress(String type) {
+        return DataAddress.Builder.newInstance()
+                .type(type)
+                .keyName("key-name")
+                .property("someprop", "someval")
+                .build();
+    }
+
     @Nested
     class SelectFor {
 
@@ -64,7 +78,7 @@ public class EmbeddedDataPlaneSelectorServiceTest {
                     createInstanceBuilder("ignoredInstance").allowedTransferType("anotherTransferType").state(REGISTERED.code()).build(),
                     createInstanceBuilder("expectedInstance").allowedTransferType("chosenTransferType").state(REGISTERED.code()).build()
             );
-            when(store.getAll()).thenAnswer(i -> instances.stream());
+            when(store.query(any())).thenAnswer(i -> instances.stream());
             var strategy = testRandomSelectionStrategy();
             when(selectionStrategyRegistry.find(any())).thenReturn(strategy);
 
@@ -81,7 +95,7 @@ public class EmbeddedDataPlaneSelectorServiceTest {
                     .allowedSourceType("srcTestType").allowedTransferType("chosenTransferType").build();
             var unregisteredInstance = createInstanceBuilder("unregistered").state(UNREGISTERED.code())
                     .allowedSourceType("srcTestType").allowedTransferType("chosenTransferType").build();
-            when(store.getAll()).thenReturn(Stream.of(unregisteredInstance, registeredInstance));
+            when(store.query(any())).thenReturn(Stream.of(unregisteredInstance, registeredInstance));
             var strategy = testRandomSelectionStrategy();
             when(selectionStrategyRegistry.find(any())).thenReturn(strategy);
 
@@ -101,7 +115,7 @@ public class EmbeddedDataPlaneSelectorServiceTest {
                     .build();
             var expectedInstance = createInstanceBuilder("expectedInstance").state(REGISTERED.code()).allowedTransferType("chosenTransferType")
                     .label("gold").label("blue").build();
-            when(store.getAll()).thenReturn(Stream.of(ignoredInstance, expectedInstance));
+            when(store.query(any())).thenReturn(Stream.of(ignoredInstance, expectedInstance));
             var strategy = testRandomSelectionStrategy();
             when(selectionStrategyRegistry.find(any())).thenReturn(strategy);
 
@@ -319,19 +333,5 @@ public class EmbeddedDataPlaneSelectorServiceTest {
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
             verify(store, never()).save(any());
         }
-    }
-
-    private DataPlaneInstance.Builder createInstanceBuilder(String id) {
-        return DataPlaneInstance.Builder.newInstance()
-                .id(id)
-                .url("http://any");
-    }
-
-    private DataAddress createAddress(String type) {
-        return DataAddress.Builder.newInstance()
-                .type(type)
-                .keyName("key-name")
-                .property("someprop", "someval")
-                .build();
     }
 }

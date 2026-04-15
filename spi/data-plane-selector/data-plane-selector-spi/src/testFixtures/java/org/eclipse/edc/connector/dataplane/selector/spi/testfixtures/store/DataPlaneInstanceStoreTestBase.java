@@ -33,6 +33,7 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.REGISTERED;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.UNREGISTERED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_LEASED;
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
@@ -106,6 +107,24 @@ public abstract class DataPlaneInstanceStoreTestBase {
             var foundItems = store.getAll();
 
             assertThat(foundItems).isNotNull().hasSize(2);
+        }
+    }
+
+    @Nested
+    class Query {
+        @Test
+        void query_participantContext() {
+            var doc1 = createInstanceBuilder("test-id").participantContextId("participant1").build();
+            var doc2 = createInstanceBuilder("test-id-2").participantContextId("participant2").build();
+
+            var store = getStore();
+
+            store.save(doc1);
+            store.save(doc2);
+
+            var foundItems = store.query(queryByParticipantContextId("participant1").build());
+
+            assertThat(foundItems).isNotNull().hasSize(1);
         }
     }
 

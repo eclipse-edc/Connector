@@ -24,6 +24,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.AuthorizationProfile;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.signaling.domain.DataPlaneRegistrationMessage;
 
 import java.util.Map;
@@ -37,23 +38,26 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToExcept
 public class DataPlaneRegistrationApiV4Controller implements DataPlaneRegistrationApiV4 {
 
     private final DataPlaneSelectorService dataPlaneSelectorService;
+    private final SingleParticipantContextSupplier participantContextSupplier;
 
-    public DataPlaneRegistrationApiV4Controller(DataPlaneSelectorService dataPlaneSelectorService) {
+    public DataPlaneRegistrationApiV4Controller(DataPlaneSelectorService dataPlaneSelectorService, SingleParticipantContextSupplier participantContextSupplier) {
         this.dataPlaneSelectorService = dataPlaneSelectorService;
+        this.participantContextSupplier = participantContextSupplier;
     }
 
     @PUT
     @Override
     public Response register(DataPlaneRegistrationMessage registration) {
         toAuthorizationProfile(registration.authorization());
-        var dataPlaneInstance = DataPlaneInstance.Builder.newInstance()
-                .id(registration.dataplaneId())
-                .url(registration.endpoint())
-                .allowedTransferType(registration.transferTypes())
-                .authorizationProfile(toAuthorizationProfile(registration.authorization()))
-                .build();
-
-        dataPlaneSelectorService.register(dataPlaneInstance)
+        
+        participantContextSupplier.get().map(participantContext -> DataPlaneInstance.Builder.newInstance()
+                        .id(registration.dataplaneId())
+                        .url(registration.endpoint())
+                        .allowedTransferType(registration.transferTypes())
+                        .authorizationProfile(toAuthorizationProfile(registration.authorization()))
+                        .participantContextId(participantContext.getParticipantContextId())
+                        .build())
+                .compose(dataPlaneSelectorService::register)
                 .orElseThrow(it -> mapToException(it, DataPlaneInstance.class, registration.dataplaneId()));
 
         return Response.ok().build();
