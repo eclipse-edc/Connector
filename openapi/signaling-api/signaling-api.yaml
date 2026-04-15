@@ -124,6 +124,36 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /transfers/{transferId}/dataflow/errored:
+    post:
+      tags:
+      - Data Plane Transfer events
+      description: Notify an errored transfer
+      operationId: errored
+      parameters:
+      - name: transferId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DataFlowStatusMessage"
+      responses:
+        "200":
+          description: Errored notification delivered correctly
+        "404":
+          description: Transfer process does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /transfers/{transferId}/dataflow/completed:
     post:
       tags:
