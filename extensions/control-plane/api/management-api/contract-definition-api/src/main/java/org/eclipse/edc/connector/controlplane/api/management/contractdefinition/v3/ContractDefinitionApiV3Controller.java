@@ -36,6 +36,7 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
 @Path("/v3/contractdefinitions")
+@Deprecated(since = "management-api:v3")
 public class ContractDefinitionApiV3Controller extends BaseContractDefinitionApiController implements ContractDefinitionApiV3 {
     public ContractDefinitionApiV3Controller(TypeTransformerRegistry transformerRegistry, ContractDefinitionService service, Monitor monitor,
                                              JsonObjectValidatorRegistry validatorRegistry, SingleParticipantContextSupplier participantContextSupplier) {

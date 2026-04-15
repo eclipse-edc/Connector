@@ -33,6 +33,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 @OpenAPIDefinition(info = @Info(version = "v3"))
 @Tag(name = "EDR Cache V3")
+@Deprecated(since = "management-api:v3")
 public interface EdrCacheApiV3 {
 
     @Operation(description = "Request all Edr entries according to a particular query",

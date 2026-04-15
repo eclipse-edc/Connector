@@ -27,8 +27,8 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
-@OpenAPIDefinition(info = @Info(title = "Cel Expressions Management API", version = "v5alpha"))
-@Tag(name = "Cel Expressions v5alpha")
+@OpenAPIDefinition(info = @Info(title = "Cel Expressions Management API", version = "v5beta"))
+@Tag(name = "Cel Expressions v5beta")
 public interface CelExpressionApiV5 {
 
     @Operation(description = "Create a Cel Expression.",

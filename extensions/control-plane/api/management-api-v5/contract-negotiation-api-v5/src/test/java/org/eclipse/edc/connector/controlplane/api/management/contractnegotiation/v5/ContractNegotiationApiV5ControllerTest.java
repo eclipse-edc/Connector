@@ -27,6 +27,6 @@ class ContractNegotiationApiV5ControllerTest extends ContractNegotiationApiContr
 
     @Override
     protected String versionPath() {
-        return "v5alpha";
+        return "v5beta";
     }
 }

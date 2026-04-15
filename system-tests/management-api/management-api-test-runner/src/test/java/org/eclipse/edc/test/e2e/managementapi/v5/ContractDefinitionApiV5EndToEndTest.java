@@ -96,7 +96,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(requestJson)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
                     .then()
                     .statusCode(200)
                     .body("@id", equalTo(id));
@@ -121,7 +121,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(requestJson)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
                     .then()
                     .statusCode(403)
                     .body(containsString("User '%s' is not authorized to access this resource".formatted(otherParticipantId)));
@@ -141,7 +141,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(requestJson)
-                    .post("/v5alpha/participants/" + otherParticipantId + "/contractdefinitions")
+                    .post("/v5beta/participants/" + otherParticipantId + "/contractdefinitions")
                     .then()
                     .statusCode(403);
         }
@@ -156,7 +156,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             context.baseRequest(authServer.createAdminToken())
                     .contentType(JSON)
                     .body(requestJson)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
                     .then()
                     .statusCode(200)
                     .body("@id", equalTo(id));
@@ -178,7 +178,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             context.baseRequest(offendingToken)
                     .contentType(JSON)
                     .body(requestJson)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
                     .then()
                     .statusCode(403)
                     .body(matchesRegex("(?s).*Required scope.*management-api:write.*missing.*"));
@@ -196,7 +196,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             context.baseRequest(offendingToken)
                     .contentType(JSON)
                     .body(requestJson)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
                     .then()
                     .statusCode(403)
                     .body(matchesRegex("Required user role not satisfied."));
@@ -209,7 +209,7 @@ public class ContractDefinitionApiV5EndToEndTest {
 
             var body = context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
                     .then()
                     .statusCode(200)
                     .body("size()", greaterThan(0))
@@ -236,7 +236,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(requestJson)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
                     .then()
                     .statusCode(200)
                     .body("@id", equalTo(id));
@@ -249,7 +249,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .body(matchingQuery)
                     .contentType(JSON)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -263,7 +263,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .body(nonMatchingQuery)
                     .contentType(JSON)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -292,7 +292,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             var result = context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(query)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -313,7 +313,7 @@ public class ContractDefinitionApiV5EndToEndTest {
 
             var body = context.baseRequest(authServer.createAdminToken())
                     .contentType(JSON)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
                     .then()
                     .statusCode(200)
                     .body("size()", greaterThan(0))
@@ -336,7 +336,7 @@ public class ContractDefinitionApiV5EndToEndTest {
 
             var body = context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
                     .then()
                     .statusCode(200)
                     .body("size()", greaterThanOrEqualTo(2))
@@ -360,7 +360,7 @@ public class ContractDefinitionApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(JSON)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
                     .then()
                     .statusCode(403)
                     .body(containsString("User '%s' is not authorized to access this resource".formatted("another-participant")));
@@ -376,7 +376,7 @@ public class ContractDefinitionApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(JSON)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
                     .then()
                     .statusCode(403)
                     .body(matchesRegex("(?s).*Required scope.*management-api:read.*missing.*"));
@@ -391,7 +391,7 @@ public class ContractDefinitionApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(JSON)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
                     .then()
                     .statusCode(403)
                     .body(containsString("Required user role not satisfied."));
@@ -404,7 +404,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             store.save(entity);
 
             context.baseRequest(participantTokenJwt)
-                    .delete("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
+                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
                     .then()
                     .statusCode(204);
 
@@ -427,7 +427,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             var token = authServer.createToken(otherParticipantId);
 
             context.baseRequest(token)
-                    .delete("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
+                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
                     .then()
                     .statusCode(403)
                     .body(containsString("User '%s' is not authorized to access this resource".formatted(otherParticipantId)));
@@ -445,13 +445,13 @@ public class ContractDefinitionApiV5EndToEndTest {
 
             //url path != actual owner
             context.baseRequest(participantTokenJwt)
-                    .delete("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
+                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
                     .then()
                     .statusCode(404);
 
             // url path == actual owner, but token is not authorized to access it
             context.baseRequest(participantTokenJwt)
-                    .delete("/v5alpha/participants/" + otherParticipantId + "/contractdefinitions/" + id)
+                    .delete("/v5beta/participants/" + otherParticipantId + "/contractdefinitions/" + id)
                     .then()
                     .statusCode(403);
         }
@@ -464,7 +464,7 @@ public class ContractDefinitionApiV5EndToEndTest {
 
             var adminToken = authServer.createAdminToken();
             context.baseRequest(adminToken)
-                    .delete("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
+                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
                     .then()
                     .statusCode(204);
 
@@ -482,7 +482,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             var offendingToken = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:foobar"));
 
             context.baseRequest(offendingToken)
-                    .delete("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
+                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
                     .then()
                     .statusCode(403);
         }
@@ -496,7 +496,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             var offendingToken = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("role", "barbaz"));
 
             context.baseRequest(offendingToken)
-                    .delete("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
+                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
                     .then()
                     .statusCode(403);
         }
@@ -515,7 +515,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(updated)
-                    .put("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
                     .then()
                     .statusCode(204);
 
@@ -534,7 +534,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(updated)
-                    .put("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
                     .then()
                     .statusCode(404);
         }
@@ -560,7 +560,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             context.baseRequest(offendingToken)
                     .contentType(JSON)
                     .body(updated)
-                    .put("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
                     .then()
                     .statusCode(403)
                     .body(containsString("User '%s' is not authorized to access this resource".formatted(otherParticipantId)));
@@ -583,14 +583,14 @@ public class ContractDefinitionApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(updated)
-                    .put("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
                     .then()
                     .statusCode(404);
 
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(updated)
-                    .put("/v5alpha/participants/" + otherParticipantId + "/contractdefinitions")
+                    .put("/v5beta/participants/" + otherParticipantId + "/contractdefinitions")
                     .then()
                     .statusCode(403);
         }
@@ -609,7 +609,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             context.baseRequest(authServer.createAdminToken())
                     .contentType(JSON)
                     .body(updated)
-                    .put("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
                     .then()
                     .statusCode(204);
         }
@@ -630,7 +630,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             context.baseRequest(offendingToken)
                     .contentType(JSON)
                     .body(updated)
-                    .put("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
                     .then()
                     .statusCode(403);
         }
@@ -650,7 +650,7 @@ public class ContractDefinitionApiV5EndToEndTest {
             context.baseRequest(offendingToken)
                     .contentType(JSON)
                     .body(updated)
-                    .put("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
+                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
                     .then()
                     .statusCode(403);
         }

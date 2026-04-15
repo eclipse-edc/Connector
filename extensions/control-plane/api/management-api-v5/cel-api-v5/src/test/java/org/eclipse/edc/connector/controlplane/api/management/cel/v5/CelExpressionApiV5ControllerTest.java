@@ -20,7 +20,7 @@ import org.eclipse.edc.connector.controlplane.api.management.cel.CelExpressionAp
 public class CelExpressionApiV5ControllerTest extends CelExpressionApiControllerTestBase {
     @Override
     protected String versionPath() {
-        return "v5alpha";
+        return "v5beta";
     }
 
     @Override

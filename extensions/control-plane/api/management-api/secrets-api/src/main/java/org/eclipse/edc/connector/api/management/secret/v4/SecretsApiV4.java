@@ -27,8 +27,8 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
 @OpenAPIDefinition(
-        info = @Info(description = "This contains the secret management API, which allows to add, remove and update secrets in the Vault.", title = "Secret API", version = "v4beta"))
-@Tag(name = "Secret v4beta")
+        info = @Info(description = "This contains the secret management API, which allows to add, remove and update secrets in the Vault.", title = "Secret API", version = "v4"))
+@Tag(name = "Secret v4")
 public interface SecretsApiV4 {
 
     @Operation(description = "Creates a new secret.",

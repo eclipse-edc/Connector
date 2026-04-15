@@ -20,7 +20,6 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import jakarta.json.Json;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
@@ -44,7 +43,6 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -54,11 +52,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
@@ -73,7 +68,6 @@ class TransferPullEndToEndTest {
         static WireMockExtension callbacksEndpoint = WireMockExtension.newInstance()
                 .options(wireMockConfig().dynamicPort())
                 .build();
-
 
         private static @NotNull Map<String, Object> httpSourceDataAddress() {
             return new HashMap<>(Map.of(
@@ -124,147 +118,6 @@ class TransferPullEndToEndTest {
 
         }
 
-        @Test
-        void httpPull_dataTransfer_withEdrCache(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                                @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
-            var assetId = UUID.randomUUID().toString();
-            var sourceDataAddress = httpSourceDataAddress();
-            createResourcesOnProvider(provider, assetId, PolicyFixtures.contractExpiresIn("10s"), sourceDataAddress);
-
-            var transferProcessId = consumer.requestAssetFrom(assetId, provider)
-                    .withTransferType("HttpData-PULL")
-                    .execute();
-
-            consumer.awaitTransferToBeInState(transferProcessId, STARTED);
-
-            var edrEntry = assertConsumerCanAccessData(consumer, transferProcessId);
-
-            assertConsumerCanNotAccessData(consumer, transferProcessId, edrEntry);
-        }
-
-        @Test
-        void httpPull_dataTransfer_withHttpResponseChannel(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                                           @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
-            var assetId = UUID.randomUUID().toString();
-            var responseChannel = Map.of(
-                    EDC_NAMESPACE + "name", "transfer-test",
-                    EDC_NAMESPACE + "baseUrl", "http://any/response/channel",
-                    EDC_NAMESPACE + "type", "HttpData"
-            );
-            var sourceDataAddress = httpSourceDataAddress();
-            sourceDataAddress.put(EDC_NAMESPACE + "responseChannel", responseChannel);
-            createResourcesOnProvider(provider, assetId, PolicyFixtures.contractExpiresIn("30s"), sourceDataAddress);
-
-            var transferProcessId = consumer.requestAssetFrom(assetId, provider)
-                    .withTransferType("HttpData-PULL-HttpData")
-                    .execute();
-
-            consumer.awaitTransferToBeInState(transferProcessId, STARTED);
-            assertConsumerCanSendResponse(consumer, transferProcessId);
-
-        }
-
-        @Test
-        void suspendAndResumeByConsumer_httpPull_dataTransfer_withEdrCache(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                                                           @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
-            var assetId = UUID.randomUUID().toString();
-            createResourcesOnProvider(provider, assetId, httpSourceDataAddress());
-
-            var transferProcessId = consumer.requestAssetFrom(assetId, provider)
-                    .withTransferType("HttpData-PULL")
-                    .execute();
-
-            consumer.awaitTransferToBeInState(transferProcessId, STARTED);
-
-            var edrEntry = assertConsumerCanAccessData(consumer, transferProcessId);
-
-            consumer.suspendTransfer(transferProcessId, "suspension");
-
-            consumer.awaitTransferToBeInState(transferProcessId, SUSPENDED);
-            assertConsumerCanNotAccessData(consumer, transferProcessId, edrEntry);
-
-            consumer.resumeTransfer(transferProcessId);
-
-            consumer.awaitTransferToBeInState(transferProcessId, STARTED);
-            assertConsumerCanAccessData(consumer, transferProcessId);
-        }
-
-        @Test
-        void suspendAndResumeByProvider_httpPull_dataTransfer_withEdrCache(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                                                           @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
-            var assetId = UUID.randomUUID().toString();
-            createResourcesOnProvider(provider, assetId, httpSourceDataAddress());
-
-            var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
-                    .withTransferType("HttpData-PULL")
-                    .execute();
-
-            consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
-
-            var edrEntry = assertConsumerCanAccessData(consumer, consumerTransferProcessId);
-
-            var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
-
-            provider.suspendTransfer(providerTransferProcessId, "suspension");
-
-            provider.awaitTransferToBeInState(providerTransferProcessId, SUSPENDED);
-            assertConsumerCanNotAccessData(consumer, consumerTransferProcessId, edrEntry);
-
-            provider.resumeTransfer(providerTransferProcessId);
-
-            // check that transfer is available again
-            provider.awaitTransferToBeInState(providerTransferProcessId, STARTED);
-            assertConsumerCanAccessData(consumer, consumerTransferProcessId);
-        }
-
-        @Test
-        void shouldTerminateTransfer_whenProviderTerminatesIt(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                                              @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
-            var assetId = UUID.randomUUID().toString();
-            createResourcesOnProvider(provider, assetId, httpSourceDataAddress());
-
-            var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
-                    .withTransferType("HttpData-PULL")
-                    .execute();
-
-            consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
-
-            var edrEntry = assertConsumerCanAccessData(consumer, consumerTransferProcessId);
-
-            var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
-
-            provider.terminateTransfer(providerTransferProcessId);
-
-            provider.awaitTransferToBeInState(providerTransferProcessId, TERMINATED);
-            consumer.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
-
-            assertConsumerCanNotAccessData(consumer, consumerTransferProcessId, edrEntry);
-        }
-
-        @Test
-        void shouldTerminateTransfer_whenConsumerTerminatesIt(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                                              @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
-            var assetId = UUID.randomUUID().toString();
-            createResourcesOnProvider(provider, assetId, httpSourceDataAddress());
-
-            var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
-                    .withTransferType("HttpData-PULL")
-                    .execute();
-
-            consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
-
-            var edrEntry = assertConsumerCanAccessData(consumer, consumerTransferProcessId);
-
-            var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
-
-            consumer.terminateTransfer(consumerTransferProcessId);
-
-            provider.awaitTransferToBeInState(providerTransferProcessId, TERMINATED);
-            consumer.awaitTransferToBeInState(consumerTransferProcessId, TERMINATED);
-
-            assertConsumerCanNotAccessData(consumer, consumerTransferProcessId, edrEntry);
-        }
-
         public JsonObject createCallback(String url, boolean transactional, Set<String> events) {
             return Json.createObjectBuilder()
                     .add(TYPE, EDC_NAMESPACE + "CallbackAddress")
@@ -275,28 +128,6 @@ class TransferPullEndToEndTest {
                             .collect(Json::createArrayBuilder, JsonArrayBuilder::add, JsonArrayBuilder::add)
                             .build())
                     .build();
-        }
-
-        private EdrMessage assertConsumerCanAccessData(TransferEndToEndParticipant consumer, String consumerTransferProcessId) {
-            var edr = await().atMost(timeout).until(() -> consumer.getEdr(consumerTransferProcessId), Objects::nonNull);
-            var msg = UUID.randomUUID().toString();
-            await().atMost(timeout).untilAsserted(() -> consumer.pullData(edr, Map.of("message", msg), body -> assertThat(body).isEqualTo("data")));
-
-            return new EdrMessage(edr, msg);
-        }
-
-        private void assertConsumerCanNotAccessData(TransferEndToEndParticipant consumer, String consumerTransferProcessId, EdrMessage edrMessage) {
-            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(() -> consumer.getEdr(consumerTransferProcessId)));
-            await().atMost(timeout).untilAsserted(() -> assertThatThrownBy(
-                            () -> consumer.pullData(edrMessage.address(), Map.of("message", edrMessage.message()),
-                                    body -> assertThat(body).isEqualTo("data"))
-                    )
-            );
-        }
-
-        private void assertConsumerCanSendResponse(TransferEndToEndParticipant consumer, String consumerTransferProcessId) {
-            var edr = await().atMost(timeout).until(() -> consumer.getEdr(consumerTransferProcessId), Objects::nonNull);
-            await().atMost(timeout).untilAsserted(() -> consumer.postResponse(edr, body -> assertThat(body).isEqualTo("response received")));
         }
 
         private record EdrMessage(DataAddress address, String message) {

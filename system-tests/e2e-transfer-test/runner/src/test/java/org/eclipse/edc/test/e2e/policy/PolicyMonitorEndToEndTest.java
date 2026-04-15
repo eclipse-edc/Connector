@@ -39,7 +39,6 @@ import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static java.time.Duration.ofSeconds;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_TYPE_TERM;
-import static org.eclipse.edc.connector.controlplane.test.system.utils.Participant.MANAGEMENT_V4;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.inForceDatePolicy;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
@@ -175,9 +174,7 @@ class PolicyMonitorEndToEndTest {
                 .modules(Runtimes.ControlPlane.SIGNALING_MODULES)
                 .endpoints(CONSUMER_ENDPOINTS)
                 .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
-                .paramProvider(TransferEndToEndParticipant.class, ctx -> TransferEndToEndParticipant.newInstance(ctx)
-                        .managementVersionBasePath(MANAGEMENT_V4)
-                        .build())
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
                 .build();
 
         @RegisterExtension
@@ -187,9 +184,7 @@ class PolicyMonitorEndToEndTest {
                 .modules(Runtimes.ControlPlane.SIGNALING_MODULES)
                 .endpoints(PROVIDER_ENDPOINTS)
                 .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
-                .paramProvider(TransferEndToEndParticipant.class, ctx -> TransferEndToEndParticipant.newInstance(ctx)
-                        .managementVersionBasePath(MANAGEMENT_V4)
-                        .build())
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
                 .build();
 
         @RegisterExtension
@@ -247,9 +242,7 @@ class PolicyMonitorEndToEndTest {
                 .endpoints(CONSUMER_ENDPOINTS)
                 .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONSUMER_DB))
-                .paramProvider(TransferEndToEndParticipant.class, ctx -> TransferEndToEndParticipant.newInstance(ctx)
-                        .managementVersionBasePath(MANAGEMENT_V4)
-                        .build())
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
                 .build();
 
         @RegisterExtension
@@ -261,9 +254,7 @@ class PolicyMonitorEndToEndTest {
                 .endpoints(PROVIDER_ENDPOINTS)
                 .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER_DB))
-                .paramProvider(TransferEndToEndParticipant.class, ctx -> TransferEndToEndParticipant.newInstance(ctx)
-                        .managementVersionBasePath(MANAGEMENT_V4)
-                        .build())
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
                 .build();
 
         @RegisterExtension

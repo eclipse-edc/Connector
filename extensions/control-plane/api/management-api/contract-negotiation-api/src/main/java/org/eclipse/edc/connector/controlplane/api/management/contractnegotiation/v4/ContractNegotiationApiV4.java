@@ -29,8 +29,8 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
-@OpenAPIDefinition(info = @Info(version = "v4beta"))
-@Tag(name = "Contract Negotiation v4beta")
+@OpenAPIDefinition(info = @Info(version = "v4"))
+@Tag(name = "Contract Negotiation v4")
 public interface ContractNegotiationApiV4 {
 
     @Operation(description = "Returns all contract negotiations according to a query",

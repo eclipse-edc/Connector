@@ -39,6 +39,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 @OpenAPIDefinition(info = @Info(version = "v3"))
 @Tag(name = "Contract Definition V3")
+@Deprecated(since = "management-api:v3")
 public interface ContractDefinitionApiV3 {
 
     @Operation(description = "Returns all contract definitions according to a query",

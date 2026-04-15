@@ -23,7 +23,7 @@ class CatalogApiV5ControllerTest extends BaseCatalogApiControllerTest {
 
     @Override
     protected String baseUrl(String participantContextId) {
-        return "/v5alpha/participants/%s/catalog".formatted(participantContextId);
+        return "/v5beta/participants/%s/catalog".formatted(participantContextId);
     }
 
     @Override

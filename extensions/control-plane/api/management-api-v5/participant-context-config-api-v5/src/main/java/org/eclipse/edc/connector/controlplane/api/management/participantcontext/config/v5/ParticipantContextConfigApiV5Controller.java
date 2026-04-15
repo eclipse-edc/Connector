@@ -41,7 +41,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v5alpha/participants/{participantContextId}/config")
+@Path("/v5beta/participants/{participantContextId}/config")
 public class ParticipantContextConfigApiV5Controller implements ParticipantContextConfigApiV5 {
 
     private final ParticipantContextConfigService configService;

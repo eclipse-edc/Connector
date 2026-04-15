@@ -35,6 +35,7 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
 @Path("/v3/edrs")
+@Deprecated(since = "management-api:v3")
 public class EdrCacheApiV3Controller extends BaseEdrCacheApiController implements EdrCacheApiV3 {
     public EdrCacheApiV3Controller(EndpointDataReferenceStore edrStore, TypeTransformerRegistry transformerRegistry, JsonObjectValidatorRegistry validator, Monitor monitor) {
         super(edrStore, transformerRegistry, validator, monitor);

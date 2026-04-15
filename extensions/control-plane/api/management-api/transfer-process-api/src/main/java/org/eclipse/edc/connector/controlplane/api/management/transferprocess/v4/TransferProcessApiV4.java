@@ -29,8 +29,8 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
-@OpenAPIDefinition(info = @Info(version = "v4beta"))
-@Tag(name = "Transfer Process v4beta")
+@OpenAPIDefinition(info = @Info(version = "v4"))
+@Tag(name = "Transfer Process v4")
 public interface TransferProcessApiV4 {
 
     String ASYNC_WARNING = "Due to the asynchronous nature of transfers, a successful response only indicates that the " +

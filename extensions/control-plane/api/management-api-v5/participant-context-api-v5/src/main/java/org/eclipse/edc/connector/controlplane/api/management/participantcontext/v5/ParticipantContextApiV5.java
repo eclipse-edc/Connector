@@ -29,8 +29,8 @@ import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
-@OpenAPIDefinition(info = @Info(title = "ParticipantContext Management API", version = "v5alpha"))
-@Tag(name = "Participant Context v5alpha")
+@OpenAPIDefinition(info = @Info(title = "ParticipantContext Management API", version = "v5beta"))
+@Tag(name = "Participant Context v5beta")
 public interface ParticipantContextApiV5 {
 
     @Operation(description = "Creates a new ParticipantContext object.",

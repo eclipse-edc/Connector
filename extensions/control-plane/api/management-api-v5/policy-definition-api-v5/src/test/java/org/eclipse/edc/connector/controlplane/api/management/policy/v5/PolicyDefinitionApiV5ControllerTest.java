@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.controlplane.api.management.policy.PolicyDefini
 public class PolicyDefinitionApiV5ControllerTest extends PolicyDefinitionApiControllerTestBase {
     @Override
     protected String versionPath() {
-        return "v5alpha";
+        return "v5beta";
     }
 
     @Override

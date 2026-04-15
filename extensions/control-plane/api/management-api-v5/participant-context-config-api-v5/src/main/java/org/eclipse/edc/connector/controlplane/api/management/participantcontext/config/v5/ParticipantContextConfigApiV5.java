@@ -27,8 +27,8 @@ import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
-@OpenAPIDefinition(info = @Info(title = "ParticipantContext config Management API", version = "v5alpha"))
-@Tag(name = "Participant Context config v5alpha")
+@OpenAPIDefinition(info = @Info(title = "ParticipantContext config Management API", version = "v5beta"))
+@Tag(name = "Participant Context config v5beta")
 public interface ParticipantContextConfigApiV5 {
 
     @Operation(description = "Set ParticipantContext config.",

@@ -58,7 +58,7 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
                     .port(port)
                     .contentType(ContentType.JSON)
                     .body(message)
-                    .put("/v4beta/dataplanes")
+                    .put("/v4/dataplanes")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200);
@@ -82,7 +82,7 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
                     .port(port)
                     .contentType(ContentType.JSON)
                     .body(message)
-                    .put("/v4beta/dataplanes")
+                    .put("/v4/dataplanes")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200);
@@ -102,7 +102,7 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
                     .port(port)
                     .contentType(ContentType.JSON)
                     .body(message)
-                    .put("/v4beta/dataplanes")
+                    .put("/v4/dataplanes")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(409);
@@ -119,7 +119,7 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
             given()
                     .port(port)
                     .contentType(ContentType.JSON)
-                    .delete("/v4beta/dataplanes/{dataplaneId}", "dp-id")
+                    .delete("/v4/dataplanes/{dataplaneId}", "dp-id")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200);
@@ -134,7 +134,7 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
             given()
                     .port(port)
                     .contentType(ContentType.JSON)
-                    .delete("/v4beta/dataplanes/{dataplaneId}", "dp-id")
+                    .delete("/v4/dataplanes/{dataplaneId}", "dp-id")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(404);

@@ -36,7 +36,6 @@ import java.util.UUID;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_TYPE_TERM;
-import static org.eclipse.edc.connector.controlplane.test.system.utils.Participant.MANAGEMENT_V4;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PREPARATION_REQUESTED;
@@ -301,9 +300,7 @@ interface TransferSignalingEndToEndTest {
                 .modules(Runtimes.ControlPlane.SIGNALING_MODULES)
                 .endpoints(CONSUMER_ENDPOINTS)
                 .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
-                .paramProvider(TransferEndToEndParticipant.class, ctx -> TransferEndToEndParticipant.newInstance(ctx)
-                        .managementVersionBasePath(MANAGEMENT_V4)
-                        .build())
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
                 .build();
 
         @RegisterExtension
@@ -313,9 +310,7 @@ interface TransferSignalingEndToEndTest {
                 .modules(Runtimes.ControlPlane.SIGNALING_MODULES)
                 .endpoints(PROVIDER_ENDPOINTS)
                 .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
-                .paramProvider(TransferEndToEndParticipant.class, ctx -> TransferEndToEndParticipant.newInstance(ctx)
-                        .managementVersionBasePath(MANAGEMENT_V4)
-                        .build())
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
                 .build();
 
         @RegisterExtension
@@ -373,9 +368,7 @@ interface TransferSignalingEndToEndTest {
                 .endpoints(CONSUMER_ENDPOINTS)
                 .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONSUMER_DB))
-                .paramProvider(TransferEndToEndParticipant.class, ctx -> TransferEndToEndParticipant.newInstance(ctx)
-                        .managementVersionBasePath(MANAGEMENT_V4)
-                        .build())
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
                 .build();
 
         @RegisterExtension
@@ -387,9 +380,7 @@ interface TransferSignalingEndToEndTest {
                 .endpoints(PROVIDER_ENDPOINTS)
                 .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER_DB))
-                .paramProvider(TransferEndToEndParticipant.class, ctx -> TransferEndToEndParticipant.newInstance(ctx)
-                        .managementVersionBasePath(MANAGEMENT_V4)
-                        .build())
+                .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
                 .build();
 
         @RegisterExtension

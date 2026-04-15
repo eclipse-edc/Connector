@@ -27,6 +27,7 @@ import jakarta.ws.rs.GET;
 
 @OpenAPIDefinition(info = @Info(version = "v3"))
 @Tag(name = "Dataplane Selector V3")
+@Deprecated(since = "management-api:v3")
 public interface DataplaneSelectorApiV3 {
 
     @Operation(method = "GET",

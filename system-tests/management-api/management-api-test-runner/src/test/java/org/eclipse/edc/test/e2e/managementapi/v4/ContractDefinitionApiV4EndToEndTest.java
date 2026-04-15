@@ -64,7 +64,7 @@ public class ContractDefinitionApiV4EndToEndTest {
 
             var body = context.baseRequest()
                     .contentType(JSON)
-                    .post("/v4beta/contractdefinitions/request")
+                    .post("/v4/contractdefinitions/request")
                     .then()
                     .statusCode(200)
                     .body("size()", greaterThan(0))
@@ -90,7 +90,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(JSON)
                     .body(requestJson)
-                    .post("/v4beta/contractdefinitions")
+                    .post("/v4/contractdefinitions")
                     .then()
                     .statusCode(200)
                     .body("@id", equalTo(id));
@@ -103,7 +103,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             context.baseRequest()
                     .body(matchingQuery)
                     .contentType(JSON)
-                    .post("/v4beta/contractdefinitions/request")
+                    .post("/v4/contractdefinitions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -118,7 +118,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             context.baseRequest()
                     .body(nonMatchingQuery)
                     .contentType(JSON)
-                    .post("/v4beta/contractdefinitions/request")
+                    .post("/v4/contractdefinitions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -145,7 +145,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             var result = context.baseRequest()
                     .contentType(JSON)
                     .body(query)
-                    .post("/v4beta/contractdefinitions/request")
+                    .post("/v4/contractdefinitions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -167,7 +167,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(JSON)
                     .body(requestJson)
-                    .post("/v4beta/contractdefinitions")
+                    .post("/v4/contractdefinitions")
                     .then()
                     .statusCode(200)
                     .body("@id", equalTo(id));
@@ -186,7 +186,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             store.save(entity);
 
             context.baseRequest()
-                    .delete("/v4beta/contractdefinitions/" + id)
+                    .delete("/v4/contractdefinitions/" + id)
                     .then()
                     .statusCode(204);
 
@@ -208,7 +208,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(JSON)
                     .body(updated)
-                    .put("/v4beta/contractdefinitions")
+                    .put("/v4/contractdefinitions")
                     .then()
                     .statusCode(204);
 
@@ -226,7 +226,7 @@ public class ContractDefinitionApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(JSON)
                     .body(updated)
-                    .put("/v4beta/contractdefinitions")
+                    .put("/v4/contractdefinitions")
                     .then()
                     .statusCode(404);
         }

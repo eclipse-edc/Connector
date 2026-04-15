@@ -27,8 +27,8 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
-@OpenAPIDefinition(info = @Info(version = "v4beta"))
-@Tag(name = "Contract Agreement v4beta")
+@OpenAPIDefinition(info = @Info(version = "v4"))
+@Tag(name = "Contract Agreement v4")
 public interface ContractAgreementApiV4 {
 
     @Operation(description = "Gets all contract agreements according to a particular query",

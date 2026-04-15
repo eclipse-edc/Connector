@@ -64,7 +64,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToExcept
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v5alpha/participants/{participantContextId}/transferprocesses")
+@Path("/v5beta/participants/{participantContextId}/transferprocesses")
 public class TransferProcessApiV5Controller implements TransferProcessApiV5 {
 
     private final Monitor monitor;

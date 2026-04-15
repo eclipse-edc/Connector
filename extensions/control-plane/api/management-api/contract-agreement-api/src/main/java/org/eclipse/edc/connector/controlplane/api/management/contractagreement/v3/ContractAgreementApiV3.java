@@ -30,6 +30,7 @@ import org.eclipse.edc.api.model.ApiCoreSchema;
 
 @OpenAPIDefinition(info = @Info(version = "v3"))
 @Tag(name = "Contract Agreement V3")
+@Deprecated(since = "management-api:v3")
 public interface ContractAgreementApiV3 {
 
     @Operation(description = "Gets all contract agreements according to a particular query",

@@ -30,8 +30,8 @@ import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
 @OpenAPIDefinition(
         info = @Info(description = "This represents the Catalogs API. It serves the cached catalogs fetched from data providers.",
-                title = "Catalogs API", version = "v4beta"))
-@Tag(name = "Catalogs v4beta")
+                title = "Catalogs API", version = "v4"))
+@Tag(name = "Catalogs v4")
 public interface CatalogsApiV4 {
     @Operation(description = "Obtains all catalogs currently held by this cache instance",
             requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.QUERY_SPEC))),

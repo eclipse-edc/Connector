@@ -27,8 +27,8 @@ import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
-@OpenAPIDefinition(info = @Info(version = "v4beta"))
-@Tag(name = "Catalog v4beta")
+@OpenAPIDefinition(info = @Info(version = "v4"))
+@Tag(name = "Catalog v4")
 public interface CatalogApiV4 {
 
     @Operation(

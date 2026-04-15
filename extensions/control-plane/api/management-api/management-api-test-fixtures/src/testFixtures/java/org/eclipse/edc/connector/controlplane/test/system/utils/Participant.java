@@ -59,12 +59,9 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 /**
- * Essentially a wrapper around the management API enabling to test interactions with other participants, eg. catalog, transfer...
+ * Essentially a wrapper around the management API enabling to test interactions with other participants, e.g. catalog, transfer...
  */
 public class Participant {
-
-    public static final String MANAGEMENT_V3 = "/v3";
-    public static final String MANAGEMENT_V4 = "/v4beta";
 
     protected String id;
     protected String name;
@@ -75,7 +72,7 @@ public class Participant {
     protected ObjectMapper objectMapper;
     protected Duration timeout = Duration.ofSeconds(30);
     protected Protocol protocol = new Protocol("dataspace-protocol-http:2025-1", "/2025-1");
-    protected String managementVersionBasePath = MANAGEMENT_V3;
+    protected String managementVersionBasePath = "/v4";
 
     protected Participant() {
     }
@@ -132,7 +129,8 @@ public class Participant {
      */
     public String createAsset(String assetId, Map<String, Object> properties, Map<String, Object> dataAddressProperties) {
         var requestBody = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add(CONTEXT, "https://w3id.org/edc/connector/management/v2")
+                .add(TYPE, "Asset")
                 .add(ID, assetId)
                 .add("properties", createObjectBuilder(properties))
                 .add("dataAddress", createObjectBuilder(dataAddressProperties))

@@ -32,7 +32,7 @@ import java.util.Map;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToException;
 
-@Path("/v4beta/dataplanes")
+@Path("/v4/dataplanes")
 @Produces(APPLICATION_JSON)
 @Consumes(APPLICATION_JSON)
 public class DataPlaneRegistrationApiV4Controller implements DataPlaneRegistrationApiV4 {

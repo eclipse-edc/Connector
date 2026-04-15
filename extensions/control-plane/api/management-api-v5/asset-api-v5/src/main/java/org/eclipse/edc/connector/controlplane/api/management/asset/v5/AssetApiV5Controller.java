@@ -58,7 +58,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v5alpha/participants/{participantContextId}/assets")
+@Path("/v5beta/participants/{participantContextId}/assets")
 public class AssetApiV5Controller implements AssetApiV5 {
     private final TypeTransformerRegistry typeTransformerRegistry;
     private final AssetService assetService;

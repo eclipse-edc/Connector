@@ -46,7 +46,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v4beta/contractnegotiations")
+@Path("/v4/contractnegotiations")
 public class ContractNegotiationApiV4Controller extends BaseContractNegotiationApiController implements ContractNegotiationApiV4 {
     public ContractNegotiationApiV4Controller(ContractNegotiationService service, TypeTransformerRegistry transformerRegistry, Monitor monitor,
                                               JsonObjectValidatorRegistry validatorRegistry, SingleParticipantContextSupplier participantContextSupplier) {
