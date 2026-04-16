@@ -66,17 +66,16 @@ public class ExtensionLoader {
      */
     public Monitor loadMonitor(String... programArgs) {
         var extensions = serviceLocator.loadImplementors(MonitorExtension.class, false);
+        var parseResult = parseLogLevel(programArgs);
+        if (parseResult.failed()) {
+            throw new EdcException(parseResult.getFailureDetail());
+        }
 
+        var level = parseResult.getContent();
         return switch (extensions.size()) {
-            case 0 -> {
-                var parseResult = parseLogLevel(programArgs);
-                if (parseResult.failed()) {
-                    throw new EdcException(parseResult.getFailureDetail());
-                }
-                yield new ConsoleMonitor(parseResult.getContent(), !Set.of(programArgs).contains(COLOR_PROG_ARG));
-            }
-            case 1 -> extensions.get(0).getMonitor();
-            default -> new MultiplexingMonitor(extensions.stream().map(MonitorExtension::getMonitor).toList());
+            case 0 -> new ConsoleMonitor(level, !Set.of(programArgs).contains(COLOR_PROG_ARG));
+            case 1 -> extensions.get(0).getMonitor(level);
+            default -> new MultiplexingMonitor(extensions.stream().map(e -> e.getMonitor(level)).toList());
         };
     }
 

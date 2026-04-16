@@ -60,7 +60,7 @@ public class ConsoleMonitor implements Monitor {
 
     @Override
     public void warning(Supplier<String> supplier, Throwable... errors) {
-        if (Level.WARNING.value < level.value) {
+        if (Level.WARNING.value() < level.value()) {
             return;
         }
         output(WARNING, supplier, errors);
@@ -68,7 +68,7 @@ public class ConsoleMonitor implements Monitor {
 
     @Override
     public void info(Supplier<String> supplier, Throwable... errors) {
-        if (Level.INFO.value < level.value) {
+        if (Level.INFO.value() < level.value()) {
             return;
         }
         output(INFO, supplier, errors);
@@ -76,7 +76,7 @@ public class ConsoleMonitor implements Monitor {
 
     @Override
     public void debug(Supplier<String> supplier, Throwable... errors) {
-        if (Level.DEBUG.value < level.value) {
+        if (Level.DEBUG.value() < level.value()) {
             return;
         }
         output(DEBUG, supplier, errors);
@@ -109,18 +109,5 @@ public class ConsoleMonitor implements Monitor {
         };
     }
 
-    public enum Level {
-        SEVERE(3), WARNING(2), INFO(1), DEBUG(0);
 
-        private final int value;
-
-        Level(int value) {
-            this.value = value;
-        }
-
-        public static Level getDefaultLevel() {
-            return Level.INFO;
-        }
-
-    }
 }
