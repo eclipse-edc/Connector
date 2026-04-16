@@ -1,0 +1,64 @@
+/*
+ *  Copyright (c) 2025 Think-it GmbH
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Think-it GmbH - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.signaling.port.api.v5;
+
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import org.eclipse.edc.api.model.ApiCoreSchema;
+import org.eclipse.edc.signaling.domain.DataPlaneRegistrationMessage;
+
+import static jakarta.ws.rs.HttpMethod.DELETE;
+import static jakarta.ws.rs.HttpMethod.PUT;
+
+@OpenAPIDefinition(info = @Info(version = "v5"))
+@Tag(name = "Dataplane Signaling Registration v5beta")
+public interface DataPlaneRegistrationApiV5 {
+
+    @Operation(
+            method = PUT,
+            description = "Register or update a Dataplane instance",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = DataPlaneRegistrationMessage.class))),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Dataplane instance correctly registered"),
+                    @ApiResponse(responseCode = "400", description = "Request was malformed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class)))),
+                    @ApiResponse(responseCode = "404", description = "Not found",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+            }
+    )
+    Response registerV5(String participantContextId, DataPlaneRegistrationMessage registration, SecurityContext securityContext);
+
+
+    @Operation(
+            method = DELETE,
+            description = "Update a Dataplane instance",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Dataplane instance correctly deleted"),
+                    @ApiResponse(responseCode = "404", description = "Not found",
+                            content = @Content(array = @ArraySchema(schema = @Schema(implementation = ApiCoreSchema.ApiErrorDetailSchema.class))))
+            }
+    )
+    Response deleteV5(String participantContextId, String dataplaneId, SecurityContext securityContext);
+
+}

@@ -21,12 +21,11 @@ import org.eclipse.edc.connector.controlplane.test.system.utils.Participants;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.ManagementApiClientV5;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.AssetDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.DataAddressDto;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.DataPlaneRegistrationDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PermissionDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDefinitionDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDto;
-import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.AuthorizationProfile;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.junit.annotations.Runtime;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.test.e2e.dataplane.DataPlaneSignalingClient;
@@ -36,6 +35,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
@@ -57,7 +57,6 @@ public abstract class VirtualTransferEndToEndTestBase {
                           Participants participants,
                           @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
                           @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane,
-                          DataPlaneSelectorService dataPlaneSelectorService,
                           Oauth2Extension oauth2) {
         connectorClient.createParticipant(participants.consumer().contextId(), participants.consumer().id(), participants.consumer().config());
         connectorClient.createParticipant(participants.provider().contextId(), participants.provider().id(), participants.provider().config());
@@ -68,28 +67,24 @@ public abstract class VirtualTransferEndToEndTestBase {
         var providerControlPlaneOauth2Profile = oauth2.registerClient(participants.provider().contextId());
 
 
-        var consumerDp = DataPlaneInstance.Builder.newInstance()
-                .id(consumerDataPlane.dataPlaneId())
-                .url(consumerDataPlane.getDataFlowsEndpoint())
-                .allowedTransferType("NonFinite-PULL")
-                .authorizationProfile(toAuthorizationProfile(consumerControlPlaneOauth2Profile))
-                .participantContextId(participants.consumer().contextId())
-                .build();
+        var consumerDp = new DataPlaneRegistrationDto(
+                consumerDataPlane.dataPlaneId(),
+                consumerDataPlane.getDataFlowsEndpoint(),
+                Set.of("NonFinite-PULL"),
+                Set.of(),
+                toAuthorizationProfile(consumerControlPlaneOauth2Profile).properties()
+        );
+        connectorClient.dataplanes().registerDataPlane(participants.consumer().contextId(), consumerDp);
 
-        dataPlaneSelectorService.register(consumerDp)
-                .orElseThrow(f -> new EdcException("Failed to register data plane instance: " + f.getFailureDetail()));
+        var providerDp = new DataPlaneRegistrationDto(
+                providerDataPlane.dataPlaneId(),
+                providerDataPlane.getDataFlowsEndpoint(),
+                Set.of("NonFinite-PULL"),
+                Set.of(),
+                toAuthorizationProfile(providerControlPlaneOauth2Profile).properties()
+        );
 
-        var providerDp = DataPlaneInstance.Builder.newInstance()
-                .id(providerDataPlane.dataPlaneId())
-                .url(providerDataPlane.getDataFlowsEndpoint())
-                .allowedTransferType("NonFinite-PULL")
-                .authorizationProfile(toAuthorizationProfile(providerControlPlaneOauth2Profile))
-                .participantContextId(participants.provider().contextId())
-                .build();
-
-        dataPlaneSelectorService.register(providerDp)
-                .orElseThrow(f -> new EdcException("Failed to register data plane instance: " + f.getFailureDetail()));
-
+        connectorClient.dataplanes().registerDataPlane(participants.provider().contextId(), providerDp);
 
         providerDataPlane.registerControlPlane(createObjectBuilder()
                 .add("controlplaneId", participants.provider().contextId())
