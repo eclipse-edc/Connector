@@ -33,6 +33,7 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
 @Path("/v3/contractagreements")
+@Deprecated(since = "management-api:v3")
 public class ContractAgreementApiV3Controller extends BaseContractAgreementApiController implements ContractAgreementApiV3 {
     public ContractAgreementApiV3Controller(ContractAgreementService service, TypeTransformerRegistry transformerRegistry, Monitor monitor, JsonObjectValidatorRegistry validatorRegistry) {
         super(service, transformerRegistry, monitor, validatorRegistry);

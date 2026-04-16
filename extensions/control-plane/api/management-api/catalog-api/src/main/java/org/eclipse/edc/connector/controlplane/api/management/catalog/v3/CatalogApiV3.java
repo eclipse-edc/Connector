@@ -37,6 +37,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 @OpenAPIDefinition(info = @Info(version = "v3"))
 @Tag(name = "Catalog V3")
+@Deprecated(since = "management-api:v3")
 public interface CatalogApiV3 {
 
     @Operation(

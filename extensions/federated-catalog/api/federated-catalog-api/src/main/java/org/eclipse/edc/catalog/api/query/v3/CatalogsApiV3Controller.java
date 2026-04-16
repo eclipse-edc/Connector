@@ -31,6 +31,7 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
 @Path("/v3/catalogs")
+@Deprecated(since = "management-api:v3")
 public class CatalogsApiV3Controller extends BaseCatalogsApiController implements CatalogsApiV3 {
 
     public CatalogsApiV3Controller(QueryService queryService, TypeTransformerRegistry transformerRegistry) {

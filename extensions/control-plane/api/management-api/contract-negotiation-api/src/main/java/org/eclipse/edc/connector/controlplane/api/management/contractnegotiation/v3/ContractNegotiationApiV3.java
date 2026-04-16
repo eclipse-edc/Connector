@@ -43,6 +43,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_O
 
 @OpenAPIDefinition(info = @Info(version = "v3"))
 @Tag(name = "Contract Negotiation V3")
+@Deprecated(since = "management-api:v3")
 public interface ContractNegotiationApiV3 {
 
     @Operation(description = "Returns all contract negotiations according to a query",

@@ -45,6 +45,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 @OpenAPIDefinition(info = @Info(version = "v3"))
 @Tag(name = "Transfer Process V3")
+@Deprecated(since = "management-api:v3")
 public interface TransferProcessApiV3 {
 
     String ASYNC_WARNING = "Due to the asynchronous nature of transfers, a successful response only indicates that the " +

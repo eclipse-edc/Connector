@@ -122,7 +122,7 @@ public class TransferProcessApiV5EndToEndTest {
             var id = context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(requestBody.toString())
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -163,7 +163,7 @@ public class TransferProcessApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(requestBody.toString())
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses")
                     .then()
                     .log().ifError()
                     .statusCode(400);
@@ -185,7 +185,7 @@ public class TransferProcessApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(requestBody.toString())
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses")
                     .then()
                     .log().ifError()
                     .statusCode(403);
@@ -202,7 +202,7 @@ public class TransferProcessApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(requestBody.toString())
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses")
                     .then()
                     .log().ifError()
                     .statusCode(403);
@@ -214,7 +214,7 @@ public class TransferProcessApiV5EndToEndTest {
             store.save(createTransferProcess("tp2"));
 
             context.baseRequest(participantTokenJwt)
-                    .get("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/tp2")
+                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/tp2")
                     .then()
                     .statusCode(200)
                     .body(TYPE, is("TransferProcess"))
@@ -235,7 +235,7 @@ public class TransferProcessApiV5EndToEndTest {
             var token = authServer.createToken(otherParticipantId);
 
             context.baseRequest(token)
-                    .get("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/tp1")
+                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/tp1")
                     .then()
                     .statusCode(403);
         }
@@ -247,7 +247,7 @@ public class TransferProcessApiV5EndToEndTest {
             var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:wrong"));
 
             context.baseRequest(token)
-                    .get("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/tp1")
+                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/tp1")
                     .then()
                     .statusCode(403);
         }
@@ -257,7 +257,7 @@ public class TransferProcessApiV5EndToEndTest {
             store.save(createTransferProcessBuilder("tp2").state(COMPLETED.code()).build());
 
             context.baseRequest(participantTokenJwt)
-                    .get("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/tp2/state")
+                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/tp2/state")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -279,7 +279,7 @@ public class TransferProcessApiV5EndToEndTest {
             var token = authServer.createToken(otherParticipantId);
 
             context.baseRequest(token)
-                    .get("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/tp1/state")
+                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/tp1/state")
                     .then()
                     .statusCode(403);
         }
@@ -292,7 +292,7 @@ public class TransferProcessApiV5EndToEndTest {
             var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:wrong"));
 
             context.baseRequest(token)
-                    .get("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/tp1/state")
+                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/tp1/state")
                     .then()
                     .statusCode(403);
         }
@@ -310,7 +310,7 @@ public class TransferProcessApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(requestBody.toString())
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/terminate")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/terminate")
                     .then()
                     .log().ifError()
                     .statusCode(204);
@@ -337,7 +337,7 @@ public class TransferProcessApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(requestBody.toString())
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/terminate")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/terminate")
                     .then()
                     .log().ifError()
                     .statusCode(403);
@@ -358,7 +358,7 @@ public class TransferProcessApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(requestBody.toString())
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/terminate")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/terminate")
                     .then()
                     .log().ifError()
                     .statusCode(403);
@@ -377,7 +377,7 @@ public class TransferProcessApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(requestBody.toString())
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/suspend")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/suspend")
                     .then()
                     .log().ifError()
                     .statusCode(204);
@@ -404,7 +404,7 @@ public class TransferProcessApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(requestBody.toString())
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/suspend")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/suspend")
                     .then()
                     .log().ifError()
                     .statusCode(403);
@@ -425,7 +425,7 @@ public class TransferProcessApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(requestBody.toString())
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/suspend")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/suspend")
                     .then()
                     .log().ifError()
                     .statusCode(403);
@@ -438,7 +438,7 @@ public class TransferProcessApiV5EndToEndTest {
 
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/resume")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/resume")
                     .then()
                     .log().ifError()
                     .statusCode(204);
@@ -459,7 +459,7 @@ public class TransferProcessApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(JSON)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/resume")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/resume")
                     .then()
                     .log().ifError()
                     .statusCode(403);
@@ -474,7 +474,7 @@ public class TransferProcessApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(JSON)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/resume")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/" + id + "/resume")
                     .then()
                     .log().ifError()
                     .statusCode(403);
@@ -490,7 +490,7 @@ public class TransferProcessApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(context.query(criterion("id", "in", List.of(id1, id2))).toString())
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/request")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -535,7 +535,7 @@ public class TransferProcessApiV5EndToEndTest {
             List<Map<String, Object>> result = context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(requestBody.toString())
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/request")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/request")
                     .then()
                     .statusCode(200)
                     .extract().body().as(List.class);
@@ -570,7 +570,7 @@ public class TransferProcessApiV5EndToEndTest {
             List<Map<String, Object>> result = context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(content)
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/request")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -597,7 +597,7 @@ public class TransferProcessApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(context.query(criterion("id", "in", List.of(id1, id2))).toString())
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/request")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/request")
                     .then()
                     .log().ifError()
                     .statusCode(200);
@@ -616,7 +616,7 @@ public class TransferProcessApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(context.query(criterion("id", "in", List.of(id1, id2))).toString())
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/request")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -640,7 +640,7 @@ public class TransferProcessApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(context.query(criterion("id", "in", List.of(id1))).toString())
-                    .post("/v5alpha/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/request")
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses/request")
                     .then()
                     .log().ifError()
                     .statusCode(403)

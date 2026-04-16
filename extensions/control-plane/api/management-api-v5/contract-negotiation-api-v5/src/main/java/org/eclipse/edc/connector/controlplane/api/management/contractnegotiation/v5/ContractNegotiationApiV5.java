@@ -30,8 +30,8 @@ import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
-@OpenAPIDefinition(info = @Info(version = "v5alpha"))
-@Tag(name = "Contract Negotiation v5alpha")
+@OpenAPIDefinition(info = @Info(version = "v5beta"))
+@Tag(name = "Contract Negotiation v5beta")
 public interface ContractNegotiationApiV5 {
 
     @Operation(description = "Returns all contract negotiations according to a query",

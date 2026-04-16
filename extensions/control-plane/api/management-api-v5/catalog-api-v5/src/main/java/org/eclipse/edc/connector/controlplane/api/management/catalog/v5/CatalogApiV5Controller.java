@@ -47,7 +47,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v5alpha/participants/{participantContextId}/catalog")
+@Path("/v5beta/participants/{participantContextId}/catalog")
 public class CatalogApiV5Controller implements CatalogApiV5 {
     private final AuthorizationService authorizationService;
     private final CatalogService service;

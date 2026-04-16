@@ -36,6 +36,7 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
 @Path("/v3/policydefinitions")
+@Deprecated(since = "management-api:v3")
 public class PolicyDefinitionApiV3Controller extends BasePolicyDefinitionApiController implements PolicyDefinitionApiV3 {
 
     public PolicyDefinitionApiV3Controller(Monitor monitor, TypeTransformerRegistry transformerRegistry, PolicyDefinitionService service,

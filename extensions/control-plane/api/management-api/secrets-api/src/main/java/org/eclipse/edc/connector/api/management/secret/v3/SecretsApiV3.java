@@ -35,6 +35,7 @@ import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE;
 @OpenAPIDefinition(
         info = @Info(description = "This contains the secret management API, which allows to add, remove and update secrets in the Vault.", title = "Secret API", version = "v3"))
 @Tag(name = "Secret V3")
+@Deprecated(since = "management-api:v3")
 public interface SecretsApiV3 {
 
     @Operation(description = "Creates a new secret.",

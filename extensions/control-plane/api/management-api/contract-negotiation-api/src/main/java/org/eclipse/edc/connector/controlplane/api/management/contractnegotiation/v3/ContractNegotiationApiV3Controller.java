@@ -35,6 +35,7 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
 @Path("/v3/contractnegotiations")
+@Deprecated(since = "management-api:v3")
 public class ContractNegotiationApiV3Controller extends BaseContractNegotiationApiController implements ContractNegotiationApiV3 {
     public ContractNegotiationApiV3Controller(ContractNegotiationService service, TypeTransformerRegistry transformerRegistry, Monitor monitor,
                                               JsonObjectValidatorRegistry validatorRegistry, SingleParticipantContextSupplier participantContextSupplier) {

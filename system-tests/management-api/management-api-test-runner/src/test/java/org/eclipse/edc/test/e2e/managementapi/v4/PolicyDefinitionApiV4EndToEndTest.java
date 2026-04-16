@@ -66,7 +66,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
             var id = context.baseRequest()
                     .body(requestBody)
                     .contentType(JSON)
-                    .post("/v4beta/policydefinitions")
+                    .post("/v4/policydefinitions")
                     .then()
                     .log().ifValidationFails()
                     .contentType(JSON)
@@ -74,7 +74,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .extract().jsonPath().getString(ID);
 
             context.baseRequest()
-                    .get("/v4beta/policydefinitions/" + id)
+                    .get("/v4/policydefinitions/" + id)
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -102,7 +102,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
             var id = context.baseRequest()
                     .body(requestBody)
                     .contentType(JSON)
-                    .post("/v4beta/policydefinitions")
+                    .post("/v4/policydefinitions")
                     .then()
                     .contentType(JSON)
                     .extract().jsonPath().getString(ID);
@@ -118,7 +118,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                     .extracting(PolicyDefinition::getPrivateProperties).isEqualTo(privateProp);
             assertThat(result.getParticipantContextId()).isNotNull();
             context.baseRequest()
-                    .get("/v4beta/policydefinitions/" + id)
+                    .get("/v4/policydefinitions/" + id)
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -142,7 +142,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
             var id = context.baseRequest()
                     .body(requestBody)
                     .contentType(JSON)
-                    .post("/v4beta/policydefinitions")
+                    .post("/v4/policydefinitions")
                     .then()
                     .contentType(JSON)
                     .extract().jsonPath().getString(ID);
@@ -155,7 +155,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
             context.baseRequest()
                     .body(matchingQuery)
                     .contentType(JSON)
-                    .post("/v4beta/policydefinitions/request")
+                    .post("/v4/policydefinitions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -170,7 +170,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
             context.baseRequest()
                     .body(nonMatchingQuery)
                     .contentType(JSON)
-                    .post("/v4beta/policydefinitions/request")
+                    .post("/v4/policydefinitions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -188,14 +188,14 @@ public class PolicyDefinitionApiV4EndToEndTest {
             var id = context.baseRequest()
                     .body(requestBody)
                     .contentType(JSON)
-                    .post("/v4beta/policydefinitions")
+                    .post("/v4/policydefinitions")
                     .then()
                     .statusCode(200)
                     .extract().jsonPath().getString(ID);
 
             context.baseRequest()
                     .contentType(JSON)
-                    .get("/v4beta/policydefinitions/" + id)
+                    .get("/v4/policydefinitions/" + id)
                     .then()
                     .statusCode(200);
 
@@ -205,7 +205,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
                             .add(ID, id)
                             .add("privateProperties", createObjectBuilder().add("privateProperty", "value"))
                             .build())
-                    .put("/v4beta/policydefinitions/" + id)
+                    .put("/v4/policydefinitions/" + id)
                     .then()
                     .statusCode(204);
 
@@ -229,18 +229,18 @@ public class PolicyDefinitionApiV4EndToEndTest {
             var id = context.baseRequest()
                     .body(requestBody)
                     .contentType(JSON)
-                    .post("/v4beta/policydefinitions")
+                    .post("/v4/policydefinitions")
                     .then()
                     .statusCode(200)
                     .extract().jsonPath().getString(ID);
 
             context.baseRequest()
-                    .delete("/v4beta/policydefinitions/" + id)
+                    .delete("/v4/policydefinitions/" + id)
                     .then()
                     .statusCode(204);
 
             context.baseRequest()
-                    .get("/v4beta/policydefinitions/" + id)
+                    .get("/v4/policydefinitions/" + id)
                     .then()
                     .statusCode(404);
         }
@@ -259,18 +259,18 @@ public class PolicyDefinitionApiV4EndToEndTest {
             var id = context.baseRequest()
                     .body(requestBody)
                     .contentType(JSON)
-                    .post("/v4beta/policydefinitions")
+                    .post("/v4/policydefinitions")
                     .then()
                     .statusCode(200)
                     .extract().jsonPath().getString(ID);
 
             context.baseRequest()
-                    .delete("/v4beta/policydefinitions/" + id)
+                    .delete("/v4/policydefinitions/" + id)
                     .then()
                     .statusCode(204);
 
             context.baseRequest()
-                    .get("/v4beta/policydefinitions/" + id)
+                    .get("/v4/policydefinitions/" + id)
                     .then()
                     .statusCode(404);
         }
@@ -286,7 +286,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
             context.baseRequest()
                     .body(requestBody)
                     .contentType(JSON)
-                    .post("/v4beta/policydefinitions")
+                    .post("/v4/policydefinitions")
                     .then()
                     .statusCode(400)
                     .body("size()", is(2))
@@ -305,7 +305,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
             var id = context.baseRequest()
                     .body(requestBody)
                     .contentType(JSON)
-                    .post("/v4beta/policydefinitions")
+                    .post("/v4/policydefinitions")
                     .then()
                     .statusCode(200)
                     .extract().jsonPath().getString(ID);
@@ -319,7 +319,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(JSON)
                     .body(planBody)
-                    .post("/v4beta/policydefinitions/" + id + "/evaluationplan")
+                    .post("/v4/policydefinitions/" + id + "/evaluationplan")
                     .then()
                     .statusCode(200)
                     .body("preValidators.size()", is(0))
@@ -351,14 +351,14 @@ public class PolicyDefinitionApiV4EndToEndTest {
             var id = context.baseRequest()
                     .body(validRequestBody)
                     .contentType(JSON)
-                    .post("/v4beta/policydefinitions")
+                    .post("/v4/policydefinitions")
                     .then()
                     .contentType(JSON)
                     .extract().jsonPath().getString(ID);
 
             context.baseRequest()
                     .contentType(JSON)
-                    .get("/v4beta/policydefinitions/" + id)
+                    .get("/v4/policydefinitions/" + id)
                     .then()
                     .statusCode(200);
 
@@ -371,7 +371,7 @@ public class PolicyDefinitionApiV4EndToEndTest {
             context.baseRequest()
                     .contentType(JSON)
                     .body(inValidRequestBody)
-                    .put("/v4beta/policydefinitions/" + id)
+                    .put("/v4/policydefinitions/" + id)
                     .then()
                     .statusCode(400)
                     .contentType(JSON)

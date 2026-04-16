@@ -60,7 +60,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v5alpha/participants/{participantContextId}/contractnegotiations")
+@Path("/v5beta/participants/{participantContextId}/contractnegotiations")
 public class ContractNegotiationApiV5Controller implements ContractNegotiationApiV5 {
     private final ContractNegotiationService service;
     private final ParticipantContextService participantContextService;

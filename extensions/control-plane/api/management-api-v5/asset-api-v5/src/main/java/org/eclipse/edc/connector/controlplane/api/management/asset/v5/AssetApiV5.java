@@ -31,8 +31,8 @@ import org.eclipse.edc.api.model.ApiCoreSchema;
 
 @OpenAPIDefinition(
         info = @Info(description = "This contains both the current and the new Asset API, which accepts JSON-LD and will " +
-                "become the standard API once the Dataspace Protocol is stable.", title = "Asset API", version = "v5alpha"))
-@Tag(name = "Asset v5alpha")
+                "become the standard API once the Dataspace Protocol is stable.", title = "Asset API", version = "v5beta"))
+@Tag(name = "Asset v5beta")
 public interface AssetApiV5 {
     @Operation(description = "Creates a new asset together with a data address",
             requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.ASSET))),

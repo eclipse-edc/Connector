@@ -27,7 +27,7 @@ class ContractAgreementApiV4ControllerTest extends BaseContractAgreementApiContr
 
     protected RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:" + port + "/v4beta/contractagreements")
+                .baseUri("http://localhost:" + port + "/v4/contractagreements")
                 .when();
     }
 }

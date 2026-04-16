@@ -81,7 +81,7 @@ public class DataPlaneSelectorApiV4ControllerTest extends RestControllerTestBase
     protected RequestSpecification baseRequest() {
         return given()
                 .port(port)
-                .basePath("/v4beta/dataplanes")
+                .basePath("/v4/dataplanes")
                 .when();
     }
 

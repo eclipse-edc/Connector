@@ -25,7 +25,7 @@ class ContractDefinitionApiV5ControllerTest extends ContractDefinitionApiControl
     @Override
     protected RequestSpecification baseRequest(String participantContextId) {
         return given()
-                .baseUri("http://localhost:" + port + "/v5alpha/participants/%s/contractdefinitions".formatted(participantContextId))
+                .baseUri("http://localhost:" + port + "/v5beta/participants/%s/contractdefinitions".formatted(participantContextId))
                 .when();
 
     }

@@ -33,6 +33,7 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
 @Path("/v3/secrets")
+@Deprecated(since = "management-api:v3")
 public class SecretsApiV3Controller extends BaseSecretsApiController implements SecretsApiV3 {
 
     public SecretsApiV3Controller(SecretService service, TypeTransformerRegistry transformerRegistry, JsonObjectValidatorRegistry validator) {

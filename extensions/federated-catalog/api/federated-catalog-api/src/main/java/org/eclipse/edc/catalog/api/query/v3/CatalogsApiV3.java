@@ -32,6 +32,7 @@ import org.eclipse.edc.api.model.ApiCoreSchema;
         info = @Info(description = "This represents the Catalogs API. It serves the cached catalogs fetched from data providers.",
                 title = "Catalogs API", version = "v3"))
 @Tag(name = "Catalogs V3")
+@Deprecated(since = "management-api:v3")
 public interface CatalogsApiV3 {
     @Operation(description = "Obtains all catalogs currently held by this cache instance",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = ApiCoreSchema.QuerySpecSchema.class))),

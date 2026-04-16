@@ -76,7 +76,7 @@ public class ParticipantContextApiV5EndToEndTest {
             var su = context.baseRequest(token)
                     .contentType(JSON)
                     .body(body)
-                    .post("/v5alpha/participants")
+                    .post("/v5beta/participants")
                     .then()
                     .statusCode(200)
                     .extract().body().as(Map.class);
@@ -98,7 +98,7 @@ public class ParticipantContextApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(body)
-                    .post("/v5alpha/participants")
+                    .post("/v5beta/participants")
                     .then()
                     .statusCode(400)
                     .body("[0].message", equalTo("string found, object expected"))
@@ -123,7 +123,7 @@ public class ParticipantContextApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(body)
-                    .post("/v5alpha/participants")
+                    .post("/v5beta/participants")
                     .then()
                     .statusCode(403);
 
@@ -138,7 +138,7 @@ public class ParticipantContextApiV5EndToEndTest {
             var token = authServer.createAdminToken();
 
             var su = context.baseRequest(token)
-                    .get("/v5alpha/participants/" + participantContextId)
+                    .get("/v5beta/participants/" + participantContextId)
                     .then()
                     .statusCode(200)
                     .extract().body().as(Map.class);
@@ -154,7 +154,7 @@ public class ParticipantContextApiV5EndToEndTest {
             var token = authServer.createToken(participantContextId);
 
             context.baseRequest(token)
-                    .get("/v5alpha/participants/" + participantContextId)
+                    .get("/v5beta/participants/" + participantContextId)
                     .then()
                     .statusCode(403);
 
@@ -181,7 +181,7 @@ public class ParticipantContextApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(body)
-                    .put("/v5alpha/participants/" + participantContextId)
+                    .put("/v5beta/participants/" + participantContextId)
                     .then()
                     .statusCode(204);
 
@@ -205,7 +205,7 @@ public class ParticipantContextApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(body)
-                    .put("/v5alpha/participants/1")
+                    .put("/v5beta/participants/1")
                     .then()
                     .statusCode(400)
                     .body("[0].message", equalTo("string found, object expected"))
@@ -230,7 +230,7 @@ public class ParticipantContextApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(body)
-                    .put("/v5alpha/participants/1")
+                    .put("/v5beta/participants/1")
                     .then()
                     .statusCode(403);
 
@@ -247,7 +247,7 @@ public class ParticipantContextApiV5EndToEndTest {
             var token = authServer.createProvisionerToken();
             context.baseRequest(token)
                     .contentType(JSON)
-                    .get("/v5alpha/participants")
+                    .get("/v5beta/participants")
                     .then()
                     .statusCode(200)
                     .body("size()", equalTo(10));
@@ -264,7 +264,7 @@ public class ParticipantContextApiV5EndToEndTest {
             var token = authServer.createProvisionerToken();
             context.baseRequest(token)
                     .contentType(JSON)
-                    .get("/v5alpha/participants?offset=2&limit=4")
+                    .get("/v5beta/participants?offset=2&limit=4")
                     .then()
                     .statusCode(200)
                     .body("size()", equalTo(4));
@@ -285,7 +285,7 @@ public class ParticipantContextApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(JSON)
-                    .get("/v5alpha/participants")
+                    .get("/v5beta/participants")
                     .then()
                     .statusCode(403);
         }

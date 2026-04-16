@@ -32,7 +32,7 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v4beta/catalogs")
+@Path("/v4/catalogs")
 public class CatalogsApiV4Controller extends BaseCatalogsApiController implements CatalogsApiV4 {
 
     public CatalogsApiV4Controller(QueryService queryService, TypeTransformerRegistry transformerRegistry) {

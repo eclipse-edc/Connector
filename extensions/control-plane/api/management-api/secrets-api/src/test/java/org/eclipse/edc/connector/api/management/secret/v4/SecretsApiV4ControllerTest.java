@@ -28,7 +28,7 @@ class SecretsApiV4ControllerTest extends BaseSecretsApiControllerTest {
     @Override
     protected RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:" + port + "/v4beta")
+                .baseUri("http://localhost:" + port + "/v4")
                 .when();
     }
 }

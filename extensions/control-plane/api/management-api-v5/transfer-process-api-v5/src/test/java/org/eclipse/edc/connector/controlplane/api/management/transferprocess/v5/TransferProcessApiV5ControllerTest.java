@@ -24,7 +24,7 @@ public class TransferProcessApiV5ControllerTest extends BaseTransferProcessApiCo
 
     @Override
     protected String versionPath() {
-        return "v5alpha";
+        return "v5beta";
     }
 
 }

@@ -3,18 +3,18 @@
     "version": "3.1.6",
     "urlPath": "/v3",
     "lastUpdated": "2026-03-12T08:30:01Z",
+    "maturity": "deprecated"
+  },
+  {
+    "version": "4.0.0",
+    "urlPath": "/v4",
+    "lastUpdated": "2026-04-09T09:43:01Z",
     "maturity": "stable"
   },
   {
-    "version": "4.0.0-beta",
-    "urlPath": "/v4beta",
-    "lastUpdated": "2026-04-09T09:43:01Z",
-    "maturity": "beta"
-  },
-  {
-    "version": "5.0.0-alpha",
-    "urlPath": "/v5alpha",
+    "version": "5.0.0-beta",
+    "urlPath": "/v5beta",
     "lastUpdated": "2026-03-27T09:00:00Z",
-    "maturity": "alpha"
+    "maturity": "beta"
   }
 ]

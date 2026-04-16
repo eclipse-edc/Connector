@@ -101,7 +101,7 @@ public class CelExpressionApiV5EndToEndTest {
             var id = context.baseRequest(adminToken)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5alpha/celexpressions")
+                    .post("/v5beta/celexpressions")
                     .then()
                     .log().ifValidationFails()
                     .contentType(JSON)
@@ -125,7 +125,7 @@ public class CelExpressionApiV5EndToEndTest {
             context.baseRequest(adminToken)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5alpha/celexpressions")
+                    .post("/v5beta/celexpressions")
                     .then()
                     .log().ifValidationFails()
                     .contentType(JSON)
@@ -146,7 +146,7 @@ public class CelExpressionApiV5EndToEndTest {
             context.baseRequest(token)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5alpha/celexpressions")
+                    .post("/v5beta/celexpressions")
                     .then()
                     .log().ifError()
                     .statusCode(403)
@@ -161,7 +161,7 @@ public class CelExpressionApiV5EndToEndTest {
 
             context.baseRequest(adminToken)
                     .contentType(JSON)
-                    .get("/v5alpha/celexpressions/" + expr.getId())
+                    .get("/v5beta/celexpressions/" + expr.getId())
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -185,7 +185,7 @@ public class CelExpressionApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(JSON)
-                    .get("/v5alpha/celexpressions/" + expr.getId())
+                    .get("/v5beta/celexpressions/" + expr.getId())
                     .then()
                     .log().ifError()
                     .statusCode(403)
@@ -206,7 +206,7 @@ public class CelExpressionApiV5EndToEndTest {
             context.baseRequest(adminToken)
                     .body(matchingQuery.toString())
                     .contentType(JSON)
-                    .post("/v5alpha/celexpressions/request")
+                    .post("/v5beta/celexpressions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -220,7 +220,7 @@ public class CelExpressionApiV5EndToEndTest {
             context.baseRequest(adminToken)
                     .body(nonMatchingQuery.toString())
                     .contentType(JSON)
-                    .post("/v5alpha/celexpressions/request")
+                    .post("/v5beta/celexpressions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -242,7 +242,7 @@ public class CelExpressionApiV5EndToEndTest {
             context.baseRequest(token)
                     .body(matchingQuery.toString())
                     .contentType(JSON)
-                    .post("/v5alpha/celexpressions/request")
+                    .post("/v5beta/celexpressions/request")
                     .then()
                     .log().ifError()
                     .statusCode(403)
@@ -268,7 +268,7 @@ public class CelExpressionApiV5EndToEndTest {
             context.baseRequest(adminToken)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .put("/v5alpha/celexpressions/" + expr.getId())
+                    .put("/v5beta/celexpressions/" + expr.getId())
                     .then()
                     .statusCode(204);
 
@@ -288,7 +288,7 @@ public class CelExpressionApiV5EndToEndTest {
             context.baseRequest(adminToken)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .put("/v5alpha/celexpressions/id")
+                    .put("/v5beta/celexpressions/id")
                     .then()
                     .log().ifValidationFails()
                     .contentType(JSON)
@@ -308,7 +308,7 @@ public class CelExpressionApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(requestBody.toString())
-                    .put("/v5alpha/celexpressions/id")
+                    .put("/v5beta/celexpressions/id")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(403)
@@ -325,12 +325,12 @@ public class CelExpressionApiV5EndToEndTest {
 
 
             context.baseRequest(adminToken)
-                    .delete("/v5alpha/celexpressions/" + expr.getId())
+                    .delete("/v5beta/celexpressions/" + expr.getId())
                     .then()
                     .statusCode(204);
 
             context.baseRequest(adminToken)
-                    .delete("/v5alpha/celexpressions/" + expr.getId())
+                    .delete("/v5beta/celexpressions/" + expr.getId())
                     .then()
                     .statusCode(404);
         }
@@ -342,7 +342,7 @@ public class CelExpressionApiV5EndToEndTest {
             var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:write"));
 
             context.baseRequest(token)
-                    .delete("/v5alpha/celexpressions/id")
+                    .delete("/v5beta/celexpressions/id")
                     .then()
                     .statusCode(403)
                     .body(containsString("Required user role not satisfied."));

@@ -62,7 +62,7 @@ public class ContractAgreementApiV4EndToEndTest {
 
             var jsonPath = context.baseRequest()
                     .contentType(JSON)
-                    .post("/v4beta/contractagreements/request")
+                    .post("/v4/contractagreements/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -93,7 +93,7 @@ public class ContractAgreementApiV4EndToEndTest {
 
             context.baseRequest()
                     .contentType(JSON)
-                    .get("/v4beta/contractagreements/cn1")
+                    .get("/v4/contractagreements/cn1")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -117,7 +117,7 @@ public class ContractAgreementApiV4EndToEndTest {
 
             context.baseRequest()
                     .contentType(JSON)
-                    .get("/v4beta/contractagreements/agreement-id/negotiation")
+                    .get("/v4/contractagreements/agreement-id/negotiation")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)

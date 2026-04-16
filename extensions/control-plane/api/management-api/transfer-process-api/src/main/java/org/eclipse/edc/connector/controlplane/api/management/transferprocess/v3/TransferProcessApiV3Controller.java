@@ -34,6 +34,7 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
 @Path("/v3/transferprocesses")
+@Deprecated(since = "management-api:v3")
 public class TransferProcessApiV3Controller extends BaseTransferProcessApiController implements TransferProcessApiV3 {
 
     public TransferProcessApiV3Controller(Monitor monitor, TransferProcessService service, TypeTransformerRegistry transformerRegistry,

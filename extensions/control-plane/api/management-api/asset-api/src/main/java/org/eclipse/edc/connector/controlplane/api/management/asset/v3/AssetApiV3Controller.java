@@ -36,6 +36,7 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
 @Path("/v3/assets")
+@Deprecated(since = "management-api:v3")
 public class AssetApiV3Controller extends BaseAssetApiController implements AssetApiV3 {
 
     public AssetApiV3Controller(AssetService service, TypeTransformerRegistry transformerRegistry,

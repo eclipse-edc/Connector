@@ -38,6 +38,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
         info = @Info(description = "This contains both the current and the new Asset API, which accepts JSON-LD and will " +
                 "become the standard API once the Dataspace Protocol is stable.", title = "Asset API", version = "v3"))
 @Tag(name = "Asset V3")
+@Deprecated(since = "management-api:v3")
 public interface AssetApiV3 {
     @Operation(description = "Creates a new asset together with a data address",
             requestBody = @RequestBody(content = @Content(schema = @Schema(implementation = AssetInputSchema.class))),

@@ -30,8 +30,8 @@ import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
-@OpenAPIDefinition(info = @Info(version = "v5alpha"))
-@Tag(name = "Transfer Process v5alpha")
+@OpenAPIDefinition(info = @Info(version = "v5beta"))
+@Tag(name = "Transfer Process v5beta")
 public interface TransferProcessApiV5 {
 
     String ASYNC_WARNING = "Due to the asynchronous nature of transfers, a successful response only indicates that the " +

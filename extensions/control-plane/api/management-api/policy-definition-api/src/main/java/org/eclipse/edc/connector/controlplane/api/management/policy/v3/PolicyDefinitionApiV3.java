@@ -38,6 +38,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 
 @OpenAPIDefinition(info = @Info(version = "v3"))
 @Tag(name = "Policy Definition v3")
+@Deprecated(since = "management-api:v3")
 public interface PolicyDefinitionApiV3 {
 
     @Operation(description = "Returns all policy definitions according to a query",

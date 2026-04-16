@@ -15,6 +15,8 @@
 package org.eclipse.edc.connector.api.management.configuration;
 
 import jakarta.json.Json;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
 import org.eclipse.edc.connector.controlplane.transform.edc.contractagreement.from.JsonObjectFromContractAgreementTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.from.JsonObjectFromAssetTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.from.JsonObjectFromDataplaneMetadataTransformer;
@@ -31,6 +33,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -134,6 +137,7 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
         jsonLd.registerContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, MANAGEMENT_SCOPE_V4);
 
         webService.registerResource(ApiContext.MANAGEMENT, new ObjectMapperProvider(typeManager, JSON_LD));
+        webService.registerResource(ApiContext.MANAGEMENT, new DeprecatedVersionLog(context.getMonitor()));
 
         var managementApiTransformerRegistry = transformerRegistry.forContext(MANAGEMENT_API_CONTEXT);
 
@@ -188,5 +192,21 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
             String path
     ) {
 
+    }
+
+    @Deprecated(since = "management-api:v3")
+    private static class DeprecatedVersionLog implements ContainerRequestFilter {
+        private final Monitor monitor;
+
+        DeprecatedVersionLog(Monitor monitor) {
+            this.monitor = monitor;
+        }
+
+        @Override
+        public void filter(ContainerRequestContext requestContext) {
+            if (requestContext.getUriInfo().getPath().startsWith("v3/")) {
+                monitor.warning("Management API V3 has been deprecated, please switch to V4 as V3 will be removed in the upcoming versions");
+            }
+        }
     }
 }

@@ -40,7 +40,7 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v5alpha/participants/{participantContextId}/contractagreements")
+@Path("/v5beta/participants/{participantContextId}/contractagreements")
 public class ContractAgreementApiV5Controller extends BaseContractAgreementApiV5Controller implements ContractAgreementApiV5 {
     public ContractAgreementApiV5Controller(ContractAgreementService service, AuthorizationService authorizationService, TypeTransformerRegistry transformerRegistry, Monitor monitor, JsonObjectValidatorRegistry validatorRegistry) {
         super(service, authorizationService, transformerRegistry, monitor, validatorRegistry);

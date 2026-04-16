@@ -110,7 +110,7 @@ class ContractNegotiationApiV4ControllerTest extends BaseContractNegotiationApiC
 
     protected RequestSpecification baseRequest() {
         return given()
-                .baseUri("http://localhost:" + port + "/v4beta/contractnegotiations")
+                .baseUri("http://localhost:" + port + "/v4/contractnegotiations")
                 .when();
     }
 }

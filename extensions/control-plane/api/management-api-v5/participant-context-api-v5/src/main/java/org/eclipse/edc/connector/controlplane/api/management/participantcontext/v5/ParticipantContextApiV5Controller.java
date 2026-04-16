@@ -52,7 +52,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v5alpha/participants")
+@Path("/v5beta/participants")
 public class ParticipantContextApiV5Controller implements ParticipantContextApiV5 {
 
     private final ParticipantContextService participantContextService;

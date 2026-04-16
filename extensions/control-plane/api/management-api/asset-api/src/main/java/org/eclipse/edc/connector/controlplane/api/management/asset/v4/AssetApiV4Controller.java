@@ -39,7 +39,7 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v4beta/assets")
+@Path("/v4/assets")
 public class AssetApiV4Controller extends BaseAssetApiController implements AssetApiV4 {
 
     public AssetApiV4Controller(AssetService service, TypeTransformerRegistry transformerRegistry,

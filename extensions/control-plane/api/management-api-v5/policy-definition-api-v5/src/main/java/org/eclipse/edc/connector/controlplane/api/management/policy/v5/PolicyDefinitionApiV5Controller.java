@@ -58,7 +58,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v5alpha/participants/{participantContextId}/policydefinitions")
+@Path("/v5beta/participants/{participantContextId}/policydefinitions")
 public class PolicyDefinitionApiV5Controller implements PolicyDefinitionApiV5 {
     private final TypeTransformerRegistry typeTransformerRegistry;
     private final Monitor monitor;

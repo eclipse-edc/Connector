@@ -43,7 +43,7 @@ public class AssetsApi {
                 .contentType(JSON)
                 .body(new WithContext<>(asset))
                 .when()
-                .post("/v5alpha/participants/%s/assets".formatted(participantContextId))
+                .post("/v5beta/participants/%s/assets".formatted(participantContextId))
                 .then()
                 .log().ifError()
                 .statusCode(200)

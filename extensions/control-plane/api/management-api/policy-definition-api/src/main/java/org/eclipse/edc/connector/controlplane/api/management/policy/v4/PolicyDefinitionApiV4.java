@@ -27,8 +27,8 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
-@OpenAPIDefinition(info = @Info(version = "v4beta"))
-@Tag(name = "Policy Definition v4beta")
+@OpenAPIDefinition(info = @Info(version = "v4"))
+@Tag(name = "Policy Definition v4")
 public interface PolicyDefinitionApiV4 {
 
     @Operation(description = "Returns all policy definitions according to a query",
