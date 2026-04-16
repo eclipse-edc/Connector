@@ -30,13 +30,13 @@ import java.util.function.Supplier;
  */
 public class Telemetry {
 
-    private final OpenTelemetry openTelemetry;
+    private final Supplier<OpenTelemetry> openTelemetry;
 
     public Telemetry() {
-        this.openTelemetry = OpenTelemetry.noop();
+        this.openTelemetry = OpenTelemetry::noop;
     }
 
-    public Telemetry(OpenTelemetry openTelemetry) {
+    public Telemetry(Supplier<OpenTelemetry> openTelemetry) {
         this.openTelemetry = openTelemetry;
     }
 
@@ -47,7 +47,7 @@ public class Telemetry {
      */
     public Map<String, String> getCurrentTraceContext() {
         Map<String, String> traceContext = new HashMap<>();
-        openTelemetry.getPropagators().getTextMapPropagator()
+        openTelemetry.get().getPropagators().getTextMapPropagator()
                 .inject(Context.current(), traceContext, Map::put);
         return traceContext;
     }
@@ -105,7 +105,7 @@ public class Telemetry {
     }
 
     private Scope propagateTraceContext(TraceCarrier carrier) {
-        Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
+        Context extractedContext = openTelemetry.get().getPropagators().getTextMapPropagator()
                 .extract(Context.current(), carrier, new TraceCarrierTextMapGetter());
         return extractedContext.makeCurrent();
     }

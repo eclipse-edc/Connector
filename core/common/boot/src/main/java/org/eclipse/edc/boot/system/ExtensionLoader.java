@@ -31,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -50,11 +51,11 @@ public class ExtensionLoader {
         return new Telemetry(selectOpenTelemetryImpl(openTelemetries));
     }
 
-    static @NotNull OpenTelemetry selectOpenTelemetryImpl(List<OpenTelemetry> openTelemetries) {
+    static @NotNull Supplier<OpenTelemetry> selectOpenTelemetryImpl(List<OpenTelemetry> openTelemetries) {
         if (openTelemetries.size() > 1) {
             throw new IllegalStateException(String.format("Found %s OpenTelemetry implementations. Please provide only one OpenTelemetry service provider.", openTelemetries.size()));
         }
-        return openTelemetries.isEmpty() ? GlobalOpenTelemetry.get() : openTelemetries.get(0);
+        return openTelemetries.isEmpty() ? GlobalOpenTelemetry::get : () -> openTelemetries.get(0);
     }
 
     /**

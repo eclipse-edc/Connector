@@ -125,7 +125,7 @@ class ExtensionLoaderTest {
     void selectOpenTelemetryImpl_whenNoOpenTelemetry() {
         var openTelemetry = ExtensionLoader.selectOpenTelemetryImpl(emptyList());
 
-        assertThat(openTelemetry).isEqualTo(GlobalOpenTelemetry.get());
+        assertThat(openTelemetry.get()).isEqualTo(GlobalOpenTelemetry.get());
     }
 
     @Test
@@ -134,7 +134,7 @@ class ExtensionLoaderTest {
 
         var openTelemetry = ExtensionLoader.selectOpenTelemetryImpl(List.of(customOpenTelemetry));
 
-        assertThat(openTelemetry).isSameAs(customOpenTelemetry);
+        assertThat(openTelemetry.get()).isSameAs(customOpenTelemetry);
     }
 
     @Test
