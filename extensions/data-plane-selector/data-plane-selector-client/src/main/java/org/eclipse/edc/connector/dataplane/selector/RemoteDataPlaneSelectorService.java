@@ -27,6 +27,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.http.spi.ControlApiHttpClient;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -41,6 +42,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
+@Deprecated(since = "management-api:v3")
 public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService {
 
     public static final MediaType TYPE_JSON = MediaType.parse("application/json");
@@ -85,6 +87,11 @@ public class RemoteDataPlaneSelectorService implements DataPlaneSelectorService 
     @Override
     public ServiceResult<DataPlaneInstance> selectFor(TransferProcess transferProcess) {
         return ServiceResult.unexpected("DataPlaneSelectorService.select can only be called as embedded in the control-plane");
+    }
+
+    @Override
+    public ServiceResult<List<DataPlaneInstance>> search(QuerySpec querySpec) {
+        return ServiceResult.unexpected("DataPlaneSelectorService.search can only be called as embedded in the control-plane");
     }
 
     @Override

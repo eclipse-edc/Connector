@@ -23,6 +23,7 @@ dependencies {
     api(project(":spi:common:json-ld-spi"))
     api(project(":spi:common:transform-spi"))
     api(project(":spi:common:web-spi"))
+    api(project(":spi:common:auth-spi"))
     api(project(":spi:common:participant-context-single-spi"))
     api(project(":spi:control-plane:contract-spi"))
     api(project(":spi:control-plane:control-plane-spi"))
@@ -31,6 +32,7 @@ dependencies {
     api(project(":data-protocols:data-plane-signaling:data-plane-signaling-spi"))
     implementation(project(":core:common:lib:api-lib"))
     implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
+    implementation(libs.jakarta.annotation)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))

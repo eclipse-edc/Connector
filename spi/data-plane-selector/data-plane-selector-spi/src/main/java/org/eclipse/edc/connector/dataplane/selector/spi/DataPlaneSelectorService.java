@@ -18,6 +18,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,10 +39,18 @@ public interface DataPlaneSelectorService {
     ServiceResult<List<DataPlaneInstance>> getAll();
 
     /**
+     * Search for {@link DataPlaneInstance}s that satisfy the query specification.
+     *
+     * @param querySpec the query specification.
+     * @return the list of data plane instances, empty otherwise.
+     */
+    ServiceResult<List<DataPlaneInstance>> search(QuerySpec querySpec);
+
+    /**
      * Select the {@link DataPlaneInstance} that satisfies the predicate using the selection strategy.
      *
      * @param selectionStrategy the selection strategy.
-     * @param filter the predicate.
+     * @param filter            the predicate.
      * @return the data plane, empty otherwise
      * @deprecated use {@link #selectFor(TransferProcess)} instead
      */

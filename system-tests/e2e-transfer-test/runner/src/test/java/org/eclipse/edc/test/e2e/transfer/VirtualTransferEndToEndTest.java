@@ -57,8 +57,6 @@ class VirtualTransferEndToEndTest {
     static Config config() {
         return ConfigFactory.fromMap(new HashMap<>() {
             {
-                put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");
-                put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
                 put("edc.iam.oauth2.jwks.url", "https://example.com/jwks");
                 put("edc.iam.oauth2.issuer", "test-issuer");
                 put("edc.encryption.strict", "false");

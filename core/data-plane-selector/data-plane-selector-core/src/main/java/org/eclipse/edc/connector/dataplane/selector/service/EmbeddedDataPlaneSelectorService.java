@@ -19,6 +19,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.strategy.SelectionStrategyRegistry;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -50,6 +51,15 @@ public class EmbeddedDataPlaneSelectorService implements DataPlaneSelectorServic
     public ServiceResult<List<DataPlaneInstance>> getAll() {
         return transactionContext.execute(() -> {
             try (var stream = store.getAll()) {
+                return ServiceResult.success(stream.toList());
+            }
+        });
+    }
+
+    @Override
+    public ServiceResult<List<DataPlaneInstance>> search(QuerySpec querySpec) {
+        return transactionContext.execute(() -> {
+            try (var stream = store.query(querySpec)) {
                 return ServiceResult.success(stream.toList());
             }
         });

@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.Catal
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.CelExpressionApi;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.ContractDefApi;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.ContractNegotiationApi;
+import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.DataPlaneApi;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.ParticipantContextApi;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.ParticipantContextConfigApi;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.PolicyDefApi;
@@ -75,7 +76,7 @@ public class ManagementApiClientV5 {
     private final ContractNegotiationApi negotiations;
     private final TransferApi transfers;
     private final CelExpressionApi expressions;
-
+    private final DataPlaneApi dataplanes;
 
     public ManagementApiClientV5(OauthServer oauthServer,
                                  LazySupplier<URI> managementEndpoint) {
@@ -90,6 +91,7 @@ public class ManagementApiClientV5 {
         this.negotiations = new ContractNegotiationApi(this);
         this.transfers = new TransferApi(this);
         this.expressions = new CelExpressionApi(this);
+        this.dataplanes = new DataPlaneApi(this);
     }
 
     public static ManagementApiClientV5 forContext(ComponentRuntimeContext ctx, OauthServer authServer) {
@@ -133,6 +135,10 @@ public class ManagementApiClientV5 {
 
     public CelExpressionApi expressions() {
         return expressions;
+    }
+
+    public DataPlaneApi dataplanes() {
+        return dataplanes;
     }
 
     private String startTransferProcess(String participantContext, String contractAgreementId, String providerAddress, String transferType) {

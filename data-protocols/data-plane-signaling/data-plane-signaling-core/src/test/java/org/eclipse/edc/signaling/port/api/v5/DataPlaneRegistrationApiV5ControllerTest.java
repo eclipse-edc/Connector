@@ -12,15 +12,15 @@
  *
  */
 
-package org.eclipse.edc.signaling.port.api;
+package org.eclipse.edc.signaling.port.api.v5;
 
 import io.restassured.http.ContentType;
+import org.eclipse.edc.api.auth.spi.AuthorizationService;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
-import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
-import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.signaling.domain.DataPlaneRegistrationMessage;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -34,16 +34,20 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
+class DataPlaneRegistrationApiV5ControllerTest extends RestControllerTestBase {
 
+    protected final AuthorizationService authorizationService = mock();
     private final DataPlaneSelectorService dataPlaneSelectorService = mock();
-
-    private final SingleParticipantContextSupplier participantContextSupplier = () ->
-            ServiceResult.success(ParticipantContext.Builder.newInstance().participantContextId("participant-context-id").identity("identity").build());
+    private final String participantContextId = "test-participant-context-id";
 
     @Override
     protected Object controller() {
-        return new DataPlaneRegistrationApiV4Controller(dataPlaneSelectorService, participantContextSupplier);
+        return new DataPlaneRegistrationApiV5Controller(dataPlaneSelectorService, authorizationService);
+    }
+
+    @BeforeEach
+    public void setup() {
+        when(authorizationService.authorize(any(), any(), any(), any())).thenReturn(ServiceResult.success());
     }
 
     @Nested
@@ -58,7 +62,7 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
                     .port(port)
                     .contentType(ContentType.JSON)
                     .body(message)
-                    .put("/v4/dataplanes")
+                    .put("/v5beta/participants/%s/dataplanes".formatted(participantContextId))
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200);
@@ -83,7 +87,7 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
                     .port(port)
                     .contentType(ContentType.JSON)
                     .body(message)
-                    .put("/v4/dataplanes")
+                    .put("/v5beta/participants/%s/dataplanes".formatted(participantContextId))
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200);
@@ -103,7 +107,7 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
                     .port(port)
                     .contentType(ContentType.JSON)
                     .body(message)
-                    .put("/v4/dataplanes")
+                    .put("/v5beta/participants/{participantContextId}/dataplanes", participantContextId)
                     .then()
                     .log().ifValidationFails()
                     .statusCode(409);
@@ -120,7 +124,7 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
             given()
                     .port(port)
                     .contentType(ContentType.JSON)
-                    .delete("/v4/dataplanes/{dataplaneId}", "dp-id")
+                    .delete("/v5beta/participants/{participantContextId}/dataplanes/{dataplaneId}", participantContextId, "dp-id")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200);
@@ -135,7 +139,7 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
             given()
                     .port(port)
                     .contentType(ContentType.JSON)
-                    .delete("/v4/dataplanes/{dataplaneId}", "dp-id")
+                    .delete("/v5beta/participants/{participantContextId}/dataplanes/{dataplaneId}", participantContextId, "dp-id")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(404);
