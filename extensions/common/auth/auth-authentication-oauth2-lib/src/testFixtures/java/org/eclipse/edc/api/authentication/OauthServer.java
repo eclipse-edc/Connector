@@ -28,7 +28,7 @@ import java.util.UUID;
 
 import static com.nimbusds.jose.JWSAlgorithm.ES256;
 
-public class OauthServer {
+public class OauthServer implements OauthTokenProvider {
 
     private final ECKey oauthServerSigningKey;
     private final String issuer;
