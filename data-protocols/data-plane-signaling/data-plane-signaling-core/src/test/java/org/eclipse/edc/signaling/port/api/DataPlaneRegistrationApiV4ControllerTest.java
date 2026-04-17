@@ -52,7 +52,7 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
         @Test
         void shouldRegisterDataPlane() {
             when(dataPlaneSelectorService.register(any())).thenReturn(ServiceResult.success());
-            var message = new DataPlaneRegistrationMessage("dp-id", "http://dataplane/endpoint", Set.of("HttpData-PUSH"), Set.of(), null);
+            var message = new DataPlaneRegistrationMessage("dp-id", "http://dataplane/endpoint", Set.of("HttpData-PUSH"), Set.of("label"), null);
 
             given()
                     .port(port)
@@ -67,6 +67,7 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
                     instance.getId().equals("dp-id") &&
                             instance.getUrl().toString().equals("http://dataplane/endpoint") &&
                             instance.getAllowedTransferTypes().contains("HttpData-PUSH") &&
+                            instance.getLabels().contains("label") &&
                             instance.getAuthorizationProfile() == null
             ));
         }

@@ -52,7 +52,7 @@ public interface DataPlaneRegistrationApiV5 {
 
     @Operation(
             method = DELETE,
-            description = "Update a Dataplane instance",
+            description = "Delete a Dataplane instance",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Dataplane instance correctly deleted"),
                     @ApiResponse(responseCode = "404", description = "Not found",

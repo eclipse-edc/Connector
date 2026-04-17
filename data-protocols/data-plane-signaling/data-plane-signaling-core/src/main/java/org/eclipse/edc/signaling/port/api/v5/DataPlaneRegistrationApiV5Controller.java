@@ -68,6 +68,7 @@ public class DataPlaneRegistrationApiV5Controller implements DataPlaneRegistrati
                 .allowedTransferType(registration.transferTypes())
                 .authorizationProfile(toAuthorizationProfile(registration.authorization()))
                 .participantContextId(participantContextId)
+                .labels(registration.labels())
                 .build();
 
         dataPlaneSelectorService.register(dataplaneInstance)

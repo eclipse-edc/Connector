@@ -49,13 +49,14 @@ public class DataPlaneRegistrationApiV4Controller implements DataPlaneRegistrati
     @Override
     public Response register(DataPlaneRegistrationMessage registration) {
         toAuthorizationProfile(registration.authorization());
-        
+
         participantContextSupplier.get().map(participantContext -> DataPlaneInstance.Builder.newInstance()
                         .id(registration.dataplaneId())
                         .url(registration.endpoint())
                         .allowedTransferType(registration.transferTypes())
                         .authorizationProfile(toAuthorizationProfile(registration.authorization()))
                         .participantContextId(participantContext.getParticipantContextId())
+                        .labels(registration.labels())
                         .build())
                 .compose(dataPlaneSelectorService::register)
                 .orElseThrow(it -> mapToException(it, DataPlaneInstance.class, registration.dataplaneId()));
