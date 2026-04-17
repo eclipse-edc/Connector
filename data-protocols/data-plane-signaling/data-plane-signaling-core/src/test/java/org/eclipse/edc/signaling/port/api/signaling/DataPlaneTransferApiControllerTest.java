@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2025 Think-it GmbH
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.signaling.port.api;
+package org.eclipse.edc.signaling.port.api.signaling;
 
 import io.restassured.http.ContentType;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;

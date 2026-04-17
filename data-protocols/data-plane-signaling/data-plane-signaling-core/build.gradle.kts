@@ -43,6 +43,7 @@ dependencies {
 
 edcBuild {
     swagger {
-        apiGroup.set("signaling-api")
+        apiGroup("signaling-api", "org.eclipse.edc.signaling.port.api.signaling")
+        apiGroup("management-api", "org.eclipse.edc.signaling.port.api.management")
     }
 }

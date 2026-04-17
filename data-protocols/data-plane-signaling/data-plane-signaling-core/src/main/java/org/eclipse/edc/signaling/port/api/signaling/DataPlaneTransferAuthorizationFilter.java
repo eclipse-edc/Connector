@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.signaling.port.api;
+package org.eclipse.edc.signaling.port.api.signaling;
 
 import jakarta.ws.rs.InternalServerErrorException;
 import jakarta.ws.rs.NotAuthorizedException;

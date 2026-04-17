@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2025 Think-it GmbH
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.signaling.port.api.v5;
+package org.eclipse.edc.signaling.port.api.management.v5;
 
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.ws.rs.Consumes;
@@ -41,7 +41,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 @Produces(APPLICATION_JSON)
 @Consumes(APPLICATION_JSON)
 @Path("/v5beta/participants/{participantContextId}/dataplanes")
-public class DataPlaneRegistrationApiV5Controller implements DataPlaneRegistrationApiV5 {
+public class DataPlaneRegistrationApiV5Controller implements org.eclipse.edc.signaling.port.api.management.v5.DataPlaneRegistrationApiV5 {
 
     private final DataPlaneSelectorService dataPlaneSelectorService;
     private final AuthorizationService authorizationService;

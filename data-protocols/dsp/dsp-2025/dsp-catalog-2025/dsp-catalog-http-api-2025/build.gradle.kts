@@ -43,6 +43,6 @@ dependencies {
 
 edcBuild {
     swagger {
-        apiGroup.set("dsp-api")
+        apiGroup("dsp-api")
     }
 }
