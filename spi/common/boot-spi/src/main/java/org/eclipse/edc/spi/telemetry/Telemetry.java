@@ -92,7 +92,7 @@ public class Telemetry {
     /**
      * Wraps a supplier with a middleware to propagate the trace context present in the carrier to the executing thread
      *
-     * @param delegate The wrapped supplier
+     * @param delegate     The wrapped supplier
      * @param traceCarrier The trace carrier
      * @return The resulting function with the context propagation middleware
      */
@@ -102,6 +102,38 @@ public class Telemetry {
                 return delegate.get();
             }
         };
+    }
+
+    /**
+     * Executes the provided supplier within the context of the trace propagated from the given carrier.
+     * The method ensures that the trace context contained in the carrier is applied to the current thread
+     * during the execution of the supplier.
+     *
+     * @param supplier The code to be executed. It provides a result of type T upon execution.
+     * @param carrier  An object carrying the trace context which will be used to propagate tracing information.
+     *                 Must implement the {@link TraceCarrier} interface.
+     * @param <T>      The generic type for the return type of the supplier.
+     * @return The result of the supplier execution of type T, with the trace context propagated.
+     */
+    public <T> T executeWithTraceContext(Supplier<T> supplier, TraceCarrier carrier) {
+        try (Scope scope = propagateTraceContext(carrier)) {
+            return supplier.get();
+        }
+    }
+
+    /**
+     * Executes the provided consumer within the context of the trace propagated from the given carrier.
+     * The method ensures that the trace context contained in the carrier is applied to the current thread
+     * during the execution of the consumer.
+     *
+     * @param code The code to be executed. The consumer will be invoked with a null value.
+     * @param carrier  An object carrying the trace context which will be used to propagate tracing information.
+     *                 Must implement the {@link TraceCarrier} interface.
+     */
+    public void executeWithTraceContext(Runnable code, TraceCarrier carrier) {
+        try (Scope scope = propagateTraceContext(carrier)) {
+            code.run();
+        }
     }
 
     private Scope propagateTraceContext(TraceCarrier carrier) {
