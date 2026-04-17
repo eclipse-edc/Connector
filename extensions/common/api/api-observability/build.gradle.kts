@@ -30,7 +30,7 @@ dependencies {
 
 edcBuild {
     swagger {
-        apiGroup.set("observability-api")
+        apiGroup("observability-api")
     }
 }
 

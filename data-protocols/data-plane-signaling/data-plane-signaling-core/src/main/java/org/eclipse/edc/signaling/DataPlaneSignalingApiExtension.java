@@ -23,16 +23,15 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.signaling.port.api.DataPlaneRegistrationApiV4Controller;
-import org.eclipse.edc.signaling.port.api.DataPlaneTransferApiController;
-import org.eclipse.edc.signaling.port.api.DataPlaneTransferAuthorizationFilter;
-import org.eclipse.edc.signaling.port.api.v5.DataPlaneRegistrationApiV5Controller;
+import org.eclipse.edc.signaling.port.api.management.DataPlaneRegistrationApiV4Controller;
+import org.eclipse.edc.signaling.port.api.management.v5.DataPlaneRegistrationApiV5Controller;
+import org.eclipse.edc.signaling.port.api.signaling.DataPlaneTransferApiController;
+import org.eclipse.edc.signaling.port.api.signaling.DataPlaneTransferAuthorizationFilter;
 import org.eclipse.edc.signaling.port.transformer.DataAddressToDspDataAddressTransformer;
 import org.eclipse.edc.signaling.port.transformer.DataFlowStatusMessageToDataFlowResponseTransformer;
 import org.eclipse.edc.signaling.port.transformer.DspDataAddressToDataAddressTransformer;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistry;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -78,9 +77,6 @@ public class DataPlaneSignalingApiExtension implements ServiceExtension {
 
     @Inject(required = false)
     private AuthorizationService authorizationService;
-
-    @Inject
-    private Monitor monitor;
 
     @Override
     public String name() {

@@ -41,6 +41,6 @@ dependencies {
 
 edcBuild {
     swagger {
-        apiGroup.set("dsp-api-virtual")
+        apiGroup("dsp-api-virtual")
     }
 }

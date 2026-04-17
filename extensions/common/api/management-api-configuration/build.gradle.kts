@@ -32,11 +32,3 @@ dependencies {
     testImplementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":extensions:common:json-ld"))
 }
-
-edcBuild {
-    swagger {
-        apiGroup.set("management-api")
-    }
-}
-
-
