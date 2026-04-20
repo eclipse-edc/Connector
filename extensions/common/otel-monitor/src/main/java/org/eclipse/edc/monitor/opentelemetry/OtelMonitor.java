@@ -28,8 +28,11 @@ import java.util.function.Supplier;
 
 public class OtelMonitor implements Monitor {
 
+    public static final String EXCEPTION_TYPE_KEY = "exception.type";
+    public static final String EXCEPTION_MESSAGE_KEY = "exception.message";
+    public static final String EXCEPTION_STACKTRACE_KEY = "exception.stacktrace";
     private final Level configuredLevel;
-    private final Supplier<Logger> otelLogger;
+    private final Logger otelLogger;
 
     public OtelMonitor(Level level) {
         this(level, GlobalOpenTelemetry::get);
@@ -37,7 +40,7 @@ public class OtelMonitor implements Monitor {
 
     public OtelMonitor(Monitor.Level level, Supplier<OpenTelemetry> openTelemetry) {
         this.configuredLevel = level;
-        this.otelLogger = () -> openTelemetry.get()
+        this.otelLogger = openTelemetry.get()
                 .getLogsBridge()
                 .loggerBuilder("org.eclipse.edc")
                 .build();
@@ -66,7 +69,11 @@ public class OtelMonitor implements Monitor {
 
 
     private void emit(Severity severity, Supplier<String> supplier, Throwable... errors) {
-        var builder = otelLogger.get().logRecordBuilder()
+        if (!isEnabled(severity)) {
+            return;
+        }
+
+        var builder = otelLogger.logRecordBuilder()
                 .setSeverity(severity)
                 .setBody(sanitizeMessage(supplier));
 
@@ -74,15 +81,13 @@ public class OtelMonitor implements Monitor {
             for (var error : errors) {
                 if (error != null) {
                     // OTel semantic conventions for exceptions
-                    builder.setAttribute(AttributeKey.stringKey("exception.type"), error.getClass().getName())
-                            .setAttribute(AttributeKey.stringKey("exception.message"), error.getMessage())
-                            .setAttribute(AttributeKey.stringKey("exception.stacktrace"), stackTrace(error));
+                    builder.setAttribute(AttributeKey.stringKey(EXCEPTION_TYPE_KEY), error.getClass().getName())
+                            .setAttribute(AttributeKey.stringKey(EXCEPTION_MESSAGE_KEY), error.getMessage())
+                            .setAttribute(AttributeKey.stringKey(EXCEPTION_STACKTRACE_KEY), stackTrace(error));
                 }
             }
         }
-        if (isEnabled(severity)) {
-            builder.emit();
-        }
+        builder.emit();
     }
 
     private boolean isEnabled(Severity severity) {

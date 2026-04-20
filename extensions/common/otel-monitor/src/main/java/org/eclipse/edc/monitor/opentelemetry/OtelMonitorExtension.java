@@ -18,8 +18,12 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.MonitorExtension;
 
-@Extension(value = "OpenTelemetry Monitor Extension")
+import static org.eclipse.edc.monitor.opentelemetry.OtelMonitorExtension.NAME;
+
+@Extension(value = NAME)
 public class OtelMonitorExtension implements MonitorExtension {
+    public static final String NAME = "OpenTelemetry Monitor Extension";
+
     @Override
     public Monitor getMonitor(Monitor.Level level, String[] programArgs) {
         return new OtelMonitor(level);
