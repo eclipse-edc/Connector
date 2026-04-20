@@ -26,6 +26,10 @@ import java.util.function.Supplier;
  */
 public class MultiplexingMonitor implements Monitor {
 
+    public Collection<Monitor> getMonitors() {
+        return internalMonitors;
+    }
+
     private final Collection<Monitor> internalMonitors;
 
     public MultiplexingMonitor(List<Monitor> monitors) {

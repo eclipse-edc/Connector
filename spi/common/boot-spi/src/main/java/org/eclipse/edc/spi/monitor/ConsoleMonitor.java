@@ -31,7 +31,7 @@ public class ConsoleMonitor implements Monitor {
     private static final String DEBUG = "DEBUG";
 
     public static final String LEVEL_PROG_ARG = "--log-level";
-    public static final String COLOR_PROG_ARG = "--no-color";
+    public static final String NO_COLOR_PROG_ARG = "--no-color";
 
 
     private final boolean useColor;

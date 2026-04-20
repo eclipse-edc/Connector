@@ -79,7 +79,7 @@ class ExtensionLoaderTest {
 
             var monitor = loader.loadMonitor();
 
-            assertThat(monitor).isEqualTo(mockedMonitor);
+            assertThat(monitor).isInstanceOf(MultiplexingMonitor.class);
             verify(serviceLocator).loadImplementors(MonitorExtension.class, false);
         }
 
@@ -99,7 +99,7 @@ class ExtensionLoaderTest {
 
             var monitor = loader.loadMonitor();
 
-            assertThat(monitor).isInstanceOf(ConsoleMonitor.class);
+            assertThat(monitor).isInstanceOf(MultiplexingMonitor.class);
         }
 
         @ParameterizedTest
@@ -108,7 +108,8 @@ class ExtensionLoaderTest {
 
             var monitor = loader.loadMonitor(programArgs);
 
-            assertThat(monitor).extracting("level").isEqualTo(level);
+            assertThat(monitor).isInstanceOf(MultiplexingMonitor.class);
+            assertThat(((MultiplexingMonitor) monitor).getMonitors()).allSatisfy(m -> assertThat(m).extracting("level").isEqualTo(level));
         }
 
         @ParameterizedTest

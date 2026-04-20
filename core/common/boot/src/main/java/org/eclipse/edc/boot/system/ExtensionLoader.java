@@ -28,6 +28,7 @@ import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.Set;
@@ -35,7 +36,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.eclipse.edc.spi.monitor.ConsoleMonitor.COLOR_PROG_ARG;
+import static org.eclipse.edc.spi.monitor.ConsoleMonitor.NO_COLOR_PROG_ARG;
 
 public class ExtensionLoader {
 
@@ -72,11 +73,13 @@ public class ExtensionLoader {
         }
 
         var level = parseResult.getContent();
-        return switch (extensions.size()) {
-            case 0 -> new ConsoleMonitor(level, !Set.of(programArgs).contains(COLOR_PROG_ARG));
-            case 1 -> extensions.get(0).getMonitor(level);
-            default -> new MultiplexingMonitor(extensions.stream().map(e -> e.getMonitor(level)).toList());
-        };
+
+        var monitors = new ArrayList<>(extensions.stream().map(e -> e.getMonitor(level)).toList());
+        if (monitors.isEmpty() || monitors.stream().noneMatch(m -> m.getClass().equals(ConsoleMonitor.class))) {
+            monitors.add(new ConsoleMonitor(level, !Set.of(programArgs).contains(NO_COLOR_PROG_ARG)));
+        }
+
+        return new MultiplexingMonitor(monitors);
     }
 
     /**
