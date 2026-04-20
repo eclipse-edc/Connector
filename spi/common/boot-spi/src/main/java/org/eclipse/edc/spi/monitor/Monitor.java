@@ -78,4 +78,21 @@ public interface Monitor {
         return new PrefixMonitor(this, prefix);
     }
 
+    enum Level {
+        SEVERE(3), WARNING(2), INFO(1), DEBUG(0);
+
+        private final int value;
+
+        Level(int value) {
+            this.value = value;
+        }
+
+        public static Level getDefaultLevel() {
+            return Level.INFO;
+        }
+
+        public int value() {
+            return value;
+        }
+    }
 }

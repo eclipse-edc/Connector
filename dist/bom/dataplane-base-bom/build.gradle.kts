@@ -28,6 +28,7 @@ dependencies {
     api(project(":core:data-plane:data-plane-core"))
 
     // extension dependencies
+    api(project(":extensions:common:console-monitor"))
     api(project(":extensions:common:api:api-core"))
     api(project(":extensions:common:api:api-observability"))
     api(project(":extensions:common:api:control-api-configuration"))
