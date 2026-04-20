@@ -12,14 +12,14 @@
  *
  */
 
-package org.eclipse.edc.monitor;
+package org.eclipse.edc.monitor.opentelemetry;
 
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.MonitorExtension;
 
 public class OtelMonitorExtension implements MonitorExtension {
     @Override
-    public Monitor getMonitor(Monitor.Level level) {
+    public Monitor getMonitor(Monitor.Level level, String[] programArgs) {
         return new OtelMonitor(level);
     }
 }

@@ -24,6 +24,6 @@ public interface MonitorExtension extends SystemExtension {
     /**
      * Returns the system monitor.
      */
-    Monitor getMonitor(Monitor.Level level);
+    Monitor getMonitor(Monitor.Level level, String... programArgs);
 
 }

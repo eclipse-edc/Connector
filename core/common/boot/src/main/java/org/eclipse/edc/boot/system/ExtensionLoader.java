@@ -74,12 +74,12 @@ public class ExtensionLoader {
 
         var level = parseResult.getContent();
 
-        var monitors = new ArrayList<>(extensions.stream().map(e -> e.getMonitor(level)).toList());
-        if (monitors.isEmpty() || monitors.stream().noneMatch(m -> m.getClass().equals(ConsoleMonitor.class))) {
+        var monitors = new ArrayList<>(extensions.stream().map(e -> e.getMonitor(level, programArgs)).toList());
+        if (monitors.isEmpty()) { // fallback to console monitor
             monitors.add(new ConsoleMonitor(level, !Set.of(programArgs).contains(NO_COLOR_PROG_ARG)));
         }
 
-        return new MultiplexingMonitor(monitors);
+        return monitors.size() == 1 ? monitors.get(0) : new MultiplexingMonitor(monitors);
     }
 
     /**

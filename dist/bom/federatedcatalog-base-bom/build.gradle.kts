@@ -35,6 +35,7 @@ dependencies {
     api(project(":core:common:edr-store-core"))
     api(project(":extensions:common:api:version-api"))
 
+    api(project(":extensions:common:console-monitor"))
     api(project(":extensions:common:api:api-core"))
     api(project(":extensions:common:api:management-api-configuration"))
     api(project(":extensions:common:api:control-api-configuration"))

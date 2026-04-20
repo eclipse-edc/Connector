@@ -19,9 +19,7 @@ plugins {
 }
 
 dependencies {
-
     api(project(":spi:common:boot-spi"))
-    implementation(libs.opentelemetry.api)
 }
 
 

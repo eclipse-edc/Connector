@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.edc.monitor.opentelemetry.OtelMonitorExtension
+org.eclipse.edc.monitor.console.ConsoleMonitorExtension

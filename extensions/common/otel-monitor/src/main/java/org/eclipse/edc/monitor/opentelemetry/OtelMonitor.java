@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.monitor;
+package org.eclipse.edc.monitor.opentelemetry;
 
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
@@ -29,7 +29,7 @@ import java.util.function.Supplier;
 
 public class OtelMonitor extends ConsoleMonitor {
 
-    private final Supplier<Logger> logger;
+    private final Supplier<Logger> otelLogger;
 
     public OtelMonitor(Level level) {
         this(level, GlobalOpenTelemetry::get);
@@ -37,7 +37,7 @@ public class OtelMonitor extends ConsoleMonitor {
 
     public OtelMonitor(Monitor.Level level, Supplier<OpenTelemetry> openTelemetry) {
         super(level, true);
-        this.logger = () -> openTelemetry.get()
+        this.otelLogger = () -> openTelemetry.get()
                 .getLogsBridge()
                 .loggerBuilder("org.eclipse.edc")
                 .build();
@@ -70,7 +70,7 @@ public class OtelMonitor extends ConsoleMonitor {
 
 
     private void emit(Severity severity, Supplier<String> supplier, Throwable... errors) {
-        var builder = logger.get().logRecordBuilder()
+        var builder = otelLogger.get().logRecordBuilder()
                 .setSeverity(severity)
                 .setBody(sanitizeMessage(supplier));
 

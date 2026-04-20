@@ -36,6 +36,7 @@ dependencies {
     api(project(":data-protocols:dsp"))
 
     // extension dependencies
+    api(project(":extensions:common:console-monitor"))
     api(project(":extensions:common:configuration:configuration-filesystem"))
     api(project(":extensions:common:auth:auth-tokenbased"))
     api(project(":extensions:common:auth:auth-configuration"))

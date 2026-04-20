@@ -75,7 +75,7 @@ class ExtensionLoaderTest {
         void shouldLoadMonitor_whenSingleMonitorExtension() {
             var mockedMonitor = mock(Monitor.class);
             when(serviceLocator.loadImplementors(eq(MonitorExtension.class), anyBoolean()))
-                    .thenReturn(List.of((l) -> mockedMonitor));
+                    .thenReturn(List.of((l, programArgs) -> mockedMonitor));
 
             var monitor = loader.loadMonitor();
 
@@ -86,7 +86,7 @@ class ExtensionLoaderTest {
         @Test
         void shouldLoadMonitor_whenMultipleMonitorExtensions() {
             when(serviceLocator.loadImplementors(eq(MonitorExtension.class), anyBoolean()))
-                    .thenReturn(List.of((l) -> mock(Monitor.class), (l) -> new ConsoleMonitor()));
+                    .thenReturn(List.of((l, programArgs) -> mock(Monitor.class), (l, programArgs) -> new ConsoleMonitor()));
 
             var monitor = loader.loadMonitor();
 
@@ -99,7 +99,7 @@ class ExtensionLoaderTest {
 
             var monitor = loader.loadMonitor();
 
-            assertThat(monitor).isInstanceOf(MultiplexingMonitor.class);
+            assertThat(monitor).isInstanceOf(ConsoleMonitor.class);
         }
 
         @ParameterizedTest
@@ -108,8 +108,8 @@ class ExtensionLoaderTest {
 
             var monitor = loader.loadMonitor(programArgs);
 
-            assertThat(monitor).isInstanceOf(MultiplexingMonitor.class);
-            assertThat(((MultiplexingMonitor) monitor).getMonitors()).allSatisfy(m -> assertThat(m).extracting("level").isEqualTo(level));
+            assertThat(monitor).isInstanceOf(ConsoleMonitor.class);
+            assertThat(monitor).extracting("level").isEqualTo(level);
         }
 
         @ParameterizedTest
