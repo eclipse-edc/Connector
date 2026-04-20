@@ -183,11 +183,11 @@ maven/mavencentral/org.assertj/assertj-core/3.27.7, Apache-2.0, approved, #17980
 maven/mavencentral/org.awaitility/awaitility/4.2.0, Apache-2.0, approved, #14178
 maven/mavencentral/org.awaitility/awaitility/4.2.2, Apache-2.0, approved, #14178
 maven/mavencentral/org.awaitility/awaitility/4.3.0, Apache-2.0, approved, clearlydefined
-maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.83, MIT, approved, #25011
+maven/mavencentral/org.bouncycastle/bcpkix-jdk18on/1.84, MIT, approved, #27142
 maven/mavencentral/org.bouncycastle/bcprov-jdk18on/1.82, MIT AND CC0-1.0, approved, #23374
-maven/mavencentral/org.bouncycastle/bcprov-jdk18on/1.83, MIT AND CC0-1.0, approved, #25008
+maven/mavencentral/org.bouncycastle/bcprov-jdk18on/1.84, MIT AND CC0-1.0, approved, #27143
 maven/mavencentral/org.bouncycastle/bcprov-lts8on/2.73.10, MIT, approved, #19041
-maven/mavencentral/org.bouncycastle/bcutil-jdk18on/1.83, MIT, approved, #25009
+maven/mavencentral/org.bouncycastle/bcutil-jdk18on/1.84, MIT, approved, #27144
 maven/mavencentral/org.ccil.cowan.tagsoup/tagsoup/1.2.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.checkerframework/checker-qual/3.52.0, MIT, approved, #26057
 maven/mavencentral/org.checkerframework/checker-qual/3.52.1, MIT, approved, #26057
