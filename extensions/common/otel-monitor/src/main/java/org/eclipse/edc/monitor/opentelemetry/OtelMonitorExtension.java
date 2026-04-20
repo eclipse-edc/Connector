@@ -14,9 +14,11 @@
 
 package org.eclipse.edc.monitor.opentelemetry;
 
+import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.MonitorExtension;
 
+@Extension(value = "OpenTelemetry Monitor Extension")
 public class OtelMonitorExtension implements MonitorExtension {
     @Override
     public Monitor getMonitor(Monitor.Level level, String[] programArgs) {

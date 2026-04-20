@@ -79,7 +79,7 @@ class ExtensionLoaderTest {
 
             var monitor = loader.loadMonitor();
 
-            assertThat(monitor).isInstanceOf(MultiplexingMonitor.class);
+            assertThat(monitor).isEqualTo(mockedMonitor);
             verify(serviceLocator).loadImplementors(MonitorExtension.class, false);
         }
 

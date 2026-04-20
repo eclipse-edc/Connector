@@ -19,7 +19,6 @@ import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.logs.Severity;
-import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.PrintWriter;
@@ -27,8 +26,9 @@ import java.io.StringWriter;
 import java.util.function.Supplier;
 
 
-public class OtelMonitor extends ConsoleMonitor {
+public class OtelMonitor implements Monitor {
 
+    private final Level configuredLevel;
     private final Supplier<Logger> otelLogger;
 
     public OtelMonitor(Level level) {
@@ -36,7 +36,7 @@ public class OtelMonitor extends ConsoleMonitor {
     }
 
     public OtelMonitor(Monitor.Level level, Supplier<OpenTelemetry> openTelemetry) {
-        super(level, true);
+        this.configuredLevel = level;
         this.otelLogger = () -> openTelemetry.get()
                 .getLogsBridge()
                 .loggerBuilder("org.eclipse.edc")
@@ -45,26 +45,22 @@ public class OtelMonitor extends ConsoleMonitor {
 
     @Override
     public void severe(Supplier<String> supplier, Throwable... errors) {
-        super.severe(supplier, errors);
         emit(Severity.ERROR, supplier, errors);
     }
 
     @Override
     public void warning(Supplier<String> supplier, Throwable... errors) {
-        super.warning(supplier, errors);
         emit(Severity.WARN, supplier, errors);
     }
 
     @Override
     public void info(Supplier<String> supplier, Throwable... errors) {
-        super.info(supplier, errors);
         emit(Severity.INFO, supplier, errors);
     }
 
 
     @Override
     public void debug(Supplier<String> supplier, Throwable... errors) {
-        super.debug(supplier, errors);
         emit(Severity.DEBUG, supplier, errors);
     }
 
@@ -84,7 +80,19 @@ public class OtelMonitor extends ConsoleMonitor {
                 }
             }
         }
-        builder.emit();
+        if (isEnabled(severity)) {
+            builder.emit();
+        }
+    }
+
+    private boolean isEnabled(Severity severity) {
+        return switch (severity) {
+            case ERROR, ERROR2, ERROR3, ERROR4 -> Level.SEVERE.value() >= configuredLevel.value();
+            case WARN, WARN2, WARN3, WARN4 -> Level.WARNING.value() >= configuredLevel.value();
+            case INFO, INFO2, INFO3, INFO4 -> Level.INFO.value() >= configuredLevel.value();
+            case DEBUG, DEBUG2, DEBUG3, DEBUG4 -> Level.DEBUG.value() >= configuredLevel.value();
+            default -> false;
+        };
     }
 
     private static String stackTrace(Throwable t) {
