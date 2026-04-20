@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.controlplane.test.system.utils.client;
 
 import io.restassured.specification.RequestSpecification;
 import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
-import org.eclipse.edc.api.authentication.OauthServer;
+import org.eclipse.edc.api.authentication.OauthTokenProvider;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.AssetsApi;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.CatalogApi;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.CelExpressionApi;
@@ -64,7 +64,7 @@ public class ManagementApiClientV5 {
     protected static final Duration TIMEOUT = Duration.ofSeconds(30);
     private static final String PROTOCOL = "dataspace-protocol-http:2025-1";
     private static final JsonLdNamespace NS = new JsonLdNamespace(EDC_NAMESPACE);
-    private final OauthServer oauthServer;
+    private final OauthTokenProvider oauthServer;
     private final LazySupplier<URI> managementEndpoint;
 
     private final AssetsApi assets;
@@ -78,7 +78,7 @@ public class ManagementApiClientV5 {
     private final CelExpressionApi expressions;
     private final DataPlaneApi dataplanes;
 
-    public ManagementApiClientV5(OauthServer oauthServer,
+    public ManagementApiClientV5(OauthTokenProvider oauthServer,
                                  LazySupplier<URI> managementEndpoint) {
         this.oauthServer = oauthServer;
         this.managementEndpoint = managementEndpoint;
@@ -94,7 +94,7 @@ public class ManagementApiClientV5 {
         this.dataplanes = new DataPlaneApi(this);
     }
 
-    public static ManagementApiClientV5 forContext(ComponentRuntimeContext ctx, OauthServer authServer) {
+    public static ManagementApiClientV5 forContext(ComponentRuntimeContext ctx, OauthTokenProvider authServer) {
         return new ManagementApiClientV5(
                 authServer,
                 ctx.getEndpoint("management")
@@ -260,7 +260,6 @@ public class ManagementApiClientV5 {
             return baseManagementRequest(null, ParticipantPrincipal.ROLE_ADMIN);
         } else {
             return baseManagementRequest(participantContextId, ParticipantPrincipal.ROLE_PARTICIPANT);
-
         }
     }
 
