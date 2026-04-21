@@ -150,7 +150,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
             } else {
                 var status = response.code() >= 400 && response.code() < 500 ? FATAL_ERROR : ERROR_RETRY;
 
-                return StatusResult.failure(status, asString(responseBody));
+                return StatusResult.failure(status, "Counter party responded with " + response.code() + ". Response body: " + asString(responseBody));
             }
         }
     }

@@ -73,7 +73,8 @@ public class DataPlaneSignalingClient {
     }
 
     public StatusResult<Void> suspend(String flowId) {
-        return sendMessage(flowId, "suspend", DataFlowSuspendMessage.Builder.newInstance().build());
+        // TODO: get suspension reason from outside
+        return sendMessage(flowId, "suspend", DataFlowSuspendMessage.Builder.newInstance().reason("suspend").build());
     }
 
     public StatusResult<Void> terminate(String flowId) {
@@ -104,16 +105,15 @@ public class DataPlaneSignalingClient {
     }
 
     private Result<DataFlowStatusMessage> handleResponse(Response response) {
-        if (!response.isSuccessful()) {
-            return Result.failure("Data-plane responded with %d - %s".formatted(response.code(), response.message()));
-        }
-
-        try {
-            var inputStream = response.body().byteStream();
+        try (var responseBody = response.body()) {
+            if (!response.isSuccessful()) {
+                return Result.failure("Data-plane responded with %d - %s: %s".formatted(response.code(), response.message(), responseBody.string()));
+            }
+            var inputStream = responseBody.byteStream();
             var message = objectMapperSupplier.get().readValue(inputStream, DataFlowStatusMessage.class);
             return Result.success(message);
         } catch (IOException e) {
-            return Result.failure("Cannot parse response body: " + e.getMessage());
+            return Result.failure("Data-plane responded with %d - %s. Cannot parse response body: " + e.getMessage());
         }
     }
 
