@@ -14,8 +14,11 @@
 
 package org.eclipse.edc.signaling.domain;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 public final class DataFlowStartedNotificationMessage {
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private DspDataAddress dataAddress;
 
     private DataFlowStartedNotificationMessage() {

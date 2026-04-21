@@ -543,7 +543,7 @@ class TransferProcessProtocolServiceImplTest {
 
             assertThat(result).isSucceeded();
             verify(store).save(argThat(t -> t.getState() == COMPLETING_REQUESTED.code()));
-            verify(listener).completed(any());
+            verify(listener).completingRequested(any());
             verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
         }
 

@@ -34,6 +34,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
@@ -355,7 +356,7 @@ public class DataPlaneSignalingFlowControllerTest {
                     .contentDataAddress(testDataAddress())
                     .dataPlaneId("dataPlaneId")
                     .build();
-            when(dataPlaneClient.suspend(any())).thenReturn(StatusResult.success());
+            when(dataPlaneClient.suspend(any(), any())).thenReturn(StatusResult.success());
             var dataPlaneInstance = dataPlaneInstanceBuilder().id("dataPlaneId").build();
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
             when(selectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
@@ -363,7 +364,7 @@ public class DataPlaneSignalingFlowControllerTest {
             var result = flowController.suspend(transferProcess);
 
             assertThat(result).isSucceeded();
-            verify(dataPlaneClient).suspend("transferProcessId");
+            verify(dataPlaneClient).suspend(eq("transferProcessId"), isA(DataFlowSuspendMessage.class));
             verify(clientFactory).createClient(dataPlaneInstance);
         }
 

@@ -63,11 +63,6 @@ public class FutureRetryProcess<E extends StatefulEntity<E>, I, O> implements Pr
         }
     }
 
-    public FutureRetryProcess<E, I, O> entityReload(Function<String, StoreResult<E>> entityReload) {
-        this.entityReload = entityReload;
-        return this;
-    }
-
     private @NotNull Function<StoreFailure, UnrecoverableEntityStateException> failedEntityReload(ProcessContext<E, I> context) {
         return failure -> new UnrecoverableEntityStateException(context.entity(), name, "Cannot reload entity: " + failure.getFailureDetail());
     }

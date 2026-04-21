@@ -14,26 +14,17 @@
 
 package org.eclipse.edc.tck.dsp;
 
-import jakarta.json.JsonObject;
-import jakarta.json.JsonString;
 import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.ManagementApiClientV5;
-import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.DataPlaneRegistrationDto;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.AuthorizationProfile;
-import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
-import org.eclipse.edc.junit.annotations.Runtime;
-import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.utils.Endpoints;
 import org.eclipse.edc.nats.testfixtures.NatsEndToEndExtension;
 import org.eclipse.edc.signaling.auth.Oauth2Extension;
-import org.eclipse.edc.signaling.client.DataPlaneSignalingTestClient;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.jspecify.annotations.NonNull;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -41,14 +32,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.net.URI;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 
-import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
-@PostgresqlIntegrationTest
 @Testcontainers
 public class VirtualDspTckDockerTest extends DspTckDockerTest {
 
@@ -73,7 +59,7 @@ public class VirtualDspTckDockerTest extends DspTckDockerTest {
     @RegisterExtension
     static final RuntimeExtension RUNTIME = ComponentRuntimeExtension.Builder.newInstance()
             .name(ControlPlane.NAME)
-            .modules(ControlPlane.MODULES)
+            .modules(":system-tests:tck:dsp-tck-virtual-connector-under-test")
             .endpoints(ControlPlane.ENDPOINTS.build())
             .configurationProvider(VirtualDspTckDockerTest::virtualRuntimeConfiguration)
             .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(ControlPlane.NAME.toLowerCase()))
@@ -81,15 +67,7 @@ public class VirtualDspTckDockerTest extends DspTckDockerTest {
             .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
             .paramProvider(ManagementApiClientV5.class, (ctx) -> ManagementApiClientV5.forContext(ctx, AUTH_SERVER_EXTENSION.getAuthServer()))
             .build();
-    @RegisterExtension
-    @Order(1)
-    static final RuntimeExtension PROVIDER_DATA_PLANE = ComponentRuntimeExtension.Builder.newInstance()
-            .name("dataplane")
-            .modules(SignalingDataPlane.MODULES)
-            .endpoints(SignalingDataPlane.ENDPOINTS.build())
-            .configurationProvider(SignalingDataPlane::config)
-            .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
-            .build();
+
     @Order(1)
     @RegisterExtension
     static final BeforeAllCallback SETUP = context -> {
@@ -114,44 +92,6 @@ public class VirtualDspTckDockerTest extends DspTckDockerTest {
         });
     }
 
-    @BeforeAll
-    static void beforeAll(ManagementApiClientV5 connectorClient,
-                          DataPlaneSignalingTestClient dataplaneClient,
-                          Oauth2Extension oauth2,
-                          @Runtime(ControlPlane.NAME) ComponentRuntimeContext ctx) {
-
-        var signalingProtocol = ctx.getEndpoint("signaling");
-
-        var dataplaneOauth2Profile = oauth2.registerClient(dataplaneClient.dataPlaneId());
-        var controlPlaneOauth2Profile = oauth2.registerClient(PARTICIPANT_CONTEXT_ID);
-
-        var dp = new DataPlaneRegistrationDto(
-                dataplaneClient.dataPlaneId(),
-                dataplaneClient.getDataFlowsEndpoint(),
-                Set.of("NonFinite-PULL"),
-                Set.of(),
-                toAuthorizationProfile(controlPlaneOauth2Profile).properties()
-        );
-        connectorClient.dataplanes().registerDataPlane(PARTICIPANT_CONTEXT_ID, dp);
-
-        dataplaneClient.registerControlPlane(createObjectBuilder()
-                .add("controlplaneId", PARTICIPANT_CONTEXT_ID)
-                .add("endpoint", signalingProtocol.get().toString())
-                .add("authorization", dataplaneOauth2Profile)
-                .build());
-
-    }
-
-    private static AuthorizationProfile toAuthorizationProfile(JsonObject object) {
-        var properties = new HashMap<String, Object>();
-        object.forEach((key, value) -> {
-            if (value instanceof JsonString s) {
-                properties.put(key, s.getString());
-            }
-        });
-        return new AuthorizationProfile(object.getString("type"), properties);
-    }
-
     protected @NonNull String getConfigFile() {
         return "docker.tck.virtual.properties";
     }
@@ -161,30 +101,10 @@ public class VirtualDspTckDockerTest extends DspTckDockerTest {
 
         String NAME = "CUT";
 
-        String[] MODULES = new String[]{
-                ":dist:bom:controlplane-virtual-base-bom",
-                ":dist:bom:controlplane-virtual-feature-sql-bom",
-                ":dist:bom:controlplane-virtual-feature-nats-bom",
-                ":extensions:common:iam:iam-mock",
-                ":system-tests:tck:tasks-tck-extension"
-        };
-
         Endpoints.Builder ENDPOINTS = Endpoints.Builder.newInstance()
                 .endpoint("management", () -> URI.create("http://localhost:" + getFreePort() + "/management"))
                 .endpoint("signaling", () -> URI.create("http://localhost:" + getFreePort() + "/signaling"));
     }
 
-    interface SignalingDataPlane {
-        String[] MODULES = new String[]{
-                ":system-tests:e2e-transfer-test:signaling-data-plane"
-        };
-
-        Endpoints.Builder ENDPOINTS = Endpoints.Builder.newInstance()
-                .endpoint("default", () -> URI.create("http://localhost:" + getFreePort() + "/api"));
-
-        static Config config() {
-            return ConfigFactory.fromMap(Map.of("dataplane.id", UUID.randomUUID().toString()));
-        }
-    }
 }
 

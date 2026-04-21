@@ -24,7 +24,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.web.spi.WebServer;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.PortMapping;
 import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
@@ -34,15 +33,14 @@ import org.eclipse.edc.web.spi.configuration.PortMappingRegistry;
  */
 public class TckControllerExtension implements ServiceExtension {
     private static final String NAME = "DSP TCK Controller";
-    private static final String PROTOCOL = "tck";
+    private static final String CONTEXT = "tck";
     private static final String PATH = "/tck";
     private static final int PORT = 8687;
+
     @Inject
     private PortMappingRegistry mappingRegistry;
     @Inject
     private WebService webService;
-    @Inject
-    private WebServer webServer;
     @Inject
     private ContractNegotiationService negotiationService;
     @Inject
@@ -63,15 +61,15 @@ public class TckControllerExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        mappingRegistry.register(new PortMapping(PROTOCOL, apiConfiguration.port(), apiConfiguration.path()));
-        webService.registerResource(PROTOCOL, new TckWebhookController(monitor, negotiationService, transferProcessService, participantContextSupplier));
+        mappingRegistry.register(new PortMapping(CONTEXT, apiConfiguration.port(), apiConfiguration.path()));
+        webService.registerResource(CONTEXT, new TckWebhookController(monitor, negotiationService, transferProcessService, participantContextSupplier));
     }
 
     @Settings
     record TckWebhookApiConfiguration(
-            @Setting(key = "web.http." + PROTOCOL + ".port", description = "Port for " + PROTOCOL + " api context", defaultValue = PORT + "")
+            @Setting(key = "web.http." + CONTEXT + ".port", description = "Port for " + CONTEXT + " api context", defaultValue = PORT + "")
             int port,
-            @Setting(key = "web.http." + PROTOCOL + ".path", description = "Path for " + PROTOCOL + " api context", defaultValue = PATH)
+            @Setting(key = "web.http." + CONTEXT + ".path", description = "Path for " + CONTEXT + " api context", defaultValue = PATH)
             String path
     ) {
 

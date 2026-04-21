@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.signaling.domain;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +31,7 @@ public final class DataFlowStartMessage {
     private String datasetId;
     private URI callbackAddress;
     private String transferType;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private DspDataAddress dataAddress;
     private List<String> labels;
     private Map<String, Object> metadata;
