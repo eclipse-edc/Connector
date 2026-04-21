@@ -21,7 +21,5 @@ dependencies {
     api(project(":spi:common:oauth2-spi"))
     api(project(":data-protocols:data-plane-signaling:data-plane-signaling-spi"))
 
-    implementation(libs.nimbus.jwt)
-
     testImplementation(project(":core:common:junit"))
 }

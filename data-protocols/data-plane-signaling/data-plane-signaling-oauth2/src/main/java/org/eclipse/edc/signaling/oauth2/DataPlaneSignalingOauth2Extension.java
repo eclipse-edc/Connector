@@ -20,6 +20,7 @@ import org.eclipse.edc.signaling.oauth2.logic.Oauth2CredentialsSignalingAuthoriz
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.token.spi.TokenValidationService;
 
 public class DataPlaneSignalingOauth2Extension implements ServiceExtension {
 
@@ -27,9 +28,11 @@ public class DataPlaneSignalingOauth2Extension implements ServiceExtension {
     private SignalingAuthorizationRegistry signalingAuthorizationRegistry;
     @Inject
     private Oauth2Client oauth2Client;
+    @Inject
+    private TokenValidationService tokenValidationService;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        signalingAuthorizationRegistry.register(new Oauth2CredentialsSignalingAuthorization(oauth2Client));
+        signalingAuthorizationRegistry.register(new Oauth2CredentialsSignalingAuthorization(oauth2Client, tokenValidationService));
     }
 }

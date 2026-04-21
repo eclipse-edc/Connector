@@ -28,17 +28,6 @@ import java.util.List;
  */
 @FunctionalInterface
 public interface TokenValidationService {
-    /**
-     * Validates the token and offers possibility for additional information for validations.
-     *
-     * @param tokenRepresentation A token representation including the token to verify.
-     * @param publicKeyResolver   A {@link PublicKeyResolver} to obtain the public key with which to verify the token
-     * @param rules               token validation rules that apply to the token
-     * @return Result of the validation.
-     */
-    default Result<ClaimToken> validate(TokenRepresentation tokenRepresentation, PublicKeyResolver publicKeyResolver, TokenValidationRule... rules) {
-        return validate(tokenRepresentation, publicKeyResolver, Arrays.asList(rules));
-    }
 
     /**
      * Validates the token and offers possibility for additional information for validations.
@@ -77,6 +66,6 @@ public interface TokenValidationService {
         var tokenRepresentation = TokenRepresentation.Builder.newInstance()
                 .token(token)
                 .build();
-        return validate(tokenRepresentation, publicKeyResolver, rules);
+        return validate(tokenRepresentation, publicKeyResolver, Arrays.asList(rules));
     }
 }

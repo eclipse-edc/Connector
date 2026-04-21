@@ -81,7 +81,12 @@ public class TokenValidationServiceImpl implements TokenValidationService {
             return publicKeyResolutionResult.mapFailure();
         }
 
-        var verifierCreationResult = CryptoConverter.createVerifierFor(publicKeyResolutionResult.getContent());
+        var publicKey = publicKeyResolutionResult.getContent();
+        if (publicKey == null) {
+            return Result.success();
+        }
+
+        var verifierCreationResult = CryptoConverter.createVerifierFor(publicKey);
 
         try {
             var result = jwt.verify(verifierCreationResult);

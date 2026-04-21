@@ -119,10 +119,22 @@ class TokenValidationServiceImplTest {
         assertThat(result.getFailureMessages()).containsExactlyInAnyOrder("test-failure1", "test-failure2");
     }
 
+    @Test
+    void shouldNotVerifySignature_whenPublicKeyIsNull() throws JOSEException {
+        var claims = createClaims(now);
+
+        var result = tokenValidationService.validate(createJwt(publicKeyId, claims, key.toPrivateKey()), id -> Result.success(null));
+
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent().getClaims())
+                .containsEntry("foo", "bar")
+                .hasEntrySatisfying(EXPIRATION_TIME, value -> assertThat((Date) value).isCloseTo(now, 1000));
+    }
+
     private String createJwt(String publicKeyId, JWTClaimsSet claimsSet, PrivateKey pk) {
         var header = new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(publicKeyId).build();
         try {
-            SignedJWT jwt = new SignedJWT(header, claimsSet);
+            var jwt = new SignedJWT(header, claimsSet);
             jwt.sign(new RSASSASigner(pk));
             return jwt.serialize();
         } catch (JOSEException e) {
