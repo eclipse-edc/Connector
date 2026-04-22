@@ -142,7 +142,7 @@ class TransferPullEndToEndTest {
         @RegisterExtension
         static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
                 .name(CONSUMER_CP)
-                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.LEGACY_SIGNALING_MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
                 .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
@@ -153,7 +153,7 @@ class TransferPullEndToEndTest {
         @RegisterExtension
         static final RuntimeExtension PROVIDER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
                 .name(PROVIDER_CP)
-                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.LEGACY_SIGNALING_MODULES)
                 .endpoints(PROVIDER_ENDPOINTS)
                 .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
                 .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
@@ -178,7 +178,7 @@ class TransferPullEndToEndTest {
         @RegisterExtension
         static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
                 .name(CONSUMER_CP)
-                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.LEGACY_SIGNALING_MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
                 .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
@@ -239,7 +239,7 @@ class TransferPullEndToEndTest {
         @RegisterExtension
         static final RuntimeExtension CONSUMER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
                 .name(CONSUMER_CP)
-                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.LEGACY_SIGNALING_MODULES)
                 .modules(Runtimes.ControlPlane.SQL_MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
@@ -252,7 +252,7 @@ class TransferPullEndToEndTest {
         @RegisterExtension
         static final RuntimeExtension PROVIDER_CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
                 .name(PROVIDER_CP)
-                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.LEGACY_SIGNALING_MODULES)
                 .modules(Runtimes.ControlPlane.SQL_MODULES)
                 .endpoints(PROVIDER_ENDPOINTS)
                 .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
