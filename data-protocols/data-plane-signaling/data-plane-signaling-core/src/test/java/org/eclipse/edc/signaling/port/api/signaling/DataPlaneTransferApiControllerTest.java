@@ -153,7 +153,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
                     .authorizationProfile(new AuthorizationProfile("type", emptyMap())).build();
             when(dataPlaneSelectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             SignalingAuthorization authorization = mock();
-            when(authorization.isAuthorized(any())).thenReturn(Result.failure("not authorized"));
+            when(authorization.isAuthorized(any(), any())).thenReturn(Result.failure("not authorized"));
             when(signalingAuthorizationRegistry.findByType(any())).thenReturn(authorization);
             var transferId = UUID.randomUUID().toString();
             var message = DataFlowStatusMessage.Builder.newInstance().build();
@@ -167,7 +167,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
                     .log().ifValidationFails()
                     .statusCode(401);
 
-            verify(authorization).isAuthorized(any());
+            verify(authorization).isAuthorized(any(), any());
         }
 
         @Test
@@ -179,7 +179,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
                     .authorizationProfile(new AuthorizationProfile("type", emptyMap())).build();
             when(dataPlaneSelectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             SignalingAuthorization authorization = mock();
-            when(authorization.isAuthorized(any())).thenReturn(Result.success("dataPlaneId"));
+            when(authorization.isAuthorized(any(), any())).thenReturn(Result.success("dataPlaneId"));
             when(signalingAuthorizationRegistry.findByType(any())).thenReturn(authorization);
             var transferId = UUID.randomUUID().toString();
             var message = DataFlowStatusMessage.Builder.newInstance().build();
@@ -195,7 +195,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
                     .log().ifValidationFails()
                     .statusCode(200);
 
-            verify(authorization).isAuthorized(any());
+            verify(authorization).isAuthorized(any(), any());
         }
 
         @Test
@@ -207,7 +207,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
                     .authorizationProfile(new AuthorizationProfile("type", emptyMap())).build();
             when(dataPlaneSelectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
             SignalingAuthorization authorization = mock();
-            when(authorization.isAuthorized(any())).thenReturn(Result.success("differentDataPlaneId"));
+            when(authorization.isAuthorized(any(), any())).thenReturn(Result.success("differentDataPlaneId"));
             when(signalingAuthorizationRegistry.findByType(any())).thenReturn(authorization);
             var transferId = UUID.randomUUID().toString();
             var message = DataFlowStatusMessage.Builder.newInstance().build();
@@ -221,7 +221,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
                     .log().ifValidationFails()
                     .statusCode(401);
 
-            verify(authorization).isAuthorized(any());
+            verify(authorization).isAuthorized(any(), any());
         }
 
     }
@@ -381,7 +381,7 @@ class DataPlaneTransferApiControllerTest extends RestControllerTestBase {
                 .authorizationProfile(new AuthorizationProfile("type", emptyMap())).build();
         when(dataPlaneSelectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
         SignalingAuthorization authorization = mock();
-        when(authorization.isAuthorized(any())).thenReturn(Result.success("dataPlaneId"));
+        when(authorization.isAuthorized(any(), any())).thenReturn(Result.success("dataPlaneId"));
         when(signalingAuthorizationRegistry.findByType(any())).thenReturn(authorization);
     }
 }

@@ -64,7 +64,7 @@ public class DataPlaneTransferAuthorizationFilter implements ContainerRequestFil
                     .formatted(dataPlaneId, authorizationProfile.type()));
         }
 
-        var callerDataPlaneId = authorization.isAuthorized(requestContext::getHeaderString)
+        var callerDataPlaneId = authorization.isAuthorized(requestContext::getHeaderString, authorizationProfile)
                 .orElseThrow(f -> new NotAuthorizedException("Not authorized"));
 
         if (!Objects.equals(dataPlaneId, callerDataPlaneId)) {

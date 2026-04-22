@@ -16,6 +16,7 @@ package org.eclipse.edc.signaling.oauth2;
 
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
+import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.signaling.oauth2.logic.Oauth2CredentialsSignalingAuthorization;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistry;
@@ -45,6 +46,8 @@ public class DataPlaneSignalingOauth2Extension implements ServiceExtension {
     private Clock clock;
     @Inject
     private JtiValidationStore jtiValidationStore;
+    @Inject
+    private KeyParserRegistry keyParserRegistry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -52,6 +55,6 @@ public class DataPlaneSignalingOauth2Extension implements ServiceExtension {
         tokenValidationRulesRegistry.addRule(VALIDATION_RULES_CONTEXT, new JtiValidationRule(jtiValidationStore, context.getMonitor().withPrefix(VALIDATION_RULES_CONTEXT)));
         tokenValidationRulesRegistry.addRule(VALIDATION_RULES_CONTEXT, new ExpirationIssuedAtValidationRule(clock, 0, false));
 
-        signalingAuthorizationRegistry.register(new Oauth2CredentialsSignalingAuthorization(oauth2Client, tokenValidationService, tokenValidationRulesRegistry));
+        signalingAuthorizationRegistry.register(new Oauth2CredentialsSignalingAuthorization(oauth2Client, tokenValidationService, tokenValidationRulesRegistry, keyParserRegistry, context.getMonitor()));
     }
 }

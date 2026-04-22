@@ -25,7 +25,9 @@ dependencies {
     implementation(libs.nimbus.jwt)
     implementation(libs.tink)
 
-    testImplementation(project(":core:common:junit-base"));
+    testImplementation(project(":core:common:junit"))
+    testImplementation(libs.awaitility)
+    testImplementation(libs.wiremock)
 
 }
 

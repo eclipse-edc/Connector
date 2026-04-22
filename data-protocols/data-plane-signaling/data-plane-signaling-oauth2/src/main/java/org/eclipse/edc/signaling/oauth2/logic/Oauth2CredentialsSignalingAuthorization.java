@@ -14,16 +14,23 @@
 
 package org.eclipse.edc.signaling.oauth2.logic;
 
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.AuthorizationProfile;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
+import org.eclipse.edc.keys.resolver.JwksPublicKeyResolver;
+import org.eclipse.edc.keys.spi.KeyParserRegistry;
+import org.eclipse.edc.keys.spi.PublicKeyResolver;
 import org.eclipse.edc.signaling.oauth2.DataPlaneSignalingOauth2Extension;
 import org.eclipse.edc.signaling.spi.authorization.Header;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorization;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -58,11 +65,17 @@ public class Oauth2CredentialsSignalingAuthorization implements SignalingAuthori
     private final Oauth2Client oauth2Client;
     private final TokenValidationService tokenValidationService;
     private final TokenValidationRulesRegistry tokenValidationRulesRegistry;
+    private final KeyParserRegistry keyParserRegistry;
+    private final Monitor monitor;
 
-    public Oauth2CredentialsSignalingAuthorization(Oauth2Client oauth2Client, TokenValidationService tokenValidationService, TokenValidationRulesRegistry tokenValidationRulesRegistry) {
+    public Oauth2CredentialsSignalingAuthorization(Oauth2Client oauth2Client, TokenValidationService tokenValidationService,
+                                                   TokenValidationRulesRegistry tokenValidationRulesRegistry,
+                                                   KeyParserRegistry keyParserRegistry, Monitor monitor) {
         this.oauth2Client = oauth2Client;
         this.tokenValidationService = tokenValidationService;
         this.tokenValidationRulesRegistry = tokenValidationRulesRegistry;
+        this.keyParserRegistry = keyParserRegistry;
+        this.monitor = monitor;
     }
 
     /**
@@ -79,22 +92,33 @@ public class Oauth2CredentialsSignalingAuthorization implements SignalingAuthori
      * <p>Expects a {@code Bearer <jwt>} value. The JWT is parsed and its {@code sub} claim is
      * returned as the caller identity on success.
      *
-     * @param headerGetter a function that retrieves an HTTP header value by name
+     * <p>If the {@code authorizationProfile} contains a {@code jwksUri} property, signature
+     * verification is performed by fetching the JWKS from that URL. If it contains an inline
+     * {@code jwks} property (a {@link Map} representing a JWK Set), the keys are used directly.
+     * When neither is present the signature is not verified, as specified by the
+     * Data Plane Signaling protocol.
+     *
+     * @param headerGetter         a function that retrieves an HTTP header value by name
+     * @param authorizationProfile the authorization profile of the target Data Plane instance
      * @return a successful {@link Result} containing the {@code sub} claim string, or a failed
-     *         result if the header is absent/malformed or the JWT cannot be parsed
+     *         result if the header is absent/malformed or the JWT cannot be validated
      */
     @Override
-    public Result<String> isAuthorized(Function<String, String> headerGetter) {
+    public Result<String> isAuthorized(Function<String, String> headerGetter, AuthorizationProfile authorizationProfile) {
         var authorization = headerGetter.apply("Authorization");
         if (authorization == null || authorization.isBlank() || authorization.length() <= BEARER.length()) {
             return Result.failure("No valid Authorization header present");
         }
 
         var token = authorization.substring(BEARER.length());
-
         var rules = tokenValidationRulesRegistry.getRules(DataPlaneSignalingOauth2Extension.VALIDATION_RULES_CONTEXT);
 
-        var tokenValidation = tokenValidationService.validate(token, i -> Result.success(null), rules);
+        var resolverResult = buildPublicKeyResolver(authorizationProfile.properties());
+        if (resolverResult.failed()) {
+            return resolverResult.mapFailure();
+        }
+
+        var tokenValidation = tokenValidationService.validate(token, resolverResult.getContent(), rules);
         if (tokenValidation.failed()) {
             return tokenValidation.mapFailure();
         }
@@ -132,4 +156,34 @@ public class Oauth2CredentialsSignalingAuthorization implements SignalingAuthori
         return oauth2Client.requestToken(credentialsRequest)
                 .map(token -> new Header("Authorization", "Bearer " + token.getToken()));
     }
+
+    private Result<PublicKeyResolver> buildPublicKeyResolver(Map<String, Object> properties) {
+        var jwksUri = (String) properties.get("jwksUri");
+        if (jwksUri != null) {
+            try {
+                return Result.success(JwksPublicKeyResolver.create(keyParserRegistry, jwksUri, monitor));
+            } catch (Exception e) {
+                return Result.failure("Cannot create PublicKeyResolver for '" + jwksUri + "'. " + e.getMessage());
+            }
+        }
+
+        var jwks = properties.get("jwks");
+        if (jwks != null) {
+            return parseJwks(jwks)
+                    .map(ImmutableJWKSet::new)
+                    .map(jwkSource -> JwksPublicKeyResolver.create(keyParserRegistry, monitor, jwkSource));
+        }
+
+        return Result.success(keyId -> Result.success(null));
+    }
+
+    private Result<JWKSet> parseJwks(Object jwks) {
+        try {
+            var jwkSet = JWKSet.parse((Map<String, Object>) jwks);
+            return Result.success(jwkSet);
+        } catch (Exception e) {
+            return Result.failure("Failed to parse inline jwks: " + e.getMessage());
+        }
+    }
+
 }

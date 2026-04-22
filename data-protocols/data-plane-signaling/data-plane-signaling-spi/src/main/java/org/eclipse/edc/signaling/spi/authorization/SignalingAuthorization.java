@@ -34,10 +34,11 @@ public interface SignalingAuthorization {
     /**
      * Verifies that an incoming request is authorized by inspecting its headers.
      *
-     * @param headerGetter a function that retrieves a header value by name
+     * @param headerGetter         a function that retrieves a header value by name
+     * @param authorizationProfile the authorization profile assigned to the target Data Plane instance
      * @return a successful {@link Result} containing a token or principal on success, or a failed result with an error message
      */
-    Result<String> isAuthorized(Function<String, String> headerGetter);
+    Result<String> isAuthorized(Function<String, String> headerGetter, AuthorizationProfile authorizationProfile);
 
     /**
      * Produces the outgoing authorization header value for a given {@link AuthorizationProfile}.
