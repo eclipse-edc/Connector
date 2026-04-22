@@ -17,9 +17,11 @@ package org.eclipse.edc.signaling.oauth2.logic;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.AuthorizationProfile;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.iam.oauth2.spi.client.SharedSecretOauth2CredentialsRequest;
+import org.eclipse.edc.signaling.oauth2.DataPlaneSignalingOauth2Extension;
 import org.eclipse.edc.signaling.spi.authorization.Header;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorization;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
 
 import java.util.function.Function;
@@ -55,10 +57,12 @@ public class Oauth2CredentialsSignalingAuthorization implements SignalingAuthori
     private static final String BEARER = "Bearer ";
     private final Oauth2Client oauth2Client;
     private final TokenValidationService tokenValidationService;
+    private final TokenValidationRulesRegistry tokenValidationRulesRegistry;
 
-    public Oauth2CredentialsSignalingAuthorization(Oauth2Client oauth2Client, TokenValidationService tokenValidationService) {
+    public Oauth2CredentialsSignalingAuthorization(Oauth2Client oauth2Client, TokenValidationService tokenValidationService, TokenValidationRulesRegistry tokenValidationRulesRegistry) {
         this.oauth2Client = oauth2Client;
         this.tokenValidationService = tokenValidationService;
+        this.tokenValidationRulesRegistry = tokenValidationRulesRegistry;
     }
 
     /**
@@ -88,7 +92,9 @@ public class Oauth2CredentialsSignalingAuthorization implements SignalingAuthori
 
         var token = authorization.substring(BEARER.length());
 
-        var tokenValidation = tokenValidationService.validate(token, i -> Result.success(null));
+        var rules = tokenValidationRulesRegistry.getRules(DataPlaneSignalingOauth2Extension.VALIDATION_RULES_CONTEXT);
+
+        var tokenValidation = tokenValidationService.validate(token, i -> Result.success(null), rules);
         if (tokenValidation.failed()) {
             return tokenValidation.mapFailure();
         }

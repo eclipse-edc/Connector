@@ -21,5 +21,7 @@ dependencies {
     api(project(":spi:common:oauth2-spi"))
     api(project(":data-protocols:data-plane-signaling:data-plane-signaling-spi"))
 
+    implementation(project(":core:common:lib:token-lib"))
+
     testImplementation(project(":core:common:junit"))
 }
