@@ -20,6 +20,7 @@ dependencies {
     api(project(":spi:common:auth-spi"))
     api(project(":spi:common:token-spi"))
     implementation(project(":core:common:lib:crypto-common-lib"))
+    implementation(project(":core:common:lib:keys-lib"))
     implementation(project(":core:common:lib:token-lib"))
 
     implementation(libs.jakarta.rsApi)

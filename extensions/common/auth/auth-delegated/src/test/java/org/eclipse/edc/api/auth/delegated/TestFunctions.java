@@ -26,12 +26,8 @@ import org.eclipse.edc.security.token.jwt.CryptoConverter;
 
 public class TestFunctions {
     public static JWK generateKey() {
-        return generateKey("test-key");
-    }
-
-    public static JWK generateKey(String keyId) {
         try {
-            return new OctetKeyPairGenerator(Curve.Ed25519).keyID(keyId).keyUse(KeyUse.SIGNATURE).generate();
+            return new OctetKeyPairGenerator(Curve.Ed25519).keyID("test-key").keyUse(KeyUse.SIGNATURE).generate();
         } catch (JOSEException e) {
             throw new RuntimeException(e);
         }

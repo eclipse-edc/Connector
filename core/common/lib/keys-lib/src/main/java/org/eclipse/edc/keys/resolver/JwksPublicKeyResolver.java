@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,11 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
-package org.eclipse.edc.api.auth.delegated;
+package org.eclipse.edc.keys.resolver;
 
 import com.nimbusds.jose.KeySourceException;
 import com.nimbusds.jose.jwk.JWK;
@@ -51,6 +51,21 @@ public class JwksPublicKeyResolver implements PublicKeyResolver {
         this.keyParserRegistry = keyParserRegistry;
         this.monitor = monitor;
         this.jwkSource = jwkSource;
+    }
+
+    /**
+     * Creates a new resolver backed by the supplied {@link JWKSource}.
+     *
+     * <p>Use this overload when the caller manages the JWK source lifecycle directly — for example
+     * when using an {@code ImmutableJWKSet} for an inline key set, or when the source has already
+     * been constructed with custom caching or rate-limiting settings.
+     *
+     * @param keyParserRegistry Should contain all relevant key parsers. The minimum recommendation is adding a {@code JwkParser}.
+     * @param monitor           A monitor
+     * @param jwkSource         The pre-built JWK source to retrieve keys from.
+     */
+    public static JwksPublicKeyResolver create(KeyParserRegistry keyParserRegistry, Monitor monitor, JWKSource<SecurityContext> jwkSource) {
+        return new JwksPublicKeyResolver(keyParserRegistry, monitor, jwkSource);
     }
 
     /**
@@ -125,7 +140,7 @@ public class JwksPublicKeyResolver implements PublicKeyResolver {
             return Result.failure(msg);
         }
         if (keys.size() > 1) {
-            String msg = keyId == null ?
+            var msg = keyId == null ?
                     "JWKSet contained %d keys, but no keyId was specified. Please consider specifying a keyId.".formatted(keys.size()) :
                     "JWKSet contained %d matching keys (desired keyId: '%s'), where only 1 is expected. Will abort!".formatted(keys.size(), keyId);
             monitor.warning(msg);

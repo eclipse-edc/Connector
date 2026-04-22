@@ -18,6 +18,7 @@ package org.eclipse.edc.api.auth.delegated;
 import org.eclipse.edc.api.auth.spi.ApiAuthenticationProvider;
 import org.eclipse.edc.api.auth.spi.AuthenticationService;
 import org.eclipse.edc.api.auth.spi.registry.ApiAuthenticationProviderRegistry;
+import org.eclipse.edc.keys.resolver.JwksPublicKeyResolver;
 import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
