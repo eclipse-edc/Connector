@@ -14,26 +14,26 @@
 
 package org.eclipse.edc.signaling.oauth2.logic;
 
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.AuthorizationProfile;
 import org.eclipse.edc.iam.oauth2.spi.client.Oauth2Client;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
+import org.eclipse.edc.token.spi.TokenValidationRule;
+import org.eclipse.edc.token.spi.TokenValidationRulesRegistry;
 import org.eclipse.edc.token.spi.TokenValidationService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,17 +42,9 @@ class Oauth2CredentialsSignalingAuthorizationTest {
 
     private final Oauth2Client oauth2Client = mock();
     private final TokenValidationService tokenValidationService = mock();
-    private Oauth2CredentialsSignalingAuthorization authorization;
-    private RSAKey signingKey;
-
-    @BeforeEach
-    void setUp() throws JOSEException {
-        authorization = new Oauth2CredentialsSignalingAuthorization(oauth2Client, tokenValidationService);
-        signingKey = new RSAKeyGenerator(2048)
-                .keyUse(KeyUse.SIGNATURE)
-                .keyID(UUID.randomUUID().toString())
-                .generate();
-    }
+    private final TokenValidationRulesRegistry tokenValidationRulesRegistry = mock();
+    private final Oauth2CredentialsSignalingAuthorization authorization = new Oauth2CredentialsSignalingAuthorization(
+            oauth2Client, tokenValidationService, tokenValidationRulesRegistry);
 
     @Test
     void getType_shouldReturnOauth2ClientCredentials() {
@@ -67,20 +59,22 @@ class Oauth2CredentialsSignalingAuthorizationTest {
             var callerId = "test-caller-id";
             var token = "token";
             var claimToken = ClaimToken.Builder.newInstance().claim("sub", callerId).build();
-            when(tokenValidationService.validate(any(), any())).thenReturn(Result.success(claimToken));
+            when(tokenValidationService.validate(anyString(), any(), anyList())).thenReturn(Result.success(claimToken));
+            var validationRules = List.of(mock(TokenValidationRule.class));
+            when(tokenValidationRulesRegistry.getRules(any())).thenReturn(validationRules);
 
             var result = authorization.isAuthorized(header -> "Bearer " + token);
 
             assertThat(result.succeeded()).isTrue();
             assertThat(result.getContent()).isEqualTo(callerId);
-            verify(tokenValidationService).validate(eq(token), any());
+            verify(tokenValidationService).validate(eq(token), any(), same(validationRules));
         }
 
         @Test
         void shouldReturnFailure_whenSubClaimIsNotThere() {
             var token = "token";
             var claimToken = ClaimToken.Builder.newInstance().claim("sub", null).build();
-            when(tokenValidationService.validate(any(), any())).thenReturn(Result.success(claimToken));
+            when(tokenValidationService.validate(anyString(), any(), anyList())).thenReturn(Result.success(claimToken));
 
             var result = authorization.isAuthorized(header -> "Bearer " + token);
 
@@ -89,7 +83,7 @@ class Oauth2CredentialsSignalingAuthorizationTest {
 
         @Test
         void shouldReturnFailure_whenTokenValidationFails() {
-            when(tokenValidationService.validate(any(), any())).thenReturn(Result.failure("validation error"));
+            when(tokenValidationService.validate(anyString(), any(), anyList())).thenReturn(Result.failure("validation error"));
 
             var result = authorization.isAuthorized(header -> "Bearer token");
 

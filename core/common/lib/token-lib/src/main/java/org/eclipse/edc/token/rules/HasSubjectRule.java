@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Amadeus
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,17 +8,16 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Amadeus - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
-package org.eclipse.edc.verifiablecredentials.jwt.rules;
+package org.eclipse.edc.token.rules;
 
 import com.nimbusds.jwt.JWTClaimNames;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.token.spi.TokenValidationRule;
-import org.eclipse.edc.util.string.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,8 +30,10 @@ public class HasSubjectRule implements TokenValidationRule {
 
     @Override
     public Result<Void> checkRule(@NotNull ClaimToken toVerify, @Nullable Map<String, Object> additional) {
-        return StringUtils.isNullOrEmpty(toVerify.getStringClaim(JWTClaimNames.SUBJECT)) ?
-                Result.failure("The '%s' claim is mandatory and must not be null.".formatted(JWTClaimNames.SUBJECT)) :
-                Result.success();
+        var subject = toVerify.getStringClaim(JWTClaimNames.SUBJECT);
+        if (subject == null || subject.isBlank()) {
+            return Result.failure("The '%s' claim is mandatory and must not be null.".formatted(JWTClaimNames.SUBJECT));
+        }
+        return Result.success();
     }
 }

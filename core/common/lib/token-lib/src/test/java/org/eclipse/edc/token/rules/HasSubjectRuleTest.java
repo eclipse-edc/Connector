@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Amadeus
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,11 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Amadeus - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
-package org.eclipse.edc.verifiablecredentials.jwt.rules;
+package org.eclipse.edc.token.rules;
 
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.junit.jupiter.api.Test;
@@ -27,13 +27,16 @@ class HasSubjectRuleTest {
 
     @Test
     void subjectClaimPresent() {
-        assertThat(rule.checkRule(ClaimToken.Builder.newInstance().claim("sub", "subject-test").build(), Map.of()))
-                .isSucceeded();
+        var result = rule.checkRule(ClaimToken.Builder.newInstance().claim("sub", "subject-test").build(), Map.of());
+
+        assertThat(result).isSucceeded();
     }
 
     @Test
     void subjectClaimEmpty() {
-        assertThat(rule.checkRule(ClaimToken.Builder.newInstance().claim("sub", "").build(), Map.of()))
+        var result = rule.checkRule(ClaimToken.Builder.newInstance().claim("sub", "").build(), Map.of());
+
+        assertThat(result)
                 .isFailed()
                 .detail()
                 .isEqualTo("The 'sub' claim is mandatory and must not be null.");
@@ -41,7 +44,9 @@ class HasSubjectRuleTest {
 
     @Test
     void subjectClaimNotPresent() {
-        assertThat(rule.checkRule(ClaimToken.Builder.newInstance().build(), Map.of()))
+        var result = rule.checkRule(ClaimToken.Builder.newInstance().build(), Map.of());
+
+        assertThat(result)
                 .isFailed()
                 .detail()
                 .isEqualTo("The 'sub' claim is mandatory and must not be null.");
