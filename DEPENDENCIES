@@ -56,7 +56,7 @@ maven/mavencentral/com.google.code.findbugs/annotations/3.0.1, LGPL-2.1-or-later
 maven/mavencentral/com.google.code.findbugs/jsr305/3.0.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.google.code.findbugs/jsr305/3.0.2, BSD-3-Clause, restricted, clearlydefined
 maven/mavencentral/com.google.code.gson/gson/2.13.2, Apache-2.0, approved, clearlydefined
-maven/mavencentral/com.google.crypto.tink/tink/1.20.0, , restricted, clearlydefined
+maven/mavencentral/com.google.crypto.tink/tink/1.21.0, , restricted, clearlydefined
 maven/mavencentral/com.google.errorprone/error_prone_annotations/2.41.0, Apache-2.0, restricted, clearlydefined
 maven/mavencentral/com.google.errorprone/error_prone_annotations/2.42.0, Apache-2.0, restricted, clearlydefined
 maven/mavencentral/com.google.guava/failureaccess/1.0.3, Apache-2.0, approved, clearlydefined
