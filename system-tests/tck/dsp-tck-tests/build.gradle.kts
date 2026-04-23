@@ -24,6 +24,7 @@ dependencies {
     testImplementation(libs.wiremock)
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
+    testImplementation(testFixtures(project(":extensions:control-plane:api:management-api:management-api-test-fixtures")))
     runtimeOnly(libs.parsson)
 
     testImplementation(libs.dsp.tck.api)

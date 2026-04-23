@@ -23,7 +23,7 @@ dependencies {
     implementation(project(":spi:control-plane:asset-spi"))
     implementation(project(":spi:control-plane:control-plane-spi"))
     implementation(project(":spi:common:web-spi"))
-    implementation(project(":spi:data-plane:data-plane-spi"))
+    implementation(project(":spi:data-plane-selector:data-plane-selector-spi"))
     implementation(project(":spi:common:participant-context-single-spi"))
     implementation(libs.jakarta.rsApi)
     implementation(libs.nimbus.jwt)
