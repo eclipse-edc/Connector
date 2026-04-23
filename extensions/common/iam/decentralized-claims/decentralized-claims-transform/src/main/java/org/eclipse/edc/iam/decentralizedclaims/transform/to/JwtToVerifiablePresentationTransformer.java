@@ -32,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 import java.text.ParseException;
 import java.util.Map;
 
-import static java.util.Optional.ofNullable;
 
 @SuppressWarnings("unchecked")
 public class JwtToVerifiablePresentationTransformer extends AbstractJwtTransformer<VerifiablePresentation> {
