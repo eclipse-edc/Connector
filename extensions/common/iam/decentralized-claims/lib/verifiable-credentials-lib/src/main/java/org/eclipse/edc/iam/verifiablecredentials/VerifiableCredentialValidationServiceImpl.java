@@ -29,6 +29,7 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVeri
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Clock;
 import java.util.ArrayList;
@@ -68,15 +69,18 @@ public class VerifiableCredentialValidationServiceImpl implements VerifiableCred
     }
 
     @NotNull
-    private Result<Void> validateVerifiableCredentials(List<VerifiableCredential> credentials, String presentationHolder, Collection<? extends CredentialValidationRule> additionalRules) {
+    private Result<Void> validateVerifiableCredentials(List<VerifiableCredential> credentials, @Nullable String presentationHolder, Collection<? extends CredentialValidationRule> additionalRules) {
 
         // in addition, verify that all VCs are valid
         var filters = new ArrayList<>(List.of(
                 new IsInValidityPeriod(clock),
-                new HasValidSubjectIds(presentationHolder),
                 new IsNotRevoked(revocationServiceRegistry),
                 new HasValidIssuer(trustedIssuerRegistry),
                 new HasValidSubjectSchema(mapper)));
+
+        if (presentationHolder != null) {
+            filters.add(new HasValidSubjectIds(presentationHolder));
+        }
 
         filters.addAll(additionalRules);
 

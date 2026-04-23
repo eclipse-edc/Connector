@@ -16,7 +16,19 @@
 package org.eclipse.edc.iam.decentralizedclaims.transform.to;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.Ed25519Signer;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
+import com.nimbusds.jose.jwk.gen.OctetKeyPairGenerator;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.decentralizedclaims.transform.TestData;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
@@ -33,8 +45,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.text.ParseException;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.decentralizedclaims.transform.TestData.EXAMPLE_JWT_VP;
@@ -149,12 +163,31 @@ class JwtToVerifiablePresentationTransformerTest {
 
     @DisplayName("VP is an EnvelopedVerifiablePresentation")
     @Test
-    void transform_envelopedPresentation() {
+    void transform_envelopedPresentation_noHolder() {
         var vp = transformer.transform(TestData.EXAMPLE_ENVELOPED_PRESENTATION, context);
         assertThat(vp).isNotNull();
+        assertThat(vp.getHolder()).isNull();
         assertThat(vp.getTypes()).containsExactlyInAnyOrder("VerifiablePresentation");
         assertThat(vp.getCredentials()).hasSize(2)
                 .allSatisfy(vc -> {
+
+                    assertThat(vc.getCredentialSubject()).isNotEmpty();
+                    assertThat(vc.getType()).containsExactlyInAnyOrder("ExampleDegreeCredential", "ExamplePersonCredential", "VerifiableCredential");
+                });
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @DisplayName("VP is an EnvelopedVerifiablePresentation with a holder property")
+    @Test
+    void transform_envelopedPresentation_withHolder() {
+
+        var vp = transformer.transform(TestData.EXAMPLE_ENVELOPED_PRESENTATION_WITH_HOLDER, context);
+        assertThat(vp).isNotNull();
+        assertThat(vp.getHolder()).isNotNull().isEqualTo("did:web:example:holder");
+        assertThat(vp.getTypes()).containsExactlyInAnyOrder("VerifiablePresentation");
+        assertThat(vp.getCredentials()).hasSize(2)
+                .allSatisfy(vc -> {
+
                     assertThat(vc.getCredentialSubject()).isNotEmpty();
                     assertThat(vc.getType()).containsExactlyInAnyOrder("ExampleDegreeCredential", "ExamplePersonCredential", "VerifiableCredential");
                 });
