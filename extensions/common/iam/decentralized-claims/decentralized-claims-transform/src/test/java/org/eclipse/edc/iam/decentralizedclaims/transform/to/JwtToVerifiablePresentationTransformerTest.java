@@ -149,12 +149,31 @@ class JwtToVerifiablePresentationTransformerTest {
 
     @DisplayName("VP is an EnvelopedVerifiablePresentation")
     @Test
-    void transform_envelopedPresentation() {
+    void transform_envelopedPresentation_noHolder() {
         var vp = transformer.transform(TestData.EXAMPLE_ENVELOPED_PRESENTATION, context);
         assertThat(vp).isNotNull();
+        assertThat(vp.getHolder()).isNull();
         assertThat(vp.getTypes()).containsExactlyInAnyOrder("VerifiablePresentation");
         assertThat(vp.getCredentials()).hasSize(2)
                 .allSatisfy(vc -> {
+
+                    assertThat(vc.getCredentialSubject()).isNotEmpty();
+                    assertThat(vc.getType()).containsExactlyInAnyOrder("ExampleDegreeCredential", "ExamplePersonCredential", "VerifiableCredential");
+                });
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @DisplayName("VP is an EnvelopedVerifiablePresentation with a holder property")
+    @Test
+    void transform_envelopedPresentation_withHolder() {
+
+        var vp = transformer.transform(TestData.EXAMPLE_ENVELOPED_PRESENTATION_WITH_HOLDER, context);
+        assertThat(vp).isNotNull();
+        assertThat(vp.getHolder()).isNotNull().isEqualTo("did:web:example:holder");
+        assertThat(vp.getTypes()).containsExactlyInAnyOrder("VerifiablePresentation");
+        assertThat(vp.getCredentials()).hasSize(2)
+                .allSatisfy(vc -> {
+
                     assertThat(vc.getCredentialSubject()).isNotEmpty();
                     assertThat(vc.getType()).containsExactlyInAnyOrder("ExampleDegreeCredential", "ExamplePersonCredential", "VerifiableCredential");
                 });

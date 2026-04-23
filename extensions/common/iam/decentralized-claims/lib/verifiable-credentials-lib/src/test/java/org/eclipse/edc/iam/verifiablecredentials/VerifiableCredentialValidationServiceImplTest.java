@@ -156,6 +156,24 @@ class VerifiableCredentialValidationServiceImplTest {
     }
 
     @Test
+    void verify_singlePresentation_noHolderProperty_shouldSucceed() {
+        var presentation = createPresentationBuilder()
+                .holder(null) // un-set holder property
+                .type("VerifiablePresentation")
+                .credentials(List.of(createCredentialBuilder()
+                        .credentialSubjects(List.of(CredentialSubject.Builder.newInstance()
+                                .id(CONSUMER_DID)
+                                .claim("some-claim", "some-val")
+                                .build()))
+                        .build()))
+                .build();
+        var vpContainer = new VerifiablePresentationContainer("test-vp", CredentialFormat.VC1_0_LD, presentation);
+        when(verifier.verifyPresentation(any(), any())).thenReturn(success());
+        var result = validationService.validate(List.of(vpContainer), EXPECTED_AUDIENCE);
+        assertThat(result).isSucceeded();
+    }
+
+    @Test
     void verify_singlePresentation_multipleCredentials() {
         var presentation = createPresentationBuilder()
                 .holder(CONSUMER_DID)

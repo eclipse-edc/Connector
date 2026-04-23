@@ -32,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import java.text.ParseException;
 import java.util.Map;
 
+
 @SuppressWarnings("unchecked")
 public class JwtToVerifiablePresentationTransformer extends AbstractJwtTransformer<VerifiablePresentation> {
 
@@ -104,7 +105,7 @@ public class JwtToVerifiablePresentationTransformer extends AbstractJwtTransform
                 var vpToken = idClaim.substring(DATA_URL_VP_JWT.length());
                 // credentialObject should contain EnvelopedVerifiableCredentials
                 var vpClaims = SignedJWT.parse(vpToken).getJWTClaimsSet();
-                builder.holder(vpClaims.getIssuer());
+                builder.holder(vpClaims.getStringClaim("holder"));
                 builder.id(vpClaims.getJWTID());
                 // verifiable credentials as EnvelopedVerifiableCredentials
                 listOrReturn(vpClaims.getClaim(VERIFIABLE_CREDENTIAL_PROPERTY), o -> extractEnvelopedCredential(o, context)).forEach(builder::credential);
