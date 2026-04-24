@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.api.management.authn;
 
-import org.eclipse.edc.api.authentication.JwksResolver;
 import org.eclipse.edc.api.authentication.filter.JwtValidatorFilter;
 import org.eclipse.edc.api.authentication.filter.ServicePrincipalAuthenticationFilter;
+import org.eclipse.edc.keys.resolver.JwksPublicKeyResolver;
 import org.eclipse.edc.keys.spi.KeyParserRegistry;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
@@ -24,7 +24,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
-import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.token.rules.ExpirationIssuedAtValidationRule;
@@ -35,8 +35,6 @@ import org.eclipse.edc.token.spi.TokenValidationService;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.time.Clock;
 import java.util.List;
 
@@ -59,6 +57,8 @@ public class ManagementApiOauth2AuthenticationExtension implements ServiceExtens
     private OauthConfiguration oauthConfiguration;
     @Inject
     private TokenValidationService tokenValidationService;
+    @Inject
+    private Monitor monitor;
 
     @Override
     public String name() {
@@ -69,14 +69,7 @@ public class ManagementApiOauth2AuthenticationExtension implements ServiceExtens
     public void initialize(ServiceExtensionContext context) {
         var alias = ApiContext.MANAGEMENT;
         webService.registerResource(alias, new ServicePrincipalAuthenticationFilter(participantContextService));
-
-        URL url;
-        try {
-            url = new URL(oauthConfiguration.jwksUrl());
-        } catch (MalformedURLException e) {
-            throw new EdcException(e);
-        }
-        webService.registerResource(alias, new JwtValidatorFilter(tokenValidationService, new JwksResolver(url, keyParserRegistry, oauthConfiguration.cacheValidityInMillis), getRules()));
+        webService.registerResource(alias, new JwtValidatorFilter(tokenValidationService, JwksPublicKeyResolver.create(keyParserRegistry, oauthConfiguration.jwksUrl(), monitor, oauthConfiguration.cacheValidityInMillis), getRules()));
     }
 
     private List<TokenValidationRule> getRules() {
