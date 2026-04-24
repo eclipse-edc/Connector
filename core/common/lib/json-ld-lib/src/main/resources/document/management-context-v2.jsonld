@@ -509,6 +509,26 @@
         "description": "edc:description"
       }
     },
+    "CelExpressionTestRequest": {
+      "@id": "edc:CelExpressionTestRequest",
+      "@context": {
+        "expression": "edc:expression",
+        "leftOperand": "edc:leftOperand",
+        "operator": "edc:operator",
+        "rightOperand": "edc:rightOperand",
+        "params": {
+          "@id": "edc:params",
+          "@type": "@json"
+        }
+      }
+    },
+    "CelExpressionTestResponse": {
+      "@id": "edc:CelExpressionTestResponse",
+      "@context": {
+        "evaluationResult": "edc:evaluationResult",
+        "error": "edc:error"
+      }
+    },
     "inForceDate": "edc:inForceDate",
     "ruleFunctions": {
       "@id": "edc:ruleFunctions",

@@ -35,7 +35,9 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TerminateTransf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferState;
+import org.eclipse.edc.connector.controlplane.transform.edc.cel.from.JsonObjectFromCelExpressionTestResponseTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.cel.from.JsonObjectFromCelExpressionTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.cel.to.JsonObjectToCelExpressionTestRequestTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.cel.to.JsonObjectToCelExpressionTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.config.from.JsonObjectFromParticipantContextConfigurationTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.config.to.JsonObjectToParticipantContextConfigurationTransformer;
@@ -50,6 +52,7 @@ import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.cel.model.CelExpression;
+import org.eclipse.edc.policy.cel.model.CelExpressionTestRequest;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
@@ -104,8 +107,10 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.assetObjectWi
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogAsset;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogRequestObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.celExpression;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.celExpressionTestRequest;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractDefinitionObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractRequestObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createCelExpressionTestResponse;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createContractAgreement;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createContractNegotiation;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createEdrEntry;
@@ -351,6 +356,18 @@ public class SerdeEndToEndTest {
         }
 
         @Test
+        void ser_CelExpressionTestResponse(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            var response = createCelExpressionTestResponse();
+            var compactResult = serialize(typeTransformerRegistry, validatorRegistry, jsonLd, response);
+
+            assertThat(compactResult).isNotNull();
+            assertThat(compactResult.getString(TYPE)).isEqualTo("CelExpressionTestResponse");
+            assertThat(compactResult.getBoolean("evaluationResult")).isEqualTo(response.getEvaluationResult());
+            assertThat(compactResult.getString("error")).isEqualTo(response.getError());
+
+        }
+
+        @Test
         void ser_IdResponse(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var response = IdResponse.Builder.newInstance().id("test-id").createdAt(1234).build();
             var compactResult = serialize(typeTransformerRegistry, validatorRegistry, jsonLd, response);
@@ -507,6 +524,20 @@ public class SerdeEndToEndTest {
 
             assertThat(terminateTransfer).isNotNull();
             assertThat(terminateTransfer.policyScope()).isEqualTo(inputObject.getString("policyScope"));
+
+        }
+
+        @Test
+        void de_CelExpressionTestRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            var inputObject = celExpressionTestRequest(jsonLdContext());
+            var request = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, CelExpressionTestRequest.class);
+
+            assertThat(request).isNotNull();
+            assertThat(request.getExpression()).isEqualTo(inputObject.getString("expression"));
+            assertThat(request.getLeftOperand()).isEqualTo(inputObject.getString("leftOperand"));
+            assertThat(request.getRightOperand()).isEqualTo(inputObject.getString("rightOperand"));
+            assertThat(request.getOperator()).isEqualTo(inputObject.getString("operator"));
+            assertThat(createObjectBuilder(request.getParams()).build()).containsAllEntriesOf(inputObject.getJsonObject("params"));
 
         }
 
@@ -688,6 +719,17 @@ public class SerdeEndToEndTest {
         }
 
         @Override
+        void de_CelExpressionTestRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            super.de_CelExpressionTestRequest(typeTransformerRegistry, validatorRegistry, jsonLd);
+        }
+
+        @Disabled
+        @Override
+        void ser_CelExpressionTestResponse(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            super.ser_CelExpressionTestResponse(typeTransformerRegistry, validatorRegistry, jsonLd);
+        }
+
+        @Override
         @Disabled
         void ser_IdResponse(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             super.ser_IdResponse(typeTransformerRegistry, validatorRegistry, jsonLd);
@@ -715,7 +757,10 @@ public class SerdeEndToEndTest {
             registry.register(new JsonObjectFromParticipantContextConfigurationTransformer(factory));
             registry.register(new JsonObjectToParticipantContextConfigurationTransformer());
             registry.register(new JsonObjectFromCelExpressionTransformer(factory));
+            registry.register(new JsonObjectFromCelExpressionTestResponseTransformer(factory));
             registry.register(new JsonObjectToCelExpressionTransformer());
+            registry.register(new JsonObjectToCelExpressionTestRequestTransformer());
+
         }
 
         @Override

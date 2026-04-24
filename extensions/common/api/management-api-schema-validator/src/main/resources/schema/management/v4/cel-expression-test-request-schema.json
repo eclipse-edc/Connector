@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "CelExpressionTestRequestSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/CelExpressionTestRequest"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/cel-expression-test-request-schema.json",
+  "definitions": {
+    "CelExpressionTestRequest": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "CelExpressionTestRequest"
+        },
+        "expression": {
+          "type": "string"
+        },
+        "leftOperand": {
+          "type": "string"
+        },
+        "operator": {
+          "type": "string"
+        },
+        "rightOperand": {
+          "type": "object"
+        },
+        "params": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "leftOperand",
+        "expression",
+        "rightOperand",
+        "operator"
+      ]
+    }
+  }
+}

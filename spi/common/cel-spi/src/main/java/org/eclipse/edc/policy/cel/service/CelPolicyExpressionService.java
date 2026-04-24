@@ -15,6 +15,8 @@
 package org.eclipse.edc.policy.cel.service;
 
 import org.eclipse.edc.policy.cel.model.CelExpression;
+import org.eclipse.edc.policy.cel.model.CelExpressionTestRequest;
+import org.eclipse.edc.policy.cel.model.CelExpressionTestResponse;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 
@@ -65,4 +67,13 @@ public interface CelPolicyExpressionService {
      * @return a service result containing the list of matching CEL expressions or an error
      */
     ServiceResult<List<CelExpression>> query(QuerySpec querySpec);
+
+    /**
+     * Tests a CEL expression with the provided test request.
+     *
+     * @param expression the test request containing the expression and parameters to test
+     * @return a service result containing the test response or an error
+     */
+    ServiceResult<CelExpressionTestResponse> test(CelExpressionTestRequest expression);
+
 }

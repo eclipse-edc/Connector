@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry;
+import org.eclipse.edc.policy.cel.model.CelExpressionTestResponse;
 import org.eclipse.edc.policy.engine.spi.PolicyValidatorRule;
 import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
 import org.eclipse.edc.policy.engine.spi.plan.step.AndConstraintStep;
@@ -401,6 +402,14 @@ public class TestFunctions {
                 .build();
     }
 
+    public static CelExpressionTestResponse createCelExpressionTestResponse() {
+        return CelExpressionTestResponse.Builder.newInstance()
+                .evaluationResult(false)
+                .error("error")
+                .build();
+    }
+
+
     public static PolicyEvaluationPlan createPolicyEvaluationPlan() {
 
         var firstConstraint = new AtomicConstraintStep(atomicConstraint("foo", "bar"), List.of("filtered constraint"),
@@ -563,6 +572,18 @@ public class TestFunctions {
                 .add(CONTEXT, createContextBuilder(context).build())
                 .add(TYPE, "PolicyEvaluationPlanRequest")
                 .add("policyScope", "catalog")
+                .build();
+    }
+
+    public static JsonObject celExpressionTestRequest(String context) {
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "CelExpressionTestRequest")
+                .add("leftOperand", "some.left.operand")
+                .add("operator", "someOperator")
+                .add("rightOperand", "some.right.operand")
+                .add("params", createObjectBuilder().add("param1", "value1").add("param2", "value2").build())
+                .add("expression", "expression")
                 .build();
     }
 
