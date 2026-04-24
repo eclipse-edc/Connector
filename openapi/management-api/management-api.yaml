@@ -90,6 +90,41 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v5beta/celexpressions/test:
+    post:
+      tags:
+      - Cel Expressions v5beta
+      description: Test a Cel Expression.
+      operationId: testExpressionV5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/cel-expression-test-request-schema"
+      responses:
+        "200":
+          description: The Cel Expression was tested successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/cel-expression-test-response-schema"
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v3/assets/{id}:
     get:
       tags:
@@ -703,7 +738,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/participant-context-config-schema"
+              $ref: "#/components/schemas/cel-expression-schema"
       responses:
         "200":
           description: The Cel Expression was created successfully
@@ -5487,6 +5522,67 @@ components:
           type: string
         invalidValue:
           type: string
+    cel-expression-test-response-schema:
+      title: CelExpressionTestRequestSchema
+      type: object
+      example:
+        '@type': '@type'
+        evaluationResult: true
+        error: error
+        '@context':
+        - '@context'
+        - '@context'
+      allOf:
+      - $ref: "#/components/schemas/CelExpressionTestResponse"
+    CelExpressionTestResponse:
+      required:
+      - '@context'
+      - '@type'
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        evaluationResult:
+          type: boolean
+        error:
+          type: string
+    cel-expression-test-request-schema:
+      title: CelExpressionTestRequestSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/CelExpressionTestRequest"
+    CelExpressionTestRequest:
+      required:
+      - '@context'
+      - '@type'
+      - expression
+      - leftOperand
+      - operator
+      - rightOperand
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        expression:
+          type: string
+        leftOperand:
+          type: string
+        operator:
+          type: string
+        rightOperand:
+          type: object
+        params:
+          type: object
     AssetOutputV3:
       type: object
       properties:
@@ -6916,23 +7012,33 @@ components:
           type: string
         contractAgreementId:
           type: string
-    participant-context-config-schema:
-      title: ParticipantContextConfigSchema
+    cel-expression-schema:
+      title: CelExpressionSchema
       type: object
       example:
-        entries: "{}"
+        leftOperand: leftOperand
+        expression: expression
         '@type': '@type'
+        description: description
+        '@id': '@id'
+        scopes:
+        - scopes
+        - scopes
         '@context':
         - '@context'
         - '@context'
-        privateEntries: "{}"
+        actions:
+        - actions
+        - actions
       allOf:
-      - $ref: "#/components/schemas/ParticipantContextConfig"
-    ParticipantContextConfig:
+      - $ref: "#/components/schemas/CelExpression"
+    CelExpression:
       required:
       - '@context'
       - '@type'
-      - entries
+      - description
+      - expression
+      - leftOperand
       type: object
       properties:
         '@context':
@@ -6942,10 +7048,24 @@ components:
             type: string
         '@type':
           type: string
-        entries:
-          type: object
-        privateEntries:
-          type: object
+        '@id':
+          type: string
+        leftOperand:
+          type: string
+        expression:
+          type: string
+        description:
+          type: string
+        scopes:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+        actions:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
     secret-schema:
       title: SecretSchema
       type: object
@@ -7311,60 +7431,6 @@ components:
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
         '@type': https://w3id.org/edc/v0.0.1/ns/TransferState
         state: STARTED
-    cel-expression-schema:
-      title: CelExpressionSchema
-      type: object
-      example:
-        leftOperand: leftOperand
-        expression: expression
-        '@type': '@type'
-        description: description
-        '@id': '@id'
-        scopes:
-        - scopes
-        - scopes
-        '@context':
-        - '@context'
-        - '@context'
-        actions:
-        - actions
-        - actions
-      allOf:
-      - $ref: "#/components/schemas/CelExpression"
-    CelExpression:
-      required:
-      - '@context'
-      - '@type'
-      - description
-      - expression
-      - leftOperand
-      type: object
-      properties:
-        '@context':
-          title: ContextSchema
-          type: array
-          items:
-            type: string
-        '@type':
-          type: string
-        '@id':
-          type: string
-        leftOperand:
-          type: string
-        expression:
-          type: string
-        description:
-          type: string
-        scopes:
-          uniqueItems: true
-          type: array
-          items:
-            type: string
-        actions:
-          uniqueItems: true
-          type: array
-          items:
-            type: string
     contract-request-schema:
       title: ContractRequestSchema
       type: object
@@ -8358,6 +8424,36 @@ components:
         '@type': https://w3id.org/edc/v0.0.1/ns/TerminateNegotiation
         '@id': negotiation-id
         reason: a reason to terminate
+    participant-context-config-schema:
+      title: ParticipantContextConfigSchema
+      type: object
+      example:
+        entries: "{}"
+        '@type': '@type'
+        '@context':
+        - '@context'
+        - '@context'
+        privateEntries: "{}"
+      allOf:
+      - $ref: "#/components/schemas/ParticipantContextConfig"
+    ParticipantContextConfig:
+      required:
+      - '@context'
+      - '@type'
+      - entries
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        entries:
+          type: object
+        privateEntries:
+          type: object
     DataPlaneInstanceSchemaV3:
       required:
       - '@context'
