@@ -36,14 +36,13 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import java.util.HashMap;
 
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.CONSUMER_DP;
+import static org.eclipse.edc.test.e2e.transfer.VirtualTransferEndToEndTestBase.CONSUMER_CONTEXT;
+import static org.eclipse.edc.test.e2e.transfer.VirtualTransferEndToEndTestBase.CONSUMER_ID;
+import static org.eclipse.edc.test.e2e.transfer.VirtualTransferEndToEndTestBase.PROVIDER_CONTEXT;
+import static org.eclipse.edc.test.e2e.transfer.VirtualTransferEndToEndTestBase.PROVIDER_ID;
 
 class VirtualTransferEndToEndTest {
 
-    public static final String PROVIDER_DP = "provider-data-plane";
-    public static final String PROVIDER_CONTEXT = "provider";
-    public static final String CONSUMER_CONTEXT = "consumer";
-    public static final String PROVIDER_ID = "provider-id";
-    public static final String CONSUMER_ID = "consumer-id";
 
     private static Participants participants(ComponentRuntimeContext ctx) {
         var protocolEndpoint = ctx.getEndpoint("protocol");
@@ -96,6 +95,7 @@ class VirtualTransferEndToEndTest {
         static final RuntimeExtension CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
                 .name(Runtimes.ControlPlane.NAME)
                 .modules(Runtimes.ControlPlane.VIRTUAL_MODULES)
+                .modules(Runtimes.ControlPlane.IAM_MOCK)
                 .modules(Runtimes.ControlPlane.SQL_MODULES)
                 .modules(Runtimes.ControlPlane.VIRTUAL_SQL_MODULES)
                 .modules(Runtimes.ControlPlane.VIRTUAL_NATS_MODULES)

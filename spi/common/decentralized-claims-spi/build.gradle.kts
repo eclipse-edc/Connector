@@ -35,6 +35,13 @@ dependencies {
     testImplementation(testFixtures(project(":spi:common:verifiable-credentials-spi")))
 
     testFixturesImplementation(libs.nimbus.jwt)
+    testFixturesImplementation(libs.wiremock) {
+        exclude("com.networknt", "json-schema-validator")
+    }
+
+    testFixturesImplementation(project(":spi:common:identity-did-spi"))
+    testFixturesImplementation(project(":core:common:junit"))
+
 }
 
 

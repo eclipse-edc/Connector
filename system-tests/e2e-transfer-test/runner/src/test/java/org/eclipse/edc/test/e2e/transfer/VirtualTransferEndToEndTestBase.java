@@ -45,12 +45,16 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.CONSUMER_DP;
-import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.PROVIDER_DP;
 
 
 @SuppressWarnings("JUnitMalformedDeclaration")
 public abstract class VirtualTransferEndToEndTestBase {
 
+    public static final String PROVIDER_DP = "provider-data-plane";
+    public static final String PROVIDER_CONTEXT = "provider";
+    public static final String CONSUMER_CONTEXT = "consumer";
+    public static final String PROVIDER_ID = "provider-id";
+    public static final String CONSUMER_ID = "consumer-id";
 
     @BeforeAll
     static void beforeAll(ManagementApiClientV5 connectorClient,

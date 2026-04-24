@@ -364,6 +364,7 @@ include(":system-tests:e2e-federatedcatalog-tests:end2end-test:e2e-junit-runner"
 include(":dist:bom:controlplane-base-bom")
 include(":dist:bom:controlplane-dcp-bom")
 include(":dist:bom:controlplane-feature-sql-bom")
+include(":dist:bom:controlplane-feature-dcp-bom")
 include(":dist:bom:federatedcatalog-base-bom")
 include(":dist:bom:federatedcatalog-dcp-bom")
 include(":dist:bom:federatedcatalog-feature-sql-bom")

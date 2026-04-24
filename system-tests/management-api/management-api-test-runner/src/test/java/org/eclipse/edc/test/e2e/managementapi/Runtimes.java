@@ -36,7 +36,8 @@ public interface Runtimes {
         };
 
         String[] VIRTUAL_MODULES = new String[]{
-                ":system-tests:management-api:management-api-test-virtual-runtime"
+                ":system-tests:management-api:management-api-test-virtual-runtime",
+                ":extensions:common:iam:iam-mock"
         };
 
         String[] SQL_MODULES = new String[]{

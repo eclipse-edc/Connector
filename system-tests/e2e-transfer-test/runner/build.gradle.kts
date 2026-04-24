@@ -31,6 +31,7 @@ dependencies {
     testImplementation(testFixtures(project(":core:common:lib:nats-lib")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
     testImplementation(testFixtures(project(":extensions:control-plane:api:management-api:management-api-test-fixtures")))
+    testImplementation(testFixtures(project(":spi:common:decentralized-claims-spi")))
     testImplementation(project(":extensions:common:json-ld"))
 
     testImplementation(libs.awaitility)

@@ -39,6 +39,10 @@ public interface Runtimes {
                 ":system-tests:management-api:management-api-test-virtual-runtime"
         };
 
+        String[] IAM_MOCK = new String[]{
+                ":extensions:common:iam:iam-mock"
+        };
+
         String[] VIRTUAL_SQL_MODULES = new String[]{
                 ":extensions:common:store:sql:cel-store-sql",
                 ":extensions:common:store:sql:task-store-sql",
@@ -66,6 +70,14 @@ public interface Runtimes {
 
         String[] SQL_MODULES = new String[]{
                 ":dist:bom:controlplane-feature-sql-bom",
+        };
+
+        String[] DCP_MODULES = new String[]{
+                ":dist:bom:controlplane-feature-dcp-bom",
+        };
+
+        String[] VIRTUAL_DCP_MODULES = new String[]{
+                ":extensions:common:iam:decentralized-claims:decentralized-claims-cel"
         };
 
         Endpoints.Builder ENDPOINTS = Endpoints.Builder.newInstance()
