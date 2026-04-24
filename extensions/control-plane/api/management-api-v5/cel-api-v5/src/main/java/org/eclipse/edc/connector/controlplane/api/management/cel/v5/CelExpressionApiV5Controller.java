@@ -31,6 +31,7 @@ import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.cel.model.CelExpression;
+import org.eclipse.edc.policy.cel.model.CelExpressionTestRequest;
 import org.eclipse.edc.policy.cel.service.CelPolicyExpressionService;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -42,6 +43,7 @@ import org.eclipse.edc.web.spi.validation.SchemaType;
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_TYPE_TERM;
+import static org.eclipse.edc.policy.cel.model.CelExpressionTestRequest.CEL_EXPRESSION_TEST_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
@@ -77,6 +79,24 @@ public class CelExpressionApiV5Controller implements CelExpressionApiV5 {
                 .build();
 
         return transformerRegistry.transform(responseDto, JsonObject.class)
+                .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
+    }
+
+    @POST
+    @Path("test")
+    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PROVISIONER})
+    @RequiredScope("management-api:write")
+    @Override
+    public JsonObject testExpressionV5(@SchemaType(CEL_EXPRESSION_TEST_REQUEST_TYPE_TERM) JsonObject test) {
+
+        var expr = transformerRegistry.transform(test, CelExpressionTestRequest.class)
+                .orElseThrow(InvalidRequestException::new);
+
+        var response = service.test(expr)
+                .orElseThrow(exceptionMapper(CelExpression.class));
+
+
+        return transformerRegistry.transform(response, JsonObject.class)
                 .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
     }
 

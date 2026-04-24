@@ -32,7 +32,7 @@ import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 public interface CelExpressionApiV5 {
 
     @Operation(description = "Create a Cel Expression.",
-            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.PARTICIPANT_CONTEXT_CONFIG), mediaType = "application/json")),
+            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.CEL_EXPRESSION), mediaType = "application/json")),
             responses = {
                     @ApiResponse(responseCode = "200", description = "The Cel Expression was created successfully"),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
@@ -43,7 +43,21 @@ public interface CelExpressionApiV5 {
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json"))
             }
     )
-    JsonObject createExpressionV5(JsonObject expression);
+    JsonObject createExpressionV5(JsonObject request);
+
+
+    @Operation(description = "Test a Cel Expression.",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.CEL_EXPRESSION_TEST_REQUEST), mediaType = "application/json")),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "The Cel Expression was tested successfully",
+                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.CEL_EXPRESSION_TEST_RESPONSE))),
+                    @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
+                    @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json"))
+            }
+    )
+    JsonObject testExpressionV5(JsonObject expression);
 
     @Operation(description = "Gets an Expression by ID.",
             responses = {

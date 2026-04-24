@@ -20,6 +20,8 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.policy.cel.model.CelExpression;
+import org.eclipse.edc.policy.cel.model.CelExpressionTestRequest;
+import org.eclipse.edc.policy.cel.model.CelExpressionTestResponse;
 import org.eclipse.edc.policy.cel.service.CelPolicyExpressionService;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
@@ -64,6 +66,15 @@ public abstract class CelExpressionApiControllerTestBase extends RestControllerT
     protected abstract String versionPath();
 
     private CelExpression celExpression() {
+        return CelExpression.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .leftOperand("leftOperand")
+                .expression("expr")
+                .description("description")
+                .build();
+    }
+
+    private CelExpression celExpressionTestRequest() {
         return CelExpression.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .leftOperand("leftOperand")
@@ -276,6 +287,42 @@ public abstract class CelExpressionApiControllerTestBase extends RestControllerT
                     .statusCode(404);
 
         }
+
+    }
+
+    @Nested
+    class CelTest {
+
+        @Test
+        void test() {
+
+            var req = CelExpressionTestRequest.Builder.newInstance()
+                    .expression("expr")
+                    .leftOperand("leftOperand")
+                    .rightOperand("rightOperand")
+                    .operator("operator")
+                    .build();
+
+            var res = CelExpressionTestResponse.Builder
+                    .newInstance().build();
+
+            var expandedBody = Json.createObjectBuilder().build();
+
+            when(service.test(any())).thenReturn(ServiceResult.success(res));
+            when(transformerRegistry.transform(any(), eq(CelExpressionTestRequest.class))).thenReturn(Result.success(req));
+            when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expandedBody));
+
+            baseRequest()
+                    .body("{}")
+                    .contentType(JSON)
+                    .post("/celexpressions/test")
+                    .then()
+                    .statusCode(200);
+
+            verify(service).test(req);
+
+        }
+
 
     }
 

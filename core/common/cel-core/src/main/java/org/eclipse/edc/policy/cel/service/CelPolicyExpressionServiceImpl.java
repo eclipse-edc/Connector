@@ -16,7 +16,10 @@ package org.eclipse.edc.policy.cel.service;
 
 import org.eclipse.edc.policy.cel.engine.CelExpressionEngine;
 import org.eclipse.edc.policy.cel.model.CelExpression;
+import org.eclipse.edc.policy.cel.model.CelExpressionTestRequest;
+import org.eclipse.edc.policy.cel.model.CelExpressionTestResponse;
 import org.eclipse.edc.policy.cel.store.CelExpressionStore;
+import org.eclipse.edc.policy.model.Operator;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -90,5 +93,17 @@ public class CelPolicyExpressionServiceImpl implements CelPolicyExpressionServic
     @Override
     public ServiceResult<List<CelExpression>> query(QuerySpec querySpec) {
         return ServiceResult.success(store.query(querySpec));
+    }
+
+    @Override
+    public ServiceResult<CelExpressionTestResponse> test(CelExpressionTestRequest request) {
+        var result = engine.test(request.getExpression(), request.getLeftOperand(), Operator.valueOf(request.getOperator()), request.getRightOperand(), request.getParams());
+        var response = CelExpressionTestResponse.Builder.newInstance();
+        if (result.succeeded()) {
+            response.evaluationResult(result.getContent());
+        } else {
+            response.error(result.getFailureDetail());
+        }
+        return ServiceResult.success(response.build());
     }
 }

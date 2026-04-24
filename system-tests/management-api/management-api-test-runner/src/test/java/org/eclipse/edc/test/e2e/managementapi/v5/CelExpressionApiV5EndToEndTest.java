@@ -54,6 +54,7 @@ import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.jsonLdConte
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 
 public class CelExpressionApiV5EndToEndTest {
@@ -63,7 +64,7 @@ public class CelExpressionApiV5EndToEndTest {
     abstract static class Tests {
 
         private static final String PARTICIPANT_CONTEXT_ID = "test-participant";
-        private String adminToken;
+        protected String adminToken;
 
         private CelExpression expression(String leftOperand, String expr) {
             return CelExpression.Builder.newInstance().id(UUID.randomUUID().toString())
@@ -367,6 +368,81 @@ public class CelExpressionApiV5EndToEndTest {
                 .paramProvider(ManagementEndToEndV5TestContext.class, ManagementEndToEndV5TestContext::forContext)
                 .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
                 .build();
+
+        // We can just test in memory
+        @Test
+        void test(ManagementEndToEndV5TestContext context) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "CelExpressionTestRequest")
+                    .add("leftOperand", "leftOperand")
+                    .add("expression", "ctx.agent.id == 'agent-125'")
+                    .add("rightOperand", "rightOperand")
+                    .add("operator", "EQ")
+                    .add("params", createObjectBuilder().add("agent", createObjectBuilder().add("id", "agent-125")))
+                    .build();
+
+            context.baseRequest(adminToken)
+                    .body(requestBody.toString())
+                    .contentType(JSON)
+                    .post("/v5beta/celexpressions/test")
+                    .then()
+                    .statusCode(200)
+                    .log().ifError()
+                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .body(TYPE, is("CelExpressionTestResponse"))
+                    .body("error", nullValue())
+                    .body("evaluationResult", is(true));
+        }
+
+        @Test
+        void test_evaluateFalse(ManagementEndToEndV5TestContext context) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "CelExpressionTestRequest")
+                    .add("leftOperand", "leftOperand")
+                    .add("expression", "ctx.agent.id == 'agent-125'")
+                    .add("rightOperand", "rightOperand")
+                    .add("operator", "EQ")
+                    .add("params", createObjectBuilder().add("agent", createObjectBuilder().add("id", "agent-600")))
+                    .build();
+
+            context.baseRequest(adminToken)
+                    .body(requestBody.toString())
+                    .contentType(JSON)
+                    .post("/v5beta/celexpressions/test")
+                    .then()
+                    .statusCode(200)
+                    .log().ifError()
+                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .body(TYPE, is("CelExpressionTestResponse"))
+                    .body("error", nullValue())
+                    .body("evaluationResult", is(false));
+        }
+
+        @Test
+        void test_evaluationError(ManagementEndToEndV5TestContext context) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "CelExpressionTestRequest")
+                    .add("leftOperand", "leftOperand")
+                    .add("expression", "ctx.agent.id == 'agent-125'")
+                    .add("rightOperand", "rightOperand")
+                    .add("operator", "EQ")
+                    .build();
+
+            context.baseRequest(adminToken)
+                    .body(requestBody.toString())
+                    .contentType(JSON)
+                    .post("/v5beta/celexpressions/test")
+                    .then()
+                    .statusCode(200)
+                    .log().ifError()
+                    .body(CONTEXT, contains(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .body(TYPE, is("CelExpressionTestResponse"))
+                    .body("error", containsString("key 'agent' is not present in map"))
+                    .body("evaluationResult", nullValue());
+        }
     }
 
     @Nested
