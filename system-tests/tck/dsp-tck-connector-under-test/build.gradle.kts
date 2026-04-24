@@ -18,9 +18,10 @@ plugins {
 }
 
 dependencies {
-    api(project(":dist:bom:controlplane-base-bom"))
-    api(project(":dist:bom:dataplane-base-bom"))
-    api(project(":data-protocols:dsp:dsp-2025"))
+    api(project(":dist:bom:controlplane-base-bom")) {
+        exclude("org.eclipse.edc", "data-plane-signaling")
+        exclude("org.eclipse.edc", "data-plane-signaling-oauth2")
+    }
     api(project(":system-tests:tck:tck-extension"))
     runtimeOnly(libs.parsson)
 }

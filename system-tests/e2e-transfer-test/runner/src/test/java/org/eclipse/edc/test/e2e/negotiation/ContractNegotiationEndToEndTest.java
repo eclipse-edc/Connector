@@ -206,7 +206,7 @@ class ContractNegotiationEndToEndTest {
         @RegisterExtension
         static final RuntimeExtension CONSUMER_RUNTIME = ComponentRuntimeExtension.Builder.newInstance()
                 .name(CONSUMER_NAME)
-                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.LEGACY_SIGNALING_MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
                 .paramProvider(ManagementApiClientV4.class, ManagementApiClientV4::forContext)
@@ -215,7 +215,7 @@ class ContractNegotiationEndToEndTest {
         @RegisterExtension
         static final RuntimeExtension PROVIDER_RUNTIME = ComponentRuntimeExtension.Builder.newInstance()
                 .name(PROVIDER_NAME)
-                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.LEGACY_SIGNALING_MODULES)
                 .modules(":core:common:cel-core")
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
@@ -242,7 +242,7 @@ class ContractNegotiationEndToEndTest {
         @RegisterExtension
         static final RuntimeExtension CONSUMER_RUNTIME = ComponentRuntimeExtension.Builder.newInstance()
                 .name(CONSUMER_NAME)
-                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.LEGACY_SIGNALING_MODULES)
                 .modules(Runtimes.ControlPlane.SQL_MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
@@ -253,7 +253,7 @@ class ContractNegotiationEndToEndTest {
         @RegisterExtension
         static final RuntimeExtension PROVIDER_RUNTIME = ComponentRuntimeExtension.Builder.newInstance()
                 .name(PROVIDER_NAME)
-                .modules(Runtimes.ControlPlane.MODULES)
+                .modules(Runtimes.ControlPlane.LEGACY_SIGNALING_MODULES)
                 .modules(Runtimes.ControlPlane.SQL_MODULES)
                 .modules(":core:common:cel-core")
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())

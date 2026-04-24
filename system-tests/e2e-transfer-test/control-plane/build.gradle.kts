@@ -17,9 +17,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":dist:bom:controlplane-base-bom")) {
-        exclude("org.eclipse.edc", "transfer-data-plane-signaling")
-    }
+    implementation(project(":dist:bom:controlplane-base-bom"))
     implementation(project(":extensions:common:iam:iam-mock"))
 }
 

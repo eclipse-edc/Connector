@@ -35,9 +35,11 @@ dependencies {
     api(project(":core:policy-monitor:policy-monitor-core"))
     api(project(":core:federated-catalog-core"))
     api(project(":core:federated-catalog-core-2025"))
-    api(project(":data-protocols:dsp"))
 
-    // extension dependencies
+    api(project(":data-protocols:dsp"))
+    api(project(":data-protocols:data-plane-signaling"))
+    api(project(":data-protocols:data-plane-signaling:data-plane-signaling-oauth2"))
+
     api(project(":extensions:common:console-monitor"))
     api(project(":extensions:common:configuration:configuration-filesystem"))
     api(project(":extensions:common:auth:auth-tokenbased"))
@@ -49,10 +51,10 @@ dependencies {
     api(project(":extensions:common:api:version-api"))
 
     api(project(":extensions:common:http"))
+    api(project(":extensions:common:iam:oauth2:oauth2-client"))
     api(project(":extensions:common:validator:validator-data-address-http-data"))
     api(project(":extensions:control-plane:api:control-plane-api"))
     api(project(":extensions:control-plane:api:management-api"))
-    api(project(":extensions:control-plane:transfer:transfer-data-plane-signaling"))
     api(project(":extensions:data-plane-selector:data-plane-selector-api"))
     api(project(":extensions:data-plane-selector:data-plane-selector-control-api"))
     api(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"))
@@ -61,6 +63,7 @@ dependencies {
     api(project(":extensions:control-plane:callback:callback-static-endpoint"))
     api(project(":extensions:control-plane:edr:edr-store-receiver"))
     api(project(":extensions:federated-catalog:api:federated-catalog-api"))
+
 
 
     // libs

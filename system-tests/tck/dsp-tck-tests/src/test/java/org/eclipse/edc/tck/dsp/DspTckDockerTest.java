@@ -14,9 +14,8 @@
 
 package org.eclipse.edc.tck.dsp;
 
-import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
+import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
-import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
 import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 import org.eclipse.edc.spi.system.configuration.Config;
@@ -39,11 +38,10 @@ import java.time.Duration;
 import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.fail;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 @TckTest
 @Testcontainers
-public abstract class EdcCompatibilityDockerTest {
+public abstract class DspTckDockerTest {
 
     private static final GenericContainer<?> TCK_CONTAINER = new TckContainer<>("eclipsedataspacetck/dsp-tck-runtime:1.0.0-RC6");
 
@@ -74,16 +72,17 @@ public abstract class EdcCompatibilityDockerTest {
         return Path.of(TestUtils.getResource(resource)).toString();
     }
 
-    public static class InMemoryTest extends EdcCompatibilityDockerTest {
+    public static class InMemoryTest extends DspTckDockerTest {
 
         @RegisterExtension
-        protected static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime("CUT",
-                ":system-tests:tck:dsp-tck-connector-under-test"
-        ).configurationProvider(EdcCompatibilityDockerTest::runtimeConfiguration));
-
+        static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
+                .name("CUT")
+                .modules(":system-tests:tck:dsp-tck-connector-under-test")
+                .configurationProvider(DspTckDockerTest::runtimeConfiguration)
+                .build();
     }
 
-    public static class PostgresTest extends EdcCompatibilityDockerTest {
+    public static class PostgresTest extends DspTckDockerTest {
 
         @Order(0)
         @RegisterExtension
@@ -97,33 +96,29 @@ public abstract class EdcCompatibilityDockerTest {
         };
 
         @RegisterExtension
-        protected static RuntimeExtension runtime = new RuntimePerClassExtension(new EmbeddedRuntime(CONNECTOR_UNDER_TEST,
-                ":system-tests:tck:dsp-tck-connector-under-test",
-                ":dist:bom:controlplane-feature-sql-bom"
-        ).configurationProvider(EdcCompatibilityDockerTest::runtimeConfiguration)
-                .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONNECTOR_UNDER_TEST.toLowerCase())));
-
+        static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
+                .name("CUT")
+                .modules(
+                        ":system-tests:tck:dsp-tck-connector-under-test",
+                        ":dist:bom:controlplane-feature-sql-bom"
+                )
+                .configurationProvider(DspTckDockerTest::runtimeConfiguration)
+                .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONNECTOR_UNDER_TEST.toLowerCase()))
+                .build();
     }
 
     protected static Config runtimeConfiguration() {
         return ConfigFactory.fromMap(new HashMap<>() {
             {
                 put("edc.participant.id", "participantContextId");
-                put("web.http.port", "8080");
-                put("web.http.path", "/api");
-                put("web.http.control.port", String.valueOf(getFreePort()));
-                put("web.http.control.path", "/api/control");
                 put("web.http.management.port", "8081");
                 put("web.http.management.path", "/api/management");
                 put("web.http.protocol.port", "8282"); // this must match the configured connector url in resources/docker.tck.properties
                 put("web.http.protocol.path", "/api/dsp"); // this must match the configured connector url in resources/docker.tck.properties
                 put("web.api.auth.key", "password");
                 put("edc.dsp.callback.address", "http://host.docker.internal:8282/api/dsp"); // host.docker.internal is required by the container to communicate with the host
-                put("edc.management.context.enabled", "true");
                 put("edc.hostname", "host.docker.internal");
                 put("edc.component.id", "DSP-compatibility-test");
-                put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");
-                put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
             }
         });
     }

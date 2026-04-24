@@ -31,9 +31,8 @@ public interface Runtimes {
     interface ControlPlane {
         String NAME = "controlplane";
 
-        String[] MODULES = new String[]{
-                ":system-tests:e2e-transfer-test:control-plane",
-                ":extensions:control-plane:transfer:transfer-data-plane-signaling"
+        String[] CONTROL_PLANE_MODULES = new String[]{
+                ":system-tests:e2e-transfer-test:control-plane"
         };
 
         String[] VIRTUAL_MODULES = new String[]{
@@ -54,11 +53,9 @@ public interface Runtimes {
                 ":extensions:control-plane:tasks:nats:subscriber:transfer-tasks-subscriber-nats",
         };
 
-        String[] SIGNALING_MODULES = new String[]{
+        String[] LEGACY_SIGNALING_MODULES = new String[]{
                 ":system-tests:e2e-transfer-test:control-plane",
-                ":data-protocols:data-plane-signaling:data-plane-signaling-core",
-                ":data-protocols:data-plane-signaling:data-plane-signaling-oauth2",
-                ":extensions:common:iam:oauth2:oauth2-client"
+                ":extensions:control-plane:transfer:transfer-data-plane-signaling"
         };
 
         String[] EMBEDDED_DP_MODULES = new String[]{
