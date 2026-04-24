@@ -188,7 +188,6 @@ class VirtualDcpTransferPullEndToEndTest {
         @Order(0)
         static final CredentialServiceEndToEndExtension CREDENTIAL_SERVICE = new CredentialServiceEndToEndExtension();
 
-        // DPS registration
         @RegisterExtension
         @Order(0)
         static final Oauth2Extension OAUTH_SERVER = new Oauth2Extension();

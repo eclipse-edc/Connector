@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.spi.issuerservice;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -42,7 +41,6 @@ import java.util.UUID;
  */
 public class IssuerService {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private final DidDocument didDocument;
     private final String did;
     private ECKey ecKey;
