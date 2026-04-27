@@ -29,6 +29,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.PROVISIONING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
@@ -38,7 +39,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 
 
 /**
- * Contract negotiation guard for TCK testcases.
+ * Transfer Process guard for TCK testcases.
  */
 public class TransferProcessGuard extends DelayedActionGuard<TransferProcess> implements TransferProcessPendingGuard {
     // the states not to apply the guard to - i.e., to allow automatic transitions by the transfer process manager
@@ -48,6 +49,7 @@ public class TransferProcessGuard extends DelayedActionGuard<TransferProcess> im
             SUSPENDING.code(),
             SUSPENDING_REQUESTED.code(),
             RESUMING.code(),
+            RESUMING_REQUESTED.code(),
             COMPLETING.code(),
             COMPLETING_REQUESTED.code(),
             PROVISIONING.code(),
@@ -63,6 +65,8 @@ public class TransferProcessGuard extends DelayedActionGuard<TransferProcess> im
             STARTUP_REQUESTED.code(),
             SUSPENDING.code(),
             SUSPENDING_REQUESTED.code(),
+            RESUMING.code(),
+            RESUMING_REQUESTED.code(),
             COMPLETING.code(),
             COMPLETING_REQUESTED.code(),
             TERMINATING.code(),

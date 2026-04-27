@@ -67,20 +67,12 @@ public interface TransferProcessors {
     CompletableFuture<StatusResult<Void>> processStarting(TransferProcess process);
 
     /**
-     * Process RESUMING transfer for PROVIDER.
+     * Process RESUMING transfer.
      *
      * @param process the RESUMING transfer fetched
      * @return if the transfer has been processed or not
      */
-    CompletableFuture<StatusResult<Void>> processProviderResuming(TransferProcess process);
-
-    /**
-     * Process STARTING transfer that was SUSPENDED
-     *
-     * @param process the STARTING transfer fetched
-     * @return if the transfer has been processed or not
-     */
-    CompletableFuture<StatusResult<Void>> processConsumerResuming(TransferProcess process);
+    CompletableFuture<StatusResult<Void>> processResuming(TransferProcess process);
 
     /**
      * Process COMPLETING transfer<p> Send COMPLETED message to counter-part

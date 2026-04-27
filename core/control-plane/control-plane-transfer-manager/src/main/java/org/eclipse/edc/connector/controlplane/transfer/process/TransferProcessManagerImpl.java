@@ -42,6 +42,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.INITIAL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDING;
@@ -90,8 +91,8 @@ public class TransferProcessManagerImpl extends AbstractStateEntityManager<Trans
                 .processor(processConsumerTransfersInState(STARTUP_REQUESTED, transferProcessors::processStartupRequested))
                 .processor(processTransfersInState(SUSPENDING, transferProcessors::processSuspending))
                 .processor(processTransfersInState(SUSPENDING_REQUESTED, transferProcessors::processSuspending))
-                .processor(processProviderTransfersInState(RESUMING, transferProcessors::processProviderResuming))
-                .processor(processConsumerTransfersInState(RESUMING, transferProcessors::processConsumerResuming))
+                .processor(processTransfersInState(RESUMING, transferProcessors::processResuming))
+                .processor(processTransfersInState(RESUMING_REQUESTED, transferProcessors::processResuming))
                 .processor(processTransfersInState(COMPLETING, transferProcessors::processCompleting))
                 .processor(processTransfersInState(COMPLETING_REQUESTED, transferProcessors::processCompleting))
                 .processor(processTransfersInState(TERMINATING, transferProcessors::processTerminating))

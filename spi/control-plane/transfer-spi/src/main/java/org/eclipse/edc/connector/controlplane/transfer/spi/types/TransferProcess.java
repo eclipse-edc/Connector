@@ -55,6 +55,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
@@ -101,6 +102,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     @Deprecated(since = "0.16.0")
     private DataAddress dataDestination;
     private String dataAddressAlias;
+    private boolean dataAddressOwner;
     private String assetId;
     private String contractId;
     @Deprecated(since = "0.16.0")
@@ -200,14 +202,14 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     }
 
     public boolean canBeStartedConsumer() {
-        return currentStateIsOneOf(STARTED, REQUESTED, STARTING, RESUMED, SUSPENDED, STARTUP_REQUESTED);
+        return currentStateIsOneOf(STARTED, REQUESTED, STARTING, RESUMED, SUSPENDED, STARTUP_REQUESTED, RESUMING);
     }
 
     public void transitionStarted() {
         if (type == CONSUMER) {
             transition(STARTED, state -> canBeStartedConsumer());
         } else {
-            transition(STARTED, STARTED, STARTING, SUSPENDED, RESUMING);
+            transition(STARTED, STARTED, STARTING, SUSPENDED, RESUMING, RESUMED);
         }
     }
 
@@ -233,7 +235,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     public boolean canBeTerminated() {
         return currentStateIsOneOf(INITIAL, PROVISIONING, PREPARATION_REQUESTED, PROVISIONED, REQUESTING, REQUESTED,
                 STARTING, STARTUP_REQUESTED, STARTED, COMPLETING, COMPLETING_REQUESTED, SUSPENDING, SUSPENDING_REQUESTED,
-                SUSPENDED, RESUMING, TERMINATING, TERMINATING_REQUESTED);
+                SUSPENDED, RESUMING, RESUMING_REQUESTED, TERMINATING, TERMINATING_REQUESTED);
     }
 
     public void transitionTerminating(@Nullable String errorDetail) {
@@ -277,11 +279,15 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     }
 
     public void transitionResumed() {
-        transition(RESUMED, state -> currentStateIsOneOf(RESUMING));
+        transition(RESUMED, state -> currentStateIsOneOf(RESUMING, RESUMING_REQUESTED));
     }
 
     public void transitionResuming() {
         transition(RESUMING, state -> true);
+    }
+
+    public void transitionResumingRequested() {
+        transition(RESUMING_REQUESTED, state -> true);
     }
 
     public void transitionSuspended() {
@@ -376,6 +382,14 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
         return dataplaneMetadata;
     }
 
+    public boolean isDataAddressOwner() {
+        return dataAddressOwner;
+    }
+
+    public void setDataAddressOwner() {
+        dataAddressOwner = true;
+    }
+
     @Override
     public TransferProcess copy() {
         var builder = Builder.newInstance()
@@ -395,7 +409,8 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
                 .participantContextId(participantContextId)
                 .dataplaneMetadata(dataplaneMetadata)
                 .dataAddressAlias(dataAddressAlias)
-                .claims(claims);
+                .claims(claims)
+                .dataAddressOwner(dataAddressOwner);
         return copy(builder);
     }
 
@@ -569,6 +584,11 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
 
         public Builder claims(Map<String, Object> claims) {
             entity.claims = claims;
+            return this;
+        }
+
+        public Builder dataAddressOwner(boolean dataAddressOwner) {
+            entity.dataAddressOwner = dataAddressOwner;
             return this;
         }
 

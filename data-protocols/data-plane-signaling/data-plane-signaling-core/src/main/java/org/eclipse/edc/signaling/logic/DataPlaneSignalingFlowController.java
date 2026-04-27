@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
+import org.eclipse.edc.signaling.domain.DataFlowResumeMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartedNotificationMessage;
 import org.eclipse.edc.signaling.domain.DspDataAddress;
@@ -158,6 +159,38 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .flatMap(this::toStatusResult)
                 .map(clientFactory::createClient)
                 .compose(client -> client.suspend(transferProcess.getId()));
+    }
+
+    @Override
+    public StatusResult<DataFlowResponse> resume(TransferProcess transferProcess) {
+        var dataPlaneId = transferProcess.getDataPlaneId();
+        if (dataPlaneId == null) {
+            return StatusResult.fatalError("DataPlane id is null");
+        }
+
+        var builder = DataFlowResumeMessage.Builder.newInstance()
+                .messageId(UUID.randomUUID().toString());
+
+        var dataAddress = transferProcess.isDataAddressOwner()
+                ? dataAddressStore.resolve(transferProcess).orElse(f -> null)
+                : null;
+        if (dataAddress != null) {
+            var dspDataAddressTransformation = typeTransformerRegistry.transform(dataAddress, DspDataAddress.class);
+            if (dspDataAddressTransformation.failed()) {
+                return StatusResult.failure(FATAL_ERROR, dspDataAddressTransformation.getFailureDetail());
+            }
+            builder.dataAddress(dspDataAddressTransformation.getContent());
+        }
+
+        var message = builder.build();
+
+        return selectorClient.findById(dataPlaneId)
+                .flatMap(this::toStatusResult)
+                .map(clientFactory::createClient)
+                .compose(client -> client.resume(transferProcess.getId(), message))
+                .compose(response -> typeTransformerRegistry.transform(response, DataFlowResponse.class)
+                        .<DataFlowResponse, Result<DataFlowResponse>>map(r -> r.toBuilder().dataPlaneId(dataPlaneId).build())
+                        .flatMap(this::toStatusResult));
     }
 
     @Override

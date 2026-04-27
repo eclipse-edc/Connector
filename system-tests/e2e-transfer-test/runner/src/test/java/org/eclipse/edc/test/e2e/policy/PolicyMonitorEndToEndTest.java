@@ -76,13 +76,13 @@ class PolicyMonitorEndToEndTest {
             providerDataPlane.registerControlPlane(createObjectBuilder()
                     .add("controlplaneId", provider.getId())
                     .add("endpoint", provider.getSignalingEndpointUrl().toString())
-                    .add("authorization", createArrayBuilder().add(providerDataPlaneOauth2Profile))
+                    .add("authorization", providerDataPlaneOauth2Profile)
                     .build());
 
             consumerDataPlane.registerControlPlane(createObjectBuilder()
                     .add("controlplaneId", consumer.getId())
                     .add("endpoint", consumer.getSignalingEndpointUrl().toString())
-                    .add("authorization", createArrayBuilder().add(consumerDataPlaneOauth2Profile))
+                    .add("authorization", consumerDataPlaneOauth2Profile)
                     .build());
         }
 
