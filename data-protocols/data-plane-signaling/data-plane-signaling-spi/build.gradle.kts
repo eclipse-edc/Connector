@@ -14,9 +14,18 @@
 
 plugins {
     `java-library`
+    `java-test-fixtures`
 }
 
 dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:data-plane-selector:data-plane-selector-spi"))
+
+    testFixturesImplementation(libs.restAssured)
+    testFixturesImplementation(libs.awaitility)
+    testFixturesImplementation(project(":core:common:junit"))
+    testFixturesImplementation(libs.wiremock) {
+        exclude("com.networknt", "json-schema-validator")
+    }
+    testFixturesImplementation(libs.nimbus.jwt)
 }

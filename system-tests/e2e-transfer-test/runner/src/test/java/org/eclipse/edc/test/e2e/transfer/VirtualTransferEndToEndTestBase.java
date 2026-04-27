@@ -27,9 +27,9 @@ import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDto;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.AuthorizationProfile;
 import org.eclipse.edc.junit.annotations.Runtime;
+import org.eclipse.edc.signaling.auth.Oauth2Extension;
+import org.eclipse.edc.signaling.client.DataPlaneSignalingTestClient;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.test.e2e.dataplane.DataPlaneSignalingClient;
-import org.eclipse.edc.test.e2e.signaling.Oauth2Extension;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -59,8 +59,8 @@ public abstract class VirtualTransferEndToEndTestBase {
     @BeforeAll
     static void beforeAll(ManagementApiClientV5 connectorClient,
                           Participants participants,
-                          @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
-                          @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane,
+                          @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
+                          @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane,
                           Oauth2Extension oauth2) {
         connectorClient.createParticipant(participants.consumer().contextId(), participants.consumer().id(), participants.consumer().config());
         connectorClient.createParticipant(participants.provider().contextId(), participants.provider().id(), participants.provider().config());

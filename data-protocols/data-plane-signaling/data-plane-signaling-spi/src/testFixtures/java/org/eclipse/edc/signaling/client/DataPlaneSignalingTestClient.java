@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.test.e2e.dataplane;
+package org.eclipse.edc.signaling.client;
 
 import io.restassured.http.ContentType;
 import jakarta.json.JsonObject;
@@ -24,10 +24,10 @@ import static jakarta.json.Json.createObjectBuilder;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.equalTo;
 
-public class DataPlaneSignalingClient {
+public class DataPlaneSignalingTestClient {
     private final ComponentRuntimeContext context;
 
-    public DataPlaneSignalingClient(ComponentRuntimeContext context) {
+    public DataPlaneSignalingTestClient(ComponentRuntimeContext context) {
         this.context = context;
     }
 

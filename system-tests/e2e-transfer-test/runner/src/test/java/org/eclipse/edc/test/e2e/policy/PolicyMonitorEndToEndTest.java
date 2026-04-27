@@ -20,11 +20,11 @@ import org.eclipse.edc.junit.annotations.Runtime;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.utils.Endpoints;
+import org.eclipse.edc.signaling.auth.Oauth2Extension;
+import org.eclipse.edc.signaling.client.DataPlaneSignalingTestClient;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.Runtimes;
 import org.eclipse.edc.test.e2e.TransferEndToEndParticipant;
-import org.eclipse.edc.test.e2e.dataplane.DataPlaneSignalingClient;
-import org.eclipse.edc.test.e2e.signaling.Oauth2Extension;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
@@ -55,13 +55,14 @@ import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.PROVIDER_ID;
 
 class PolicyMonitorEndToEndTest {
 
+    @SuppressWarnings("JUnitMalformedDeclaration")
     interface Tests {
 
         @BeforeAll
         static void beforeAll(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
                               @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                              @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
-                              @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane,
+                              @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
+                              @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane,
                               Oauth2Extension oauth2) {
 
             var consumerDataPlaneOauth2Profile = oauth2.registerClient(consumerDataPlane.dataPlaneId());
@@ -89,8 +90,8 @@ class PolicyMonitorEndToEndTest {
         default void shouldTerminateTransfer_whenContractExpires_fixedInForcePeriod(
                 @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
                 @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
-                @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+                @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
+                @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane) {
 
             var now = Instant.now();
             // contract is valid from t-10s to t+10s, so it will be expired after some seconds
@@ -117,8 +118,8 @@ class PolicyMonitorEndToEndTest {
         default void shouldTerminateTransfer_whenContractExpires_durationInForcePeriod(
                 @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
                 @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
-                @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+                @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
+                @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane) {
 
             var now = Instant.now();
             // contract is valid until 5s after agreement
@@ -194,7 +195,7 @@ class PolicyMonitorEndToEndTest {
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
-                .paramProvider(DataPlaneSignalingClient.class, DataPlaneSignalingClient::new)
+                .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
                 .build();
 
         @RegisterExtension
@@ -204,7 +205,7 @@ class PolicyMonitorEndToEndTest {
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
-                .paramProvider(DataPlaneSignalingClient.class, DataPlaneSignalingClient::new)
+                .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
                 .build();
     }
 
@@ -264,7 +265,7 @@ class PolicyMonitorEndToEndTest {
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
-                .paramProvider(DataPlaneSignalingClient.class, DataPlaneSignalingClient::new)
+                .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
                 .build();
 
         @RegisterExtension
@@ -274,7 +275,7 @@ class PolicyMonitorEndToEndTest {
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
-                .paramProvider(DataPlaneSignalingClient.class, DataPlaneSignalingClient::new)
+                .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
                 .build();
     }
 

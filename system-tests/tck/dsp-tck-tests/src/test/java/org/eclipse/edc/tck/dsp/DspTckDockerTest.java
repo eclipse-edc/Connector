@@ -22,6 +22,7 @@ import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.tck.TckTest;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -45,6 +46,26 @@ public abstract class DspTckDockerTest {
 
     private static final GenericContainer<?> TCK_CONTAINER = new TckContainer<>("eclipsedataspacetck/dsp-tck-runtime:1.0.0-RC6");
 
+    protected static Config runtimeConfiguration() {
+        return ConfigFactory.fromMap(new HashMap<>() {
+            {
+                put("edc.participant.id", "participantContextId");
+                put("web.http.management.port", "8081");
+                put("web.http.management.path", "/api/management");
+                put("web.http.protocol.port", "8282"); // this must match the configured connector url in resources/docker.tck.properties
+                put("web.http.protocol.path", "/api/dsp"); // this must match the configured connector url in resources/docker.tck.properties
+                put("web.api.auth.key", "password");
+                put("edc.dsp.callback.address", "http://host.docker.internal:8282/api/dsp"); // host.docker.internal is required by the container to communicate with the host
+                put("edc.hostname", "host.docker.internal");
+                put("edc.component.id", "DSP-compatibility-test");
+            }
+        });
+    }
+
+    protected @NonNull String getConfigFile() {
+        return "docker.tck.properties";
+    }
+
     @Timeout(300)
     @Test
     void assertDspCompatibility() {
@@ -53,7 +74,7 @@ public abstract class DspTckDockerTest {
         var monitor = new ConsoleMonitor(">>> TCK Runtime (Docker)", ConsoleMonitor.Level.INFO, true);
         var reporter = new TckTestReporter();
 
-        TCK_CONTAINER.addFileSystemBind(resourceConfig("docker.tck.properties"), "/etc/tck/config.properties", BindMode.READ_ONLY, SelinuxContext.SINGLE);
+        TCK_CONTAINER.addFileSystemBind(resourceConfig(getConfigFile()), "/etc/tck/config.properties", BindMode.READ_ONLY, SelinuxContext.SINGLE);
         TCK_CONTAINER.addFileSystemBind(resourceConfig("dspace-edc-context-v1.jsonld"), "/etc/tck/dspace-edc-context-v1.jsonld", BindMode.READ_ONLY, SelinuxContext.SINGLE);
         TCK_CONTAINER.withExtraHost("host.docker.internal", "host-gateway");
         TCK_CONTAINER.withLogConsumer(outputFrame -> monitor.info(outputFrame.getUtf8String()));
@@ -105,22 +126,6 @@ public abstract class DspTckDockerTest {
                 .configurationProvider(DspTckDockerTest::runtimeConfiguration)
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONNECTOR_UNDER_TEST.toLowerCase()))
                 .build();
-    }
-
-    protected static Config runtimeConfiguration() {
-        return ConfigFactory.fromMap(new HashMap<>() {
-            {
-                put("edc.participant.id", "participantContextId");
-                put("web.http.management.port", "8081");
-                put("web.http.management.path", "/api/management");
-                put("web.http.protocol.port", "8282"); // this must match the configured connector url in resources/docker.tck.properties
-                put("web.http.protocol.path", "/api/dsp"); // this must match the configured connector url in resources/docker.tck.properties
-                put("web.api.auth.key", "password");
-                put("edc.dsp.callback.address", "http://host.docker.internal:8282/api/dsp"); // host.docker.internal is required by the container to communicate with the host
-                put("edc.hostname", "host.docker.internal");
-                put("edc.component.id", "DSP-compatibility-test");
-            }
-        });
     }
 }
 
