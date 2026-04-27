@@ -79,6 +79,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTUP_REQUESTED;
@@ -191,6 +192,7 @@ class TransferProcessManagerImplTest {
         when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(result);
         when(transferProcessStore.findById(transferProcess.getId())).thenReturn(transferProcess);
         when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponseBuilder().build()));
+        when(dataFlowController.resume(any())).thenReturn(StatusResult.success(dataFlowResponseBuilder().build()));
         when(dataFlowController.suspend(any())).thenReturn(StatusResult.success());
         when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
         when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
@@ -256,24 +258,24 @@ class TransferProcessManagerImplTest {
                     new DispatchFailure(STARTING, STARTING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER)),
                     new DispatchFailure(COMPLETING, COMPLETING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
                     new DispatchFailure(SUSPENDING, SUSPENDING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(RESUMING, RESUMING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER)),
-                    new DispatchFailure(RESUMING, RESUMING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(CONSUMER)),
+                    new DispatchFailure(RESUMING, RESUMING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER).dataAddressOwner(true)),
+                    new DispatchFailure(RESUMING_REQUESTED, RESUMING_REQUESTED, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(CONSUMER)),
                     new DispatchFailure(TERMINATING, TERMINATING, genericError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
                     // retries exhausted
                     new DispatchFailure(REQUESTING, TERMINATED, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
                     new DispatchFailure(STARTING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(PROVIDER)),
                     new DispatchFailure(COMPLETING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
                     new DispatchFailure(SUSPENDING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
-                    new DispatchFailure(RESUMING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(CONSUMER)),
-                    new DispatchFailure(RESUMING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(PROVIDER)),
+                    new DispatchFailure(RESUMING, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(PROVIDER).dataAddressOwner(true)),
+                    new DispatchFailure(RESUMING_REQUESTED, TERMINATING, genericError, b -> b.stateCount(RETRIES_EXHAUSTED).type(CONSUMER)),
                     new DispatchFailure(TERMINATING, TERMINATED, genericError, b -> b.stateCount(RETRIES_EXHAUSTED)),
                     // fatal error, in this case retry should never be done
                     new DispatchFailure(REQUESTING, TERMINATED, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
                     new DispatchFailure(STARTING, TERMINATING, fatalError, b -> b.type(PROVIDER).stateCount(RETRIES_NOT_EXHAUSTED)),
                     new DispatchFailure(COMPLETING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
                     new DispatchFailure(SUSPENDING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED)),
-                    new DispatchFailure(RESUMING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(CONSUMER)),
-                    new DispatchFailure(RESUMING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER)),
+                    new DispatchFailure(RESUMING, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(PROVIDER).dataAddressOwner(true)),
+                    new DispatchFailure(RESUMING_REQUESTED, TERMINATING, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED).type(CONSUMER)),
                     new DispatchFailure(TERMINATING, TERMINATED, fatalError, b -> b.stateCount(RETRIES_NOT_EXHAUSTED))
             );
         }
@@ -772,25 +774,21 @@ class TransferProcessManagerImplTest {
             when(dispatcherRegistry.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
             var dataAddress = DataAddress.Builder.newInstance().type("type").build();
             when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(dataAddress));
-            when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
 
             manager.start();
 
             await().untilAsserted(() -> {
                 var messageCaptor = ArgumentCaptor.forClass(TransferStartMessage.class);
-                var storedCaptor = ArgumentCaptor.forClass(TransferProcess.class);
                 verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
                 verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), messageCaptor.capture());
-                verify(transferProcessStore).save(storedCaptor.capture());
+                verify(transferProcessStore).save(argThat(t -> t.getState() == STARTED.code()));
                 verify(listener).started(eq(process), any());
                 var message = messageCaptor.getValue();
                 assertThat(message.getProcessId()).isEqualTo(process.getCorrelationId());
                 assertThat(message.getConsumerPid()).isEqualTo(process.getCorrelationId());
                 assertThat(message.getProviderPid()).isEqualTo(process.getId());
                 assertThat(message.getDataAddress()).isSameAs(dataAddress);
-                var transferProcess = storedCaptor.getValue();
-                assertThat(transferProcess.getState()).isEqualTo(STARTED.code());
-                verify(dataAddressStore).store(dataAddress, transferProcess);
+                verify(dataAddressStore, never()).store(any(), any());
             });
         }
 
@@ -822,13 +820,13 @@ class TransferProcessManagerImplTest {
     class ResumingProvider {
 
         @Test
-        void shouldStartDataTransferAndSendMessageToConsumer() {
-            var process = createTransferProcess(RESUMING).toBuilder().type(PROVIDER).build();
+        void shouldResumeDataFlowAndSendMessageToConsumer() {
+            var process = createTransferProcess(RESUMING).toBuilder().type(PROVIDER).dataAddressOwner(true).build();
             var dataFlowResponse = dataFlowResponseBuilder().build();
             when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
-            when(transferProcessStore.nextNotLeased(anyInt(), providerStateIs(RESUMING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(RESUMING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process);
-            when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(dataFlowResponse));
+            when(dataFlowController.resume(any())).thenReturn(StatusResult.success(dataFlowResponse));
             when(dispatcherRegistry.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
             when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
 
@@ -838,9 +836,7 @@ class TransferProcessManagerImplTest {
                 var captor = ArgumentCaptor.forClass(TransferStartMessage.class);
                 verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
                 verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), captor.capture());
-                var transferCaptor = ArgumentCaptor.forClass(TransferProcess.class);
-                verify(transferProcessStore).save(transferCaptor.capture());
-                assertThat(transferCaptor.getValue().stateAsString()).isEqualTo(STARTED.name());
+                verify(transferProcessStore).save(argThat(t -> t.getState() == STARTED.code()));
                 verify(listener).started(eq(process), any());
                 var message = captor.getValue();
                 assertThat(message.getProcessId()).isEqualTo(process.getCorrelationId());
@@ -856,12 +852,32 @@ class TransferProcessManagerImplTest {
     class ResumingConsumer {
 
         @Test
-        void shouldSendMessageToProviderAndTransitionToResumed() {
-            var process = createTransferProcess(RESUMING).toBuilder().type(CONSUMER).build();
-            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
-            when(transferProcessStore.nextNotLeased(anyInt(), consumerStateIs(RESUMING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+        void shouldSkipDispatchAndTransitionToStarted() {
+            var process = createTransferProcess(RESUMING).toBuilder().type(CONSUMER).dataAddressOwner(false).build();
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(RESUMING.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
             when(transferProcessStore.findById(process.getId())).thenReturn(process);
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+            when(dataFlowController.resume(any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
+
+            manager.start();
+
+            await().untilAsserted(() -> {
+                verifyNoInteractions(dispatcherRegistry);
+                verify(transferProcessStore).save(argThat(p -> p.getState() == STARTED.code()));
+                verify(listener).started(eq(process), any());
+            });
+        }
+    }
+
+    @Nested
+    class ResumingRequested {
+
+        @Test
+        void shouldSendMessageToProviderAndTransitionToResumed() {
+            var process = createTransferProcessBuilder(RESUMING_REQUESTED).type(CONSUMER).build();
+            when(policyArchive.findPolicyForContract(anyString())).thenReturn(Policy.Builder.newInstance().build());
+            when(transferProcessStore.nextNotLeased(anyInt(), stateIs(RESUMING_REQUESTED.code()))).thenReturn(List.of(process)).thenReturn(emptyList());
+            when(transferProcessStore.findById(process.getId())).thenReturn(process);
+            when(dispatcherRegistry.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
 
             manager.start();
 
@@ -874,6 +890,9 @@ class TransferProcessManagerImplTest {
                 assertThat(message.getProcessId()).isEqualTo(process.getCorrelationId());
                 assertThat(message.getProviderPid()).isEqualTo(process.getCorrelationId());
                 assertThat(message.getConsumerPid()).isEqualTo(process.getId());
+                assertThat(message.getDataAddress()).isNull();
+                verifyNoInteractions(dataFlowController);
+                verify(dataAddressStore, never()).store(any(), any());
             });
         }
     }

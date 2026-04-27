@@ -50,6 +50,11 @@ class NoOpDataFlowController implements DataFlowController {
     }
 
     @Override
+    public StatusResult<DataFlowResponse> resume(TransferProcess transferProcess) {
+        return StatusResult.success(DataFlowResponse.Builder.newInstance().build());
+    }
+
+    @Override
     public StatusResult<Void> terminate(TransferProcess transferProcess) {
         return StatusResult.success();
     }

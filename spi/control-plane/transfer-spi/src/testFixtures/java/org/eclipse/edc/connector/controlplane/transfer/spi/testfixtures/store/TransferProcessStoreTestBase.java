@@ -93,6 +93,7 @@ public abstract class TransferProcessStoreTestBase {
                     .dataplaneMetadata(dataplaneMetadata)
                     .dataAddressAlias("dataAddressAlias")
                     .claims(Map.of("claim", "value"))
+                    .dataAddressOwner(true)
                     .build();
             getTransferProcessStore().save(transferProcess);
 

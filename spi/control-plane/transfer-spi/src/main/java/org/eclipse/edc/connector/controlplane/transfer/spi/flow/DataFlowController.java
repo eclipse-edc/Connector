@@ -67,6 +67,14 @@ public interface DataFlowController {
     StatusResult<Void> suspend(TransferProcess transferProcess);
 
     /**
+     * Resume a data flow.
+     *
+     * @param transferProcess the transfer process.
+     * @return success if the flow is resumed correctly, failure otherwise;
+     */
+    StatusResult<DataFlowResponse> resume(TransferProcess transferProcess);
+
+    /**
      * Terminate a data flow.
      *
      * @param transferProcess the transfer process.

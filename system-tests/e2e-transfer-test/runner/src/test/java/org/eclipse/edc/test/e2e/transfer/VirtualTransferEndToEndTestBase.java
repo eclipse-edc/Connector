@@ -93,13 +93,13 @@ public abstract class VirtualTransferEndToEndTestBase {
         providerDataPlane.registerControlPlane(createObjectBuilder()
                 .add("controlplaneId", participants.provider().contextId())
                 .add("endpoint", participants.provider().getSignalingEndpointUrl())
-                .add("authorization", createArrayBuilder().add(providerDataPlaneOauth2Profile))
+                .add("authorization", providerDataPlaneOauth2Profile)
                 .build());
 
         consumerDataPlane.registerControlPlane(createObjectBuilder()
                 .add("controlplaneId", participants.consumer().contextId())
                 .add("endpoint", participants.consumer().getSignalingEndpointUrl())
-                .add("authorization", createArrayBuilder().add(consumerDataPlaneOauth2Profile))
+                .add("authorization", consumerDataPlaneOauth2Profile)
                 .build());
     }
 

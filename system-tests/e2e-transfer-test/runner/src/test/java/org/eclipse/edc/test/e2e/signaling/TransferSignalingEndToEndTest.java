@@ -77,13 +77,13 @@ interface TransferSignalingEndToEndTest {
         providerDataPlane.registerControlPlane(createObjectBuilder()
                 .add("controlplaneId", provider.getId())
                 .add("endpoint", provider.getSignalingEndpointUrl().toString())
-                .add("authorization", createArrayBuilder().add(providerDataPlaneOauth2Profile))
+                .add("authorization", providerDataPlaneOauth2Profile)
                 .build());
 
         consumerDataPlane.registerControlPlane(createObjectBuilder()
                 .add("controlplaneId", consumer.getId())
                 .add("endpoint", consumer.getSignalingEndpointUrl().toString())
-                .add("authorization", createArrayBuilder().add(consumerDataPlaneOauth2Profile))
+                .add("authorization", consumerDataPlaneOauth2Profile)
                 .build());
     }
 
@@ -165,10 +165,10 @@ interface TransferSignalingEndToEndTest {
     }
 
     @Test
-    default void shouldSuspendAndResumeFromProvider(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
-                                                    @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                                    @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
-                                                    @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane) {
+    default void shouldSuspendAndResumePullTransferByProvider(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
+                                                              @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                              @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
+                                                              @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane) {
 
         var assetId = createOffer(provider);
         var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
@@ -196,10 +196,41 @@ interface TransferSignalingEndToEndTest {
     }
 
     @Test
-    default void shouldSuspendAndResumeFromConsumer(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
-                                                    @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                                    @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
-                                                    @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane) {
+    default void shouldSuspendAndResumePullTransferByConsumer(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
+                                                              @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                              @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
+                                                              @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane) {
+
+        var assetId = createOffer(provider);
+        var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
+                .withTransferType("NonFinite-PULL").execute();
+
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+        var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
+        provider.awaitTransferToBeInState(providerTransferProcessId, STARTED);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
+
+        consumer.suspendTransfer(consumerTransferProcessId, "any reason");
+
+        provider.awaitTransferToBeInState(providerTransferProcessId, SUSPENDED);
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, SUSPENDED);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "SUSPENDED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "SUSPENDED");
+
+        consumer.resumeTransfer(consumerTransferProcessId);
+
+        provider.awaitTransferToBeInState(providerTransferProcessId, STARTED);
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
+    }
+
+    @Test
+    default void shouldSuspendAndResumePushTransferByConsumer(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
+                                                              @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                              @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
+                                                              @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane) {
 
         var assetId = createOffer(provider);
         var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
@@ -219,6 +250,37 @@ interface TransferSignalingEndToEndTest {
         providerDataPlane.awaitFlowToBe(providerTransferProcessId, "SUSPENDED");
 
         consumer.resumeTransfer(consumerTransferProcessId);
+
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+        provider.awaitTransferToBeInState(providerTransferProcessId, STARTED);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
+    }
+
+    @Test
+    default void shouldSuspendAndResumePushTransferByProvider(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
+                                                              @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
+                                                              @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
+                                                              @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane) {
+
+        var assetId = createOffer(provider);
+        var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
+                .withTransferType("NonFinite-PUSH").execute();
+
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
+        var providerTransferProcessId = provider.getTransferProcessIdGivenCounterPartyOne(consumerTransferProcessId);
+        provider.awaitTransferToBeInState(providerTransferProcessId, STARTED);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "STARTED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "STARTED");
+
+        provider.suspendTransfer(providerTransferProcessId, "any reason");
+
+        consumer.awaitTransferToBeInState(consumerTransferProcessId, SUSPENDED);
+        provider.awaitTransferToBeInState(providerTransferProcessId, SUSPENDED);
+        consumerDataPlane.awaitFlowToBe(consumerTransferProcessId, "SUSPENDED");
+        providerDataPlane.awaitFlowToBe(providerTransferProcessId, "SUSPENDED");
+
+        provider.resumeTransfer(providerTransferProcessId);
 
         consumer.awaitTransferToBeInState(consumerTransferProcessId, STARTED);
         provider.awaitTransferToBeInState(providerTransferProcessId, STARTED);

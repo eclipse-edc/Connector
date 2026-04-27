@@ -55,7 +55,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.contractExpiresIn;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -133,29 +132,6 @@ public class TransferStreamingEndToEndTest {
 
                 consumer.awaitTransferToBeInState(transferProcessId, TERMINATED);
                 assertNoMoreMessagesAreSentTo(kafkaConsumer);
-            }
-        }
-
-        @Test
-        void shouldSuspendAndResumeTransfer(@Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                            @Runtime(PROVIDER_CP) TransferEndToEndParticipant provider) {
-            try (var kafkaConsumer = getKafkaExtension().createKafkaConsumer()) {
-                kafkaConsumer.subscribe(List.of(sinkTopic));
-
-                var assetId = UUID.randomUUID().toString();
-                createResourcesOnProvider(provider, assetId, kafkaSourceProperty(getKafkaExtension().getBootstrapServers()));
-
-                var transferProcessId = consumer.requestAssetFrom(assetId, provider)
-                        .withDestination(kafkaSink(getKafkaExtension().getBootstrapServers())).withTransferType("Kafka-PUSH").execute();
-                assertMessagesAreSentTo(kafkaConsumer);
-
-                consumer.suspendTransfer(transferProcessId, "any kind of reason");
-                consumer.awaitTransferToBeInState(transferProcessId, SUSPENDED);
-                assertNoMoreMessagesAreSentTo(kafkaConsumer);
-
-                consumer.resumeTransfer(transferProcessId);
-                consumer.awaitTransferToBeInState(transferProcessId, STARTED);
-                assertMessagesAreSentTo(kafkaConsumer);
             }
         }
 
