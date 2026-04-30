@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
+import org.eclipse.edc.signaling.domain.DataFlowResumeMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
 import org.eclipse.edc.signaling.domain.DspDataAddress;
@@ -390,6 +391,87 @@ public class DataPlaneSignalingFlowControllerTest {
                     .build();
 
             var result = flowController.suspend(transferProcess);
+
+            assertThat(result).isFailed();
+            verifyNoInteractions(dataPlaneClient, clientFactory, selectorService);
+        }
+
+    }
+
+    @Nested
+    class Resume {
+
+        @Test
+        void shouldCallResumeWithoutDataAddress_whenTransferDoesntOwnDataAddress() {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId("dataPlaneId")
+                    .dataAddressOwner(false)
+                    .build();
+            when(dataPlaneClient.resume(any(), any())).thenReturn(StatusResult.success(DataFlowStatusMessage.Builder.newInstance().build()));
+            var dataPlaneInstance = dataPlaneInstanceBuilder().id("dataPlaneId").build();
+            when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            when(selectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            var response = DataFlowResponse.Builder.newInstance().dataPlaneId("dataPlaneId").dataAddress(testDataAddress()).build();
+            when(typeTransformerRegistry.transform(isA(DataFlowStatusMessage.class), any())).thenReturn(Result.success(response));
+
+            var result = flowController.resume(transferProcess);
+
+            assertThat(result).isSucceeded();
+            verify(dataPlaneClient).resume(eq("transferProcessId"), isA(DataFlowResumeMessage.class));
+            verify(clientFactory).createClient(dataPlaneInstance);
+            verifyNoInteractions(dataAddressStore);
+        }
+
+        @Test
+        void shouldCallResumeWithDataAddress_whenTransferOwnsDataAddress() {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("transferProcessId")
+                    .dataPlaneId("dataPlaneId")
+                    .dataAddressOwner(true)
+                    .build();
+            when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(testDataAddress()));
+            when(dataPlaneClient.resume(any(), any())).thenReturn(StatusResult.success(DataFlowStatusMessage.Builder.newInstance().build()));
+            var dataPlaneInstance = dataPlaneInstanceBuilder().id("dataPlaneId").build();
+            when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
+            when(selectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
+            var dspDataAddress = createDspDataAddress();
+            when(typeTransformerRegistry.transform(isA(DataAddress.class), any())).thenReturn(Result.success(dspDataAddress));
+            var response = DataFlowResponse.Builder.newInstance().dataPlaneId("dataPlaneId").dataAddress(testDataAddress()).build();
+            when(typeTransformerRegistry.transform(isA(DataFlowStatusMessage.class), any())).thenReturn(Result.success(response));
+
+            var result = flowController.resume(transferProcess);
+
+            assertThat(result).isSucceeded();
+            verify(dataPlaneClient).resume(eq("transferProcessId"), argThat(message -> message.getDataAddress().equals(dspDataAddress)));
+            verify(clientFactory).createClient(dataPlaneInstance);
+        }
+
+        @Test
+        void shouldFail_whenDataPlaneDoesNotExist() {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId("invalid")
+                    .build();
+            when(selectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
+
+            var result = flowController.resume(transferProcess);
+
+            assertThat(result).isFailed();
+            verifyNoInteractions(dataPlaneClient, clientFactory);
+        }
+
+        @Test
+        void shouldFail_whenDataPlaneIdIsNull() {
+            var transferProcess = TransferProcess.Builder.newInstance()
+                    .id("transferProcessId")
+                    .contentDataAddress(testDataAddress())
+                    .dataPlaneId(null)
+                    .build();
+
+            var result = flowController.resume(transferProcess);
 
             assertThat(result).isFailed();
             verifyNoInteractions(dataPlaneClient, clientFactory, selectorService);

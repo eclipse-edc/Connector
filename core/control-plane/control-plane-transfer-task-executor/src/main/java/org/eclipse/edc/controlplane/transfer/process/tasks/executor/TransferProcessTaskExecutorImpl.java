@@ -167,11 +167,7 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
     }
 
     private StatusResult<Void> handleResumeDataflow(TransferProcess process) {
-        if (process.getType() == CONSUMER) {
-            return invokeProcessor(process, transferProcessors::processConsumerResuming);
-        } else {
-            return invokeProcessor(process, transferProcessors::processProviderResuming);
-        }
+        return invokeProcessor(process, transferProcessors::processResuming);
     }
 
     private StatusResult<Void> handleTerminateDataflow(TransferProcess process) {

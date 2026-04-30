@@ -44,7 +44,11 @@ public class ResumeTransferCommandHandler extends EntityCommandHandler<ResumeTra
     @Override
     protected boolean modify(TransferProcess process, ResumeTransferCommand command) {
         if (process.currentStateIsOneOf(SUSPENDED)) {
-            process.transitionResuming();
+            if (process.isDataAddressOwner()) {
+                process.transitionResuming();
+            } else {
+                process.transitionResumingRequested();
+            }
             return true;
         }
 

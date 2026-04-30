@@ -75,6 +75,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.STARTING;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
@@ -142,6 +143,7 @@ class TransferProcessTaskExecutorImplTest {
         when(dataFlowController.started(any())).thenReturn(StatusResult.success());
         when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
         when(dataFlowController.start(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
+        when(dataFlowController.resume(any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
         when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
         when(dataFlowController.suspend(any())).thenReturn(StatusResult.success());
         when(addressResolver.resolveForAsset(any())).thenReturn(DataAddress.Builder.newInstance().type("type").build());
@@ -317,7 +319,8 @@ class TransferProcessTaskExecutorImplTest {
                     arguments(baseBuilder(SendTransferRequest.Builder.newInstance(), id, REQUESTING, CONSUMER).build(), REQUESTED),
                     arguments(baseBuilder(SignalDataflowStarted.Builder.newInstance(), id, REQUESTED, CONSUMER).build(), STARTED),
                     arguments(baseBuilder(SuspendDataFlow.Builder.newInstance(), id, SUSPENDING, CONSUMER).build(), SUSPENDED),
-                    arguments(baseBuilder(ResumeDataFlow.Builder.newInstance(), id, RESUMING, CONSUMER).build(), RESUMED),
+                    arguments(baseBuilder(ResumeDataFlow.Builder.newInstance(), id, RESUMING, CONSUMER).build(), STARTED),
+                    arguments(baseBuilder(ResumeDataFlow.Builder.newInstance(), id, RESUMING_REQUESTED, CONSUMER).build(), RESUMED),
                     arguments(baseBuilder(TerminateDataFlow.Builder.newInstance(), id, TERMINATING, CONSUMER).build(), TERMINATED),
                     arguments(baseBuilder(CompleteDataFlow.Builder.newInstance(), id, COMPLETING, CONSUMER).build(), COMPLETED),
 
@@ -325,6 +328,7 @@ class TransferProcessTaskExecutorImplTest {
                     arguments(baseBuilder(SendTransferStart.Builder.newInstance(), id, STARTING, PROVIDER).build(), STARTED),
                     arguments(baseBuilder(SuspendDataFlow.Builder.newInstance(), id, SUSPENDING, PROVIDER).build(), SUSPENDED),
                     arguments(baseBuilder(ResumeDataFlow.Builder.newInstance(), id, RESUMING, PROVIDER).build(), STARTED),
+                    arguments(baseBuilder(ResumeDataFlow.Builder.newInstance(), id, RESUMING_REQUESTED, PROVIDER).build(), RESUMED),
                     arguments(baseBuilder(TerminateDataFlow.Builder.newInstance(), id, TERMINATING, PROVIDER).build(), TERMINATED),
                     arguments(baseBuilder(CompleteDataFlow.Builder.newInstance(), id, COMPLETING, PROVIDER).build(), COMPLETED)
             );
