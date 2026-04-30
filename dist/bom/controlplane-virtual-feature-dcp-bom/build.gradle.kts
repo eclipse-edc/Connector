@@ -17,13 +17,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":dist:bom:controlplane-feature-sql-bom")) {
-        exclude("org.eclipse.edc", "edr-index-sql")
-    }
-    api(project(":extensions:control-plane:store:sql:participantcontext-store-sql"))
-    api(project(":extensions:control-plane:store:sql:participantcontext-config-store-sql"))
-    api(project(":extensions:common:store:sql:cel-store-sql"))
-    api(project(":extensions:common:store:sql:task-store-sql"))
+    api(project(":dist:bom:controlplane-feature-dcp-bom"))
+    api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-cel"))
 }
 
 edcBuild {

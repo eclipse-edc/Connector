@@ -468,7 +468,6 @@ public class CelExpressionApiV5EndToEndTest {
         static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
                 .name(Runtimes.ControlPlane.NAME)
                 .modules(Runtimes.ControlPlane.VIRTUAL_MODULES)
-                .modules(Runtimes.ControlPlane.SQL_MODULES)
                 .modules(Runtimes.ControlPlane.VIRTUAL_SQL_MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)

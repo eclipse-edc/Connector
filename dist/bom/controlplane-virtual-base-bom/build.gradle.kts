@@ -55,6 +55,7 @@ dependencies {
     api(project(":extensions:control-plane:api:management-api-v5"))
     api(project(":extensions:common:api:management-api-authorization"))
     api(project(":extensions:common:api:management-api-oauth2-authentication"))
+    api(project(":extensions:common:encryption:aes-encryption"))
     api(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"))
     api(project(":extensions:control-plane:callback:callback-event-dispatcher"))
     api(project(":extensions:control-plane:callback:callback-http-dispatcher"))
