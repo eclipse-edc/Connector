@@ -163,7 +163,6 @@ public class VirtualDspTckDockerTest extends DspTckDockerTest {
 
         String[] MODULES = new String[]{
                 ":dist:bom:controlplane-virtual-base-bom",
-                ":dist:bom:controlplane-feature-sql-bom",
                 ":dist:bom:controlplane-virtual-feature-sql-bom",
                 ":dist:bom:controlplane-virtual-feature-nats-bom",
                 ":extensions:common:iam:iam-mock",

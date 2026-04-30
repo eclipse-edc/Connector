@@ -36,7 +36,7 @@ public interface Runtimes {
         };
 
         String[] VIRTUAL_MODULES = new String[]{
-                ":system-tests:management-api:management-api-test-virtual-runtime"
+                ":dist:bom:controlplane-virtual-base-bom"
         };
 
         String[] IAM_MOCK = new String[]{
@@ -44,17 +44,11 @@ public interface Runtimes {
         };
 
         String[] VIRTUAL_SQL_MODULES = new String[]{
-                ":extensions:common:store:sql:cel-store-sql",
-                ":extensions:common:store:sql:task-store-sql",
-                ":extensions:control-plane:store:sql:participantcontext-store-sql",
-                ":extensions:control-plane:store:sql:participantcontext-config-store-sql",
+                ":dist:bom:controlplane-virtual-feature-sql-bom",
         };
 
         String[] VIRTUAL_NATS_MODULES = new String[]{
-                ":extensions:control-plane:tasks:nats:publisher:negotiation-tasks-publisher-nats",
-                ":extensions:control-plane:tasks:nats:publisher:transfer-tasks-publisher-nats",
-                ":extensions:control-plane:tasks:nats:subscriber:negotiation-tasks-subscriber-nats",
-                ":extensions:control-plane:tasks:nats:subscriber:transfer-tasks-subscriber-nats",
+                ":dist:bom:controlplane-virtual-feature-nats-bom",
         };
 
         String[] LEGACY_SIGNALING_MODULES = new String[]{
@@ -71,13 +65,10 @@ public interface Runtimes {
         String[] SQL_MODULES = new String[]{
                 ":dist:bom:controlplane-feature-sql-bom",
         };
-
-        String[] DCP_MODULES = new String[]{
-                ":dist:bom:controlplane-feature-dcp-bom",
-        };
+        
 
         String[] VIRTUAL_DCP_MODULES = new String[]{
-                ":extensions:common:iam:decentralized-claims:decentralized-claims-cel"
+                ":dist:bom:controlplane-virtual-feature-dcp-bom",
         };
 
         Endpoints.Builder ENDPOINTS = Endpoints.Builder.newInstance()

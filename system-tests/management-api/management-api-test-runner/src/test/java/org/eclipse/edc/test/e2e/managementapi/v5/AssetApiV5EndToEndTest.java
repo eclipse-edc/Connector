@@ -853,7 +853,7 @@ public class AssetApiV5EndToEndTest {
         static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
                 .name(Runtimes.ControlPlane.NAME)
                 .modules(Runtimes.ControlPlane.VIRTUAL_MODULES)
-                .modules(Runtimes.ControlPlane.SQL_MODULES)
+                .modules(Runtimes.ControlPlane.VIRTUAL_SQL_MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.ControlPlane::config)
                 .configurationProvider(() -> POSTGRES_EXTENSION.configFor(Runtimes.ControlPlane.NAME.toLowerCase()))

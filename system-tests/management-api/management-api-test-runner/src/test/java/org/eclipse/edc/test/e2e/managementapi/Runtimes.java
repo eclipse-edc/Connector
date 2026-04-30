@@ -36,8 +36,9 @@ public interface Runtimes {
         };
 
         String[] VIRTUAL_MODULES = new String[]{
-                ":system-tests:management-api:management-api-test-virtual-runtime",
+                ":dist:bom:controlplane-virtual-base-bom",
                 ":extensions:common:iam:iam-mock"
+
         };
 
         String[] SQL_MODULES = new String[]{
@@ -45,10 +46,9 @@ public interface Runtimes {
         };
 
         String[] VIRTUAL_SQL_MODULES = new String[]{
-                ":extensions:common:store:sql:cel-store-sql",
-                ":extensions:control-plane:store:sql:participantcontext-store-sql",
-                ":extensions:control-plane:store:sql:participantcontext-config-store-sql",
+                ":dist:bom:controlplane-virtual-feature-sql-bom",
         };
+
 
         Endpoints.Builder ENDPOINTS = Endpoints.Builder.newInstance()
                 .endpoint(MANAGEMENT, () -> URI.create("http://localhost:" + getFreePort() + "/management"))

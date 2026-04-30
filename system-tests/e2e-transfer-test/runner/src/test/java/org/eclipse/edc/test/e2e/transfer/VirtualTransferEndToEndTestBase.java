@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.Trans
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participants;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.ManagementApiClientV5;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.AssetDto;
-import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.DataAddressDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.DataPlaneRegistrationDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PermissionDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDefinitionDto;
@@ -35,6 +34,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static jakarta.json.Json.createArrayBuilder;
@@ -255,7 +255,7 @@ public abstract class VirtualTransferEndToEndTestBase {
     }
 
     private String setup(ManagementApiClientV5 connectorClient, Participants.Participant provider) {
-        var asset = new AssetDto(new DataAddressDto("HttpData"));
+        var asset = new AssetDto(Map.of());
 
         var permissions = List.of(new PermissionDto());
         var policyDef = new PolicyDefinitionDto(new PolicyDto(permissions));

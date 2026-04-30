@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.controlplane.test.system.utils.client.Managemen
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.AssetDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.AtomicConstraintDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.CelExpressionDto;
-import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.DataAddressDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PermissionDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDefinitionDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDto;
@@ -169,7 +168,7 @@ class VirtualDcpTransferPullEndToEndTest {
         }
 
         private String setup(ManagementApiClientV5 connectorClient, Participants.Participant provider, PolicyDto policy) {
-            var asset = new AssetDto(new DataAddressDto("HttpData"));
+            var asset = new AssetDto(Map.of());
             var policyDef = new PolicyDefinitionDto(policy);
 
             return connectorClient.setupResources(provider.contextId(), asset, policyDef, policyDef);
@@ -214,10 +213,8 @@ class VirtualDcpTransferPullEndToEndTest {
         static final RuntimeExtension CONTROL_PLANE = ComponentRuntimeExtension.Builder.newInstance()
                 .name(Runtimes.ControlPlane.NAME)
                 .modules(Runtimes.ControlPlane.VIRTUAL_MODULES)
-                .modules(Runtimes.ControlPlane.SQL_MODULES)
-                .modules(Runtimes.ControlPlane.DCP_MODULES)
-                .modules(Runtimes.ControlPlane.VIRTUAL_DCP_MODULES)
                 .modules(Runtimes.ControlPlane.VIRTUAL_SQL_MODULES)
+                .modules(Runtimes.ControlPlane.VIRTUAL_DCP_MODULES)
                 .modules(Runtimes.ControlPlane.VIRTUAL_NATS_MODULES)
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(PostgresDcp::runtimeConfiguration)

@@ -29,24 +29,24 @@ public class AssetDto extends Typed {
     private final String id;
     private final Map<String, Object> properties;
     private final Map<String, Object> privateProperties;
-    private final DataAddressDto dataAddress;
+    private final Map<String, Object> dataplaneMetadata;
 
     public AssetDto(String id,
                     Map<String, Object> properties, Map<String, Object> privateProperties,
-                    DataAddressDto dataAddress) {
+                    Map<String, Object> dataplaneMetadata) {
         super("Asset");
         this.id = id;
         this.properties = properties;
         this.privateProperties = privateProperties;
-        this.dataAddress = dataAddress;
+        this.dataplaneMetadata = dataplaneMetadata;
     }
 
-    public AssetDto(Map<String, Object> properties, DataAddressDto dataAddress) {
-        this(null, properties, Map.of(), dataAddress);
+    public AssetDto(Map<String, Object> properties, Map<String, Object> dataplaneMetadata) {
+        this(null, properties, Map.of(), dataplaneMetadata);
     }
 
-    public AssetDto(DataAddressDto dataAddress) {
-        this(null, Map.of(), Map.of(), dataAddress);
+    public AssetDto(Map<String, Object> dataplaneMetadata) {
+        this(null, Map.of(), Map.of(), dataplaneMetadata);
     }
 
     public String getId() {
@@ -61,8 +61,8 @@ public class AssetDto extends Typed {
         return privateProperties;
     }
 
-    public DataAddressDto getDataAddress() {
-        return dataAddress;
+    public Map<String, Object> getDataplaneMetadata() {
+        return dataplaneMetadata;
     }
 
 }

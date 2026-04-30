@@ -21,7 +21,9 @@ dependencies {
     testImplementation(project(":core:common:lib:boot-lib"))
     testImplementation(libs.restAssured)
     testImplementation(libs.awaitility)
-    testImplementation(libs.wiremock)
+    testImplementation(libs.wiremock) {
+        exclude("com.networknt", "json-schema-validator")
+    }
 }
 
 edcBuild {
