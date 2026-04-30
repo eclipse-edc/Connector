@@ -22,12 +22,12 @@ import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.nats.testfixtures.NatsEndToEndExtension;
+import org.eclipse.edc.signaling.auth.Oauth2Extension;
+import org.eclipse.edc.signaling.client.DataPlaneSignalingTestClient;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.Runtimes;
-import org.eclipse.edc.test.e2e.dataplane.DataPlaneSignalingClient;
-import org.eclipse.edc.test.e2e.signaling.Oauth2Extension;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -115,7 +115,7 @@ class VirtualTransferEndToEndTest {
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
-                .paramProvider(DataPlaneSignalingClient.class, DataPlaneSignalingClient::new)
+                .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
                 .build();
 
         @RegisterExtension
@@ -125,7 +125,7 @@ class VirtualTransferEndToEndTest {
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
-                .paramProvider(DataPlaneSignalingClient.class, DataPlaneSignalingClient::new)
+                .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
                 .build();
 
     }

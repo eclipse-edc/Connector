@@ -20,10 +20,11 @@ import org.eclipse.edc.junit.annotations.Runtime;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.utils.Endpoints;
+import org.eclipse.edc.signaling.auth.Oauth2Extension;
+import org.eclipse.edc.signaling.client.DataPlaneSignalingTestClient;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.Runtimes;
 import org.eclipse.edc.test.e2e.TransferEndToEndParticipant;
-import org.eclipse.edc.test.e2e.dataplane.DataPlaneSignalingClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
@@ -61,8 +62,8 @@ interface TransferSignalingEndToEndTest {
     @BeforeAll
     static void beforeAll(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
                           @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                          @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
-                          @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane,
+                          @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
+                          @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane,
                           Oauth2Extension oauth2) {
 
         var consumerDataPlaneOauth2Profile = oauth2.registerClient(consumerDataPlane.dataPlaneId());
@@ -89,8 +90,8 @@ interface TransferSignalingEndToEndTest {
     @Test
     default void shouldTransferFiniteDataWithPush(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
                                                   @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                                  @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
-                                                  @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+                                                  @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
+                                                  @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane) {
 
         var assetId = createOffer(provider);
         var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
@@ -105,8 +106,8 @@ interface TransferSignalingEndToEndTest {
     @Test
     default void shouldTransferNonFiniteDataWithPush(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
                                                      @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                                     @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
-                                                     @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+                                                     @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
+                                                     @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane) {
 
         var assetId = createOffer(provider);
         var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
@@ -127,8 +128,8 @@ interface TransferSignalingEndToEndTest {
     @Test
     default void shouldTransferNonFiniteDataWithPull(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
                                                      @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                                     @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
-                                                     @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+                                                     @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
+                                                     @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane) {
 
         var assetId = createOffer(provider);
         var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
@@ -149,8 +150,8 @@ interface TransferSignalingEndToEndTest {
     @Test
     default void shouldTransferFiniteDataWithPull(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
                                                   @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                                  @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
-                                                  @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+                                                  @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
+                                                  @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane) {
 
         var assetId = createOffer(provider);
         var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
@@ -166,8 +167,8 @@ interface TransferSignalingEndToEndTest {
     @Test
     default void shouldSuspendAndResumeFromProvider(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
                                                     @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                                    @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
-                                                    @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+                                                    @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
+                                                    @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane) {
 
         var assetId = createOffer(provider);
         var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
@@ -197,8 +198,8 @@ interface TransferSignalingEndToEndTest {
     @Test
     default void shouldSuspendAndResumeFromConsumer(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
                                                     @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                                    @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
-                                                    @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+                                                    @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
+                                                    @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane) {
 
         var assetId = createOffer(provider);
         var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
@@ -228,8 +229,8 @@ interface TransferSignalingEndToEndTest {
     @Test
     default void shouldSupportAsyncPreparation(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
                                                @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                               @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
-                                               @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+                                               @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
+                                               @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane) {
         var assetId = createOffer(provider);
         var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
                 .withTransferType("AsyncPrepare-PUSH").execute();
@@ -248,8 +249,8 @@ interface TransferSignalingEndToEndTest {
     @Test
     default void shouldSupportAsyncStartup(@Runtime(PROVIDER_CP) TransferEndToEndParticipant provider,
                                            @Runtime(CONSUMER_CP) TransferEndToEndParticipant consumer,
-                                           @Runtime(PROVIDER_DP) DataPlaneSignalingClient providerDataPlane,
-                                           @Runtime(CONSUMER_DP) DataPlaneSignalingClient consumerDataPlane) {
+                                           @Runtime(PROVIDER_DP) DataPlaneSignalingTestClient providerDataPlane,
+                                           @Runtime(CONSUMER_DP) DataPlaneSignalingTestClient consumerDataPlane) {
         var assetId = createOffer(provider);
         var consumerTransferProcessId = consumer.requestAssetFrom(assetId, provider)
                 .withTransferType("AsyncStart-PULL").execute();
@@ -320,7 +321,7 @@ interface TransferSignalingEndToEndTest {
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
-                .paramProvider(DataPlaneSignalingClient.class, DataPlaneSignalingClient::new)
+                .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
                 .build();
 
         @RegisterExtension
@@ -330,7 +331,7 @@ interface TransferSignalingEndToEndTest {
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
-                .paramProvider(DataPlaneSignalingClient.class, DataPlaneSignalingClient::new)
+                .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
                 .build();
     }
 
@@ -390,7 +391,7 @@ interface TransferSignalingEndToEndTest {
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
-                .paramProvider(DataPlaneSignalingClient.class, DataPlaneSignalingClient::new)
+                .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
                 .build();
 
         @RegisterExtension
@@ -400,7 +401,7 @@ interface TransferSignalingEndToEndTest {
                 .modules(Runtimes.SignalingDataPlane.MODULES)
                 .endpoints(Runtimes.SignalingDataPlane.ENDPOINTS.build())
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
-                .paramProvider(DataPlaneSignalingClient.class, DataPlaneSignalingClient::new)
+                .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
                 .build();
     }
 

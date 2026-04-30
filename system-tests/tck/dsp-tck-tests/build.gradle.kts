@@ -23,8 +23,11 @@ dependencies {
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.wiremock)
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":spi:common:participant-context-config-spi"))
+    testImplementation(testFixtures(project(":core:common:lib:nats-lib")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
     testImplementation(testFixtures(project(":extensions:control-plane:api:management-api:management-api-test-fixtures")))
+    testImplementation(testFixtures(project(":data-protocols:data-plane-signaling:data-plane-signaling-spi")))
     runtimeOnly(libs.parsson)
 
     testImplementation(libs.dsp.tck.api)

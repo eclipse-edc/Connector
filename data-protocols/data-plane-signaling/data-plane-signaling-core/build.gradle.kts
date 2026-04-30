@@ -39,6 +39,7 @@ dependencies {
     testImplementation(testFixtures(project(":core:common:lib:http-lib")))
     testImplementation(libs.restAssured)
     testImplementation(libs.wiremock)
+    
 }
 
 edcBuild {

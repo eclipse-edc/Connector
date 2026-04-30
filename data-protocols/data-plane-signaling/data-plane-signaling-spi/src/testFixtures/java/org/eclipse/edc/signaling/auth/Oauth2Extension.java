@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.test.e2e.signaling;
+package org.eclipse.edc.signaling.auth;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.nimbusds.jose.JWSAlgorithm;
