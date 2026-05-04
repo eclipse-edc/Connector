@@ -634,6 +634,8 @@ components:
     IdResponse:
       type: object
       properties:
+        '@context':
+          type: object
         '@id':
           type: string
         createdAt:

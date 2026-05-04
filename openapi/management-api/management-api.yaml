@@ -6704,6 +6704,8 @@ components:
       - operator
       type: object
       properties:
+        '@context':
+          type: object
         '@type':
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/Criterion
@@ -6723,6 +6725,8 @@ components:
     QuerySpec_1:
       type: object
       properties:
+        '@context':
+          type: object
         '@type':
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
@@ -6824,6 +6828,8 @@ components:
     QuerySpec_2:
       type: object
       properties:
+        '@context':
+          type: object
         '@type':
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
@@ -7126,6 +7132,8 @@ components:
     IdResponse_1:
       type: object
       properties:
+        '@context':
+          type: object
         '@id':
           type: string
         createdAt:
@@ -7514,6 +7522,8 @@ components:
     QuerySpec_3:
       type: object
       properties:
+        '@context':
+          type: object
         '@type':
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
@@ -7723,6 +7733,8 @@ components:
     QuerySpec_4:
       type: object
       properties:
+        '@context':
+          type: object
         '@type':
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
@@ -7773,6 +7785,8 @@ components:
     QuerySpec_5:
       type: object
       properties:
+        '@context':
+          type: object
         '@type':
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
@@ -9137,6 +9151,8 @@ components:
     QuerySpec_6:
       type: object
       properties:
+        '@context':
+          type: object
         '@type':
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
@@ -9169,6 +9185,8 @@ components:
     QuerySpec_7:
       type: object
       properties:
+        '@context':
+          type: object
         '@type':
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
@@ -9306,6 +9324,8 @@ components:
     QuerySpec_8:
       type: object
       properties:
+        '@context':
+          type: object
         '@type':
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
@@ -9495,6 +9515,8 @@ components:
     QuerySpec_9:
       type: object
       properties:
+        '@context':
+          type: object
         '@type':
           type: string
           example: https://w3id.org/edc/v0.0.1/ns/QuerySpec
