@@ -21,6 +21,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import java.util.List;
 
 import static io.swagger.v3.oas.annotations.media.Schema.RequiredMode.REQUIRED;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_TYPE;
@@ -30,6 +31,8 @@ public interface ApiCoreSchema {
 
     @Schema(name = "Criterion", example = CriterionSchema.CRITERION_EXAMPLE)
     record CriterionSchema(
+            @Schema(name = CONTEXT)
+            Object context,
             @Schema(name = TYPE, example = CRITERION_TYPE)
             String type,
             @Schema(requiredMode = REQUIRED)
@@ -52,6 +55,8 @@ public interface ApiCoreSchema {
 
     @Schema(name = "QuerySpec", example = QuerySpecSchema.QUERY_SPEC_EXAMPLE)
     record QuerySpecSchema(
+            @Schema(name = CONTEXT)
+            Object context,
             @Schema(name = TYPE, example = EDC_QUERY_SPEC_TYPE)
             String type,
             int offset,
@@ -75,6 +80,8 @@ public interface ApiCoreSchema {
 
     @Schema(name = "IdResponse", example = IdResponseSchema.ID_RESPONSE_EXAMPLE)
     record IdResponseSchema(
+            @Schema(name = CONTEXT)
+            Object context,
             @Schema(name = ID)
             String id,
             long createdAt
