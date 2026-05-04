@@ -886,6 +886,7 @@ class TransferProcessManagerImplTest {
                 verify(policyArchive, atLeastOnce()).findPolicyForContract(anyString());
                 verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), captor.capture());
                 verify(transferProcessStore).save(argThat(p -> p.getState() == RESUMED.code()));
+                verify(listener).resumed(process);
                 var message = captor.getValue();
                 assertThat(message.getProcessId()).isEqualTo(process.getCorrelationId());
                 assertThat(message.getProviderPid()).isEqualTo(process.getCorrelationId());

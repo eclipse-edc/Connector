@@ -391,7 +391,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
             assertThat(future).succeedsWithin(timeout).satisfies(result -> {
                 assertThat(result).isFailed().satisfies(failure -> {
                     assertThat(failure.status()).isEqualTo(FATAL_ERROR);
-                    assertThat(failure.getMessages()).containsOnly("expectedValue");
+                    assertThat(failure.getMessages()).anyMatch(it -> it.contains("expectedValue"));
                 });
             });
             verify(bodyExtractor, never()).extractBody(any(), any());

@@ -266,6 +266,7 @@ public class TransferProcessorsImpl implements TransferProcessors {
                     } else {
                         t.transitionResumed();
                         update(t);
+                        observable.invokeForEach(l -> l.resumed(t));
                     }
                 })
                 .onFailure((t, throwable) -> {
