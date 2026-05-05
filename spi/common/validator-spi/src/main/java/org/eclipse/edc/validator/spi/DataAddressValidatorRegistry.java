@@ -18,7 +18,10 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 
 /**
  * Registry service for DataAddress validation
+ *
+ * @deprecated DataAddress will be managed by the data-plane, no need to validate it in the control-plane
  */
+@Deprecated(since = "0.18.0")
 public interface DataAddressValidatorRegistry {
 
     /**

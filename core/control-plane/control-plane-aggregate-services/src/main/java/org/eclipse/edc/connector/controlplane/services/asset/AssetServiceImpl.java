@@ -26,7 +26,6 @@ import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 
 import java.util.List;
 import java.util.function.Predicate;
@@ -41,17 +40,15 @@ public class AssetServiceImpl implements AssetService {
     private final ContractNegotiationStore contractNegotiationStore;
     private final TransactionContext transactionContext;
     private final AssetObservable observable;
-    private final DataAddressValidatorRegistry dataAddressValidator;
     private final QueryValidator queryValidator;
 
     public AssetServiceImpl(AssetIndex index, ContractNegotiationStore contractNegotiationStore,
                             TransactionContext transactionContext, AssetObservable observable,
-                            DataAddressValidatorRegistry dataAddressValidator, QueryValidator queryValidator) {
+                            QueryValidator queryValidator) {
         this.index = index;
         this.contractNegotiationStore = contractNegotiationStore;
         this.transactionContext = transactionContext;
         this.observable = observable;
-        this.dataAddressValidator = dataAddressValidator;
         this.queryValidator = queryValidator;
     }
 
@@ -73,13 +70,6 @@ public class AssetServiceImpl implements AssetService {
     public ServiceResult<Asset> create(Asset asset) {
         if (asset.hasDuplicatePropertyKeys()) {
             return ServiceResult.badRequest(DUPLICATED_KEYS_MESSAGE);
-        }
-
-        if (asset.getDataAddress() != null) {
-            var validDataAddress = dataAddressValidator.validateSource(asset.getDataAddress());
-            if (validDataAddress.failed()) {
-                return ServiceResult.badRequest(validDataAddress.getFailureMessages());
-            }
         }
 
         return transactionContext.execute(() -> {
@@ -116,11 +106,6 @@ public class AssetServiceImpl implements AssetService {
     public ServiceResult<Asset> update(Asset asset) {
         if (asset.hasDuplicatePropertyKeys()) {
             return ServiceResult.badRequest(DUPLICATED_KEYS_MESSAGE);
-        }
-
-        var validDataAddress = dataAddressValidator.validateSource(asset.getDataAddress());
-        if (validDataAddress.failed()) {
-            return ServiceResult.badRequest(validDataAddress.getFailureMessages());
         }
 
         return transactionContext.execute(() -> {

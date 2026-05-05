@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.services.asset;
 
-import org.assertj.core.api.Assertions;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.asset.spi.observe.AssetObservable;
@@ -28,13 +27,10 @@ import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
-import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
-import org.eclipse.edc.validator.spi.ValidationResult;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -53,7 +49,6 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
-import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -73,11 +68,10 @@ class AssetServiceImplTest {
     private final ContractNegotiationStore contractNegotiationStore = mock();
     private final TransactionContext dummyTransactionContext = new NoopTransactionContext();
     private final AssetObservable observable = mock();
-    private final DataAddressValidatorRegistry dataAddressValidator = mock();
     private final QueryValidator queryValidator = mock();
 
     private final AssetService service = new AssetServiceImpl(index, contractNegotiationStore, dummyTransactionContext,
-            observable, dataAddressValidator, queryValidator);
+            observable, queryValidator);
 
     @Test
     void findById_shouldRelyOnAssetIndex() {
@@ -115,7 +109,6 @@ class AssetServiceImplTest {
     class CreateAsset {
         @Test
         void shouldCreateAssetIfItDoesNotAlreadyExist() {
-            when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
             var assetId = "assetId";
             var asset = createAsset(assetId);
             when(index.create(asset)).thenReturn(StoreResult.success());
@@ -131,7 +124,6 @@ class AssetServiceImplTest {
 
         @Test
         void shouldCreateAsset_whenDataAddressIsNull() {
-            when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
             var assetId = "assetId";
             var asset = createAssetBuilder(assetId).dataAddress(null).build();
             when(index.create(asset)).thenReturn(StoreResult.success());
@@ -141,13 +133,11 @@ class AssetServiceImplTest {
             assertThat(inserted).isSucceeded().matches(hasId(assetId));
             verify(index).create(and(isA(Asset.class), argThat(it -> assetId.equals(it.getId()))));
             verifyNoMoreInteractions(index);
-            verifyNoInteractions(dataAddressValidator);
             verify(observable).invokeForEach(any());
         }
 
         @Test
         void shouldNotCreateAssetIfItAlreadyExists() {
-            when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
             var asset = createAsset("assetId");
             when(index.create(asset)).thenReturn(StoreResult.alreadyExists("test"));
 
@@ -157,20 +147,8 @@ class AssetServiceImplTest {
         }
 
         @Test
-        void shouldNotCreateAssetIfDataAddressInvalid() {
-            var asset = createAsset("assetId");
-            when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.failure(violation("Data address is invalid", "path")));
-
-            var result = service.create(asset);
-
-            Assertions.assertThat(result).satisfies(ServiceResult::failed).extracting(ServiceResult::reason).isEqualTo(BAD_REQUEST);
-            verifyNoInteractions(index);
-        }
-
-        @Test
         void shouldFail_whenPropertiesAreDuplicated() {
             var asset = createAssetBuilder("assetId").property("property", "value").privateProperty("property", "other-value").build();
-            when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
 
             var result = service.create(asset);
 
@@ -271,7 +249,6 @@ class AssetServiceImplTest {
     @Test
     void updateAsset_shouldUpdateWhenExists() {
         var asset = createAsset("assetId");
-        when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
         when(index.updateAsset(asset)).thenReturn(StoreResult.success(asset));
 
         var updated = service.update(asset);
@@ -285,7 +262,6 @@ class AssetServiceImplTest {
     @Test
     void updateAsset_shouldReturnNotFound_whenNotExists() {
         var asset = createAsset("assetId");
-        when(dataAddressValidator.validateSource(any())).thenReturn(ValidationResult.success());
         when(index.updateAsset(eq(asset))).thenReturn(StoreResult.notFound("test"));
 
         var updated = service.update(asset);
