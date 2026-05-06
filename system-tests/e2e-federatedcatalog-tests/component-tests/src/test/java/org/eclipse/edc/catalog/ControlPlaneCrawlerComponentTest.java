@@ -47,6 +47,7 @@ import java.util.UUID;
 import static java.lang.String.valueOf;
 import static java.time.Duration.ofSeconds;
 import static java.util.Collections.singletonList;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.catalog.TestFunctions.catalogBuilder;
@@ -68,7 +69,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Component test that validates the federated catalog crawler running inside a standard
+ * Component test that validates the catalog crawler running inside a standard
  * control plane runtime (controlplane-base-bom), as opposed to a standalone federated
  * catalog runtime (federatedcatalog-base-bom).
  */
@@ -190,11 +191,11 @@ public class ControlPlaneCrawlerComponentTest {
 
         var catalogId = "test-catalog-id";
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
-                .thenReturn(java.util.concurrent.CompletableFuture.completedFuture(toBytes(ttr, catalogBuilder().id(catalogId).datasets(new ArrayList<>(List.of(
+                .thenReturn(completedFuture(toBytes(ttr, catalogBuilder().id(catalogId).datasets(new ArrayList<>(List.of(
                         createDataset("offer1"), createDataset("offer2"), createDataset("offer3")
                 ))).build())))
                 .thenReturn(emptyCatalog(catalog -> toBytes(ttr, catalog), catalogId))
-                .thenReturn(java.util.concurrent.CompletableFuture.completedFuture(toBytes(ttr, catalogBuilder().id(catalogId).datasets(new ArrayList<>(List.of(
+                .thenReturn(completedFuture(toBytes(ttr, catalogBuilder().id(catalogId).datasets(new ArrayList<>(List.of(
                         createDataset("offer1"), createDataset("offer2")
                 ))).build())));
 

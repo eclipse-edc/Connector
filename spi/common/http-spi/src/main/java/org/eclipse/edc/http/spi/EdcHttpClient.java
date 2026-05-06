@@ -74,7 +74,8 @@ public interface EdcHttpClient {
      *
      * @param request the {@link Request}.
      * @param fallbacks a list of fallbacks to be applied.
-     * @return a {@link CompletableFuture} containing the {@link Response} instance.
+     * @return a {@link CompletableFuture} containing the {@link Response} instance. If the server isn't available,
+     *         fails with a {@link java.net.ConnectException}.
      */
     CompletableFuture<Response> executeAsync(Request request, List<FallbackFactory> fallbacks);
 

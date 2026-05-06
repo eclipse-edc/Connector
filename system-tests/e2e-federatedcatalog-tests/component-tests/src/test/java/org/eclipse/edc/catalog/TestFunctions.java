@@ -16,7 +16,6 @@ package org.eclipse.edc.catalog;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
@@ -27,6 +26,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -45,13 +45,16 @@ import static io.restassured.RestAssured.given;
 import static java.util.Arrays.asList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.stream.Collectors.toList;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 public class TestFunctions {
+
+    public static final ObjectMapper OBJECT_MAPPER = JacksonJsonLd.createObjectMapper();
     public static final String MANAGEMENT_BASE_PATH = "/api/management";
     public static final int MANAGEMENT_PORT = getFreePort();
-    private static final String PATH = "/v3/catalogs/request";
     private static final TypeReference<List<Map<String, Object>>> MAP_TYPE = new TypeReference<>() {
     };
 
@@ -92,15 +95,17 @@ public class TestFunctions {
     }
 
     public static List<Catalog> queryCatalogApi(JsonLd jsonLd, Function<JsonObject, Catalog> transformerFunction) {
-        var objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         var body = baseRequest()
-                .body(TestFunctions.createEmptyQuery())
-                .post(PATH)
+                .body(Json.createObjectBuilder()
+                        .add(CONTEXT, EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2)
+                        .add(TYPE, QuerySpec.EDC_QUERY_SPEC_TYPE_TERM)
+                        .build()
+                )
+                .post("/v4/catalogs/request")
                 .body();
 
         try {
-            var maps = objectMapper.readValue(body.asString(), MAP_TYPE);
+            var maps = OBJECT_MAPPER.readValue(body.asString(), MAP_TYPE);
             return maps.stream().map(map -> Json.createObjectBuilder(map).build())
                     .map(jsonLd::expand)
                     .map(Result::getContent)
@@ -109,12 +114,6 @@ public class TestFunctions {
         } catch (JsonProcessingException e) {
             throw new AssertionError(e);
         }
-    }
-
-    public static JsonObject createEmptyQuery() {
-        return Json.createObjectBuilder()
-                .add(TYPE, QuerySpec.EDC_QUERY_SPEC_TYPE)
-                .build();
     }
 
     public static Dataset createDataset(String dataset1) {

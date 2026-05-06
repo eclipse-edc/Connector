@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.net.ConnectException;
 import java.util.List;
 import java.util.concurrent.CompletionException;
 
@@ -137,6 +138,21 @@ class ExecutionManagerTest {
 
         verifyNoInteractions(successHandler);
         verify(monitorMock, atLeastOnce()).severe(anyString(), isA(CompletionException.class));
+    }
+
+    @Test
+    void shouldLogInfo_whenQueryReturnsConnectException() {
+        when(nodeDirectoryMock.getAll()).thenReturn(List.of(createNode()));
+        when(crawlerActionRegistry.findForProtocol(TEST_PROTOCOL)).thenReturn(List.of(queryAdapterMock));
+        when(queryAdapterMock.apply(any())).thenReturn(failedFuture(new ConnectException("cannot connect")));
+
+        manager.executePlan(simplePlan());
+
+        var inOrder = inOrder(preExecutionTaskMock, queryAdapterMock, successHandler);
+        inOrder.verify(preExecutionTaskMock).run();
+        inOrder.verify(queryAdapterMock).apply(any());
+
+        verify(monitorMock, atLeastOnce()).info(anyString());
     }
 
     @Test
