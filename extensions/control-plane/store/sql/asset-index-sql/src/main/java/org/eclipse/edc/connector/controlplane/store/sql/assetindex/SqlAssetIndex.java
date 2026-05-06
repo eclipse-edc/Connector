@@ -154,7 +154,7 @@ public class SqlAssetIndex extends AbstractSqlStore implements AssetIndex {
                     queryExecutor.execute(connection, assetStatements.getUpdateAssetTemplate(),
                             toJson(asset.getProperties()),
                             toJson(asset.getPrivateProperties()),
-                            toJson(asset.getDataAddress().getProperties()),
+                            toJson(Optional.ofNullable(asset.getDataAddress()).map(DataAddress::getProperties).orElse(null)),
                             toJson(asset.getDataplaneMetadata()),
                             assetId
                     );

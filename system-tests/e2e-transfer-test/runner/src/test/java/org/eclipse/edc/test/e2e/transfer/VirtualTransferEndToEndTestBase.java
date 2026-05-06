@@ -34,7 +34,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static jakarta.json.Json.createArrayBuilder;
@@ -255,7 +254,7 @@ public abstract class VirtualTransferEndToEndTestBase {
     }
 
     private String setup(ManagementApiClientV5 connectorClient, Participants.Participant provider) {
-        var asset = new AssetDto(Map.of());
+        var asset = new AssetDto();
 
         var permissions = List.of(new PermissionDto());
         var policyDef = new PolicyDefinitionDto(new PolicyDto(permissions));

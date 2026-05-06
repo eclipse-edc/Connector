@@ -43,7 +43,6 @@ import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROP
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.PROPERTY_ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.JSON;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
@@ -90,8 +89,7 @@ class JsonObjectToAssetTransformerTest {
                         .add("labels", jsonFactory.createArrayBuilder().add("label"))
                         .add("properties",
                                 jsonFactory.createObjectBuilder()
-                                        .add(TYPE, JSON)
-                                        .add(VALUE, jsonFactory.createObjectBuilder().add("property", "value")))
+                                        .add("property", "value"))
                 )
                 .build();
 
@@ -105,7 +103,7 @@ class JsonObjectToAssetTransformerTest {
                     .containsEntry(PROPERTY_DESCRIPTION, TEST_ASSET_DESCRIPTION);
             assertThat(asset.getDataAddress()).isNotNull().extracting(DataAddress::getType).isEqualTo("address-type");
             assertThat(asset.getDataplaneMetadata().getLabels()).containsExactly("label");
-            assertThat(asset.getDataplaneMetadata().getProperties()).containsExactly(entry("property", "value"));
+            assertThat(asset.getDataplaneMetadata().getProperties()).containsExactly(entry(EDC_NAMESPACE + "property", "value"));
         });
 
     }

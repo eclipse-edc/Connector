@@ -168,7 +168,7 @@ class VirtualDcpTransferPullEndToEndTest {
         }
 
         private String setup(ManagementApiClientV5 connectorClient, Participants.Participant provider, PolicyDto policy) {
-            var asset = new AssetDto(Map.of());
+            var asset = new AssetDto();
             var policyDef = new PolicyDefinitionDto(policy);
 
             return connectorClient.setupResources(provider.contextId(), asset, policyDef, policyDef);

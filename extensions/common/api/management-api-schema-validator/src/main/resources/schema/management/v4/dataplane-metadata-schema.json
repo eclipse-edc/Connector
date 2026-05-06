@@ -26,7 +26,8 @@
           "type": "object",
           "example": { "key": "value" }
         }
-      }
+      },
+      "required": ["@type"]
     }
   }
 }

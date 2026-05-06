@@ -28,7 +28,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 @JsonDeserialize(builder = DataplaneMetadata.Builder.class)
 public class DataplaneMetadata {
 
-    public static final String EDC_DATAPLANE_METADATA_TYPE = EDC_NAMESPACE + "DataplaneMetadata";
+    public static final String EDC_DATAPLANE_METADATA_SIMPLE_TYPE = "DataplaneMetadata";
+    public static final String EDC_DATAPLANE_METADATA_TYPE = EDC_NAMESPACE + EDC_DATAPLANE_METADATA_SIMPLE_TYPE;
     public static final String EDC_DATAPLANE_METADATA_LABELS = EDC_NAMESPACE + "labels";
     public static final String EDC_DATAPLANE_METADATA_PROPERTIES = EDC_NAMESPACE + "properties";
 

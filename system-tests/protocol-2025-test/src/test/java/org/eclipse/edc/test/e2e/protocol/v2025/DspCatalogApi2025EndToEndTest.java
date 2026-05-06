@@ -26,7 +26,6 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.util.io.Ports;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -89,7 +88,7 @@ public class DspCatalogApi2025EndToEndTest {
         var assetIndex = runtime.getService(AssetIndex.class);
 
         range(0, 8)
-                .mapToObj(i -> Asset.Builder.newInstance().id(i + "").dataAddress(DataAddress.Builder.newInstance().type("any").build()).participantContextId("anonymous").build())
+                .mapToObj(i -> Asset.Builder.newInstance().id(i + "").participantContextId("anonymous").build())
                 .forEach(assetIndex::create);
         var policyDefinitionStore = runtime.getService(PolicyDefinitionStore.class);
         policyDefinitionStore.create(PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).participantContextId("anonymous").build())

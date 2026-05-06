@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.controlplane.transform;
 
-import com.apicatalog.jsonld.document.JsonDocument;
 import jakarta.json.JsonObject;
-
-import static com.apicatalog.jsonld.JsonLd.expand;
+import org.eclipse.edc.jsonld.CachedDocumentRegistry;
+import org.eclipse.edc.jsonld.TitaniumJsonLd;
+import org.eclipse.edc.spi.monitor.ConsoleMonitor;
 
 /**
  * Functions for shaping test input.
@@ -28,11 +28,11 @@ public class TestInput {
      * Expands test input as Json-ld is required to be in this form
      */
     public static JsonObject getExpanded(JsonObject message) {
-        try {
-            return expand(JsonDocument.of(message)).get().asJsonArray().getJsonObject(0);
-        } catch (Exception e) {
-            throw new AssertionError(e);
-        }
+        var jsonLd = new TitaniumJsonLd(new ConsoleMonitor());
+        CachedDocumentRegistry.getDocuments().forEach(result -> result
+                .onSuccess(c -> jsonLd.registerCachedDocument(c.url(), c.resource()))
+        );
+        return jsonLd.expand(message).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
     }
 
     private TestInput() {

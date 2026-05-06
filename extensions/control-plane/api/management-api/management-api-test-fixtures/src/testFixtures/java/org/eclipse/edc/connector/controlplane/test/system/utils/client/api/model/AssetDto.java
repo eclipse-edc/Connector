@@ -29,6 +29,7 @@ public class AssetDto extends Typed {
     private final String id;
     private final Map<String, Object> properties;
     private final Map<String, Object> privateProperties;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private final Map<String, Object> dataplaneMetadata;
 
     public AssetDto(String id,
@@ -41,12 +42,16 @@ public class AssetDto extends Typed {
         this.dataplaneMetadata = dataplaneMetadata;
     }
 
-    public AssetDto(Map<String, Object> properties, Map<String, Object> dataplaneMetadata) {
-        this(null, properties, Map.of(), dataplaneMetadata);
+    public AssetDto() {
+        this(null, Map.of(), Map.of(), null);
     }
 
     public AssetDto(Map<String, Object> dataplaneMetadata) {
         this(null, Map.of(), Map.of(), dataplaneMetadata);
+    }
+
+    public AssetDto(Map<String, Object> properties, Map<String, Object> dataplaneMetadata) {
+        this(null, properties, Map.of(), dataplaneMetadata);
     }
 
     public String getId() {

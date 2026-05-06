@@ -40,11 +40,10 @@ import java.util.UUID;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.MAP;
+import static org.assertj.core.api.InstanceOfAssertFactories.map;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
@@ -108,15 +107,14 @@ public class AssetApiV4EndToEndTest {
                     .add("privateProperties", createObjectBuilder()
                             .add("anotherProp", "anotherVal")
                             .build())
-                    .add("dataAddress", createObjectBuilder()
-                            .add(TYPE, "DataAddress")
-                            .add("type", "test-type")
-                            .add("complex", createObjectBuilder()
-                                    .add("simple", "value")
-                                    .add("nested", createObjectBuilder()
-                                            .add("innerValue", "value"))
-                                    .build())
-                            .build())
+                    .add("dataplaneMetadata", createObjectBuilder()
+                            .add(TYPE, "DataplaneMetadata")
+                            .add("properties", createObjectBuilder()
+                                    .add("key", "value")
+                                    .add("another-key", "another-value")
+                            )
+                            .add("labels", createArrayBuilder().add("label1").add("label2"))
+                    )
                     .build();
 
             context.baseRequest()
@@ -132,11 +130,9 @@ public class AssetApiV4EndToEndTest {
             assertThat(asset).isNotNull();
             assertThat(asset.isCatalog()).isTrue();
             assertThat(asset.getPrivateProperty(EDC_NAMESPACE + "anotherProp")).isEqualTo("anotherVal");
-            assertThat(asset.getDataAddress().getProperty("complex"))
-                    .asInstanceOf(MAP)
-                    .containsEntry(EDC_NAMESPACE + "simple", List.of(Map.of(VALUE, "value")))
-                    .containsEntry(EDC_NAMESPACE + "nested", List.of(Map.of(EDC_NAMESPACE + "innerValue", List.of(Map.of(VALUE, "value")))));
-
+            assertThat(asset.getDataplaneMetadata().getProperties()).containsExactlyInAnyOrderEntriesOf(
+                    Map.of("key", "value", "another-key", "another-value"));
+            assertThat(asset.getDataplaneMetadata().getLabels()).containsExactly("label1", "label2");
             assertThat(asset.getParticipantContextId()).isNotNull();
         }
 
@@ -364,10 +360,13 @@ public class AssetApiV4EndToEndTest {
                     .add(ID, asset.getId())
                     .add("properties", createPropertiesBuilder()
                             .add("some-new-property", "some-new-value").build())
-                    .add("dataAddress", createObjectBuilder()
-                            .add(TYPE, "DataAddress")
-                            .add("type", "addressType")
-                            .add("complex", createObjectBuilder().add("nested", "value").build()))
+                    .add("dataplaneMetadata", createObjectBuilder()
+                            .add(TYPE, "DataplaneMetadata")
+                            .add("labels", createArrayBuilder().add("updated-label"))
+                            .add("properties", createObjectBuilder()
+                               .add("complex", createObjectBuilder()
+                                       .add("nested", "value").build()))
+                    )
                     .build();
 
             context.baseRequest()
@@ -382,10 +381,13 @@ public class AssetApiV4EndToEndTest {
             var dbAsset = assetIndex.findById(asset.getId());
             assertThat(dbAsset).isNotNull();
             assertThat(dbAsset.getProperties()).containsEntry(EDC_NAMESPACE + "some-new-property", "some-new-value");
-            assertThat(dbAsset.getDataAddress().getType()).isEqualTo("addressType");
-            assertThat(dbAsset.getDataAddress().getProperty(EDC_NAMESPACE + "complex"))
-                    .asInstanceOf(MAP)
-                    .containsEntry(EDC_NAMESPACE + "nested", List.of(Map.of(VALUE, "value")));
+            assertThat(dbAsset.getDataplaneMetadata().getLabels()).containsExactly("updated-label");
+            assertThat(dbAsset.getDataplaneMetadata().getProperties())
+                    .containsKey("complex").extracting(m -> m.get("complex"))
+                    .satisfies(complex -> {
+                        assertThat(complex).asInstanceOf(map(String.class, Object.class))
+                                .containsEntry("nested", "value");
+                    });
 
             assertThat(dbAsset.getParticipantContextId()).isNotNull();
         }

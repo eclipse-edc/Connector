@@ -158,6 +158,7 @@ public class TransferProcessApiV4EndToEndTest {
                     .add("contractId", contractId)
                     .add("assetId", assetId)
                     .add("dataplaneMetadata", createObjectBuilder()
+                            .add(TYPE, "DataplaneMetadata")
                             .add("labels", createArrayBuilder().add("label"))
                             .add("properties", createObjectBuilder().add("key", "value"))
                     )
