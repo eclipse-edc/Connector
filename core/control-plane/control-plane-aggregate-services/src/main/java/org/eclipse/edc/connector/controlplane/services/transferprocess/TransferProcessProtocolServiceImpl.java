@@ -55,7 +55,7 @@ import java.util.function.Function;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.PROVIDER;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
 
@@ -183,22 +183,51 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
     @NotNull
     private ServiceResult<TransferProcess> startedAction(TransferStartMessage message, TransferProcess transferProcess) {
+        if (transferProcess.currentStateIsOneOf(SUSPENDED)) {
+            transferProcess.protocolMessageReceived(message.getId());
+            transferProcess.transitionResuming();
+
+            StoreResult<Void> eventualDataAddressStorage = transferProcess.isDataAddressOwner()
+                    ? StoreResult.success() : dataAddressStore.store(message.getDataAddress(), transferProcess);
+
+            return eventualDataAddressStorage
+                    .compose(i -> update(transferProcess))
+                    .onSuccess(i -> observable.invokeForEach(l -> l.resuming(transferProcess)))
+                    .flatMap(ServiceResult::from)
+                    .map(it -> transferProcess);
+        }
+
+        if (transferProcess.currentStateIsOneOf(RESUMED)) {
+            if (message.getDataAddress() == null) {
+                return ServiceResult.badRequest("Cannot resume transfer without a DataAddress");
+            }
+
+            transferProcess.protocolMessageReceived(message.getId());
+            transferProcess.transitionResuming();
+            return dataAddressStore.store(message.getDataAddress(), transferProcess)
+                    .compose(i -> update(transferProcess))
+                    .onSuccess(i -> observable.invokeForEach(l -> l.resuming(transferProcess)))
+                    .flatMap(ServiceResult::from)
+                    .map(i -> transferProcess);
+
+        }
+
         if (transferProcess.getType() == CONSUMER && transferProcess.canBeStartedConsumer()) {
+            StoreResult<Void> dataAddressStorage = message.getDataAddress() != null
+                    ? dataAddressStore.store(message.getDataAddress(), transferProcess)
+                    : StoreResult.success();
+
             transferProcess.protocolMessageReceived(message.getId());
             transferProcess.setContentDataAddress(message.getDataAddress());
             transferProcess.transitionStartupRequested();
-            update(transferProcess);
-            observable.invokeForEach(l -> l.startupRequested(transferProcess));
-            return ServiceResult.success(transferProcess);
-        } else if (transferProcess.getType() == PROVIDER && transferProcess.currentStateIsOneOf(SUSPENDED)) {
-            transferProcess.protocolMessageReceived(message.getId());
-            transferProcess.transitionInitial();
-            update(transferProcess);
-            observable.invokeForEach(l -> l.initiated(transferProcess));
-            return ServiceResult.success(transferProcess);
-        } else {
-            return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be started"));
+            return dataAddressStorage
+                    .compose(i -> update(transferProcess))
+                    .onSuccess(ignored -> observable.invokeForEach(l -> l.startupRequested(transferProcess)))
+                    .flatMap(ServiceResult::from)
+                    .map(i -> transferProcess);
         }
+
+        return ServiceResult.conflict(format("Cannot process %s because %s", message.getClass().getSimpleName(), "transfer cannot be started"));
     }
 
     @NotNull
@@ -365,9 +394,11 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         transferProcessStore.save(process);
     }
 
-    private void update(TransferProcess transferProcess) {
-        transferProcessStore.save(transferProcess);
-        monitor.debug(format("[%s] TransferProcess %s is now in state %s", transferProcess.getType(), transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
+    private StoreResult<Void> update(TransferProcess transferProcess) {
+        return transferProcessStore.save(transferProcess)
+                .onSuccess(ignored -> {
+                    monitor.debug(format("[%s] TransferProcess %s is now in state %s", transferProcess.getType(), transferProcess.getId(), TransferProcessStates.from(transferProcess.getState())));
+                });
     }
 
     private record TransferMessageContext(ContractAgreement agreement, TransferProcess transferProcess) {

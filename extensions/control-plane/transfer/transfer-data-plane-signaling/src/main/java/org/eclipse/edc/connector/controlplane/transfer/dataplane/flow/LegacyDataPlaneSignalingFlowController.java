@@ -183,6 +183,11 @@ public class LegacyDataPlaneSignalingFlowController implements DataFlowControlle
     }
 
     @Override
+    public StatusResult<DataFlowResponse> resume(TransferProcess transferProcess) {
+        return start(transferProcess, Policy.Builder.newInstance().build());
+    }
+
+    @Override
     public StatusResult<Void> terminate(TransferProcess transferProcess) {
         var dataPlaneId = transferProcess.getDataPlaneId();
         if (dataPlaneId == null) {

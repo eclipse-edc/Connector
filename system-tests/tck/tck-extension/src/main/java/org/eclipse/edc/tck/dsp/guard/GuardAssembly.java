@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessEvent;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessInitiated;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessRequested;
+import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessResumed;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessSuspended;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
@@ -227,7 +228,8 @@ public class GuardAssembly {
                 createTransferTrigger(TransferProcessStarted.class, "ATP0103", (process) -> process.transitionSuspending("suspending")),
                 createTransferTrigger(TransferProcessSuspended.class, "ATP0103", (process) -> process.transitionTerminating("terminating")),
                 createTransferTrigger(TransferProcessStarted.class, "ATP0104", suspendResumeTrigger()),
-                createTransferTrigger(TransferProcessSuspended.class, "ATP0104", TransferProcess::transitionStarting),
+                createTransferTrigger(TransferProcessSuspended.class, "ATP0104", TransferProcess::transitionResumingRequested),
+                createTransferTrigger(TransferProcessResumed.class, "ATP0104", TransferProcess::transitionResuming),
                 createTransferTrigger(TransferProcessInitiated.class, "ATP0205", (process) -> process.setPending(true)),
                 createTransferTrigger(TransferProcessInitiated.class, "ATP0301", (process) -> process.setPending(true)),
                 createTransferTrigger(TransferProcessInitiated.class, "ATP0302", (process) -> process.setPending(true)),
@@ -236,7 +238,7 @@ public class GuardAssembly {
                 createTransferTrigger(TransferProcessStarted.class, "ATPC0203", (process) -> process.transitionSuspending("suspending")),
                 createTransferTrigger(TransferProcessSuspended.class, "ATPC0203", TransferProcess::transitionTerminating),
                 createTransferTrigger(TransferProcessStarted.class, "ATPC0204", suspendResumeTrigger()),
-                createTransferTrigger(TransferProcessSuspended.class, "ATPC0204", TransferProcess::transitionStarting),
+                createTransferTrigger(TransferProcessSuspended.class, "ATPC0204", TransferProcess::transitionResuming),
                 createTransferTrigger(TransferProcessRequested.class, "ATPC0205", (process) -> process.transitionTerminating("error"))
         );
     }

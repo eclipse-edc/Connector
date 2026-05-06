@@ -22,8 +22,6 @@ import org.eclipse.dataplane.domain.Result;
 import org.eclipse.dataplane.domain.dataflow.DataFlow;
 import org.eclipse.dataplane.domain.registration.Oauth2ClientCredentialsAuthorization;
 import org.eclipse.dataplane.logic.OnPrepare;
-import org.eclipse.dataplane.logic.OnStart;
-import org.eclipse.dataplane.logic.OnStarted;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -78,9 +76,12 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
                 .transferType("AsyncPrepare-PUSH")
                 .transferType("AsyncStart-PULL")
                 .onPrepare(new DataplaneOnPrepare())
-                .onStart(new DataplaneOnStart())
-                .onStarted(new DataplaneOnStarted())
+                .onStart(this::startDataFlow)
+                .onStarted(this::receiveDataFlow)
                 .onSuspend(this::stopDataFlow)
+                .onResume(flow -> flow.getType() == DataFlow.Type.PROVIDER
+                        ? startDataFlow(flow)
+                        : receiveDataFlow(flow))
                 .onCompleted(Result::success)
                 .onTerminate(this::stopDataFlow);
 
@@ -92,94 +93,85 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
         webService.registerResource(new ControlController(monitor, dataplane, apiConfiguration));
     }
 
-    private class DataplaneOnStart implements OnStart {
-        @Override
-        public Result<DataFlow> action(DataFlow dataFlow) {
-
-            switch (dataFlow.getTransferType()) {
-                case "NonFinite-PUSH" -> {
-                    if (dataFlow.getDataAddress() == null) {
-                        return Result.failure(new InvalidRequestException("DataAddress should not be null for PUSH transfers"));
-                    }
-
-                    var future = Executors.newSingleThreadScheduledExecutor()
-                            .scheduleAtFixedRate(() -> pushData(dataFlow), 0, 200, TimeUnit.MILLISECONDS);
-
-                    ongoingNonFiniteTransfers.put(dataFlow.getId(), future);
-
-                    return Result.success(dataFlow);
+    private @NotNull Result<DataFlow> startDataFlow(DataFlow dataFlow) {
+        switch (dataFlow.getTransferType()) {
+            case "NonFinite-PUSH" -> {
+                if (dataFlow.getDataAddress() == null) {
+                    return Result.failure(new InvalidRequestException("DataAddress should not be null for PUSH transfers"));
                 }
-                case "Finite-PUSH", "AsyncPrepare-PUSH" -> {
-                    if (dataFlow.getDataAddress() == null) {
-                        return Result.failure(new InvalidRequestException("DataAddress should not be null for PUSH transfers"));
-                    }
 
-                    pushData(dataFlow)
-                            .whenComplete((response, throwable) -> notifyCompletion(dataFlow, response, throwable));
+                var future = Executors.newSingleThreadScheduledExecutor()
+                        .scheduleAtFixedRate(() -> pushData(dataFlow), 0, 200, TimeUnit.MILLISECONDS);
 
-                    return Result.success(dataFlow);
+                ongoingNonFiniteTransfers.put(dataFlow.getId(), future);
+
+                return Result.success(dataFlow);
+            }
+            case "Finite-PUSH", "AsyncPrepare-PUSH" -> {
+                if (dataFlow.getDataAddress() == null) {
+                    return Result.failure(new InvalidRequestException("DataAddress should not be null for PUSH transfers"));
                 }
-                case "NonFinite-PULL", "Finite-PULL" -> {
-                    var dataAddress = new DataAddress(dataFlow.getTransferType(), "http", apiConfiguration.dataSourceEndpoint(), emptyList());
-                    dataFlow.setDataAddress(dataAddress);
-                    return Result.success(dataFlow);
-                }
-                case "AsyncStart-PULL" -> {
-                    dataFlow.transitionToStarting();
-                    return Result.success(dataFlow);
-                }
-                default -> {
-                    return Result.failure(new RuntimeException("TransferType %s not supported".formatted(dataFlow.getTransferType())));
-                }
+
+                pushData(dataFlow)
+                        .whenComplete((response, throwable) -> notifyCompletion(dataFlow, response, throwable));
+
+                return Result.success(dataFlow);
+            }
+            case "NonFinite-PULL", "Finite-PULL" -> {
+                var dataAddress = new DataAddress(dataFlow.getTransferType(), "http", apiConfiguration.dataSourceEndpoint(), emptyList());
+                dataFlow.setDataAddress(dataAddress);
+                return Result.success(dataFlow);
+            }
+            case "AsyncStart-PULL" -> {
+                dataFlow.transitionToStarting();
+                return Result.success(dataFlow);
+            }
+            default -> {
+                return Result.failure(new RuntimeException("TransferType %s not supported".formatted(dataFlow.getTransferType())));
             }
         }
-
-        private CompletableFuture<HttpResponse<Void>> pushData(DataFlow dataFlow) {
-            var destinationUri = URI.create(dataFlow.getDataAddress().endpoint());
-            var request = HttpRequest.newBuilder(destinationUri).POST(HttpRequest.BodyPublishers.ofString("test-data")).build();
-            return HttpClient.newHttpClient().sendAsync(request, HttpResponse.BodyHandlers.discarding());
-        }
-
     }
 
-    private class DataplaneOnStarted implements OnStarted {
-        @Override
-        public Result<DataFlow> action(DataFlow dataFlow) {
+    private CompletableFuture<HttpResponse<Void>> pushData(DataFlow dataFlow) {
+        var destinationUri = URI.create(dataFlow.getDataAddress().endpoint());
+        var request = HttpRequest.newBuilder(destinationUri).POST(HttpRequest.BodyPublishers.ofString("test-data")).build();
+        return HttpClient.newHttpClient().sendAsync(request, HttpResponse.BodyHandlers.discarding());
+    }
 
-            switch (dataFlow.getTransferType()) {
-                case "NonFinite-PULL" -> {
-                    var sourceUri = URI.create(dataFlow.getDataAddress().endpoint());
-                    var future = Executors.newSingleThreadScheduledExecutor()
-                            .scheduleAtFixedRate(() -> requestData(dataFlow, sourceUri), 0, 200, TimeUnit.MILLISECONDS);
+    private Result<DataFlow> receiveDataFlow(DataFlow dataFlow) {
+        switch (dataFlow.getTransferType()) {
+            case "NonFinite-PULL" -> {
+                var sourceUri = URI.create(dataFlow.getDataAddress().endpoint());
+                var future = Executors.newSingleThreadScheduledExecutor()
+                        .scheduleAtFixedRate(() -> requestData(dataFlow, sourceUri), 0, 200, TimeUnit.MILLISECONDS);
 
-                    ongoingNonFiniteTransfers.put(dataFlow.getId(), future);
-                }
-                case "Finite-PULL", "AsyncStart-PULL" -> {
-                    var sourceUri = URI.create(dataFlow.getDataAddress().endpoint());
-                    requestData(dataFlow, sourceUri)
-                            .whenComplete((response, throwable) -> notifyCompletion(dataFlow, response, throwable));
-                }
-                default -> { }
+                ongoingNonFiniteTransfers.put(dataFlow.getId(), future);
             }
-
-            return Result.success(dataFlow);
+            case "Finite-PULL", "AsyncStart-PULL" -> {
+                var sourceUri = URI.create(dataFlow.getDataAddress().endpoint());
+                requestData(dataFlow, sourceUri)
+                        .whenComplete((response, throwable) -> notifyCompletion(dataFlow, response, throwable));
+            }
+            default -> { }
         }
 
-        private CompletableFuture<HttpResponse<String>> requestData(DataFlow dataFlow, URI sourceUri) {
-            var request = HttpRequest.newBuilder(sourceUri).GET().build();
-            return HttpClient.newHttpClient().sendAsync(request, ofString()).whenComplete((response, throwable) -> {
-                if (throwable == null) {
-                    if (response.statusCode() == 200) {
-                        var body = response.body();
-                        monitor.info("Received data for data flow %s: %s".formatted(dataFlow.getId(), body));
-                    } else {
-                        monitor.severe("Error retrieving data: %s: %s".formatted(response.statusCode(), response.body()));
-                    }
+        return Result.success(dataFlow);
+    }
+
+    private CompletableFuture<HttpResponse<String>> requestData(DataFlow dataFlow, URI sourceUri) {
+        var request = HttpRequest.newBuilder(sourceUri).GET().build();
+        return HttpClient.newHttpClient().sendAsync(request, ofString()).whenComplete((response, throwable) -> {
+            if (throwable == null) {
+                if (response.statusCode() == 200) {
+                    var body = response.body();
+                    monitor.info("Received data for data flow %s: %s".formatted(dataFlow.getId(), body));
                 } else {
-                    monitor.severe("Error retrieving data", throwable);
+                    monitor.severe("Error retrieving data: %s: %s".formatted(response.statusCode(), response.body()));
                 }
-            });
-        }
+            } else {
+                monitor.severe("Error retrieving data", throwable);
+            }
+        });
     }
 
     private class DataplaneOnPrepare implements OnPrepare {

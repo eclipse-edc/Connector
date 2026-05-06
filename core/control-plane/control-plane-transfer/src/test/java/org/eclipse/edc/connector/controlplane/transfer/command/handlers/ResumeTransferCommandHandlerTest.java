@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.COMPLETED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.RESUMING_REQUESTED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.SUSPENDED;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -41,14 +42,25 @@ class ResumeTransferCommandHandlerTest {
     }
 
     @Test
-    void shouldModify_ifItCanBeResumed() {
+    void shouldTransitionToResuming_whenDataAddressOwner() {
         var command = new ResumeTransferCommand("test-id");
-        var entity = TransferProcess.Builder.newInstance().state(SUSPENDED.code()).build();
+        var entity = TransferProcess.Builder.newInstance().state(SUSPENDED.code()).dataAddressOwner(true).build();
 
         var result = handler.modify(entity, command);
 
         assertThat(result).isTrue();
         assertThat(entity.getState()).isEqualTo(RESUMING.code());
+    }
+
+    @Test
+    void shouldTransitionToResumingRequested_whenNotDataAddressOwner() {
+        var command = new ResumeTransferCommand("test-id");
+        var entity = TransferProcess.Builder.newInstance().state(SUSPENDED.code()).dataAddressOwner(false).build();
+
+        var result = handler.modify(entity, command);
+
+        assertThat(result).isTrue();
+        assertThat(entity.getState()).isEqualTo(RESUMING_REQUESTED.code());
     }
 
     @Test

@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessPrepared;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessProvisioned;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessRequested;
+import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessResumed;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessSuspended;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessTerminated;
@@ -111,6 +112,14 @@ public class TransferProcessEventListener implements TransferProcessListener {
     public void suspended(TransferProcess process) {
         var event = withBaseProperties(TransferProcessSuspended.Builder.newInstance(), process)
                 .reason(process.getErrorDetail())
+                .build();
+
+        eventRouter.publish(event);
+    }
+
+    @Override
+    public void resumed(TransferProcess process) {
+        var event = withBaseProperties(TransferProcessResumed.Builder.newInstance(), process)
                 .build();
 
         eventRouter.publish(event);

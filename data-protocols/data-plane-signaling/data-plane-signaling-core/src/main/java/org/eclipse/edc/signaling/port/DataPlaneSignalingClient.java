@@ -23,6 +23,7 @@ import okhttp3.Response;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
+import org.eclipse.edc.signaling.domain.DataFlowResumeMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartedNotificationMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
@@ -61,49 +62,51 @@ public class DataPlaneSignalingClient {
     }
 
     public StatusResult<DataFlowStatusMessage> prepare(DataFlowPrepareMessage request) {
-        var url = "%s/prepare".formatted(dataPlane.getUrl());
-        return createRequestBuilder(request, url)
-                .compose(builder -> execute(builder, this::handleResponse));
+        return send("prepare", request, this::dataFlowStatusMessage);
     }
 
     public StatusResult<DataFlowStatusMessage> start(DataFlowStartMessage request) {
-        var url = "%s/start".formatted(dataPlane.getUrl());
-        return createRequestBuilder(request, url)
-                .compose(builder -> execute(builder, this::handleResponse));
+        return send("start", request, this::dataFlowStatusMessage);
     }
 
     public StatusResult<Void> suspend(String flowId) {
-        return sendMessage(flowId, "suspend", DataFlowSuspendMessage.Builder.newInstance().build());
+        var message = DataFlowSuspendMessage.Builder.newInstance().build();
+        return send(flowId + "/suspend", message, this::noResponseBody);
+    }
+
+    public StatusResult<DataFlowStatusMessage> resume(String flowId, DataFlowResumeMessage message) {
+        return send(flowId + "/resume", message, this::dataFlowStatusMessage);
     }
 
     public StatusResult<Void> terminate(String flowId) {
-        return sendMessage(flowId, "terminate", emptyMap());
+        return send(flowId + "/terminate", emptyMap(), this::noResponseBody);
     }
 
     public StatusResult<Void> started(String flowId, DataFlowStartedNotificationMessage message) {
-        return sendMessage(flowId, "started", message);
+        return send(flowId + "/started", message, this::noResponseBody);
     }
 
     public StatusResult<Void> completed(String flowId) {
-        return sendMessage(flowId, "completed", emptyMap());
+        return send(flowId + "/completed", emptyMap(), this::noResponseBody);
     }
 
-    private StatusResult<Void> sendMessage(String flowId, String name, Object message) {
-        var url = dataPlane.getUrl() + "/" + flowId + "/" + name;
-        return createRequestBuilder(message, url)
-                .compose(builder -> execute(builder, r -> Result.success(null)));
+    private <T> StatusResult<T> send(String path, Object message, Function<Response, Result<T>> extractBody) {
+        return createRequestBuilder(message, dataPlane.getUrl() + "/" + path)
+                .compose(builder -> {
+                    var response = httpClient.execute(builder.build(), extractBody);
+                    if (response.succeeded()) {
+                        return StatusResult.success(response.getContent());
+                    } else {
+                        return StatusResult.fatalError(response.getFailureDetail());
+                    }
+                });
     }
 
-    private @NotNull <T> StatusResult<T> execute(Request.Builder builder, Function<Response, Result<T>> extractBody) {
-        var response = httpClient.execute(builder.build(), extractBody);
-        if (response.succeeded()) {
-            return StatusResult.success(response.getContent());
-        } else {
-            return StatusResult.fatalError(response.getFailureDetail());
-        }
+    private @NotNull Result<Void> noResponseBody(Response response) {
+        return Result.success(null);
     }
 
-    private Result<DataFlowStatusMessage> handleResponse(Response response) {
+    private Result<DataFlowStatusMessage> dataFlowStatusMessage(Response response) {
         if (!response.isSuccessful()) {
             return Result.failure("Data-plane responded with %d - %s".formatted(response.code(), response.message()));
         }
@@ -153,4 +156,5 @@ public class DataPlaneSignalingClient {
             return Result.failure(e.getMessage());
         }
     }
+
 }

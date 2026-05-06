@@ -45,7 +45,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
@@ -137,7 +136,7 @@ public class VirtualDspTckDockerTest extends DspTckDockerTest {
         dataplaneClient.registerControlPlane(createObjectBuilder()
                 .add("controlplaneId", PARTICIPANT_CONTEXT_ID)
                 .add("endpoint", signalingProtocol.get().toString())
-                .add("authorization", createArrayBuilder().add(dataplaneOauth2Profile))
+                .add("authorization", dataplaneOauth2Profile)
                 .build());
 
     }
