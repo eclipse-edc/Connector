@@ -5486,6 +5486,8 @@ components:
       allOf:
       - $ref: "#/components/schemas/DataplaneMetadata"
     DataplaneMetadata:
+      required:
+      - '@type'
       type: object
       properties:
         '@type':
