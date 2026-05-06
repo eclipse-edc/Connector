@@ -25,6 +25,7 @@ import org.eclipse.edc.crawler.spi.model.ExecutionPlan;
 import org.eclipse.edc.crawler.spi.model.UpdateRequest;
 import org.eclipse.edc.spi.monitor.Monitor;
 
+import java.net.ConnectException;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Executors;
@@ -109,8 +110,14 @@ public class ExecutionManager {
         if (throwable == null) {
             monitor.debug(format("WorkItem [%s] is done", item.getId()));
         } else {
+
+            if (throwable.getCause() instanceof ConnectException connectException) {
+                monitor.info("Cannot connect to node %s: " + connectException.getMessage());
+            } else {
+                monitor.severe("Unexpected exception occurred while crawling: " + item.getId(), throwable);
+            }
+
             item.error(throwable.getMessage());
-            monitor.severe("Unexpected exception occurred while crawling: " + item.getId(), throwable);
             if (item.getErrors().size() > configuration.maxRetries()) {
                 monitor.severe(format("The following WorkItem has errored out more than %d times. We'll discard it now: [%s]", configuration.maxRetries(), item));
             } else {

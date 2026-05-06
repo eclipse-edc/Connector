@@ -25,10 +25,12 @@ import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -209,83 +211,89 @@ class EdcHttpClientImplTest {
                 .matches(it -> !it.contains("AuthTest"));
     }
 
-    @Test
-    void executeAsync_fallback_shouldRetryIfStatusIsNotSuccessful() {
-        var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
+    @Nested
+    class ExecuteAsync {
 
-        var request = new Request.Builder()
-                .url("http://localhost:" + server.getPort())
-                .build();
+        @Test
+        void fallback_shouldRetryIfStatusIsNotSuccessful() {
+            var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
 
-        server.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(500)));
+            var request = new Request.Builder()
+                    .url("http://localhost:" + server.getPort())
+                    .build();
 
-        var result = client.executeAsync(request, List.of(retryWhenStatusNot2xxOr4xx())).thenApply(handleResponse());
+            server.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(500)));
 
-        assertThat(result).failsWithin(5, TimeUnit.SECONDS);
-        server.verify(2, getRequestedFor(anyUrl()));
+            var result = client.executeAsync(request, List.of(retryWhenStatusNot2xxOr4xx())).thenApply(handleResponse());
+
+            assertThat(result).failsWithin(5, TimeUnit.SECONDS);
+            server.verify(2, getRequestedFor(anyUrl()));
+        }
+
+        @Test
+        void fallback_shouldRetryIfStatusIs4xx() {
+            var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
+
+            var request = new Request.Builder()
+                    .url("http://localhost:" + server.getPort())
+                    .build();
+
+
+            server.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(500)));
+
+            var result = client.executeAsync(request, List.of(retryWhenStatusNot2xxOr4xx())).thenApply(handleResponse());
+
+            assertThat(result).failsWithin(5, TimeUnit.SECONDS);
+            server.verify(2, getRequestedFor(anyUrl()));
+        }
+
+        @Test
+        void fallback_shouldNotRetryIfStatusIsExpected() {
+            var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
+
+            var request = new Request.Builder()
+                    .url("http://localhost:" + server.getPort())
+                    .build();
+
+            server.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(404)));
+
+            var result = client.executeAsync(request, List.of(retryWhenStatusNot2xxOr4xx())).thenApply(handleResponse());
+
+            assertThat(result).succeedsWithin(5, TimeUnit.SECONDS);
+            server.verify(1, getRequestedFor(anyUrl()));
+        }
+
+        @Test
+        void fallback_shouldRetryIfStatusIsNotAsExpected() {
+            var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
+
+            var request = new Request.Builder()
+                    .url("http://localhost:" + server.getPort())
+                    .build();
+
+            server.stubFor(get(anyUrl()).willReturn(ok()));
+
+            var result = client.executeAsync(request, List.of(retryWhenStatusIsNot(204))).thenApply(handleResponse());
+
+            assertThat(result).failsWithin(5, TimeUnit.SECONDS);
+            server.verify(2, getRequestedFor(anyUrl()));
+        }
+
+        @Test
+        void fallback_shouldFailAfterAttemptsExpired_whenServerIsDown() {
+            var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(1).build());
+
+            var request = new Request.Builder()
+                    .url("http://localhost:" + getFreePort())
+                    .build();
+
+            var result = client.executeAsync(request, emptyList()).thenApply(handleResponse());
+
+            assertThat(result).failsWithin(5, TimeUnit.SECONDS).withThrowableThat()
+                    .havingCause().isInstanceOf(ConnectException.class);
+        }
     }
 
-    @Test
-    void executeAsync_fallback_shouldRetryIfStatusIs4xx() {
-        var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
-
-        var request = new Request.Builder()
-                .url("http://localhost:" + server.getPort())
-                .build();
-
-
-        server.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(500)));
-
-        var result = client.executeAsync(request, List.of(retryWhenStatusNot2xxOr4xx())).thenApply(handleResponse());
-
-        assertThat(result).failsWithin(5, TimeUnit.SECONDS);
-        server.verify(2, getRequestedFor(anyUrl()));
-    }
-
-    @Test
-    void executeAsync_fallback_shouldNotRetryIfStatusIsExpected() {
-        var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
-
-        var request = new Request.Builder()
-                .url("http://localhost:" + server.getPort())
-                .build();
-
-        server.stubFor(get(anyUrl()).willReturn(aResponse().withStatus(404)));
-
-        var result = client.executeAsync(request, List.of(retryWhenStatusNot2xxOr4xx())).thenApply(handleResponse());
-
-        assertThat(result).succeedsWithin(5, TimeUnit.SECONDS);
-        server.verify(1, getRequestedFor(anyUrl()));
-    }
-
-    @Test
-    void executeAsync_fallback_shouldRetryIfStatusIsNotAsExpected() {
-        var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
-
-        var request = new Request.Builder()
-                .url("http://localhost:" + server.getPort())
-                .build();
-
-        server.stubFor(get(anyUrl()).willReturn(ok()));
-
-        var result = client.executeAsync(request, List.of(retryWhenStatusIsNot(204))).thenApply(handleResponse());
-
-        assertThat(result).failsWithin(5, TimeUnit.SECONDS);
-        server.verify(2, getRequestedFor(anyUrl()));
-    }
-
-    @Test
-    void executeAsync_fallback_shouldFailAfterAttemptsExpired_whenServerIsDown() {
-        var client = clientWith(RetryPolicy.<Response>builder().withMaxAttempts(2).build());
-
-        var request = new Request.Builder()
-                .url("http://localhost:" + getFreePort())
-                .build();
-
-        var result = client.executeAsync(request, emptyList()).thenApply(handleResponse());
-
-        assertThat(result).failsWithin(5, TimeUnit.SECONDS);
-    }
 
     @NotNull
     private Function<Response, Result<String>> handleResponse() {
