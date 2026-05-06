@@ -833,17 +833,49 @@ class TransferProcessProtocolServiceImplTest {
         void shouldTransitionToResuming_whenSuspended() {
             var participantAgent = participantAgent();
             var tokenRepresentation = tokenRepresentation();
+            var dataAddress = DataAddress.Builder.newInstance().type("test").build();
             var message = TransferStartMessage.Builder.newInstance()
                     .protocol("protocol")
                     .consumerPid("consumerPid")
                     .providerPid("providerPid")
                     .counterPartyAddress("http://any")
                     .processId("correlationId")
-                    .dataAddress(DataAddress.Builder.newInstance().type("test").build())
+                    .dataAddress(dataAddress)
                     .build();
             var agreement = contractAgreement();
             var transferProcess = transferProcessBuilder().id("transferProcessId")
                     .state(SUSPENDED.code()).type(PROVIDER).build();
+
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById("correlationId")).thenReturn(transferProcess);
+            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
+            when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
+            when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.success());
+            when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
+
+            var result = service.notifyStarted(participantContext, message, tokenRepresentation);
+
+            assertThat(result).isSucceeded();
+            verify(store).save(argThat(t -> t.getState() == RESUMING.code()));
+            verify(dataAddressStore).store(dataAddress, result.getContent());
+            verify(listener).resuming(any());
+            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+        }
+
+        @Test
+        void shouldTransitionToResuming_whenSuspended_andDataAddressOwner() {
+            var participantAgent = participantAgent();
+            var tokenRepresentation = tokenRepresentation();
+            var message = TransferStartMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .counterPartyAddress("http://any")
+                    .processId("correlationId")
+                    .build();
+            var agreement = contractAgreement();
+            var transferProcess = transferProcessBuilder().id("transferProcessId")
+                    .state(SUSPENDED.code()).type(PROVIDER).dataAddressOwner(true).build();
 
             when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
@@ -855,6 +887,7 @@ class TransferProcessProtocolServiceImplTest {
 
             assertThat(result).isSucceeded();
             verify(store).save(argThat(t -> t.getState() == RESUMING.code()));
+            verifyNoInteractions(dataAddressStore);
             verify(listener).resuming(any());
             verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
         }

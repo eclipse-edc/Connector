@@ -186,7 +186,12 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         if (transferProcess.currentStateIsOneOf(SUSPENDED)) {
             transferProcess.protocolMessageReceived(message.getId());
             transferProcess.transitionResuming();
-            return update(transferProcess)
+
+            StoreResult<Void> eventualDataAddressStorage = transferProcess.isDataAddressOwner()
+                    ? StoreResult.success() : dataAddressStore.store(message.getDataAddress(), transferProcess);
+
+            return eventualDataAddressStorage
+                    .compose(i -> update(transferProcess))
                     .onSuccess(i -> observable.invokeForEach(l -> l.resuming(transferProcess)))
                     .flatMap(ServiceResult::from)
                     .map(it -> transferProcess);
