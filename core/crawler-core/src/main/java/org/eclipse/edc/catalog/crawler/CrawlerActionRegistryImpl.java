@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,11 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - Initial implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
-package org.eclipse.edc.catalog.cache.crawler;
+package org.eclipse.edc.catalog.crawler;
 
 import org.eclipse.edc.crawler.spi.CrawlerAction;
 import org.eclipse.edc.crawler.spi.CrawlerActionRegistry;
