@@ -175,7 +175,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
         return transactionContext.execute(() -> getNegotiation(participantContext, message.getProcessId())
                 .compose(contractNegotiation -> verifyRequest(participantContext, tokenRepresentation, contractNegotiation.getLastContractOffer().getPolicy(), message)
                         .compose(agent -> validateRequest(agent, contractNegotiation)))
-                .compose(cn -> onMessageDo(participantContext, message, contractNegotiation -> verifiedAction(message, contractNegotiation))));
+                .compose(agent -> onMessageDo(participantContext, message, contractNegotiation -> verifiedAction(message, contractNegotiation, agent))));
     }
 
     @Override
@@ -280,12 +280,12 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     }
 
     @NotNull
-    private ServiceResult<Void> validateRequest(ParticipantAgent agent, ContractNegotiation negotiation) {
+    private ServiceResult<ParticipantAgent> validateRequest(ParticipantAgent agent, ContractNegotiation negotiation) {
         var result = validationService.validateRequest(agent, negotiation);
         if (result.failed()) {
             return ServiceResult.badRequest("Invalid client credentials: " + result.getFailureDetail());
         } else {
-            return ServiceResult.success();
+            return ServiceResult.success(agent);
         }
     }
 
@@ -323,10 +323,12 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
     }
 
     @NotNull
-    private ServiceResult<ContractNegotiation> verifiedAction(ContractAgreementVerificationMessage message, ContractNegotiation negotiation) {
+    private ServiceResult<ContractNegotiation> verifiedAction(ContractAgreementVerificationMessage message, ContractNegotiation negotiation, ParticipantAgent agent) {
         if (negotiation.getType().equals(PROVIDER) && negotiation.canBeVerifiedProvider()) {
             negotiation.protocolMessageReceived(message.getId());
             negotiation.transitionVerified();
+            var agreementWithClaims = negotiation.getContractAgreement().toBuilder().claims(agent.getClaims()).build();
+            negotiation.setContractAgreement(agreementWithClaims);
             update(negotiation);
             observable.invokeForEach(l -> l.verified(negotiation));
             return ServiceResult.success(negotiation);

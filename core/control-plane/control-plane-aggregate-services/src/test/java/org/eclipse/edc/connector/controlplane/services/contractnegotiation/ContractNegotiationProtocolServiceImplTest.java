@@ -163,12 +163,7 @@ class ContractNegotiationProtocolServiceImplTest {
             var participantAgent = new ParticipantAgent("counterPartyId", Map.of("claim", "value"), emptyMap());
             var tokenRepresentation = tokenRepresentation();
 
-            var contractAgreement = ContractAgreement.Builder.newInstance()
-                    .providerId("providerId")
-                    .consumerId("consumerId")
-                    .assetId("assetId")
-                    .policy(Policy.Builder.newInstance().build())
-                    .participantContextId("participantContextId")
+            var contractAgreement = createContractAgreementBuilder()
                     .build();
             var message = ContractAgreementMessage.Builder.newInstance()
                     .protocol("protocol")
@@ -189,9 +184,9 @@ class ContractNegotiationProtocolServiceImplTest {
             assertThat(result).isSucceeded();
             verify(store).findById("processId");
             verify(store).findByIdAndLease("processId");
-            ArgumentCaptor<ContractNegotiation> negotiationCaptor = ArgumentCaptor.forClass(ContractNegotiation.class);
+            var negotiationCaptor = ArgumentCaptor.forClass(ContractNegotiation.class);
             verify(store).save(negotiationCaptor.capture());
-            ContractNegotiation storedNegotiation = negotiationCaptor.getValue();
+            var storedNegotiation = negotiationCaptor.getValue();
             assertThat(storedNegotiation.stateAsString()).isEqualTo(AGREED.name());
             assertThat(storedNegotiation.getContractAgreement()).satisfies(storedAgreement -> {
                 assertThat(storedAgreement.getProviderId()).isEqualTo("providerId");
@@ -205,36 +200,46 @@ class ContractNegotiationProtocolServiceImplTest {
 
     }
 
-    @Test
-    void notifyVerified_shouldTransitionToVerified() {
-        var participantAgent = participantAgent();
-        var tokenRepresentation = tokenRepresentation();
-        var contractOffer = contractOffer();
-        var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(AGREED.code()).contractOffer(contractOffer).build();
-        when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
-        when(validationService.validateRequest(any(ParticipantAgent.class), any(ContractNegotiation.class))).thenReturn(Result.success());
-        var message = ContractAgreementVerificationMessage.Builder.newInstance()
-                .protocol("protocol")
-                .counterPartyAddress("http://any")
-                .processId("processId")
-                .consumerPid("consumerPid")
-                .providerPid("providerPid")
-                .build();
+    @Nested
+    class NotifyVerified {
 
-        when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
-        when(store.findById(any())).thenReturn(negotiation);
-        when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
-        when(validationService.validateRequest(any(ParticipantAgent.class), any(ContractNegotiation.class))).thenReturn(Result.success());
+        @Test
+        void shouldTransitionToVerifiedAndStoreClaimsInAgreement() {
+            Map<String, Object> claims = Map.of("claim", "value");
+            var participantAgent = new ParticipantAgent("counterPartyId", claims, emptyMap());
+            var tokenRepresentation = tokenRepresentation();
+            var negotiation = contractNegotiationBuilder().id("negotiationId").type(PROVIDER).state(AGREED.code())
+                    .contractOffer(contractOffer()).contractAgreement(createContractAgreementBuilder().claims(null).build())
+                    .build();
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
+            when(validationService.validateRequest(any(ParticipantAgent.class), any(ContractNegotiation.class))).thenReturn(Result.success());
+            var message = ContractAgreementVerificationMessage.Builder.newInstance()
+                    .protocol("protocol")
+                    .counterPartyAddress("http://any")
+                    .processId("processId")
+                    .consumerPid("consumerPid")
+                    .providerPid("providerPid")
+                    .build();
 
-        var result = service.notifyVerified(participantContext, message, tokenRepresentation);
+            when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
+            when(store.findById(any())).thenReturn(negotiation);
+            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
+            when(validationService.validateRequest(any(ParticipantAgent.class), any(ContractNegotiation.class))).thenReturn(Result.success());
 
-        assertThat(result).isSucceeded();
-        verify(store).findById("processId");
-        verify(store).findByIdAndLease("processId");
-        verify(store).save(argThat(n -> n.getState() == VERIFIED.code()));
-        verify(listener).verified(negotiation);
-        verify(validationService).validateRequest(same(participantAgent), any(ContractNegotiation.class));
-        verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+            var result = service.notifyVerified(participantContext, message, tokenRepresentation);
+
+            assertThat(result).isSucceeded();
+            verify(store).findById("processId");
+            verify(store).findByIdAndLease("processId");
+            var captor = ArgumentCaptor.forClass(ContractNegotiation.class);
+            verify(store).save(captor.capture());
+            var storedNegotiation = captor.getValue();
+            assertThat(storedNegotiation.stateAsString()).isEqualTo(VERIFIED.name());
+            assertThat(storedNegotiation.getContractAgreement().getClaims()).isEqualTo(claims);
+            verify(listener).verified(negotiation);
+            verify(validationService).validateRequest(same(participantAgent), any(ContractNegotiation.class));
+            verify(transactionContext, atLeastOnce()).execute(any(TransactionContext.ResultTransactionBlock.class));
+        }
     }
 
     @Test
@@ -799,7 +804,8 @@ class ContractNegotiationProtocolServiceImplTest {
                                                                                   ContractNegotiation.Type type,
                                                                                   ContractNegotiationStates currentState) {
             var offer = contractOffer();
-            var negotiation = contractNegotiationBuilder().state(currentState.code()).type(type).contractOffer(offer).build();
+            var negotiation = contractNegotiationBuilder().state(currentState.code()).type(type).contractOffer(offer)
+                    .contractAgreement(createContractAgreementBuilder().build()).build();
             var validatableOffer = mock(ValidatableConsumerOffer.class);
 
             when(validatableOffer.getContractPolicy()).thenReturn(createPolicy());
@@ -840,6 +846,7 @@ class ContractNegotiationProtocolServiceImplTest {
                     .thenReturn(ServiceResult.success(participantAgent()));
             when(store.findById(any())).thenReturn(negotiation);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(negotiation));
+            when(store.breakLease(any())).thenReturn(StoreResult.success());
             when(validationService.validateRequest(any(ParticipantAgent.class), any(ContractNegotiation.class))).thenReturn(Result.success());
             when(validationService.validateInitialOffer(any(ParticipantAgent.class), any(ValidatableConsumerOffer.class)))
                     .thenAnswer(i -> Result.success(new ValidatedConsumerOffer("any", offer)));
@@ -909,4 +916,14 @@ class ContractNegotiationProtocolServiceImplTest {
             verifyNoInteractions(listener);
         }
     }
+
+    private ContractAgreement.Builder createContractAgreementBuilder() {
+        return ContractAgreement.Builder.newInstance()
+                .providerId("providerId")
+                .consumerId("consumerId")
+                .assetId("assetId")
+                .policy(Policy.Builder.newInstance().build())
+                .participantContextId("participantContextId");
+    }
+
 }
