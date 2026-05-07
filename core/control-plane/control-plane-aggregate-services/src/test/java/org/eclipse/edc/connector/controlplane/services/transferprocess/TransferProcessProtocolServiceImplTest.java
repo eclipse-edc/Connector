@@ -97,7 +97,6 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -571,8 +570,7 @@ class TransferProcessProtocolServiceImplTest {
             var result = service.notifyCompleted(participantContext, message, tokenRepresentation);
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-            // state didn't change
-            verify(store, times(1)).save(argThat(tp -> tp.getState() == REQUESTED.code()));
+            verify(store).breakLease(transferProcess);
             verifyNoInteractions(listener);
         }
 
@@ -593,7 +591,6 @@ class TransferProcessProtocolServiceImplTest {
             var transferProcess = transferProcess(STARTED, "transferProcessId");
             when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
-            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
             when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
 
@@ -604,8 +601,7 @@ class TransferProcessProtocolServiceImplTest {
                     .extracting(ServiceFailure::getReason)
                     .isEqualTo(BAD_REQUEST);
 
-            verify(store, times(1)).save(any());
-
+            verify(store, never()).findByIdAndLease(anyString());
         }
     }
 
@@ -665,7 +661,7 @@ class TransferProcessProtocolServiceImplTest {
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
             // state didn't change
-            verify(store, times(1)).save(argThat(tp -> tp.getState() == DEPROVISIONING.code()));
+            verify(store).breakLease(transferProcess);
             verifyNoInteractions(listener);
         }
 
@@ -687,7 +683,6 @@ class TransferProcessProtocolServiceImplTest {
 
             when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
-            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
             when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
 
@@ -698,7 +693,7 @@ class TransferProcessProtocolServiceImplTest {
                     .extracting(ServiceFailure::getReason)
                     .isEqualTo(BAD_REQUEST);
 
-            verify(store, times(1)).save(any());
+            verify(store, never()).findByIdAndLease(anyString());
 
         }
     }
@@ -788,8 +783,7 @@ class TransferProcessProtocolServiceImplTest {
             var result = service.notifyStarted(participantContext, message, tokenRepresentation);
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-            // state didn't change
-            verify(store, times(1)).save(argThat(tp -> tp.getState() == DEPROVISIONING.code()));
+            verify(store).breakLease(transferProcess);
             verifyNoInteractions(listener);
         }
 
@@ -810,7 +804,6 @@ class TransferProcessProtocolServiceImplTest {
             var transferProcess = transferProcess(REQUESTED, "transferProcessId");
             when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById("correlationId")).thenReturn(transferProcess);
-            when(store.findByIdAndLease("correlationId")).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
             when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
 
@@ -820,9 +813,7 @@ class TransferProcessProtocolServiceImplTest {
                     .isFailed()
                     .extracting(ServiceFailure::getReason)
                     .isEqualTo(BAD_REQUEST);
-
-            verify(store, times(1)).save(any());
-
+            verify(store, never()).findByIdAndLease(anyString());
         }
     }
 
@@ -977,6 +968,7 @@ class TransferProcessProtocolServiceImplTest {
             var result = service.notifyStarted(participantContext, message, tokenRepresentation);
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+            verify(store).breakLease(transferProcess);
         }
     }
 
@@ -1036,7 +1028,7 @@ class TransferProcessProtocolServiceImplTest {
             var result = service.notifySuspended(participantContext, message, tokenRepresentation);
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-            verify(store, times(1)).save(argThat(tp -> tp.getState() == REQUESTED.code()));
+            verify(store).breakLease(transferProcess);
             verifyNoInteractions(listener);
         }
 
@@ -1065,8 +1057,7 @@ class TransferProcessProtocolServiceImplTest {
             var result = service.notifySuspended(participantContext, message, tokenRepresentation);
 
             assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
-            // state didn't change
-            verify(store, times(1)).save(argThat(tp -> tp.getState() == DEPROVISIONING.code()));
+            verify(store).breakLease(transferProcess);
             verifyNoInteractions(listener);
         }
 
@@ -1088,7 +1079,6 @@ class TransferProcessProtocolServiceImplTest {
 
             when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(store.findById(any())).thenReturn(transferProcess);
-            when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
             when(negotiationStore.findContractAgreement(any())).thenReturn(agreement);
             when(validationService.validateRequest(participantAgent, agreement)).thenReturn(Result.failure("error"));
 
@@ -1099,7 +1089,7 @@ class TransferProcessProtocolServiceImplTest {
                     .extracting(ServiceFailure::getReason)
                     .isEqualTo(BAD_REQUEST);
 
-            verify(store, times(1)).save(any());
+            verify(store, never()).findByIdAndLease(anyString());
 
         }
     }
@@ -1140,6 +1130,7 @@ class TransferProcessProtocolServiceImplTest {
             when(protocolTokenValidator.verify(any(), any(), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent()));
             when(store.findById(any())).thenReturn(transferProcess);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
+            when(store.breakLease(any())).thenReturn(StoreResult.success());
             when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenAnswer(i -> Result.success(i.getArgument(1)));
             when(validationService.validateRequest(any(ParticipantAgent.class), isA(ContractAgreement.class))).thenReturn(Result.success());
@@ -1148,6 +1139,7 @@ class TransferProcessProtocolServiceImplTest {
 
             assertThat(result).isSucceeded();
             verify(store, never()).save(any());
+            verify(store).breakLease(transferProcess);
             verifyNoInteractions(listener);
         }
 
@@ -1159,6 +1151,7 @@ class TransferProcessProtocolServiceImplTest {
             when(protocolTokenValidator.verify(any(), any(), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent()));
             when(store.findById(any())).thenReturn(transferProcess);
             when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(transferProcess));
+            when(store.breakLease(any())).thenReturn(StoreResult.success());
             when(negotiationStore.findContractAgreement(any())).thenReturn(contractAgreement());
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenAnswer(i -> Result.success(i.getArgument(1)));
             when(validationService.validateRequest(any(ParticipantAgent.class), isA(ContractAgreement.class))).thenReturn(Result.success());
@@ -1168,6 +1161,7 @@ class TransferProcessProtocolServiceImplTest {
             assertThat(result).isFailed().satisfies(failure -> {
                 assertThat(failure.getReason()).isEqualTo(CONFLICT);
             });
+            verify(store).breakLease(transferProcess);
             verifyNoInteractions(listener);
         }
 
