@@ -95,3 +95,4 @@
 - [2026-01-30 Dynamic DCP scopes](2026-01-30-dynamic-dcp-scopes)
 - [2026-02-10 Data Plane Selector Manager dismission](./2026-02-10-data-plane-selector-manager-dismission)
 - [2026-04-09 EDR cache deprecation](2026-04-09-edr-cache-deprecation)
+- [2026-05-11 Multi-Profile Support in EDC Virtual](2026-05-11-multi-profile-virtual-connector)
