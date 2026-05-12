@@ -19,7 +19,6 @@ import org.eclipse.edc.api.authentication.OauthServer;
 import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
-import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
@@ -62,7 +61,6 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesRegex;
 
-@ApiTest
 public class ContractDefinitionApiV5EndToEndTest {
 
     @SuppressWarnings("JUnitMalformedDeclaration")

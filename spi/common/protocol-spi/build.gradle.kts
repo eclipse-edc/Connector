@@ -14,6 +14,7 @@
 
 dependencies {
     api(project(":spi:common:core-spi"))
+    api(project(":spi:common:json-ld-spi"))
 
     api(libs.jetbrains.annotations)
 }

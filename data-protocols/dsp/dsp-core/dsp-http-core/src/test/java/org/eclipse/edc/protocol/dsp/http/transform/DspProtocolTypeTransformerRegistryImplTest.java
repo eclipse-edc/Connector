@@ -14,13 +14,18 @@
 
 package org.eclipse.edc.protocol.dsp.http.transform;
 
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.protocol.dsp.http.TestFixtures.DSP_TRANSFORMER_CONTEXT_V_MOCK;
 import static org.eclipse.edc.protocol.dsp.http.TestFixtures.V_MOCK;
+import static org.eclipse.edc.protocol.dsp.http.TestFixtures.V_MOCK_VERSION;
 import static org.eclipse.edc.protocol.dsp.http.spi.types.HttpMessageProtocol.DATASPACE_PROTOCOL_HTTP;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER_CONTEXT;
 import static org.mockito.Mockito.mock;
@@ -28,13 +33,18 @@ import static org.mockito.Mockito.when;
 
 public class DspProtocolTypeTransformerRegistryImplTest {
 
+    private static final DataspaceProfileContext PROFILE_MOCK = new DataspaceProfileContext(
+            V_MOCK_VERSION, V_MOCK, () -> "url", ct -> "id",
+            new JsonLdNamespace("https://example.org/dspace/"),
+            List.of("https://example.org/context.jsonld"));
+
     private final TypeTransformerRegistry transformerRegistry = mock();
     private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
     private final DspProtocolTypeTransformerRegistryImpl dspTransformerRegistry = new DspProtocolTypeTransformerRegistryImpl(transformerRegistry, DSP_TRANSFORMER_CONTEXT, dataspaceProfileContextRegistry);
 
     @Test
     void forProtocol() {
-        when(dataspaceProfileContextRegistry.getProtocolVersion(DATASPACE_PROTOCOL_HTTP)).thenReturn(V_MOCK);
+        when(dataspaceProfileContextRegistry.getProfile(DATASPACE_PROTOCOL_HTTP)).thenReturn(PROFILE_MOCK);
         when(transformerRegistry.forContext(DSP_TRANSFORMER_CONTEXT_V_MOCK)).thenReturn(transformerRegistry);
         assertThat(dspTransformerRegistry.forProtocol(DATASPACE_PROTOCOL_HTTP)).isSucceeded()
                 .isEqualTo(transformerRegistry);

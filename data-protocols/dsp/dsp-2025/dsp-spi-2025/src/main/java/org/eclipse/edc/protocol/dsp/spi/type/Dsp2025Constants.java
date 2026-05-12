@@ -39,4 +39,6 @@ public interface Dsp2025Constants {
 
     JsonLdNamespace DSP_NAMESPACE_V_2025_1 = new JsonLdNamespace(DSPACE_2025_1_IRI);
 
+    String DATASPACE_HTTP_PROFILE_2025_1 = "http-dsp-profile-2025-1";
+
 }

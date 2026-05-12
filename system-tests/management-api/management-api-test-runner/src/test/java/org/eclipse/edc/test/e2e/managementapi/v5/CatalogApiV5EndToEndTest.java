@@ -24,7 +24,6 @@ import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
-import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
@@ -67,7 +66,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesRegex;
 
-@ApiTest
 public class CatalogApiV5EndToEndTest {
 
     @SuppressWarnings("JUnitMalformedDeclaration")
@@ -105,9 +103,9 @@ public class CatalogApiV5EndToEndTest {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "CatalogRequest")
-                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .add("protocol", context.profile())
                     .build()
                     .toString();
 
@@ -130,9 +128,9 @@ public class CatalogApiV5EndToEndTest {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "CatalogRequest")
-                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .add("protocol", context.profile())
                     .build()
                     .toString();
 
@@ -152,9 +150,9 @@ public class CatalogApiV5EndToEndTest {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "CatalogRequest")
-                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .add("protocol", context.profile())
                     .build()
                     .toString();
 
@@ -175,9 +173,9 @@ public class CatalogApiV5EndToEndTest {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "CatalogRequest")
-                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .add("protocol", context.profile())
                     .build()
                     .toString();
 
@@ -198,9 +196,9 @@ public class CatalogApiV5EndToEndTest {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "CatalogRequest")
-                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .add("protocol", context.profile())
                     .build()
                     .toString();
 
@@ -242,9 +240,9 @@ public class CatalogApiV5EndToEndTest {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "CatalogRequest")
-                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .add("protocol", context.profile())
                     .add("querySpec", querySpec)
                     .build()
                     .toString();
@@ -307,9 +305,9 @@ public class CatalogApiV5EndToEndTest {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "CatalogRequest")
-                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .add("protocol", context.profile())
                     .build()
                     .toString();
 
@@ -347,9 +345,9 @@ public class CatalogApiV5EndToEndTest {
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "DatasetRequest")
                     .add(ID, "asset-id")
-                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .add("protocol", context.profile())
                     .build()
                     .toString();
 
@@ -392,9 +390,9 @@ public class CatalogApiV5EndToEndTest {
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "DatasetRequest")
                     .add(ID, "asset-response")
-                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .add("protocol", context.profile())
                     .build()
                     .toString();
 
@@ -419,9 +417,9 @@ public class CatalogApiV5EndToEndTest {
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "DatasetRequest")
                     .add(ID, "asset-id")
-                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .add("protocol", context.profile())
                     .build()
                     .toString();
 
@@ -454,9 +452,9 @@ public class CatalogApiV5EndToEndTest {
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "DatasetRequest")
                     .add(ID, "asset-id")
-                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .add("protocol", context.profile())
                     .build()
                     .toString();
 
@@ -479,9 +477,9 @@ public class CatalogApiV5EndToEndTest {
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "DatasetRequest")
                     .add(ID, "asset-id")
-                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .add("protocol", context.profile())
                     .build()
                     .toString();
 
@@ -503,9 +501,9 @@ public class CatalogApiV5EndToEndTest {
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "DatasetRequest")
                     .add(ID, "asset-id")
-                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, "/2025-1"))
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", "dataspace-protocol-http:2025-1")
+                    .add("protocol", context.profile())
                     .build()
                     .toString();
 

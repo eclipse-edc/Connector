@@ -62,7 +62,6 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 public class ManagementApiClientV5 {
 
     protected static final Duration TIMEOUT = Duration.ofSeconds(30);
-    private static final String PROTOCOL = "dataspace-protocol-http:2025-1";
     private static final JsonLdNamespace NS = new JsonLdNamespace(EDC_NAMESPACE);
     private final OauthTokenProvider oauthServer;
     private final LazySupplier<URI> managementEndpoint;
@@ -141,8 +140,8 @@ public class ManagementApiClientV5 {
         return dataplanes;
     }
 
-    private String startTransferProcess(String participantContext, String contractAgreementId, String providerAddress, String transferType) {
-        var request = new TransferRequestDto(PROTOCOL, providerAddress, transferType, contractAgreementId);
+    private String startTransferProcess(String participantContext, String profile, String contractAgreementId, String providerAddress, String transferType) {
+        var request = new TransferRequestDto(profile, providerAddress, transferType, contractAgreementId);
         var transferId = transfers.initTransfer(participantContext, request);
 
         waitTransferInState(participantContext, transferId, STARTED);
@@ -158,21 +157,21 @@ public class ManagementApiClientV5 {
         });
     }
 
-    public String initContractNegotiation(String participantContext, String assetId, String providerAddress, String providerId) {
+    public String initContractNegotiation(String participantContext, String profile, String assetId, String providerAddress, String providerId) {
 
         try {
-            var dataset = fetchDataset(participantContext, assetId, providerAddress, providerId);
+            var dataset = fetchDataset(participantContext, profile, assetId, providerAddress, providerId);
             var offer = dataset.offers().stream().findFirst().orElseThrow();
 
-            return initContractNegotiation(participantContext, assetId, offer, providerAddress, providerId);
+            return initContractNegotiation(participantContext, profile, assetId, offer, providerAddress, providerId);
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private DatasetDto fetchDataset(String participantContext, String assetId, String providerAddress, String providerId) {
-        return catalogs.getDataset(participantContext, new DatasetRequestDto(assetId, PROTOCOL, providerAddress, providerId));
+    private DatasetDto fetchDataset(String participantContext, String profile, String assetId, String providerAddress, String providerId) {
+        return catalogs.getDataset(participantContext, new DatasetRequestDto(assetId, profile, providerAddress, providerId));
     }
 
     public void waitForContractNegotiationState(String participantContextId, String negotiationId, String state) {
@@ -188,8 +187,8 @@ public class ManagementApiClientV5 {
                 .orElse(null);
     }
 
-    public String startContractNegotiation(String participantContext, String providerContextId, String assetId, OfferDto offerDto, String providerAddress, String providerId) {
-        var negotiationId = initContractNegotiation(participantContext, assetId, offerDto, providerAddress, providerId);
+    public String startContractNegotiation(String participantContext, String profile, String providerContextId, String assetId, OfferDto offerDto, String providerAddress, String providerId) {
+        var negotiationId = initContractNegotiation(participantContext, profile, assetId, offerDto, providerAddress, providerId);
 
 
         waitForContractNegotiationState(participantContext, negotiationId, FINALIZED.name());
@@ -207,22 +206,22 @@ public class ManagementApiClientV5 {
 
     }
 
-    public String initContractNegotiation(String participantContext, String assetId, OfferDto offerDto, String providerAddress, String providerId) {
+    public String initContractNegotiation(String participantContext, String profile, String assetId, OfferDto offerDto, String providerAddress, String providerId) {
         var offer = new OfferDto(offerDto.getId(), providerId, assetId, offerDto.getPermissions());
 
-        var request = new ContractRequestDto(PROTOCOL, providerAddress, providerId, offer);
+        var request = new ContractRequestDto(profile, providerAddress, providerId, offer);
 
         return negotiations.initContractNegotiation(participantContext, request);
 
     }
 
-    public String startTransfer(String participantContext, String providerContextId, String providerAddress, String providerId, String assetId, String transferType) {
+    public String startTransfer(String participantContext, String profile, String providerContextId, String providerAddress, String providerId, String assetId, String transferType) {
         try {
-            var dataset = fetchDataset(participantContext, assetId, providerAddress, providerId);
+            var dataset = fetchDataset(participantContext, profile, assetId, providerAddress, providerId);
             var offer = dataset.offers().stream().findFirst().orElseThrow();
 
-            var agreementId = startContractNegotiation(participantContext, providerContextId, assetId, offer, providerAddress, providerId);
-            return startTransferProcess(participantContext, agreementId, providerAddress, transferType);
+            var agreementId = startContractNegotiation(participantContext, profile, providerContextId, assetId, offer, providerAddress, providerId);
+            return startTransferProcess(participantContext, profile, agreementId, providerAddress, transferType);
 
         } catch (Exception e) {
             throw new RuntimeException(e);

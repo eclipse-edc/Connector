@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.edc.protocol.dsp.metadata.http.api.DspMetadataApiExtension
+org.eclipse.edc.protocol.dsp.metadata.http.api.DspVirtualMetadataApiExtension

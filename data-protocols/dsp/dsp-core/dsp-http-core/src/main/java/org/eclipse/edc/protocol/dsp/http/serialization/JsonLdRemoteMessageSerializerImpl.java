@@ -73,11 +73,11 @@ public class JsonLdRemoteMessageSerializerImpl implements JsonLdRemoteMessageSer
 
             if (transformResult.succeeded()) {
 
-                var protocolVersion = dataspaceProfileContextRegistry.getProtocolVersion(message.getProtocol());
-                if (protocolVersion == null) {
-                    throw new EdcException(format("No protocol version found for protocol: %s", message.getProtocol()));
+                var profile = dataspaceProfileContextRegistry.getProfile(message.getProtocol());
+                if (profile == null) {
+                    throw new EdcException(format("No profile found for protocol: %s", message.getProtocol()));
                 }
-                var compacted = jsonLdService.compact(transformResult.getContent(), scopePrefix + DSP_CONTEXT_SEPARATOR + protocolVersion.version());
+                var compacted = jsonLdService.compact(transformResult.getContent(), scopePrefix + DSP_CONTEXT_SEPARATOR + profile.name());
                 if (compacted.succeeded()) {
                     return typeManager.getMapper(typeContext).writeValueAsString(compacted.getContent());
                 }

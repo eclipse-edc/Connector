@@ -139,11 +139,13 @@ include(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025:dsp-negotiation-http-
 include(":data-protocols:dsp:dsp-2025:dsp-negotiation-2025:dsp-negotiation-transform-2025")
 
 // dsp version 2025/1 virtual variant
+include(":data-protocols:dsp:dsp-virtual:dsp-http-virtual-spi")
+include(":data-protocols:dsp:dsp-virtual:dsp-http-core-virtual")
 include(":data-protocols:dsp:dsp-virtual:dsp-2025-virtual")
 include(":data-protocols:dsp:dsp-virtual:dsp-2025-virtual:dsp-catalog-http-api-2025-virtual")
 include(":data-protocols:dsp:dsp-virtual:dsp-2025-virtual:dsp-negotiation-http-api-2025-virtual")
 include(":data-protocols:dsp:dsp-virtual:dsp-2025-virtual:dsp-transfer-process-http-api-2025-virtual")
-
+include(":data-protocols:dsp:dsp-virtual:dsp-2025-virtual:dsp-http-api-configuration-2025-virtual")
 
 // modules for technology- or cloud-provider extensions --------------------------------------------
 include(":extensions:common:api:api-core")

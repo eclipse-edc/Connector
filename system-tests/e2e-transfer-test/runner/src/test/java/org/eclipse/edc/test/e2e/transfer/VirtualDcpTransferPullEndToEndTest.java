@@ -129,7 +129,7 @@ class VirtualDcpTransferPullEndToEndTest {
             var policy = new PolicyDto(List.of(permission));
 
             var assetId = setup(connectorClient, participants.provider(), policy);
-            var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "NonFinite-PULL");
+            var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.consumer().profile(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "NonFinite-PULL");
 
             var consumerTransfer = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId);
             var providerTransfer = connectorClient.transfers().getTransferProcess(participants.provider().contextId(), consumerTransfer.getCorrelationId());
@@ -158,7 +158,7 @@ class VirtualDcpTransferPullEndToEndTest {
             var policy = new PolicyDto(List.of(permission));
 
             var assetId = setup(connectorClient, participants.provider(), policy);
-            var negotiationId = connectorClient.initContractNegotiation(participants.consumer().contextId(), assetId, providerAddress, participants.provider().id());
+            var negotiationId = connectorClient.initContractNegotiation(participants.consumer().contextId(), participants.consumer().profile(), assetId, providerAddress, participants.provider().id());
 
             connectorClient.waitForContractNegotiationState(participants.consumer().contextId(), negotiationId, ContractNegotiationStates.TERMINATED.name());
             var error = connectorClient.getNegotiationError(participants.consumer().contextId(), negotiationId);

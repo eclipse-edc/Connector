@@ -35,12 +35,13 @@ public class DspProtocolTypeTransformerRegistryImpl implements DspProtocolTypeTr
 
     @Override
     public Result<TypeTransformerRegistry> forProtocol(String protocol) {
-        var protocolVersion = dataspaceProfileContextRegistry.getProtocolVersion(protocol);
-
-        if (protocolVersion == null) {
-            return Result.failure(String.format("No protocol version found for protocol: %s", protocol));
+        // Transformers are bound to a DSP protocol version, not a profile. Multiple profiles
+        // sharing the same DSP version share their transformer context.
+        var profile = dataspaceProfileContextRegistry.getProfile(protocol);
+        if (profile == null) {
+            return Result.failure(String.format("No profile found for protocol: %s", protocol));
         }
-        return Result.success(transformerRegistry.forContext(transformerContextPrefix + DSP_CONTEXT_SEPARATOR + protocolVersion.version()));
+        return Result.success(transformerRegistry.forContext(transformerContextPrefix + DSP_CONTEXT_SEPARATOR + profile.protocolVersion().version()));
     }
 
 }

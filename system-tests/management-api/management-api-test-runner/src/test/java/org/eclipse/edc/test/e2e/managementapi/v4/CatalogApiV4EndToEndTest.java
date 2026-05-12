@@ -120,6 +120,7 @@ public class CatalogApiV4EndToEndTest {
                     .body(requestBody)
                     .post("/v4/catalog/request")
                     .then()
+                    .log().all()
                     .statusCode(200)
                     .contentType(JSON)
                     .body(TYPE, is("Catalog"))
