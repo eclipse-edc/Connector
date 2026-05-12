@@ -16,6 +16,9 @@ package org.eclipse.edc.event.nats;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.cloudevents.core.format.ContentType;
+import io.cloudevents.core.v1.CloudEventBuilder;
+import io.cloudevents.jackson.JsonFormat;
 import io.nats.client.JetStream;
 import io.nats.client.JetStreamApiException;
 import io.nats.client.PublishOptions;
@@ -26,6 +29,10 @@ import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.io.IOException;
+import java.net.URI;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 import static org.eclipse.edc.event.nats.Constants.EVENTS_SUBJECT;
 
@@ -33,11 +40,14 @@ public class NatsEventPublisher implements EventSubscriber {
     private final Monitor monitor;
     private final JetStream jetStream;
     private final ObjectMapper objectMapper;
+    private final String hostname;
+    private final JsonFormat jsonFormat = new JsonFormat();
 
-    public NatsEventPublisher(Monitor monitor, JetStream jetStream, ObjectMapper objectMapper) {
+    public NatsEventPublisher(Monitor monitor, JetStream jetStream, ObjectMapper objectMapper, String hostname) {
         this.monitor = monitor;
         this.jetStream = jetStream;
         this.objectMapper = objectMapper;
+        this.hostname = hostname;
     }
 
     @Override
@@ -47,18 +57,31 @@ public class NatsEventPublisher implements EventSubscriber {
 
         var opts = PublishOptions.builder().build();
         try {
-            jetStream.publish(subject, getHeaders(), serialize(event.getPayload()), opts);
+            jetStream.publish(subject, getHeaders(), serialize(event), opts);
         } catch (IOException | JetStreamApiException e) {
             monitor.severe("Error publishing event", e);
         }
     }
 
-    private byte[] serialize(Object payload) throws JsonProcessingException {
-        // todo: serialize as CloudEvents
-        return objectMapper.writeValueAsBytes(payload);
+    private <E extends Event> byte[] serialize(EventEnvelope<E> envelope) throws JsonProcessingException {
+        var payload = envelope.getPayload();
+        var json = objectMapper.writeValueAsBytes(payload);
+
+        var cloudEvent = new CloudEventBuilder()
+                .withId(envelope.getId())
+                .withSource(URI.create(hostname))
+                .withTime(OffsetDateTime.ofInstant(Instant.ofEpochMilli(envelope.getAt()), ZoneOffset.UTC))
+                .withType(payload.getClass().getName())
+                .withDataContentType(ContentType.JSON.toString())
+                .withData(json)
+                .build();
+
+        return jsonFormat.serialize(cloudEvent);
     }
 
     private Headers getHeaders() {
-        return null;
+        var h = new Headers();
+        h.add("Content-Type", "application/cloudevents+json");
+        return h;
     }
 }

@@ -31,13 +31,13 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import java.io.IOException;
 import java.time.Duration;
 
-import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.event.nats.NatsPublishingExtension.NAME;
 
 @Extension(value = NAME)
@@ -60,6 +60,9 @@ public class NatsPublishingExtension implements ServiceExtension {
 
     @Inject
     private ObjectMapper objectMapper;
+
+    @Inject
+    private Hostname hostname;
 
     private Connection natsConnection;
 
@@ -129,7 +132,8 @@ public class NatsPublishingExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         try {
-            var natsEventPublisher = new NatsEventPublisher(context.getMonitor().withPrefix("NATS events"), natsConnection.jetStream(), objectMapper);
+            var natsEventPublisher = new NatsEventPublisher(context.getMonitor().withPrefix("NATS events"),
+                    natsConnection.jetStream(), objectMapper, hostname.get());
             eventRouter.register(Event.class, natsEventPublisher);
         } catch (IOException e) {
             throw new EdcException("Error connecting to NATS", e);

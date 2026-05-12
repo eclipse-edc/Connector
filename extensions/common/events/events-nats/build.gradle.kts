@@ -20,6 +20,8 @@ plugins {
 dependencies {
     api(project(":spi:common:core-spi"))
     implementation(libs.nats)
+    implementation(libs.cloudEvents)
+    implementation(libs.cloudEvents.json)
     implementation(libs.failsafe.core)
 
     testImplementation(testFixtures(project(":core:common:junit")))
