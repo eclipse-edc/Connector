@@ -84,33 +84,6 @@ public class NatsPublishingExtension implements ServiceExtension {
 
     }
 
-    private void createStream(NatsConfig natsConfig, Connection natsConnection) throws Exception {
-        var jsm = natsConnection.jetStreamManagement();
-        var streamConfig = StreamConfiguration.builder()
-                .name(natsConfig.natsStreamName)
-                .subjects(Constants.EVENTS_PREFIX)
-                .storageType(StorageType.Memory)
-                .retentionPolicy(RetentionPolicy.Interest) // messages are removed only when _all_ subscribers have ack'd
-                .build();
-        try {
-            jsm.addStream(streamConfig);
-        } catch (JetStreamApiException e) {
-            if (e.getApiErrorCode() == ERR_STREAM_NAME_IN_USE) {
-                if (natsConfig.createStreamForce) {
-                    monitor.debug("NATS stream '%s' already exists, deleting and recreating".formatted(natsConfig.natsStreamName));
-                    jsm.deleteStream(natsConfig.natsStreamName);
-                    jsm.addStream(streamConfig);
-                } else {
-                    var msg = "NATS stream already exists and force create ('nats.event.stream.create.force') is disabled";
-                    monitor.severe(msg);
-                    throw new EdcException(msg, e);
-                }
-            } else {
-                throw new EdcException("Error creating NATS stream", e);
-            }
-        }
-    }
-
     @Override
     public void initialize(ServiceExtensionContext context) {
         var builder = authenticationOptions != null ? new Options.Builder(authenticationOptions) : new Options.Builder();
@@ -148,6 +121,33 @@ public class NatsPublishingExtension implements ServiceExtension {
                 natsConnection.close();
             } catch (InterruptedException e) {
                 monitor.warning("Error closing NATS connection during shutdown", e);
+            }
+        }
+    }
+
+    private void createStream(NatsConfig natsConfig, Connection natsConnection) throws Exception {
+        var jsm = natsConnection.jetStreamManagement();
+        var streamConfig = StreamConfiguration.builder()
+                .name(natsConfig.natsStreamName)
+                .subjects(Constants.EVENTS_PREFIX)
+                .storageType(StorageType.Memory)
+                .retentionPolicy(RetentionPolicy.Interest) // messages are removed only when _all_ subscribers have ack'd
+                .build();
+        try {
+            jsm.addStream(streamConfig);
+        } catch (JetStreamApiException e) {
+            if (e.getApiErrorCode() == ERR_STREAM_NAME_IN_USE) {
+                if (natsConfig.createStreamForce) {
+                    monitor.debug("NATS stream '%s' already exists, deleting and recreating".formatted(natsConfig.natsStreamName));
+                    jsm.deleteStream(natsConfig.natsStreamName);
+                    jsm.addStream(streamConfig);
+                } else {
+                    var msg = "NATS stream already exists and force create ('nats.event.stream.create.force') is disabled";
+                    monitor.severe(msg);
+                    throw new EdcException(msg, e);
+                }
+            } else {
+                throw new EdcException("Error creating NATS stream", e);
             }
         }
     }
