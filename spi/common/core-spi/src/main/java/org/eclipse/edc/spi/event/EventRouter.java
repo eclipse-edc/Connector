@@ -25,7 +25,7 @@ public interface EventRouter {
 
     /**
      * Register a new synchronous subscriber.
-     * The synchronous subscribers are supposed to being notified before the standard subscribers in a synchronous way.
+     * The synchronous subscribers are being notified before the standard subscribers synchronously.
      * If a synchronous subscriber thrown an exception, this will stop the publish operation.
      *
      * @param subscriber that will receive every published event

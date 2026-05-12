@@ -165,6 +165,7 @@ include(":extensions:common:http:lib:jersey-providers-lib")
 
 include(":extensions:common:configuration:configuration-filesystem")
 include(":extensions:common:events:events-cloud-http")
+include(":extensions:common:events:events-nats")
 include(":extensions:common:http")
 include(":extensions:common:console-monitor")
 include(":extensions:common:otel-monitor")
