@@ -340,6 +340,7 @@ include(":spi:federated-catalog-spi")
 
 // modules for system tests ------------------------------------------------------------------------
 include(":system-tests:bom-tests")
+include(":system-tests:nats-events-tests")
 include(":system-tests:e2e-dataplane-tests:runtimes:data-plane")
 include(":system-tests:e2e-dataplane-tests:tests")
 include(":system-tests:e2e-transfer-test:control-plane")

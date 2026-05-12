@@ -34,6 +34,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.types.TypeManager;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -59,7 +60,7 @@ public class NatsPublishingExtension implements ServiceExtension {
     private Options authenticationOptions;
 
     @Inject
-    private ObjectMapper objectMapper;
+    private TypeManager typeManager;
 
     @Inject
     private Hostname hostname;
@@ -73,31 +74,12 @@ public class NatsPublishingExtension implements ServiceExtension {
 
     @Override
     public void prepare() {
-
-        var builder = authenticationOptions != null ? new Options.Builder(authenticationOptions) : new Options.Builder();
-
-        var optionsBuilder = builder
-                .server(natsConfig.natsUrl)
-                .maxReconnects(-1)
-                .reconnectWait(Duration.ofSeconds(1))
-                .maxPingsOut(5)
-                .pingInterval(Duration.ofSeconds(20));
-
         try {
-            natsConnection = Nats.connect(optionsBuilder.build());
+            var natsEventPublisher = new NatsEventPublisher(monitor.withPrefix("NATS events"),
+                    natsConnection.jetStream(), typeManager.getMapper(), hostname.get());
+            eventRouter.register(Event.class, natsEventPublisher);
         } catch (IOException e) {
-            monitor.severe("Error connecting to NATS", e);
             throw new EdcException("Error connecting to NATS", e);
-        } catch (InterruptedException e) {
-            throw new EdcException(e);
-        }
-        if (natsConfig.createStream) {
-            try {
-                createStream(natsConfig, natsConnection);
-            } catch (Exception e) {
-                monitor.severe("Error creating NATS stream", e);
-                throw new EdcException("Error creating NATS stream", e);
-            }
         }
 
     }
@@ -131,13 +113,32 @@ public class NatsPublishingExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var builder = authenticationOptions != null ? new Options.Builder(authenticationOptions) : new Options.Builder();
+
+        var optionsBuilder = builder
+                .server(natsConfig.natsUrl)
+                .maxReconnects(-1)
+                .reconnectWait(Duration.ofSeconds(1))
+                .maxPingsOut(5)
+                .pingInterval(Duration.ofSeconds(20));
+
         try {
-            var natsEventPublisher = new NatsEventPublisher(context.getMonitor().withPrefix("NATS events"),
-                    natsConnection.jetStream(), objectMapper, hostname.get());
-            eventRouter.register(Event.class, natsEventPublisher);
+            natsConnection = Nats.connect(optionsBuilder.build());
         } catch (IOException e) {
+            monitor.severe("Error connecting to NATS", e);
             throw new EdcException("Error connecting to NATS", e);
+        } catch (InterruptedException e) {
+            throw new EdcException(e);
         }
+        if (natsConfig.createStream) {
+            try {
+                createStream(natsConfig, natsConnection);
+            } catch (Exception e) {
+                monitor.severe("Error creating NATS stream", e);
+                throw new EdcException("Error creating NATS stream", e);
+            }
+        }
+
     }
 
     @Override
@@ -152,10 +153,10 @@ public class NatsPublishingExtension implements ServiceExtension {
     }
 
     @Settings
-    public record NatsConfig(@Setting(key = "nats.url", description = "The URL of the NATS server'") String natsUrl,
-                             @Setting(key = "nats.event.stream", description = "The name of the NATS stream to use for event publishing'") String natsStreamName,
-                             @Setting(key = "nats.event.stream.create", required = false, description = "If the stream should be attempted to be created. May fail if the stream exists.'", defaultValue = "true") boolean createStream,
-                             @Setting(key = "nats.event.stream.create.force", required = false, description = "If the stream should be created if it does not exist'", defaultValue = "true") boolean createStreamForce,
-                             @Setting(key = "nats.event.async", required = false, description = "Whether events should be published synchronously or asynchronously'", defaultValue = "true") boolean publishNatsEventAsync) {
+    public record NatsConfig(
+            @Setting(key = "edc.events.nats.url", description = "The URL of the NATS server'") String natsUrl,
+            @Setting(key = "edc.events.nats.stream", description = "The name of the NATS stream to use for event publishing'") String natsStreamName,
+            @Setting(key = "edc.events.nats.stream.create", required = false, description = "If the stream should be attempted to be created. May fail if the stream exists.'", defaultValue = "true") boolean createStream,
+            @Setting(key = "edc.events.nats.stream.create.force", required = false, description = "If the stream should be created if it does not exist'", defaultValue = "true") boolean createStreamForce) {
     }
 }

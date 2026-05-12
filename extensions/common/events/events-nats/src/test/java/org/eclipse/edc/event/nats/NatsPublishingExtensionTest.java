@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.event.nats;
+package org.eclipse.edcnats;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.JetStreamApiException;
@@ -20,6 +20,8 @@ import io.nats.client.Nats;
 import io.nats.client.Options;
 import io.nats.client.api.StreamConfiguration;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
+import org.eclipse.edc.event.nats.NatsEventPublisher;
+import org.eclipse.edc.event.nats.NatsPublishingExtension;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.EdcException;
@@ -33,7 +35,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
@@ -45,9 +46,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -94,46 +93,46 @@ class NatsPublishingExtensionTest {
     }
 
     @Test
-    void prepare(ServiceExtensionContext context, ObjectFactory factory) {
+    void initialize(ServiceExtensionContext context, ObjectFactory factory) {
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
-                "nats.url", "nats://localhost:" + nats.getMappedPort(4222),
-                "nats.event.stream", "test-stream",
-                "nats.event.stream.create", "true"
+                "edc.events.nats.url", "nats://localhost:" + nats.getMappedPort(4222),
+                "edc.events.nats.stream", "test-stream",
+                "edc.events.nats.stream.create", "true"
         )));
         var ext = factory.constructInstance(NatsPublishingExtension.class);
-        assertThatNoException().isThrownBy(ext::prepare);
+        assertThatNoException().isThrownBy(() -> ext.initialize(context));
     }
 
     @Test
-    void prepare_natsConnectionFails(ServiceExtensionContext context, ObjectFactory factory) {
+    void initialize_natsConnectionFails(ServiceExtensionContext context, ObjectFactory factory) {
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
-                "nats.url", "nats://localhost:4222",
-                "nats.event.stream", "test-stream",
-                "nats.event.stream.forcecreate", "true"
+                "edc.events.nats.url", "nats://localhost:4222",
+                "edc.events.nats.stream", "test-stream",
+                "edc.events.nats.stream.create.force", "true"
         )));
         var ext = factory.constructInstance(NatsPublishingExtension.class);
-        assertThatExceptionOfType(EdcException.class).isThrownBy(ext::prepare);
+        assertThatExceptionOfType(EdcException.class).isThrownBy(() -> ext.initialize(context));
     }
 
     @Test
-    void prepare_noCreateStream(ServiceExtensionContext context, ObjectFactory factory) {
+    void initialize_noCreateStream(ServiceExtensionContext context, ObjectFactory factory) {
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
-                "nats.url", "nats://localhost:" + nats.getMappedPort(4222),
-                "nats.event.stream", "test-stream",
-                "nats.event.stream.create", "false"
+                "edc.events.nats.url", "nats://localhost:" + nats.getMappedPort(4222),
+                "edc.events.nats.stream", "test-stream",
+                "edc.events.nats.stream.create", "false"
         )));
         var ext = factory.constructInstance(NatsPublishingExtension.class);
-        assertThatNoException().isThrownBy(ext::prepare);
+        assertThatNoException().isThrownBy(() -> ext.initialize(context));
     }
 
     @Test
-    void prepare_streamExists_noForce(ServiceExtensionContext context, ObjectFactory factory) throws Exception {
+    void initialize_streamExists_noForce(ServiceExtensionContext context, ObjectFactory factory) throws Exception {
         var streamName = UUID.randomUUID().toString();
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
-                "nats.url", "nats://localhost:" + nats.getMappedPort(4222),
-                "nats.event.stream", streamName,
-                "nats.event.stream.create", "true",
-                "nats.event.stream.create.force", "false"
+                "edc.events.nats.url", "nats://localhost:" + nats.getMappedPort(4222),
+                "edc.events.nats.stream", streamName,
+                "edc.events.nats.stream.create", "true",
+                "edc.events.nats.stream.create.force", "false"
         )));
 
         // create stream - will cause collision
@@ -142,18 +141,18 @@ class NatsPublishingExtensionTest {
             jsm.addStream(StreamConfiguration.builder().name(streamName).build());
 
             var ext = factory.constructInstance(NatsPublishingExtension.class);
-            assertThatExceptionOfType(EdcException.class).isThrownBy(ext::prepare);
+            assertThatExceptionOfType(EdcException.class).isThrownBy(() -> ext.initialize(context));
         }
     }
 
     @Test
-    void prepare_streamExists_withForce(ServiceExtensionContext context, ObjectFactory factory) throws Exception {
+    void initialize_streamExists_withForce(ServiceExtensionContext context, ObjectFactory factory) throws Exception {
         var streamName = UUID.randomUUID().toString();
         when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
-                "nats.url", "nats://localhost:" + nats.getMappedPort(4222),
-                "nats.event.stream", streamName,
-                "nats.event.stream.create", "true",
-                "nats.event.stream.create.force", "true"
+                "edc.events.nats.url", "nats://localhost:" + nats.getMappedPort(4222),
+                "edc.events.nats.stream", streamName,
+                "edc.events.nats.stream.create", "true",
+                "edc.events.nats.stream.create.force", "true"
         )));
 
         // create stream - will cause collision
@@ -163,29 +162,29 @@ class NatsPublishingExtensionTest {
         }
 
         var ext = factory.constructInstance(NatsPublishingExtension.class);
-        assertThatNoException().isThrownBy(ext::prepare);
-    }
-
-
-    @Test
-    void initialize(ServiceExtensionContext context, ObjectFactory factory) throws Exception {
-        var streamName = UUID.randomUUID().toString();
-        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
-                "nats.url", "nats://localhost:" + nats.getMappedPort(4222),
-                "nats.event.stream", streamName,
-                "nats.event.stream.create", "true",
-                "nats.event.stream.create.force", "true"
-        )));
-
-        // create stream - will cause collision
-        try (var conn = Nats.connect("localhost:" + nats.getMappedPort(4222))) {
-            var jsm = conn.jetStreamManagement();
-            jsm.addStream(StreamConfiguration.builder().name(streamName).build());
-        }
-
-        var ext = factory.constructInstance(NatsPublishingExtension.class);
-        assertThatNoException().isThrownBy(ext::prepare);
         assertThatNoException().isThrownBy(() -> ext.initialize(context));
+    }
+
+
+    @Test
+    void prepare(ServiceExtensionContext context, ObjectFactory factory) throws Exception {
+        var streamName = UUID.randomUUID().toString();
+        when(context.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(
+                "edc.events.nats.url", "nats://localhost:" + nats.getMappedPort(4222),
+                "edc.events.nats.stream", streamName,
+                "edc.events.nats.stream.create", "true",
+                "edc.events.nats.stream.create.force", "true"
+        )));
+
+        // create stream - will cause collision
+        try (var conn = Nats.connect("localhost:" + nats.getMappedPort(4222))) {
+            var jsm = conn.jetStreamManagement();
+            jsm.addStream(StreamConfiguration.builder().name(streamName).build());
+        }
+
+        var ext = factory.constructInstance(NatsPublishingExtension.class);
+        assertThatNoException().isThrownBy(() -> ext.initialize(context));
+        assertThatNoException().isThrownBy(ext::prepare);
 
         verify(eventRouter).register(eq(Event.class), isA(NatsEventPublisher.class));
     }
