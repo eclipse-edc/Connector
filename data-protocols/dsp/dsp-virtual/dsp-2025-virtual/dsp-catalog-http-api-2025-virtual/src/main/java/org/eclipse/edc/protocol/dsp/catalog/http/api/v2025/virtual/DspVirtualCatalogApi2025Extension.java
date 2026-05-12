@@ -21,7 +21,7 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.decorator.Base64continuationTokenSerDes;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.decorator.ContinuationTokenManagerImpl;
-import org.eclipse.edc.protocol.dsp.catalog.http.api.v2025.virtual.controller.DspCatalogApiController20251;
+import org.eclipse.edc.protocol.dsp.catalog.http.api.v2025.virtual.controller.DspVirtualCatalogApiController20251;
 import org.eclipse.edc.protocol.dsp.catalog.validation.CatalogRequestMessageValidator;
 import org.eclipse.edc.protocol.dsp.http.spi.message.ContinuationTokenManager;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
@@ -49,8 +49,8 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNam
 /**
  * Creates and registers the controller for dataspace protocol v2025/1 catalog requests.
  */
-@Extension(value = DspCatalogApi2025Extension.NAME)
-public class DspCatalogApi2025Extension implements ServiceExtension {
+@Extension(value = DspVirtualCatalogApi2025Extension.NAME)
+public class DspVirtualCatalogApi2025Extension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol 2025/1 API Catalog Extension";
 
@@ -103,7 +103,7 @@ public class DspCatalogApi2025Extension implements ServiceExtension {
             dataServiceRegistry.register(profile.name(), this::createDataService);
         });
 
-        resourceLocator.registerSubResource("catalog", V_2025_1_VERSION, new DspCatalogApiController20251(service, participantContextService, participantProfileResolver, dspRequestHandler, continuationTokenManager(monitor)));
+        resourceLocator.registerSubResource("catalog", V_2025_1_VERSION, new DspVirtualCatalogApiController20251(service, participantContextService, participantProfileResolver, dspRequestHandler, continuationTokenManager(monitor)));
 
     }
 

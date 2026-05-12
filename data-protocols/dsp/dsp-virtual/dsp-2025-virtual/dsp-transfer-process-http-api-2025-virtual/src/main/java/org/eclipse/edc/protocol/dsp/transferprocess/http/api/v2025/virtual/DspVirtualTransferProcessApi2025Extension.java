@@ -18,7 +18,7 @@ import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.Trans
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.http.DspVirtualSubResourceLocator;
-import org.eclipse.edc.protocol.dsp.transferprocess.http.api.v2025.virtual.controller.DspTransferProcessApiController20251;
+import org.eclipse.edc.protocol.dsp.transferprocess.http.api.v2025.virtual.controller.DspVirtualTransferProcessApiController20251;
 import org.eclipse.edc.protocol.dsp.transferprocess.validation.TransferCompletionMessageValidator;
 import org.eclipse.edc.protocol.dsp.transferprocess.validation.TransferRequestMessageValidator;
 import org.eclipse.edc.protocol.dsp.transferprocess.validation.TransferStartMessageValidator;
@@ -41,8 +41,8 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAn
 /**
  * Creates and registers the controller for dataspace protocol v2025/1 transfer process requests.
  */
-@Extension(value = DspTransferProcessApi2025Extension.NAME)
-public class DspTransferProcessApi2025Extension implements ServiceExtension {
+@Extension(value = DspVirtualTransferProcessApi2025Extension.NAME)
+public class DspVirtualTransferProcessApi2025Extension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol 2025/1: TransferProcess API Extension";
     @Inject
@@ -79,6 +79,6 @@ public class DspTransferProcessApi2025Extension implements ServiceExtension {
         });
 
         subResourceLocator.registerSubResource("transfers", V_2025_1_VERSION,
-                new DspTransferProcessApiController20251(transferProcessProtocolService, participantContextService, participantProfileResolver, dspRequestHandler));
+                new DspVirtualTransferProcessApiController20251(transferProcessProtocolService, participantContextService, participantProfileResolver, dspRequestHandler));
     }
 }

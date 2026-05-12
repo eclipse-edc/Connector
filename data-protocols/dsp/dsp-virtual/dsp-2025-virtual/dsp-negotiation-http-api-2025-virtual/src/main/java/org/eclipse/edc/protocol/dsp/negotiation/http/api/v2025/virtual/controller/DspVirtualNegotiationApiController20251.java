@@ -66,21 +66,23 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTyp
  * context id, profile id and DSP protocol version segment. The version segment dispatches to
  * this controller class; the profile determines the JSON-LD namespace and protocol string used
  * to dispatch the request. The profile's DSP version must match this controller's version.
+ * The controller is not actually registered directly on the web service, but is returned by the DspVirtualProfileDispatcher when
+ * a request matches the path parameters and version. This allows for multiple versions of the same API to be supported simultaneously.
  */
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
 @Path("/{participantContextId}/{profileId}" + BASE_PATH)
-public class DspNegotiationApiController20251 {
+public class DspVirtualNegotiationApiController20251 {
 
     private final ContractNegotiationProtocolService protocolService;
     private final ParticipantContextService participantContextService;
     private final ParticipantProfileResolver profileResolver;
     private final DspRequestHandler dspRequestHandler;
 
-    public DspNegotiationApiController20251(ContractNegotiationProtocolService protocolService,
-                                            ParticipantContextService participantContextService,
-                                            ParticipantProfileResolver profileResolver,
-                                            DspRequestHandler dspRequestHandler) {
+    public DspVirtualNegotiationApiController20251(ContractNegotiationProtocolService protocolService,
+                                                   ParticipantContextService participantContextService,
+                                                   ParticipantProfileResolver profileResolver,
+                                                   DspRequestHandler dspRequestHandler) {
         this.protocolService = protocolService;
         this.participantContextService = participantContextService;
         this.profileResolver = profileResolver;

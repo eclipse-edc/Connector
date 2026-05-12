@@ -17,7 +17,7 @@ package org.eclipse.edc.protocol.dsp.negotiation.http.api.v2025.virtual;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
-import org.eclipse.edc.protocol.dsp.negotiation.http.api.v2025.virtual.controller.DspNegotiationApiController20251;
+import org.eclipse.edc.protocol.dsp.negotiation.http.api.v2025.virtual.controller.DspVirtualNegotiationApiController20251;
 import org.eclipse.edc.protocol.dsp.negotiation.validation.ContractAgreementMessageValidator;
 import org.eclipse.edc.protocol.dsp.negotiation.validation.ContractAgreementVerificationMessageValidator;
 import org.eclipse.edc.protocol.dsp.negotiation.validation.ContractNegotiationEventMessageValidator;
@@ -45,8 +45,8 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTyp
 /**
  * Creates and registers the controller for dataspace protocol v2025/1 negotiation requests.
  */
-@Extension(value = DspNegotiationApi2025Extension.NAME)
-public class DspNegotiationApi2025Extension implements ServiceExtension {
+@Extension(value = DspVirtualNegotiationApi2025Extension.NAME)
+public class DspVirtualNegotiationApi2025Extension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol Negotiation Api v2025/1";
 
@@ -91,6 +91,6 @@ public class DspNegotiationApi2025Extension implements ServiceExtension {
         });
 
         subResourceLocator.registerSubResource("negotiations", V_2025_1_VERSION,
-                new DspNegotiationApiController20251(protocolService, participantContextService, participantProfileResolver, dspRequestHandler));
+                new DspVirtualNegotiationApiController20251(protocolService, participantContextService, participantProfileResolver, dspRequestHandler));
     }
 }

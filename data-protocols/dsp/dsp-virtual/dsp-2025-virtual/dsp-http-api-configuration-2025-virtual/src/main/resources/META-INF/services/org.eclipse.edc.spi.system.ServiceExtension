@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.edc.protocol.dsp.http.api.configuration.v2025.virtual.DspApiConfigurationV2025Extension
+org.eclipse.edc.protocol.dsp.http.api.configuration.v2025.virtual.DspVirtualApiConfigurationV2025Extension

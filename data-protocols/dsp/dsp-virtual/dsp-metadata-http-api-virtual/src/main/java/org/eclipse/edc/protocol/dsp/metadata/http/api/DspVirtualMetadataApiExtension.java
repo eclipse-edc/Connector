@@ -31,15 +31,15 @@ import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import java.util.Map;
 
-import static org.eclipse.edc.protocol.dsp.metadata.http.api.DspMetadataApiExtension.NAME;
+import static org.eclipse.edc.protocol.dsp.metadata.http.api.DspVirtualMetadataApiExtension.NAME;
 
 /**
  * Provide API for the protocol versions.
  */
 @Extension(NAME)
-public class DspMetadataApiExtension implements ServiceExtension {
+public class DspVirtualMetadataApiExtension implements ServiceExtension {
 
-    public static final String NAME = "Dataspace Protocol Metadata Api";
+    public static final String NAME = "Dataspace Protocol Virtual Metadata Api";
 
     @Inject
     private WebService webService;
@@ -72,7 +72,7 @@ public class DspMetadataApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectFromProtocolVersionsTransformer(jsonFactory));
         transformerRegistry.register(new JsonObjectFromVersionsError(jsonFactory));
 
-        webService.registerResource(ApiContext.PROTOCOL, new DspMetadataApiController(participantContextService, profileResolver, transformerRegistry));
+        webService.registerResource(ApiContext.PROTOCOL, new DspVirtualMetadataApiController(participantContextService, profileResolver, transformerRegistry));
     }
 
 }

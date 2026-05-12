@@ -31,13 +31,13 @@ import org.eclipse.edc.web.jersey.providers.jsonld.UrlInfoRequestFilter;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
-import static org.eclipse.edc.protocol.dsp.http.DspHttpCoreVirtualExtension.NAME;
+import static org.eclipse.edc.protocol.dsp.http.DspVirtualHttpCoreExtension.NAME;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_CONTEXT_SEPARATOR;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_SCOPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(NAME)
-public class DspHttpCoreVirtualExtension implements ServiceExtension {
+public class DspVirtualHttpCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol Core Virtual Extension";
 

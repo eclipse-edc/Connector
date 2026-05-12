@@ -43,7 +43,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ApiTest
-class DspMetadataApiControllerTest extends RestControllerTestBase {
+class DspVirtualMetadataApiControllerTest extends RestControllerTestBase {
 
     private final ParticipantProfileResolver profileResolver = mock();
     private final TypeTransformerRegistry transformerRegistry = mock();
@@ -101,7 +101,7 @@ class DspMetadataApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        return new DspMetadataApiController(participantContextService, profileResolver, transformerRegistry);
+        return new DspVirtualMetadataApiController(participantContextService, profileResolver, transformerRegistry);
     }
 
     private RequestSpecification baseRequest() {

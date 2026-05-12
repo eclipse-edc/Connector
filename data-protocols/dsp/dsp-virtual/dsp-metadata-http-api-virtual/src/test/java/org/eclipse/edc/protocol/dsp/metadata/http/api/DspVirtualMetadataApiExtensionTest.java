@@ -30,7 +30,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(DependencyInjectionExtension.class)
-class DspMetadataApiExtensionTest {
+class DspVirtualMetadataApiExtensionTest {
 
     private final WebService webService = mock();
     private final TypeTransformerRegistry transformerRegistry = mock();
@@ -42,10 +42,10 @@ class DspMetadataApiExtensionTest {
     }
 
     @Test
-    void shouldRegisterApiController(DspMetadataApiExtension extension, ServiceExtensionContext context) {
+    void shouldRegisterApiController(DspVirtualMetadataApiExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(webService).registerResource(eq(ApiContext.PROTOCOL), isA(DspMetadataApiController.class));
+        verify(webService).registerResource(eq(ApiContext.PROTOCOL), isA(DspVirtualMetadataApiController.class));
         verify(transformerRegistry).register(isA(JsonObjectFromProtocolVersionsTransformer.class));
     }
 }

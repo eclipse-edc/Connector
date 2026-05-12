@@ -54,8 +54,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 /**
  * Registers protocol webhook, API transformers and namespaces for DSP v2025/1 in virtual connector mode.
  */
-@Extension(value = DspApiConfigurationV2025Extension.NAME)
-public class DspApiConfigurationV2025Extension implements ServiceExtension {
+@Extension(value = DspVirtualApiConfigurationV2025Extension.NAME)
+public class DspVirtualApiConfigurationV2025Extension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol 2025/1 API Virtual Configuration Extension";
 

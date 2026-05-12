@@ -19,7 +19,7 @@ import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.controller.DspCatalogApiControllerTestBase;
-import org.eclipse.edc.protocol.dsp.catalog.http.api.v2025.virtual.controller.DspCatalogApiController20251;
+import org.eclipse.edc.protocol.dsp.catalog.http.api.v2025.virtual.controller.DspVirtualCatalogApiController20251;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -70,6 +70,6 @@ public class DspCatalogApiControllerV20251Test extends DspCatalogApiControllerTe
 
     @Override
     protected Object controller() {
-        return new DspCatalogApiController20251(service, participantContextService, profileResolver, dspRequestHandler, continuationTokenManager);
+        return new DspVirtualCatalogApiController20251(service, participantContextService, profileResolver, dspRequestHandler, continuationTokenManager);
     }
 }

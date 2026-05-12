@@ -19,7 +19,7 @@ import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.protocol.dsp.transferprocess.http.api.controller.DspTransferProcessApiControllerBaseTest;
-import org.eclipse.edc.protocol.dsp.transferprocess.http.api.v2025.virtual.controller.DspTransferProcessApiController20251;
+import org.eclipse.edc.protocol.dsp.transferprocess.http.api.v2025.virtual.controller.DspVirtualTransferProcessApiController20251;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -70,7 +70,7 @@ class DspTransferProcessApiControllerV20251Test extends DspTransferProcessApiCon
 
     @Override
     protected Object controller() {
-        return new DspTransferProcessApiController20251(protocolService, participantContextService, profileResolver, dspRequestHandler);
+        return new DspVirtualTransferProcessApiController20251(protocolService, participantContextService, profileResolver, dspRequestHandler);
     }
 
 }

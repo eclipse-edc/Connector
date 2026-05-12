@@ -62,7 +62,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspCatalogPropertyAndTypeNam
 @Consumes({APPLICATION_JSON})
 @Produces({APPLICATION_JSON})
 @Path("/{participantContextId}/{profileId}" + BASE_PATH)
-public class DspCatalogApiController20251 {
+public class DspVirtualCatalogApiController20251 {
 
     private final CatalogProtocolService service;
     private final ParticipantContextService participantContextService;
@@ -70,11 +70,11 @@ public class DspCatalogApiController20251 {
     private final DspRequestHandler dspRequestHandler;
     private final ContinuationTokenManager continuationTokenManager;
 
-    public DspCatalogApiController20251(CatalogProtocolService service,
-                                        ParticipantContextService participantContextService,
-                                        ParticipantProfileResolver profileResolver,
-                                        DspRequestHandler dspRequestHandler,
-                                        ContinuationTokenManager continuationTokenManager) {
+    public DspVirtualCatalogApiController20251(CatalogProtocolService service,
+                                               ParticipantContextService participantContextService,
+                                               ParticipantProfileResolver profileResolver,
+                                               DspRequestHandler dspRequestHandler,
+                                               ContinuationTokenManager continuationTokenManager) {
         this.service = service;
         this.participantContextService = participantContextService;
         this.profileResolver = profileResolver;
