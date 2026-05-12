@@ -19,7 +19,7 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.protocol.dsp.version.transformer.JsonObjectFromProtocolVersionsTransformer;
 import org.eclipse.edc.protocol.dsp.version.transformer.JsonObjectFromVersionsError;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -48,7 +48,7 @@ public class DspMetadataApiExtension implements ServiceExtension {
     private TypeTransformerRegistry transformerRegistry;
 
     @Inject
-    private DataspaceProfileContextRegistry profileContextRegistry;
+    private ParticipantProfileResolver profileResolver;
 
     @Inject
     private JsonLd jsonLd;
@@ -72,7 +72,7 @@ public class DspMetadataApiExtension implements ServiceExtension {
         transformerRegistry.register(new JsonObjectFromProtocolVersionsTransformer(jsonFactory));
         transformerRegistry.register(new JsonObjectFromVersionsError(jsonFactory));
 
-        webService.registerResource(ApiContext.PROTOCOL, new DspMetadataApiController(participantContextService, profileContextRegistry, transformerRegistry));
+        webService.registerResource(ApiContext.PROTOCOL, new DspMetadataApiController(participantContextService, profileResolver, transformerRegistry));
     }
 
 }

@@ -23,7 +23,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionsError;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
 import org.eclipse.edc.protocol.spi.ProtocolVersions;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -36,14 +36,14 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 @Path("/{participantContextId}/.well-known/dspace-version")
 public class DspMetadataApiController {
 
-    private final DataspaceProfileContextRegistry profileContextRegistry;
+    private final ParticipantProfileResolver profileResolver;
     private final TypeTransformerRegistry transformerRegistry;
     private final ParticipantContextService participantContextService;
 
 
-    public DspMetadataApiController(ParticipantContextService participantContextService, DataspaceProfileContextRegistry profileContextRegistry, TypeTransformerRegistry transformerRegistry) {
+    public DspMetadataApiController(ParticipantContextService participantContextService, ParticipantProfileResolver profileResolver, TypeTransformerRegistry transformerRegistry) {
         this.participantContextService = participantContextService;
-        this.profileContextRegistry = profileContextRegistry;
+        this.profileResolver = profileResolver;
         this.transformerRegistry = transformerRegistry;
     }
 
@@ -54,7 +54,12 @@ public class DspMetadataApiController {
             return notFound();
         }
 
-        var versions = profileContextRegistry.getProfiles().stream().map(DataspaceProfileContext::protocolVersion).distinct().toList();
+        // Advertise only the DSP versions of profiles this participant is associated with.
+        // A participant with no associated profiles returns an empty version list.
+        var versions = profileResolver.resolveAll(participantContextId).stream()
+                .map(DataspaceProfileContext::protocolVersion)
+                .distinct()
+                .toList();
 
         var protocolVersions = new ProtocolVersions(versions);
         var body = transformerRegistry.transform(protocolVersions, JsonObject.class);

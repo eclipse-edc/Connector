@@ -12,12 +12,13 @@
  *
  */
 
-package org.eclipse.edc.protocol.dsp.transferprocess.http.api.v2025.controller;
+package org.eclipse.edc.protocol.dsp.transferprocess.http.api.v2025.virtual.controller;
 
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -33,15 +34,16 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
-import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextSupplier;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
+import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
-import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.V_2025_1_PATH;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.V_2025_1_VERSION;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE_TERM;
@@ -56,36 +58,38 @@ import static org.eclipse.edc.protocol.dsp.transferprocess.http.api.TransferProc
 
 
 /**
- * Versioned Transfer endpoint for 2025/1 protocol version
+ * Versioned Transfer endpoint for 2025/1 protocol version. Path is scoped by participant context
+ * id, profile id and DSP protocol version segment. The version segment dispatches to this
+ * controller class; the profile determines the JSON-LD namespace and protocol string used to
+ * dispatch the request. The profile's DSP version must match this controller's version.
  */
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
-@Path("/{participantContextId}" + V_2025_1_PATH + BASE_PATH)
+@Path("/{participantContextId}/{profileId}" + BASE_PATH)
 public class DspTransferProcessApiController20251 {
 
     private final TransferProcessProtocolService protocolService;
     private final ParticipantContextService participantContextService;
+    private final ParticipantProfileResolver profileResolver;
     private final DspRequestHandler dspRequestHandler;
-    private final String protocol;
-    private final JsonLdNamespace namespace;
 
-    public DspTransferProcessApiController20251(TransferProcessProtocolService protocolService, ParticipantContextService participantContextService, DspRequestHandler dspRequestHandler, String protocol, JsonLdNamespace namespace) {
+    public DspTransferProcessApiController20251(TransferProcessProtocolService protocolService,
+                                                ParticipantContextService participantContextService,
+                                                ParticipantProfileResolver profileResolver,
+                                                DspRequestHandler dspRequestHandler) {
         this.protocolService = protocolService;
         this.participantContextService = participantContextService;
+        this.profileResolver = profileResolver;
         this.dspRequestHandler = dspRequestHandler;
-        this.protocol = protocol;
-        this.namespace = namespace;
     }
 
-    /**
-     * Retrieves an existing transfer process. This functionality is not yet supported.
-     *
-     * @param id the ID of the process
-     * @return the requested transfer process or an error.
-     */
     @GET
     @Path("/{id}")
-    public Response getTransferProcess(@PathParam("participantContextId") String participantContextId, @PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
+    public Response getTransferProcess(@PathParam("participantContextId") String participantContextId,
+                                       @PathParam("profileId") String profileId,
+                                       @PathParam("id") String id, @HeaderParam(AUTHORIZATION) String token) {
+        var profile = resolveProfile(participantContextId, profileId);
+        var protocol = profile.name();
         var message = TransferProcessRequestMessage.Builder.newInstance()
                 .protocol(protocol)
                 .transferProcessId(id)
@@ -104,127 +108,112 @@ public class DspTransferProcessApiController20251 {
         return dspRequestHandler.getResource(request);
     }
 
-    /**
-     * Initiates a new transfer process that has been requested by the counter-party.
-     *
-     * @param jsonObject the {@link TransferRequestMessage} in JSON-LD expanded form
-     * @param token      the authorization header
-     * @return the created transfer process or an error.
-     */
     @POST
     @Path(TRANSFER_INITIAL_REQUEST)
-    public Response initiateTransferProcess(@PathParam("participantContextId") String participantContextId, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+    public Response initiateTransferProcess(@PathParam("participantContextId") String participantContextId,
+                                            @PathParam("profileId") String profileId,
+                                            JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        var profile = resolveProfile(participantContextId, profileId);
         var request = PostDspRequest.Builder.newInstance(TransferRequestMessage.class, TransferProcess.class, TransferError.class)
                 .message(jsonObject)
                 .token(token)
-                .expectedMessageType(namespace.toIri(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_TERM))
+                .expectedMessageType(profile.protocolNamespace().toIri(DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_TERM))
                 .serviceCall(protocolService::notifyRequested)
                 .errorProvider(TransferError.Builder::newInstance)
-                .protocol(protocol)
+                .protocol(profile.name())
                 .participantContextProvider(participantContextSupplier(participantContextId))
                 .build();
 
         return dspRequestHandler.createResource(request);
     }
 
-    /**
-     * Notifies the connector that a transfer process has been started by the counter-part.
-     *
-     * @param id         the ID of the process
-     * @param jsonObject the {@link TransferStartMessage} in JSON-LD expanded form
-     * @param token      the authorization header
-     * @return empty response or error.
-     */
     @POST
     @Path("{id}" + TRANSFER_START)
-    public Response transferProcessStart(@PathParam("participantContextId") String participantContextId, @PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+    public Response transferProcessStart(@PathParam("participantContextId") String participantContextId,
+                                         @PathParam("profileId") String profileId,
+                                         @PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        var profile = resolveProfile(participantContextId, profileId);
         var request = PostDspRequest.Builder.newInstance(TransferStartMessage.class, TransferProcess.class, TransferError.class)
                 .processId(id)
-                .expectedMessageType(namespace.toIri(DSPACE_TYPE_TRANSFER_START_MESSAGE_TERM))
+                .expectedMessageType(profile.protocolNamespace().toIri(DSPACE_TYPE_TRANSFER_START_MESSAGE_TERM))
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifyStarted)
                 .errorProvider(TransferError.Builder::newInstance)
-                .protocol(protocol)
+                .protocol(profile.name())
                 .participantContextProvider(participantContextSupplier(participantContextId))
                 .build();
 
         return dspRequestHandler.updateResource(request);
     }
 
-    /**
-     * Notifies the connector that a transfer process has been completed by the counter-part.
-     *
-     * @param id         the ID of the process
-     * @param jsonObject the {@link TransferCompletionMessage} in JSON-LD expanded form
-     * @param token      the authorization header
-     * @return empty response or error.
-     */
     @POST
     @Path("{id}" + TRANSFER_COMPLETION)
-    public Response transferProcessCompletion(@PathParam("participantContextId") String participantContextId, @PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+    public Response transferProcessCompletion(@PathParam("participantContextId") String participantContextId,
+                                              @PathParam("profileId") String profileId,
+                                              @PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        var profile = resolveProfile(participantContextId, profileId);
         var request = PostDspRequest.Builder.newInstance(TransferCompletionMessage.class, TransferProcess.class, TransferError.class)
                 .processId(id)
-                .expectedMessageType(namespace.toIri(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_TERM))
+                .expectedMessageType(profile.protocolNamespace().toIri(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_TERM))
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifyCompleted)
                 .errorProvider(TransferError.Builder::newInstance)
-                .protocol(protocol)
+                .protocol(profile.name())
                 .participantContextProvider(participantContextSupplier(participantContextId))
                 .build();
 
         return dspRequestHandler.updateResource(request);
     }
 
-    /**
-     * Notifies the connector that a transfer process has been terminated by the counter-part.
-     *
-     * @param id         the ID of the process
-     * @param jsonObject the {@link TransferTerminationMessage} in JSON-LD expanded form
-     * @param token      the authorization header
-     * @return empty response or error.
-     */
     @POST
     @Path("{id}" + TRANSFER_TERMINATION)
-    public Response transferProcessTermination(@PathParam("participantContextId") String participantContextId, @PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+    public Response transferProcessTermination(@PathParam("participantContextId") String participantContextId,
+                                               @PathParam("profileId") String profileId,
+                                               @PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        var profile = resolveProfile(participantContextId, profileId);
         var request = PostDspRequest.Builder.newInstance(TransferTerminationMessage.class, TransferProcess.class, TransferError.class)
                 .processId(id)
-                .expectedMessageType(namespace.toIri(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_TERM))
+                .expectedMessageType(profile.protocolNamespace().toIri(DSPACE_TYPE_TRANSFER_TERMINATION_MESSAGE_TERM))
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifyTerminated)
                 .errorProvider(TransferError.Builder::newInstance)
-                .protocol(protocol)
+                .protocol(profile.name())
                 .participantContextProvider(participantContextSupplier(participantContextId))
                 .build();
 
         return dspRequestHandler.updateResource(request);
     }
 
-    /**
-     * Notifies the connector that a transfer process has been suspended by the counter-part.
-     *
-     * @param id         the ID of the process
-     * @param jsonObject the {@link TransferSuspensionMessage} in JSON-LD expanded form
-     * @param token      the authorization header
-     * @return empty response or error.
-     */
     @POST
     @Path("{id}" + TRANSFER_SUSPENSION)
-    public Response transferProcessSuspension(@PathParam("participantContextId") String participantContextId, @PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+    public Response transferProcessSuspension(@PathParam("participantContextId") String participantContextId,
+                                              @PathParam("profileId") String profileId,
+                                              @PathParam("id") String id, JsonObject jsonObject, @HeaderParam(AUTHORIZATION) String token) {
+        var profile = resolveProfile(participantContextId, profileId);
         var request = PostDspRequest.Builder.newInstance(TransferSuspensionMessage.class, TransferProcess.class, TransferError.class)
                 .processId(id)
-                .expectedMessageType(namespace.toIri(DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE_TERM))
+                .expectedMessageType(profile.protocolNamespace().toIri(DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE_TERM))
                 .message(jsonObject)
                 .token(token)
                 .serviceCall(protocolService::notifySuspended)
                 .errorProvider(TransferError.Builder::newInstance)
-                .protocol(protocol)
+                .protocol(profile.name())
                 .participantContextProvider(participantContextSupplier(participantContextId))
                 .build();
 
         return dspRequestHandler.updateResource(request);
+    }
+
+    private DataspaceProfileContext resolveProfile(String participantContextId, String profileId) {
+        var profile = profileResolver.resolve(participantContextId, profileId)
+                .orElseThrow(() -> new NotFoundException("No profile '%s' for participant '%s'".formatted(profileId, participantContextId)));
+        if (!V_2025_1_VERSION.equals(profile.protocolVersion().version())) {
+            throw new NotFoundException("Profile '%s' is not for DSP version %s".formatted(profileId, V_2025_1_VERSION));
+        }
+        return profile;
     }
 
     private ParticipantContextSupplier participantContextSupplier(String id) {

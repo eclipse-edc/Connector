@@ -41,6 +41,7 @@ import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToCriterionTransfo
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_CONTEXT_2025_1;
@@ -89,7 +90,7 @@ public class DspApiConfigurationV2025Extension implements ServiceExtension {
         registerNamespaces();
         registerTransformers();
 
-        var profileContext = new DataspaceProfileContext(DATASPACE_PROTOCOL_HTTP_V_2025_1, V_2025_1, () -> dspWebhookAddress.get() + V_2025_1_PATH, participantIdExtractionFunction);
+        var profileContext = new DataspaceProfileContext(DATASPACE_PROTOCOL_HTTP_V_2025_1, V_2025_1, () -> dspWebhookAddress.get() + V_2025_1_PATH, participantIdExtractionFunction, DSP_NAMESPACE_V_2025_1, List.of());
         dataspaceProfileContextRegistry.registerDefault(profileContext);
     }
 

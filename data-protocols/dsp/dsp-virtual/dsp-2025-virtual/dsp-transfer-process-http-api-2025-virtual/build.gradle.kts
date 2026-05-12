@@ -18,14 +18,13 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:web-spi"))
     api(project(":spi:control-plane:transfer-spi"))
     api(project(":spi:control-plane:control-plane-spi"))
     api(project(":data-protocols:dsp:dsp-spi"))
     api(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
+    api(project(":data-protocols:dsp:dsp-virtual:dsp-http-virtual-spi"))
 
-    implementation(project(":spi:common:json-ld-spi"))
     implementation(project(":data-protocols:dsp:dsp-lib:dsp-transfer-process-lib:dsp-transfer-process-validation-lib"))
     implementation(project(":data-protocols:dsp:dsp-lib:dsp-transfer-process-lib:dsp-transfer-process-http-api-lib"))
     implementation(project(":extensions:common:http:lib:jersey-providers-lib"))

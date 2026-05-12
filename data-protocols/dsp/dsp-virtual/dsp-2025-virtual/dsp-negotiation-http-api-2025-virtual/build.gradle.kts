@@ -20,11 +20,10 @@ plugins {
 dependencies {
     api(project(":data-protocols:dsp:dsp-spi"))
     api(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
+    api(project(":data-protocols:dsp:dsp-virtual:dsp-http-virtual-spi"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
     api(project(":spi:common:core-spi"))
-    api(project(":spi:common:web-spi"))
     api(project(":spi:control-plane:control-plane-spi"))
-    api(project(":extensions:common:json-ld"))
 
     implementation(project(":data-protocols:dsp:dsp-lib:dsp-negotiation-lib:dsp-negotiation-validation-lib"))
     implementation(project(":data-protocols:dsp:dsp-lib:dsp-negotiation-lib:dsp-negotiation-http-api-lib"))

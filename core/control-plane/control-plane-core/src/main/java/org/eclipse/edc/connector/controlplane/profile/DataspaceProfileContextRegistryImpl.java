@@ -24,20 +24,35 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 public class DataspaceProfileContextRegistryImpl implements DataspaceProfileContextRegistry {
 
     private final List<DataspaceProfileContext> defaultProfiles = new ArrayList<>();
     private final List<DataspaceProfileContext> standardProfiles = new ArrayList<>();
+    private final List<Consumer<DataspaceProfileContext>> callbacks = new ArrayList<>();
 
     @Override
     public void registerDefault(DataspaceProfileContext profileContext) {
         defaultProfiles.add(profileContext);
+        notifyCallbacks(profileContext);
     }
 
     @Override
     public void register(DataspaceProfileContext context) {
         standardProfiles.add(context);
+        notifyCallbacks(context);
+    }
+
+    @Override
+    public void addRegistrationCallback(Consumer<DataspaceProfileContext> callback) {
+        callbacks.add(callback);
+        Stream.concat(defaultProfiles.stream(), standardProfiles.stream()).forEach(callback);
+    }
+
+    private void notifyCallbacks(DataspaceProfileContext profile) {
+        callbacks.forEach(cb -> cb.accept(profile));
     }
 
     @Override
@@ -49,21 +64,27 @@ public class DataspaceProfileContextRegistryImpl implements DataspaceProfileCont
 
     @Override
     public @Nullable ProtocolVersion getProtocolVersion(String protocol) {
-        return getProfiles().stream().filter(it -> it.name().equals(protocol))
-                .map(DataspaceProfileContext::protocolVersion).findAny().orElse(null);
+        var profile = getProfile(protocol);
+        return profile == null ? null : profile.protocolVersion();
     }
 
     @Override
     public @Nullable ParticipantIdExtractionFunction getIdExtractionFunction(String protocol) {
-        return getProfiles().stream()
-                .filter(it -> it.name().equals(protocol))
-                .map(DataspaceProfileContext::idExtractionFunction)
-                .findAny()
-                .orElse(null);
+        var profile = getProfile(protocol);
+        return profile == null ? null : profile.idExtractionFunction();
     }
 
     @Override
     public List<DataspaceProfileContext> getProfiles() {
         return standardProfiles.isEmpty() ? defaultProfiles : standardProfiles;
     }
+
+    @Override
+    public @Nullable DataspaceProfileContext getProfile(String profileId) {
+        return getProfiles().stream()
+                .filter(it -> it.name().equals(profileId))
+                .findAny()
+                .orElse(null);
+    }
+
 }

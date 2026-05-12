@@ -37,10 +37,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static jakarta.json.Json.createObjectBuilder;
+import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 public class Oauth2Extension implements BeforeAllCallback, AfterAllCallback, ParameterResolver {
 
-    private final WireMockServer server = new WireMockServer();
+    private final WireMockServer server = new WireMockServer(getFreePort());
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {

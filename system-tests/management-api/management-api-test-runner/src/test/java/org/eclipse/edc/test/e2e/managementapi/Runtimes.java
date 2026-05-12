@@ -58,7 +58,8 @@ public interface Runtimes {
 
         static Config config() {
             return ConfigFactory.fromMap(Map.of(
-                    "edc.participant.id", "anonymous")
+                    "edc.participant.id", "anonymous",
+                    "edc.dsp.profiles.enable.all", "true")
             );
         }
     }

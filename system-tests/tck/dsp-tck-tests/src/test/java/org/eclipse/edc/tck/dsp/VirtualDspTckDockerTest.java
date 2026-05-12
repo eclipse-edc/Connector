@@ -109,6 +109,7 @@ public class VirtualDspTckDockerTest extends DspTckDockerTest {
                 put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
                 put("edc.iam.oauth2.jwks.url", "https://example.com/jwks");
                 put("edc.iam.oauth2.issuer", "test-issuer");
+                put("edc.dsp.profiles.enable.all", "true");
             }
         });
     }

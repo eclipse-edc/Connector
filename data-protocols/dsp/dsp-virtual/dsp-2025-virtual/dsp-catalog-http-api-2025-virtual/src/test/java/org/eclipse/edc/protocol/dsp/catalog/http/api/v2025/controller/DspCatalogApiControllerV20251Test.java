@@ -19,33 +19,48 @@ import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.controller.DspCatalogApiControllerTestBase;
+import org.eclipse.edc.protocol.dsp.catalog.http.api.v2025.virtual.controller.DspCatalogApiController20251;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
+import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.junit.jupiter.api.BeforeEach;
+
+import java.util.List;
+import java.util.Optional;
 
 import static org.eclipse.edc.protocol.dsp.catalog.http.api.CatalogApiPaths.BASE_PATH;
-import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
-import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.V_2025_1_PATH;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.V_2025_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.V_2025_1_VERSION;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ApiTest
 public class DspCatalogApiControllerV20251Test extends DspCatalogApiControllerTestBase {
 
+    private static final String PROFILE_ID = V_2025_1_VERSION;
+    private static final DataspaceProfileContext PROFILE = new DataspaceProfileContext(
+            PROFILE_ID, V_2025_1, () -> "https://example.org/webhook", ct -> "id",
+            DSP_NAMESPACE_V_2025_1, List.of("https://example.org/context.jsonld"));
+
     private final ParticipantContextService participantContextService = mock();
+    private final ParticipantProfileResolver profileResolver = mock();
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
             .participantContextId("participantContextId")
             .identity("identity")
             .build();
 
-
-    void beforeAll() {
+    @BeforeEach
+    void setUp() {
         when(participantContextService.getParticipantContext(participantContext.getParticipantContextId()))
                 .thenReturn(ServiceResult.success(participantContext));
+        when(profileResolver.resolve(participantContext.getParticipantContextId(), PROFILE_ID))
+                .thenReturn(Optional.of(PROFILE));
     }
 
     @Override
     protected String basePath() {
-        return "/%s".formatted(participantContext.getParticipantContextId()) + V_2025_1_PATH + BASE_PATH;
+        return "/%s/%s".formatted(participantContext.getParticipantContextId(), PROFILE_ID) + BASE_PATH;
     }
 
     @Override
@@ -55,6 +70,6 @@ public class DspCatalogApiControllerV20251Test extends DspCatalogApiControllerTe
 
     @Override
     protected Object controller() {
-        return new DspCatalogApiController20251(service, participantContextService, dspRequestHandler, continuationTokenManager, DATASPACE_PROTOCOL_HTTP_V_2025_1, DSP_NAMESPACE_V_2025_1);
+        return new DspCatalogApiController20251(service, participantContextService, profileResolver, dspRequestHandler, continuationTokenManager);
     }
 }

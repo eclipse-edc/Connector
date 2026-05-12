@@ -60,6 +60,7 @@ class VirtualTransferEndToEndTest {
                 put("edc.iam.oauth2.issuer", "test-issuer");
                 put("edc.encryption.strict", "false");
                 put("web.http.protocol.virtual", "true");
+                put("edc.dsp.profiles.enable.all", "true");
             }
         });
     }

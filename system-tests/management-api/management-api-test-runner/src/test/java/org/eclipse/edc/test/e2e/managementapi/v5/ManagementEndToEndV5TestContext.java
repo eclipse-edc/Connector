@@ -32,6 +32,7 @@ import static jakarta.json.Json.createObjectBuilder;
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_HTTP_PROFILE_2025_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.web.spi.configuration.ApiContext.MANAGEMENT;
 import static org.eclipse.edc.web.spi.configuration.ApiContext.PROTOCOL;
@@ -50,11 +51,15 @@ public record ManagementEndToEndV5TestContext(LazySupplier<URI> managementApiUri
     }
 
     public String providerProtocolUrl(String participantContextId) {
-        return providerProtocolUrl(participantContextId, "");
+        return providerProtocolUrl(participantContextId, DATASPACE_HTTP_PROFILE_2025_1);
     }
 
-    public String providerProtocolUrl(String participantContextId, String versionPath) {
-        return "%s/%s%s".formatted(protocolApiUri.get(), participantContextId, versionPath);
+    public String providerProtocolUrl(String participantContextId, String profile) {
+        return "%s/%s/%s".formatted(protocolApiUri.get(), participantContextId, profile);
+    }
+
+    public String profile() {
+        return DATASPACE_HTTP_PROFILE_2025_1;
     }
 
     public JsonObject query(Criterion... criteria) {
