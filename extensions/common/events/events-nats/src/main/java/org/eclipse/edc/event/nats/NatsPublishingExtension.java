@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.event.nats;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.Connection;
 import io.nats.client.JetStreamApiException;
 import io.nats.client.Nats;

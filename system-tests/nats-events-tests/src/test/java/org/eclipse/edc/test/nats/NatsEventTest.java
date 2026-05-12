@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.test.nats;
 
-import io.cloudevents.CloudEvent;
 import io.cloudevents.jackson.JsonFormat;
 import io.nats.client.JetStream;
 import io.nats.client.JetStreamApiException;

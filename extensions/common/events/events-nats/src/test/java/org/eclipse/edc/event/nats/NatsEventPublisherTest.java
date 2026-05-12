@@ -21,7 +21,6 @@ import io.nats.client.JetStreamApiException;
 import io.nats.client.PublishOptions;
 import io.nats.client.api.Error;
 import io.nats.client.impl.Headers;
-import io.nats.client.support.Status;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
@@ -47,7 +46,6 @@ class NatsEventPublisherTest {
     private final JetStream jetstream = mock();
     private final Monitor monitor = mock();
     private final NatsEventPublisher natsEventPublisher = new NatsEventPublisher(monitor, jetstream, new ObjectMapper(), "localhost/test");
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     void onEvent_shouldPublish() throws JetStreamApiException, IOException {
