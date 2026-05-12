@@ -157,6 +157,6 @@ public class NatsPublishingExtension implements ServiceExtension {
             @Setting(key = "edc.events.nats.url", description = "The URL of the NATS server'") String natsUrl,
             @Setting(key = "edc.events.nats.stream", description = "The name of the NATS stream to use for event publishing'") String natsStreamName,
             @Setting(key = "edc.events.nats.stream.create", required = false, description = "If the stream should be attempted to be created. May fail if the stream exists.'", defaultValue = "true") boolean createStream,
-            @Setting(key = "edc.events.nats.stream.create.force", required = false, description = "If the stream should be created if it does not exist'", defaultValue = "true") boolean createStreamForce) {
+            @Setting(key = "edc.events.nats.stream.create.force", required = false, description = "If the stream should be created, and overwritten if it exists'", defaultValue = "true") boolean createStreamForce) {
     }
 }
