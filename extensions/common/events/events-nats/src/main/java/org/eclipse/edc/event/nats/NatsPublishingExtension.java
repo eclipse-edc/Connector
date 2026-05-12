@@ -142,7 +142,7 @@ public class NatsPublishingExtension implements ServiceExtension {
                     jsm.deleteStream(natsConfig.natsStreamName);
                     jsm.addStream(streamConfig);
                 } else {
-                    var msg = "NATS stream already exists and force create ('nats.event.stream.create.force') is disabled";
+                    var msg = "NATS stream already exists and force create ('edc.events.nats.stream.create.force') is disabled";
                     monitor.severe(msg);
                     throw new EdcException(msg, e);
                 }
