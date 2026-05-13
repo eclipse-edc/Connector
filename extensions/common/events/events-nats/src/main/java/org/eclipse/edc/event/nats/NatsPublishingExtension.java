@@ -43,6 +43,7 @@ import static org.eclipse.edc.event.nats.NatsPublishingExtension.NAME;
 @Extension(value = NAME)
 public class NatsPublishingExtension implements ServiceExtension {
     public static final String NAME = "NATS Event Publishing Extension";
+    // NATS error code for stream name in use
     private static final int ERR_STREAM_NAME_IN_USE = 10058;
 
     @Configuration
@@ -100,6 +101,7 @@ public class NatsPublishingExtension implements ServiceExtension {
             monitor.severe("Error connecting to NATS", e);
             throw new EdcException("Error connecting to NATS", e);
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new EdcException(e);
         }
         if (natsConfig.createStream) {
@@ -119,6 +121,7 @@ public class NatsPublishingExtension implements ServiceExtension {
             try {
                 natsConnection.close();
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 monitor.warning("Error closing NATS connection during shutdown", e);
             }
         }
@@ -130,7 +133,7 @@ public class NatsPublishingExtension implements ServiceExtension {
                 .name(natsConfig.natsStreamName)
                 .subjects(Constants.EVENTS_PREFIX)
                 .storageType(StorageType.Memory)
-                .retentionPolicy(RetentionPolicy.Interest) // messages are removed only when _all_ subscribers have ack'd
+                .retentionPolicy(RetentionPolicy.Interest) // messages are removed only when _all current_ subscribers have received them
                 .build();
         try {
             jsm.addStream(streamConfig);
@@ -156,6 +159,6 @@ public class NatsPublishingExtension implements ServiceExtension {
             @Setting(key = "edc.events.nats.url", description = "The URL of the NATS server'") String natsUrl,
             @Setting(key = "edc.events.nats.stream", description = "The name of the NATS stream to use for event publishing'") String natsStreamName,
             @Setting(key = "edc.events.nats.stream.create", required = false, description = "If the stream should be attempted to be created. May fail if the stream exists.'", defaultValue = "true") boolean createStream,
-            @Setting(key = "edc.events.nats.stream.create.force", required = false, description = "If the stream should be created, and overwritten if it exists'", defaultValue = "true") boolean createStreamForce) {
+            @Setting(key = "edc.events.nats.stream.create.force", required = false, description = "If the stream should be created, and overwritten if it exists'", defaultValue = "false") boolean createStreamForce) {
     }
 }

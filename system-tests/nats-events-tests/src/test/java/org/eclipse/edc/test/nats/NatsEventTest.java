@@ -86,8 +86,8 @@ public class NatsEventTest {
 
     @BeforeAll
     static void setup() {
-        nats.start();
         nats.waitingFor(Wait.forListeningPort());
+        nats.start();
     }
 
     @AfterAll

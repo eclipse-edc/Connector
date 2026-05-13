@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edcnats;
+package org.eclipse.edc.event.nats;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nats.client.JetStreamApiException;
@@ -20,8 +20,6 @@ import io.nats.client.Nats;
 import io.nats.client.Options;
 import io.nats.client.api.StreamConfiguration;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
-import org.eclipse.edc.event.nats.NatsEventPublisher;
-import org.eclipse.edc.event.nats.NatsPublishingExtension;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.EdcException;
@@ -66,8 +64,8 @@ class NatsPublishingExtensionTest {
 
     @BeforeAll
     static void setup() {
-        nats.start();
         nats.waitingFor(Wait.forListeningPort());
+        nats.start();
     }
 
     @AfterAll

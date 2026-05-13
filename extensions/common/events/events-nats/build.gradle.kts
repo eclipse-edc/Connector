@@ -28,7 +28,6 @@ dependencies {
     testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:runtime-core"))
     testImplementation(libs.testcontainers.junit)
-    testImplementation(libs.wiremock)
     testImplementation(libs.awaitility)
 }
 
