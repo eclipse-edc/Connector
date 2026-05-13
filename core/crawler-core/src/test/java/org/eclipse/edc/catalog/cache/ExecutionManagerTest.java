@@ -132,10 +132,12 @@ class ExecutionManagerTest {
 
         manager.executePlan(simplePlan());
 
-        var inOrder = inOrder(preExecutionTaskMock, queryAdapterMock, successHandler);
-        inOrder.verify(preExecutionTaskMock).run();
-        inOrder.verify(queryAdapterMock).apply(any());
-
+        await().untilAsserted(() -> {
+            var inOrder = inOrder(preExecutionTaskMock, queryAdapterMock, successHandler);
+            inOrder.verify(preExecutionTaskMock).run();
+            inOrder.verify(queryAdapterMock).apply(any());
+        });
+        
         verifyNoInteractions(successHandler);
         verify(monitorMock, atLeastOnce()).severe(anyString(), isA(CompletionException.class));
     }
