@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -50,17 +51,16 @@ import static java.util.Collections.emptyList;
 
 public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
 
+    private final Map<String, ScheduledFuture<?>> ongoingNonFiniteTransfers = new HashMap<>();
+    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     @Setting(key = "dataplane.id")
     private String dataplaneId;
     @Configuration
     private ApiConfiguration apiConfiguration;
-
     @Inject
     private WebService webService;
     @Inject
     private Monitor monitor;
-
-    private final Map<String, ScheduledFuture<?>> ongoingNonFiniteTransfers = new HashMap<>();
     private Dataplane dataplane;
 
     @Override
@@ -93,6 +93,11 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
         webService.registerResource(new ControlController(monitor, dataplane, apiConfiguration));
     }
 
+    @Override
+    public void shutdown() {
+        executor.shutdown();
+    }
+
     private @NotNull Result<DataFlow> startDataFlow(DataFlow dataFlow) {
         switch (dataFlow.getTransferType()) {
             case "NonFinite-PUSH" -> {
@@ -100,8 +105,7 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
                     return Result.failure(new InvalidRequestException("DataAddress should not be null for PUSH transfers"));
                 }
 
-                var future = Executors.newSingleThreadScheduledExecutor()
-                        .scheduleAtFixedRate(() -> pushData(dataFlow), 0, 200, TimeUnit.MILLISECONDS);
+                var future = executor.scheduleAtFixedRate(() -> pushData(dataFlow), 0, 200, TimeUnit.MILLISECONDS);
 
                 ongoingNonFiniteTransfers.put(dataFlow.getId(), future);
 
@@ -111,9 +115,16 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
                 if (dataFlow.getDataAddress() == null) {
                     return Result.failure(new InvalidRequestException("DataAddress should not be null for PUSH transfers"));
                 }
+                executor.execute(() -> {
+                    try {
+                        Thread.sleep(200); // simulate some processing time before pushing data
+                        pushData(dataFlow)
+                                .whenComplete((response, throwable) -> notifyCompletion(dataFlow, response, throwable));
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
 
-                pushData(dataFlow)
-                        .whenComplete((response, throwable) -> notifyCompletion(dataFlow, response, throwable));
+                });
 
                 return Result.success(dataFlow);
             }
@@ -142,8 +153,7 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
         switch (dataFlow.getTransferType()) {
             case "NonFinite-PULL" -> {
                 var sourceUri = URI.create(dataFlow.getDataAddress().endpoint());
-                var future = Executors.newSingleThreadScheduledExecutor()
-                        .scheduleAtFixedRate(() -> requestData(dataFlow, sourceUri), 0, 200, TimeUnit.MILLISECONDS);
+                var future = executor.scheduleAtFixedRate(() -> requestData(dataFlow, sourceUri), 0, 200, TimeUnit.MILLISECONDS);
 
                 ongoingNonFiniteTransfers.put(dataFlow.getId(), future);
             }
@@ -152,7 +162,8 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
                 requestData(dataFlow, sourceUri)
                         .whenComplete((response, throwable) -> notifyCompletion(dataFlow, response, throwable));
             }
-            default -> { }
+            default -> {
+            }
         }
 
         return Result.success(dataFlow);
@@ -172,19 +183,6 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
                 monitor.severe("Error retrieving data", throwable);
             }
         });
-    }
-
-    private class DataplaneOnPrepare implements OnPrepare {
-        @Override
-        public Result<DataFlow> action(DataFlow dataFlow) {
-            if (dataFlow.getTransferType().startsWith("AsyncPrepare-")) {
-                dataFlow.transitionToPreparing();
-                return Result.success(dataFlow);
-            }
-            var destination = new DataAddress("Finite-PUSH", "http", apiConfiguration.receiveDataEndpoint(), emptyList());
-            dataFlow.setDataAddress(destination);
-            return Result.success(dataFlow);
-        }
     }
 
     private @NotNull Result<DataFlow> stopDataFlow(DataFlow dataFlow) {
@@ -236,6 +234,19 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
 
         public URI dataFlowEndpoint() {
             return URI.create("http://localhost:%d%s/v1/dataflows".formatted(port, path));
+        }
+    }
+
+    private class DataplaneOnPrepare implements OnPrepare {
+        @Override
+        public Result<DataFlow> action(DataFlow dataFlow) {
+            if (dataFlow.getTransferType().startsWith("AsyncPrepare-")) {
+                dataFlow.transitionToPreparing();
+                return Result.success(dataFlow);
+            }
+            var destination = new DataAddress("Finite-PUSH", "http", apiConfiguration.receiveDataEndpoint(), emptyList());
+            dataFlow.setDataAddress(destination);
+            return Result.success(dataFlow);
         }
     }
 }
