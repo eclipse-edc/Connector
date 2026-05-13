@@ -19,6 +19,7 @@ import io.nats.client.JetStream;
 import io.nats.client.JetStreamApiException;
 import io.nats.client.Nats;
 import io.nats.client.PushSubscribeOptions;
+import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
@@ -43,6 +44,7 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.hamcrest.Matchers.equalTo;
 
+@EndToEndTest
 public class NatsEventTest {
     public static final String DEFAULT_PORT = "8080";
     public static final String DEFAULT_PATH = "/api";
