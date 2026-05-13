@@ -21,7 +21,6 @@ import io.nats.client.JetStreamApiException;
 import io.nats.client.PublishOptions;
 import io.nats.client.api.Error;
 import io.nats.client.impl.Headers;
-import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.monitor.Monitor;
