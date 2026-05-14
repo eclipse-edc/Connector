@@ -192,7 +192,6 @@ maven/mavencentral/org.bouncycastle/bcprov-jdk18on/1.84, MIT AND CC0-1.0, approv
 maven/mavencentral/org.bouncycastle/bcprov-lts8on/2.73.10, MIT, approved, #19041
 maven/mavencentral/org.bouncycastle/bcutil-jdk18on/1.84, MIT, approved, #27144
 maven/mavencentral/org.ccil.cowan.tagsoup/tagsoup/1.2.1, Apache-2.0, approved, clearlydefined
-maven/mavencentral/org.checkerframework/checker-qual/3.52.0, MIT, approved, #26057
 maven/mavencentral/org.checkerframework/checker-qual/3.52.1, MIT, approved, #26057
 maven/mavencentral/org.codehaus.plexus/plexus-classworlds/2.6.0, Apache-2.0 AND Plexus, approved, CQ22821
 maven/mavencentral/org.codehaus.plexus/plexus-component-annotations/2.1.0, Apache-2.0, approved, #809
@@ -298,7 +297,7 @@ maven/mavencentral/org.mockito/mockito-core/5.23.0, MIT AND (Apache-2.0 AND MIT)
 maven/mavencentral/org.mockito/mockito-inline/5.2.0, MIT, approved, clearlydefined
 maven/mavencentral/org.objenesis/objenesis/3.3, Apache-2.0, approved, #19727
 maven/mavencentral/org.opentest4j/opentest4j/1.3.0, Apache-2.0, approved, #9713
-maven/mavencentral/org.postgresql/postgresql/42.7.10, BSD-2-Clause AND Apache-2.0, approved, #11681
+maven/mavencentral/org.postgresql/postgresql/42.7.11, BSD-2-Clause AND Apache-2.0, approved, #11681
 maven/mavencentral/org.reflections/reflections/0.10.2, Apache-2.0 AND WTFPL, approved, clearlydefined
 maven/mavencentral/org.rnorth.duct-tape/duct-tape/1.0.8, MIT, approved, clearlydefined
 maven/mavencentral/org.slf4j/slf4j-api/1.7.30, MIT, approved, CQ13368
