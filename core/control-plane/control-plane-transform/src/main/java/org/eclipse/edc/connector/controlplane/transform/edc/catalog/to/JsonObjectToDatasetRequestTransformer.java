@@ -23,8 +23,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
+import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_COUNTER_PARTY_ID;
+import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_PROFILE;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_PROTOCOL;
 
 public class JsonObjectToDatasetRequestTransformer extends AbstractJsonLdTransformer<JsonObject, DatasetRequest> {
@@ -36,8 +38,10 @@ public class JsonObjectToDatasetRequestTransformer extends AbstractJsonLdTransfo
     @Override
     public @Nullable DatasetRequest transform(@NotNull JsonObject object, @NotNull TransformerContext context) {
         var builder = DatasetRequest.Builder.newInstance()
-                .id(nodeId(object))
-                .protocol(transformString(object.get(DATASET_REQUEST_PROTOCOL), context));
+                .id(nodeId(object));
+
+        ofNullable(transformString(object.get(DATASET_REQUEST_PROTOCOL), context)).ifPresent(builder::protocol);
+        ofNullable(transformString(object.get(DATASET_REQUEST_PROFILE), context)).ifPresent(builder::profile);
 
         var counterPartyAddress = transformString(object.get(DATASET_REQUEST_COUNTER_PARTY_ADDRESS), context);
 

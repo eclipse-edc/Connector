@@ -64,6 +64,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.eclipse.edc.validator.spi.ValidationResult;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
@@ -106,6 +107,8 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.assetObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.assetObjectWithMetadata;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogAsset;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogRequestObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogRequestObjectWithProfile;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogRequestObjectWithProfileAndProtocol;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.celExpression;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.celExpressionTestRequest;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractDefinitionObject;
@@ -119,6 +122,8 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createTransfe
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dataAddressObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dataPaneInstanceObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.datasetRequestObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.datasetRequestObjectWithProfile;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.datasetRequestObjectWithProfileAndProtocol;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.inForceDatePermission;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.participantContextConfigObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.participantContextObject;
@@ -392,6 +397,28 @@ public class SerdeEndToEndTest {
         }
 
         @Test
+        void de_DatasetRequest_withProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            var inputObject = datasetRequestObjectWithProfile(jsonLdContext());
+            var request = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, DatasetRequest.class);
+
+            assertThat(request).isNotNull();
+            assertThat(request.getId()).isEqualTo(inputObject.getString(ID));
+            assertThat(request.getProfile()).isEqualTo(inputObject.getString("profile"));
+            assertThat(request.getCounterPartyAddress()).isEqualTo(inputObject.getString("counterPartyAddress"));
+            assertThat(request.getCounterPartyId()).isEqualTo(inputObject.getString("counterPartyId"));
+
+        }
+
+        @Test
+        void validate_DatasetRequest_WithBoth_ShouldFail(JsonObjectValidatorRegistry validatorRegistry) {
+            var inputObject = datasetRequestObjectWithProfileAndProtocol(jsonLdContext());
+            var request = validateWithResult(validatorRegistry, inputObject);
+
+            assertThat(request).isFailed();
+
+        }
+
+        @Test
         void de_CatalogRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var inputObject = catalogRequestObject(jsonLdContext());
             var request = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, CatalogRequest.class);
@@ -401,6 +428,28 @@ public class SerdeEndToEndTest {
             assertThat(request.getCounterPartyAddress()).isEqualTo(inputObject.getString("counterPartyAddress"));
             assertThat(request.getCounterPartyId()).isEqualTo(inputObject.getString("counterPartyId"));
             assertThat(request.getQuerySpec().getFilterExpression()).hasSize(1);
+
+        }
+
+        @Test
+        void de_CatalogRequest_WithProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            var inputObject = catalogRequestObjectWithProfile(jsonLdContext());
+            var request = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, CatalogRequest.class);
+
+            assertThat(request).isNotNull();
+            assertThat(request.getProfile()).isEqualTo(inputObject.getString("profile"));
+            assertThat(request.getCounterPartyAddress()).isEqualTo(inputObject.getString("counterPartyAddress"));
+            assertThat(request.getCounterPartyId()).isEqualTo(inputObject.getString("counterPartyId"));
+            assertThat(request.getQuerySpec().getFilterExpression()).hasSize(1);
+
+        }
+
+        @Test
+        void validate_CatalogRequest_WithBoth_ShouldFail(JsonObjectValidatorRegistry validatorRegistry) {
+            var inputObject = catalogRequestObjectWithProfileAndProtocol(jsonLdContext());
+            var request = validateWithResult(validatorRegistry, inputObject);
+
+            assertThat(request).isFailed();
 
         }
 
@@ -583,6 +632,15 @@ public class SerdeEndToEndTest {
             }
         }
 
+        private ValidationResult validateWithResult(JsonObjectValidatorRegistry validator, JsonObject compacted) {
+            var type = compacted.getJsonString(TYPE) != null ? compacted.getString(TYPE) : null;
+            if (type != null) {
+                return validator.validate(schemaVersion() + ":" + type, compacted);
+            } else {
+                throw new RuntimeException("Validation failed: no type");
+            }
+        }
+
         private <T> T deserialize(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validator, JsonLd jsonLd, JsonObject inputObject, Class<T> klass) {
             validate(validator, inputObject);
             var registry = forContext(typeTransformerRegistry, transformerScope());
@@ -702,8 +760,32 @@ public class SerdeEndToEndTest {
 
         @Override
         @Disabled
+        void de_DatasetRequest_withProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            super.de_DatasetRequest_withProfile(typeTransformerRegistry, validatorRegistry, jsonLd);
+        }
+
+        @Override
+        @Disabled
+        void validate_DatasetRequest_WithBoth_ShouldFail(JsonObjectValidatorRegistry validatorRegistry) {
+            super.validate_DatasetRequest_WithBoth_ShouldFail(validatorRegistry);
+        }
+
+        @Override
+        @Disabled
         void de_CatalogRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             super.de_CatalogRequest(typeTransformerRegistry, validatorRegistry, jsonLd);
+        }
+
+        @Override
+        @Disabled
+        void de_CatalogRequest_WithProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            super.de_CatalogRequest_WithProfile(typeTransformerRegistry, validatorRegistry, jsonLd);
+        }
+
+        @Override
+        @Disabled
+        void validate_CatalogRequest_WithBoth_ShouldFail(JsonObjectValidatorRegistry validatorRegistry) {
+            super.validate_CatalogRequest_WithBoth_ShouldFail(validatorRegistry);
         }
 
         @Override

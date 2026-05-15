@@ -119,7 +119,8 @@
       "@context": {
         "counterPartyAddress": "edc:counterPartyAddress",
         "counterPartyId": "edc:counterPartyId",
-        "protocol": "edc:protocol"
+        "protocol": "edc:protocol",
+        "profile": "edc:profile"
       }
     },
     "CatalogRequest": {
@@ -128,6 +129,7 @@
         "counterPartyAddress": "edc:counterPartyAddress",
         "counterPartyId": "edc:counterPartyId",
         "protocol": "edc:protocol",
+        "profile": "edc:profile",
         "additionalScopes": {
           "@id": "edc:additionalScopes",
           "@container": "@set"

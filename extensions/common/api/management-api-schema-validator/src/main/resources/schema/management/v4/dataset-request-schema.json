@@ -32,11 +32,32 @@
           "type": "string"
         }
       },
+      "oneOf": [
+        {
+          "required": [
+            "protocol"
+          ],
+          "not": {
+            "required": [
+              "profile"
+            ]
+          }
+        },
+        {
+          "required": [
+            "profile"
+          ],
+          "not": {
+            "required": [
+              "protocol"
+            ]
+          }
+        }
+      ],
       "required": [
         "@context",
         "@type",
         "@id",
-        "protocol",
         "counterPartyAddress",
         "counterPartyId"
       ]

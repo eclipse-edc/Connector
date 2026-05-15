@@ -294,12 +294,58 @@ public class TestFunctions {
                 .build();
     }
 
+    public static JsonObject datasetRequestObjectWithProfile(String context) {
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "DatasetRequest")
+                .add(ID, "dataset-request-id")
+                .add("counterPartyAddress", "test-address")
+                .add("counterPartyId", "test-counter-party-id")
+                .add("profile", "test-profile")
+                .build();
+    }
+
+    public static JsonObject datasetRequestObjectWithProfileAndProtocol(String context) {
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "DatasetRequest")
+                .add(ID, "dataset-request-id")
+                .add("counterPartyAddress", "test-address")
+                .add("counterPartyId", "test-counter-party-id")
+                .add("profile", "test-profile")
+                .add("protocol", "test-protocol")
+                .build();
+    }
+
     public static JsonObject catalogRequestObject(String context) {
         return Json.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder(context).build())
                 .add(TYPE, "CatalogRequest")
                 .add("counterPartyAddress", "test-address")
                 .add("counterPartyId", "test-counter-party-id")
+                .add("protocol", "test-protocol")
+                .add("querySpec", embeddedQuerySpec())
+                .build();
+    }
+
+    public static JsonObject catalogRequestObjectWithProfile(String context) {
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "CatalogRequest")
+                .add("counterPartyAddress", "test-address")
+                .add("counterPartyId", "test-counter-party-id")
+                .add("profile", "test-profile")
+                .add("querySpec", embeddedQuerySpec())
+                .build();
+    }
+
+    public static JsonObject catalogRequestObjectWithProfileAndProtocol(String context) {
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "CatalogRequest")
+                .add("counterPartyAddress", "test-address")
+                .add("counterPartyId", "test-counter-party-id")
+                .add("profile", "test-profile")
                 .add("protocol", "test-protocol")
                 .add("querySpec", embeddedQuerySpec())
                 .build();
