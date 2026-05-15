@@ -58,7 +58,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> imp
     public static final String CONTRACT_NEGOTIATION_COUNTERPARTY_ID = EDC_NAMESPACE + "counterPartyId";
     public static final String CONTRACT_NEGOTIATION_COUNTERPARTY_ADDR = EDC_NAMESPACE + "counterPartyAddress";
     public static final String CONTRACT_NEGOTIATION_ERRORDETAIL = EDC_NAMESPACE + "errorDetail";
-    @Deprecated(since = "management-api:v5")
+    @Deprecated(since = "management-api:v4")
     public static final String CONTRACT_NEGOTIATION_PROTOCOL = EDC_NAMESPACE + "protocol";
     public static final String CONTRACT_NEGOTIATION_PROFILE = EDC_NAMESPACE + "profile";
     public static final String CONTRACT_NEGOTIATION_STATE = EDC_NAMESPACE + "state";
@@ -114,7 +114,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> imp
      * @return The protocol.
      * @deprecated The protocol field is being replaced by the profile field
      */
-    @Deprecated(since = "management-api:v5")
+    @Deprecated(since = "management-api:v4")
     @NotNull
     public String getProtocol() {
         return protocol;

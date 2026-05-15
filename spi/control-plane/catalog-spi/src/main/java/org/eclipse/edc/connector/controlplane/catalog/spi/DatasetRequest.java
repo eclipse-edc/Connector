@@ -23,7 +23,7 @@ public class DatasetRequest {
 
     public static final String DATASET_REQUEST_TYPE_TERM = "DatasetRequest";
     public static final String DATASET_REQUEST_TYPE = EDC_NAMESPACE + DATASET_REQUEST_TYPE_TERM;
-    @Deprecated(since = "management-api:v5")
+    @Deprecated(since = "management-api:v4")
     public static final String DATASET_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
     public static final String DATASET_REQUEST_PROFILE = EDC_NAMESPACE + "profile";
     public static final String DATASET_REQUEST_COUNTER_PARTY_ADDRESS = EDC_NAMESPACE + "counterPartyAddress";
@@ -49,7 +49,7 @@ public class DatasetRequest {
         return counterPartyId;
     }
 
-    @Deprecated(since = "management-api:v5")
+    @Deprecated(since = "management-api:v4")
     public String getProtocol() {
         return protocol;
     }
@@ -86,7 +86,7 @@ public class DatasetRequest {
             return this;
         }
 
-        @Deprecated(since = "management-api:v5")
+        @Deprecated(since = "management-api:v4")
         public Builder protocol(String protocol) {
             instance.protocol = protocol;
             return this;

@@ -31,7 +31,7 @@ public class ContractRequest {
     public static final String CONTRACT_REQUEST_TYPE_TERM = "ContractRequest";
     public static final String CONTRACT_REQUEST_TYPE = EDC_NAMESPACE + CONTRACT_REQUEST_TYPE_TERM;
     public static final String CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS = EDC_NAMESPACE + "counterPartyAddress";
-    @Deprecated(since = "management-api:v5")
+    @Deprecated(since = "management-api:v4")
     public static final String PROTOCOL = EDC_NAMESPACE + "protocol";
     public static final String CONTRACT_REQUEST_PROFILE = EDC_NAMESPACE + "profile";
     public static final String POLICY = EDC_NAMESPACE + "policy";
@@ -50,7 +50,7 @@ public class ContractRequest {
         return this.contractOffer.getPolicy().getAssigner();
     }
 
-    @Deprecated(since = "management-api:v5")
+    @Deprecated(since = "management-api:v4")
     public String getProtocol() {
         return protocol;
     }
@@ -83,7 +83,7 @@ public class ContractRequest {
             return this;
         }
 
-        @Deprecated(since = "management-api:v5")
+        @Deprecated(since = "management-api:v4")
         public Builder protocol(String protocol) {
             contractRequest.protocol = protocol;
             return this;
