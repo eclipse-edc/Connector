@@ -28,6 +28,9 @@
         "protocol": {
           "type": "string"
         },
+        "profile": {
+          "type": "string"
+        },
         "policy": {
           "$ref": "https://w3id.org/edc/connector/management/schema/v4/contract-offer-schema.json"
         },
@@ -38,11 +41,32 @@
           }
         }
       },
+      "oneOf": [
+        {
+          "required": [
+            "protocol"
+          ],
+          "not": {
+            "required": [
+              "profile"
+            ]
+          }
+        },
+        {
+          "required": [
+            "profile"
+          ],
+          "not": {
+            "required": [
+              "protocol"
+            ]
+          }
+        }
+      ],
       "required": [
         "@context",
         "@type",
         "counterPartyAddress",
-        "protocol",
         "policy"
       ]
     }

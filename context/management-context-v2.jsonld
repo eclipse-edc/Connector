@@ -119,7 +119,8 @@
       "@context": {
         "counterPartyAddress": "edc:counterPartyAddress",
         "counterPartyId": "edc:counterPartyId",
-        "protocol": "edc:protocol"
+        "protocol": "edc:protocol",
+        "profile": "edc:profile"
       }
     },
     "CatalogRequest": {
@@ -128,6 +129,7 @@
         "counterPartyAddress": "edc:counterPartyAddress",
         "counterPartyId": "edc:counterPartyId",
         "protocol": "edc:protocol",
+        "profile": "edc:profile",
         "additionalScopes": {
           "@id": "edc:additionalScopes",
           "@container": "@set"
@@ -148,7 +150,8 @@
           "@id": "edc:callbackAddresses",
           "@container": "@set"
         },
-        "protocol": "edc:protocol"
+        "protocol": "edc:protocol",
+        "profile": "edc:profile"
       }
     },
     "QuerySpec": {
@@ -170,6 +173,7 @@
         "type": "edc:type",
         "counterPartyAddress": "edc:counterPartyAddress",
         "protocol": "edc:protocol",
+        "profile": "edc:profile",
         "callbackAddresses": {
           "@id": "edc:callbackAddresses",
           "@container": "@set"
@@ -240,6 +244,7 @@
         "dataDestination": "edc:dataDestination",
         "contractId": "edc:contractId",
         "protocol": "edc:protocol",
+        "profile": "edc:profile",
         "dataplaneMetadata": {
           "@id": "edc:dataplaneMetadata"
         }
