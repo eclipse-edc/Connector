@@ -42,8 +42,8 @@ import static org.eclipse.edc.util.io.Ports.getFreePort;
 @TckTest
 public class DpsTckTest {
 
-    private static final int TCK_CALLBACK_PORT = getFreePort();
-    private static final URI TCK_URL = URI.create("http://localhost:" + getFreePort() + "/tck");
+    private static final int TCK_PORT = getFreePort();
+    private static final URI TCK_WEBHOOK_URL = URI.create("http://localhost:" + getFreePort() + "/tck");
     private static final URI PROTOCOL_URL = URI.create("http://localhost:" + getFreePort() + "/protocol");
 
     @RegisterExtension
@@ -55,14 +55,13 @@ public class DpsTckTest {
                     .endpoint("management", () -> URI.create("http://localhost:%d/api/management".formatted(getFreePort())))
                     .endpoint("protocol", () -> PROTOCOL_URL)
                     .endpoint("signaling", () -> URI.create("http://localhost:%d/api/signaling".formatted(getFreePort())))
-                    .endpoint("tck", () -> TCK_URL)
+                    .endpoint("tck", () -> TCK_WEBHOOK_URL)
                     .build())
             .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
                     "edc.participant.id", "participantContextId",
-                    "web.api.auth.key", "password",
                     "edc.management.context.enabled", "true",
                     "edc.component.id", "DPS-tck-test",
-                    "edc.tck.dataplane.url", "http://localhost:" + TCK_CALLBACK_PORT
+                    "edc.tck.dataplane.url", "http://localhost:" + TCK_PORT
             )))
             .build();
 
@@ -73,9 +72,9 @@ public class DpsTckTest {
         var properties = loadPropertiesFrom("dps.tck.properties");
 
         properties.put("dataspacetck.debug", "true");
-        properties.put("dataspacetck.callback.address", "http://localhost:" + TCK_CALLBACK_PORT);
-        properties.put("dataspacetck.port", String.valueOf(TCK_CALLBACK_PORT));
-        properties.put("dataspacetck.dps.controlplane.webhook.url", TCK_URL.toString());
+        properties.put("dataspacetck.callback.address", "http://localhost:" + TCK_PORT);
+        properties.put("dataspacetck.port", String.valueOf(TCK_PORT));
+        properties.put("dataspacetck.dps.controlplane.webhook.url", TCK_WEBHOOK_URL.toString());
         properties.put("dataspacetck.dps.controlplane.protocol.url", PROTOCOL_URL + "/2025-1");
 
         var result = TckRuntime.Builder.newInstance()

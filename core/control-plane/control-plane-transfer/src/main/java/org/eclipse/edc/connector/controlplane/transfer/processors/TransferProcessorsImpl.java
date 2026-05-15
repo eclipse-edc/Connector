@@ -506,8 +506,8 @@ public class TransferProcessorsImpl implements TransferProcessors {
                 .onSuccess(ignored -> {
                     var error = entity.getErrorDetail() == null ? "" : ". errorDetail: " + entity.getErrorDetail();
 
-                    monitor.debug(() -> "[%s] %s %s is now in state %s%s"
-                            .formatted(this.getClass().getSimpleName(), entity.getClass().getSimpleName(),
+                    monitor.debug(() -> "%s %s is now in state %s%s"
+                            .formatted(entity.getClass().getSimpleName(),
                                     entity.getId(), entity.stateAsString(), error));
                 });
     }
