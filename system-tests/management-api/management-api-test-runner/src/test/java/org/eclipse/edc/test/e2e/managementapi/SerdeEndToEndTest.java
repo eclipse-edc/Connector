@@ -64,6 +64,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.eclipse.edc.validator.spi.ValidationResult;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
@@ -106,10 +107,14 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.assetObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.assetObjectWithMetadata;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogAsset;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogRequestObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogRequestObjectWithProfile;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogRequestObjectWithProfileAndProtocol;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.celExpression;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.celExpressionTestRequest;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractDefinitionObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractRequestObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractRequestObjectWithProfile;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractRequestObjectWithProfileAndProtocol;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createCelExpressionTestResponse;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createContractAgreement;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createContractNegotiation;
@@ -119,6 +124,8 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createTransfe
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dataAddressObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dataPaneInstanceObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.datasetRequestObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.datasetRequestObjectWithProfile;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.datasetRequestObjectWithProfileAndProtocol;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.inForceDatePermission;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.participantContextConfigObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.participantContextObject;
@@ -130,6 +137,8 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.suspendTransf
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.terminateNegotiationObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.terminateTransferObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.transferRequestObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.transferRequestObjectWithProfile;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.transferRequestObjectWithProfileAndProtocol;
 
 @EndToEndTest
 public class SerdeEndToEndTest {
@@ -392,6 +401,28 @@ public class SerdeEndToEndTest {
         }
 
         @Test
+        void de_DatasetRequest_withProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            var inputObject = datasetRequestObjectWithProfile(jsonLdContext());
+            var request = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, DatasetRequest.class);
+
+            assertThat(request).isNotNull();
+            assertThat(request.getId()).isEqualTo(inputObject.getString(ID));
+            assertThat(request.getProfile()).isEqualTo(inputObject.getString("profile"));
+            assertThat(request.getCounterPartyAddress()).isEqualTo(inputObject.getString("counterPartyAddress"));
+            assertThat(request.getCounterPartyId()).isEqualTo(inputObject.getString("counterPartyId"));
+
+        }
+
+        @Test
+        void validate_DatasetRequest_WithBoth_ShouldFail(JsonObjectValidatorRegistry validatorRegistry) {
+            var inputObject = datasetRequestObjectWithProfileAndProtocol(jsonLdContext());
+            var request = validateWithResult(validatorRegistry, inputObject);
+
+            assertThat(request).isFailed();
+
+        }
+
+        @Test
         void de_CatalogRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var inputObject = catalogRequestObject(jsonLdContext());
             var request = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, CatalogRequest.class);
@@ -401,6 +432,28 @@ public class SerdeEndToEndTest {
             assertThat(request.getCounterPartyAddress()).isEqualTo(inputObject.getString("counterPartyAddress"));
             assertThat(request.getCounterPartyId()).isEqualTo(inputObject.getString("counterPartyId"));
             assertThat(request.getQuerySpec().getFilterExpression()).hasSize(1);
+
+        }
+
+        @Test
+        void de_CatalogRequest_WithProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            var inputObject = catalogRequestObjectWithProfile(jsonLdContext());
+            var request = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, CatalogRequest.class);
+
+            assertThat(request).isNotNull();
+            assertThat(request.getProfile()).isEqualTo(inputObject.getString("profile"));
+            assertThat(request.getCounterPartyAddress()).isEqualTo(inputObject.getString("counterPartyAddress"));
+            assertThat(request.getCounterPartyId()).isEqualTo(inputObject.getString("counterPartyId"));
+            assertThat(request.getQuerySpec().getFilterExpression()).hasSize(1);
+
+        }
+
+        @Test
+        void validate_CatalogRequest_WithBoth_ShouldFail(JsonObjectValidatorRegistry validatorRegistry) {
+            var inputObject = catalogRequestObjectWithProfileAndProtocol(jsonLdContext());
+            var request = validateWithResult(validatorRegistry, inputObject);
+
+            assertThat(request).isFailed();
 
         }
 
@@ -419,6 +472,29 @@ public class SerdeEndToEndTest {
         }
 
         @Test
+        void de_ContractRequest_withProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            var inputObject = contractRequestObjectWithProfile(jsonLdContext(), strictSchema());
+            var request = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, ContractRequest.class);
+
+            assertThat(request).isNotNull();
+            assertThat(request.getProviderId()).isEqualTo(inputObject.getJsonObject("policy").getString("assigner"));
+            assertThat(request.getCallbackAddresses()).isNotEmpty();
+            assertThat(request.getProfile()).isEqualTo("test-profile");
+            assertThat(request.getCounterPartyAddress()).isEqualTo("test-address");
+            assertThat(request.getContractOffer().getPolicy()).isNotNull();
+
+        }
+
+        @Test
+        void validate_ContractRequest_withProfileAndProtocol_shouldFail(JsonObjectValidatorRegistry validatorRegistry) {
+            var inputObject = contractRequestObjectWithProfileAndProtocol(jsonLdContext(), strictSchema());
+            var request = validateWithResult(validatorRegistry, inputObject);
+
+            assertThat(request).isFailed();
+
+        }
+
+        @Test
         void de_TransferRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var inputObject = transferRequestObject(jsonLdContext());
             var transferRequest = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, TransferRequest.class);
@@ -429,6 +505,22 @@ public class SerdeEndToEndTest {
             assertThat(transferRequest.getDataDestination()).extracting(DataAddress::getType).isEqualTo(inputObject.getJsonObject("dataDestination").getString("type"));
             assertThat(transferRequest.getPrivateProperties()).containsEntry(EDC_NAMESPACE + "fooPrivate", "bar");
             assertThat(transferRequest.getProtocol()).isEqualTo(inputObject.getString("protocol"));
+            assertThat(transferRequest.getCallbackAddresses()).hasSize(inputObject.getJsonArray("callbackAddresses").size());
+            assertThat(transferRequest.getPrivateProperties()).hasSize(inputObject.getJsonObject("privateProperties").size());
+            assertThat(transferRequest.getTransferType()).isEqualTo(inputObject.getString("transferType"));
+        }
+
+        @Test
+        void de_TransferRequest_withProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            var inputObject = transferRequestObjectWithProfile(jsonLdContext());
+            var transferRequest = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, TransferRequest.class);
+
+            assertThat(transferRequest).isNotNull();
+            assertThat(transferRequest.getCounterPartyAddress()).isEqualTo(inputObject.getString("counterPartyAddress"));
+            assertThat(transferRequest.getContractId()).isEqualTo(inputObject.getString("contractId"));
+            assertThat(transferRequest.getDataDestination()).extracting(DataAddress::getType).isEqualTo(inputObject.getJsonObject("dataDestination").getString("type"));
+            assertThat(transferRequest.getPrivateProperties()).containsEntry(EDC_NAMESPACE + "fooPrivate", "bar");
+            assertThat(transferRequest.getProfile()).isEqualTo(inputObject.getString("profile"));
             assertThat(transferRequest.getCallbackAddresses()).hasSize(inputObject.getJsonArray("callbackAddresses").size());
             assertThat(transferRequest.getPrivateProperties()).hasSize(inputObject.getJsonObject("privateProperties").size());
             assertThat(transferRequest.getTransferType()).isEqualTo(inputObject.getString("transferType"));
@@ -451,6 +543,14 @@ public class SerdeEndToEndTest {
             assertThat(transferRequest.getCallbackAddresses()).hasSize(inputObject.getJsonArray("callbackAddresses").size());
             assertThat(transferRequest.getTransferType()).isEqualTo(inputObject.getString("transferType"));
 
+        }
+
+        @Test
+        void validate_TransferRequest_withProfileAndProtocol_shouldFail(JsonObjectValidatorRegistry validatorRegistry) {
+            var inputObject = transferRequestObjectWithProfileAndProtocol(jsonLdContext());
+            var request = validateWithResult(validatorRegistry, inputObject);
+
+            assertThat(request).isFailed();
         }
 
         @Test
@@ -583,6 +683,15 @@ public class SerdeEndToEndTest {
             }
         }
 
+        private ValidationResult validateWithResult(JsonObjectValidatorRegistry validator, JsonObject compacted) {
+            var type = compacted.getJsonString(TYPE) != null ? compacted.getString(TYPE) : null;
+            if (type != null) {
+                return validator.validate(schemaVersion() + ":" + type, compacted);
+            } else {
+                throw new RuntimeException("Validation failed: no type");
+            }
+        }
+
         private <T> T deserialize(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validator, JsonLd jsonLd, JsonObject inputObject, Class<T> klass) {
             validate(validator, inputObject);
             var registry = forContext(typeTransformerRegistry, transformerScope());
@@ -702,8 +811,56 @@ public class SerdeEndToEndTest {
 
         @Override
         @Disabled
+        void de_DatasetRequest_withProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            super.de_DatasetRequest_withProfile(typeTransformerRegistry, validatorRegistry, jsonLd);
+        }
+
+        @Override
+        @Disabled
+        void validate_DatasetRequest_WithBoth_ShouldFail(JsonObjectValidatorRegistry validatorRegistry) {
+            super.validate_DatasetRequest_WithBoth_ShouldFail(validatorRegistry);
+        }
+
+        @Override
+        @Disabled
         void de_CatalogRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             super.de_CatalogRequest(typeTransformerRegistry, validatorRegistry, jsonLd);
+        }
+
+        @Override
+        @Disabled
+        void de_CatalogRequest_WithProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            super.de_CatalogRequest_WithProfile(typeTransformerRegistry, validatorRegistry, jsonLd);
+        }
+
+        @Override
+        @Disabled
+        void validate_CatalogRequest_WithBoth_ShouldFail(JsonObjectValidatorRegistry validatorRegistry) {
+            super.validate_CatalogRequest_WithBoth_ShouldFail(validatorRegistry);
+        }
+
+        @Override
+        @Disabled
+        void de_ContractRequest_withProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            super.de_ContractRequest_withProfile(typeTransformerRegistry, validatorRegistry, jsonLd);
+        }
+
+        @Override
+        @Disabled
+        void validate_ContractRequest_withProfileAndProtocol_shouldFail(JsonObjectValidatorRegistry validatorRegistry) {
+            super.validate_ContractRequest_withProfileAndProtocol_shouldFail(validatorRegistry);
+        }
+
+        @Override
+        @Disabled
+        void de_TransferRequest_withProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            super.de_TransferRequest_withProfile(typeTransformerRegistry, validatorRegistry, jsonLd);
+        }
+
+        @Override
+        @Disabled
+        void validate_TransferRequest_withProfileAndProtocol_shouldFail(JsonObjectValidatorRegistry validatorRegistry) {
+            super.validate_TransferRequest_withProfileAndProtocol_shouldFail(validatorRegistry);
         }
 
         @Override

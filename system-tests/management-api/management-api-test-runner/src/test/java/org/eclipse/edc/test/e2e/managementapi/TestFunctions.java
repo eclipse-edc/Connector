@@ -283,6 +283,39 @@ public class TestFunctions {
                 .build();
     }
 
+    public static JsonObject contractRequestObjectWithProfile(String context, boolean alwaysArray) {
+        var permission = inForceDatePermission("gteq", "contractAgreement+0s", "lteq", "contractAgreement+10s", alwaysArray);
+        var policy = policy(permission, "Offer", alwaysArray)
+                .add(ID, "id")
+                .add("assigner", "provider")
+                .build();
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "ContractRequest")
+                .add("counterPartyAddress", "test-address")
+                .add("profile", "test-profile")
+                .add("callbackAddresses", createCallbackAddress())
+                .add("policy", policy)
+                .build();
+    }
+
+    public static JsonObject contractRequestObjectWithProfileAndProtocol(String context, boolean alwaysArray) {
+        var permission = inForceDatePermission("gteq", "contractAgreement+0s", "lteq", "contractAgreement+10s", alwaysArray);
+        var policy = policy(permission, "Offer", alwaysArray)
+                .add(ID, "id")
+                .add("assigner", "provider")
+                .build();
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "ContractRequest")
+                .add("counterPartyAddress", "test-address")
+                .add("profile", "test-profile")
+                .add("protocol", "test-protocol")
+                .add("callbackAddresses", createCallbackAddress())
+                .add("policy", policy)
+                .build();
+    }
+
     public static JsonObject datasetRequestObject(String context) {
         return Json.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder(context).build())
@@ -290,6 +323,29 @@ public class TestFunctions {
                 .add(ID, "dataset-request-id")
                 .add("counterPartyAddress", "test-address")
                 .add("counterPartyId", "test-counter-party-id")
+                .add("protocol", "test-protocol")
+                .build();
+    }
+
+    public static JsonObject datasetRequestObjectWithProfile(String context) {
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "DatasetRequest")
+                .add(ID, "dataset-request-id")
+                .add("counterPartyAddress", "test-address")
+                .add("counterPartyId", "test-counter-party-id")
+                .add("profile", "test-profile")
+                .build();
+    }
+
+    public static JsonObject datasetRequestObjectWithProfileAndProtocol(String context) {
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "DatasetRequest")
+                .add(ID, "dataset-request-id")
+                .add("counterPartyAddress", "test-address")
+                .add("counterPartyId", "test-counter-party-id")
+                .add("profile", "test-profile")
                 .add("protocol", "test-protocol")
                 .build();
     }
@@ -305,12 +361,56 @@ public class TestFunctions {
                 .build();
     }
 
+    public static JsonObject catalogRequestObjectWithProfile(String context) {
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "CatalogRequest")
+                .add("counterPartyAddress", "test-address")
+                .add("counterPartyId", "test-counter-party-id")
+                .add("profile", "test-profile")
+                .add("querySpec", embeddedQuerySpec())
+                .build();
+    }
+
+    public static JsonObject catalogRequestObjectWithProfileAndProtocol(String context) {
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "CatalogRequest")
+                .add("counterPartyAddress", "test-address")
+                .add("counterPartyId", "test-counter-party-id")
+                .add("profile", "test-profile")
+                .add("protocol", "test-protocol")
+                .add("querySpec", embeddedQuerySpec())
+                .build();
+    }
+
     public static JsonObject transferRequestObject(String context) {
         var dataDestination = createObjectBuilder()
                 .add(TYPE, "DataAddress")
                 .add("type", "type").build();
 
         return transferRequestObject(context, dataDestination);
+    }
+
+    public static JsonObject transferRequestObjectWithProfile(String context) {
+        var dataDestination = createObjectBuilder()
+                .add(TYPE, "DataAddress")
+                .add("type", "type").build();
+
+        return transferRequestObjectWithProfile(context, dataDestination);
+    }
+
+    public static JsonObject transferRequestObjectWithProfileAndProtocol(String context) {
+        return createObjectBuilder()
+                .add(TYPE, "TransferRequest")
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add("counterPartyAddress", "address")
+                .add("contractId", "contractId")
+                .add("profile", "profile")
+                .add("protocol", "protocol")
+                .add("callbackAddresses", createCallbackAddress())
+                .add("transferType", "myTransferType")
+                .build();
     }
 
     public static JsonObject transferRequestObject(String context, JsonObject dataDestination) {
@@ -326,6 +426,24 @@ public class TestFunctions {
                 .add("properties", propertiesJson)
                 .add("privateProperties", privatePropertiesJson)
                 .add("protocol", "protocol")
+                .add("callbackAddresses", createCallbackAddress())
+                .add("transferType", "myTransferType")
+                .build();
+    }
+
+    public static JsonObject transferRequestObjectWithProfile(String context, JsonObject dataDestination) {
+        var propertiesJson = Json.createObjectBuilder().add("foo", "bar").build();
+        var privatePropertiesJson = Json.createObjectBuilder().add("fooPrivate", "bar").build();
+
+        return createObjectBuilder()
+                .add(TYPE, "TransferRequest")
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add("counterPartyAddress", "address")
+                .add("contractId", "contractId")
+                .add("dataDestination", dataDestination)
+                .add("properties", propertiesJson)
+                .add("privateProperties", privatePropertiesJson)
+                .add("profile", "profile")
                 .add("callbackAddresses", createCallbackAddress())
                 .add("transferType", "myTransferType")
                 .build();

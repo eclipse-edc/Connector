@@ -25,6 +25,9 @@
         "protocol": {
           "type": "string"
         },
+        "profile": {
+          "type": "string"
+        },
         "counterPartyAddress": {
           "type": "string"
         },
@@ -41,10 +44,31 @@
           "$ref": "https://w3id.org/edc/connector/management/schema/v4/query-spec-schema.json#/definitions/QuerySpec"
         }
       },
+      "oneOf": [
+        {
+          "required": [
+            "protocol"
+          ],
+          "not": {
+            "required": [
+              "profile"
+            ]
+          }
+        },
+        {
+          "required": [
+            "profile"
+          ],
+          "not": {
+            "required": [
+              "protocol"
+            ]
+          }
+        }
+      ],
       "required": [
         "@context",
         "@type",
-        "protocol",
         "counterPartyAddress",
         "counterPartyId"
       ]

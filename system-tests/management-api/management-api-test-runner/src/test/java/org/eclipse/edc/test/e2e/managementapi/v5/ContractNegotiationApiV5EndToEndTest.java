@@ -206,7 +206,8 @@ public class ContractNegotiationApiV5EndToEndTest {
                     .body(CONTEXT, contains(jsonLdContextArray()))
                     .body(TYPE, equalTo("ContractNegotiation"))
                     .body(ID, is("cn1"))
-                    .body("protocol", equalTo("dataspace-protocol-http"));
+                    .body("protocol", equalTo("dataspace-protocol-http"))
+                    .body("profile", equalTo("dataspace-protocol-http"));
         }
 
         @Test
@@ -643,7 +644,7 @@ public class ContractNegotiationApiV5EndToEndTest {
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "ContractRequest")
                     .add("counterPartyAddress", "test-address")
-                    .add("protocol", "test-protocol")
+                    .add("profile", "test-test-profile")
                     .add("providerId", "test-provider-id")
                     .add("callbackAddresses", createCallbackAddress())
                     .add("policy", createPolicy())

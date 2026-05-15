@@ -38,6 +38,9 @@
         "protocol": {
           "type": "string"
         },
+        "profile": {
+          "type": "string"
+        },
         "createdAt": {
           "type": "integer"
         },
@@ -72,6 +75,7 @@
         "@id",
         "type",
         "state",
+        "profile",
         "protocol",
         "counterPartyAddress",
         "counterPartyId",

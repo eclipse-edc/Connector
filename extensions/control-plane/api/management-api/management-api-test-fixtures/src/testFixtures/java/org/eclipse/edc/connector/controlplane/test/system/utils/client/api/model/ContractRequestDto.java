@@ -25,34 +25,34 @@ public final class ContractRequestDto extends Typed {
     @JsonProperty("@id")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private final String id;
-    private final String protocol;
+    private final String profile;
     private final String counterPartyAddress;
     private final String counterPartyId;
     private final OfferDto policy;
 
     public ContractRequestDto(String id,
-                              String protocol,
+                              String profile,
                               String counterPartyAddress,
                               String counterPartyId,
                               OfferDto policy) {
         super("ContractRequest");
         this.id = id;
-        this.protocol = protocol;
+        this.profile = profile;
         this.counterPartyAddress = counterPartyAddress;
         this.counterPartyId = counterPartyId;
         this.policy = policy;
     }
 
-    public ContractRequestDto(String protocol, String counterPartyAddress, String counterPartyId, OfferDto policy) {
-        this(null, protocol, counterPartyAddress, counterPartyId, policy);
+    public ContractRequestDto(String profile, String counterPartyAddress, String counterPartyId, OfferDto policy) {
+        this(null, profile, counterPartyAddress, counterPartyId, policy);
     }
 
     public String getId() {
         return id;
     }
 
-    public String getProtocol() {
-        return protocol;
+    public String getProfile() {
+        return profile;
     }
 
     public String getCounterPartyAddress() {

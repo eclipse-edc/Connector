@@ -26,6 +26,7 @@ import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_ADDITIONAL_SCOPES;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ID;
+import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROFILE;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
 
@@ -49,11 +50,13 @@ public class JsonObjectToCatalogRequestTransformer extends AbstractJsonLdTransfo
                 .orElse(null);
 
         var builder = CatalogRequest.Builder.newInstance()
-                .protocol(transformString(object.get(CATALOG_REQUEST_PROTOCOL), context))
+
                 .counterPartyAddress(counterPartyAddress)
                 .counterPartyId(counterPartyId)
                 .querySpec(querySpec);
 
+        ofNullable(transformString(object.get(CATALOG_REQUEST_PROTOCOL), context)).ifPresent(builder::protocol);
+        ofNullable(transformString(object.get(CATALOG_REQUEST_PROFILE), context)).ifPresent(builder::profile);
 
         ofNullable(object.getJsonArray(CATALOG_REQUEST_ADDITIONAL_SCOPES))
                 .ifPresent(ja -> builder.additionalScopes(ja.stream().map(this::nodeValue).toList()));

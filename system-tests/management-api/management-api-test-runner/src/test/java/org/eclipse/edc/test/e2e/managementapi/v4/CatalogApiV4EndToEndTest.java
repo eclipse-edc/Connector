@@ -142,9 +142,9 @@ public class CatalogApiV4EndToEndTest {
                     .log().ifValidationFails()
                     .statusCode(400)
                     .contentType(JSON)
-                    .body("[0].message", containsString("required property 'protocol' not found"))
-                    .body("[1].message", containsString("required property 'counterPartyAddress' not found"))
-                    .body("[2].message", containsString("required property 'counterPartyId' not found"));
+                    .body("[1].message", containsString("required property 'protocol' not found"))
+                    .body("[3].message", containsString("required property 'counterPartyAddress' not found"))
+                    .body("[4].message", containsString("required property 'counterPartyId' not found"));
         }
 
         @Test

@@ -105,7 +105,7 @@ public class CatalogApiV5EndToEndTest {
                     .add(TYPE, "CatalogRequest")
                     .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", context.profile())
+                    .add("profile", context.profile())
                     .build()
                     .toString();
 
@@ -130,7 +130,7 @@ public class CatalogApiV5EndToEndTest {
                     .add(TYPE, "CatalogRequest")
                     .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", context.profile())
+                    .add("profile", context.profile())
                     .build()
                     .toString();
 
@@ -152,7 +152,7 @@ public class CatalogApiV5EndToEndTest {
                     .add(TYPE, "CatalogRequest")
                     .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", context.profile())
+                    .add("profile", context.profile())
                     .build()
                     .toString();
 
@@ -175,7 +175,7 @@ public class CatalogApiV5EndToEndTest {
                     .add(TYPE, "CatalogRequest")
                     .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", context.profile())
+                    .add("profile", context.profile())
                     .build()
                     .toString();
 
@@ -198,7 +198,7 @@ public class CatalogApiV5EndToEndTest {
                     .add(TYPE, "CatalogRequest")
                     .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", context.profile())
+                    .add("profile", context.profile())
                     .build()
                     .toString();
 
@@ -242,7 +242,7 @@ public class CatalogApiV5EndToEndTest {
                     .add(TYPE, "CatalogRequest")
                     .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", context.profile())
+                    .add("profile", context.profile())
                     .add("querySpec", querySpec)
                     .build()
                     .toString();
@@ -274,9 +274,10 @@ public class CatalogApiV5EndToEndTest {
                     .log().ifValidationFails()
                     .statusCode(400)
                     .contentType(JSON)
-                    .body("[0].message", containsString("required property 'protocol' not found"))
-                    .body("[1].message", containsString("required property 'counterPartyAddress' not found"))
-                    .body("[2].message", containsString("required property 'counterPartyId' not found"));
+                    .body("[1].message", containsString("required property 'protocol' not found"))
+                    .body("[2].message", containsString("required property 'profile' not found"))
+                    .body("[3].message", containsString("required property 'counterPartyAddress' not found"))
+                    .body("[4].message", containsString("required property 'counterPartyId' not found"));
         }
 
         @Test
@@ -307,7 +308,7 @@ public class CatalogApiV5EndToEndTest {
                     .add(TYPE, "CatalogRequest")
                     .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", context.profile())
+                    .add("profile", context.profile())
                     .build()
                     .toString();
 
@@ -347,7 +348,7 @@ public class CatalogApiV5EndToEndTest {
                     .add(ID, "asset-id")
                     .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", context.profile())
+                    .add("profile", context.profile())
                     .build()
                     .toString();
 
@@ -392,7 +393,7 @@ public class CatalogApiV5EndToEndTest {
                     .add(ID, "asset-response")
                     .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", context.profile())
+                    .add("profile", context.profile())
                     .build()
                     .toString();
 
@@ -419,7 +420,7 @@ public class CatalogApiV5EndToEndTest {
                     .add(ID, "asset-id")
                     .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", context.profile())
+                    .add("profile", context.profile())
                     .build()
                     .toString();
 
@@ -454,7 +455,7 @@ public class CatalogApiV5EndToEndTest {
                     .add(ID, "asset-id")
                     .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", context.profile())
+                    .add("profile", context.profile())
                     .build()
                     .toString();
 
@@ -503,7 +504,7 @@ public class CatalogApiV5EndToEndTest {
                     .add(ID, "asset-id")
                     .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
                     .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("protocol", context.profile())
+                    .add("profile", context.profile())
                     .build()
                     .toString();
 

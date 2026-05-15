@@ -29,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_ADDITIONAL_SCOPES;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_COUNTER_PARTY_ID;
+import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROFILE;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_PROTOCOL;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_QUERY_SPEC;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
@@ -67,6 +68,28 @@ class JsonObjectToCatalogRequestTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getProtocol()).isEqualTo("protocol");
+        assertThat(result.getCounterPartyAddress()).isEqualTo("http://provider/url");
+        assertThat(result.getCounterPartyId()).isEqualTo("http://provider/url");
+        assertThat(result.getQuerySpec()).isEqualTo(querySpec);
+        verify(context).transform(querySpecJson, QuerySpec.class);
+    }
+
+    @Test
+    void transform_withProfile() {
+        var querySpec = QuerySpec.Builder.newInstance().build();
+        var querySpecJson = Json.createObjectBuilder().build();
+        when(context.transform(any(), eq(QuerySpec.class))).thenReturn(querySpec);
+        var json = Json.createObjectBuilder()
+                .add(TYPE, CATALOG_REQUEST_TYPE)
+                .add(CATALOG_REQUEST_PROFILE, "profile")
+                .add(CATALOG_REQUEST_COUNTER_PARTY_ADDRESS, "http://provider/url")
+                .add(CATALOG_REQUEST_QUERY_SPEC, querySpecJson)
+                .build();
+
+        var result = transformer.transform(json, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getProfile()).isEqualTo("profile");
         assertThat(result.getCounterPartyAddress()).isEqualTo("http://provider/url");
         assertThat(result.getCounterPartyId()).isEqualTo("http://provider/url");
         assertThat(result.getQuerySpec()).isEqualTo(querySpec);

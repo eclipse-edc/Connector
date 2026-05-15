@@ -36,7 +36,9 @@ public class TransferRequest {
     public static final String TRANSFER_REQUEST_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
     public static final String TRANSFER_REQUEST_TRANSFER_TYPE = EDC_NAMESPACE + "transferType";
     public static final String TRANSFER_REQUEST_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
+    @Deprecated(since = "management-api:v4")
     public static final String TRANSFER_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
+    public static final String TRANSFER_REQUEST_PROFILE = EDC_NAMESPACE + "profile";
     @Deprecated(since = "management-api:v3")
     public static final String TRANSFER_REQUEST_ASSET_ID = EDC_NAMESPACE + "assetId";
     public static final String TRANSFER_REQUEST_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
@@ -69,7 +71,12 @@ public class TransferRequest {
         return privateProperties;
     }
 
+    @Deprecated(since = "management-api:v4")
     public String getProtocol() {
+        return protocol;
+    }
+
+    public String getProfile() {
         return protocol;
     }
 
@@ -127,8 +134,14 @@ public class TransferRequest {
             return this;
         }
 
+        @Deprecated(since = "management-api:v4")
         public Builder protocol(String protocol) {
             request.protocol = protocol;
+            return this;
+        }
+
+        public Builder profile(String profile) {
+            request.protocol = profile;
             return this;
         }
 

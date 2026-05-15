@@ -39,6 +39,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATAPLANE_METADATA;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PRIVATE_PROPERTIES;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROFILE;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROTOCOL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TRANSFER_TYPE;
 
@@ -66,6 +67,7 @@ public class JsonObjectToTransferRequestTransformer extends AbstractJsonLdTransf
             case TRANSFER_REQUEST_PRIVATE_PROPERTIES -> value ->
                     transformProperties(value, builder::privateProperties, context);
             case TRANSFER_REQUEST_PROTOCOL -> value -> builder.protocol(transformString(value, context));
+            case TRANSFER_REQUEST_PROFILE -> value -> builder.profile(transformString(value, context));
             case TRANSFER_REQUEST_TRANSFER_TYPE -> value ->
                     builder.transferType(transformString(value, context));
             case TRANSFER_REQUEST_DATAPLANE_METADATA -> value ->

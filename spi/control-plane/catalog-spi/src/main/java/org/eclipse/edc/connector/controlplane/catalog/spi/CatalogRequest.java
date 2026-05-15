@@ -27,7 +27,9 @@ public class CatalogRequest {
 
     public static final String CATALOG_REQUEST_TYPE_TERM = "CatalogRequest";
     public static final String CATALOG_REQUEST_TYPE = EDC_NAMESPACE + CATALOG_REQUEST_TYPE_TERM;
+    @Deprecated(since = "management-api:v4")
     public static final String CATALOG_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
+    public static final String CATALOG_REQUEST_PROFILE = EDC_NAMESPACE + "profile";
     public static final String CATALOG_REQUEST_COUNTER_PARTY_ADDRESS = EDC_NAMESPACE + "counterPartyAddress";
     public static final String CATALOG_REQUEST_COUNTER_PARTY_ID = EDC_NAMESPACE + "counterPartyId";
     public static final String CATALOG_REQUEST_QUERY_SPEC = EDC_NAMESPACE + "querySpec";
@@ -57,7 +59,12 @@ public class CatalogRequest {
         return querySpec;
     }
 
+    @Deprecated(since = "management-api:v4")
     public String getProtocol() {
+        return protocol;
+    }
+
+    public String getProfile() {
         return protocol;
     }
 
@@ -89,8 +96,14 @@ public class CatalogRequest {
             return this;
         }
 
+        @Deprecated(since = "management-api:v4")
         public Builder protocol(String protocol) {
             instance.protocol = protocol;
+            return this;
+        }
+
+        public Builder profile(String profile) {
+            instance.protocol = profile;
             return this;
         }
 

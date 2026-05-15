@@ -32,6 +32,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATAPLANE_METADATA;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PRIVATE_PROPERTIES;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROFILE;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROTOCOL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TRANSFER_TYPE;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE;
@@ -85,6 +86,40 @@ class JsonObjectToTransferRequestTransformerTest {
         assertThat(result.getDataDestination()).isSameAs(dataDestination);
         assertThat(result.getPrivateProperties()).containsAllEntriesOf(privateProperties);
         assertThat(result.getProtocol()).isEqualTo("protocol");
+        assertThat(result.getTransferType()).isEqualTo("Http-Pull");
+        assertThat(result.getDataplaneMetadata()).isSameAs(dataplaneMetadata);
+    }
+
+    @Test
+    void transform_withProfile() {
+        var dataDestinationJson = createObjectBuilder().build();
+        var privatePropertiesJson = createObjectBuilder().add("fooPrivate", "bar").build();
+        var dataDestination = DataAddress.Builder.newInstance().type("type").build();
+        var privateProperties = Map.of("fooPrivate", "bar");
+        when(context.transform(any(), eq(DataAddress.class))).thenReturn(dataDestination);
+        var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().label("label").build();
+        when(context.transform(any(), eq(DataplaneMetadata.class))).thenReturn(dataplaneMetadata);
+
+        var json = createObjectBuilder()
+                .add(TYPE, TRANSFER_REQUEST_TYPE)
+                .add(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS, "address")
+                .add(TRANSFER_REQUEST_CONTRACT_ID, "contractId")
+                .add(TRANSFER_REQUEST_DATA_DESTINATION, dataDestinationJson)
+                .add(TRANSFER_REQUEST_PRIVATE_PROPERTIES, privatePropertiesJson)
+                .add(TRANSFER_REQUEST_TRANSFER_TYPE, "Http-Pull")
+                .add(TRANSFER_REQUEST_PROFILE, "profile")
+                .add(TRANSFER_REQUEST_DATAPLANE_METADATA, createObjectBuilder()
+                        .add("labels", Json.createArrayBuilder().add("label")))
+                .build();
+
+        var result = transformer.transform(json, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getCounterPartyAddress()).isEqualTo("address");
+        assertThat(result.getContractId()).isEqualTo("contractId");
+        assertThat(result.getDataDestination()).isSameAs(dataDestination);
+        assertThat(result.getPrivateProperties()).containsAllEntriesOf(privateProperties);
+        assertThat(result.getProfile()).isEqualTo("profile");
         assertThat(result.getTransferType()).isEqualTo("Http-Pull");
         assertThat(result.getDataplaneMetadata()).isSameAs(dataplaneMetadata);
     }

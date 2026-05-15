@@ -75,7 +75,7 @@ public class TckWebhookController {
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri(request.connectorAddress()).build()))
                 .counterPartyAddress(request.connectorAddress())
                 .contractOffer(contractOffer)
-                .protocol("http-dsp-profile-2025-1")
+                .profile("http-dsp-profile-2025-1")
                 .build();
 
         monitor.debug("Starting contract negotiation for [provider, address, offer]: [%s, %s, %s]".formatted(request.providerId(), request.connectorAddress(), request.offerId()));
@@ -101,7 +101,7 @@ public class TckWebhookController {
                 .id(request.agreementId() + "_" + UUID.randomUUID())
                 .transferType(request.format())
                 .counterPartyAddress(request.connectorAddress())
-                .protocol("http-dsp-profile-2025-1")
+                .profile("http-dsp-profile-2025-1")
                 .contractId(request.agreementId())
                 .build();
 
