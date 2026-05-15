@@ -112,6 +112,7 @@ public class ContractNegotiation extends StatefulEntity<ContractNegotiation> imp
      * Returns the data protocol used for this negotiation.
      *
      * @return The protocol.
+     * @deprecated The protocol field is being replaced by the profile field
      */
     @Deprecated(since = "management-api:v5")
     @NotNull

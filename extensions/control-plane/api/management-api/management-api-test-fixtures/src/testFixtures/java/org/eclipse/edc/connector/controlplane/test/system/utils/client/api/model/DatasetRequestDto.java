@@ -22,17 +22,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public final class DatasetRequestDto extends Typed {
     @JsonProperty("@id")
     private final String id;
-    private final String protocol;
+    private final String profile;
     private final String counterPartyAddress;
     private final String counterPartyId;
 
     public DatasetRequestDto(@JsonProperty("@id") String id,
-                             String protocol,
+                             String profile,
                              String counterPartyAddress,
                              String counterPartyId) {
         super("DatasetRequest");
         this.id = id;
-        this.protocol = protocol;
+        this.profile = profile;
         this.counterPartyAddress = counterPartyAddress;
         this.counterPartyId = counterPartyId;
     }
@@ -42,8 +42,8 @@ public final class DatasetRequestDto extends Typed {
         return id;
     }
 
-    public String getProtocol() {
-        return protocol;
+    public String getProfile() {
+        return profile;
     }
 
     public String getCounterPartyAddress() {

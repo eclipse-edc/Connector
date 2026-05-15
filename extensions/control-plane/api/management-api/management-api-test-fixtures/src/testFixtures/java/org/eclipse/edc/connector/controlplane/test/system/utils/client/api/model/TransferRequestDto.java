@@ -24,26 +24,26 @@ public final class TransferRequestDto extends Typed {
     @JsonProperty("@id")
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private final String id;
-    private final String protocol;
+    private final String profile;
     private final String counterPartyAddress;
     private final String transferType;
     private final String contractId;
 
     public TransferRequestDto(String id,
-                              String protocol,
+                              String profile,
                               String counterPartyAddress,
                               String transferType,
                               String contractId) {
         super("TransferRequest");
         this.id = id;
-        this.protocol = protocol;
+        this.profile = profile;
         this.counterPartyAddress = counterPartyAddress;
         this.transferType = transferType;
         this.contractId = contractId;
     }
 
-    public TransferRequestDto(String protocol, String counterPartyAddress, String transferType, String contractId) {
-        this(null, protocol, counterPartyAddress, transferType, contractId);
+    public TransferRequestDto(String profile, String counterPartyAddress, String transferType, String contractId) {
+        this(null, profile, counterPartyAddress, transferType, contractId);
     }
 
 
@@ -53,8 +53,8 @@ public final class TransferRequestDto extends Typed {
         return id;
     }
 
-    public String getProtocol() {
-        return protocol;
+    public String getProfile() {
+        return profile;
     }
 
     public String getCounterPartyAddress() {
