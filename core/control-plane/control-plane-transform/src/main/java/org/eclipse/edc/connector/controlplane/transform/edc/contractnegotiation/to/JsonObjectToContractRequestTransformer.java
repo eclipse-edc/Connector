@@ -23,8 +23,10 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CALLBACK_ADDRESSES;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_PROFILE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.POLICY;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
 
@@ -37,8 +39,10 @@ public class JsonObjectToContractRequestTransformer extends AbstractJsonLdTransf
     @Override
     public @Nullable ContractRequest transform(@NotNull JsonObject jsonObject, @NotNull TransformerContext context) {
         var contractRequestBuilder = ContractRequest.Builder.newInstance()
-                .counterPartyAddress(transformString(jsonObject.get(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS), context))
-                .protocol(transformString(jsonObject.get(PROTOCOL), context));
+                .counterPartyAddress(transformString(jsonObject.get(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS), context));
+        
+        ofNullable(transformString(jsonObject.get(PROTOCOL), context)).ifPresent(contractRequestBuilder::protocol);
+        ofNullable(transformString(jsonObject.get(CONTRACT_REQUEST_PROFILE), context)).ifPresent(contractRequestBuilder::profile);
 
         contractRequestBuilder.contractOffer(contractOffer(jsonObject, context));
 

@@ -36,6 +36,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_COUNTERPARTY_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_CREATED_AT;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_NEG_TYPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_PROFILE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_PROTOCOL;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_STATE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
@@ -81,6 +82,7 @@ class JsonObjectFromContractNegotiationTransformerTest {
         assertThat(jsonObject.getString(CONTRACT_NEGOTIATION_AGREEMENT_ID)).isEqualTo("test-agreement");
         assertThat(jsonObject.getString(CONTRACT_NEGOTIATION_NEG_TYPE)).isEqualTo("PROVIDER");
         assertThat(jsonObject.getString(CONTRACT_NEGOTIATION_PROTOCOL)).isEqualTo("protocol");
+        assertThat(jsonObject.getString(CONTRACT_NEGOTIATION_PROFILE)).isEqualTo("protocol");
         assertThat(jsonObject.getString(CONTRACT_NEGOTIATION_CORRELATION_ID)).isEqualTo(cn.getCorrelationId());
         assertThat(jsonObject.getString(CONTRACT_NEGOTIATION_ASSET_ID)).isEqualTo(co.getAssetId());
         assertThat(jsonObject.getJsonNumber(CONTRACT_NEGOTIATION_CREATED_AT).longValue()).isEqualTo(1234);

@@ -35,6 +35,7 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_CREATED_AT;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_ERRORDETAIL;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_NEG_TYPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_PROFILE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_PROTOCOL;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_STATE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.CONTRACT_NEGOTIATION_TYPE;
@@ -62,6 +63,7 @@ public class JsonObjectFromContractNegotiationTransformer extends AbstractJsonLd
                 .add(ID, contractNegotiation.getId())
                 .add(CONTRACT_NEGOTIATION_NEG_TYPE, contractNegotiation.getType().toString())
                 .add(CONTRACT_NEGOTIATION_PROTOCOL, contractNegotiation.getProtocol())
+                .add(CONTRACT_NEGOTIATION_PROFILE, contractNegotiation.getProfile())
                 .add(CONTRACT_NEGOTIATION_STATE, ContractNegotiationStates.from(contractNegotiation.getState()).name())
                 .add(CONTRACT_NEGOTIATION_COUNTERPARTY_ID, contractNegotiation.getCounterPartyId())
                 .add(CONTRACT_NEGOTIATION_COUNTERPARTY_ADDR, contractNegotiation.getCounterPartyAddress())

@@ -113,6 +113,8 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.celExpression
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.celExpressionTestRequest;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractDefinitionObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractRequestObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractRequestObjectWithProfile;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractRequestObjectWithProfileAndProtocol;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createCelExpressionTestResponse;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createContractAgreement;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createContractNegotiation;
@@ -468,6 +470,29 @@ public class SerdeEndToEndTest {
         }
 
         @Test
+        void de_ContractRequest_withProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            var inputObject = contractRequestObjectWithProfile(jsonLdContext(), strictSchema());
+            var request = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, ContractRequest.class);
+
+            assertThat(request).isNotNull();
+            assertThat(request.getProviderId()).isEqualTo(inputObject.getJsonObject("policy").getString("assigner"));
+            assertThat(request.getCallbackAddresses()).isNotEmpty();
+            assertThat(request.getProfile()).isEqualTo("test-profile");
+            assertThat(request.getCounterPartyAddress()).isEqualTo("test-address");
+            assertThat(request.getContractOffer().getPolicy()).isNotNull();
+
+        }
+
+        @Test
+        void validate_ContractRequest_withProfileAndProtocol_shouldFail(JsonObjectValidatorRegistry validatorRegistry) {
+            var inputObject = contractRequestObjectWithProfileAndProtocol(jsonLdContext(), strictSchema());
+            var request = validateWithResult(validatorRegistry, inputObject);
+
+            assertThat(request).isFailed();
+
+        }
+
+        @Test
         void de_TransferRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var inputObject = transferRequestObject(jsonLdContext());
             var transferRequest = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, TransferRequest.class);
@@ -786,6 +811,18 @@ public class SerdeEndToEndTest {
         @Disabled
         void validate_CatalogRequest_WithBoth_ShouldFail(JsonObjectValidatorRegistry validatorRegistry) {
             super.validate_CatalogRequest_WithBoth_ShouldFail(validatorRegistry);
+        }
+
+        @Override
+        @Disabled
+        void de_ContractRequest_withProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            super.de_ContractRequest_withProfile(typeTransformerRegistry, validatorRegistry, jsonLd);
+        }
+
+        @Override
+        @Disabled
+        void validate_ContractRequest_withProfileAndProtocol_shouldFail(JsonObjectValidatorRegistry validatorRegistry) {
+            super.validate_ContractRequest_withProfileAndProtocol_shouldFail(validatorRegistry);
         }
 
         @Override

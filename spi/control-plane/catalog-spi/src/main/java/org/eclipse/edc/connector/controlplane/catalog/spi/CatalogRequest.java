@@ -96,6 +96,7 @@ public class CatalogRequest {
             return this;
         }
 
+        @Deprecated(since = "management-api:v5")
         public Builder protocol(String protocol) {
             instance.protocol = protocol;
             return this;

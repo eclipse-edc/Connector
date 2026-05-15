@@ -34,6 +34,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CALLBACK_ADDRESSES;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_PROFILE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.POLICY;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.PROTOCOL;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -89,6 +90,34 @@ class JsonObjectToContractRequestTransformerTest {
         assertThat(request.getCounterPartyAddress()).isEqualTo("test-address");
         assertThat(request.getContractOffer()).isSameAs(offer);
     }
+
+    @Test
+    void transform_withProfile() {
+        var jsonObject = Json.createObjectBuilder()
+                .add(TYPE, ContractRequest.CONTRACT_REQUEST_TYPE)
+                .add(CONTRACT_REQUEST_COUNTER_PARTY_ADDRESS, "test-address")
+                .add(CONTRACT_REQUEST_PROFILE, "test-profile")
+                .add(CALLBACK_ADDRESSES, createCallbackAddress())
+                .add(POLICY, createPolicy())
+                .build();
+        when(context.transform(any(JsonObject.class), eq(CallbackAddress.class))).thenReturn(CallbackAddress.Builder.newInstance()
+                .uri("http://test.local")
+                .events(Set.of("foo", "bar"))
+                .transactional(true)
+                .build());
+        var offer = createContractOffer("test-provider-id");
+        when(context.transform(any(JsonValue.class), eq(ContractOffer.class))).thenReturn(offer);
+
+        var request = transformer.transform(jsonLd.expand(jsonObject).getContent(), context);
+
+        assertThat(request).isNotNull();
+        assertThat(request.getProviderId()).isEqualTo("test-provider-id");
+        assertThat(request.getCallbackAddresses()).isNotEmpty();
+        assertThat(request.getProfile()).isEqualTo("test-profile");
+        assertThat(request.getCounterPartyAddress()).isEqualTo("test-address");
+        assertThat(request.getContractOffer()).isSameAs(offer);
+    }
+
 
     @Test
     void transform_shouldSetProviderIdAsCounterPartyAddress_whenProviderIdNotDefined() {

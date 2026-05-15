@@ -283,6 +283,39 @@ public class TestFunctions {
                 .build();
     }
 
+    public static JsonObject contractRequestObjectWithProfile(String context, boolean alwaysArray) {
+        var permission = inForceDatePermission("gteq", "contractAgreement+0s", "lteq", "contractAgreement+10s", alwaysArray);
+        var policy = policy(permission, "Offer", alwaysArray)
+                .add(ID, "id")
+                .add("assigner", "provider")
+                .build();
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "ContractRequest")
+                .add("counterPartyAddress", "test-address")
+                .add("profile", "test-profile")
+                .add("callbackAddresses", createCallbackAddress())
+                .add("policy", policy)
+                .build();
+    }
+
+    public static JsonObject contractRequestObjectWithProfileAndProtocol(String context, boolean alwaysArray) {
+        var permission = inForceDatePermission("gteq", "contractAgreement+0s", "lteq", "contractAgreement+10s", alwaysArray);
+        var policy = policy(permission, "Offer", alwaysArray)
+                .add(ID, "id")
+                .add("assigner", "provider")
+                .build();
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "ContractRequest")
+                .add("counterPartyAddress", "test-address")
+                .add("profile", "test-profile")
+                .add("protocol", "test-protocol")
+                .add("callbackAddresses", createCallbackAddress())
+                .add("policy", policy)
+                .build();
+    }
+
     public static JsonObject datasetRequestObject(String context) {
         return Json.createObjectBuilder()
                 .add(CONTEXT, createContextBuilder(context).build())

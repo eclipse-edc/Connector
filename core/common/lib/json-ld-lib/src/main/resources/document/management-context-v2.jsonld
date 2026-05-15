@@ -150,7 +150,8 @@
           "@id": "edc:callbackAddresses",
           "@container": "@set"
         },
-        "protocol": "edc:protocol"
+        "protocol": "edc:protocol",
+        "profile": "edc:profile"
       }
     },
     "QuerySpec": {
@@ -172,6 +173,7 @@
         "type": "edc:type",
         "counterPartyAddress": "edc:counterPartyAddress",
         "protocol": "edc:protocol",
+        "profile": "edc:profile",
         "callbackAddresses": {
           "@id": "edc:callbackAddresses",
           "@container": "@set"

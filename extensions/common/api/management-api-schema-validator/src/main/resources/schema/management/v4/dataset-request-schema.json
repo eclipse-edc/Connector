@@ -25,6 +25,9 @@
         "protocol": {
           "type": "string"
         },
+        "profile": {
+          "type": "string"
+        },
         "counterPartyAddress": {
           "type": "string"
         },
