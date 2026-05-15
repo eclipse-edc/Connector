@@ -110,7 +110,7 @@ cloudEvents = { module = "io.cloudevents:cloudevents-http-basic", version.ref = 
 cloudEvents-json = { module = "io.cloudevents:cloudevents-json-jackson", version.ref = "cloudEvents" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 kafkaClients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafkaClients" }
-jsonschema = { module = "com.networknt:json-schema-validator", version = "2.0.0" }
+jsonschema = { module = "com.networknt:json-schema-validator", version = "3.0.2" }
 nats = { module = "io.nats:jnats", version = "2.25.3" }
 
 # DSP-TCK libraries
