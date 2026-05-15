@@ -241,7 +241,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             transferProcess.transitionCompletingRequested();
             update(transferProcess);
             // this is not completed yet, just requested - the actual completion will happen later
-            observable.invokeForEach(l -> l.completed(transferProcess));
             observable.invokeForEach(l -> l.completingRequested(transferProcess));
             return ServiceResult.success(transferProcess);
         } else {

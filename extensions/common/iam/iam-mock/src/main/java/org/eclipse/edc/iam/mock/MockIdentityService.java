@@ -26,9 +26,7 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.TypeManager;
 
 import static org.eclipse.edc.iam.mock.IamMockExtension.DEFAULT_FAULTY_CLIENT_ID;
-import static org.eclipse.edc.iam.mock.IamMockExtension.DEFAULT_MOCK_REGION;
 import static org.eclipse.edc.iam.mock.IamMockExtension.EDC_MOCK_FAULTY_CLIENT_ID;
-import static org.eclipse.edc.iam.mock.IamMockExtension.EDC_MOCK_REGION;
 import static org.eclipse.edc.iam.mock.IamMockExtension.PARTICIPANT_ID;
 
 public class MockIdentityService implements IdentityService {
@@ -43,13 +41,10 @@ public class MockIdentityService implements IdentityService {
     @Override
     public Result<TokenRepresentation> obtainClientCredentials(String participantContextId, TokenParameters parameters) {
 
-        var region = contextConfig.getString(participantContextId, EDC_MOCK_REGION, DEFAULT_MOCK_REGION);
         var clientId = contextConfig.getString(participantContextId, PARTICIPANT_ID);
         var token = new MockToken();
-        token.setAudience(parameters.getStringClaim("aud"));
-        token.setRegion(region);
         token.setClientId(clientId);
-        TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance()
+        var tokenRepresentation = TokenRepresentation.Builder.newInstance()
                 .token(typeManager.writeValueAsString(token))
                 .build();
         return Result.success(tokenRepresentation);
@@ -65,13 +60,11 @@ public class MockIdentityService implements IdentityService {
         }
 
         return Result.success(ClaimToken.Builder.newInstance()
-                .claim("region", token.region)
-                .claim("client_id", token.clientId)
+                .claim("client_id", token.getClientId())
                 .build());
     }
 
     private static class MockToken {
-        private String region;
         private String audience;
         private String clientId;
 
@@ -81,14 +74,6 @@ public class MockIdentityService implements IdentityService {
 
         public void setAudience(String audience) {
             this.audience = audience;
-        }
-
-        public String getRegion() {
-            return region;
-        }
-
-        public void setRegion(String region) {
-            this.region = region;
         }
 
         public String getClientId() {

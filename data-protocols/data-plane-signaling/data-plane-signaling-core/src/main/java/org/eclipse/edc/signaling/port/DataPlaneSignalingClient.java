@@ -20,6 +20,7 @@ import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
@@ -31,7 +32,6 @@ import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistr
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.function.Function;
@@ -69,9 +69,8 @@ public class DataPlaneSignalingClient {
         return send("start", request, this::dataFlowStatusMessage);
     }
 
-    public StatusResult<Void> suspend(String flowId) {
-        var message = DataFlowSuspendMessage.Builder.newInstance().build();
-        return send(flowId + "/suspend", message, this::noResponseBody);
+    public StatusResult<Void> suspend(String flowId, DataFlowSuspendMessage message) {
+        return send(flowId + "/suspend", message, this::discardResponseBody);
     }
 
     public StatusResult<DataFlowStatusMessage> resume(String flowId, DataFlowResumeMessage message) {
@@ -79,21 +78,21 @@ public class DataPlaneSignalingClient {
     }
 
     public StatusResult<Void> terminate(String flowId) {
-        return send(flowId + "/terminate", emptyMap(), this::noResponseBody);
+        return send(flowId + "/terminate", emptyMap(), this::discardResponseBody);
     }
 
     public StatusResult<Void> started(String flowId, DataFlowStartedNotificationMessage message) {
-        return send(flowId + "/started", message, this::noResponseBody);
+        return send(flowId + "/started", message, this::discardResponseBody);
     }
 
     public StatusResult<Void> completed(String flowId) {
-        return send(flowId + "/completed", emptyMap(), this::noResponseBody);
+        return send(flowId + "/completed", emptyMap(), this::discardResponseBody);
     }
 
-    private <T> StatusResult<T> send(String path, Object message, Function<Response, Result<T>> extractBody) {
+    private <T> StatusResult<T> send(String path, Object message, Function<ResponseBody, Result<T>> extractBody) {
         return createRequestBuilder(message, dataPlane.getUrl() + "/" + path)
                 .compose(builder -> {
-                    var response = httpClient.execute(builder.build(), extractBody);
+                    var response = httpClient.execute(builder.build(), r -> handleResponse(r, extractBody));
                     if (response.succeeded()) {
                         return StatusResult.success(response.getContent());
                     } else {
@@ -102,21 +101,31 @@ public class DataPlaneSignalingClient {
                 });
     }
 
-    private @NotNull Result<Void> noResponseBody(Response response) {
-        return Result.success(null);
+    private <T> Result<T> handleResponse(Response response, Function<ResponseBody, Result<T>> handleResponseBody) {
+        try (var responseBody = response.body()) {
+            if (!response.isSuccessful()) {
+                return Result.failure("Data-plane responded with %d - %s. Response body: %s"
+                        .formatted(response.code(), response.message(), responseBody.string()));
+            }
+            return handleResponseBody.apply(responseBody);
+
+        } catch (IOException e) {
+            return Result.failure("Data-plane responded with %d - %s. Cannot read response body: %s"
+                    .formatted(response.code(), response.message(), e.getMessage()));
+        }
     }
 
-    private Result<DataFlowStatusMessage> dataFlowStatusMessage(Response response) {
-        if (!response.isSuccessful()) {
-            return Result.failure("Data-plane responded with %d - %s".formatted(response.code(), response.message()));
-        }
+    private Result<Void> discardResponseBody(ResponseBody responseBody) {
+        return Result.success();
+    }
 
+    private Result<DataFlowStatusMessage> dataFlowStatusMessage(ResponseBody responseBody) {
         try {
-            var inputStream = response.body().byteStream();
+            var inputStream = responseBody.byteStream();
             var message = objectMapperSupplier.get().readValue(inputStream, DataFlowStatusMessage.class);
             return Result.success(message);
         } catch (IOException e) {
-            return Result.failure("Cannot parse response body: " + e.getMessage());
+            return Result.failure("Data-plane responded with %d - %s. Cannot read response body: " + e.getMessage());
         }
     }
 
@@ -156,5 +165,4 @@ public class DataPlaneSignalingClient {
             return Result.failure(e.getMessage());
         }
     }
-
 }

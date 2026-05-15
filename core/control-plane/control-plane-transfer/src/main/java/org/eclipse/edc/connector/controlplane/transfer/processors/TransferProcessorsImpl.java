@@ -324,9 +324,9 @@ public class TransferProcessorsImpl implements TransferProcessors {
                 .onSuccess((t, content) -> transitionToSuspended(t))
                 .onFailure((t, throwable) -> {
                     if (t.suspensionWasRequestedByCounterParty()) {
-                        transitionToSuspendingRequested(t, throwable.getMessage());
+                        transitionToSuspendingRequested(t, throwable);
                     } else {
-                        transitionToSuspending(t, throwable.getMessage());
+                        transitionToSuspending(t, throwable);
                     }
                 })
                 .onFinalFailure((t, throwable) -> transitionToTerminating(t, throwable.getMessage(), throwable))
@@ -453,13 +453,16 @@ public class TransferProcessorsImpl implements TransferProcessors {
                 .onSuccess(i -> observable.invokeForEach(l -> l.completed(transferProcess)));
     }
 
-    private void transitionToSuspending(TransferProcess process, String message) {
+    private void transitionToSuspending(TransferProcess process, Throwable error) {
+        var message = "Cannot suspend: " + error.getMessage();
+        monitor.warning(message, error);
         process.transitionSuspending(message);
         update(process);
     }
 
-    private void transitionToSuspendingRequested(TransferProcess process, String message, Throwable... errors) {
-        monitor.warning(message, errors);
+    private void transitionToSuspendingRequested(TransferProcess process, Throwable error) {
+        var message = "Cannot request suspension: " + error.getMessage();
+        monitor.warning(message, error);
         process.transitionSuspendingRequested(message);
         update(process);
     }
@@ -503,8 +506,8 @@ public class TransferProcessorsImpl implements TransferProcessors {
                 .onSuccess(ignored -> {
                     var error = entity.getErrorDetail() == null ? "" : ". errorDetail: " + entity.getErrorDetail();
 
-                    monitor.debug(() -> "[%s] %s %s is now in state %s%s"
-                            .formatted(this.getClass().getSimpleName(), entity.getClass().getSimpleName(),
+                    monitor.debug(() -> "%s %s is now in state %s%s"
+                            .formatted(entity.getClass().getSimpleName(),
                                     entity.getId(), entity.stateAsString(), error));
                 });
     }

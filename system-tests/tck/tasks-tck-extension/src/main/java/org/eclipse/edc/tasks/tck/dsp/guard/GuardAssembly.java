@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.event.contractnegotia
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessEvent;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessRequested;
+import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessResumed;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessStarted;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessSuspended;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
@@ -211,7 +212,8 @@ public class GuardAssembly {
                 createTransferTrigger(TransferProcessStarted.class, "ATP0103", tckTask::suspendDataFlow),
                 createTransferTrigger(TransferProcessSuspended.class, "ATP0103", tckTask::terminateDataFlow),
                 createTransferTrigger(TransferProcessStarted.class, "ATP0104", tckTask.suspendAndResumeDataFlow()),
-                createTransferTrigger(TransferProcessSuspended.class, "ATP0104", tckTask::resumeDataFlow),
+                createTransferTrigger(TransferProcessSuspended.class, "ATP0104", tckTask::resumingRequestedDataFlow),
+                createTransferTrigger(TransferProcessResumed.class, "ATP0104", tckTask::resumeDataFlow),
                 createTransferTrigger(TransferProcessStarted.class, "ATPC0201", tckTask::terminateDataFlow),
                 createTransferTrigger(TransferProcessStarted.class, "ATPC0202", tckTask::completeDataFlow),
                 createTransferTrigger(TransferProcessStarted.class, "ATPC0203", tckTask::suspendDataFlow),

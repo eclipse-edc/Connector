@@ -39,8 +39,9 @@ titanium = "1.7.0"
 kafkaClients = "4.2.0"
 testcontainers = "2.0.5"
 tink = "1.21.0"
-dsp-tck = "1.0.0-RC6"
-dcp-tck = "1.0.0-RC6"
+dcp-tck = "1.0.0-SNAPSHOT"
+dsp-tck = "1.0.0-SNAPSHOT"
+dps-tck = "1.0.0-SNAPSHOT"
 junit = "6.0.3"
 wiremock = "3.13.2"
 cel = "0.11.1"
@@ -129,6 +130,8 @@ dcp-testcases = { module = "org.eclipse.dataspacetck.dcp:dcp-testcases", version
 dcp-tck-runtime = { module = "org.eclipse.dataspacetck.dsp:tck-runtime", version.ref = "dcp-tck" }
 dcp-system = { module = "org.eclipse.dataspacetck.dcp:dcp-system", version.ref = "dcp-tck" }
 dsp-core = { module = "org.eclipse.dataspacetck.dsp:core", version.ref = "dcp-tck" }
+
+dps-tck = { module = "org.eclipse.dataspacetck.dps:dps-tck", version.ref = "dps-tck" }
 
 [bundles]
 jackson = ["jackson-annotations", "jackson-databind"]

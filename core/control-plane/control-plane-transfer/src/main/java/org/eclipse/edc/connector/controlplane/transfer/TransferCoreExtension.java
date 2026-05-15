@@ -108,7 +108,7 @@ public class TransferCoreExtension implements ServiceExtension {
         var entityRetryProcessConfiguration = stateMachineConfiguration.entityRetryProcessConfiguration();
         var entityRetryProcessFactory = new EntityRetryProcessFactory(monitor, clock, entityRetryProcessConfiguration);
         return new TransferProcessorsImpl(policyArchive, entityRetryProcessFactory, dataFlowController, dataAddressStore,
-                observable, store, monitor, addressResolver, protocolWebhookResolver, dispatcherRegistry);
+                observable, store, monitor.withPrefix("TransferProcessors"), addressResolver, protocolWebhookResolver, dispatcherRegistry);
     }
 
 }

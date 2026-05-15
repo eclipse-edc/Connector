@@ -153,7 +153,7 @@ public class DspCatalogApi2025EndToEndTest {
     void catalogRequest_shouldReturnError_whenNotAuthorized(String basePath, List<String> context) {
 
         var authorizationHeader = """
-                {"region": "any", "audience": "any", "clientId":"faultyClientId"}"
+                {"clientId":"faultyClientId"}"
                 """;
         given()
                 .port(PROTOCOL_PORT)
@@ -204,7 +204,7 @@ public class DspCatalogApi2025EndToEndTest {
     @ArgumentsSource(ProtocolVersionContextProvider.class)
     void catalogRequest_shouldReturnError_whenValidationFails(String basePath, List<String> context) {
         var authorizationHeader = """
-                {"region": "any", "audience": "any", "clientId":"any"}"
+                {"clientId":"any"}"
                 """;
         given()
                 .port(PROTOCOL_PORT)
@@ -233,7 +233,7 @@ public class DspCatalogApi2025EndToEndTest {
 
         var id = UUID.randomUUID().toString();
         var authorizationHeader = """
-                {"region": "any", "audience": "any", "clientId":"any"}"
+                {"clientId":"any"}"
                 """;
         given()
                 .port(PROTOCOL_PORT)

@@ -14,8 +14,13 @@
 
 package org.eclipse.edc.signaling.domain;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+import java.util.UUID;
+
 public class DataFlowResumeMessage {
     private String messageId;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private DspDataAddress dataAddress;
 
     public String getMessageId() {
@@ -24,6 +29,11 @@ public class DataFlowResumeMessage {
 
     public DspDataAddress getDataAddress() {
         return dataAddress;
+    }
+
+    @Deprecated(since = "0.18.0")
+    public String getProcessId() {
+        return UUID.randomUUID().toString();
     }
 
     public static class Builder {

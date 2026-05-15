@@ -56,6 +56,11 @@ public class TransferProcessGuardTask {
         storeTask(baseBuilder(TerminateDataFlow.Builder.newInstance(), transferProcess).build());
     }
 
+    public void resumingRequestedDataFlow(TransferProcess transferProcess) {
+        transferProcess.transitionResumingRequested();
+        storeTask(baseBuilder(ResumeDataFlow.Builder.newInstance(), transferProcess).build());
+    }
+
     public void resumeDataFlow(TransferProcess transferProcess) {
         transferProcess.transitionResuming();
         storeTask(baseBuilder(ResumeDataFlow.Builder.newInstance(), transferProcess).build());

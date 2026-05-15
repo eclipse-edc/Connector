@@ -31,6 +31,7 @@ import org.eclipse.edc.signaling.port.ClientFactory;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 
@@ -155,10 +156,14 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
             return StatusResult.fatalError("DataPlane id is null");
         }
 
+        var message = DataFlowSuspendMessage.Builder.newInstance()
+                .reason("suspend")
+                .build();
+
         return selectorClient.findById(transferProcess.getDataPlaneId())
                 .flatMap(this::toStatusResult)
                 .map(clientFactory::createClient)
-                .compose(client -> client.suspend(transferProcess.getId()));
+                .compose(client -> client.suspend(transferProcess.getId(), message));
     }
 
     @Override

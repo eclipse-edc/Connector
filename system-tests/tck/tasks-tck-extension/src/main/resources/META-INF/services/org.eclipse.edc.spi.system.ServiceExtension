@@ -15,3 +15,4 @@
 org.eclipse.edc.tasks.tck.dsp.setup.TckSetupExtension
 org.eclipse.edc.tasks.tck.dsp.guard.TckGuardExtension
 org.eclipse.edc.tasks.tck.dsp.controller.TckControllerExtension
+org.eclipse.edc.tasks.tck.dsp.transfer.TckDataPlaneExtension

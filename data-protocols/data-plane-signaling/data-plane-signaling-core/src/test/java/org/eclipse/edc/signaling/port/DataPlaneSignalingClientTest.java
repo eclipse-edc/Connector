@@ -145,7 +145,7 @@ class DataPlaneSignalingClientTest {
             var result = client.prepare(DataFlowPrepareMessage.Builder.newInstance().build());
 
             assertThat(result.failed()).isTrue();
-            assertThat(result.getFailureMessages()).anyMatch(msg -> msg.contains("Cannot parse response body"));
+            assertThat(result.getFailureMessages()).first().asString().contains("Cannot read response body");
         }
     }
 
