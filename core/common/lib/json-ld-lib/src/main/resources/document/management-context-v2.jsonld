@@ -244,6 +244,7 @@
         "dataDestination": "edc:dataDestination",
         "contractId": "edc:contractId",
         "protocol": "edc:protocol",
+        "profile": "edc:profile",
         "dataplaneMetadata": {
           "@id": "edc:dataplaneMetadata"
         }

@@ -128,7 +128,10 @@ public class TransferProcessApiV5EndToEndTest {
                     .statusCode(200)
                     .extract().jsonPath().getString(ID);
 
-            assertThat(transferProcessStore.findById(id)).isNotNull();
+            assertThat(transferProcessStore.findById(id)).isNotNull()
+                    .satisfies(tp -> {
+                        assertThat(tp.getProtocol()).isEqualTo(requestBody.getString("profile"));
+                    });
         }
 
         private JsonObject createTransferRequestJson(String contractId, String assetId) {
@@ -144,7 +147,7 @@ public class TransferProcessApiV5EndToEndTest {
                     )
                     .add("transferType", "HttpData-PUSH")
                     .add("callbackAddresses", createCallbackAddress())
-                    .add("protocol", "dataspace-protocol-http")
+                    .add("profile", "test-profile")
                     .add("counterPartyAddress", "http://connector-address")
                     .add("contractId", contractId)
                     .add("assetId", assetId)

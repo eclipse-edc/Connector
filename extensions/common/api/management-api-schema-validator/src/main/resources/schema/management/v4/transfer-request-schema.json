@@ -28,6 +28,9 @@
         "protocol": {
           "type": "string"
         },
+        "profile": {
+          "type": "string"
+        },
         "contractId": {
           "type": "string"
         },
@@ -47,11 +50,32 @@
           "$ref": "https://w3id.org/edc/connector/management/schema/v4/dataplane-metadata-schema.json"
         }
       },
+      "oneOf": [
+        {
+          "required": [
+            "protocol"
+          ],
+          "not": {
+            "required": [
+              "profile"
+            ]
+          }
+        },
+        {
+          "required": [
+            "profile"
+          ],
+          "not": {
+            "required": [
+              "protocol"
+            ]
+          }
+        }
+      ],
       "required": [
         "@context",
         "@type",
         "counterPartyAddress",
-        "protocol",
         "contractId",
         "transferType"
       ]

@@ -137,6 +137,8 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.suspendTransf
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.terminateNegotiationObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.terminateTransferObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.transferRequestObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.transferRequestObjectWithProfile;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.transferRequestObjectWithProfileAndProtocol;
 
 @EndToEndTest
 public class SerdeEndToEndTest {
@@ -509,6 +511,22 @@ public class SerdeEndToEndTest {
         }
 
         @Test
+        void de_TransferRequest_withProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            var inputObject = transferRequestObjectWithProfile(jsonLdContext());
+            var transferRequest = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, TransferRequest.class);
+
+            assertThat(transferRequest).isNotNull();
+            assertThat(transferRequest.getCounterPartyAddress()).isEqualTo(inputObject.getString("counterPartyAddress"));
+            assertThat(transferRequest.getContractId()).isEqualTo(inputObject.getString("contractId"));
+            assertThat(transferRequest.getDataDestination()).extracting(DataAddress::getType).isEqualTo(inputObject.getJsonObject("dataDestination").getString("type"));
+            assertThat(transferRequest.getPrivateProperties()).containsEntry(EDC_NAMESPACE + "fooPrivate", "bar");
+            assertThat(transferRequest.getProfile()).isEqualTo(inputObject.getString("profile"));
+            assertThat(transferRequest.getCallbackAddresses()).hasSize(inputObject.getJsonArray("callbackAddresses").size());
+            assertThat(transferRequest.getPrivateProperties()).hasSize(inputObject.getJsonObject("privateProperties").size());
+            assertThat(transferRequest.getTransferType()).isEqualTo(inputObject.getString("transferType"));
+        }
+
+        @Test
         void de_TransferRequest_withoutDataAddressType(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             var dataDestination = createObjectBuilder()
                     .add("type", "type").build();
@@ -525,6 +543,14 @@ public class SerdeEndToEndTest {
             assertThat(transferRequest.getCallbackAddresses()).hasSize(inputObject.getJsonArray("callbackAddresses").size());
             assertThat(transferRequest.getTransferType()).isEqualTo(inputObject.getString("transferType"));
 
+        }
+
+        @Test
+        void validate_TransferRequest_withProfileAndProtocol_shouldFail(JsonObjectValidatorRegistry validatorRegistry) {
+            var inputObject = transferRequestObjectWithProfileAndProtocol(jsonLdContext());
+            var request = validateWithResult(validatorRegistry, inputObject);
+
+            assertThat(request).isFailed();
         }
 
         @Test
@@ -823,6 +849,18 @@ public class SerdeEndToEndTest {
         @Disabled
         void validate_ContractRequest_withProfileAndProtocol_shouldFail(JsonObjectValidatorRegistry validatorRegistry) {
             super.validate_ContractRequest_withProfileAndProtocol_shouldFail(validatorRegistry);
+        }
+
+        @Override
+        @Disabled
+        void de_TransferRequest_withProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            super.de_TransferRequest_withProfile(typeTransformerRegistry, validatorRegistry, jsonLd);
+        }
+
+        @Override
+        @Disabled
+        void validate_TransferRequest_withProfileAndProtocol_shouldFail(JsonObjectValidatorRegistry validatorRegistry) {
+            super.validate_TransferRequest_withProfileAndProtocol_shouldFail(validatorRegistry);
         }
 
         @Override
