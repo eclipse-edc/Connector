@@ -107,9 +107,11 @@ apache-commons-pool = { module = "org.apache.commons:commons-pool2", version.ref
 atomikos-jta = { module = "com.atomikos:transactions-jta", version.ref = "atomikos" }
 atomikos-jdbc = { module = "com.atomikos:transactions-jdbc", version.ref = "atomikos" }
 cloudEvents = { module = "io.cloudevents:cloudevents-http-basic", version.ref = "cloudEvents" }
+cloudEvents-json = { module = "io.cloudevents:cloudevents-json-jackson", version.ref = "cloudEvents" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 kafkaClients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafkaClients" }
 jsonschema = { module = "com.networknt:json-schema-validator", version = "2.0.0" }
+nats = { module = "io.nats:jnats", version = "2.25.3" }
 
 # DSP-TCK libraries
 dsp-tck-runtime = { module = "org.eclipse.dataspacetck.dsp:tck-runtime", version.ref = "dsp-tck" }

@@ -165,6 +165,7 @@ include(":extensions:common:http:lib:jersey-providers-lib")
 
 include(":extensions:common:configuration:configuration-filesystem")
 include(":extensions:common:events:events-cloud-http")
+include(":extensions:common:events:events-nats")
 include(":extensions:common:http")
 include(":extensions:common:console-monitor")
 include(":extensions:common:otel-monitor")
@@ -339,6 +340,7 @@ include(":spi:federated-catalog-spi")
 
 // modules for system tests ------------------------------------------------------------------------
 include(":system-tests:bom-tests")
+include(":system-tests:nats-events-tests")
 include(":system-tests:e2e-dataplane-tests:runtimes:data-plane")
 include(":system-tests:e2e-dataplane-tests:tests")
 include(":system-tests:e2e-transfer-test:control-plane")
