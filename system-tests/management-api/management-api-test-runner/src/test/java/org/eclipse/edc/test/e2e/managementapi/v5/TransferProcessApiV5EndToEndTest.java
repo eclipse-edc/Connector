@@ -37,6 +37,7 @@ import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.managementapi.Runtimes;
+import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -117,7 +118,7 @@ public class TransferProcessApiV5EndToEndTest {
                     .build();
             contractNegotiationStore.save(contractNegotiation);
 
-            var requestBody = createTransferRequestJson(contractId, assetId);
+            var requestBody = createTransferRequestJson(contractId, assetId, context.profile());
 
             var id = context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
@@ -134,7 +135,7 @@ public class TransferProcessApiV5EndToEndTest {
                     });
         }
 
-        private JsonObject createTransferRequestJson(String contractId, String assetId) {
+        private JsonObject createTransferRequestJson(String contractId, String assetId, String profile) {
             return createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "TransferRequest")
@@ -147,7 +148,7 @@ public class TransferProcessApiV5EndToEndTest {
                     )
                     .add("transferType", "HttpData-PUSH")
                     .add("callbackAddresses", createCallbackAddress())
-                    .add("profile", "test-profile")
+                    .add("profile", profile)
                     .add("counterPartyAddress", "http://connector-address")
                     .add("contractId", contractId)
                     .add("assetId", assetId)
@@ -172,10 +173,28 @@ public class TransferProcessApiV5EndToEndTest {
         }
 
         @Test
+        void initiate_shouldFails_whenWrongProfile(ManagementEndToEndV5TestContext context) {
+            var assetId = UUID.randomUUID().toString();
+            var contractId = UUID.randomUUID().toString();
+            var requestBody = createTransferRequestJson(contractId, assetId, "wrong-profile");
+
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(requestBody.toString())
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/transferprocesses")
+                    .then()
+                    .log().ifError()
+                    .statusCode(400)
+                    .contentType(JSON)
+                    .body("[0].message", CoreMatchers.containsString("No profile 'wrong-profile' for participant 'test-participant'"));
+        }
+
+        @Test
         void initiate_tokenBearerWrong(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextService service) {
             var assetId = UUID.randomUUID().toString();
             var contractId = UUID.randomUUID().toString();
-            var requestBody = createTransferRequestJson(contractId, assetId);
+            var requestBody = createTransferRequestJson(contractId, assetId, context.profile());
 
             var otherParticipantId = UUID.randomUUID().toString();
 
@@ -197,7 +216,7 @@ public class TransferProcessApiV5EndToEndTest {
         void initiate_tokenLacksWriteScope(ManagementEndToEndV5TestContext context, OauthServer authServer) {
             var assetId = UUID.randomUUID().toString();
             var contractId = UUID.randomUUID().toString();
-            var requestBody = createTransferRequestJson(contractId, assetId);
+            var requestBody = createTransferRequestJson(contractId, assetId, context.profile());
 
             var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:read"));
 

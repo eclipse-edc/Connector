@@ -30,6 +30,7 @@ import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
+import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.query.Criterion;
@@ -78,6 +79,9 @@ public class ContractNegotiationApiV5Extension implements ServiceExtension {
     @Inject
     private ParticipantContextService participantContextService;
 
+    @Inject
+    private ParticipantProfileResolver profileResolver;
+
     @Override
     public String name() {
         return NAME;
@@ -100,7 +104,7 @@ public class ContractNegotiationApiV5Extension implements ServiceExtension {
 
         authorizationService.addLookupFunction(ContractNegotiation.class, this::findContractNegotiation);
 
-        webService.registerResource(ApiContext.MANAGEMENT, new ContractNegotiationApiV5Controller(service, participantContextService, authorizationService, managementApiTransformerRegistry, monitor));
+        webService.registerResource(ApiContext.MANAGEMENT, new ContractNegotiationApiV5Controller(service, participantContextService, authorizationService, managementApiTransformerRegistry, profileResolver, monitor));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractNegotiationApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
     }
 

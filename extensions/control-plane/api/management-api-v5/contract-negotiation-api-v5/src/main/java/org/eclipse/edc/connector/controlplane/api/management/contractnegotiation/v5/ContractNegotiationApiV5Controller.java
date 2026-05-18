@@ -38,16 +38,20 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Ter
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.Violation;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
+import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import org.eclipse.edc.web.spi.validation.SchemaType;
 
+import java.util.List;
 import java.util.Optional;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
@@ -66,13 +70,16 @@ public class ContractNegotiationApiV5Controller implements ContractNegotiationAp
     private final ParticipantContextService participantContextService;
     private final AuthorizationService authorizationService;
     private final TypeTransformerRegistry transformerRegistry;
+    private final ParticipantProfileResolver profileResolver;
     private final Monitor monitor;
 
-    public ContractNegotiationApiV5Controller(ContractNegotiationService service, ParticipantContextService participantContextService, AuthorizationService authorizationService, TypeTransformerRegistry transformerRegistry, Monitor monitor) {
+    public ContractNegotiationApiV5Controller(ContractNegotiationService service, ParticipantContextService participantContextService,
+                                              AuthorizationService authorizationService, TypeTransformerRegistry transformerRegistry, ParticipantProfileResolver profileResolver, Monitor monitor) {
         this.service = service;
         this.participantContextService = participantContextService;
         this.authorizationService = authorizationService;
         this.transformerRegistry = transformerRegistry;
+        this.profileResolver = profileResolver;
         this.monitor = monitor;
     }
 
@@ -183,6 +190,8 @@ public class ContractNegotiationApiV5Controller implements ContractNegotiationAp
         var participantContext = participantContextService.getParticipantContext(participantContextId)
                 .orElseThrow(exceptionMapper(ParticipantContext.class, participantContextId));
 
+        checkProfile(participantContextId, contractRequest.getProfile());
+
         return service.initiateNegotiation(participantContext, contractRequest)
                 .map(cn -> IdResponse.Builder.newInstance().id(cn.getId()).createdAt(cn.getCreatedAt()).build())
                 .compose(idResponse -> ServiceResult.from(transformerRegistry.transform(idResponse, JsonObject.class)))
@@ -222,6 +231,13 @@ public class ContractNegotiationApiV5Controller implements ContractNegotiationAp
                 .orElseThrow(exceptionMapper(ContractNegotiation.class, id));
 
         service.delete(id).orElseThrow(exceptionMapper(ContractNegotiation.class, id));
+    }
+
+    private void checkProfile(String participantContextId, String profileId) {
+        var profile = profileResolver.resolve(participantContextId, profileId);
+        if (profile == null) {
+            throw new ValidationFailureException(List.of(Violation.violation("No profile '%s' for participant '%s'".formatted(profileId, participantContextId), null)));
+        }
     }
 
     private void logIfError(Result<?> result) {

@@ -31,6 +31,8 @@ import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.C
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
+import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -73,11 +75,13 @@ public abstract class ContractNegotiationApiControllerTestBase extends RestContr
     protected final TypeTransformerRegistry transformerRegistry = mock();
     protected final AuthorizationService authorizationService = mock();
     protected final ParticipantContextService participantContextService = mock();
+    protected final ParticipantProfileResolver profileResolver = mock();
     private final String participantContextId = "test-participant-context-id";
 
     @BeforeEach
     void setup() {
         when(authorizationService.authorize(any(), any(), any(), any())).thenReturn(ServiceResult.success());
+        when(profileResolver.resolve(any(), any())).thenReturn(mock(DataspaceProfileContext.class));
     }
 
     private RequestSpecification baseRequest(String participantContextId) {

@@ -33,12 +33,17 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.Violation;
 import org.eclipse.edc.web.spi.exception.BadGatewayException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
+import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import org.eclipse.edc.web.spi.validation.SchemaType;
+
+import java.util.List;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE_TERM;
@@ -53,13 +58,16 @@ public class CatalogApiV5Controller implements CatalogApiV5 {
     private final CatalogService service;
     private final TypeTransformerRegistry transformerRegistry;
     private final ParticipantContextService participantContextService;
+    private final ParticipantProfileResolver profileResolver;
+
 
     public CatalogApiV5Controller(CatalogService service, TypeTransformerRegistry transformerRegistry,
-                                  AuthorizationService authorizationService, ParticipantContextService participantContextService) {
+                                  AuthorizationService authorizationService, ParticipantContextService participantContextService, ParticipantProfileResolver profileResolver) {
         this.service = service;
         this.transformerRegistry = transformerRegistry;
         this.authorizationService = authorizationService;
         this.participantContextService = participantContextService;
+        this.profileResolver = profileResolver;
     }
 
 
@@ -79,6 +87,9 @@ public class CatalogApiV5Controller implements CatalogApiV5 {
                 .orElseThrow(InvalidRequestException::new);
 
         var scopes = request.getAdditionalScopes().toArray(new String[0]);
+
+        checkProfile(participantContextId, request.getProfile());
+
         service.requestCatalog(participantContext, request.getCounterPartyId(), request.getCounterPartyAddress(), request.getProtocol(), request.getQuerySpec(), scopes)
                 .whenComplete((result, throwable) -> {
                     try {
@@ -104,6 +115,8 @@ public class CatalogApiV5Controller implements CatalogApiV5 {
         var request = transformerRegistry.transform(requestBody, DatasetRequest.class)
                 .orElseThrow(InvalidRequestException::new);
 
+        checkProfile(participantContextId, request.getProfile());
+
         service.requestDataset(participantContext, request.getId(), request.getCounterPartyId(), request.getCounterPartyAddress(), request.getProtocol())
                 .whenComplete((result, throwable) -> {
                     try {
@@ -112,6 +125,14 @@ public class CatalogApiV5Controller implements CatalogApiV5 {
                         response.resume(mapped);
                     }
                 });
+    }
+
+
+    private void checkProfile(String participantContextId, String profileId) {
+        var profile = profileResolver.resolve(participantContextId, profileId);
+        if (profile == null) {
+            throw new ValidationFailureException(List.of(Violation.violation("No profile '%s' for participant '%s'".formatted(profileId, participantContextId), null)));
+        }
     }
 
     /**

@@ -35,6 +35,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.managementapi.Runtimes;
+import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -98,7 +99,7 @@ public class ContractNegotiationApiV5EndToEndTest {
         @Test
         void initiate(ManagementEndToEndV5TestContext context, ContractNegotiationStore store) {
 
-            var requestJson = contractRequestJson();
+            var requestJson = contractRequestJson(context.profile());
 
             var id = context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
@@ -132,8 +133,24 @@ public class ContractNegotiationApiV5EndToEndTest {
         }
 
         @Test
+        void initiate_ShouldFails_whenWrongProfile(ManagementEndToEndV5TestContext context) {
+
+            var requestJson = contractRequestJson("wrong-profile");
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(requestJson.toString())
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(400)
+                    .contentType(JSON)
+                    .body("[0].message", CoreMatchers.containsString("No profile 'wrong-profile' for participant 'test-participant'"));
+        }
+
+        @Test
         void initiate_tokenBearerWrong(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextService service) {
-            var requestJson = contractRequestJson();
+            var requestJson = contractRequestJson(context.profile());
 
             var otherParticipantId = UUID.randomUUID().toString();
 
@@ -154,7 +171,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
         @Test
         void initiate_tokenLacksWriteScope(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextService service) {
-            var requestJson = contractRequestJson();
+            var requestJson = contractRequestJson(context.profile());
 
             var otherParticipantId = UUID.randomUUID().toString();
 
@@ -176,7 +193,7 @@ public class ContractNegotiationApiV5EndToEndTest {
         @Test
         void initiate_tokenBearerIsAdmin(ManagementEndToEndV5TestContext context, OauthServer authServer, ContractNegotiationStore store) {
 
-            var requestJson = contractRequestJson();
+            var requestJson = contractRequestJson(context.profile());
 
             var token = authServer.createAdminToken();
 
@@ -639,12 +656,12 @@ public class ContractNegotiationApiV5EndToEndTest {
                     .statusCode(403);
         }
 
-        private JsonObject contractRequestJson() {
+        private JsonObject contractRequestJson(String profile) {
             return createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "ContractRequest")
                     .add("counterPartyAddress", "test-address")
-                    .add("profile", "test-test-profile")
+                    .add("profile", profile)
                     .add("providerId", "test-provider-id")
                     .add("callbackAddresses", createCallbackAddress())
                     .add("policy", createPolicy())

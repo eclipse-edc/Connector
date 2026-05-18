@@ -28,6 +28,7 @@ import org.eclipse.edc.connector.controlplane.transform.edc.transferprocess.to.J
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
+import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.query.Criterion;
@@ -75,6 +76,9 @@ public class TransferProcessApiV5Extension implements ServiceExtension {
     @Inject
     private ParticipantContextService participantContextService;
 
+    @Inject
+    private ParticipantProfileResolver profileResolver;
+
     @Override
     public String name() {
         return NAME;
@@ -94,7 +98,7 @@ public class TransferProcessApiV5Extension implements ServiceExtension {
 
         authorizationService.addLookupFunction(TransferProcess.class, this::findTransferProcess);
 
-        webService.registerResource(ApiContext.MANAGEMENT, new TransferProcessApiV5Controller(context.getMonitor(), authorizationService, participantContextService, service, managementApiTransformerRegistry));
+        webService.registerResource(ApiContext.MANAGEMENT, new TransferProcessApiV5Controller(context.getMonitor(), authorizationService, participantContextService, service, profileResolver, managementApiTransformerRegistry));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, TransferProcessApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
     }
 

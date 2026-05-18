@@ -26,7 +26,6 @@ import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.V_2025_1;
@@ -55,7 +54,7 @@ class DspTransferProcessApiControllerV20251Test extends DspTransferProcessApiCon
         when(participantContextService.getParticipantContext(participantContext.getParticipantContextId()))
                 .thenReturn(ServiceResult.success(participantContext));
         when(profileResolver.resolve(participantContext.getParticipantContextId(), PROFILE_ID))
-                .thenReturn(Optional.of(PROFILE));
+                .thenReturn(PROFILE);
     }
 
     @Override

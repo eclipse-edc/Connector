@@ -281,6 +281,28 @@ public class CatalogApiV5EndToEndTest {
         }
 
         @Test
+        void requestCatalog_shouldReturnBadRequest_withWrongProfile(ManagementEndToEndV5TestContext context) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "CatalogRequest")
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
+                    .add("counterPartyId", COUNTER_PARTY_ID)
+                    .add("profile", "wrong-profile")
+                    .build()
+                    .toString();
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(requestBody)
+                    .post("/v5beta/participants/%s/catalog/request".formatted(PARTICIPANT_CONTEXT_ID))
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(400)
+                    .contentType(JSON)
+                    .body("[0].message", containsString("No profile 'wrong-profile' for participant 'test-participant'"));
+        }
+
+        @Test
         void requestCatalog_whenAssetIsCatalogAsset_shouldReturnCatalogOfCatalogs(ManagementEndToEndV5TestContext context, AssetIndex assetIndex,
                                                                                   PolicyDefinitionStore policyDefinitionStore,
                                                                                   ContractDefinitionStore contractDefinitionStore) {
@@ -363,6 +385,30 @@ public class CatalogApiV5EndToEndTest {
                     .body(ID, is("asset-id"))
                     .body(TYPE, is("Dataset"))
                     .body("distribution[0].accessService.'@id'", notNullValue());
+        }
+
+        @Test
+        void getDataset_shouldReturnBadRequest_whenWrongProfile(ManagementEndToEndV5TestContext context) {
+
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "DatasetRequest")
+                    .add(ID, "asset-id")
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
+                    .add("counterPartyId", COUNTER_PARTY_ID)
+                    .add("profile", "wrong-profile")
+                    .build()
+                    .toString();
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(requestBody)
+                    .post("/v5beta/participants/%s/catalog/dataset/request".formatted(PARTICIPANT_CONTEXT_ID))
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(400)
+                    .contentType(JSON)
+                    .body("[0].message", containsString("No profile 'wrong-profile' for participant 'test-participant'"));
         }
 
         @Test

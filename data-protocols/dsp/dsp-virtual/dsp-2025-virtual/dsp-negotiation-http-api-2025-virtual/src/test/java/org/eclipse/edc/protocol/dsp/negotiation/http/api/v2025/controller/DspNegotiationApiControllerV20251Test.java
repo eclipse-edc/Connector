@@ -26,7 +26,6 @@ import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.BASE_PATH;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.CONTRACT_OFFERS;
@@ -57,7 +56,7 @@ class DspNegotiationApiControllerV20251Test extends DspNegotiationApiControllerT
         when(participantContextService.getParticipantContext(participantContext.getParticipantContextId()))
                 .thenReturn(ServiceResult.success(participantContext));
         when(profileResolver.resolve(participantContext.getParticipantContextId(), PROFILE_ID))
-                .thenReturn(Optional.of(PROFILE));
+                .thenReturn(PROFILE);
     }
 
     @Override

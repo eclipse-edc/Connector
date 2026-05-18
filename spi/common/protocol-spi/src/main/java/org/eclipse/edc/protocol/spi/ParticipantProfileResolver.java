@@ -15,9 +15,9 @@
 package org.eclipse.edc.protocol.spi;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Resolves the {@link DataspaceProfileContext}s a given participant context is associated with.
@@ -52,7 +52,8 @@ public interface ParticipantProfileResolver {
      *
      * @param participantContextId the participant context identifier
      * @param profileId            the profile id
-     * @return the resolved profile, or empty if the participant is not associated with it
+     * @return the resolved profile, or null if the participant is not associated with it
      */
-    Optional<DataspaceProfileContext> resolve(String participantContextId, String profileId);
+    @Nullable
+    DataspaceProfileContext resolve(String participantContextId, String profileId);
 }

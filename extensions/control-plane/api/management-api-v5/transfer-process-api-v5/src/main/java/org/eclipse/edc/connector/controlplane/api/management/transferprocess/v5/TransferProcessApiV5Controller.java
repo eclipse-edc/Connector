@@ -40,15 +40,19 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.Suspend
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.validator.spi.Violation;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
+import org.eclipse.edc.web.spi.exception.ValidationFailureException;
 import org.eclipse.edc.web.spi.validation.SchemaType;
 
+import java.util.List;
 import java.util.Optional;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
@@ -71,13 +75,16 @@ public class TransferProcessApiV5Controller implements TransferProcessApiV5 {
     private final AuthorizationService authorizationService;
     private final ParticipantContextService participantContextService;
     private final TransferProcessService service;
+    private final ParticipantProfileResolver profileResolver;
     private final TypeTransformerRegistry transformerRegistry;
 
-    public TransferProcessApiV5Controller(Monitor monitor, AuthorizationService authorizationService, ParticipantContextService participantContextService, TransferProcessService service, TypeTransformerRegistry transformerRegistry) {
+    public TransferProcessApiV5Controller(Monitor monitor, AuthorizationService authorizationService, ParticipantContextService participantContextService,
+                                          TransferProcessService service, ParticipantProfileResolver profileResolver, TypeTransformerRegistry transformerRegistry) {
         this.monitor = monitor;
         this.authorizationService = authorizationService;
         this.participantContextService = participantContextService;
         this.service = service;
+        this.profileResolver = profileResolver;
         this.transformerRegistry = transformerRegistry;
     }
 
@@ -173,6 +180,8 @@ public class TransferProcessApiV5Controller implements TransferProcessApiV5 {
         var participantContext = participantContextService.getParticipantContext(participantContextId)
                 .orElseThrow(exceptionMapper(ParticipantContext.class, participantContextId));
 
+        checkProfile(participantContextId, transferRequest.getProfile());
+
         var createdTransfer = service.initiateTransfer(participantContext, transferRequest)
                 .onSuccess(d -> monitor.debug(format("Transfer Process created %s", d.getId())))
                 .orElseThrow(it -> mapToException(it, TransferProcess.class));
@@ -244,5 +253,12 @@ public class TransferProcessApiV5Controller implements TransferProcessApiV5 {
         service.resume(new ResumeTransferCommand(id))
                 .onSuccess(tp -> monitor.debug(format("Resumption requested for TransferProcess with ID %s", id)))
                 .orElseThrow(exceptionMapper(TransferProcess.class, id));
+    }
+
+    private void checkProfile(String participantContextId, String profileId) {
+        var profile = profileResolver.resolve(participantContextId, profileId);
+        if (profile == null) {
+            throw new ValidationFailureException(List.of(Violation.violation("No profile '%s' for participant '%s'".formatted(profileId, participantContextId), null)));
+        }
     }
 }

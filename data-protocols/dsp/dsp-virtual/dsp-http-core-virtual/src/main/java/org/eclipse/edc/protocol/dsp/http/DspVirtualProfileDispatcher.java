@@ -21,6 +21,8 @@ import org.eclipse.edc.protocol.dsp.spi.http.DspVirtualSubResourceLocator;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
 
+import java.util.Optional;
+
 /**
  * JAX-RS resource that dispatches requests to sub-resources of a DSP virtual profile resource.
  * <p>
@@ -50,7 +52,7 @@ public class DspVirtualProfileDispatcher {
     }
 
     private DataspaceProfileContext resolveProfile(String participantContextId, String profileId) {
-        return profileResolver.resolve(participantContextId, profileId)
+        return Optional.ofNullable(profileResolver.resolve(participantContextId, profileId))
                 .orElseThrow(() -> new NotFoundException("No profile '%s' for participant '%s'".formatted(profileId, participantContextId)));
     }
 }
