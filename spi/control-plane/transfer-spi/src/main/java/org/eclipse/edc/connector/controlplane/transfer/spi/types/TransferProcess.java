@@ -214,7 +214,7 @@ public class TransferProcess extends StatefulEntity<TransferProcess> implements 
     }
 
     public boolean canBeCompleted() {
-        return currentStateIsOneOf(COMPLETING, STARTED);
+        return currentStateIsOneOf(COMPLETING, STARTED, STARTING);
     }
 
     public void transitionCompleting() {

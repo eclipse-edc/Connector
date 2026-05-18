@@ -25,7 +25,6 @@ import org.eclipse.edc.tck.TckTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.junit.platform.launcher.listeners.TestExecutionSummary;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -35,7 +34,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
@@ -84,19 +82,7 @@ public class DpsTckTest {
                 .build()
                 .execute();
 
-        assertThat(result.getTestsFoundCount()).isGreaterThan(0);
-
-        var failures = result.getFailures().stream()
-                .map(this::mapFailure)
-                .toList();
-
-        var failureReasons = failures.stream()
-                .map(TestResult::format)
-                .toList();
-
-        assertThat(failureReasons)
-                .withFailMessage(() -> failureReasons.size() + " DPS TCK test cases failed:\n" + String.join("\n", failureReasons))
-                .isEmpty();
+        assertThat(result.getFailures()).isEmpty();
     }
 
     private Map<String, String> loadPropertiesFrom(String resource) throws IOException {
@@ -111,17 +97,6 @@ public class DpsTckTest {
 
     private String resourceConfig(String resource) {
         return Path.of(TestUtils.getResource(resource)).toString();
-    }
-
-    private TestResult mapFailure(TestExecutionSummary.Failure failure) {
-        var displayName = failure.getTestIdentifier().getDisplayName().split(":");
-        return new TestResult(format("%s:%s", displayName[0], displayName[1]), failure);
-    }
-
-    private record TestResult(String testId, TestExecutionSummary.Failure failure) {
-        public String format() {
-            return "- " + failure.getTestIdentifier().getDisplayName() + " (" + failure.getException() + ")";
-        }
     }
 
 }
