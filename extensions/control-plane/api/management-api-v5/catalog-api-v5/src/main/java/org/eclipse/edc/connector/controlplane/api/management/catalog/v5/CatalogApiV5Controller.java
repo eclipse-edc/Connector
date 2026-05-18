@@ -37,7 +37,6 @@ import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.validator.spi.Violation;
 import org.eclipse.edc.web.spi.exception.BadGatewayException;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ValidationFailureException;
@@ -48,6 +47,7 @@ import java.util.List;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE_TERM;
+import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 
 @Consumes(APPLICATION_JSON)
@@ -131,7 +131,7 @@ public class CatalogApiV5Controller implements CatalogApiV5 {
     private void checkProfile(String participantContextId, String profileId) {
         var profile = profileResolver.resolve(participantContextId, profileId);
         if (profile == null) {
-            throw new ValidationFailureException(List.of(Violation.violation("No profile '%s' for participant '%s'".formatted(profileId, participantContextId), null)));
+            throw new ValidationFailureException(List.of(violation("No profile '%s' for participant '%s'".formatted(profileId, participantContextId), null)));
         }
     }
 

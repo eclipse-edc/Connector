@@ -46,7 +46,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.eclipse.edc.validator.spi.Violation;
 import org.eclipse.edc.web.spi.exception.InvalidRequestException;
 import org.eclipse.edc.web.spi.exception.ObjectNotFoundException;
 import org.eclipse.edc.web.spi.exception.ValidationFailureException;
@@ -63,6 +62,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Terminat
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.filterByParticipantContextId;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
+import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMapper;
 import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.mapToException;
 
@@ -258,7 +258,7 @@ public class TransferProcessApiV5Controller implements TransferProcessApiV5 {
     private void checkProfile(String participantContextId, String profileId) {
         var profile = profileResolver.resolve(participantContextId, profileId);
         if (profile == null) {
-            throw new ValidationFailureException(List.of(Violation.violation("No profile '%s' for participant '%s'".formatted(profileId, participantContextId), null)));
+            throw new ValidationFailureException(List.of(violation("No profile '%s' for participant '%s'".formatted(profileId, participantContextId), null)));
         }
     }
 }
