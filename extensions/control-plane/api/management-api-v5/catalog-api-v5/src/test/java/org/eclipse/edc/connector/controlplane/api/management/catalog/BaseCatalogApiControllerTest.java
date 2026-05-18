@@ -23,6 +23,8 @@ import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogServic
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
+import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
@@ -60,6 +62,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
     protected final TypeTransformerRegistry transformerRegistry = mock();
     protected final AuthorizationService authorizationService = mock();
     protected final ParticipantContextService participantContextService = mock();
+    protected final ParticipantProfileResolver profileResolver = mock();
     protected final String participantContextId = "test-participant-context-id";
 
     @BeforeEach
@@ -69,6 +72,8 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
                         .identity(participantContextId).build()));
 
         when(authorizationService.authorize(any(), any(), any(), any())).thenReturn(ServiceResult.success());
+
+        when(profileResolver.resolve(any(), any())).thenReturn(mock(DataspaceProfileContext.class));
     }
 
     @Test

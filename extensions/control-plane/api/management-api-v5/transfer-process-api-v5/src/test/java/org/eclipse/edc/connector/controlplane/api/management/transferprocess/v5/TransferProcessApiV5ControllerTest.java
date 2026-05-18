@@ -19,7 +19,7 @@ import org.eclipse.edc.connector.controlplane.api.management.transferprocess.Bas
 public class TransferProcessApiV5ControllerTest extends BaseTransferProcessApiControllerTest {
     @Override
     protected Object controller() {
-        return new TransferProcessApiV5Controller(monitor, authorizationService, participantContextService, service, transformerRegistry);
+        return new TransferProcessApiV5Controller(monitor, authorizationService, participantContextService, service, profileResolver, transformerRegistry);
     }
 
     @Override

@@ -85,14 +85,14 @@ class ParticipantProfileResolverImplTest {
         var pb = profile("b");
         when(registry.getProfile("b")).thenReturn(pb);
 
-        assertThat(resolver.resolve("p1", "b")).contains(pb);
+        assertThat(resolver.resolve("p1", "b")).isEqualTo(pb);
     }
 
     @Test
     void resolve_notAssociated_returnsEmpty() {
         when(config.getString(eq("p1"), eq(PROFILES_CONFIG_KEY), any())).thenReturn("a");
 
-        assertThat(resolver.resolve("p1", "b")).isEmpty();
+        assertThat(resolver.resolve("p1", "b")).isNull();
     }
 
     @Test
@@ -100,7 +100,7 @@ class ParticipantProfileResolverImplTest {
         when(config.getString(eq("p1"), eq(PROFILES_CONFIG_KEY), any())).thenReturn("a,b");
         when(registry.getProfile("b")).thenReturn(null);
 
-        assertThat(resolver.resolve("p1", "b")).isEmpty();
+        assertThat(resolver.resolve("p1", "b")).isNull();
     }
 
     private DataspaceProfileContext profile(String id) {

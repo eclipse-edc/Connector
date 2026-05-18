@@ -30,6 +30,8 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.Termina
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
+import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -64,6 +66,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
     protected final AuthorizationService authorizationService = mock();
     protected final TransferProcessService service = mock();
     protected final ParticipantContextService participantContextService = mock();
+    protected final ParticipantProfileResolver profileResolver = mock();
     private final String participantContextId = "test-participant-context-id";
 
     protected abstract String versionPath();
@@ -77,6 +80,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
     @BeforeEach
     void setup() {
         when(authorizationService.authorize(any(), any(), any(), any())).thenReturn(ServiceResult.success());
+        when(profileResolver.resolve(any(), any())).thenReturn(mock(DataspaceProfileContext.class));
     }
 
     @NotNull

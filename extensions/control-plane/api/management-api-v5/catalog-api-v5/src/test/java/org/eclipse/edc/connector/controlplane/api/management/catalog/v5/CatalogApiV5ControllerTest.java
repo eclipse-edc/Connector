@@ -28,6 +28,6 @@ class CatalogApiV5ControllerTest extends BaseCatalogApiControllerTest {
 
     @Override
     protected Object controller() {
-        return new CatalogApiV5Controller(service, transformerRegistry, authorizationService, participantContextService);
+        return new CatalogApiV5Controller(service, transformerRegistry, authorizationService, participantContextService, profileResolver);
     }
 }

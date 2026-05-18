@@ -136,8 +136,10 @@ public class DspVirtualCatalogApiController20251 {
     }
 
     private DataspaceProfileContext resolveProfile(String participantContextId, String profileId) {
-        var profile = profileResolver.resolve(participantContextId, profileId)
-                .orElseThrow(() -> new NotFoundException("No profile '%s' for participant '%s'".formatted(profileId, participantContextId)));
+        var profile = profileResolver.resolve(participantContextId, profileId);
+        if (profile == null) {
+            throw new NotFoundException("No profile '%s' for participant '%s'".formatted(profileId, participantContextId));
+        }
         if (!V_2025_1_VERSION.equals(profile.protocolVersion().version())) {
             throw new NotFoundException("Profile '%s' is not for DSP version %s".formatted(profileId, V_2025_1_VERSION));
         }

@@ -22,7 +22,6 @@ import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -58,17 +57,16 @@ public class ParticipantProfileResolverImpl implements ParticipantProfileResolve
     }
 
     @Override
-    public Optional<DataspaceProfileContext> resolve(String participantContextId, String profileId) {
+    public DataspaceProfileContext resolve(String participantContextId, String profileId) {
 
         if (dspEnableAllProfiles) {
-            var profile = profileRegistry.getProfile(profileId);
-            return Optional.ofNullable(profile);
+            return profileRegistry.getProfile(profileId);
         }
         var configured = parse(readRaw(participantContextId));
         if (!configured.contains(profileId)) {
-            return Optional.empty();
+            return null;
         }
-        return Optional.ofNullable(profileRegistry.getProfile(profileId));
+        return profileRegistry.getProfile(profileId);
     }
 
     private String readRaw(String participantContextId) {

@@ -22,7 +22,7 @@ class ContractNegotiationApiV5ControllerTest extends ContractNegotiationApiContr
 
     @Override
     protected Object controller() {
-        return new ContractNegotiationApiV5Controller(service, participantContextService, authorizationService, transformerRegistry, monitor);
+        return new ContractNegotiationApiV5Controller(service, participantContextService, authorizationService, transformerRegistry, profileResolver, monitor);
     }
 
     @Override

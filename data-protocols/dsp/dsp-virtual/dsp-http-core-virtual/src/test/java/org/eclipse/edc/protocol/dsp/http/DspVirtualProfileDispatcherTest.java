@@ -27,7 +27,6 @@ import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Optional;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
@@ -85,7 +84,7 @@ class DspVirtualProfileDispatcherTest extends RestControllerTestBase {
 
     @Test
     void shouldReturnNotFound_whenProfileNotResolvedForParticipant() {
-        when(profileResolver.resolve(PARTICIPANT_ID, PROFILE_ID)).thenReturn(Optional.empty());
+        when(profileResolver.resolve(PARTICIPANT_ID, PROFILE_ID)).thenReturn(null);
 
         baseRequest()
                 .get("/%s/%s/catalog/request".formatted(PARTICIPANT_ID, PROFILE_ID))
@@ -112,7 +111,7 @@ class DspVirtualProfileDispatcherTest extends RestControllerTestBase {
                 mock(), mock(),
                 new JsonLdNamespace("https://example.org/dspace/"),
                 List.of("https://example.org/context.jsonld"));
-        when(profileResolver.resolve(PARTICIPANT_ID, PROFILE_ID)).thenReturn(Optional.of(profile));
+        when(profileResolver.resolve(PARTICIPANT_ID, PROFILE_ID)).thenReturn(profile);
     }
 
     private RequestSpecification baseRequest() {
