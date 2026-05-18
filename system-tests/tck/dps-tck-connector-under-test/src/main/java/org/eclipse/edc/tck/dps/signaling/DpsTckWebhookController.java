@@ -25,6 +25,8 @@ import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSup
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 
+import java.util.Map;
+
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 
 /**
@@ -58,17 +60,19 @@ public class DpsTckWebhookController {
         var participantContext = participantContextSupplier.get()
                 .orElseThrow(f -> new EdcException("Cannot get participant context: " + f.getFailureDetail()));
 
-        transferProcessService.initiateTransfer(participantContext, TransferRequest.Builder.newInstance()
-                .id(request.processId())
-                .contractId(request.agreementId())
-                .transferType("HttpData-PULL")
-                .counterPartyAddress(request.dspUrl())
-                .protocol("dataspace-protocol-http:2025-1")
-                .build())
+        return transferProcessService.initiateTransfer(participantContext, TransferRequest.Builder.newInstance()
+                        .id(request.processId())
+                        .contractId(request.agreementId())
+                        .transferType("HttpData-PULL")
+                        .counterPartyAddress(request.dspUrl())
+                        .protocol("dataspace-protocol-http:2025-1")
+                        .build()
+                )
+                .map(transferProcess -> Map.of("id", transferProcess.getId()))
+                .map(responseBody -> Response.ok().entity(responseBody).build())
+                .onSuccess(i -> monitor.debug("TransferProcess %s initiated successfully for agreementId=%s"
+                        .formatted(request.processId(), request.agreementId())))
                 .orElseThrow(f -> new EdcException("Failed to initiate transfer: " + f.getFailureDetail()));
-
-        monitor.debug("TransferProcess initiated successfully for agreementId=%s".formatted(request.agreementId()));
-        return Response.ok().build();
     }
 
 }
