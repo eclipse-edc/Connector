@@ -22,7 +22,7 @@ import org.eclipse.edc.connector.controlplane.transform.edc.catalog.to.JsonObjec
 import org.eclipse.edc.connector.controlplane.transform.edc.catalog.to.JsonObjectToDatasetRequestTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
-import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
+import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -64,7 +64,7 @@ public class CatalogApiV5Extension implements ServiceExtension {
     @Inject
     private ParticipantContextService participantContextService;
     @Inject
-    private ParticipantProfileResolver profileResolver;
+    private ParticipantProfileService profileResolver;
 
     @Override
     public String name() {

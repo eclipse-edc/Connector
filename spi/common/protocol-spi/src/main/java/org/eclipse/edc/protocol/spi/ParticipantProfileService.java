@@ -15,6 +15,7 @@
 package org.eclipse.edc.protocol.spi;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.spi.result.ServiceResult;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -28,7 +29,7 @@ import java.util.List;
  * profile are skipped silently.
  */
 @ExtensionPoint
-public interface ParticipantProfileResolver {
+public interface ParticipantProfileService {
 
     /**
      * Configuration key under {@code ParticipantContextConfig} that holds the comma-separated list
@@ -56,4 +57,14 @@ public interface ParticipantProfileResolver {
      */
     @Nullable
     DataspaceProfileContext resolve(String participantContextId, String profileId);
+
+
+    /**
+     * Associates the given profiles with the participant context. The order of the list is
+     * preserved when resolving profiles via {@link #resolveAll(String)}.
+     *
+     * @param participantContextId the participant context identifier
+     * @param profiles             the list of profile ids to associate with the participant
+     */
+    ServiceResult<Void> associateProfiles(String participantContextId, List<String> profiles);
 }

@@ -27,6 +27,7 @@ import java.util.Map;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.DSPACE_2025_SCHEMA_PREFIX;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.EDC_MGMT_V4_SCHEMA_PREFIX;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.ASSET;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.ASSOCIATE_DATASPACE_PROFILE_CONTEXT;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.CATALOG_ASSET;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.CATALOG_REQUEST;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.CEL_EXPRESSION;
@@ -115,8 +116,7 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
             put(PARTICIPANT_CONTEXT_TYPE_TERM, PARTICIPANT_CONTEXT);
             put(PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM, PARTICIPANT_CONTEXT_CONFIG);
             put(CEL_EXPRESSION_TYPE_TERM, CEL_EXPRESSION);
-
-
+            put("AssociateDataspaceProfile", ASSOCIATE_DATASPACE_PROFILE_CONTEXT);
         }
     };
 

@@ -40,7 +40,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.Suspend
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
+import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -75,11 +75,11 @@ public class TransferProcessApiV5Controller implements TransferProcessApiV5 {
     private final AuthorizationService authorizationService;
     private final ParticipantContextService participantContextService;
     private final TransferProcessService service;
-    private final ParticipantProfileResolver profileResolver;
+    private final ParticipantProfileService profileResolver;
     private final TypeTransformerRegistry transformerRegistry;
 
     public TransferProcessApiV5Controller(Monitor monitor, AuthorizationService authorizationService, ParticipantContextService participantContextService,
-                                          TransferProcessService service, ParticipantProfileResolver profileResolver, TypeTransformerRegistry transformerRegistry) {
+                                          TransferProcessService service, ParticipantProfileService profileResolver, TypeTransformerRegistry transformerRegistry) {
         this.monitor = monitor;
         this.authorizationService = authorizationService;
         this.participantContextService = participantContextService;

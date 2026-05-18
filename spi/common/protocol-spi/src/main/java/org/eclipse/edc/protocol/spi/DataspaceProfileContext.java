@@ -18,6 +18,8 @@ import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 
 import java.util.List;
 
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+
 /**
  * Represents a Dataspace Profile Context: the binding of a dataspace identity (JSON-LD namespace +
  * context document) to a DSP protocol version and an identity-extraction strategy.
@@ -39,5 +41,29 @@ public record DataspaceProfileContext(String name,
                                       ParticipantIdExtractionFunction idExtractionFunction,
                                       JsonLdNamespace protocolNamespace,
                                       List<String> jsonLdContextsUrl) {
+
+    public static final String DATASPACE_PROFILE_CONTEXT_TYPE_TERM = "DataspaceProfile";
+    public static final String DATASPACE_PROFILE_CONTEXT_TYPE_IRI = EDC_NAMESPACE + DATASPACE_PROFILE_CONTEXT_TYPE_TERM;
+
+    public static final String DATASPACE_PROFILE_CONTEXT_NAME_TERM = "name";
+    public static final String DATASPACE_PROFILE_CONTEXT_NAME_IRI = EDC_NAMESPACE + DATASPACE_PROFILE_CONTEXT_NAME_TERM;
+
+    public static final String DATASPACE_PROFILE_CONTEXT_PROTOCOL_TERM = "protocol";
+    public static final String DATASPACE_PROFILE_CONTEXT_PROTOCOL_IRI = EDC_NAMESPACE + DATASPACE_PROFILE_CONTEXT_PROTOCOL_TERM;
+
+    public static final String DATASPACE_PROFILE_CONTEXT_PROTOCOL_VERSION_TERM = "version";
+    public static final String DATASPACE_PROFILE_CONTEXT_PROTOCOL_VERSION_IRI = EDC_NAMESPACE + DATASPACE_PROFILE_CONTEXT_PROTOCOL_VERSION_TERM;
+
+    public static final String DATASPACE_PROFILE_CONTEXT_PROTOCOL_PATH_TERM = "path";
+    public static final String DATASPACE_PROFILE_CONTEXT_PROTOCOL_PATH_IRI = EDC_NAMESPACE + DATASPACE_PROFILE_CONTEXT_PROTOCOL_PATH_TERM;
+
+    public static final String DATASPACE_PROFILE_CONTEXT_PROTOCOL_BINDING_TERM = "binding";
+    public static final String DATASPACE_PROFILE_CONTEXT_PROTOCOL_BINDING_IRI = EDC_NAMESPACE + DATASPACE_PROFILE_CONTEXT_PROTOCOL_BINDING_TERM;
+
+    public static final String DATASPACE_PROFILE_CONTEXT_PROTOCOL_NAMESPACE_TERM = "namespace";
+    public static final String DATASPACE_PROFILE_CONTEXT_PROTOCOL_NAMESPACE_IRI = EDC_NAMESPACE + DATASPACE_PROFILE_CONTEXT_PROTOCOL_NAMESPACE_TERM;
+
+    public static final String DATASPACE_PROFILE_CONTEXT_JSONLD_CONTEXTS_URL_TERM = "jsonLdContextsUrl";
+    public static final String DATASPACE_PROFILE_CONTEXT_JSONLD_CONTEXTS_URL_IRI = EDC_NAMESPACE + DATASPACE_PROFILE_CONTEXT_JSONLD_CONTEXTS_URL_TERM;
 
 }

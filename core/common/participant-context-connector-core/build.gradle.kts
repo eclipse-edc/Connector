@@ -19,6 +19,7 @@ plugins {
 
 dependencies {
     api(project(":spi:common:protocol-spi"))
+    api(project(":spi:common:transaction-spi"))
     api(project(":spi:common:participant-context-config-spi"))
 
     testImplementation(project(":core:common:junit-base"))

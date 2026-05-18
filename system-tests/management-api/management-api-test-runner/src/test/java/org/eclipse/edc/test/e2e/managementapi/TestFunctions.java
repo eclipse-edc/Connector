@@ -705,6 +705,14 @@ public class TestFunctions {
                 .build();
     }
 
+    public static JsonObject associateDataspaceProfileObject(String context) {
+        return Json.createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "AssociateDataspaceProfile")
+                .add("profiles", createArrayBuilder(List.of("profile1", "profile2")).build())
+                .build();
+    }
+
     private static AtomicConstraint atomicConstraint(String key, String value) {
         var left = new LiteralExpression(key);
         var right = new LiteralExpression(value);

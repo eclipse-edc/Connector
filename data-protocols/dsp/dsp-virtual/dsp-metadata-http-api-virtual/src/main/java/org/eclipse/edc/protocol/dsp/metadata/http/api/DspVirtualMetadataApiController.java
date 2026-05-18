@@ -23,7 +23,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionsError;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
-import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
+import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 import org.eclipse.edc.protocol.spi.ProtocolVersions;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -36,12 +36,12 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 @Path("/{participantContextId}/.well-known/dspace-version")
 public class DspVirtualMetadataApiController {
 
-    private final ParticipantProfileResolver profileResolver;
+    private final ParticipantProfileService profileResolver;
     private final TypeTransformerRegistry transformerRegistry;
     private final ParticipantContextService participantContextService;
 
 
-    public DspVirtualMetadataApiController(ParticipantContextService participantContextService, ParticipantProfileResolver profileResolver, TypeTransformerRegistry transformerRegistry) {
+    public DspVirtualMetadataApiController(ParticipantContextService participantContextService, ParticipantProfileService profileResolver, TypeTransformerRegistry transformerRegistry) {
         this.participantContextService = participantContextService;
         this.profileResolver = profileResolver;
         this.transformerRegistry = transformerRegistry;

@@ -19,7 +19,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import org.eclipse.edc.protocol.dsp.spi.http.DspVirtualSubResourceLocator;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
-import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
+import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 
 import static java.util.Optional.ofNullable;
 
@@ -33,10 +33,10 @@ import static java.util.Optional.ofNullable;
 @Path("/{participantContextId}/{profileId}/{subResource:catalog|negotiations|transfers}")
 public class DspVirtualProfileDispatcher {
 
-    private final ParticipantProfileResolver profileResolver;
+    private final ParticipantProfileService profileResolver;
     private final DspVirtualSubResourceLocator subResourceLocator;
 
-    public DspVirtualProfileDispatcher(ParticipantProfileResolver profileResolver, DspVirtualSubResourceLocator subResourceLocator) {
+    public DspVirtualProfileDispatcher(ParticipantProfileService profileResolver, DspVirtualSubResourceLocator subResourceLocator) {
         this.profileResolver = profileResolver;
         this.subResourceLocator = subResourceLocator;
     }

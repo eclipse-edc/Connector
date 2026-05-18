@@ -41,7 +41,7 @@ import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
-import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
+import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.eclipse.edc.protocol.dsp.negotiation.http.api.NegotiationApiPaths.AGREEMENT;
@@ -76,12 +76,12 @@ public class DspVirtualNegotiationApiController20251 {
 
     private final ContractNegotiationProtocolService protocolService;
     private final ParticipantContextService participantContextService;
-    private final ParticipantProfileResolver profileResolver;
+    private final ParticipantProfileService profileResolver;
     private final DspRequestHandler dspRequestHandler;
 
     public DspVirtualNegotiationApiController20251(ContractNegotiationProtocolService protocolService,
                                                    ParticipantContextService participantContextService,
-                                                   ParticipantProfileResolver profileResolver,
+                                                   ParticipantProfileService profileResolver,
                                                    DspRequestHandler dspRequestHandler) {
         this.protocolService = protocolService;
         this.participantContextService = participantContextService;
