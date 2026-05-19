@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "DataspaceProfileSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/DataspaceProfile"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/dataspace-profile-schema.json",
+  "definitions": {
+    "DataspaceProfile": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "DataspaceProfile"
+        },
+        "name": {
+          "type": "string"
+        },
+        "protocol": {
+          "type": "object",
+          "properties": {
+            "version": {
+              "type": "string"
+            },
+            "path": {
+              "type": "string"
+            },
+            "binding": {
+              "type": "string"
+            },
+            "namespace": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "version",
+            "path",
+            "binding",
+            "namespace"
+          ]
+        },
+        "jsonLdContextsUrl": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "name",
+        "protocol"
+      ]
+    }
+  }
+}
