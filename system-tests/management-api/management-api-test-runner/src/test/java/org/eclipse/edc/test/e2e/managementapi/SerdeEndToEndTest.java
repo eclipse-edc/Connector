@@ -39,6 +39,8 @@ import org.eclipse.edc.connector.controlplane.transform.edc.cel.from.JsonObjectF
 import org.eclipse.edc.connector.controlplane.transform.edc.cel.from.JsonObjectFromCelExpressionTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.cel.to.JsonObjectToCelExpressionTestRequestTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.cel.to.JsonObjectToCelExpressionTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.from.JsonObjectFromDataspaceProfileContextTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.from.JsonObjectToAssociateDataspaceProfileContextTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.config.from.JsonObjectFromParticipantContextConfigurationTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.config.to.JsonObjectToParticipantContextConfigurationTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.from.JsonObjectFromParticipantContextTransformer;
@@ -46,6 +48,7 @@ import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.t
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
@@ -57,6 +60,9 @@ import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.policy.model.Operator;
+import org.eclipse.edc.protocol.spi.AssociateDataspaceProfileContext;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
+import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -92,7 +98,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
+import static jakarta.json.Json.createValue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -105,6 +113,7 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.MANAGEMENT_AP
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.MANAGEMENT_API_SCOPE;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.assetObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.assetObjectWithMetadata;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.associateDataspaceProfileObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogAsset;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogRequestObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.catalogRequestObjectWithProfile;
@@ -139,6 +148,7 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.terminateTran
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.transferRequestObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.transferRequestObjectWithProfile;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.transferRequestObjectWithProfileAndProtocol;
+import static org.mockito.Mockito.mock;
 
 @EndToEndTest
 public class SerdeEndToEndTest {
@@ -664,7 +674,7 @@ public class SerdeEndToEndTest {
             });
         }
 
-        private JsonObject serialize(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validator, JsonLd jsonLd, Object object) {
+        protected JsonObject serialize(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validator, JsonLd jsonLd, Object object) {
             var registry = forContext(typeTransformerRegistry, transformerScope());
 
             var result = registry.transform(object, JsonObject.class).orElseThrow(failure -> new RuntimeException());
@@ -692,7 +702,7 @@ public class SerdeEndToEndTest {
             }
         }
 
-        private <T> T deserialize(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validator, JsonLd jsonLd, JsonObject inputObject, Class<T> klass) {
+        protected <T> T deserialize(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validator, JsonLd jsonLd, JsonObject inputObject, Class<T> klass) {
             validate(validator, inputObject);
             var registry = forContext(typeTransformerRegistry, transformerScope());
 
@@ -917,6 +927,8 @@ public class SerdeEndToEndTest {
             registry.register(new JsonObjectFromCelExpressionTestResponseTransformer(factory));
             registry.register(new JsonObjectToCelExpressionTransformer());
             registry.register(new JsonObjectToCelExpressionTestRequestTransformer());
+            registry.register(new JsonObjectFromDataspaceProfileContextTransformer(factory));
+            registry.register(new JsonObjectToAssociateDataspaceProfileContextTransformer());
 
         }
 
@@ -960,6 +972,35 @@ public class SerdeEndToEndTest {
         @Disabled
         void de_TransferRequest_withoutDataAddressType(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
             super.de_TransferRequest_withoutDataAddressType(typeTransformerRegistry, validatorRegistry, jsonLd);
+        }
+
+        @Test
+        void ser_DataspaceProfileContext(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+
+            var protocol = new ProtocolVersion("test-protocol", "1.0", "https");
+
+            var dataspaceProfile = new DataspaceProfileContext("test-profile", protocol, mock(), mock(), new JsonLdNamespace("https://example.com/test-profile/"), List.of("https://example.com/test-profile/context.jsonld"));
+            var compactResult = serialize(typeTransformerRegistry, validatorRegistry, jsonLd, dataspaceProfile);
+
+            assertThat(compactResult).isNotNull();
+            assertThat(compactResult.getString(TYPE)).isEqualTo("DataspaceProfile");
+            assertThat(compactResult.getString("name")).isEqualTo(dataspaceProfile.name());
+            assertThat(compactResult.getJsonArray("jsonLdContextsUrl")).isEqualTo(createArrayBuilder(dataspaceProfile.jsonLdContextsUrl()).build());
+            assertThat(compactResult.getJsonObject("protocol")).satisfies(p -> {
+                assertThat(p.get("version")).isEqualTo(createValue(protocol.version()));
+                assertThat(p.get("binding")).isEqualTo(createValue(protocol.binding()));
+                assertThat(p.get("path")).isEqualTo(createValue(protocol.path()));
+                assertThat(p.get("namespace")).isEqualTo(createValue(dataspaceProfile.protocolNamespace().namespace()));
+            });
+        }
+
+        @Test
+        void de_AssociateDataspaceProfileContext(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+
+            var request = associateDataspaceProfileObject(jsonLdContext());
+            var deserialized = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, request, AssociateDataspaceProfileContext.class);
+
+            assertThat(deserialized.profiles()).contains("profile1", "profile2");
         }
     }
 

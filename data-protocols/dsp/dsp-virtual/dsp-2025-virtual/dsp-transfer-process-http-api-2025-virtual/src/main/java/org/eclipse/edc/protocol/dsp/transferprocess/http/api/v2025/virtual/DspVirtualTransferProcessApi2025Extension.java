@@ -24,7 +24,7 @@ import org.eclipse.edc.protocol.dsp.transferprocess.validation.TransferRequestMe
 import org.eclipse.edc.protocol.dsp.transferprocess.validation.TransferStartMessageValidator;
 import org.eclipse.edc.protocol.dsp.transferprocess.validation.TransferTerminationMessageValidator;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
-import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
+import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -58,7 +58,7 @@ public class DspVirtualTransferProcessApi2025Extension implements ServiceExtensi
     @Inject
     private ParticipantContextService participantContextService;
     @Inject
-    private ParticipantProfileResolver participantProfileResolver;
+    private ParticipantProfileService participantProfileService;
 
     @Inject
     private DspVirtualSubResourceLocator subResourceLocator;
@@ -79,6 +79,6 @@ public class DspVirtualTransferProcessApi2025Extension implements ServiceExtensi
         });
 
         subResourceLocator.registerSubResource("transfers", V_2025_1_VERSION,
-                new DspVirtualTransferProcessApiController20251(transferProcessProtocolService, participantContextService, participantProfileResolver, dspRequestHandler));
+                new DspVirtualTransferProcessApiController20251(transferProcessProtocolService, participantContextService, participantProfileService, dspRequestHandler));
     }
 }

@@ -38,7 +38,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Ter
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
+import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
@@ -70,11 +70,11 @@ public class ContractNegotiationApiV5Controller implements ContractNegotiationAp
     private final ParticipantContextService participantContextService;
     private final AuthorizationService authorizationService;
     private final TypeTransformerRegistry transformerRegistry;
-    private final ParticipantProfileResolver profileResolver;
+    private final ParticipantProfileService profileResolver;
     private final Monitor monitor;
 
     public ContractNegotiationApiV5Controller(ContractNegotiationService service, ParticipantContextService participantContextService,
-                                              AuthorizationService authorizationService, TypeTransformerRegistry transformerRegistry, ParticipantProfileResolver profileResolver, Monitor monitor) {
+                                              AuthorizationService authorizationService, TypeTransformerRegistry transformerRegistry, ParticipantProfileService profileResolver, Monitor monitor) {
         this.service = service;
         this.participantContextService = participantContextService;
         this.authorizationService = authorizationService;

@@ -33,7 +33,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
+import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -58,11 +58,11 @@ public class CatalogApiV5Controller implements CatalogApiV5 {
     private final CatalogService service;
     private final TypeTransformerRegistry transformerRegistry;
     private final ParticipantContextService participantContextService;
-    private final ParticipantProfileResolver profileResolver;
+    private final ParticipantProfileService profileResolver;
 
 
     public CatalogApiV5Controller(CatalogService service, TypeTransformerRegistry transformerRegistry,
-                                  AuthorizationService authorizationService, ParticipantContextService participantContextService, ParticipantProfileResolver profileResolver) {
+                                  AuthorizationService authorizationService, ParticipantContextService participantContextService, ParticipantProfileService profileResolver) {
         this.service = service;
         this.transformerRegistry = transformerRegistry;
         this.authorizationService = authorizationService;

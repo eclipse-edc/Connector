@@ -15,13 +15,13 @@
 package org.eclipse.edc.participantcontext.connector;
 
 import org.eclipse.edc.participantcontext.connector.identity.ParticipantContextIdentityResolverImpl;
-import org.eclipse.edc.participantcontext.connector.profile.ParticipantProfileResolverImpl;
+import org.eclipse.edc.participantcontext.connector.profile.ParticipantProfileServiceImpl;
 import org.eclipse.edc.participantcontext.connector.webhook.ParticipantWebhookResolverImpl;
-import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
+import org.eclipse.edc.participantcontext.spi.config.store.ParticipantContextConfigStore;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
-import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
+import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -29,6 +29,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 
 @Extension(value = ConnectorParticipantContextExtension.NAME)
 public class ConnectorParticipantContextExtension implements ServiceExtension {
@@ -43,7 +44,9 @@ public class ConnectorParticipantContextExtension implements ServiceExtension {
     @Inject
     private ParticipantContextService participantContextService;
     @Inject
-    private ParticipantContextConfig participantContextConfig;
+    private ParticipantContextConfigStore participantContextConfigStore;
+    @Inject
+    private TransactionContext transactionContext;
     @Inject
     private Monitor monitor;
 
@@ -58,8 +61,8 @@ public class ConnectorParticipantContextExtension implements ServiceExtension {
     }
 
     @Provider
-    public ParticipantProfileResolver participantProfileResolver() {
-        return new ParticipantProfileResolverImpl(participantContextConfig, dataspaceProfileContextRegistry, dspEnableAllProfiles);
+    public ParticipantProfileService participantProfileResolver() {
+        return new ParticipantProfileServiceImpl(participantContextConfigStore, dataspaceProfileContextRegistry, transactionContext, dspEnableAllProfiles);
     }
 
     @Provider(isDefault = true)

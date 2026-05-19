@@ -21,7 +21,7 @@ import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.protocol.dsp.spi.http.DspVirtualSubResourceLocator;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
-import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
+import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.junit.jupiter.api.Test;
@@ -41,7 +41,7 @@ class DspVirtualProfileDispatcherTest extends RestControllerTestBase {
     private static final String PROFILE_ID = "profileId";
     private static final String PROTOCOL_VERSION = "2025-1";
 
-    private final ParticipantProfileResolver profileResolver = mock();
+    private final ParticipantProfileService profileResolver = mock();
     private final DspVirtualSubResourceLocator subResourceLocator = mock();
     private final TestSubResource subResource = new TestSubResource();
 

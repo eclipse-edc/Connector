@@ -50,6 +50,8 @@ public interface ManagementApiJsonSchema {
         String CEL_EXPRESSION = EDC_MGMT_V4_SCHEMA_PREFIX + "/cel-expression-schema.json";
         String CEL_EXPRESSION_TEST_REQUEST = EDC_MGMT_V4_SCHEMA_PREFIX + "/cel-expression-test-request-schema.json";
         String CEL_EXPRESSION_TEST_RESPONSE = EDC_MGMT_V4_SCHEMA_PREFIX + "/cel-expression-test-response-schema.json";
+        String DATASPACE_PROFILE_CONTEXT = EDC_MGMT_V4_SCHEMA_PREFIX + "/dataspace-profile-schema.json";
+        String ASSOCIATE_DATASPACE_PROFILE_CONTEXT = EDC_MGMT_V4_SCHEMA_PREFIX + "/associate-dataspace-profile-schema.json";
 
 
         static String version() {

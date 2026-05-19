@@ -41,7 +41,7 @@ import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.message.GetDspRequest;
 import org.eclipse.edc.protocol.dsp.http.spi.message.PostDspRequest;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
-import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
+import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 
 import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -66,13 +66,13 @@ public class DspVirtualCatalogApiController20251 {
 
     private final CatalogProtocolService service;
     private final ParticipantContextService participantContextService;
-    private final ParticipantProfileResolver profileResolver;
+    private final ParticipantProfileService profileResolver;
     private final DspRequestHandler dspRequestHandler;
     private final ContinuationTokenManager continuationTokenManager;
 
     public DspVirtualCatalogApiController20251(CatalogProtocolService service,
                                                ParticipantContextService participantContextService,
-                                               ParticipantProfileResolver profileResolver,
+                                               ParticipantProfileService profileResolver,
                                                DspRequestHandler dspRequestHandler,
                                                ContinuationTokenManager continuationTokenManager) {
         this.service = service;

@@ -31,7 +31,7 @@ import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
-import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
+import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -66,7 +66,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
     protected final AuthorizationService authorizationService = mock();
     protected final TransferProcessService service = mock();
     protected final ParticipantContextService participantContextService = mock();
-    protected final ParticipantProfileResolver profileResolver = mock();
+    protected final ParticipantProfileService profileResolver = mock();
     private final String participantContextId = "test-participant-context-id";
 
     protected abstract String versionPath();

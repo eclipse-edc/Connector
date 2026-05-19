@@ -27,7 +27,7 @@ import org.eclipse.edc.protocol.dsp.http.spi.message.ContinuationTokenManager;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.spi.http.DspVirtualSubResourceLocator;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
-import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
+import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -77,7 +77,7 @@ public class DspVirtualCatalogApi2025Extension implements ServiceExtension {
     @Inject
     private ParticipantContextService participantContextService;
     @Inject
-    private ParticipantProfileResolver participantProfileResolver;
+    private ParticipantProfileService participantProfileService;
     @Inject
     private DataspaceProfileContextRegistry profileContextRegistry;
 
@@ -103,7 +103,7 @@ public class DspVirtualCatalogApi2025Extension implements ServiceExtension {
             dataServiceRegistry.register(profile.name(), this::createDataService);
         });
 
-        resourceLocator.registerSubResource("catalog", V_2025_1_VERSION, new DspVirtualCatalogApiController20251(service, participantContextService, participantProfileResolver, dspRequestHandler, continuationTokenManager(monitor)));
+        resourceLocator.registerSubResource("catalog", V_2025_1_VERSION, new DspVirtualCatalogApiController20251(service, participantContextService, participantProfileService, dspRequestHandler, continuationTokenManager(monitor)));
 
     }
 

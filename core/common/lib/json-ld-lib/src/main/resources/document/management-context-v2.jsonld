@@ -534,6 +534,34 @@
         "error": "edc:error"
       }
     },
+    "DataspaceProfile": {
+      "@id": "edc:DataspaceProfile",
+      "@context": {
+        "name": "edc:name",
+        "protocol": {
+          "@id": "edc:protocol",
+          "@context": {
+            "path": "edc:path",
+            "binding": "edc:binding",
+            "version": "edc:version",
+            "namespace": "edc:namespace"
+          }
+        },
+        "jsonLdContextsUrl": {
+          "@id": "edc:jsonLdContextsUrl",
+          "@container": "@set"
+        }
+      }
+    },
+    "AssociateDataspaceProfile": {
+      "@id": "edc:AssociateDataspaceProfile",
+      "@context": {
+        "profiles": {
+          "@id": "edc:profiles",
+          "@container": "@set"
+        }
+      }
+    },
     "inForceDate": "edc:inForceDate",
     "ruleFunctions": {
       "@id": "edc:ruleFunctions",

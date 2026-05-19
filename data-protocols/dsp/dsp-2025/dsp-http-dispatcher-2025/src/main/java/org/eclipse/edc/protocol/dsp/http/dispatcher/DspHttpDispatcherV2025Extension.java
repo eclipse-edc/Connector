@@ -21,7 +21,7 @@ import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
-import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.V_2025_1;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.V_2025_1_VERSION;
 
 /**
  * Registers the message dispatcher for DSP v2025/1.
@@ -39,7 +39,7 @@ public class DspHttpDispatcherV2025Extension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         dataspaceProfileContextRegistry.addRegistrationCallback((profile) -> {
-            if (profile.protocolVersion().equals(V_2025_1)) {
+            if (profile.protocolVersion().version().equals(V_2025_1_VERSION)) {
                 dispatcherRegistry.register(profile.name(), dispatcher);
             }
         });

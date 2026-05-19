@@ -26,7 +26,7 @@ import org.eclipse.edc.protocol.dsp.negotiation.validation.ContractOfferMessageV
 import org.eclipse.edc.protocol.dsp.negotiation.validation.ContractRequestMessageValidator;
 import org.eclipse.edc.protocol.dsp.spi.http.DspVirtualSubResourceLocator;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
-import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
+import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -63,7 +63,7 @@ public class DspVirtualNegotiationApi2025Extension implements ServiceExtension {
     @Inject
     private ParticipantContextService participantContextService;
     @Inject
-    private ParticipantProfileResolver participantProfileResolver;
+    private ParticipantProfileService participantProfileService;
 
     @Inject
     private DspVirtualSubResourceLocator subResourceLocator;
@@ -91,6 +91,6 @@ public class DspVirtualNegotiationApi2025Extension implements ServiceExtension {
         });
 
         subResourceLocator.registerSubResource("negotiations", V_2025_1_VERSION,
-                new DspVirtualNegotiationApiController20251(protocolService, participantContextService, participantProfileResolver, dspRequestHandler));
+                new DspVirtualNegotiationApiController20251(protocolService, participantContextService, participantProfileService, dspRequestHandler));
     }
 }

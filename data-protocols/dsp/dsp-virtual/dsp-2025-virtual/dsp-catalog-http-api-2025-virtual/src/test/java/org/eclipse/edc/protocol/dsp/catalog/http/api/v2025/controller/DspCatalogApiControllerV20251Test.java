@@ -21,7 +21,7 @@ import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.controller.DspCatalogApiControllerTestBase;
 import org.eclipse.edc.protocol.dsp.catalog.http.api.v2025.virtual.controller.DspVirtualCatalogApiController20251;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
-import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
+import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -43,7 +43,7 @@ public class DspCatalogApiControllerV20251Test extends DspCatalogApiControllerTe
             DSP_NAMESPACE_V_2025_1, List.of("https://example.org/context.jsonld"));
 
     private final ParticipantContextService participantContextService = mock();
-    private final ParticipantProfileResolver profileResolver = mock();
+    private final ParticipantProfileService profileResolver = mock();
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
             .participantContextId("participantContextId")
             .identity("identity")

@@ -28,7 +28,7 @@ import org.eclipse.edc.connector.controlplane.transform.edc.transferprocess.to.J
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
-import org.eclipse.edc.protocol.spi.ParticipantProfileResolver;
+import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.query.Criterion;
@@ -77,7 +77,7 @@ public class TransferProcessApiV5Extension implements ServiceExtension {
     private ParticipantContextService participantContextService;
 
     @Inject
-    private ParticipantProfileResolver profileResolver;
+    private ParticipantProfileService profileResolver;
 
     @Override
     public String name() {
