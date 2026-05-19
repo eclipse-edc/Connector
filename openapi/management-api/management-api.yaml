@@ -3795,6 +3795,104 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v5beta/participants/{participantContextId}/profiles:
+    get:
+      tags:
+      - Dataspace Profile Context  v5beta
+      description: Gets Dataspace Profile contexts configured for the participant
+        context id.
+      operationId: getProfilesV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The dataspace profile contexts of the participant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/dataspace-profile-schema"
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A ParticipantContext with the given ID does not exist.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    put:
+      tags:
+      - Dataspace Profile Context  v5beta
+      description: Associate Dataspace Profile contexts to a participant context.
+      operationId: associateProfiles
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/updateExpressionV5_request"
+      responses:
+        "200":
+          description: The dataspace profile contexts was successfully associated
+            to the participant context
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/dataspace-profile-schema"
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A ParticipantContext with the given ID does not exist.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v5beta/participants/{participantContextId}/policydefinitions/{id}/evaluationplan:
     post:
       tags:
@@ -9393,6 +9491,49 @@ components:
         sortOrder: DESC
         sortField: fieldName
         filterExpression: []
+    dataspace-profile-schema:
+      title: DataspaceProfileSchema
+      type: object
+      example:
+        protocol:
+          path: path
+          namespace: namespace
+          binding: binding
+          version: version
+        '@type': '@type'
+        jsonLdContextsUrl:
+        - https://openapi-generator.tech
+        - https://openapi-generator.tech
+        name: name
+        '@context':
+        - '@context'
+        - '@context'
+      allOf:
+      - $ref: "#/components/schemas/DataspaceProfile"
+    DataspaceProfile:
+      required:
+      - '@context'
+      - '@type'
+      - name
+      - protocol
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        name:
+          type: string
+        protocol:
+          $ref: "#/components/schemas/DataspaceProfile_protocol"
+        jsonLdContextsUrl:
+          type: array
+          items:
+            type: string
+            format: uri
     participant-context-schema:
       title: ParticipantContextSchema
       type: object
@@ -9658,3 +9799,24 @@ components:
       oneOf:
       - type: string
       - $ref: "#/components/schemas/DataService"
+    DataspaceProfile_protocol:
+      required:
+      - binding
+      - namespace
+      - path
+      - version
+      type: object
+      properties:
+        version:
+          type: string
+        path:
+          type: string
+        binding:
+          type: string
+        namespace:
+          type: string
+      example:
+        path: path
+        namespace: namespace
+        binding: binding
+        version: version
