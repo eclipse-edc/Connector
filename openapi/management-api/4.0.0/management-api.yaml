@@ -5666,7 +5666,7 @@ components:
         operator:
           type: string
         rightOperand:
-          type: object
+          $ref: "#/components/schemas/CelExpressionTestRequest_rightOperand"
         params:
           type: object
     AssetOutputV3:
@@ -9789,6 +9789,10 @@ components:
           - "NULL"
       additionalProperties:
         $ref: "#/components/schemas/JsonValue"
+    CelExpressionTestRequest_rightOperand:
+      oneOf:
+      - type: string
+      - type: object
     PolicyClass_profile:
       oneOf:
       - type: array
