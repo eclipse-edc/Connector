@@ -17,16 +17,12 @@ package org.eclipse.edc.catalog.spi;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 
-import java.util.Optional;
-
-import static java.lang.String.format;
-
 @Settings
 public record CatalogCrawlerConfiguration(
 
         @Setting(
                 description = "Determines whether catalog crawling is globally enabled or disabled",
-                key = "edc.catalog.cache.execution.enabled",
+                key = CATALOG_CRAWLER_ENABLED_SETTING,
                 defaultValue = "true")
         boolean enabled,
 
@@ -62,15 +58,7 @@ public record CatalogCrawlerConfiguration(
         int retryDelaySeconds
 
 ) {
-    private static final int LOW_EXECUTION_PERIOD_SECONDS_THRESHOLD = 10;
 
-    public Optional<String> checkPeriodSeconds() {
-        if (periodSeconds() < LOW_EXECUTION_PERIOD_SECONDS_THRESHOLD) {
-            var message = format("An execution period of %d seconds is very low (threshold = %d). This might result in the work queue to be ever growing." +
-                    " A longer execution period or more crawler threads (currently using %d) should be considered.", periodSeconds(), LOW_EXECUTION_PERIOD_SECONDS_THRESHOLD, numCrawlers());
-            return Optional.of(message);
-        }
+    public static final String CATALOG_CRAWLER_ENABLED_SETTING = "edc.catalog.cache.execution.enabled";
 
-        return Optional.empty();
-    }
 }

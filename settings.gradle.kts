@@ -64,9 +64,7 @@ include(":core:common:lib:validator-lib")
 include(":core:common:lib:encryption-lib")
 include(":core:common:lib:nats-lib")
 
-include(":core:crawler-core")
-include(":core:federated-catalog-core")
-include(":core:federated-catalog-core-2025")
+include(":core:catalog-crawler:catalog-crawler-core")
 
 include(":core:control-plane:control-plane-catalog")
 include(":core:control-plane:control-plane-contract")

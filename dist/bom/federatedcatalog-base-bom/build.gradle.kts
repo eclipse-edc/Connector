@@ -17,8 +17,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":core:federated-catalog-core"))
-    api(project(":core:federated-catalog-core-2025"))
+    api(project(":core:catalog-crawler:catalog-crawler-core"))
     api(project(":extensions:federated-catalog:api:federated-catalog-api"))
     api(project(":spi:federated-catalog-spi"))
     api(project(":core:common:lib:util-lib"))
