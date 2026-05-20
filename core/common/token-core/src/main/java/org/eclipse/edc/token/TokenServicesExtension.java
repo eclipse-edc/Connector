@@ -44,7 +44,7 @@ public class TokenServicesExtension implements ServiceExtension {
         return new TokenValidationRulesRegistryImpl();
     }
 
-    @Provider
+    @Provider(isDefault = true)
     public TokenValidationService validationService() {
         return new TokenValidationServiceImpl();
     }
