@@ -29,7 +29,14 @@
           "type": "string"
         },
         "rightOperand": {
-          "type": "object"
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            }
+          ]
         },
         "params": {
           "type": "object"
