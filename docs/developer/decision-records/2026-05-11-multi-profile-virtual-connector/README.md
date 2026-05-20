@@ -57,7 +57,7 @@ registry depending on those subsystems.
 ### `ParticipantProfileResolver` (new SPI)
 
 A new SPI `ParticipantProfileResolver` resolves which profiles a participant is associated with.
-It backs onto a per-participant configuration entry (`edc.dsp.profiles`, a comma-separated list of
+It backs onto a per-participant configuration entry (`edc.dataspace.profiles`, a comma-separated list of
 profile ids) read through `ParticipantContextConfig`. It exposes two operations:
 
 - `resolveAll(participantContextId)` — every profile the participant is associated with, in
@@ -108,7 +108,7 @@ is participant-scoped in virtual mode.
 The classic single-participant runtime continues to register exactly one default profile, the
 resolver returns it for the lone participant, and existing DSP URLs are unaffected. Adopters that
 already register one standard profile keep the existing behaviour and only need to opt in to the
-virtual controllers and the per-participant `edc.dsp.profiles` configuration to take advantage of
+virtual controllers and the per-participant `edc.dataspace.profiles` configuration to take advantage of
 multi-profile support.
 
 ### Additional Notes

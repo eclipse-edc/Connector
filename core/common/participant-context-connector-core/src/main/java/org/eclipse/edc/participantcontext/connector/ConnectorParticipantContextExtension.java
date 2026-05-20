@@ -36,7 +36,7 @@ public class ConnectorParticipantContextExtension implements ServiceExtension {
 
     public static final String NAME = "Connector Participant Context Extension";
 
-    @Setting(description = "When running in virtual mode, enable all the participants to use all the profiles enabled in the connector", key = "edc.dsp.profiles.enable.all", defaultValue = "false")
+    @Setting(description = "When running in virtual mode, enable all the participants to use all the profiles enabled in the connector", key = "edc.dataspace.enable.profiles.all", defaultValue = "false")
     private Boolean dspEnableAllProfiles;
 
     @Inject
