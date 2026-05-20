@@ -443,6 +443,26 @@ public class CelExpressionApiV5EndToEndTest {
                     .body("error", containsString("key 'agent' is not present in map"))
                     .body("evaluationResult", nullValue());
         }
+
+        @Test
+        void test_validationError(ManagementEndToEndV5TestContext context) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "CelExpressionTestRequest")
+                    .build();
+
+            context.baseRequest(adminToken)
+                    .body(requestBody.toString())
+                    .contentType(JSON)
+                    .post("/v5beta/celexpressions/test")
+                    .then()
+                    .statusCode(400)
+                    .log().ifError()
+                    .body("[0].message", containsString("required property 'leftOperand' not found"))
+                    .body("[1].message", containsString("required property 'expression' not found"))
+                    .body("[2].message", containsString("required property 'rightOperand' not found"))
+                    .body("[3].message", containsString("required property 'operator' not found"));
+        }
     }
 
     @Nested

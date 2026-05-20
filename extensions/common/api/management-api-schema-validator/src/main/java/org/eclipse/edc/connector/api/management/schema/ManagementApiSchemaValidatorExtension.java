@@ -31,6 +31,7 @@ import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.A
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.CATALOG_ASSET;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.CATALOG_REQUEST;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.CEL_EXPRESSION;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.CEL_EXPRESSION_TEST_REQUEST;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.CONTRACT_AGREEMENT;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.CONTRACT_DEFINITION;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.CONTRACT_NEGOTIATION;
@@ -73,6 +74,7 @@ import static org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry.EDR_ENTRY
 import static org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration.PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_TYPE_TERM;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_TYPE_TERM;
+import static org.eclipse.edc.policy.cel.model.CelExpressionTestRequest.CEL_EXPRESSION_TEST_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan.EDC_POLICY_EVALUATION_PLAN_TYPE_TERM;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
@@ -116,6 +118,7 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
             put(PARTICIPANT_CONTEXT_TYPE_TERM, PARTICIPANT_CONTEXT);
             put(PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM, PARTICIPANT_CONTEXT_CONFIG);
             put(CEL_EXPRESSION_TYPE_TERM, CEL_EXPRESSION);
+            put(CEL_EXPRESSION_TEST_REQUEST_TYPE_TERM, CEL_EXPRESSION_TEST_REQUEST);
             put("AssociateDataspaceProfile", ASSOCIATE_DATASPACE_PROFILE_CONTEXT);
         }
     };
