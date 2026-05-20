@@ -25,7 +25,7 @@ public record Participants(Participant provider, Participant consumer) {
      * Default DSP profile id used in tests. Matches the bundled default profile registered by
      * {@code DspApiConfigurationV2025Extension}. Tests that need a different profile id should
      * use the 6-arg {@link Participant} constructor and ensure the participant config sets
-     * {@code edc.dsp.profiles} accordingly.
+     * {@code edc.dataspace.profiles} accordingly.
      */
     public static final String DEFAULT_PROFILE_ID = "http-dsp-profile-2025-1";
 

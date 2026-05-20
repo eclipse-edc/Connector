@@ -13,3 +13,4 @@
 #
 
 org.eclipse.edc.protocol.dsp.http.DspVirtualHttpCoreExtension
+org.eclipse.edc.protocol.dsp.http.profile.DataspaceProfileConfigurationExtension

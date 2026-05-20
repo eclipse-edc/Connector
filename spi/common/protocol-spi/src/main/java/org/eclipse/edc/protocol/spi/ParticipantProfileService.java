@@ -35,7 +35,7 @@ public interface ParticipantProfileService {
      * Configuration key under {@code ParticipantContextConfig} that holds the comma-separated list
      * of profile ids associated with a participant.
      */
-    String PROFILES_CONFIG_KEY = "edc.dsp.profiles";
+    String PROFILES_CONFIG_KEY = "edc.dataspace.profiles";
 
     /**
      * Returns all profiles the participant is associated with. Profile ids configured but not
