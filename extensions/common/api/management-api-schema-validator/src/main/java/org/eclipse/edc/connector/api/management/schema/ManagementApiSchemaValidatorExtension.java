@@ -39,6 +39,7 @@ import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.C
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.CONTRACT_REQUEST;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.DATAPLANE_INSTANCE;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.DATASET_REQUEST;
+import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.DISCOVERY_REQUEST;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.EDR_ENTRY;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.ID_RESPONSE;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4.PARTICIPANT_CONTEXT;
@@ -120,6 +121,7 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
             put(CEL_EXPRESSION_TYPE_TERM, CEL_EXPRESSION);
             put(CEL_EXPRESSION_TEST_REQUEST_TYPE_TERM, CEL_EXPRESSION_TEST_REQUEST);
             put("AssociateDataspaceProfile", ASSOCIATE_DATASPACE_PROFILE_CONTEXT);
+            put("DiscoveryRequest", DISCOVERY_REQUEST);
         }
     };
 

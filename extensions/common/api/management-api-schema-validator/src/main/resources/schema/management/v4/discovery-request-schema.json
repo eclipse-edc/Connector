@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "DiscoveryRequestSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/DiscoveryRequest"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/discovery-request-schema.json",
+  "definitions": {
+    "DiscoveryRequest": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "DiscoveryRequest"
+        },
+        "counterPartyId": {
+          "type": "string",
+          "description": "The counter party's DID. The DID is resolved and the 'DataService' entry of the DID document provides the base URL of the well-known endpoint."
+        },
+        "counterPartyAddress": {
+          "type": "string",
+          "format": "uri",
+          "description": "The counter party's discovery URL pointing directly at the '/.well-known/dspace-version' endpoint, or the host that serves it. Takes precedence over counterPartyId."
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "counterPartyId"
+          ]
+        },
+        {
+          "required": [
+            "counterPartyAddress"
+          ]
+        }
+      ],
+      "required": [
+        "@context",
+        "@type"
+      ]
+    }
+  }
+}

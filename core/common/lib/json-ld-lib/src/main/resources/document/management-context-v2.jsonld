@@ -562,6 +562,34 @@
         }
       }
     },
+    "DiscoveryRequest": {
+      "@id": "edc:DiscoveryRequest",
+      "@context": {
+        "counterPartyId": {
+          "@id": "edc:counterPartyId"
+        },
+        "counterPartyAddress": {
+          "@id": "edc:counterPartyAddress"
+        }
+      }
+    },
+    "DiscoveryResponse": {
+      "@id": "edc:DiscoveryResponse",
+      "@context": {
+        "profile": {
+          "@id": "edc:profile"
+        },
+        "version": {
+          "@id": "edc:version"
+        },
+        "counterPartyPath": {
+          "@id": "edc:counterPartyPath"
+        },
+        "binding": {
+          "@id": "edc:binding"
+        }
+      }
+    },
     "inForceDate": "edc:inForceDate",
     "ruleFunctions": {
       "@id": "edc:ruleFunctions",

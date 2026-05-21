@@ -31,6 +31,7 @@ dependencies {
     api(project(":extensions:control-plane:api:management-api-v5:participant-context-config-api-v5"))
     api(project(":extensions:control-plane:api:management-api-v5:cel-api-v5"))
     api(project(":extensions:control-plane:api:management-api-v5:dataspace-profile-context-api-v5"))
+    api(project(":extensions:control-plane:api:management-api-v5:discovery-api-v5"))
 }
 
 
