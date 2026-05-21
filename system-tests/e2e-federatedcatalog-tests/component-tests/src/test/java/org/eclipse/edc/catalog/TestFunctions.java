@@ -102,7 +102,10 @@ public class TestFunctions {
                         .build()
                 )
                 .post("/v4/catalogs/request")
-                .body();
+                .then()
+                .log().ifValidationFails()
+                .statusCode(200)
+                .extract().body();
 
         try {
             var maps = OBJECT_MAPPER.readValue(body.asString(), MAP_TYPE);

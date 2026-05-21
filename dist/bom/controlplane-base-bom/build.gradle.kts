@@ -33,8 +33,7 @@ dependencies {
     api(project(":core:control-plane:control-plane-transfer-manager"))
     api(project(":core:data-plane-selector:data-plane-selector-core"))
     api(project(":core:policy-monitor:policy-monitor-core"))
-    api(project(":core:federated-catalog-core"))
-    api(project(":core:federated-catalog-core-2025"))
+    api(project(":core:catalog-crawler:catalog-crawler-core"))
 
     api(project(":data-protocols:dsp"))
     api(project(":data-protocols:data-plane-signaling"))

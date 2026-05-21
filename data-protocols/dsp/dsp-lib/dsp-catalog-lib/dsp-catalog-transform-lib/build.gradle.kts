@@ -22,4 +22,6 @@ dependencies {
     implementation(project(":core:common:lib:transform-lib"))
 
     testImplementation(project(":core:common:junit"))
+    testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
+    testImplementation(project(":extensions:common:json-ld"))
 }

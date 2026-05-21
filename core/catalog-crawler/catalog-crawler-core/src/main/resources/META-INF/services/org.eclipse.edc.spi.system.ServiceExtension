@@ -1,0 +1,3 @@
+org.eclipse.edc.catalog.crawler.CatalogCrawlerActionExtension
+org.eclipse.edc.catalog.crawler.CatalogCrawlerCoreExtension
+org.eclipse.edc.catalog.crawler.CatalogCrawlerDefaultServicesExtension

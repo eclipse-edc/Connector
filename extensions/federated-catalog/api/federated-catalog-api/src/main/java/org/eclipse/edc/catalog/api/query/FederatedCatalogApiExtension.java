@@ -14,11 +14,17 @@
 
 package org.eclipse.edc.catalog.api.query;
 
+import jakarta.json.Json;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.catalog.api.query.v3.CatalogsApiV3Controller;
 import org.eclipse.edc.catalog.api.query.v4.CatalogsApiV4Controller;
 import org.eclipse.edc.catalog.spi.QueryService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.participant.spi.ParticipantIdMapper;
+import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromCatalogV2025Transformer;
+import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDataServiceTransformer;
+import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDatasetTransformer;
+import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDistributionTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -30,10 +36,12 @@ import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
+import static java.util.Collections.emptyMap;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_CONTEXT_2025_1;
 import static org.eclipse.edc.jsonld.spi.Namespaces.EDC_DSPACE_CONTEXT;
+import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 @Extension(value = FederatedCatalogApiExtension.NAME)
@@ -53,6 +61,8 @@ public class FederatedCatalogApiExtension implements ServiceExtension {
     private TypeTransformerRegistry transformerRegistry;
     @Inject
     private JsonObjectValidatorRegistry validatorRegistry;
+    @Inject
+    private ParticipantIdMapper participantIdMapper;
 
     @Override
     public String name() {
@@ -62,6 +72,12 @@ public class FederatedCatalogApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
+
+        var jsonFactory = Json.createBuilderFactory(emptyMap());
+        managementApiTransformerRegistry.register(new JsonObjectFromCatalogV2025Transformer(jsonFactory, typeManager, JSON_LD, participantIdMapper, DSP_NAMESPACE_V_2025_1));
+        managementApiTransformerRegistry.register(new JsonObjectFromDatasetTransformer(jsonFactory, typeManager, JSON_LD));
+        managementApiTransformerRegistry.register(new JsonObjectFromDistributionTransformer(jsonFactory));
+        managementApiTransformerRegistry.register(new JsonObjectFromDataServiceTransformer(jsonFactory));
 
         jsonLd.registerContext(DSPACE_CONTEXT_2025_1, MANAGEMENT_SCOPE);
         jsonLd.registerContext(EDC_DSPACE_CONTEXT, MANAGEMENT_SCOPE);

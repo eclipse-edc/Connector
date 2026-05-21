@@ -18,17 +18,24 @@ import jakarta.json.Json;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromCatalogErrorTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromCatalogRequestMessageTransformer;
+import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromCatalogV2025Transformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDataServiceTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDatasetTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDistributionTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToCatalogRequestMessageTransformer;
-import org.eclipse.edc.protocol.dsp.catalog.transform.v2025.from.JsonObjectFromCatalogV2025Transformer;
+import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToDataServiceTransformer;
+import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToDatasetTransformer;
+import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToDistributionTransformer;
+import org.eclipse.edc.protocol.dsp.catalog.transform.v2025.to.JsonObjectToCatalogTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
+import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToCriterionTransformer;
+import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToQuerySpecTransformer;
 
 import java.util.Map;
 
@@ -46,12 +53,12 @@ public class DspCatalogTransformV2025Extension implements ServiceExtension {
 
     @Inject
     private TypeTransformerRegistry registry;
-
     @Inject
     private TypeManager typeManager;
-
     @Inject
     private ParticipantIdMapper participantIdMapper;
+    @Inject
+    private CriterionOperatorRegistry criterionOperatorRegistry;
 
     @Override
     public String name() {
@@ -70,12 +77,19 @@ public class DspCatalogTransformV2025Extension implements ServiceExtension {
         dspApiTransformerRegistry.register(new JsonObjectFromCatalogRequestMessageTransformer(jsonFactory, DSP_NAMESPACE_V_2025_1));
         dspApiTransformerRegistry.register(new JsonObjectToCatalogRequestMessageTransformer(DSP_NAMESPACE_V_2025_1));
 
+        dspApiTransformerRegistry.register(new JsonObjectToCatalogTransformer());
+        dspApiTransformerRegistry.register(new JsonObjectToDatasetTransformer());
+        dspApiTransformerRegistry.register(new JsonObjectToDataServiceTransformer());
+        dspApiTransformerRegistry.register(new JsonObjectToDistributionTransformer());
+        dspApiTransformerRegistry.register(new JsonObjectToQuerySpecTransformer());
+        dspApiTransformerRegistry.register(new JsonObjectToCriterionTransformer(criterionOperatorRegistry));
+
+
         dspApiTransformerRegistry.register(new JsonObjectFromCatalogV2025Transformer(jsonFactory, typeManager, JSON_LD, participantIdMapper, DSP_NAMESPACE_V_2025_1));
         dspApiTransformerRegistry.register(new JsonObjectFromDatasetTransformer(jsonFactory, typeManager, JSON_LD));
         dspApiTransformerRegistry.register(new JsonObjectFromDistributionTransformer(jsonFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromDataServiceTransformer(jsonFactory));
         dspApiTransformerRegistry.register(new JsonObjectFromCatalogErrorTransformer(jsonFactory, DSP_NAMESPACE_V_2025_1));
-
     }
 
 }

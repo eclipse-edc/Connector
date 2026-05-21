@@ -17,7 +17,7 @@ plugins {
 }
 
 dependencies {
-    testImplementation(project(":core:federated-catalog-core-2025"))
+    testImplementation(project(":core:catalog-crawler:catalog-crawler-core"))
     testImplementation(project(":extensions:federated-catalog:api:federated-catalog-api"))
 
     testImplementation(project(":spi:common:json-ld-spi"))
