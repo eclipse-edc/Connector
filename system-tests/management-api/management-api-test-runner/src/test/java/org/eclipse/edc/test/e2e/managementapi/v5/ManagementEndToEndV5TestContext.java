@@ -58,6 +58,10 @@ public record ManagementEndToEndV5TestContext(LazySupplier<URI> managementApiUri
         return "%s/%s/%s".formatted(protocolApiUri.get(), participantContextId, profile);
     }
 
+    public String providerBaseProtocolUrl(String participantContextId) {
+        return "%s/%s".formatted(protocolApiUri.get(), participantContextId);
+    }
+
     public String profile() {
         return DATASPACE_HTTP_PROFILE_2025_1;
     }

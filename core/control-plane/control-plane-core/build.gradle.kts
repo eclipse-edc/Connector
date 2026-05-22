@@ -20,6 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:control-plane:asset-spi"))
     api(project(":spi:control-plane:control-plane-spi"))
+    api(project(":spi:common:http-spi"))
 
     implementation(project(":core:common:lib:store-lib"))
     implementation(project(":core:common:boot"))

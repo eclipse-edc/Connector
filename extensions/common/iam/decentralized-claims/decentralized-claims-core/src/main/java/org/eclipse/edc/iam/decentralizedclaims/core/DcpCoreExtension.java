@@ -16,6 +16,7 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.core;
 
+import org.eclipse.edc.iam.decentralizedclaims.core.discovery.DidDiscoveryUrlResolver;
 import org.eclipse.edc.iam.decentralizedclaims.core.validation.SelfIssueIdTokenValidationAction;
 import org.eclipse.edc.iam.decentralizedclaims.service.DcpIdentityService;
 import org.eclipse.edc.iam.decentralizedclaims.service.verification.MultiFormatPresentationVerifier;
@@ -34,6 +35,7 @@ import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
+import org.eclipse.edc.protocol.spi.discovery.DiscoveryService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -130,12 +132,16 @@ public class DcpCoreExtension implements ServiceExtension {
     private ExecutorInstrumentation executorInstrumentation;
     @Inject
     private PresentationRequestService presentationRequestService;
+    @Inject
+    private DiscoveryService discoveryService;
 
     private PresentationVerifier presentationVerifier;
     private ScheduledFuture<?> jtiEntryReaperThread;
 
+
     @Override
     public void initialize(ServiceExtensionContext context) {
+        discoveryService.registerResolver(new DidDiscoveryUrlResolver(didResolverRegistry));
 
         // add all rules for self-issued ID tokens
         rulesRegistry.addRule(DCP_SELF_ISSUED_TOKEN_CONTEXT, new IssuerEqualsSubjectRule());
