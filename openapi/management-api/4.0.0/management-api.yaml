@@ -1531,6 +1531,64 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v5beta/participants/{participantContextId}/discover/request:
+    post:
+      tags:
+      - Discovery v5beta
+      description: Discovers the dataspace profiles usable to communicate with a counter
+        party. Resolves the counter party's `.well-known/dspace-version` endpoint
+        (either directly via `counterPartyAddress` or by resolving the `DataService`
+        entry of the DID document for `counterPartyId`) and returns the intersection
+        with the profiles associated to the participant context.
+      operationId: discoverV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/discovery-request-schema"
+      responses:
+        "200":
+          description: The profiles that match the counter party.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/discovery-response-schema"
+        "400":
+          description: "Request body was malformed, the counter party could not be\
+            \ reached, or no DID service endpoint was found."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A ParticipantContext with the given ID does not exist.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /{flowId}/{resourceId}/deprovision:
     post:
       operationId: deprovision
@@ -7483,6 +7541,81 @@ components:
         '@id': secret-id
         '@type': https://w3id.org/edc/v0.0.1/ns/Secret
         value: secret-value
+    discovery-response-schema:
+      title: DiscoveryResponseSchema
+      type: object
+      example:
+        counterPartyPath: counterPartyPath
+        '@type': '@type'
+        profile: profile
+        binding: binding
+        '@context':
+        - '@context'
+        - '@context'
+        version: version
+      allOf:
+      - $ref: "#/components/schemas/DiscoveryResponse"
+    DiscoveryResponse:
+      required:
+      - '@type'
+      - binding
+      - counterPartyPath
+      - profile
+      - version
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        profile:
+          type: string
+          description: The local dataspace profile id that matches a protocol version
+            advertised by the counter party.
+        version:
+          type: string
+          description: The DSP protocol version shared by the local profile and the
+            counter party entry.
+        counterPartyPath:
+          type: string
+          description: "The path under the counter party's base URL where the matching\
+            \ DSP version is exposed, as returned in the well-known versions document."
+        binding:
+          type: string
+          description: The protocol binding for this match (copied from the counter
+            party version entry).
+    discovery-request-schema:
+      title: DiscoveryRequestSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/DiscoveryRequest"
+    DiscoveryRequest:
+      required:
+      - '@context'
+      - '@type'
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        counterPartyId:
+          type: string
+          description: The counter party's DID. The DID is resolved and the 'DataService'
+            entry of the DID document provides the base URL of the well-known endpoint.
+        counterPartyAddress:
+          type: string
+          description: "The counter party's discovery URL pointing directly at the\
+            \ '/.well-known/dspace-version' endpoint, or the host that serves it.\
+            \ Takes precedence over counterPartyId."
+          format: uri
+      nullable: true
     AssetInputV3:
       required:
       - '@context'
