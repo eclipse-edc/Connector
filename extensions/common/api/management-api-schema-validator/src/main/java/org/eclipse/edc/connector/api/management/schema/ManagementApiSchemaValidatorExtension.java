@@ -14,15 +14,19 @@
 
 package org.eclipse.edc.connector.api.management.schema;
 
+import org.eclipse.edc.connector.api.management.schema.CustomSchemaValidatorConfigParser.CustomValidatorGroup;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.DSPACE_2025_SCHEMA_PREFIX;
 import static org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.EDC_MGMT_V4_SCHEMA_PREFIX;
@@ -87,6 +91,20 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
     public static final String NAME = "Management API Schema Validator";
     public static final String V_4 = "v4";
     public static final String V_4_PREFIX = V_4 + ":";
+    public static final String CONFIG_PREFIX = "edc.mgmt.api.schema";
+    public static final String VALIDATOR_KEY = "validator";
+
+    @Setting(context = CONFIG_PREFIX + ".<groupAlias>.", description = "Namespace prefix used when registering custom validators on JsonObjectValidatorRegistry, e.g. 'v4'.")
+    public static final String VERSION_KEY = "version";
+    @Setting(context = CONFIG_PREFIX + ".<groupAlias>.", description = "Optional schema URL prefix to remap to a local location (paired with 'mapping.to').", required = false)
+    public static final String MAPPING_FROM_KEY = "mapping.from";
+    @Setting(context = CONFIG_PREFIX + ".<groupAlias>.", description = "Optional local URI the schema prefix is remapped to, e.g. 'file:///path' or 'classpath:/path' (paired with 'mapping.from').", required = false)
+    public static final String MAPPING_TO_KEY = "mapping.to";
+    @Setting(context = CONFIG_PREFIX + ".<groupAlias>." + VALIDATOR_KEY + ".<entryAlias>.", description = "JSON-LD @type term the schema is registered against.")
+    public static final String VALIDATOR_TYPE_KEY = "type";
+    @Setting(context = CONFIG_PREFIX + ".<groupAlias>." + VALIDATOR_KEY + ".<entryAlias>.", description = "Absolute schema URL (resolved through 'mapping.from'/'mapping.to' when configured).")
+    public static final String VALIDATOR_SCHEMA_KEY = "schema";
+
     private static final String EDC_CLASSPATH_SCHEMA = "classpath:schema/management/v4";
     private static final String DSPACE_CLASSPATH_SCHEMA = "classpath:schema/dspace/2025";
 
@@ -132,18 +150,31 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var customGroups = CustomSchemaValidatorConfigParser.parse(context.getConfig(CONFIG_PREFIX), context.getMonitor());
 
-        var schemaValidatorProvider = ManagementApiSchemaValidatorProvider.Builder.newInstance()
+        var builder = ManagementApiSchemaValidatorProvider.Builder.newInstance()
                 .objectMapper(() -> typeManager.getMapper(JSON_LD))
                 .prefixMapping(EDC_MGMT_V4_SCHEMA_PREFIX, EDC_CLASSPATH_SCHEMA)
-                .prefixMapping(DSPACE_2025_SCHEMA_PREFIX, DSPACE_CLASSPATH_SCHEMA)
-                .build();
+                .prefixMapping(DSPACE_2025_SCHEMA_PREFIX, DSPACE_CLASSPATH_SCHEMA);
+
+        customGroups.stream()
+                .map(CustomValidatorGroup::mapping)
+                .filter(Objects::nonNull)
+                .forEach(mapping -> builder.prefixMapping(mapping.from(), mapping.to()));
+
+        var schemaValidatorProvider = builder.build();
 
         registerValidatorsV4(schemaValidatorProvider);
+        registerCustomValidators(schemaValidatorProvider, customGroups);
     }
 
     void registerValidatorsV4(ManagementApiSchemaValidatorProvider validatorProvider) {
         schemaV4.forEach((type, schema) -> validator.register(V_4_PREFIX + type, validatorProvider.validatorFor(schema)));
+    }
+
+    void registerCustomValidators(ManagementApiSchemaValidatorProvider validatorProvider, List<CustomValidatorGroup> groups) {
+        groups.forEach(group -> group.bindings().forEach(binding ->
+                validator.register(group.version() + ":" + binding.type(), validatorProvider.validatorFor(binding.schema()))));
     }
 
 }

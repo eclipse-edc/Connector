@@ -29,6 +29,9 @@ dependencies {
     implementation(project(":extensions:common:api:lib:management-api-lib"))
 
     implementation(libs.jsonschema)
+
+    testImplementation(project(":core:common:junit"))
+    testImplementation(project(":core:common:lib:json-ld-lib"))
 }
 
 
