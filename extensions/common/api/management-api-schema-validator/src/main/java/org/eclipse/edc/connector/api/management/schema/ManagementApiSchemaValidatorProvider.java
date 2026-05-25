@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.SchemaLocation;
 import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.dialect.Dialects;
+import com.networknt.schema.resource.IriResourceLoader;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
@@ -83,8 +84,10 @@ public class ManagementApiSchemaValidatorProvider {
 
         public ManagementApiSchemaValidatorProvider build() {
             Objects.requireNonNull(provider.objectMapperSupplier);
-            provider.schemaFactory = SchemaRegistry.withDialect(Dialects.getDraft201909(), builder ->
-                    builder.schemaIdResolvers(schemaIdResolvers -> prefixMappings.forEach(schemaIdResolvers::mapPrefix)));
+            provider.schemaFactory = SchemaRegistry.withDialect(Dialects.getDraft201909(), builder -> builder
+                    .schemaIdResolvers(schemaIdResolvers -> prefixMappings.forEach(schemaIdResolvers::mapPrefix))
+                    .resourceLoaders(resourceLoaders -> resourceLoaders.add(IriResourceLoader.getInstance())));
+
             return provider;
         }
 

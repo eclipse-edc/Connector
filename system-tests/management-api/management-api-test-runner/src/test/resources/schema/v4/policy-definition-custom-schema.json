@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "PolicyDefinitionSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/PolicyDefinition"
+    }
+  ],
+  "$id": "https://example.org/schema/v4/policy-definition-schema.json",
+  "definitions": {
+    "PolicyDefinition": {
+      "type": "object",
+      "properties": {
+        "policy": {
+          "$ref": "https://example.org/schema/v4/policy-definition-schema.json#/definitions/PolicyClass"
+        }
+      }
+    },
+    "PolicyClass": {
+      "type": "object",
+      "properties": {
+        "profile": {
+          "oneOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "required": [
+        "profile"
+      ]
+    }
+  }
+}
