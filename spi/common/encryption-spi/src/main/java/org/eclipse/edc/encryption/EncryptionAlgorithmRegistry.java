@@ -42,7 +42,7 @@ public interface EncryptionAlgorithmRegistry {
     /**
      * Encrypts the given plain text.
      *
-     * @param algorithm the algorithm to use for encryption
+     * @param algorithm the algorithm to use for encryption. If 'null', plainText will be returned as it is.
      * @param plainText the text to encrypt
      * @return the encrypted text if successful, or a failure result
      */
@@ -51,7 +51,7 @@ public interface EncryptionAlgorithmRegistry {
     /**
      * Decrypts the given cipher text.
      *
-     * @param algorithm  the algorithm to use for decryption
+     * @param algorithm  the algorithm to use for decryption. If 'null', cipherText will be returned as it is.
      * @param cipherText the text to decrypt
      * @return the decrypted text if successful, or a failure result
      */

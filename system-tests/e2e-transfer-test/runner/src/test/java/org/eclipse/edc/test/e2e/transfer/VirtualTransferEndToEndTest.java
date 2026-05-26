@@ -58,7 +58,6 @@ class VirtualTransferEndToEndTest {
             {
                 put("edc.iam.oauth2.jwks.url", "https://example.com/jwks");
                 put("edc.iam.oauth2.issuer", "test-issuer");
-                put("edc.encryption.strict", "false");
                 put("web.http.protocol.virtual", "true");
                 put("edc.dataspace.enable.profiles.all", "true");
             }

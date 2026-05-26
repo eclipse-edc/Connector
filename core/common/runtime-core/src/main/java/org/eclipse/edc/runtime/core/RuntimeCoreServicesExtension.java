@@ -63,13 +63,6 @@ public class RuntimeCoreServicesExtension implements ServiceExtension {
     )
     public String hostname;
 
-    @Setting(
-            description = "Whether to fail when an unsupported encryption algorithm is requested.",
-            defaultValue = "true",
-            key = "edc.encryption.strict"
-    )
-    private boolean failOnUnsupported;
-
     @Inject
     private OkHttpClient okHttpClient;
     @Inject
@@ -126,7 +119,7 @@ public class RuntimeCoreServicesExtension implements ServiceExtension {
 
     @Provider
     public EncryptionAlgorithmRegistry encryptionAlgorithmRegistry() {
-        return new EncryptionAlgorithmRegistryImpl(failOnUnsupported);
+        return new EncryptionAlgorithmRegistryImpl();
     }
 
     @Provider

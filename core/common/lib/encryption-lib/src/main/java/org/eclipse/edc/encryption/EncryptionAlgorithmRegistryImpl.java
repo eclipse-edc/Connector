@@ -19,15 +19,13 @@ import org.eclipse.edc.spi.result.Result;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 public class EncryptionAlgorithmRegistryImpl implements EncryptionAlgorithmRegistry {
 
     private final Map<String, EncryptionAlgorithm> algorithms = new ConcurrentHashMap<>();
 
-    private final boolean failOnUnsupported;
-
-    public EncryptionAlgorithmRegistryImpl(boolean failOnUnsupported) {
-        this.failOnUnsupported = failOnUnsupported;
+    public EncryptionAlgorithmRegistryImpl() {
     }
 
     @Override
@@ -42,23 +40,22 @@ public class EncryptionAlgorithmRegistryImpl implements EncryptionAlgorithmRegis
 
     @Override
     public Result<String> encrypt(String algorithm, String plainText) {
-        return Optional.ofNullable(algorithms.get(algorithm))
-                .map(encryptionAlgorithm -> encryptionAlgorithm.encrypt(plainText))
-                .orElseGet(() -> unsupportedAlgorithm(plainText, algorithm));
+        return apply(algorithm, plainText, a -> a.encrypt(plainText));
     }
 
     @Override
     public Result<String> decrypt(String algorithm, String cipherText) {
-        return Optional.ofNullable(algorithms.get(algorithm))
-                .map(encryptionAlgorithm -> encryptionAlgorithm.decrypt(cipherText))
-                .orElseGet(() -> unsupportedAlgorithm(cipherText, algorithm));
+        return apply(algorithm, cipherText, a -> a.decrypt(cipherText));
     }
 
-    private Result<String> unsupportedAlgorithm(String text, String algorithm) {
-        if (failOnUnsupported) {
-            return Result.failure("Unsupported encryption algorithm: " + algorithm);
-        } else {
-            return Result.success(text);
+    private Result<String> apply(String algorithm, String input, Function<EncryptionAlgorithm, Result<String>> crypto) {
+        if (algorithm == null) {
+            return Result.success(input);
         }
+        return Optional.ofNullable(algorithms.get(algorithm))
+                .map(Result::success)
+                .orElseGet(() -> Result.failure("Unsupported encryption algorithm: " + algorithm))
+                .compose(crypto);
     }
+
 }

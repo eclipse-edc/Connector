@@ -17,8 +17,9 @@ package org.eclipse.edc.encryption;
 import org.eclipse.edc.spi.result.Result;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -27,46 +28,36 @@ import static org.mockito.Mockito.when;
 class EncryptionAlgorithmRegistryImplTest {
 
     private final EncryptionAlgorithm algorithm = mock();
+    private final EncryptionAlgorithmRegistryImpl registry = new EncryptionAlgorithmRegistryImpl();
 
     @Test
     void registerAndSupports() {
-        var registry = new EncryptionAlgorithmRegistryImpl(true);
-        assertFalse(registry.supports("echo"));
+        assertThat(registry.supports("echo")).isFalse();
 
         registry.register("echo", algorithm);
-        assertTrue(registry.supports("echo"));
+        assertThat(registry.supports("echo")).isTrue();
     }
 
     @Test
     void encryptAndDecryptWithRegisteredAlgorithm() {
-        var registry = new EncryptionAlgorithmRegistryImpl(true);
         when(algorithm.encrypt(anyString())).then(a -> Result.success("enc:" + a.getArgument(0)));
         when(algorithm.decrypt(anyString())).then(a -> Result.success("dec:" + a.getArgument(0)));
         registry.register("echo", algorithm);
 
-        Result<String> encryptResult = registry.encrypt("echo", "hello");
+        var encryptResult = registry.encrypt("echo", "hello");
         assertTrue(encryptResult.succeeded());
         assertEquals("enc:hello", encryptResult.getContent());
 
-        Result<String> decryptResult = registry.decrypt("echo", "ciph");
+        var decryptResult = registry.decrypt("echo", "ciph");
         assertTrue(decryptResult.succeeded());
         assertEquals("dec:ciph", decryptResult.getContent());
     }
 
     @Test
-    void unsupportedAlgorithm_whenFailOnUnsupported_true_returnsFailure() {
-        var registry = new EncryptionAlgorithmRegistryImpl(true);
+    void shouldReturnInput_whenAlgorithmIsNull() {
+        assertThat(registry.encrypt(null, "any")).isSucceeded().isEqualTo("any");
 
-        Result<String> res = registry.encrypt("unknown", "plain");
-        assertFalse(res.succeeded());
+        assertThat(registry.decrypt(null, "any")).isSucceeded().isEqualTo("any");
     }
 
-    @Test
-    void unsupportedAlgorithm_whenFailOnUnsupported_false_returnsPlainText() {
-        var registry = new EncryptionAlgorithmRegistryImpl(false);
-
-        Result<String> res = registry.encrypt("unknown", "plain");
-        assertTrue(res.succeeded());
-        assertEquals("plain", res.getContent());
-    }
 }

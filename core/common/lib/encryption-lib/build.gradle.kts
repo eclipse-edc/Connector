@@ -18,6 +18,8 @@ plugins {
 
 dependencies {
     api(project(":spi:common:encryption-spi"))
+
+    testImplementation(project(":core:common:junit"))
 }
 
 
