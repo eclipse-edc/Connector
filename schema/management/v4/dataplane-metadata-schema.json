@@ -25,6 +25,12 @@
         "properties": {
           "type": "object",
           "example": { "key": "value" }
+        },
+        "profiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "required": ["@type"]
