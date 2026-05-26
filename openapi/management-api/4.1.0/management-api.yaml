@@ -6237,9 +6237,7 @@ components:
         '@id':
           type: string
         properties:
-          type: object
-          example:
-            key: value
+          $ref: "#/components/schemas/Asset_properties"
         privateProperties:
           type: object
           example:
@@ -9945,6 +9943,13 @@ components:
         items:
           type: string
       - type: string
+    Asset_properties:
+      type: object
+      properties:
+        conformsTo:
+          type: string
+      example:
+        key: value
     Distribution_accessService:
       oneOf:
       - type: string
