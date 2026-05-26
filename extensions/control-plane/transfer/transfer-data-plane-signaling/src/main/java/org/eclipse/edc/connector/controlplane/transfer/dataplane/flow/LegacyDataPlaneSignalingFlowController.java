@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transfer.dataplane.flow;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider;
@@ -38,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -220,9 +222,14 @@ public class LegacyDataPlaneSignalingFlowController implements DataFlowControlle
             return emptySet();
         }
 
+        var assetProfiles = Optional.ofNullable(asset.getDataplaneMetadata())
+                .map(DataplaneMetadata::getProfiles)
+                .orElse(List.of());
+
         var assetDataAddress = asset.getDataAddress();
         if (assetDataAddress == null) {
             return allDataPlanes.getContent().stream()
+                    .filter(dataPlane -> assetProfiles.isEmpty() || !Collections.disjoint(dataPlane.getAllowedTransferTypes(), assetProfiles))
                     .flatMap(dataPlane -> dataPlane.getAllowedTransferTypes().stream())
                     .collect(toSet());
         }
@@ -233,6 +240,7 @@ public class LegacyDataPlaneSignalingFlowController implements DataFlowControlle
 
         return allDataPlanes.getContent().stream()
                 .filter(dataPlane -> dataPlane.getAllowedSourceTypes().contains(assetDataAddress.getType()))
+                .filter(dataPlane -> assetProfiles.isEmpty() || !Collections.disjoint(dataPlane.getAllowedTransferTypes(), assetProfiles))
                 .flatMap(dataPlane -> dataPlane.getAllowedTransferTypes().stream())
                 .filter(transferType -> isCompatibleTransferType(transferType, expectedResponseChannelType))
                 .collect(toSet());

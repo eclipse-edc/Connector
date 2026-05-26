@@ -17,6 +17,7 @@ package org.eclipse.edc.test.e2e.managementapi.v5;
 import org.eclipse.edc.api.authentication.OauthServer;
 import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
@@ -87,13 +88,15 @@ public class CatalogApiV5EndToEndTest {
         }
 
         @AfterEach
-        void teardown(ParticipantContextService participantContextService) {
+        void teardown(ParticipantContextService participantContextService, DataPlaneInstanceStore dataPlaneInstanceStore) {
             var list = participantContextService.search(QuerySpec.max())
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
             for (var p : list) {
                 participantContextService.deleteParticipantContext(p.getParticipantContextId()).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
             }
+
+            dataPlaneInstanceStore.getAll().toList().forEach(dp -> dataPlaneInstanceStore.deleteById(dp.getId()));
         }
 
         @Test
@@ -454,6 +457,82 @@ public class CatalogApiV5EndToEndTest {
                     .body(ID, is("asset-response"))
                     .body(TYPE, is("Dataset"))
                     .body("distribution[0].format", is("any-PULL-response"));
+        }
+
+        @Test
+        void getDataset_shouldFilterDistributionsByAssetProfiles(ManagementEndToEndV5TestContext context, AssetIndex assetIndex,
+                                                                  DataPlaneInstanceStore dataPlaneInstanceStore,
+                                                                  PolicyDefinitionStore policyDefinitionStore,
+                                                                  ContractDefinitionStore contractDefinitionStore) {
+            var httpDataPlane = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
+                    .allowedSourceType("test-type").allowedTransferType("Http-PULL").build();
+            var s3DataPlane = DataPlaneInstance.Builder.newInstance().url("http://localhost/any-s3")
+                    .allowedSourceType("test-type").allowedTransferType("S3-PULL").build();
+            dataPlaneInstanceStore.save(httpDataPlane);
+            dataPlaneInstanceStore.save(s3DataPlane);
+
+            createContractOffer(policyDefinitionStore, contractDefinitionStore, List.of());
+            var metadata = DataplaneMetadata.Builder.newInstance().profile("Http-PULL").build();
+            assetIndex.create(createAsset("asset-with-profile", "test-type").dataplaneMetadata(metadata).build());
+
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "DatasetRequest")
+                    .add(ID, "asset-with-profile")
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
+                    .add("counterPartyId", COUNTER_PARTY_ID)
+                    .add("profile", context.profile())
+                    .build()
+                    .toString();
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(requestBody)
+                    .post("/v5beta/participants/%s/catalog/dataset/request".formatted(PARTICIPANT_CONTEXT_ID))
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body(ID, is("asset-with-profile"))
+                    .body("distribution.size()", is(1))
+                    .body("distribution[0].format", is("Http-PULL"));
+        }
+
+        @Test
+        void getDataset_shouldReturnAllDistributions_whenAssetHasNoProfiles(ManagementEndToEndV5TestContext context, AssetIndex assetIndex,
+                                                                             DataPlaneInstanceStore dataPlaneInstanceStore,
+                                                                             PolicyDefinitionStore policyDefinitionStore,
+                                                                             ContractDefinitionStore contractDefinitionStore) {
+            var httpDataPlane = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
+                    .allowedSourceType("test-type").allowedTransferType("Http-PULL").build();
+            var s3DataPlane = DataPlaneInstance.Builder.newInstance().url("http://localhost/any-s3")
+                    .allowedSourceType("test-type").allowedTransferType("S3-PULL").build();
+            dataPlaneInstanceStore.save(httpDataPlane);
+            dataPlaneInstanceStore.save(s3DataPlane);
+
+            createContractOffer(policyDefinitionStore, contractDefinitionStore, List.of());
+            assetIndex.create(createAsset("asset-no-profile", "test-type").build());
+
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "DatasetRequest")
+                    .add(ID, "asset-no-profile")
+                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
+                    .add("counterPartyId", COUNTER_PARTY_ID)
+                    .add("profile", context.profile())
+                    .build()
+                    .toString();
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(JSON)
+                    .body(requestBody)
+                    .post("/v5beta/participants/%s/catalog/dataset/request".formatted(PARTICIPANT_CONTEXT_ID))
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body(ID, is("asset-no-profile"))
+                    .body("distribution.size()", is(2));
         }
 
         @Test

@@ -20,6 +20,7 @@ import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.api.authentication.OauthServer;
 import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
@@ -442,6 +443,58 @@ public class AssetApiV5EndToEndTest {
                             List.of(Map.of(EDC_NAMESPACE + "innerValue",
                                     List.of(Map.of(VALUE, "value")))));
             assertThat(asset.getParticipantContextId()).isEqualTo(PARTICIPANT_CONTEXT_ID);
+        }
+
+        @Test
+        void createAsset_withDataplaneMetadataProfiles_shouldBeStored(ManagementEndToEndV5TestContext context, AssetIndex assetIndex) {
+            var id = UUID.randomUUID().toString();
+            var assetJson = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "Asset")
+                    .add(ID, id)
+                    .add("properties", createPropertiesBuilder().build())
+                    .add("dataplaneMetadata", createObjectBuilder()
+                            .add(TYPE, "DataplaneMetadata")
+                            .add("profiles", createArrayBuilder().add("profile1").add("profile2"))
+                    )
+                    .add("dataAddress", createObjectBuilder()
+                            .add(TYPE, "DataAddress")
+                            .add("type", "test-type")
+                            .build())
+                    .build()
+                    .toString();
+
+            context.baseRequest(participantTokenJwt)
+                    .contentType(ContentType.JSON)
+                    .body(assetJson)
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
+                    .then()
+                    .log().ifError()
+                    .statusCode(200)
+                    .body(ID, is(id));
+
+            var asset = assetIndex.findById(id);
+            assertThat(asset).isNotNull();
+            assertThat(asset.getDataplaneMetadata()).isNotNull();
+            assertThat(asset.getDataplaneMetadata().getProfiles()).containsExactly("profile1", "profile2");
+        }
+
+        @Test
+        void findById_withDataplaneMetadataProfiles_shouldReturnProfiles(ManagementEndToEndV5TestContext context, AssetIndex assetIndex) {
+            var id = UUID.randomUUID().toString();
+            var metadata = DataplaneMetadata.Builder.newInstance().profile("http-profile").profile("s3-profile").build();
+            var asset = createAsset().id(id).dataplaneMetadata(metadata).build();
+            assetIndex.create(asset);
+
+            var body = context.baseRequest(participantTokenJwt)
+                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .extract().body().jsonPath();
+
+            assertThat(body.getList("'dataplaneMetadata'.'profiles'", String.class))
+                    .containsExactlyInAnyOrder("http-profile", "s3-profile");
         }
 
         @Test

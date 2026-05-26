@@ -15,6 +15,7 @@
 package org.eclipse.edc.signaling.logic;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
@@ -505,6 +506,38 @@ public class DataPlaneSignalingFlowControllerTest {
             var transferTypes = flowController.transferTypesFor(asset);
 
             assertThat(transferTypes).isEmpty();
+        }
+
+        @Test
+        void shouldFilterByAssetProfile_whenProfilesAreSet() {
+            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(
+                    dataPlaneInstanceBuilder().allowedTransferType("Http-PULL").build(),
+                    dataPlaneInstanceBuilder().allowedTransferType("S3-PULL").build()
+            )));
+            var metadata = DataplaneMetadata.Builder.newInstance().profile("Http-PULL").build();
+            var asset = Asset.Builder.newInstance()
+                    .dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build())
+                    .dataplaneMetadata(metadata)
+                    .build();
+
+            var transferTypes = flowController.transferTypesFor(asset);
+
+            assertThat(transferTypes).containsExactly("Http-PULL");
+        }
+
+        @Test
+        void shouldReturnAllTypes_whenAssetHasNoProfiles() {
+            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(
+                    dataPlaneInstanceBuilder().allowedTransferType("Http-PULL").build(),
+                    dataPlaneInstanceBuilder().allowedTransferType("S3-PULL").build()
+            )));
+            var asset = Asset.Builder.newInstance()
+                    .dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build())
+                    .build();
+
+            var transferTypes = flowController.transferTypesFor(asset);
+
+            assertThat(transferTypes).containsExactlyInAnyOrder("Http-PULL", "S3-PULL");
         }
     }
 

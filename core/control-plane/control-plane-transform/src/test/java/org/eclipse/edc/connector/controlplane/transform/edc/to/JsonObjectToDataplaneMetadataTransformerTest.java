@@ -37,6 +37,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata.EDC_DATAPLANE_METADATA_LABELS;
+import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata.EDC_DATAPLANE_METADATA_PROFILES;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata.EDC_DATAPLANE_METADATA_PROPERTIES;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata.EDC_DATAPLANE_METADATA_SIMPLE_TYPE;
 import static org.eclipse.edc.connector.controlplane.transform.TestInput.getExpanded;
@@ -112,6 +113,36 @@ class JsonObjectToDataplaneMetadataTransformerTest {
                 .add(CONTEXT, context)
                 .add(TYPE, EDC_DATAPLANE_METADATA_SIMPLE_TYPE)
                 .add(EDC_DATAPLANE_METADATA_LABELS, jsonFactory.createArrayBuilder().add(1))
+                .build();
+
+        var result = typeTransformerRegistry.transform(getExpanded(jsonObj), DataplaneMetadata.class);
+
+        assertThat(result).isFailed();
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(Contexts.class)
+    void shouldTransformProfiles(JsonValue context) {
+        var jsonObj = jsonFactory.createObjectBuilder()
+                .add(CONTEXT, context)
+                .add(TYPE, EDC_DATAPLANE_METADATA_SIMPLE_TYPE)
+                .add("profiles", jsonFactory.createArrayBuilder().add("profile1").add("profile2"))
+                .build();
+
+        var result = typeTransformerRegistry.transform(getExpanded(jsonObj), DataplaneMetadata.class);
+
+        assertThat(result).isSucceeded().satisfies(metadata -> {
+            assertThat(metadata.getProfiles()).containsExactly("profile1", "profile2");
+        });
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(Contexts.class)
+    void shouldFail_whenProfileIsNotString(JsonValue context) {
+        var jsonObj = jsonFactory.createObjectBuilder()
+                .add(CONTEXT, context)
+                .add(TYPE, EDC_DATAPLANE_METADATA_SIMPLE_TYPE)
+                .add(EDC_DATAPLANE_METADATA_PROFILES, jsonFactory.createArrayBuilder().add(1))
                 .build();
 
         var result = typeTransformerRegistry.transform(getExpanded(jsonObj), DataplaneMetadata.class);

@@ -15,6 +15,7 @@
 package org.eclipse.edc.signaling.logic;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
@@ -37,6 +38,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -251,17 +255,21 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
 
     @Override
     public Set<String> transferTypesFor(Asset asset) {
-        return transferTypes();
+        var profiles = Optional.ofNullable(asset.getDataplaneMetadata())
+                .map(DataplaneMetadata::getProfiles)
+                .orElse(List.of());
+        return transferTypes(profiles);
     }
 
     @Override
     public Set<String> transferTypesFor(String assetId) {
-        return transferTypes();
+        return transferTypes(List.of());
     }
 
-    private @NotNull Set<String> transferTypes() {
+    private @NotNull Set<String> transferTypes(List<String> profiles) {
         return selectorClient.getAll().map(Collection::stream)
-                .map(it -> it.map(DataPlaneInstance::getAllowedTransferTypes)
+                .map(dataPlane -> dataPlane.map(DataPlaneInstance::getAllowedTransferTypes)
+                        .filter(allowedTransferTypes -> profiles.isEmpty() || !Collections.disjoint(allowedTransferTypes, profiles))
                         .flatMap(Collection::stream).collect(toSet()))
                 .orElse(f -> emptySet());
     }

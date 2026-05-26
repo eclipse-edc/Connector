@@ -44,7 +44,7 @@ public class JsonObjectToDataplaneMetadataTransformer extends AbstractJsonLdTran
         if (labels != null) {
             labels.stream()
                     .map(this::nodeJsonValue)
-                    .map(value -> deserializeLabel(value, context))
+                    .map(value -> deserializeListItem("labels", value, context))
                     .filter(Objects::nonNull)
                     .forEach(builder::label);
         }
@@ -67,15 +67,25 @@ public class JsonObjectToDataplaneMetadataTransformer extends AbstractJsonLdTran
             }
         }
 
+        var profiles = jsonObject.getJsonArray(DataplaneMetadata.EDC_DATAPLANE_METADATA_PROFILES);
+        if (profiles != null) {
+            profiles.stream()
+                    .map(this::nodeJsonValue)
+                    .map(value -> deserializeListItem("profiles", value, context))
+                    .filter(Objects::nonNull)
+                    .forEach(builder::profile);
+        }
+
         return builder.build();
     }
 
-    private @Nullable String deserializeLabel(JsonValue value, @NotNull TransformerContext context) {
+    private @Nullable String deserializeListItem(String listAttribute, JsonValue value, @NotNull TransformerContext context) {
         if (value instanceof JsonString string) {
             return string.getString();
         }
 
-        context.reportProblem("DataplaneMetadata labels should be strings, but label '%s' is a '%s'".formatted(value, value.getValueType()));
+        context.reportProblem(("DataplaneMetadata %s should be strings, but profile '%s' is a '%s'")
+                .formatted(listAttribute, value, value.getValueType()));
         return null;
     }
 }

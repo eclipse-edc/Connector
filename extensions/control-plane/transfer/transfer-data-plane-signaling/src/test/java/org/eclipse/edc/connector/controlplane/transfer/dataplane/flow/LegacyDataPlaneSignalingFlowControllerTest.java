@@ -15,6 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transfer.dataplane.flow;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
+import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowPropertiesProvider;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
@@ -486,6 +487,40 @@ public class LegacyDataPlaneSignalingFlowControllerTest {
             var transferTypes = flowController.transferTypesFor(asset);
 
             assertThat(transferTypes).isEmpty();
+        }
+
+        @Test
+        void shouldFilterByAssetProfile_whenProfilesAreSet() {
+            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("any", FlowType.PULL)));
+            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(
+                    dataPlaneInstanceBuilder().allowedTransferType("Http-PULL").allowedSourceType("TargetSrc").build(),
+                    dataPlaneInstanceBuilder().allowedTransferType("S3-PULL").allowedSourceType("TargetSrc").build()
+            )));
+            var metadata = DataplaneMetadata.Builder.newInstance().profile("Http-PULL").build();
+            var asset = Asset.Builder.newInstance()
+                    .dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build())
+                    .dataplaneMetadata(metadata)
+                    .build();
+
+            var transferTypes = flowController.transferTypesFor(asset);
+
+            assertThat(transferTypes).containsExactly("Http-PULL");
+        }
+
+        @Test
+        void shouldReturnAllTypes_whenAssetHasNoProfiles() {
+            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("any", FlowType.PULL)));
+            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(
+                    dataPlaneInstanceBuilder().allowedTransferType("Http-PULL").allowedSourceType("TargetSrc").build(),
+                    dataPlaneInstanceBuilder().allowedTransferType("S3-PULL").allowedSourceType("TargetSrc").build()
+            )));
+            var asset = Asset.Builder.newInstance()
+                    .dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build())
+                    .build();
+
+            var transferTypes = flowController.transferTypesFor(asset);
+
+            assertThat(transferTypes).containsExactlyInAnyOrder("Http-PULL", "S3-PULL");
         }
     }
 

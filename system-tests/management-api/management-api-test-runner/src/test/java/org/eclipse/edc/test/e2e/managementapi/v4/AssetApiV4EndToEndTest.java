@@ -66,6 +66,7 @@ public class AssetApiV4EndToEndTest {
                     .dataplaneMetadata(DataplaneMetadata.Builder.newInstance()
                             .label("label")
                             .property(EDC_NAMESPACE + "property", "value")
+                            .profile("http-profile")
                             .build())
                     .build();
             assetIndex.create(asset);
@@ -93,7 +94,8 @@ public class AssetApiV4EndToEndTest {
                     .containsEntry("innerValue", "value");
             assertThat(body.getMap("'dataplaneMetadata'"))
                     .containsEntry("labels", List.of("label"))
-                    .containsEntry("properties", Map.of("edc:property", "value"));
+                    .containsEntry("properties", Map.of("edc:property", "value"))
+                    .containsEntry("profiles", List.of("http-profile"));
         }
 
         @Test
@@ -114,6 +116,7 @@ public class AssetApiV4EndToEndTest {
                                     .add("another-key", "another-value")
                             )
                             .add("labels", createArrayBuilder().add("label1").add("label2"))
+                            .add("profiles", createArrayBuilder().add("profile1").add("profile2"))
                     )
                     .build();
 
@@ -133,6 +136,7 @@ public class AssetApiV4EndToEndTest {
             assertThat(asset.getDataplaneMetadata().getProperties()).containsExactlyInAnyOrderEntriesOf(
                     Map.of("key", "value", "another-key", "another-value"));
             assertThat(asset.getDataplaneMetadata().getLabels()).containsExactly("label1", "label2");
+            assertThat(asset.getDataplaneMetadata().getProfiles()).containsExactly("profile1", "profile2");
             assertThat(asset.getParticipantContextId()).isNotNull();
         }
 
@@ -363,6 +367,7 @@ public class AssetApiV4EndToEndTest {
                     .add("dataplaneMetadata", createObjectBuilder()
                             .add(TYPE, "DataplaneMetadata")
                             .add("labels", createArrayBuilder().add("updated-label"))
+                            .add("profiles", createArrayBuilder().add("updated-profile"))
                             .add("properties", createObjectBuilder()
                                .add("complex", createObjectBuilder()
                                        .add("nested", "value").build()))
@@ -382,6 +387,7 @@ public class AssetApiV4EndToEndTest {
             assertThat(dbAsset).isNotNull();
             assertThat(dbAsset.getProperties()).containsEntry(EDC_NAMESPACE + "some-new-property", "some-new-value");
             assertThat(dbAsset.getDataplaneMetadata().getLabels()).containsExactly("updated-label");
+            assertThat(dbAsset.getDataplaneMetadata().getProfiles()).containsExactly("updated-profile");
             assertThat(dbAsset.getDataplaneMetadata().getProperties())
                     .containsKey("complex").extracting(m -> m.get("complex"))
                     .satisfies(complex -> {

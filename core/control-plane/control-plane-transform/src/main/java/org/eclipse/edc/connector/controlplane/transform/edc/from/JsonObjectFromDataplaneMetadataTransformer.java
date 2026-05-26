@@ -55,6 +55,13 @@ public class JsonObjectFromDataplaneMetadataTransformer extends AbstractJsonLdTr
                     .build());
         }
 
+        var profiles = dataplaneMetadata.getProfiles();
+        if (!profiles.isEmpty()) {
+            var arrayBuilder = jsonFactory.createArrayBuilder();
+            profiles.forEach(arrayBuilder::add);
+            builder.add(DataplaneMetadata.EDC_DATAPLANE_METADATA_PROFILES, arrayBuilder);
+        }
+
         return builder.build();
     }
 }
