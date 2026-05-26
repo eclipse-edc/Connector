@@ -23,6 +23,7 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.transaction.spi.TransactionContext;
@@ -37,7 +38,7 @@ public class ParticipantContextConfigServicesExtension implements ServiceExtensi
     @Setting(
             description = "The encryption algorithm used for encrypting and decrypting sensitive config.",
             key = "edc.participants.config.encryption.algorithm",
-            defaultValue = "aes"
+            required = false
     )
     private String encryptionAlgorithm;
 
@@ -63,4 +64,10 @@ public class ParticipantContextConfigServicesExtension implements ServiceExtensi
         return new ParticipantContextConfigImpl(encryptionRegistry, encryptionAlgorithm, configStore, transactionContext);
     }
 
+    @Override
+    public void prepare() {
+        if (encryptionAlgorithm != null && !encryptionRegistry.supports(encryptionAlgorithm)) {
+            throw new EdcException("The configured '%s' encryption algorithm is not supported".formatted(encryptionAlgorithm));
+        }
+    }
 }
