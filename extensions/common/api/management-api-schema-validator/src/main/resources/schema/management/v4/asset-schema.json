@@ -24,11 +24,20 @@
         },
         "properties": {
           "type": "object",
-          "example": { "key": "value" }
+          "example": {
+            "key": "value"
+          },
+          "properties": {
+            "conformsTo": {
+              "type": "string"
+            }
+          }
         },
         "privateProperties": {
           "type": "object",
-          "example": { "privateKey": "privateValue" }
+          "example": {
+            "privateKey": "privateValue"
+          }
         },
         "dataplaneMetadata": {
           "$ref": "https://w3id.org/edc/connector/management/schema/v4/dataplane-metadata-schema.json"

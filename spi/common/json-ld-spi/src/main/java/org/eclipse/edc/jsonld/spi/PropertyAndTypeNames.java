@@ -41,6 +41,7 @@ public interface PropertyAndTypeNames {
 
     //DCT
     String DCT_FORMAT_ATTRIBUTE = DCT_SCHEMA + "format";
+    String DCT_CONFORMS_TO_ATTRIBUTE = DCT_SCHEMA + "conformsTo";
 
     String ODRL_POLICY_ATTRIBUTE = ODRL_SCHEMA + "hasPolicy";
     String ODRL_POLICY_TYPE_SET = ODRL_SCHEMA + "Set";

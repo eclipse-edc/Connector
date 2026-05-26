@@ -59,6 +59,7 @@ import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_CONFORMS_TO_ATTRIBUTE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -222,7 +223,11 @@ public class CatalogApiV5EndToEndTest {
                                                               ContractDefinitionStore contractDefinitionStore) {
 
             assetIndex.create(createAsset("id-1", "test-type").build());
-            assetIndex.create(createAsset("id-2", "test-type").build());
+
+            var asset2 = createAsset("id-2", "test-type")
+                    .property(DCT_CONFORMS_TO_ATTRIBUTE, Map.of(ID, "https://example.org/schema")).build();
+            
+            assetIndex.create(asset2);
             createContractOffer(policyDefinitionStore, contractDefinitionStore, List.of());
 
             var criteria = createArrayBuilder()
@@ -258,7 +263,8 @@ public class CatalogApiV5EndToEndTest {
                     .statusCode(200)
                     .contentType(JSON)
                     .body(TYPE, is("Catalog"))
-                    .body("dataset[0].id", is("id-2"));
+                    .body("dataset[0].id", is("id-2"))
+                    .body("dataset[0].conformsTo", is("https://example.org/schema"));
         }
 
         @Test
