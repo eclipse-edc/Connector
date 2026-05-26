@@ -50,6 +50,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_CONFORMS_TO_ATTRIBUTE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
@@ -406,7 +407,10 @@ public class AssetApiV5EndToEndTest {
                     .add(CONTEXT, jsonLdContext())
                     .add(TYPE, "Asset")
                     .add(ID, id)
-                    .add("properties", createPropertiesBuilder().add("isCatalog", "true").build())
+                    .add("properties", createPropertiesBuilder()
+                            .add("isCatalog", "true")
+                            .add("conformsTo", "http://example.com/spec")
+                            .build())
                     .add("privateProperties", createObjectBuilder()
                             .add("anotherProp", "anotherVal")
                             .build())
@@ -434,6 +438,8 @@ public class AssetApiV5EndToEndTest {
             var asset = assetIndex.findById(id);
             assertThat(asset).isNotNull();
             assertThat(asset.isCatalog()).isTrue();
+            assertThat(asset.getProperty(DCT_CONFORMS_TO_ATTRIBUTE)).isEqualTo(Map.of(ID, "http://example.com/spec"));
+
             assertThat(asset.getPrivateProperty(EDC_NAMESPACE + "anotherProp")).isEqualTo("anotherVal");
             assertThat(asset.getDataAddress().getProperty("complex"))
                     .asInstanceOf(MAP)
@@ -652,6 +658,7 @@ public class AssetApiV5EndToEndTest {
 
             var id = UUID.randomUUID().toString();
             var asset = createAsset().id(id)
+                    .property(DCT_CONFORMS_TO_ATTRIBUTE, Map.of(ID, "http://example.com/spec"))
                     .dataAddress(createDataAddress().type("addressType").build())
                     .build();
             assetIndex.create(asset);
@@ -666,8 +673,9 @@ public class AssetApiV5EndToEndTest {
             assertThat(body).isNotNull();
             assertThat(body.getString(ID)).isEqualTo(id);
             assertThat(body.getMap("properties"))
-                    .hasSize(2)
-                    .containsEntry("description", "test description");
+                    .hasSize(3)
+                    .containsEntry("description", "test description")
+                    .containsEntry("conformsTo", "http://example.com/spec");
             assertThat(body.getMap("'dataAddress'"))
                     .containsEntry("type", "addressType");
             assertThat(body.getMap("'dataAddress'.'complex'"))
