@@ -38,6 +38,10 @@
         "properties": {
           "@id": "edc:properties",
           "@type": "@json"
+        },
+        "profiles": {
+          "@id": "edc:profiles",
+          "@container": "@set"
         }
       }
     },

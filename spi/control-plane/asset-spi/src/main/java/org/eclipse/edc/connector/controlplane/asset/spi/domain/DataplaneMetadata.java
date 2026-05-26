@@ -32,9 +32,11 @@ public class DataplaneMetadata {
     public static final String EDC_DATAPLANE_METADATA_TYPE = EDC_NAMESPACE + EDC_DATAPLANE_METADATA_SIMPLE_TYPE;
     public static final String EDC_DATAPLANE_METADATA_LABELS = EDC_NAMESPACE + "labels";
     public static final String EDC_DATAPLANE_METADATA_PROPERTIES = EDC_NAMESPACE + "properties";
+    public static final String EDC_DATAPLANE_METADATA_PROFILES = EDC_NAMESPACE + "profiles";
 
     private final List<String> labels = new ArrayList<>();
     private final Map<String, Object> properties = new HashMap<>();
+    private final List<String> profiles = new ArrayList<>();
 
     private DataplaneMetadata() {
 
@@ -46,6 +48,10 @@ public class DataplaneMetadata {
 
     public Map<String, Object> getProperties() {
         return properties;
+    }
+
+    public List<String> getProfiles() {
+        return profiles;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -79,6 +85,16 @@ public class DataplaneMetadata {
 
         public Builder label(String label) {
             instance.labels.add(label);
+            return this;
+        }
+
+        public Builder profiles(List<String> profiles) {
+            instance.profiles.addAll(profiles);
+            return this;
+        }
+
+        public Builder profile(String profile) {
+            instance.profiles.add(profile);
             return this;
         }
     }

@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata.EDC_DATAPLANE_METADATA_LABELS;
+import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata.EDC_DATAPLANE_METADATA_PROFILES;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata.EDC_DATAPLANE_METADATA_PROPERTIES;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata.EDC_DATAPLANE_METADATA_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -52,5 +53,19 @@ class JsonObjectFromDataplaneMetadataTransformerTest {
                             assertThat(jsonString.getString()).isEqualTo("value"));
                 }
         );
+        assertThat(result.get(EDC_DATAPLANE_METADATA_PROFILES)).isNull();
+    }
+
+    @Test
+    void shouldTransformProfilesToJson() {
+        var context = new TransformerContextImpl(mock());
+        var dataplaneMetadata = DataplaneMetadata.Builder.newInstance().profile("profile1").profile("profile2").build();
+
+        var result = transformer.transform(dataplaneMetadata, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getJsonArray(EDC_DATAPLANE_METADATA_PROFILES)).hasSize(2)
+                .extracting(JsonString.class::cast).extracting(JsonString::getString)
+                .containsExactlyInAnyOrder("profile1", "profile2");
     }
 }
