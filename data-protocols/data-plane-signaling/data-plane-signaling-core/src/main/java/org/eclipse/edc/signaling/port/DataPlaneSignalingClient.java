@@ -28,10 +28,11 @@ import org.eclipse.edc.signaling.domain.DataFlowResumeMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartedNotificationMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
+import org.eclipse.edc.signaling.domain.DataFlowSuspendMessage;
+import org.eclipse.edc.signaling.domain.DataFlowTerminateMessage;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistry;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
 
 import java.io.IOException;
 import java.util.function.Function;
@@ -77,8 +78,8 @@ public class DataPlaneSignalingClient {
         return send(flowId + "/resume", message, this::dataFlowStatusMessage);
     }
 
-    public StatusResult<Void> terminate(String flowId) {
-        return send(flowId + "/terminate", emptyMap(), this::discardResponseBody);
+    public StatusResult<Void> terminate(String flowId, DataFlowTerminateMessage message) {
+        return send(flowId + "/terminate", message, this::discardResponseBody);
     }
 
     public StatusResult<Void> started(String flowId, DataFlowStartedNotificationMessage message) {
