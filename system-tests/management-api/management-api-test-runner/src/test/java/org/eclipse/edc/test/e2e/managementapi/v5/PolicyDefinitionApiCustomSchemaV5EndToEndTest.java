@@ -43,6 +43,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.createParticipant;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.jsonLdContext;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 
@@ -112,8 +113,9 @@ public class PolicyDefinitionApiCustomSchemaV5EndToEndTest {
                     .contentType(JSON)
                     .statusCode(400)
                     .body("size()", is(2))
-                    .body("[0].message", containsString("required property 'target' not found"))
-                    .body("[1].message", containsString("required property 'assigner' not found"));
+                    .body("message", containsInAnyOrder(
+                            containsString("required property 'target' not found"),
+                            containsString("required property 'assigner' not found")));
         }
 
         @Test
