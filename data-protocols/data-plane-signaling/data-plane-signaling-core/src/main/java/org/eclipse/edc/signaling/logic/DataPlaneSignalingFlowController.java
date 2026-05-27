@@ -27,12 +27,13 @@ import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowResumeMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartedNotificationMessage;
+import org.eclipse.edc.signaling.domain.DataFlowSuspendMessage;
+import org.eclipse.edc.signaling.domain.DataFlowTerminateMessage;
 import org.eclipse.edc.signaling.domain.DspDataAddress;
 import org.eclipse.edc.signaling.port.ClientFactory;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 
@@ -161,6 +162,7 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
         }
 
         var message = DataFlowSuspendMessage.Builder.newInstance()
+                .messageId(UUID.randomUUID().toString())
                 .reason("suspend")
                 .build();
 
@@ -212,7 +214,10 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
         return selectorClient.findById(transferProcess.getDataPlaneId())
                 .flatMap(this::toStatusResult)
                 .map(clientFactory::createClient)
-                .compose(client -> client.terminate(transferProcess.getId()));
+                .compose(client -> {
+                    var message = DataFlowTerminateMessage.Builder.newInstance().messageId(UUID.randomUUID().toString()).build();
+                    return client.terminate(transferProcess.getId(), message);
+                });
     }
 
     @Override
@@ -226,7 +231,8 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
                 .flatMap(this::toStatusResult)
                 .map(clientFactory::createClient)
                 .compose(client -> {
-                    var builder = DataFlowStartedNotificationMessage.Builder.newInstance();
+                    var builder = DataFlowStartedNotificationMessage.Builder.newInstance()
+                            .messageId(UUID.randomUUID().toString());
                     var dataAddress = transferProcess.getContentDataAddress();
                     if (dataAddress != null) {
                         var dspDataAddressTransformation = typeTransformerRegistry.transform(dataAddress, DspDataAddress.class);

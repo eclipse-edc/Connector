@@ -26,6 +26,7 @@ import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
 import org.eclipse.edc.signaling.domain.DataFlowResumeMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStartMessage;
 import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
+import org.eclipse.edc.signaling.domain.DataFlowSuspendMessage;
 import org.eclipse.edc.signaling.domain.DspDataAddress;
 import org.eclipse.edc.signaling.port.ClientFactory;
 import org.eclipse.edc.signaling.port.DataPlaneSignalingClient;
@@ -35,7 +36,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.DataFlowSuspendMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
@@ -196,14 +196,14 @@ public class DataPlaneSignalingFlowControllerTest {
                     .contentDataAddress(testDataAddress())
                     .dataPlaneId("dataPlaneId")
                     .build();
-            when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
+            when(dataPlaneClient.terminate(any(), any())).thenReturn(StatusResult.success());
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
             when(selectorService.findById(any())).thenReturn(ServiceResult.success(dataPlaneInstance));
 
             var result = flowController.terminate(transferProcess);
 
             assertThat(result).isSucceeded();
-            verify(dataPlaneClient).terminate("transferProcessId");
+            verify(dataPlaneClient).terminate(eq("transferProcessId"), argThat(it -> it.getMessageId() != null));
             verify(clientFactory).createClient(dataPlaneInstance);
         }
 
@@ -214,7 +214,7 @@ public class DataPlaneSignalingFlowControllerTest {
                     .contentDataAddress(testDataAddress())
                     .dataPlaneId("invalid")
                     .build();
-            when(dataPlaneClient.terminate(any())).thenReturn(StatusResult.success());
+            when(dataPlaneClient.terminate(any(), any())).thenReturn(StatusResult.success());
             when(clientFactory.createClient(any())).thenReturn(dataPlaneClient);
             when(selectorService.findById(any())).thenReturn(ServiceResult.notFound("not found"));
 

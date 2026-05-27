@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.AuthorizationPr
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.signaling.domain.DataFlowPrepareMessage;
+import org.eclipse.edc.signaling.domain.DataFlowTerminateMessage;
 import org.eclipse.edc.signaling.spi.authorization.Header;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorization;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistry;
@@ -29,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Map;
+import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.containing;
@@ -61,8 +63,9 @@ class DataPlaneSignalingClientTest {
         void shouldSendRequestWithoutAuthorizationHeader_whenNoAuthorizationProfiles() {
             server.stubFor(post(anyUrl()).willReturn(noContent()));
             var client = createClient(dataPlane());
+            var message = DataFlowTerminateMessage.Builder.newInstance().messageId(UUID.randomUUID().toString()).build();
 
-            var result = client.terminate("flow-id");
+            var result = client.terminate("flow-id", message);
 
             assertThat(result.succeeded()).isTrue();
             server.verify(postRequestedFor(urlPathEqualTo("/flow-id/terminate"))
@@ -76,8 +79,9 @@ class DataPlaneSignalingClientTest {
             var authorization = mock(SignalingAuthorization.class);
             when(authorizationRegistry.findByType("oauth2")).thenReturn(authorization);
             when(authorization.evaluate(profile)).thenReturn(Result.success(new Header("Authorization", "Bearer my-token")));
+            var message = DataFlowTerminateMessage.Builder.newInstance().messageId(UUID.randomUUID().toString()).build();
 
-            var result = createClient(dataPlane(profile)).terminate("flow-id");
+            var result = createClient(dataPlane(profile)).terminate("flow-id", message);
 
             assertThat(result.succeeded()).isTrue();
             server.verify(postRequestedFor(urlPathEqualTo("/flow-id/terminate"))
@@ -88,8 +92,9 @@ class DataPlaneSignalingClientTest {
         void shouldFail_whenAuthorizationTypeNotSupported() {
             var profile = new AuthorizationProfile("unknown-type", Map.of());
             when(authorizationRegistry.findByType("unknown-type")).thenReturn(null);
+            var message = DataFlowTerminateMessage.Builder.newInstance().messageId(UUID.randomUUID().toString()).build();
 
-            var result = createClient(dataPlane(profile)).terminate("flow-id");
+            var result = createClient(dataPlane(profile)).terminate("flow-id", message);
 
             assertThat(result.failed()).isTrue();
             assertThat(result.getFailureMessages()).anyMatch(msg -> msg.contains("unknown-type"));
@@ -102,8 +107,9 @@ class DataPlaneSignalingClientTest {
             var authorization = mock(SignalingAuthorization.class);
             when(authorizationRegistry.findByType("oauth2")).thenReturn(authorization);
             when(authorization.evaluate(profile)).thenReturn(Result.failure("token endpoint unreachable"));
+            var message = DataFlowTerminateMessage.Builder.newInstance().messageId(UUID.randomUUID().toString()).build();
 
-            var result = createClient(dataPlane(profile)).terminate("flow-id");
+            var result = createClient(dataPlane(profile)).terminate("flow-id", message);
 
             assertThat(result.failed()).isTrue();
             assertThat(result.getFailureMessages()).anyMatch(msg -> msg.contains("token endpoint unreachable"));
