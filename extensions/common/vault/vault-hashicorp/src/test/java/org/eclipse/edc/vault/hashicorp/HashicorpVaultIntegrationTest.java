@@ -36,7 +36,6 @@ import org.testcontainers.vault.VaultContainer;
 import java.util.UUID;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig.VAULT_API_HEALTH_PATH_DEFAULT;
@@ -46,7 +45,8 @@ import static org.mockito.Mockito.mock;
 @ComponentTest
 @Testcontainers
 class HashicorpVaultIntegrationTest {
-    static final String DOCKER_IMAGE_NAME = "hashicorp/vault:1.18.3";
+
+    static final String DOCKER_IMAGE_NAME = "hashicorp/vault:2.0.1";
     static final String VAULT_ENTRY_KEY = "testing";
     static final String VAULT_ENTRY_VALUE = UUID.randomUUID().toString();
     static final String VAULT_DATA_ENTRY_NAME = "content";
@@ -54,11 +54,10 @@ class HashicorpVaultIntegrationTest {
     @Container
     private static final VaultContainer<?> VAULTCONTAINER = new VaultContainer<>(DOCKER_IMAGE_NAME)
             .withVaultToken(TOKEN)
-            .withSecretInVault("secret/" + VAULT_ENTRY_KEY, format("%s=%s", VAULT_DATA_ENTRY_NAME, VAULT_ENTRY_VALUE));
+            .withInitCommand("kv put secret/%s %s=%s".formatted(VAULT_ENTRY_KEY, VAULT_DATA_ENTRY_NAME, VAULT_ENTRY_VALUE));
     public final Monitor monitor = mock();
     private final ObjectMapper objectMapper = new ObjectMapper().configure(FAIL_ON_UNKNOWN_PROPERTIES, false);
     private HashicorpVaultClient vault;
-
 
     @BeforeEach
     void setUp() {
