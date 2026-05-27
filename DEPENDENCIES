@@ -207,7 +207,7 @@ maven/mavencentral/org.eclipse.dataspacetck.common/tck-runtime/1.0.0, Apache-2.0
 maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-api/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-system/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-testcases/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dps/dps-tck/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dps/dps-tck/1.0.0, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/boot/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/core/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-api/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
