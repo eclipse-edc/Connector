@@ -21,6 +21,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,8 +65,8 @@ class CustomSchemaValidatorConfigParserTest {
         assertThat(group.version()).isEqualTo("v4");
         assertThat(group.mapping()).isEqualTo(new PrefixMapping("https://example.org/schema/v4", "file:///tmp/schema/v4"));
         assertThat(group.bindings()).containsExactlyInAnyOrder(
-                new ValidatorBinding("PolicyDefinition", "https://example.org/schema/v4/policy-def-schema.json"),
-                new ValidatorBinding("Asset", "https://example.org/schema/v4/asset-def-schema.json")
+                new ValidatorBinding("PolicyDefinition", "https://example.org/schema/v4/policy-def-schema.json", List.of()),
+                new ValidatorBinding("Asset", "https://example.org/schema/v4/asset-def-schema.json", List.of())
         );
         verifyNoInteractions(monitor);
     }
@@ -88,13 +89,13 @@ class CustomSchemaValidatorConfigParserTest {
             assertThat(g.groupName()).isEqualTo("first");
             assertThat(g.version()).isEqualTo("v4");
             assertThat(g.mapping()).isNull();
-            assertThat(g.bindings()).containsExactly(new ValidatorBinding("PolicyDefinition", "https://example.org/v4/policy.json"));
+            assertThat(g.bindings()).containsExactly(new ValidatorBinding("PolicyDefinition", "https://example.org/v4/policy.json", List.of()));
         });
         assertThat(result).anySatisfy(g -> {
             assertThat(g.groupName()).isEqualTo("second");
             assertThat(g.version()).isEqualTo("v5");
             assertThat(g.mapping()).isNull();
-            assertThat(g.bindings()).containsExactly(new ValidatorBinding("Asset", "https://example.org/v5/asset.json"));
+            assertThat(g.bindings()).containsExactly(new ValidatorBinding("Asset", "https://example.org/v5/asset.json", List.of()));
         });
     }
 
@@ -165,6 +166,56 @@ class CustomSchemaValidatorConfigParserTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).mapping()).isNull();
         verify(monitor).warning(org.mockito.ArgumentMatchers.contains("custom"));
+    }
+
+    @Test
+    void parse_validatorEntryWithProfiles_parsesCommaSeparatedList() {
+        var config = ConfigFactory.fromMap(Map.of(
+                "edc.mgmt.api.schema.custom.version", "v4",
+                "edc.mgmt.api.schema.custom.validator.policy.type", "PolicyDefinition",
+                "edc.mgmt.api.schema.custom.validator.policy.schema", "https://example.org/policy.json",
+                "edc.mgmt.api.schema.custom.validator.policy.profiles", "profile-a, profile-b ,profile-c"
+        )).getConfig(CONFIG_PREFIX);
+
+        var result = CustomSchemaValidatorConfigParser.parse(config, monitor);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).bindings()).containsExactly(
+                new ValidatorBinding("PolicyDefinition", "https://example.org/policy.json", List.of("profile-a", "profile-b", "profile-c"))
+        );
+    }
+
+    @Test
+    void parse_validatorEntryWithBlankProfileTokens_filtersThemOut() {
+        var config = ConfigFactory.fromMap(Map.of(
+                "edc.mgmt.api.schema.custom.version", "v4",
+                "edc.mgmt.api.schema.custom.validator.policy.type", "PolicyDefinition",
+                "edc.mgmt.api.schema.custom.validator.policy.schema", "https://example.org/policy.json",
+                "edc.mgmt.api.schema.custom.validator.policy.profiles", "profile-a,, , profile-b"
+        )).getConfig(CONFIG_PREFIX);
+
+        var result = CustomSchemaValidatorConfigParser.parse(config, monitor);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).bindings()).containsExactly(
+                new ValidatorBinding("PolicyDefinition", "https://example.org/policy.json", List.of("profile-a", "profile-b"))
+        );
+    }
+
+    @Test
+    void parse_validatorEntryWithoutProfiles_returnsEmptyProfilesList() {
+        var config = ConfigFactory.fromMap(Map.of(
+                "edc.mgmt.api.schema.custom.version", "v4",
+                "edc.mgmt.api.schema.custom.validator.policy.type", "PolicyDefinition",
+                "edc.mgmt.api.schema.custom.validator.policy.schema", "https://example.org/policy.json"
+        )).getConfig(CONFIG_PREFIX);
+
+        var result = CustomSchemaValidatorConfigParser.parse(config, monitor);
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).bindings()).containsExactly(
+                new ValidatorBinding("PolicyDefinition", "https://example.org/policy.json", List.of())
+        );
     }
 
     @Test

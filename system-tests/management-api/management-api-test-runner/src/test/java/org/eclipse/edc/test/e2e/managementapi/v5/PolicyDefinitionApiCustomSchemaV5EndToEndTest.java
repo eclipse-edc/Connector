@@ -44,6 +44,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.createParticipant;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.jsonLdContext;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 
 /**
  * End-to-end tests for the policy definition API with a custom JSON schema validator configured.
@@ -90,7 +91,29 @@ public class PolicyDefinitionApiCustomSchemaV5EndToEndTest {
                     .log().ifValidationFails()
                     .contentType(JSON)
                     .statusCode(400)
-                    .body("[0].message", containsString("required property 'profile' not found"));
+                    .body("size()", is(1))
+                    .body("[0].message", containsString("required property 'assigner' not found"));
+        }
+
+        @Test
+        void create_validationFailsWithCustomProfile(ManagementEndToEndV5TestContext context) {
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "PolicyDefinition")
+                    .add("policy", sampleOdrlPolicy("custom-profile"))
+                    .build();
+
+            context.baseRequest(participantTokenJwt)
+                    .body(requestBody.toString())
+                    .contentType(JSON)
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .then()
+                    .log().ifValidationFails()
+                    .contentType(JSON)
+                    .statusCode(400)
+                    .body("size()", is(2))
+                    .body("[0].message", containsString("required property 'target' not found"))
+                    .body("[1].message", containsString("required property 'assigner' not found"));
         }
 
         @Test
@@ -109,11 +132,16 @@ public class PolicyDefinitionApiCustomSchemaV5EndToEndTest {
                     .log().ifValidationFails()
                     .contentType(JSON)
                     .statusCode(400)
-                    .body("[0].message", containsString("required property 'profile' not found"));
+                    .body("size()", is(1))
+                    .body("[0].message", containsString("required property 'assigner' not found"));
         }
 
         private JsonObject sampleOdrlPolicy() {
-            return createObjectBuilder()
+            return sampleOdrlPolicy(null);
+        }
+
+        private JsonObject sampleOdrlPolicy(String profile) {
+            var builder = createObjectBuilder()
                     .add(TYPE, "Set")
                     .add("permission", createArrayBuilder()
                             .add(createObjectBuilder()
@@ -132,8 +160,14 @@ public class PolicyDefinitionApiCustomSchemaV5EndToEndTest {
                             .add(createObjectBuilder()
                                     .add("action", "use")
                             )
-                    )
-                    .build();
+                    );
+
+            if (profile != null) {
+                builder.add("profile", profile);
+            }
+
+            return builder.build();
+
         }
 
     }
@@ -166,7 +200,10 @@ public class PolicyDefinitionApiCustomSchemaV5EndToEndTest {
                     "edc.mgmt.api.schema.custom.mapping.from", "https://example.org/schema/v4",
                     "edc.mgmt.api.schema.custom.mapping.to", uri,
                     "edc.mgmt.api.schema.custom.validator.policy.type", "PolicyDefinition",
-                    "edc.mgmt.api.schema.custom.validator.policy.schema", "https://example.org/schema/v4/policy-definition-custom-schema.json"
+                    "edc.mgmt.api.schema.custom.validator.policy.schema", "https://example.org/schema/v4/policy-definition-custom-schema.json",
+                    "edc.mgmt.api.schema.custom.validator.policy1.type", "PolicyDefinition",
+                    "edc.mgmt.api.schema.custom.validator.policy1.schema", "https://example.org/schema/v4/policy-definition-custom-profile-schema.json",
+                    "edc.mgmt.api.schema.custom.validator.policy1.profiles", "custom-profile"
             ));
         }
 
