@@ -53,15 +53,12 @@ public class DpsTckExtension implements ServiceExtension {
 
     public static final String NAME = "DPS TCK Signaling Trigger";
     private static final String CONTEXT = "tck";
-
-    @Configuration
-    private TckWebhookApiConfiguration webhookApiConfiguration;
     @Setting(description = "Configures the participant context id for the tck suite runtime", key = "edc.participant.context.id", defaultValue = "participantContextId")
     public String participantContextId;
-
     @Setting(description = "Base URL of the TCK acting as data plane, equal to dataspacetck.callback.address", key = "edc.tck.dataplane.url")
     public String tckDataPlaneUrl;
-
+    @Configuration
+    private TckWebhookApiConfiguration webhookApiConfiguration;
     @Inject
     private PortMappingRegistry portMappingRegistry;
     @Inject
@@ -91,14 +88,16 @@ public class DpsTckExtension implements ServiceExtension {
                 transferProcessService, participantContextSupplier, monitor));
 
         dataPlaneSelectorService.register(DataPlaneInstance.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .url(tckDataPlaneUrl + "/dataflows")
-                .allowedTransferType(Set.of("HttpData-PULL", "HttpData-PUSH"))
-                .participantContextId(participantContextId)
-                .build())
+                        .id(UUID.randomUUID().toString())
+                        .url(tckDataPlaneUrl + "/dataflows")
+                        .allowedTransferType(Set.of("HttpData-PULL", "HttpData-PUSH"))
+                        .participantContextId(participantContextId)
+                        .build())
                 .orElseThrow(f -> new EdcException("Failed to register TCK data plane: " + f.getFailureDetail()));
 
-        var asset = Asset.Builder.newInstance().build();
+        var asset = Asset.Builder.newInstance()
+                .participantContextId(participantContextId)
+                .build();
         assetService.create(asset);
 
         contractNegotiationStore.save(ContractNegotiation.Builder.newInstance()
