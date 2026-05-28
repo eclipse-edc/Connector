@@ -48,6 +48,8 @@ public class JwtToVerifiableCredentialTransformer extends AbstractJwtTransformer
     private static final String ISSUANCE_DATE_PROPERTY = "issuanceDate";
     private static final String VALID_FROM_PROPERTY = "validFrom";
     private static final String VALID_UNTIL_PROPERTY = "validUntil";
+    private static final String NAME_PROPERTY = "name";
+    private static final String DESCRIPTION_PROPERTY = "description";
 
     private final Monitor monitor;
 
@@ -101,10 +103,15 @@ public class JwtToVerifiableCredentialTransformer extends AbstractJwtTransformer
                 // issuance date
                 extractDate(vc.get(ISSUANCE_DATE_PROPERTY), claims.getNotBeforeTime()).or(() -> extractDate(vc.get(VALID_FROM_PROPERTY), claims.getNotBeforeTime())).ifPresent(builder::issuanceDate);
 
+                // extract name
+                var name = ofNullable(vc.get(NAME_PROPERTY)).map(Object::toString).orElse(null);
+                var description = ofNullable(vc.get(DESCRIPTION_PROPERTY)).map(Object::toString).orElse(null);
+                builder.name(name)
+                        .description(description);
+
                 // take issuer from JWT claim of from VC object
                 var issuer = ofNullable(claims.getIssuer()).or(() -> ofNullable(vc.get("issuer")).map(Object::toString)).orElse(null);
                 builder.issuer(new Issuer(issuer, Map.of()));
-                builder.name(claims.getSubject());
                 return builder.build();
             }
         } catch (ParseException e) {
