@@ -17,11 +17,14 @@ package org.eclipse.edc.connector.api.management.schema;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.configuration.Config;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.eclipse.edc.connector.api.management.schema.ManagementApiSchemaValidatorExtension.MAPPING_FROM_KEY;
 import static org.eclipse.edc.connector.api.management.schema.ManagementApiSchemaValidatorExtension.MAPPING_TO_KEY;
 import static org.eclipse.edc.connector.api.management.schema.ManagementApiSchemaValidatorExtension.VALIDATOR_KEY;
+import static org.eclipse.edc.connector.api.management.schema.ManagementApiSchemaValidatorExtension.VALIDATOR_PROFILES_KEY;
 import static org.eclipse.edc.connector.api.management.schema.ManagementApiSchemaValidatorExtension.VALIDATOR_SCHEMA_KEY;
 import static org.eclipse.edc.connector.api.management.schema.ManagementApiSchemaValidatorExtension.VALIDATOR_TYPE_KEY;
 import static org.eclipse.edc.connector.api.management.schema.ManagementApiSchemaValidatorExtension.VERSION_KEY;
@@ -62,16 +65,25 @@ public final class CustomSchemaValidatorConfigParser {
     }
 
     private static ValidatorBinding parseBinding(Config entryConfig) {
-        return new ValidatorBinding(entryConfig.getString(VALIDATOR_TYPE_KEY), entryConfig.getString(VALIDATOR_SCHEMA_KEY));
+        var profiles = new ArrayList<String>();
+        var rawProfiles = entryConfig.getString(VALIDATOR_PROFILES_KEY, null);
+        if (rawProfiles != null) {
+            Arrays.stream(rawProfiles.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isBlank())
+                    .forEach(profiles::add);
+        }
+        return new ValidatorBinding(entryConfig.getString(VALIDATOR_TYPE_KEY), entryConfig.getString(VALIDATOR_SCHEMA_KEY), profiles);
     }
 
     public record PrefixMapping(String from, String to) {
     }
 
-    public record ValidatorBinding(String type, String schema) {
+    public record ValidatorBinding(String type, String schema, List<String> profiles) {
     }
 
-    public record CustomValidatorGroup(String groupName, String version, PrefixMapping mapping, List<ValidatorBinding> bindings) {
+    public record CustomValidatorGroup(String groupName, String version, PrefixMapping mapping,
+                                       List<ValidatorBinding> bindings) {
     }
 
 }

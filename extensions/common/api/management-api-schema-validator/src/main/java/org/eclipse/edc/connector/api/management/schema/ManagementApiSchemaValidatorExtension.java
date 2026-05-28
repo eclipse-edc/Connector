@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.api.management.schema;
 
+import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.api.management.schema.CustomSchemaValidatorConfigParser.CustomValidatorGroup;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -22,6 +23,8 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
+import org.eclipse.edc.validator.spi.ValidationResult;
+import org.eclipse.edc.validator.spi.Validator;
 
 import java.util.HashMap;
 import java.util.List;
@@ -76,6 +79,7 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE_TERM;
 import static org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry.EDR_ENTRY_TYPE_TERM;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration.PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_TYPE_TERM;
 import static org.eclipse.edc.policy.cel.model.CelExpression.CEL_EXPRESSION_TYPE_TERM;
@@ -104,6 +108,9 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
     public static final String VALIDATOR_TYPE_KEY = "type";
     @Setting(context = CONFIG_PREFIX + ".<groupAlias>." + VALIDATOR_KEY + ".<entryAlias>.", description = "Absolute schema URL (resolved through 'mapping.from'/'mapping.to' when configured).")
     public static final String VALIDATOR_SCHEMA_KEY = "schema";
+
+    @Setting(context = CONFIG_PREFIX + ".<groupAlias>." + VALIDATOR_KEY + ".<entryAlias>.", description = "Optional profile to associate with the validator in order to be activated", required = false)
+    public static final String VALIDATOR_PROFILES_KEY = "profiles";
 
     private static final String EDC_CLASSPATH_SCHEMA = "classpath:schema/management/v4";
     private static final String DSPACE_CLASSPATH_SCHEMA = "classpath:schema/dspace/2025";
@@ -174,7 +181,35 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
 
     void registerCustomValidators(ManagementApiSchemaValidatorProvider validatorProvider, List<CustomValidatorGroup> groups) {
         groups.forEach(group -> group.bindings().forEach(binding ->
-                validator.register(group.version() + ":" + binding.type(), validatorProvider.validatorFor(binding.schema()))));
+                validator.register(group.version() + ":" + binding.type(), validatorForSchema(validatorProvider, binding.schema(), binding.type(), binding.profiles()))));
     }
 
+    private Validator<JsonObject> validatorForSchema(ManagementApiSchemaValidatorProvider validatorProvider, String schema, String type, List<String> profiles) {
+        var validator = validatorProvider.validatorFor(schema);
+        if (profiles.isEmpty()) {
+            return validator;
+        }
+        return (input) -> {
+            var profile = extractProfile(input, type);
+            // Skip validation if the input contains a profile that is not associated with the validator; otherwise, validate as normal.
+            // This allows for multiple validators to be registered for the same type but with different profiles.
+            if (profile == null || !profiles.contains(profile)) {
+                return ValidationResult.success();
+            } else {
+                return validator.validate(input);
+            }
+        };
+    }
+
+    // Currently hardcoded only for PolicyDefinition, but can be extended to support other types and profile locations as needed
+    private String extractProfile(JsonObject input, String type) {
+        var inputType = input.getString(TYPE, null);
+        if (type.equals(EDC_POLICY_DEFINITION_TYPE_TERM) && EDC_POLICY_DEFINITION_TYPE_TERM.equals(inputType)) {
+            var policy = input.getJsonObject("policy");
+            if (policy != null) {
+                return policy.getString("profile", null);
+            }
+        }
+        return null;
+    }
 }

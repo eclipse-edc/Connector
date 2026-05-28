@@ -7,25 +7,25 @@
       "$ref": "#/definitions/PolicyDefinition"
     }
   ],
-  "$id": "https://example.org/schema/v4/policy-definition-custom-schema.json",
+  "$id": "https://example.org/schema/v4/policy-definition-custom-profile-schema.json",
   "definitions": {
     "PolicyDefinition": {
       "type": "object",
       "properties": {
         "policy": {
-          "$ref": "https://example.org/schema/v4/policy-definition-custom-schema.json#/definitions/PolicyClass"
+          "$ref": "https://example.org/schema/v4/policy-definition-custom-profile-schema.json#/definitions/PolicyClass"
         }
       }
     },
     "PolicyClass": {
       "type": "object",
       "properties": {
-        "assigner": {
+        "target": {
           "type": "string"
         }
       },
       "required": [
-        "assigner"
+        "target"
       ]
     }
   }
