@@ -226,7 +226,7 @@ public class CatalogApiV5EndToEndTest {
 
             var asset2 = createAsset("id-2", "test-type")
                     .property(DCT_CONFORMS_TO_ATTRIBUTE, Map.of(ID, "https://example.org/schema")).build();
-            
+
             assetIndex.create(asset2);
             createContractOffer(policyDefinitionStore, contractDefinitionStore, List.of());
 
@@ -368,7 +368,9 @@ public class CatalogApiV5EndToEndTest {
                                             ContractDefinitionStore contractDefinitionStore,
                                             DataPlaneInstanceStore dataPlaneInstanceStore) {
             var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
-                    .allowedSourceType("test-type").allowedTransferType("any-PULL").build();
+                    .allowedSourceType("test-type").allowedTransferType("any-PULL")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .build();
             dataPlaneInstanceStore.save(dataPlaneInstance);
 
             createContractOffer(policyDefinitionStore, contractDefinitionStore, List.of());
@@ -430,7 +432,9 @@ public class CatalogApiV5EndToEndTest {
 
             var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
                     .allowedDestType("any").allowedSourceType("test-type")
-                    .allowedTransferType("any-PULL").allowedTransferType("any-PULL-response").build();
+                    .allowedTransferType("any-PULL").allowedTransferType("any-PULL-response")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .build();
             dataPlaneInstanceStore.save(dataPlaneInstance);
 
             var responseChannel = DataAddress.Builder.newInstance()
@@ -467,13 +471,17 @@ public class CatalogApiV5EndToEndTest {
 
         @Test
         void getDataset_shouldFilterDistributionsByAssetProfiles(ManagementEndToEndV5TestContext context, AssetIndex assetIndex,
-                                                                  DataPlaneInstanceStore dataPlaneInstanceStore,
-                                                                  PolicyDefinitionStore policyDefinitionStore,
-                                                                  ContractDefinitionStore contractDefinitionStore) {
+                                                                 DataPlaneInstanceStore dataPlaneInstanceStore,
+                                                                 PolicyDefinitionStore policyDefinitionStore,
+                                                                 ContractDefinitionStore contractDefinitionStore) {
             var httpDataPlane = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
-                    .allowedSourceType("test-type").allowedTransferType("Http-PULL").build();
+                    .allowedSourceType("test-type").allowedTransferType("Http-PULL")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .build();
             var s3DataPlane = DataPlaneInstance.Builder.newInstance().url("http://localhost/any-s3")
-                    .allowedSourceType("test-type").allowedTransferType("S3-PULL").build();
+                    .allowedSourceType("test-type").allowedTransferType("S3-PULL")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .build();
             dataPlaneInstanceStore.save(httpDataPlane);
             dataPlaneInstanceStore.save(s3DataPlane);
 
@@ -506,13 +514,17 @@ public class CatalogApiV5EndToEndTest {
 
         @Test
         void getDataset_shouldReturnAllDistributions_whenAssetHasNoProfiles(ManagementEndToEndV5TestContext context, AssetIndex assetIndex,
-                                                                             DataPlaneInstanceStore dataPlaneInstanceStore,
-                                                                             PolicyDefinitionStore policyDefinitionStore,
-                                                                             ContractDefinitionStore contractDefinitionStore) {
+                                                                            DataPlaneInstanceStore dataPlaneInstanceStore,
+                                                                            PolicyDefinitionStore policyDefinitionStore,
+                                                                            ContractDefinitionStore contractDefinitionStore) {
             var httpDataPlane = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
-                    .allowedSourceType("test-type").allowedTransferType("Http-PULL").build();
+                    .allowedSourceType("test-type").allowedTransferType("Http-PULL")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .build();
             var s3DataPlane = DataPlaneInstance.Builder.newInstance().url("http://localhost/any-s3")
-                    .allowedSourceType("test-type").allowedTransferType("S3-PULL").build();
+                    .allowedSourceType("test-type").allowedTransferType("S3-PULL")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .build();
             dataPlaneInstanceStore.save(httpDataPlane);
             dataPlaneInstanceStore.save(s3DataPlane);
 
@@ -575,7 +587,9 @@ public class CatalogApiV5EndToEndTest {
                                            PolicyDefinitionStore policyDefinitionStore, ContractDefinitionStore contractDefinitionStore,
                                            AssetIndex assetIndex, OauthServer authServer) {
             var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
-                    .allowedSourceType("test-type").allowedTransferType("any-PULL").build();
+                    .allowedSourceType("test-type").allowedTransferType("any-PULL")
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
+                    .build();
             dataPlaneInstanceStore.save(dataPlaneInstance);
 
             createContractOffer(policyDefinitionStore, contractDefinitionStore, List.of());

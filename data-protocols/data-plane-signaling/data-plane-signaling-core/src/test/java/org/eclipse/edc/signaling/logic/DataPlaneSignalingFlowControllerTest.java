@@ -16,6 +16,7 @@ package org.eclipse.edc.signaling.logic;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
@@ -67,10 +68,11 @@ public class DataPlaneSignalingFlowControllerTest {
     private final DataPlaneSelectorService selectorService = mock();
     private final TypeTransformerRegistry typeTransformerRegistry = mock();
     private final DataAddressStore dataAddressStore = mock();
+    private final AssetIndex assetIndex = mock();
 
     private final DataPlaneSignalingFlowController flowController = new DataPlaneSignalingFlowController(
             URI.create("http://localhost"), selectorService,
-            typeTransformerRegistry, clientFactory, dataAddressStore);
+            typeTransformerRegistry, clientFactory, dataAddressStore, assetIndex);
 
     @Nested
     class Prepare {
@@ -488,7 +490,7 @@ public class DataPlaneSignalingFlowControllerTest {
         void transferTypes_shouldReturnTypesForSpecifiedAsset() {
 
             var assetNoResponse = Asset.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build()).build();
-            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(
+            when(selectorService.search(any())).thenReturn(ServiceResult.success(List.of(
                     dataPlaneInstanceBuilder().allowedTransferType("Custom-PUSH").build(),
                     dataPlaneInstanceBuilder().allowedTransferType("Custom-PULL").build()
             )));
@@ -500,7 +502,7 @@ public class DataPlaneSignalingFlowControllerTest {
 
         @Test
         void shouldReturnEmptyList_whenCannotGetDataplaneInstances() {
-            when(selectorService.getAll()).thenReturn(ServiceResult.unexpected("error"));
+            when(selectorService.search(any())).thenReturn(ServiceResult.unexpected("error"));
             var asset = Asset.Builder.newInstance().dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build()).build();
 
             var transferTypes = flowController.transferTypesFor(asset);
@@ -510,7 +512,7 @@ public class DataPlaneSignalingFlowControllerTest {
 
         @Test
         void shouldFilterByAssetProfile_whenProfilesAreSet() {
-            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(
+            when(selectorService.search(any())).thenReturn(ServiceResult.success(List.of(
                     dataPlaneInstanceBuilder().allowedTransferType("Http-PULL").build(),
                     dataPlaneInstanceBuilder().allowedTransferType("S3-PULL").build()
             )));
@@ -527,7 +529,7 @@ public class DataPlaneSignalingFlowControllerTest {
 
         @Test
         void shouldReturnAllTypes_whenAssetHasNoProfiles() {
-            when(selectorService.getAll()).thenReturn(ServiceResult.success(List.of(
+            when(selectorService.search(any())).thenReturn(ServiceResult.success(List.of(
                     dataPlaneInstanceBuilder().allowedTransferType("Http-PULL").build(),
                     dataPlaneInstanceBuilder().allowedTransferType("S3-PULL").build()
             )));
@@ -538,6 +540,54 @@ public class DataPlaneSignalingFlowControllerTest {
             var transferTypes = flowController.transferTypesFor(asset);
 
             assertThat(transferTypes).containsExactlyInAnyOrder("Http-PULL", "S3-PULL");
+        }
+
+        @Test
+        void shouldFilterDataPlanesByParticipantContext() {
+            when(selectorService.search(any())).thenReturn(ServiceResult.success(List.of(
+                    dataPlaneInstanceBuilder().allowedTransferType("Http-PULL").build()
+            )));
+            var asset = Asset.Builder.newInstance()
+                    .participantContextId("participant-1")
+                    .dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build())
+                    .build();
+
+            flowController.transferTypesFor(asset);
+
+            verify(selectorService).search(argThat(querySpec -> querySpec.getFilterExpression().stream().anyMatch(criterion ->
+                    "participantContextId".equals(criterion.getOperandLeft()) &&
+                            "=".equals(criterion.getOperator()) &&
+                            "participant-1".equals(criterion.getOperandRight()))));
+        }
+
+        @Test
+        void shouldResolveAssetById_whenLookingUpByAssetId() {
+            var asset = Asset.Builder.newInstance()
+                    .id("assetId")
+                    .participantContextId("participant-1")
+                    .dataAddress(DataAddress.Builder.newInstance().type("TargetSrc").build())
+                    .build();
+            when(assetIndex.findById("assetId")).thenReturn(asset);
+            when(selectorService.search(any())).thenReturn(ServiceResult.success(List.of(
+                    dataPlaneInstanceBuilder().allowedTransferType("Http-PULL").build()
+            )));
+
+            var transferTypes = flowController.transferTypesFor("assetId");
+
+            assertThat(transferTypes).containsExactly("Http-PULL");
+            verify(selectorService).search(argThat(querySpec -> querySpec.getFilterExpression().stream().anyMatch(criterion ->
+                    "participantContextId".equals(criterion.getOperandLeft()) &&
+                            "participant-1".equals(criterion.getOperandRight()))));
+        }
+
+        @Test
+        void shouldReturnEmpty_whenAssetIdNotFound() {
+            when(assetIndex.findById("missing")).thenReturn(null);
+
+            var transferTypes = flowController.transferTypesFor("missing");
+
+            assertThat(transferTypes).isEmpty();
+            verifyNoInteractions(selectorService);
         }
     }
 

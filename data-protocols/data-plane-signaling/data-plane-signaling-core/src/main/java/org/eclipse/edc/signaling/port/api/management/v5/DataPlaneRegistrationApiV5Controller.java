@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2026 Think-it GmbH
+ *  Copyright (c) 2026 Metaform Systems, Inc.
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Think-it GmbH - initial API and implementation
+ *       Metaform Systems, Inc. - initial API and implementation
  *
  */
 
@@ -41,7 +41,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 @Produces(APPLICATION_JSON)
 @Consumes(APPLICATION_JSON)
 @Path("/v5beta/participants/{participantContextId}/dataplanes")
-public class DataPlaneRegistrationApiV5Controller implements org.eclipse.edc.signaling.port.api.management.v5.DataPlaneRegistrationApiV5 {
+public class DataPlaneRegistrationApiV5Controller implements DataPlaneRegistrationApiV5 {
 
     private final DataPlaneSelectorService dataPlaneSelectorService;
     private final AuthorizationService authorizationService;

@@ -16,6 +16,7 @@ package org.eclipse.edc.signaling.logic;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
+import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
@@ -47,6 +48,7 @@ import java.util.UUID;
 
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
+import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
@@ -59,15 +61,17 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
     private final TypeTransformerRegistry typeTransformerRegistry;
     private final ClientFactory clientFactory;
     private final DataAddressStore dataAddressStore;
+    private final AssetIndex assetIndex;
 
     public DataPlaneSignalingFlowController(URI callbackUri, DataPlaneSelectorService selectorClient,
                                             TypeTransformerRegistry typeTransformerRegistry, ClientFactory clientFactory,
-                                            DataAddressStore dataAddressStore) {
+                                            DataAddressStore dataAddressStore, AssetIndex assetIndex) {
         this.callbackUri = callbackUri;
         this.selectorClient = selectorClient;
         this.typeTransformerRegistry = typeTransformerRegistry;
         this.clientFactory = clientFactory;
         this.dataAddressStore = dataAddressStore;
+        this.assetIndex = assetIndex;
     }
 
     @Override
@@ -264,16 +268,19 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
         var profiles = Optional.ofNullable(asset.getDataplaneMetadata())
                 .map(DataplaneMetadata::getProfiles)
                 .orElse(List.of());
-        return transferTypes(profiles);
+        return transferTypes(asset.getParticipantContextId(), profiles);
     }
 
     @Override
     public Set<String> transferTypesFor(String assetId) {
-        return transferTypes(List.of());
+        return Optional.ofNullable(assetIndex.findById(assetId))
+                .map(this::transferTypesFor)
+                .orElseGet(Collections::emptySet);
     }
 
-    private @NotNull Set<String> transferTypes(List<String> profiles) {
-        return selectorClient.getAll().map(Collection::stream)
+    private @NotNull Set<String> transferTypes(String participantContextId, List<String> profiles) {
+        return selectorClient.search(queryByParticipantContextId(participantContextId).build())
+                .map(Collection::stream)
                 .map(dataPlane -> dataPlane.map(DataPlaneInstance::getAllowedTransferTypes)
                         .filter(allowedTransferTypes -> profiles.isEmpty() || !Collections.disjoint(allowedTransferTypes, profiles))
                         .flatMap(Collection::stream).collect(toSet()))
