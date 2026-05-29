@@ -120,13 +120,13 @@ class DiscoveryServiceImplTest {
                 .anySatisfy(m -> {
                     assertThat(m.profile()).isEqualTo("dsp-2025-1");
                     assertThat(m.version()).isEqualTo("2025-1");
-                    assertThat(m.counterPartyPath()).isEqualTo("/remote-2025");
+                    assertThat(m.counterParty().path()).isEqualTo("/remote-2025");
                     assertThat(m.binding()).isEqualTo("http");
                 })
                 .anySatisfy(m -> {
                     assertThat(m.profile()).isEqualTo("dsp-2024-1");
                     assertThat(m.version()).isEqualTo("2024-1");
-                    assertThat(m.counterPartyPath()).isEqualTo("/remote-2024");
+                    assertThat(m.counterParty().path()).isEqualTo("/remote-2024");
                 });
     }
 
@@ -148,7 +148,7 @@ class DiscoveryServiceImplTest {
         assertThat(result.getContent()).singleElement().satisfies(m -> {
             assertThat(m.profile()).isEqualTo("dsp-2025-1");
             assertThat(m.binding()).isEqualTo("http");
-            assertThat(m.counterPartyPath()).isEqualTo("/remote-http");
+            assertThat(m.counterParty().path()).isEqualTo("/remote-http");
         });
     }
     

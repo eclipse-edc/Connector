@@ -68,7 +68,8 @@ class DiscoveryApiV5ControllerTest extends RestControllerTestBase {
     void shouldReturnDiscoveredProfiles() {
         var request = new DiscoveryRequest(null, "https://counter-party.example");
         when(transformerRegistry.transform(isA(JsonObject.class), eq(DiscoveryRequest.class))).thenReturn(Result.success(request));
-        var match = new DiscoveryResponse("profile-1", "version", "/remote", "http");
+        var match = new DiscoveryResponse("profile-1", "version",
+                new DiscoveryResponse.CounterParty("/remote", "http://remote/dataservice"), "http");
         when(discoveryService.discover(eq(PARTICIPANT_CONTEXT_ID), eq(request))).thenReturn(ServiceResult.success(List.of(match)));
         when(transformerRegistry.transform(isA(DiscoveryResponse.class), eq(JsonObject.class)))
                 .thenReturn(Result.success(Json.createObjectBuilder().add("profile", "profile-1").build()));
