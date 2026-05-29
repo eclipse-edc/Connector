@@ -50,6 +50,10 @@ public class ValidatableConsumerOffer {
         return contractDefinition;
     }
 
+    public Policy getTargetedContractPolicy() {
+        return contractPolicy.withTarget(offerId.assetIdPart());
+    }
+
     public static final class Builder {
 
         private final ValidatableConsumerOffer consumerOffer;

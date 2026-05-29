@@ -41,31 +41,33 @@ public class ConsumerOfferResolverImpl implements ConsumerOfferResolver {
 
         if (parsedResult.failed()) {
             return ServiceResult.badRequest(parsedResult.getFailureMessages());
-        } else {
-            var definitionId = parsedResult.getContent().definitionPart();
-            var contractDefinition = contractDefinitionStore.findById(definitionId);
-            if (contractDefinition == null) {
-                return ServiceResult.notFound(format("Contract definition with id %s not found", definitionId));
-            }
-
-            var accessPolicy = policyDefinitionStore.findById(contractDefinition.getAccessPolicyId());
-            if (accessPolicy == null) {
-                return ServiceResult.notFound(format("Policy with id %s not found", contractDefinition.getAccessPolicyId()));
-            }
-
-            var contractPolicy = policyDefinitionStore.findById(contractDefinition.getContractPolicyId());
-            if (contractPolicy == null) {
-                return ServiceResult.notFound(format("Policy with id %s not found", contractDefinition.getContractPolicyId()));
-            }
-
-            return ServiceResult.success(ValidatableConsumerOffer.Builder.newInstance()
-                    .contractDefinition(contractDefinition)
-                    .accessPolicy(accessPolicy.getPolicy())
-                    .contractPolicy(contractPolicy.getPolicy())
-                    .offerId(parsedResult.getContent())
-                    .build());
-
         }
+
+        var parsedOfferId = parsedResult.getContent();
+        var definitionId = parsedOfferId.definitionPart();
+        var contractDefinition = contractDefinitionStore.findById(definitionId);
+        if (contractDefinition == null) {
+            return ServiceResult.notFound(format("Contract definition with id %s not found", definitionId));
+        }
+
+        var accessPolicy = policyDefinitionStore.findById(contractDefinition.getAccessPolicyId());
+        if (accessPolicy == null) {
+            return ServiceResult.notFound(format("Policy with id %s not found", contractDefinition.getAccessPolicyId()));
+        }
+
+        var contractPolicy = policyDefinitionStore.findById(contractDefinition.getContractPolicyId());
+        if (contractPolicy == null) {
+            return ServiceResult.notFound(format("Policy with id %s not found", contractDefinition.getContractPolicyId()));
+        }
+
+        return ServiceResult.success(ValidatableConsumerOffer.Builder.newInstance()
+                .contractDefinition(contractDefinition)
+                .accessPolicy(accessPolicy.getPolicy())
+                .contractPolicy(contractPolicy.getPolicy())
+                .offerId(parsedOfferId)
+                .build());
+
+
     }
 
 }

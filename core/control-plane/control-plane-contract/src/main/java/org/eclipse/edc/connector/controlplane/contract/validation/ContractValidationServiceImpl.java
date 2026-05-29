@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.policy.PolicyEquality;
-import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.controlplane.contract.spi.policy.ContractNegotiationPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.policy.TransferProcessPolicyContext;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
@@ -28,11 +27,9 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ValidatableConsumerOffer;
-import org.eclipse.edc.connector.controlplane.contract.spi.validation.ValidatedConsumerOffer;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
@@ -63,10 +60,36 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     @Override
-    public @NotNull Result<ValidatedConsumerOffer> validateInitialOffer(ParticipantAgent agent, ValidatableConsumerOffer consumerOffer) {
-        return validateInitialOffer(consumerOffer, agent)
-                .compose(policy -> createContractOffer(policy, consumerOffer.getOfferId()))
-                .map(contractOffer -> new ValidatedConsumerOffer(agent.getIdentity(), contractOffer));
+    public @NotNull Result<Void> validateInitialOffer(ParticipantAgent agent, ValidatableConsumerOffer consumerOffer) {
+        var accessPolicyResult = policyEngine.evaluate(consumerOffer.getAccessPolicy(), new CatalogPolicyContext(agent));
+        if (accessPolicyResult.failed()) {
+            return accessPolicyResult.mapFailure();
+        }
+
+        var target = consumerOffer.getOfferId().assetIdPart();
+        if (assetIndex.findById(target) == null) {
+            return failure("Invalid target: " + target);
+        }
+
+        // verify that the asset in the offer is actually in the contract definition
+        var testCriteria = new ArrayList<>(consumerOffer.getContractDefinition().getAssetsSelector());
+        testCriteria.add(new Criterion(Asset.PROPERTY_ID, "=", target));
+        if (assetIndex.countAssets(testCriteria) <= 0) {
+            return failure("Asset ID from the ContractOffer is not included in the ContractDefinition");
+        }
+
+        var contractOfferId = consumerOffer.getOfferId();
+        if (!contractOfferId.assetIdPart().equals(target)) {
+            return failure("Policy target %s does not match the asset ID in the contract offer %s".formatted(target, contractOfferId.assetIdPart()));
+        }
+
+        var contractPolicy = consumerOffer.getTargetedContractPolicy();
+        var contractPolicyResult = policyEngine.evaluate(contractPolicy, new ContractNegotiationPolicyContext(agent));
+        if (contractPolicyResult.failed()) {
+            return contractPolicyResult.mapFailure();
+        }
+
+        return Result.success();
     }
 
     @Override
@@ -130,34 +153,27 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
 
         // verify the target asset exists
-        var targetAsset = assetIndex.findById(consumerOffer.getOfferId().assetIdPart());
+        var target = consumerOffer.getOfferId().assetIdPart();
+        var targetAsset = assetIndex.findById(target);
         if (targetAsset == null) {
-            return failure("Invalid target: " + consumerOffer.getOfferId().assetIdPart());
+            return failure("Invalid target: " + target);
         }
 
         // verify that the asset in the offer is actually in the contract definition
         var testCriteria = new ArrayList<>(consumerOffer.getContractDefinition().getAssetsSelector());
-        testCriteria.add(new Criterion(Asset.PROPERTY_ID, "=", consumerOffer.getOfferId().assetIdPart()));
+        testCriteria.add(new Criterion(Asset.PROPERTY_ID, "=", target));
         if (assetIndex.countAssets(testCriteria) <= 0) {
             return failure("Asset ID from the ContractOffer is not included in the ContractDefinition");
         }
 
-        var contractPolicy = consumerOffer.getContractPolicy().withTarget(consumerOffer.getOfferId().assetIdPart());
+        var contractOfferId = consumerOffer.getOfferId();
+        if (!contractOfferId.assetIdPart().equals(target)) {
+            return failure("Policy target %s does not match the asset ID in the contract offer %s".formatted(target, contractOfferId.assetIdPart()));
+        }
+
+        var contractPolicy = consumerOffer.getContractPolicy().withTarget(target);
         return policyEngine.evaluate(contractPolicy, new ContractNegotiationPolicyContext(agent))
                 .map(v -> contractPolicy);
-    }
-
-    @NotNull
-    private Result<ContractOffer> createContractOffer(Policy policy, ContractOfferId contractOfferId) {
-        if (!contractOfferId.assetIdPart().equals(policy.getTarget())) {
-            return Result.failure("Policy target %s does not match the asset ID in the contract offer %s".formatted(policy.getTarget(), contractOfferId.assetIdPart()));
-        }
-        return Result.success(ContractOffer.Builder.newInstance()
-                .id(contractOfferId.toString())
-                // we copy the policy and enforce it to be of type OFFER
-                .policy(policy.toBuilder().type(PolicyType.OFFER).build())
-                .assetId(contractOfferId.assetIdPart())
-                .build());
     }
 
 }

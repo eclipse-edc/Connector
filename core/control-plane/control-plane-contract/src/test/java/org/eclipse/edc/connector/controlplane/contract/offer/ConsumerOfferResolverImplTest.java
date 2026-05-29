@@ -37,8 +37,8 @@ import static org.mockito.Mockito.when;
 
 class ConsumerOfferResolverImplTest {
 
-    private final PolicyDefinitionStore policyStore = mock(PolicyDefinitionStore.class);
-    private final ContractDefinitionStore definitionStore = mock(ContractDefinitionStore.class);
+    private final PolicyDefinitionStore policyStore = mock();
+    private final ContractDefinitionStore definitionStore = mock();
     private ConsumerOfferResolverImpl validatableConsumerOfferResolver;
 
     @BeforeEach

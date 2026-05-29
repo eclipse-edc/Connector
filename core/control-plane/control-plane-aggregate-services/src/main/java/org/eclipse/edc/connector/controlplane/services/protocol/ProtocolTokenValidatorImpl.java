@@ -77,12 +77,10 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
         var id = Optional.of(message.getProtocol())
                 .map(dataspaceProfileContextRegistry::getIdExtractionFunction)
                 .map(extractor -> extractor.apply(claimToken))
-                .orElseGet(() -> {
-                    monitor.debug(() -> "Unauthorized: Cannot extract id on protocol [%s] from claims: %s.".formatted(message.getProtocol(), claimToken.getClaims()));
-                    return null;
-                });
+                .orElse(null);
 
         if (id == null) {
+            monitor.debug(() -> "Unauthorized: Cannot extract id on protocol [%s] from claims: %s.".formatted(message.getProtocol(), claimToken.getClaims()));
             return ServiceResult.unauthorized("Unauthorized");
         }
 
