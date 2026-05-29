@@ -34,7 +34,6 @@ import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -105,12 +104,6 @@ class ContractValidationServiceImplTest {
         var result = validationService.validateInitialOffer(participantAgent, validatableOffer);
 
         assertThat(result.succeeded()).isTrue();
-        var validatedOffer = result.getContent().getOffer();
-        assertThat(validatedOffer.getPolicy()).isNotSameAs(originalPolicy); // verify the returned policy is the sanitized one
-        assertThat(validatedOffer.getPolicy().getType()).isEqualTo(PolicyType.OFFER); // verify the returned policy is of type OFFER
-        assertThat(validatedOffer.getAssetId()).isEqualTo(asset.getId());
-
-        assertThat(result.getContent().getConsumerIdentity()).isEqualTo(CONSUMER_ID); // verify the returned policy has the consumer id set, essential for later validation checks
 
         verify(assetIndex).findById("1");
         verify(policyEngine).evaluate(

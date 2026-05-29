@@ -34,10 +34,10 @@ public interface ContractValidationService {
      *
      * @param agent         The {@link ParticipantAgent} of the consumer
      * @param consumerOffer The initial {@link ValidatableConsumerOffer} id to validate
-     * @return The referenced {@link ValidatedConsumerOffer}.
+     * @return the validation result.
      */
     @NotNull
-    Result<ValidatedConsumerOffer> validateInitialOffer(ParticipantAgent agent, ValidatableConsumerOffer consumerOffer);
+    Result<Void> validateInitialOffer(ParticipantAgent agent, ValidatableConsumerOffer consumerOffer);
 
     /**
      * Validates the contract agreement that the consumer referenced in its transfer request.
