@@ -591,8 +591,12 @@
         "version": {
           "@id": "edc:version"
         },
-        "counterPartyPath": {
-          "@id": "edc:counterPartyPath"
+        "counterParty": {
+          "@id": "edc:counterParty",
+          "@context": {
+            "path": "edc:path",
+            "dataServiceEndpoint": "edc:dataServiceEndpoint"
+          }
         },
         "binding": {
           "@id": "edc:binding"

@@ -24,8 +24,10 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.protocol.spi.discovery.DiscoveryResponse.COUNTER_PARTY_DATASERVICE_ENDPOINT_IRI;
+import static org.eclipse.edc.protocol.spi.discovery.DiscoveryResponse.COUNTER_PARTY_PATH_IRI;
 import static org.eclipse.edc.protocol.spi.discovery.DiscoveryResponse.DISCOVERY_RESPONSE_BINDING_IRI;
-import static org.eclipse.edc.protocol.spi.discovery.DiscoveryResponse.DISCOVERY_RESPONSE_COUNTER_PARTY_PATH_IRI;
+import static org.eclipse.edc.protocol.spi.discovery.DiscoveryResponse.DISCOVERY_RESPONSE_COUNTER_PARTY_IRI;
 import static org.eclipse.edc.protocol.spi.discovery.DiscoveryResponse.DISCOVERY_RESPONSE_PROFILE_IRI;
 import static org.eclipse.edc.protocol.spi.discovery.DiscoveryResponse.DISCOVERY_RESPONSE_TYPE_IRI;
 import static org.eclipse.edc.protocol.spi.discovery.DiscoveryResponse.DISCOVERY_RESPONSE_VERSION_IRI;
@@ -44,15 +46,20 @@ class JsonObjectFromDiscoveryResponseTransformerTest {
 
     @Test
     void transform() {
-        var match = new DiscoveryResponse("profile-1", "version", "/remote", "http");
+        var match = new DiscoveryResponse("profile-1", "version",
+                new DiscoveryResponse.CounterParty("/remote", "http://remote/dataservice"), "http");
 
         var result = transformer.transform(match, context);
 
         assertThat(result).isNotNull();
         assertThat(result.getString(TYPE)).isEqualTo(DISCOVERY_RESPONSE_TYPE_IRI);
         assertThat(result.getString(DISCOVERY_RESPONSE_PROFILE_IRI)).isEqualTo("profile-1");
-        assertThat(result.getString(DISCOVERY_RESPONSE_COUNTER_PARTY_PATH_IRI)).isEqualTo("/remote");
         assertThat(result.getString(DISCOVERY_RESPONSE_VERSION_IRI)).isEqualTo("version");
         assertThat(result.getString(DISCOVERY_RESPONSE_BINDING_IRI)).isEqualTo("http");
+
+        var counterParty = result.getJsonObject(DISCOVERY_RESPONSE_COUNTER_PARTY_IRI);
+        assertThat(counterParty).isNotNull();
+        assertThat(counterParty.getString(COUNTER_PARTY_PATH_IRI)).isEqualTo("/remote");
+        assertThat(counterParty.getString(COUNTER_PARTY_DATASERVICE_ENDPOINT_IRI)).isEqualTo("http://remote/dataservice");
     }
 }

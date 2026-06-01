@@ -91,8 +91,11 @@ public class DiscoveryApiV5EndToEndTest {
                 assertThat(entry.asJsonObject().getString(TYPE)).isEqualTo("DiscoveryResponse");
                 assertThat(entry.asJsonObject().getString("profile")).isEqualTo("dsp2025_1");
                 assertThat(entry.asJsonObject().getString("version")).isEqualTo("2025-1");
-                assertThat(entry.asJsonObject().getString("counterPartyPath")).isNotNull();
                 assertThat(entry.asJsonObject().getString("binding")).isNotNull();
+                var counterParty = entry.asJsonObject().getJsonObject("counterParty");
+                assertThat(counterParty).isNotNull();
+                assertThat(counterParty.getString("path")).isNotNull();
+                assertThat(counterParty.getString("dataServiceEndpoint")).isNotNull();
             });
         }
 

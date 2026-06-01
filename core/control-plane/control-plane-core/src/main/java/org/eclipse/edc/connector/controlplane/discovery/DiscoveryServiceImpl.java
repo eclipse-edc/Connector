@@ -70,27 +70,32 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
     private ServiceResult<List<DiscoveryResponse>> resolveMatches(String participantContextId, DiscoveryRequest request, DiscoveryUrlResolver resolver) {
 
-        var versionsResult = resolver.resolve(request).compose(this::fetchProtocolVersions);
+        var wellKnownUrlResult = resolver.resolve(request);
+        if (wellKnownUrlResult.failed()) {
+            return ServiceResult.badRequest(wellKnownUrlResult.getFailureDetail());
+        }
+        var wellKnownUrl = wellKnownUrlResult.getContent();
+        var versionsResult = fetchProtocolVersions(wellKnownUrl);
         if (versionsResult.failed()) {
             return ServiceResult.badRequest(versionsResult.getFailureDetail());
         }
 
         var localProfiles = participantProfileService.resolveAll(participantContextId);
         var matches = localProfiles.stream()
-                .flatMap(profileMatcher(versionsResult.getContent()))
+                .flatMap(profileMatcher(wellKnownUrl, versionsResult.getContent()))
                 .toList();
 
         return ServiceResult.success(matches);
     }
 
-    private Function<DataspaceProfileContext, Stream<? extends DiscoveryResponse>> profileMatcher(List<ProtocolVersion> versions) {
+    private Function<DataspaceProfileContext, Stream<? extends DiscoveryResponse>> profileMatcher(String wellKnownUrl, List<ProtocolVersion> versions) {
         return profile -> versions.stream()
                 .filter(v -> v.version().equals(profile.protocolVersion().version()) &&
                         v.binding().equals(profile.protocolVersion().binding()))
                 .map(v -> new DiscoveryResponse(
                         profile.name(),
                         v.version(),
-                        v.path(),
+                        new DiscoveryResponse.CounterParty(v.path(), wellKnownUrl),
                         v.binding()));
     }
 
