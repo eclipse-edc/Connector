@@ -21,7 +21,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -45,11 +44,9 @@ public class TrustedIssuerConfigurationExtension implements ServiceExtension {
     protected static final String NAME = "Trusted Issuers Configuration Extensions";
 
     @Deprecated(since = "0.17.0")
-    @SettingContext(DEPRECATED_CONFIG_PREFIX)
-    @Configuration
+    @Configuration(context = DEPRECATED_CONFIG_PREFIX)
     private Map<String, TrustedIssuerConfiguration> deprecatedTrustedIssuers;
-    @SettingContext(CONFIG_PREFIX)
-    @Configuration
+    @Configuration(context = CONFIG_PREFIX)
     private Map<String, TrustedIssuerConfiguration> trustedIssuers;
 
     @Inject

@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.boot.system.injection;
 
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -29,7 +30,7 @@ import java.util.Map;
 /**
  * Injection point for configuration maps. A configuration map field is annotated with {@link org.eclipse.edc.runtime.metamodel.annotation.Configuration}
  * and has type {@link Map}{@code <String, T>} where {@code T} is a type annotated with {@link org.eclipse.edc.runtime.metamodel.annotation.Settings}.
- * The map keys are derived from the configuration path segments under the {@link SettingContext} prefix.
+ * The map keys are derived from the configuration path segments defined in the context attribute.
  * <p>
  * For example, given prefix {@code edc.iam.publickeys} and settings:
  * <pre>
@@ -92,8 +93,7 @@ public class ConfigurationMapInjectionPoint<T> implements InjectionPoint<T> {
 
     @Override
     public Object resolve(ServiceExtensionContext context, DefaultServiceSupplier defaultServiceSupplier) {
-        var settingContext = mapField.getAnnotation(SettingContext.class);
-        var prefix = settingContext != null ? settingContext.value() : null;
+        var prefix = getPrefix();
 
         var baseConfig = prefix != null ? context.getConfig(prefix) : context.getConfig();
 
@@ -110,5 +110,15 @@ public class ConfigurationMapInjectionPoint<T> implements InjectionPoint<T> {
     @Override
     public Result<List<InjectionContainer<T>>> getProviders(Map<Class<?>, List<InjectionContainer<T>>> dependencyMap, ServiceExtensionContext context) {
         return Result.success(List.of());
+    }
+
+    private @Nullable String getPrefix() {
+        var configurationContext = mapField.getAnnotation(Configuration.class).context();
+        if (!configurationContext.isEmpty()) {
+            return configurationContext;
+        }
+
+        var settingContext = mapField.getAnnotation(SettingContext.class);
+        return settingContext != null ? settingContext.value() : null;
     }
 }

@@ -30,7 +30,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -57,8 +56,7 @@ public class TransferCoreExtension implements ServiceExtension {
 
     public static final String NAME = "Transfer Core";
 
-    @SettingContext("edc.transfer")
-    @Configuration
+    @Configuration(context = "edc.transfer")
     private StateMachineConfiguration stateMachineConfiguration;
 
     @Inject

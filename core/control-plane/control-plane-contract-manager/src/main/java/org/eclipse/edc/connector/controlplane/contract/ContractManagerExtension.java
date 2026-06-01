@@ -26,7 +26,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -43,8 +42,7 @@ public class ContractManagerExtension implements ServiceExtension {
 
     public static final String NAME = "Contract Manager";
 
-    @SettingContext("edc.negotiation")
-    @Configuration
+    @Configuration(context = "edc.negotiation")
     private StateMachineConfiguration stateMachineConfiguration;
 
     @Inject

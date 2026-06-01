@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.boot.system.injection;
 
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.result.AbstractResult;
@@ -102,8 +103,7 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
 
     @Override
     public Object resolve(ServiceExtensionContext context, DefaultServiceSupplier defaultServiceSupplier) {
-        var keyPrefix = configurationField.getAnnotation(SettingContext.class) != null
-                ? configurationField.getAnnotation(SettingContext.class).value() : null;
+        var keyPrefix = getPrefix();
         return configurationObjectFactory.instantiate(context, keyPrefix, configurationField.getType());
     }
 
@@ -118,6 +118,16 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
                 .toList();
 
         return violators.isEmpty() ? Result.success(List.of()) : Result.failure("%s, through nested %s".formatted(asString(), violators));
+    }
+
+    private @Nullable String getPrefix() {
+        var configurationContext = configurationField.getAnnotation(Configuration.class).context();
+        if (!configurationContext.isEmpty()) {
+            return configurationContext;
+        }
+
+        var settingContext = configurationField.getAnnotation(SettingContext.class);
+        return settingContext != null ? settingContext.value() : null;
     }
 
     private String asString() {

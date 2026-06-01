@@ -22,7 +22,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
@@ -47,8 +46,7 @@ public class LocalPublicKeyDefaultExtension implements ServiceExtension {
     @Inject
     public KeyParserRegistry keyParserRegistry;
 
-    @SettingContext(EDC_PUBLIC_KEYS_PREFIX)
-    @Configuration
+    @Configuration(context = EDC_PUBLIC_KEYS_PREFIX)
     private Map<String, PublicKeyConfiguration> configurations;
 
     private LocalPublicKeyServiceImpl localPublicKeyService;
