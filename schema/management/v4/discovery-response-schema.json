@@ -27,9 +27,8 @@
           "type": "string",
           "description": "The DSP protocol version shared by the local profile and the counter party entry."
         },
-        "counterPartyPath": {
-          "type": "string",
-          "description": "The path under the counter party's base URL where the matching DSP version is exposed, as returned in the well-known versions document."
+        "counterParty": {
+          "$ref": "#/definitions/CounterParty"
         },
         "binding": {
           "type": "string",
@@ -40,8 +39,25 @@
         "@type",
         "profile",
         "version",
-        "counterPartyPath",
+        "counterParty",
         "binding"
+      ]
+    },
+    "CounterParty": {
+      "type": "object",
+      "description": "Counter party coordinates for a matched protocol version.",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "The path under the counter party's base URL where the matching DSP version is exposed, as returned in the well-known versions document."
+        },
+        "dataServiceEndpoint": {
+          "type": "string",
+          "description": "The counter party's data service endpoint URL."
+        }
+      },
+      "required": [
+        "path"
       ]
     }
   }
