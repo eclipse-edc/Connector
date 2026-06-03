@@ -258,15 +258,15 @@ public class CatalogApiV5MultiProfileEndToEndTest {
         static Config config() {
             return ConfigFactory.fromMap(Map.of(
                             "edc.dataspace.profiles.dsp2025_1.name", "dsp2025_1",
-                            "edc.dataspace.profiles.dsp2025_1.protocolVersion", "2025-1",
-                            "edc.dataspace.profiles.dsp2025_1.protocolBinding", "HTTPS",
-                            "edc.dataspace.profiles.dsp2025_1.protocolNamespace", "https://w3id.org/dspace/2025/1/",
-                            "edc.dataspace.profiles.dsp2025_1.jsonLdContextsUrl", "https://w3id.org/dspace/2025/1/context.jsonld",
+                            "edc.dataspace.profiles.dsp2025_1.protocol.version", "2025-1",
+                            "edc.dataspace.profiles.dsp2025_1.protocol.binding", "HTTPS",
+                            "edc.dataspace.profiles.dsp2025_1.protocol.namespace", "https://w3id.org/dspace/2025/1/",
+                            "edc.dataspace.profiles.dsp2025_1.jsonld.context.urls", "https://w3id.org/dspace/2025/1/context.jsonld",
                             "edc.dataspace.profiles.dsp2025_2.name", "dsp2025_2",
-                            "edc.dataspace.profiles.dsp2025_2.protocolVersion", "2025-1",
-                            "edc.dataspace.profiles.dsp2025_2.protocolBinding", "HTTPS",
-                            "edc.dataspace.profiles.dsp2025_2.protocolNamespace", "https://w3id.org/dspace/2025/1/",
-                            "edc.dataspace.profiles.dsp2025_2.jsonLdContextsUrl", "https://w3id.org/dspace/2025/1/context.jsonld"
+                            "edc.dataspace.profiles.dsp2025_2.protocol.version", "2025-1",
+                            "edc.dataspace.profiles.dsp2025_2.protocol.binding", "HTTPS",
+                            "edc.dataspace.profiles.dsp2025_2.protocol.namespace", "https://w3id.org/dspace/2025/1/",
+                            "edc.dataspace.profiles.dsp2025_2.jsonld.context.urls", "https://w3id.org/dspace/2025/1/context.jsonld"
                     )
             );
         }
