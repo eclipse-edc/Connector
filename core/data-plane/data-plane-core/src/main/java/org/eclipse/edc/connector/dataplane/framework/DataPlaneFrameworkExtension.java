@@ -31,7 +31,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -58,8 +57,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     public static final String NAME = "Data Plane Framework";
     private static final int DEFAULT_TRANSFER_THREADS = 20;
 
-    @SettingContext("edc.dataplane")
-    @Configuration
+    @Configuration(context = "edc.dataplane")
     private StateMachineConfiguration stateMachineConfiguration;
 
     @Setting(

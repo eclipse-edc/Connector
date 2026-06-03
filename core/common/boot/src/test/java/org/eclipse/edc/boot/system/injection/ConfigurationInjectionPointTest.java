@@ -17,7 +17,6 @@ package org.eclipse.edc.boot.system.injection;
 import org.eclipse.edc.junit.extensions.TestExtensionContext;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -132,8 +131,7 @@ class ConfigurationInjectionPointTest {
         @Configuration
         private ConfigurationRecord configuration;
 
-        @SettingContext("prefix")
-        @Configuration
+        @Configuration(context = "prefix")
         private ConfigurationRecord configurationWithPrefix;
 
         @Settings

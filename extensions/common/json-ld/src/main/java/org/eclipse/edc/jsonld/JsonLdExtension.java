@@ -22,7 +22,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.constants.CoreConstants;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -47,8 +46,7 @@ public class JsonLdExtension implements ServiceExtension {
     public static final String NAME = "JSON-LD Extension";
     public static final String EDC_JSONLD_DOCUMENT_PREFIX = "edc.jsonld.document";
 
-    @SettingContext(EDC_JSONLD_DOCUMENT_PREFIX)
-    @Configuration
+    @Configuration(context = EDC_JSONLD_DOCUMENT_PREFIX)
     private Map<String, JsonLdDocumentConfiguration> jsonLdConfigurations = new HashMap<>();
 
     private static final boolean DEFAULT_HTTP_HTTPS_RESOLUTION = false;

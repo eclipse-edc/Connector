@@ -24,7 +24,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
-import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -42,8 +41,7 @@ public class TransferManagerExtension implements ServiceExtension {
 
     public static final String NAME = "Transfer Manager";
 
-    @SettingContext("edc.transfer")
-    @Configuration
+    @Configuration(context = "edc.transfer")
     private StateMachineConfiguration stateMachineConfiguration;
 
     @Inject

@@ -24,7 +24,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.runtime.metamodel.annotation.SettingContext;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -45,8 +44,7 @@ public class DataspaceProfileConfigurationExtension implements ServiceExtension 
     public static final String PROTOCOL_NAMESPACE = "protocolNamespace";
     public static final String PROFILE_JSON_LD_CONTEXT = "jsonLdContextsUrl";
 
-    @SettingContext(EDC_DATASPACE_PROFILES_PREFIX)
-    @Configuration
+    @Configuration(context = EDC_DATASPACE_PROFILES_PREFIX)
     private Map<String, DataspaceProfileConfiguration> profileConfiguration;
 
     @Inject
