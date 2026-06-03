@@ -39,10 +39,10 @@ public class DataspaceProfileConfigurationExtension implements ServiceExtension 
     public static final String EDC_DATASPACE_PROFILES_PREFIX = "edc.dataspace.profiles";
 
     public static final String PROFILE_NAME = "name";
-    public static final String PROTOCOL_VERSION = "protocolVersion";
-    public static final String PROTOCOL_BINDING = "protocolBinding";
-    public static final String PROTOCOL_NAMESPACE = "protocolNamespace";
-    public static final String PROFILE_JSON_LD_CONTEXT = "jsonLdContextsUrl";
+    public static final String PROTOCOL_VERSION = "protocol.version";
+    public static final String PROTOCOL_BINDING = "protocol.binding";
+    public static final String PROTOCOL_NAMESPACE = "protocol.namespace";
+    public static final String PROFILE_JSON_LD_CONTEXT = "jsonld.context.urls";
 
     @Configuration(context = EDC_DATASPACE_PROFILES_PREFIX)
     private Map<String, DataspaceProfileConfiguration> profileConfiguration;

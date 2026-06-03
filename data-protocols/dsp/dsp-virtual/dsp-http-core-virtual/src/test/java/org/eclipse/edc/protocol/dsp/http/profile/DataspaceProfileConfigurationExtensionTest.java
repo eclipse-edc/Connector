@@ -58,10 +58,10 @@ class DataspaceProfileConfigurationExtensionTest {
     void prepare_registersProfileFromConfiguration(TestExtensionContext context, ObjectFactory factory) {
         context.setConfig(ConfigFactory.fromMap(Map.of(
                 "edc.dataspace.profiles.dsp2025_1.name", "dsp2025_1",
-                "edc.dataspace.profiles.dsp2025_1.protocolVersion", "2025-1",
-                "edc.dataspace.profiles.dsp2025_1.protocolBinding", "HTTPS",
-                "edc.dataspace.profiles.dsp2025_1.protocolNamespace", "https://w3id.org/dspace/v1",
-                "edc.dataspace.profiles.dsp2025_1.jsonLdContextsUrl", "https://w3id.org/dspace/v1/context.jsonld , https://example.org/extra.jsonld"
+                "edc.dataspace.profiles.dsp2025_1.protocol.version", "2025-1",
+                "edc.dataspace.profiles.dsp2025_1.protocol.binding", "HTTPS",
+                "edc.dataspace.profiles.dsp2025_1.protocol.namespace", "https://w3id.org/dspace/v1",
+                "edc.dataspace.profiles.dsp2025_1.jsonld.context.urls", "https://w3id.org/dspace/v1/context.jsonld , https://example.org/extra.jsonld"
         )));
 
         var extension = factory.constructInstance(DataspaceProfileConfigurationExtension.class);
@@ -84,15 +84,15 @@ class DataspaceProfileConfigurationExtensionTest {
     void prepare_registersMultipleProfiles(TestExtensionContext context, ObjectFactory factory) {
         context.setConfig(ConfigFactory.fromMap(Map.of(
                 "edc.dataspace.profiles.dsp2025_1.name", "dsp2025_1",
-                "edc.dataspace.profiles.dsp2025_1.protocolVersion", "2025-1",
-                "edc.dataspace.profiles.dsp2025_1.protocolBinding", "HTTPS",
-                "edc.dataspace.profiles.dsp2025_1.protocolNamespace", "https://w3id.org/dspace/v1",
-                "edc.dataspace.profiles.dsp2025_1.jsonLdContextsUrl", "https://w3id.org/dspace/v1/context.jsonld",
-                "edc.dataspace.profiles.dsp2024_1.name", "dsp2024_1",
-                "edc.dataspace.profiles.dsp2024_1.protocolVersion", "2024-1",
-                "edc.dataspace.profiles.dsp2024_1.protocolBinding", "HTTPS",
-                "edc.dataspace.profiles.dsp2024_1.protocolNamespace", "https://w3id.org/dspace/2024/1",
-                "edc.dataspace.profiles.dsp2024_1.jsonLdContextsUrl", "https://w3id.org/dspace/2024/1/context.jsonld"
+                "edc.dataspace.profiles.dsp2025_1.protocol.version", "2025-1",
+                "edc.dataspace.profiles.dsp2025_1.protocol.binding", "HTTPS",
+                "edc.dataspace.profiles.dsp2025_1.protocol.namespace", "https://w3id.org/dspace/2025/1/",
+                "edc.dataspace.profiles.dsp2025_1.jsonld.context.urls", "https://w3id.org/dspace/2025/1/context.jsonld",
+                "edc.dataspace.profiles.dsp2025_2.name", "dsp2025_2",
+                "edc.dataspace.profiles.dsp2025_2.protocol.version", "2025-1",
+                "edc.dataspace.profiles.dsp2025_2.protocol.binding", "HTTPS",
+                "edc.dataspace.profiles.dsp2025_2.protocol.namespace", "https://w3id.org/dspace/2025/1/",
+                "edc.dataspace.profiles.dsp2025_2.jsonld.context.urls", "https://w3id.org/dspace/2025/1/context.jsonld"
         )));
 
         var extension = factory.constructInstance(DataspaceProfileConfigurationExtension.class);
@@ -105,10 +105,10 @@ class DataspaceProfileConfigurationExtensionTest {
     void prepare_blankAndExtraCommasInJsonLdContextsAreFiltered(TestExtensionContext context, ObjectFactory factory) {
         context.setConfig(ConfigFactory.fromMap(Map.of(
                 "edc.dataspace.profiles.dsp2025_1.name", "dsp2025_1",
-                "edc.dataspace.profiles.dsp2025_1.protocolVersion", "2025-1",
-                "edc.dataspace.profiles.dsp2025_1.protocolBinding", "HTTPS",
-                "edc.dataspace.profiles.dsp2025_1.protocolNamespace", "https://w3id.org/dspace/v1",
-                "edc.dataspace.profiles.dsp2025_1.jsonLdContextsUrl", " https://w3id.org/dspace/v1/context.jsonld ,, "
+                "edc.dataspace.profiles.dsp2025_1.protocol.version", "2025-1",
+                "edc.dataspace.profiles.dsp2025_1.protocol.binding", "HTTPS",
+                "edc.dataspace.profiles.dsp2025_1.protocol.namespace", "https://w3id.org/dspace/v1",
+                "edc.dataspace.profiles.dsp2025_1.jsonld.context.urls", " https://w3id.org/dspace/v1/context.jsonld ,, "
         )));
 
         var extension = factory.constructInstance(DataspaceProfileConfigurationExtension.class);
