@@ -16,14 +16,17 @@ package org.eclipse.edc.iam.decentralizedclaims.core;
 
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScope;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScopeRegistry;
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
+import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
-import org.eclipse.edc.spi.system.configuration.Config;
+
+import java.util.Map;
 
 import static org.eclipse.edc.iam.decentralizedclaims.core.DynamicDcpScopeConfigurationExtension.NAME;
 
@@ -34,19 +37,9 @@ public class DynamicDcpScopeConfigurationExtension implements ServiceExtension {
     public static final String NAME = "DCP Dynamic Scope Configuration Extension";
 
     public static final String CONFIG_PREFIX = "edc.iam.dcp.scopes";
-    public static final String CONFIG_ALIAS = CONFIG_PREFIX + ".<scopeAlias>.";
 
-    @Setting(context = CONFIG_ALIAS, description = "ID of the scope.")
-    public static final String ID_SUFFIX = "id";
-    @Setting(context = CONFIG_ALIAS, description = "Additional properties of the issuer.")
-    public static final String TYPE_SUFFIX = "type";
-    @Setting(context = CONFIG_ALIAS, description = "The value of the scope.")
-    public static final String VALUE_SUFFIX = "value";
-
-    @Setting(context = CONFIG_ALIAS, description = "Prefix mapping for the scope.")
-    public static final String PREFIX_MAPPING_SUFFIX = "prefix-mapping";
-    @Setting(context = CONFIG_ALIAS, description = "Profile the scope.", defaultValue = "*")
-    public static final String PROFILE_SUFFIX = "profile";
+    @Configuration(context = CONFIG_PREFIX)
+    private Map<String, DcpScopeConfig> scopeConfig;
 
     @Inject
     private DcpScopeRegistry scopeRegistry;
@@ -56,27 +49,39 @@ public class DynamicDcpScopeConfigurationExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var config = context.getConfig(CONFIG_PREFIX);
-        var configs = config.partition().toList();
-        configs.forEach(this::addScope);
-
+        scopeConfig.values().forEach(this::addScope);
     }
 
-    private void addScope(Config config) {
-        var id = config.getString(ID_SUFFIX);
-        var type = config.getString(TYPE_SUFFIX);
-        var value = config.getString(VALUE_SUFFIX);
-        var prefixMapping = config.getString(PREFIX_MAPPING_SUFFIX, null);
-        var profile = config.getString(PROFILE_SUFFIX, "*");
-
-        var scope = DcpScope.Builder.newInstance().id(id)
-                .type(DcpScope.Type.valueOf(type.toUpperCase()))
-                .value(value)
+    private void addScope(DcpScopeConfig config) {
+        var prefixMapping = config.prefixMapping() != null ? config.prefixMapping() : config.prefixMappingLegacy();
+        var scope = DcpScope.Builder.newInstance().id(config.id())
+                .type(DcpScope.Type.valueOf(config.type().toUpperCase()))
+                .value(config.value())
                 .prefixMapping(prefixMapping)
-                .profile(profile)
+                .profile(config.profile())
                 .build();
 
-        scopeRegistry.register(scope).orElseThrow(e -> new EdcException("Failed to register DCP scope with id " + id));
+        scopeRegistry.register(scope).orElseThrow(e -> new EdcException("Failed to register DCP scope with id " + config.id()));
+    }
+
+
+    @Settings
+    private record DcpScopeConfig(
+            @Setting(key = "id", description = "ID of the scope.")
+            String id,
+            @Setting(key = "type", description = "The type of the scope. Supported values are 'DEFAULT' and 'POLICY'.")
+            String type,
+            @Setting(key = "value", description = "The value of the scope.")
+            String value,
+            @Deprecated(since = "0.17.0")
+            @Setting(key = "prefix-mapping", description = "The prefix mapping for the left operand for applying the scope. Required if type is 'POLICY (Legacy Config)", required = false)
+            String prefixMappingLegacy,
+            @Setting(key = "prefix.mapping", description = "The prefix mapping for the left operand for applying the scope. Required if type is 'POLICY", required = false)
+            String prefixMapping,
+            @Setting(key = "profile", description = "The profile this scope applies to. Use '*' to apply to all profiles.", defaultValue = "*")
+            String profile
+    ) {
+
     }
 
 }
