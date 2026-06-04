@@ -181,7 +181,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
         var assetObservable = new AssetObservableImpl();
         assetObservable.registerListener(new AssetEventListener(eventRouter));
         return new AssetServiceImpl(assetIndex, contractNegotiationStore, transactionContext, assetObservable,
-                new AssetQueryValidator());
+                new AssetQueryValidator(), monitor);
     }
 
     @Provider

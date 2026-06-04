@@ -78,7 +78,7 @@ class DatasetResolverImplIntegrationTest {
                 assetIndex,
                 policyStore,
                 mock(),
-                criterionOperatorRegistry);
+                criterionOperatorRegistry, mock());
         var policyDefinition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
         when(policyStore.findById(any())).thenReturn(policyDefinition);
     }

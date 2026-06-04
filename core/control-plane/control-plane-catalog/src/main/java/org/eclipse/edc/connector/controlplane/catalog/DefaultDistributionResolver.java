@@ -21,6 +21,7 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
+import org.eclipse.edc.spi.monitor.Monitor;
 
 import java.util.Base64;
 import java.util.List;
@@ -29,17 +30,28 @@ public class DefaultDistributionResolver implements DistributionResolver {
 
     private final DataServiceRegistry dataServiceRegistry;
     private final DataFlowController dataFlowController;
+    private final Monitor monitor;
 
-    public DefaultDistributionResolver(DataServiceRegistry dataServiceRegistry, DataFlowController dataFlowController) {
+    public DefaultDistributionResolver(DataServiceRegistry dataServiceRegistry, DataFlowController dataFlowController,
+                                       Monitor monitor) {
         this.dataServiceRegistry = dataServiceRegistry;
         this.dataFlowController = dataFlowController;
+        this.monitor = monitor;
     }
 
     @Override
     public List<Distribution> getDistributions(String protocol, Asset asset) {
         if (asset.isCatalog()) {
+            var catalogFormat = asset.getCatalogFormat();
+            if (catalogFormat == null) {
+                monitor.warning("""
+                        Asset %s has no '%s' property and the DataAddress type is used instead, please adapt it as the
+                        DataAddress will be removed from Asset in the forthcoming versions"""
+                        .formatted(asset.getId(), Asset.PROPERTY_CATALOG_FORMAT));
+                catalogFormat = asset.getDataAddress().getType();
+            }
             return List.of(Distribution.Builder.newInstance()
-                    .format(asset.getDataAddress().getType())
+                    .format(catalogFormat)
                     .dataService(DataService.Builder.newInstance()
                             .id(Base64.getUrlEncoder().encodeToString(asset.getId().getBytes()))
                             .build())

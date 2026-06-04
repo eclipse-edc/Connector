@@ -24,6 +24,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
@@ -51,6 +52,7 @@ import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
 import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -69,9 +71,10 @@ class AssetServiceImplTest {
     private final TransactionContext dummyTransactionContext = new NoopTransactionContext();
     private final AssetObservable observable = mock();
     private final QueryValidator queryValidator = mock();
+    private final Monitor monitor = mock();
 
     private final AssetService service = new AssetServiceImpl(index, contractNegotiationStore, dummyTransactionContext,
-            observable, queryValidator);
+            observable, queryValidator, monitor);
 
     @Test
     void findById_shouldRelyOnAssetIndex() {
@@ -144,6 +147,16 @@ class AssetServiceImplTest {
             var inserted = service.create(asset);
 
             assertThat(inserted).isFailed().extracting(ServiceFailure::getReason).isEqualTo(CONFLICT);
+        }
+
+        @Test
+        void shouldLogWarning_whenAssetCatalogAndPropertiesNotSet() {
+            var asset = createAssetBuilder("assetId").property(Asset.PROPERTY_IS_CATALOG, "true").build();
+            when(index.create(asset)).thenReturn(StoreResult.success());
+
+            service.create(asset);
+
+            verify(monitor).warning(anyString());
         }
 
         @Test
@@ -246,41 +259,54 @@ class AssetServiceImplTest {
         }
     }
 
-    @Test
-    void updateAsset_shouldUpdateWhenExists() {
-        var asset = createAsset("assetId");
-        when(index.updateAsset(asset)).thenReturn(StoreResult.success(asset));
+    @Nested
+    class Update {
+        @Test
+        void shouldUpdateWhenExists() {
+            var asset = createAsset("assetId");
+            when(index.updateAsset(asset)).thenReturn(StoreResult.success(asset));
 
-        var updated = service.update(asset);
+            var updated = service.update(asset);
 
-        assertThat(updated.succeeded()).isTrue();
-        verify(index).updateAsset(eq(asset));
-        verifyNoMoreInteractions(index);
-        verify(observable).invokeForEach(any());
-    }
+            assertThat(updated.succeeded()).isTrue();
+            verify(index).updateAsset(eq(asset));
+            verifyNoMoreInteractions(index);
+            verify(observable).invokeForEach(any());
+        }
 
-    @Test
-    void updateAsset_shouldReturnNotFound_whenNotExists() {
-        var asset = createAsset("assetId");
-        when(index.updateAsset(eq(asset))).thenReturn(StoreResult.notFound("test"));
+        @Test
+        void shouldReturnNotFound_whenNotExists() {
+            var asset = createAsset("assetId");
+            when(index.updateAsset(eq(asset))).thenReturn(StoreResult.notFound("test"));
 
-        var updated = service.update(asset);
+            var updated = service.update(asset);
 
-        assertThat(updated.failed()).isTrue();
-        assertThat(updated.reason()).isEqualTo(NOT_FOUND);
-        verify(index, times(1)).updateAsset(asset);
-        verifyNoMoreInteractions(index);
-        verify(observable, never()).invokeForEach(any());
-    }
+            assertThat(updated.failed()).isTrue();
+            assertThat(updated.reason()).isEqualTo(NOT_FOUND);
+            verify(index, times(1)).updateAsset(asset);
+            verifyNoMoreInteractions(index);
+            verify(observable, never()).invokeForEach(any());
+        }
 
-    @Test
-    void updateAsset_shouldFail_whenPropertiesAreDuplicated() {
-        var asset = createAssetBuilder("assetId").property("property", "value").privateProperty("property", "other-value").build();
+        @Test
+        void shouldLogWarning_whenAssetCatalogAndPropertiesNotSet() {
+            var asset = createAssetBuilder("assetId").property(Asset.PROPERTY_IS_CATALOG, "true").build();
+            when(index.updateAsset(asset)).thenReturn(StoreResult.success(asset));
 
-        var result = service.update(asset);
+            service.update(asset);
 
-        assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
-        verifyNoInteractions(index);
+            verify(monitor).warning(anyString());
+        }
+
+        @Test
+        void shouldFail_whenPropertiesAreDuplicated() {
+            var asset = createAssetBuilder("assetId").property("property", "value").privateProperty("property", "other-value").build();
+
+            var result = service.update(asset);
+
+            assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(BAD_REQUEST);
+            verifyNoInteractions(index);
+        }
     }
 
     @NotNull

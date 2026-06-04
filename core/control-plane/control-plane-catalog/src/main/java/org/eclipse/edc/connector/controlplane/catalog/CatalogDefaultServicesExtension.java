@@ -20,6 +20,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowControll
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
@@ -30,6 +31,8 @@ public class CatalogDefaultServicesExtension implements ServiceExtension {
 
     @Inject
     private DataFlowController dataFlowController;
+    @Inject
+    private Monitor monitor;
 
     private DataServiceRegistry dataServiceRegistry;
 
@@ -50,7 +53,7 @@ public class CatalogDefaultServicesExtension implements ServiceExtension {
 
     @Provider(isDefault = true)
     public DistributionResolver distributionResolver() {
-        return new DefaultDistributionResolver(dataServiceRegistry, dataFlowController);
+        return new DefaultDistributionResolver(dataServiceRegistry, dataFlowController, monitor);
     }
 
 }

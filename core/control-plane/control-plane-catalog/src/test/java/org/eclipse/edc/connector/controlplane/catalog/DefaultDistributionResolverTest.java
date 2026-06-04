@@ -36,7 +36,8 @@ class DefaultDistributionResolverTest {
     private final DataServiceRegistry dataServiceRegistry = mock();
     private final DataFlowController dataFlowController = mock();
 
-    private final DefaultDistributionResolver resolver = new DefaultDistributionResolver(dataServiceRegistry, dataFlowController);
+    private final DefaultDistributionResolver resolver = new DefaultDistributionResolver(dataServiceRegistry,
+            dataFlowController, mock());
 
     @Test
     void shouldReturnDistributionsForEveryTransferType() {

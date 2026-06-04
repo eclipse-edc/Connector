@@ -17,6 +17,7 @@ package org.eclipse.edc.api.management.schema;
 public interface ManagementApiJsonSchema {
 
     String EDC_MGMT_V4_SCHEMA_PREFIX = "https://w3id.org/edc/connector/management/schema/v4";
+    String EDC_MGMT_V5_SCHEMA_PREFIX = "https://w3id.org/edc/connector/management/schema/v5";
     String DSPACE_2025_SCHEMA_PREFIX = "https://w3id.org/dspace/2025/1";
 
     interface V4 {
@@ -58,6 +59,16 @@ public interface ManagementApiJsonSchema {
 
         static String version() {
             return "v4";
+        }
+    }
+
+    interface V5 {
+
+        String ASSET = EDC_MGMT_V5_SCHEMA_PREFIX + "/asset-schema.json";
+        String CATALOG_ASSET = EDC_MGMT_V5_SCHEMA_PREFIX + "/catalog-asset-schema.json";
+
+        static String version() {
+            return "v5";
         }
     }
 }

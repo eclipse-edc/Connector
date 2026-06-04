@@ -280,7 +280,7 @@ public class AssetApiV5EndToEndTest {
             var body = context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(context.query(
-                                    criterion(EDC_NAMESPACE + "isCatalog", "=", "true"),
+                                    criterion(Asset.PROPERTY_IS_CATALOG, "=", "true"),
                                     criterion("id", "=", id))
                             .toString())
                     .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
@@ -409,7 +409,6 @@ public class AssetApiV5EndToEndTest {
                     .add(TYPE, "Asset")
                     .add(ID, id)
                     .add("properties", createPropertiesBuilder()
-                            .add("isCatalog", "true")
                             .add("conformsTo", "http://example.com/spec")
                             .build())
                     .add("privateProperties", createObjectBuilder()
@@ -438,9 +437,8 @@ public class AssetApiV5EndToEndTest {
 
             var asset = assetIndex.findById(id);
             assertThat(asset).isNotNull();
-            assertThat(asset.isCatalog()).isTrue();
+            assertThat(asset.isCatalog()).isFalse();
             assertThat(asset.getProperty(DCT_CONFORMS_TO_ATTRIBUTE)).isEqualTo(Map.of(ID, "http://example.com/spec"));
-
             assertThat(asset.getPrivateProperty(EDC_NAMESPACE + "anotherProp")).isEqualTo("anotherVal");
             assertThat(asset.getDataAddress().getProperty("complex"))
                     .asInstanceOf(MAP)
@@ -570,7 +568,10 @@ public class AssetApiV5EndToEndTest {
                     .add(CONTEXT, jsonLdContext())
                     .add(TYPE, "CatalogAsset")
                     .add(ID, id)
-                    .add("properties", createPropertiesBuilder().build())
+                    .add("properties", createPropertiesBuilder()
+                            .add("catalogUrl", "http://catalog-url")
+                            .add("catalogFormat", "http")
+                            .build())
                     .add("dataAddress", createObjectBuilder()
                             .add(TYPE, "DataAddress")
                             .add("type", "test-type")
@@ -590,6 +591,8 @@ public class AssetApiV5EndToEndTest {
             var asset = assetIndex.findById(id);
             assertThat(asset).isNotNull();
             assertThat(asset.isCatalog()).isTrue();
+            assertThat(asset.getCatalogUrl()).isEqualTo("http://catalog-url");
+            assertThat(asset.getCatalogFormat()).isEqualTo("http");
         }
 
         @Test
@@ -598,9 +601,12 @@ public class AssetApiV5EndToEndTest {
             var id = UUID.randomUUID().toString();
             var assetJson = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
-                    .add(TYPE, "Asset")
+                    .add(TYPE, "CatalogAsset")
                     .add(ID, id)
-                    .add("properties", createPropertiesBuilder().add("isCatalog", "true").build())
+                    .add("properties", createPropertiesBuilder()
+                            .add("catalogUrl", "http://catalog-url")
+                            .add("catalogFormat", "http")
+                            .build())
                     .add("dataAddress", createObjectBuilder()
                             .add(TYPE, "DataAddress")
                             .add("type", "test-type")
@@ -618,7 +624,6 @@ public class AssetApiV5EndToEndTest {
                     .statusCode(200)
                     .body(ID, is(id));
 
-            // verify the property was set
             var asset = index.findById(id);
             assertThat(asset.isCatalog()).isTrue();
 
@@ -632,8 +637,8 @@ public class AssetApiV5EndToEndTest {
                     .statusCode(200)
                     .extract().body().as(Map[].class);
 
-            assertThat(assets).isNotNull().hasSize(1);
-            assertThat(Asset.EDC_CATALOG_ASSET_TYPE).contains(assets[0].get(TYPE).toString());
+            assertThat(assets).isNotNull().hasSize(1).singleElement()
+                    .extracting(it -> it.get(TYPE)).isEqualTo(Asset.EDC_CATALOG_ASSET_TYPE_TERM);
         }
 
         @Test

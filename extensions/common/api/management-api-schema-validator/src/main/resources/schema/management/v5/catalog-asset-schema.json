@@ -35,7 +35,8 @@
             "catalogFormat": {
               "type": "string"
             }
-          }
+          },
+          "required": ["catalogUrl", "catalogFormat"]
         },
         "privateProperties": {
           "type": "object"

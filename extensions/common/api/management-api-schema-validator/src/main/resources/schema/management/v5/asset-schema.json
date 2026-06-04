@@ -1,15 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2019-09/schema",
-  "title": "CatalogAssetSchema",
+  "title": "AssetSchema",
   "type": "object",
   "allOf": [
     {
-      "$ref": "#/definitions/CatalogAsset"
+      "$ref": "#/definitions/Asset"
     }
   ],
-  "$id": "https://w3id.org/edc/connector/management/schema/v4/catalog-asset-schema.json",
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/asset-schema.json",
   "definitions": {
-    "CatalogAsset": {
+    "Asset": {
       "type": "object",
       "properties": {
         "@context": {
@@ -17,7 +17,7 @@
         },
         "@type": {
           "type": "string",
-          "const": "CatalogAsset"
+          "const": "Asset"
         },
         "@id": {
           "type": "string"
@@ -25,23 +25,22 @@
         "properties": {
           "type": "object",
           "example": {
-            "catalogUrl": "http://catalog/url",
-            "catalogFormat": "http"
+            "key": "value"
           },
           "properties": {
-            "catalogUrl": {
-              "type": "string"
-            },
-            "catalogFormat": {
+            "conformsTo": {
               "type": "string"
             }
           }
         },
         "privateProperties": {
-          "type": "object"
+          "type": "object",
+          "example": {
+            "privateKey": "privateValue"
+          }
         },
-        "isCatalog": {
-          "type": "boolean"
+        "dataplaneMetadata": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/dataplane-metadata-schema.json"
         }
       },
       "required": [

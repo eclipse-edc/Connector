@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
@@ -41,15 +42,17 @@ public class AssetServiceImpl implements AssetService {
     private final TransactionContext transactionContext;
     private final AssetObservable observable;
     private final QueryValidator queryValidator;
+    private final Monitor monitor;
 
     public AssetServiceImpl(AssetIndex index, ContractNegotiationStore contractNegotiationStore,
                             TransactionContext transactionContext, AssetObservable observable,
-                            QueryValidator queryValidator) {
+                            QueryValidator queryValidator, Monitor monitor) {
         this.index = index;
         this.contractNegotiationStore = contractNegotiationStore;
         this.transactionContext = transactionContext;
         this.observable = observable;
         this.queryValidator = queryValidator;
+        this.monitor = monitor;
     }
 
     @Override
@@ -72,14 +75,14 @@ public class AssetServiceImpl implements AssetService {
             return ServiceResult.badRequest(DUPLICATED_KEYS_MESSAGE);
         }
 
-        return transactionContext.execute(() -> {
-            var createResult = index.create(asset);
-            if (createResult.succeeded()) {
-                observable.invokeForEach(l -> l.created(asset));
-                return ServiceResult.success(asset);
-            }
-            return ServiceResult.fromFailure(createResult);
-        });
+        logWarningWhenAssetCatalogPropertiesAreNotSet(asset);
+
+        return transactionContext.execute(() ->
+                index.create(asset)
+                        .onSuccess(i -> observable.invokeForEach(l -> l.created(asset)))
+                        .flatMap(ServiceResult::from)
+                        .map(i -> asset)
+        );
     }
 
     @Override
@@ -108,11 +111,21 @@ public class AssetServiceImpl implements AssetService {
             return ServiceResult.badRequest(DUPLICATED_KEYS_MESSAGE);
         }
 
-        return transactionContext.execute(() -> {
-            var updatedAsset = index.updateAsset(asset);
-            updatedAsset.onSuccess(a -> observable.invokeForEach(l -> l.updated(a)));
-            return ServiceResult.from(updatedAsset);
-        });
+        logWarningWhenAssetCatalogPropertiesAreNotSet(asset);
+
+        return transactionContext.execute(() ->
+                index.updateAsset(asset)
+                        .onSuccess(a -> observable.invokeForEach(l -> l.updated(a)))
+                        .flatMap(ServiceResult::from)
+        );
+    }
+
+    @Deprecated(since = "management-api:v4")
+    private void logWarningWhenAssetCatalogPropertiesAreNotSet(Asset asset) {
+        if (asset.isCatalog() && (asset.getCatalogUrl() == null || asset.getCatalogFormat() == null)) {
+            monitor.warning("The 'CatalogAsset' type is expecting 'catalogUrl' and 'catalogFormat' properties," +
+                    "please adapt your clients accordingly");
+        }
     }
 
     private List<Asset> queryAssets(QuerySpec query) {
