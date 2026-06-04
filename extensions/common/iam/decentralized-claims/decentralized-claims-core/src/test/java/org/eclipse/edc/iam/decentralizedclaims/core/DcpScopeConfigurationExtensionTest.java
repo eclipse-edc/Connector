@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.core;
 
+import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScope;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScopeRegistry;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
@@ -45,11 +46,13 @@ public class DcpScopeConfigurationExtensionTest {
     }
 
     @Test
-    void initialize(TestExtensionContext context, DynamicDcpScopeConfigurationExtension ext) {
+    void initialize(TestExtensionContext context, ObjectFactory factory) {
         context.setConfig(ConfigFactory.fromMap(Map.of(
                 "edc.iam.dcp.scopes.membership.id", "membership-scope",
                 "edc.iam.dcp.scopes.membership.value", "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read",
                 "edc.iam.dcp.scopes.membership.type", "DEFAULT")));
+
+        var ext = factory.constructInstance(DynamicDcpScopeConfigurationExtension.class);
         ext.initialize(context);
 
         var captor = ArgumentCaptor.forClass(DcpScope.class);
@@ -63,12 +66,37 @@ public class DcpScopeConfigurationExtensionTest {
     }
 
     @Test
-    void initialize_withPolicyType(TestExtensionContext context, DynamicDcpScopeConfigurationExtension ext) {
+    void initialize_withPolicyType(TestExtensionContext context, ObjectFactory factory) {
+        context.setConfig(ConfigFactory.fromMap(Map.of(
+                "edc.iam.dcp.scopes.membership.id", "membership-scope",
+                "edc.iam.dcp.scopes.membership.prefix.mapping", "Membership.",
+                "edc.iam.dcp.scopes.membership.value", "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read",
+                "edc.iam.dcp.scopes.membership.type", "POLICY")));
+
+        var ext = factory.constructInstance(DynamicDcpScopeConfigurationExtension.class);
+
+        ext.initialize(context);
+
+        var captor = ArgumentCaptor.forClass(DcpScope.class);
+        verify(registry).register(captor.capture());
+
+        assertThat(captor.getValue()).satisfies(scope -> {
+            assertThat(scope.getId()).isEqualTo("membership-scope");
+            assertThat(scope.getValue()).isEqualTo("org.eclipse.dspace.dcp.vc.type:MembershipCredential:read");
+            assertThat(scope.getType()).isEqualTo(DcpScope.Type.POLICY);
+            assertThat(scope.getPrefixMapping()).isEqualTo("Membership.");
+        });
+    }
+
+    @Test
+    void initialize_withPolicyTypeLegacy(TestExtensionContext context, ObjectFactory factory) {
         context.setConfig(ConfigFactory.fromMap(Map.of(
                 "edc.iam.dcp.scopes.membership.id", "membership-scope",
                 "edc.iam.dcp.scopes.membership.prefix-mapping", "Membership.",
                 "edc.iam.dcp.scopes.membership.value", "org.eclipse.dspace.dcp.vc.type:MembershipCredential:read",
                 "edc.iam.dcp.scopes.membership.type", "POLICY")));
+
+        var ext = factory.constructInstance(DynamicDcpScopeConfigurationExtension.class);
 
         ext.initialize(context);
 
