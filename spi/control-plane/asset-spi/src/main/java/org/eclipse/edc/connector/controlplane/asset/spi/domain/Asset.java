@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.edc.participantcontext.spi.types.AbstractParticipantResource;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -40,7 +39,6 @@ public class Asset extends AbstractParticipantResource {
     public static final String PROPERTY_ID = EDC_NAMESPACE + "id";
     public static final String PROPERTY_DESCRIPTION = EDC_NAMESPACE + "description";
     public static final String PROPERTY_IS_CATALOG = EDC_NAMESPACE + "isCatalog";
-    public static final String PROPERTY_CATALOG_URL = EDC_NAMESPACE + "catalogUrl";
     public static final String EDC_ASSET_TYPE_TERM = "Asset";
     public static final String EDC_ASSET_TYPE = EDC_NAMESPACE + EDC_ASSET_TYPE_TERM;
     public static final String EDC_CATALOG_ASSET_TYPE_TERM = "CatalogAsset";
@@ -74,11 +72,6 @@ public class Asset extends AbstractParticipantResource {
         return ofNullable(getPropertyAsString(PROPERTY_IS_CATALOG))
                 .map(Boolean::parseBoolean)
                 .orElse(false);
-    }
-
-    @Nullable
-    public String getCatalogUrl() {
-        return getPropertyAsString(PROPERTY_CATALOG_URL);
     }
 
     public Map<String, Object> getProperties() {
@@ -128,7 +121,7 @@ public class Asset extends AbstractParticipantResource {
         return true;
     }
 
-    private String getPropertyAsString(String key) {
+    public String getPropertyAsString(String key) {
         var val = getProperty(key);
         return val != null ? val.toString() : null;
     }

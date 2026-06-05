@@ -51,13 +51,16 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ENDPOINT_URL_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_CONFORMS_TO_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.createParticipant;
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.participantContext;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesRegex;
 import static org.hamcrest.Matchers.notNullValue;
@@ -569,11 +572,8 @@ public class AssetApiV5EndToEndTest {
                     .add(TYPE, "CatalogAsset")
                     .add(ID, id)
                     .add("properties", createPropertiesBuilder()
-                            .add("catalogUrl", "http://catalog-url")
-                            .build())
-                    .add("dataAddress", createObjectBuilder()
-                            .add(TYPE, "DataAddress")
-                            .add("type", "test-type")
+                            .add("endpointURL", "http://catalog-url")
+                            .add("format", "http://format")
                             .build())
                     .build()
                     .toString();
@@ -583,14 +583,23 @@ public class AssetApiV5EndToEndTest {
                     .body(assetJson)
                     .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets")
                     .then()
-                    .log().ifError()
+                    .log().ifValidationFails()
                     .statusCode(200)
                     .body(ID, is(id));
+
+            context.baseRequest(participantTokenJwt)
+                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .body("properties.endpointURL", equalTo("http://catalog-url"))
+                    .body("properties.format", equalTo("http://format"));
 
             var asset = assetIndex.findById(id);
             assertThat(asset).isNotNull();
             assertThat(asset.isCatalog()).isTrue();
-            assertThat(asset.getCatalogUrl()).isEqualTo("http://catalog-url");
+            assertThat(asset.getPropertyAsString(DCAT_ENDPOINT_URL_ATTRIBUTE)).isNotNull();
+            assertThat(asset.getPropertyAsString(DCT_FORMAT_ATTRIBUTE)).isNotNull();
         }
 
         @Test
@@ -602,8 +611,10 @@ public class AssetApiV5EndToEndTest {
                     .add(TYPE, "CatalogAsset")
                     .add(ID, id)
                     .add("properties", createPropertiesBuilder()
-                            .add("catalogUrl", "http://catalog-url")
-                            .build())
+                            .add("endpointURL", "http://catalog-url")
+                            .add("format", "http://format")
+                            .build()
+                    )
                     .add("dataAddress", createObjectBuilder()
                             .add(TYPE, "DataAddress")
                             .add("type", "test-type")
@@ -624,18 +635,12 @@ public class AssetApiV5EndToEndTest {
             var asset = index.findById(id);
             assertThat(asset.isCatalog()).isTrue();
 
-            // query the asset, assert that @type: CatalogAsset
-            var assets = context.baseRequest(participantTokenJwt)
-                    .contentType(ContentType.JSON)
-                    .body(context.query(criterion("id", "=", id)).toString())
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
+            context.baseRequest(participantTokenJwt)
+                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/" + id)
                     .then()
-                    .log().ifError()
+                    .log().ifValidationFails()
                     .statusCode(200)
-                    .extract().body().as(Map[].class);
-
-            assertThat(assets).isNotNull().hasSize(1).singleElement()
-                    .extracting(it -> it.get(TYPE)).isEqualTo(Asset.EDC_CATALOG_ASSET_TYPE_TERM);
+                    .body("'@type'", equalTo(Asset.EDC_CATALOG_ASSET_TYPE_TERM));
         }
 
         @Test

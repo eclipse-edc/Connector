@@ -17,6 +17,7 @@ plugins {
 }
 
 dependencies {
+    api(project(":spi:common:json-ld-spi"))
     api(project(":spi:control-plane:catalog-spi"))
     api(project(":spi:control-plane:contract-spi"))
     api(project(":spi:control-plane:transfer-spi"))

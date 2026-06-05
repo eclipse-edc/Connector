@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import static java.lang.String.format;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ENDPOINT_URL_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
 
 public class AssetServiceImpl implements AssetService {
 
@@ -75,7 +77,7 @@ public class AssetServiceImpl implements AssetService {
             return ServiceResult.badRequest(DUPLICATED_KEYS_MESSAGE);
         }
 
-        logWarningWhenCatalogAssetPropertyIsNotSet(asset);
+        logWarningWhenCatalogAssetPropertiesAreNotSet(asset);
 
         return transactionContext.execute(() ->
                 index.create(asset)
@@ -111,7 +113,7 @@ public class AssetServiceImpl implements AssetService {
             return ServiceResult.badRequest(DUPLICATED_KEYS_MESSAGE);
         }
 
-        logWarningWhenCatalogAssetPropertyIsNotSet(asset);
+        logWarningWhenCatalogAssetPropertiesAreNotSet(asset);
 
         return transactionContext.execute(() ->
                 index.updateAsset(asset)
@@ -121,10 +123,10 @@ public class AssetServiceImpl implements AssetService {
     }
 
     @Deprecated(since = "management-api:v4")
-    private void logWarningWhenCatalogAssetPropertyIsNotSet(Asset asset) {
-        if (asset.isCatalog() && asset.getCatalogUrl() == null) {
-            monitor.warning("The 'CatalogAsset' type is expecting 'catalogUrl' property" +
-                    "please adapt your clients accordingly");
+    private void logWarningWhenCatalogAssetPropertiesAreNotSet(Asset asset) {
+        if (asset.isCatalog() && (asset.getProperty(DCAT_ENDPOINT_URL_ATTRIBUTE) == null || asset.getProperty(DCT_FORMAT_ATTRIBUTE) == null)) {
+            monitor.warning("The 'CatalogAsset' type is expecting 'endpointURL' and 'format' properties " +
+                            "please adapt your clients accordingly");
         }
     }
 

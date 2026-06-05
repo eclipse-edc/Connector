@@ -22,9 +22,13 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DistributionResolver;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.Optional;
+
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
 
 public class DefaultDistributionResolver implements DistributionResolver {
 
@@ -42,8 +46,17 @@ public class DefaultDistributionResolver implements DistributionResolver {
     @Override
     public List<Distribution> getDistributions(String protocol, Asset asset) {
         if (asset.isCatalog()) {
+            var format = asset.getPropertyAsString(DCT_FORMAT_ATTRIBUTE);
+            if (format == null) {
+                monitor.warning("""
+                        Asset %s has no 'format' property and the DataAddress type is used instead, please adapt it as the
+                        DataAddress will be removed from Asset in the forthcoming versions"""
+                        .formatted(asset.getId()));
+                format = Optional.ofNullable(asset.getDataAddress()).map(DataAddress::getType).orElse("");
+            }
+
             return List.of(Distribution.Builder.newInstance()
-                    .format("application/json")
+                    .format(format)
                     .dataService(DataService.Builder.newInstance()
                             .id(Base64.getUrlEncoder().encodeToString(asset.getId().getBytes()))
                             .build())

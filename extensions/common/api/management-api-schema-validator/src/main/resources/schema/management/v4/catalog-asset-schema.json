@@ -25,10 +25,14 @@
         "properties": {
           "type": "object",
           "example": {
-            "catalogUrl": "http://catalog/url"
+            "endpointURL": "http://catalog/url",
+            "format": "http://w3c.org/dspace/profile/catalog"
           },
           "properties": {
-            "catalogUrl": {
+            "endpointURL": {
+              "type": "string"
+            },
+            "format": {
               "type": "string"
             }
           }

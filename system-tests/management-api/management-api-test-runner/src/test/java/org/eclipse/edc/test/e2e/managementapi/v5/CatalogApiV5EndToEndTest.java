@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.jsonld.spi.PropertyAndTypeNames;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
@@ -52,6 +53,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createArrayBuilder;
@@ -316,24 +318,24 @@ public class CatalogApiV5EndToEndTest {
                                                                                   PolicyDefinitionStore policyDefinitionStore,
                                                                                   ContractDefinitionStore contractDefinitionStore) {
 
-            // create CatalogAsset
             var catalogAssetId = "catalog-asset-" + UUID.randomUUID();
-            var httpData = createAsset(catalogAssetId, "HttpData")
+            var catalogAsset = createAssetBuilder(catalogAssetId)
                     .property(Asset.PROPERTY_IS_CATALOG, true)
+                    .property(PropertyAndTypeNames.DCAT_ENDPOINT_URL_ATTRIBUTE, "http://quizzqua.zz/buzz")
+                    .property(PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE, "format")
                     .participantContextId(COUNTER_PARTY_ID)
                     .build();
-            httpData.getDataAddress().getProperties().put(EDC_NAMESPACE + "baseUrl", "http://quizzqua.zz/buzz");
-            assetIndex.create(httpData);
 
-            // create conventional asset
-            var normalAssetId = "normal-asset-" + UUID.randomUUID();
-            assetIndex.create(createAsset(normalAssetId, "test-type").participantContextId(COUNTER_PARTY_ID).build());
+            assetIndex.create(catalogAsset);
 
-            var assetSelectorCriteria = List.of(Criterion.criterion("id", "in", List.of(catalogAssetId, normalAssetId)));
+            var conventionalAssetId = "normal-asset-" + UUID.randomUUID();
+            var conventionalAsset = createAsset(conventionalAssetId, "test-type").participantContextId(COUNTER_PARTY_ID).build();
 
+            Stream.of(catalogAsset, conventionalAsset).forEach(assetIndex::create);
+
+            var assetSelectorCriteria = List.of(Criterion.criterion("id", "in", List.of(catalogAssetId, conventionalAssetId)));
             createContractOffer(policyDefinitionStore, contractDefinitionStore, assetSelectorCriteria);
 
-            // request all assets
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "CatalogRequest")
@@ -343,23 +345,21 @@ public class CatalogApiV5EndToEndTest {
                     .build()
                     .toString();
 
-            var body = context.baseRequest(participantTokenJwt)
+            context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(requestBody)
                     .post("/v5beta/participants/%s/catalog/request".formatted(PARTICIPANT_CONTEXT_ID))
                     .then()
                     .statusCode(200)
-                    .contentType(JSON);
-
-            var str = body.extract().asString();
-            body.body(TYPE, is("Catalog"))
+                    .contentType(JSON)
+                    .body(TYPE, is("Catalog"))
                     .body("'service'", notNullValue())
-                    // findAll is the restAssured way to express JSON Path filters
                     .body("catalog[0].'@type'", equalTo("Catalog"))
                     .body("catalog[0].isCatalog", equalTo(true))
                     .body("catalog[0].'@id'", equalTo(catalogAssetId))
                     .body("catalog[0].service[0].endpointURL", equalTo("http://quizzqua.zz/buzz"))
-                    .body("catalog[0].distribution[0].accessService.'@id'", equalTo(Base64.getUrlEncoder().encodeToString(catalogAssetId.getBytes())));
+                    .body("catalog[0].distribution[0].accessService.'@id'", equalTo(Base64.getUrlEncoder().encodeToString(catalogAssetId.getBytes())))
+                    .body("catalog[0].distribution[0].format", equalTo("format"));
         }
 
         @Test
@@ -445,7 +445,7 @@ public class CatalogApiV5EndToEndTest {
                     .type("test-type")
                     .responseChannel(responseChannel)
                     .build();
-            assetIndex.create(createAsset("asset-response", dataAddressWithResponseChannel).build());
+            assetIndex.create(createAssetBuilder("asset-response").dataAddress(dataAddressWithResponseChannel).build());
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "DatasetRequest")
@@ -692,16 +692,16 @@ public class CatalogApiV5EndToEndTest {
             var address = DataAddress.Builder.newInstance()
                     .type(sourceType)
                     .build();
-            return createAsset(id, address);
+
+            return createAssetBuilder(id)
+                    .dataAddress(address);
         }
 
-        private Asset.Builder createAsset(String id, DataAddress address) {
+        private Asset.Builder createAssetBuilder(String id) {
             return Asset.Builder.newInstance()
-                    .dataAddress(address)
                     .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .id(id);
         }
-
 
         private void createParticipant(ParticipantContextService participantContextService,
                                        ParticipantContextConfigStore configStore, String participantContextId) {

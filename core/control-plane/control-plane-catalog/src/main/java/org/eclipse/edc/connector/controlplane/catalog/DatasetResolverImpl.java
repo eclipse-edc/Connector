@@ -43,6 +43,7 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.lang.Integer.MAX_VALUE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ENDPOINT_URL_ATTRIBUTE;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.filterByParticipantContextId;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
@@ -107,19 +108,20 @@ public class DatasetResolverImpl implements DatasetResolver {
             return Dataset.Builder.newInstance();
         }
 
-        var catalogUrl = asset.getCatalogUrl();
-        if (catalogUrl == null) {
+        var endpointUrl = asset.getPropertyAsString(DCAT_ENDPOINT_URL_ATTRIBUTE);
+        if (endpointUrl == null) {
             monitor.warning("""
-                        Asset %s has no '%s' property and the DataAddress type is used instead, please adapt it as the
+                        Asset %s has no 'endpointURL' property and the DataAddress baseUrl is used instead, please adapt it as the
                         DataAddress will be removed from Asset in the forthcoming versions"""
-                    .formatted(asset.getId(), Asset.PROPERTY_CATALOG_URL));
-            catalogUrl = asset.getDataAddress().getStringProperty(EDC_NAMESPACE + "baseUrl", null);
+                    .formatted(asset.getId()));
+            endpointUrl = asset.getDataAddress().getStringProperty(EDC_NAMESPACE + "baseUrl", null);
         }
+
         return Catalog.Builder.newInstance()
                 .dataService(DataService.Builder.newInstance()
                         .id(Base64.getUrlEncoder().encodeToString(asset.getId().getBytes()))
                         .endpointDescription(asset.getDescription())
-                        .endpointUrl(catalogUrl)
+                        .endpointUrl(endpointUrl)
                         .build());
     }
 
