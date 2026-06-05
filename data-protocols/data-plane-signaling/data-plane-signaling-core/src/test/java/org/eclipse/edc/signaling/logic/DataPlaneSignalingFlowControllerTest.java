@@ -74,6 +74,35 @@ public class DataPlaneSignalingFlowControllerTest {
             URI.create("http://localhost"), selectorService,
             typeTransformerRegistry, clientFactory, dataAddressStore, assetIndex);
 
+    @NotNull
+    private DataPlaneInstance.Builder dataPlaneInstanceBuilder() {
+        return DataPlaneInstance.Builder.newInstance().url("http://any");
+    }
+
+    private DataAddress testDataAddress() {
+        return DataAddress.Builder.newInstance().type("test-type").build();
+    }
+
+    private TransferProcess.Builder transferProcessBuilder() {
+        return TransferProcess.Builder.newInstance()
+                .correlationId(UUID.randomUUID().toString())
+                .protocol("test-protocol")
+                .contractId(UUID.randomUUID().toString())
+                .assetId(UUID.randomUUID().toString())
+                .counterPartyAddress("test.connector.address")
+                .transferType("transferType");
+    }
+
+    private Policy.Builder policyBuilder() {
+        return Policy.Builder.newInstance()
+                .assignee("consumer")
+                .assigner("provider");
+    }
+
+    private @NonNull DspDataAddress createDspDataAddress() {
+        return DspDataAddress.Builder.newInstance().build();
+    }
+
     @Nested
     class Prepare {
 
@@ -101,6 +130,9 @@ public class DataPlaneSignalingFlowControllerTest {
             verify(dataPlaneClient).prepare(captor.capture());
             var message = captor.getValue();
             assertThat(message.getClaims()).isSameAs(claims);
+            assertThat(message.getParticipantId()).isEqualTo("consumer");
+            assertThat(message.getCounterPartyId()).isEqualTo("provider");
+
         }
 
         @Test
@@ -120,7 +152,9 @@ public class DataPlaneSignalingFlowControllerTest {
     class Start {
         @Test
         void shouldSelectAndCallStartOnDataplane() {
-            var policy = Policy.Builder.newInstance().assignee("participantId").build();
+            var policy = Policy.Builder.newInstance().assignee("consumer")
+                    .assigner("provider")
+                    .build();
             Map<String, Object> claims = Map.of("key", "value");
             var transferProcess = transferProcessBuilder()
                     .claims(claims)
@@ -147,6 +181,8 @@ public class DataPlaneSignalingFlowControllerTest {
             verify(dataPlaneClient).start(captor.capture());
             var message = captor.getValue();
             assertThat(message.getClaims()).isSameAs(claims);
+            assertThat(message.getParticipantId()).isEqualTo("provider");
+            assertThat(message.getCounterPartyId()).isEqualTo("consumer");
         }
 
         @Test
@@ -225,8 +261,8 @@ public class DataPlaneSignalingFlowControllerTest {
             assertThat(result).isFailed().detail().isEqualTo("not found");
         }
 
-        @Test
         // a null dataPlaneId means that the flow has not been started so it can be considered as already terminated
+        @Test
         void shouldReturnSuccess_whenDataPlaneIdIsNull() {
             var transferProcess = transferProcessBuilder()
                     .id("transferProcessId")
@@ -589,32 +625,5 @@ public class DataPlaneSignalingFlowControllerTest {
             assertThat(transferTypes).isEmpty();
             verifyNoInteractions(selectorService);
         }
-    }
-
-    @NotNull
-    private DataPlaneInstance.Builder dataPlaneInstanceBuilder() {
-        return DataPlaneInstance.Builder.newInstance().url("http://any");
-    }
-
-    private DataAddress testDataAddress() {
-        return DataAddress.Builder.newInstance().type("test-type").build();
-    }
-
-    private TransferProcess.Builder transferProcessBuilder() {
-        return TransferProcess.Builder.newInstance()
-                .correlationId(UUID.randomUUID().toString())
-                .protocol("test-protocol")
-                .contractId(UUID.randomUUID().toString())
-                .assetId(UUID.randomUUID().toString())
-                .counterPartyAddress("test.connector.address")
-                .transferType("transferType");
-    }
-
-    private Policy.Builder policyBuilder() {
-        return Policy.Builder.newInstance();
-    }
-
-    private @NonNull DspDataAddress createDspDataAddress() {
-        return DspDataAddress.Builder.newInstance().build();
     }
 }
