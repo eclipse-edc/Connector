@@ -41,7 +41,6 @@ public class Asset extends AbstractParticipantResource {
     public static final String PROPERTY_DESCRIPTION = EDC_NAMESPACE + "description";
     public static final String PROPERTY_IS_CATALOG = EDC_NAMESPACE + "isCatalog";
     public static final String PROPERTY_CATALOG_URL = EDC_NAMESPACE + "catalogUrl";
-    public static final String PROPERTY_CATALOG_FORMAT = EDC_NAMESPACE + "catalogFormat";
     public static final String EDC_ASSET_TYPE_TERM = "Asset";
     public static final String EDC_ASSET_TYPE = EDC_NAMESPACE + EDC_ASSET_TYPE_TERM;
     public static final String EDC_CATALOG_ASSET_TYPE_TERM = "CatalogAsset";
@@ -80,10 +79,6 @@ public class Asset extends AbstractParticipantResource {
     @Nullable
     public String getCatalogUrl() {
         return getPropertyAsString(PROPERTY_CATALOG_URL);
-    }
-
-    public String getCatalogFormat() {
-        return getPropertyAsString(PROPERTY_CATALOG_FORMAT);
     }
 
     public Map<String, Object> getProperties() {
@@ -199,6 +194,7 @@ public class Asset extends AbstractParticipantResource {
             return self();
         }
 
+        @Deprecated(since = "0.18.0")
         public Builder dataAddress(DataAddress dataAddress) {
             entity.dataAddress = dataAddress;
             return self();

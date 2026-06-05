@@ -25,14 +25,10 @@
         "properties": {
           "type": "object",
           "example": {
-            "catalogUrl": "http://catalog/url",
-            "catalogFormat": "http"
+            "catalogUrl": "http://catalog/url"
           },
           "properties": {
             "catalogUrl": {
-              "type": "string"
-            },
-            "catalogFormat": {
               "type": "string"
             }
           }

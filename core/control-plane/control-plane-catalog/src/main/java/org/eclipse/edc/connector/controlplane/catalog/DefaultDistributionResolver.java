@@ -42,22 +42,16 @@ public class DefaultDistributionResolver implements DistributionResolver {
     @Override
     public List<Distribution> getDistributions(String protocol, Asset asset) {
         if (asset.isCatalog()) {
-            var catalogFormat = asset.getCatalogFormat();
-            if (catalogFormat == null) {
-                monitor.warning("""
-                        Asset %s has no '%s' property and the DataAddress type is used instead, please adapt it as the
-                        DataAddress will be removed from Asset in the forthcoming versions"""
-                        .formatted(asset.getId(), Asset.PROPERTY_CATALOG_FORMAT));
-                catalogFormat = asset.getDataAddress().getType();
-            }
             return List.of(Distribution.Builder.newInstance()
-                    .format(catalogFormat)
+                    .format("application/json")
                     .dataService(DataService.Builder.newInstance()
                             .id(Base64.getUrlEncoder().encodeToString(asset.getId().getBytes()))
                             .build())
                     .build());
         }
-        return dataFlowController.transferTypesFor(asset).stream().map((format) -> createDistribution(asset.getParticipantContextId(), protocol, format)).toList();
+        return dataFlowController.transferTypesFor(asset).stream()
+                .map((format) -> createDistribution(asset.getParticipantContextId(), protocol, format))
+                .toList();
     }
 
     private Distribution createDistribution(String participantContextId, String protocol, String format) {

@@ -570,7 +570,6 @@ public class AssetApiV5EndToEndTest {
                     .add(ID, id)
                     .add("properties", createPropertiesBuilder()
                             .add("catalogUrl", "http://catalog-url")
-                            .add("catalogFormat", "http")
                             .build())
                     .add("dataAddress", createObjectBuilder()
                             .add(TYPE, "DataAddress")
@@ -592,7 +591,6 @@ public class AssetApiV5EndToEndTest {
             assertThat(asset).isNotNull();
             assertThat(asset.isCatalog()).isTrue();
             assertThat(asset.getCatalogUrl()).isEqualTo("http://catalog-url");
-            assertThat(asset.getCatalogFormat()).isEqualTo("http");
         }
 
         @Test
@@ -605,7 +603,6 @@ public class AssetApiV5EndToEndTest {
                     .add(ID, id)
                     .add("properties", createPropertiesBuilder()
                             .add("catalogUrl", "http://catalog-url")
-                            .add("catalogFormat", "http")
                             .build())
                     .add("dataAddress", createObjectBuilder()
                             .add(TYPE, "DataAddress")

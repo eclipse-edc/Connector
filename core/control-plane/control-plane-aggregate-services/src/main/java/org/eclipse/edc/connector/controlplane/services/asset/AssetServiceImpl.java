@@ -75,7 +75,7 @@ public class AssetServiceImpl implements AssetService {
             return ServiceResult.badRequest(DUPLICATED_KEYS_MESSAGE);
         }
 
-        logWarningWhenAssetCatalogPropertiesAreNotSet(asset);
+        logWarningWhenCatalogAssetPropertyIsNotSet(asset);
 
         return transactionContext.execute(() ->
                 index.create(asset)
@@ -111,7 +111,7 @@ public class AssetServiceImpl implements AssetService {
             return ServiceResult.badRequest(DUPLICATED_KEYS_MESSAGE);
         }
 
-        logWarningWhenAssetCatalogPropertiesAreNotSet(asset);
+        logWarningWhenCatalogAssetPropertyIsNotSet(asset);
 
         return transactionContext.execute(() ->
                 index.updateAsset(asset)
@@ -121,9 +121,9 @@ public class AssetServiceImpl implements AssetService {
     }
 
     @Deprecated(since = "management-api:v4")
-    private void logWarningWhenAssetCatalogPropertiesAreNotSet(Asset asset) {
-        if (asset.isCatalog() && (asset.getCatalogUrl() == null || asset.getCatalogFormat() == null)) {
-            monitor.warning("The 'CatalogAsset' type is expecting 'catalogUrl' and 'catalogFormat' properties," +
+    private void logWarningWhenCatalogAssetPropertyIsNotSet(Asset asset) {
+        if (asset.isCatalog() && asset.getCatalogUrl() == null) {
+            monitor.warning("The 'CatalogAsset' type is expecting 'catalogUrl' property" +
                     "please adapt your clients accordingly");
         }
     }

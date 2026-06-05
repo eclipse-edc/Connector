@@ -18,7 +18,6 @@ import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataServiceRegistry;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
-import org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;
 
@@ -65,12 +64,7 @@ class DefaultDistributionResolverTest {
         when(dataServiceRegistry.getDataServices(any(), any())).thenReturn(List.of(dataService));
         when(dataFlowController.transferTypesFor(any(Asset.class))).thenReturn(Set.of("type1", "type2"));
 
-        var dataAddress = DataAddress.Builder.newInstance()
-                .type("HttpData")
-                .property(HttpDataAddressSchema.BASE_URL, "http://quizzqua.zz/buzz")
-                .build();
         var asset = Asset.Builder.newInstance()
-                .dataAddress(dataAddress)
                 .property(Asset.PROPERTY_IS_CATALOG, true)
                 .description("test description")
                 .build();
@@ -79,7 +73,7 @@ class DefaultDistributionResolverTest {
 
         assertThat(distributions).hasSize(1)
                 .anySatisfy(distribution -> {
-                    assertThat(distribution.getFormat()).isEqualTo("HttpData");
+                    assertThat(distribution.getFormat()).isEqualTo("application/json");
                     assertThat(distribution.getDataService().getId()).isNotNull();
                 });
     }
