@@ -123,8 +123,8 @@ public class DataPlaneSignalingFlowController implements DataFlowController {
 
         var builder = DataFlowStartMessage.Builder.newInstance()
                 .messageId(UUID.randomUUID().toString())
-                .participantId(policy.getAssignee())
-                .counterPartyId(policy.getAssigner())
+                .participantId(policy.getAssigner())
+                .counterPartyId(policy.getAssignee())
                 .dataspaceContext(transferProcess.getProtocol())
                 .processId(transferProcess.getId())
                 .agreementId(transferProcess.getContractId())
