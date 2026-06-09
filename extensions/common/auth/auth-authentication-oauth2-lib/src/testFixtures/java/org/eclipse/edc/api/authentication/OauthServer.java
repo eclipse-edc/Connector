@@ -19,6 +19,7 @@ import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.edc.api.auth.spi.ManagementApiScopes;
 import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 
 import java.time.Instant;
@@ -88,11 +89,10 @@ public class OauthServer implements OauthTokenProvider {
     }
 
     public String createAdminToken() {
-        return createToken(null, ParticipantPrincipal.ROLE_ADMIN);
+        return createToken(null, ManagementApiScopes.ADMIN, ParticipantPrincipal.ROLE_ADMIN);
     }
 
     public String createProvisionerToken() {
-        return createToken(null, ParticipantPrincipal.ROLE_PROVISIONER);
-
+        return createToken(null, ManagementApiScopes.ADMIN, ParticipantPrincipal.ROLE_PROVISIONER);
     }
 }

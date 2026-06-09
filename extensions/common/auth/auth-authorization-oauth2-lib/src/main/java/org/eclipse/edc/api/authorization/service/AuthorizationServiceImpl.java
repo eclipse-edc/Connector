@@ -17,6 +17,7 @@ package org.eclipse.edc.api.authorization.service;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
 import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
+import org.eclipse.edc.api.auth.spi.ScopeMatcher;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.eclipse.edc.spi.result.ServiceResult;
 
@@ -27,10 +28,12 @@ import java.util.function.BiFunction;
 
 public class AuthorizationServiceImpl implements AuthorizationService {
     private final Map<Class<?>, BiFunction<String, String, ParticipantResource>> resourceLookupFunctions = new HashMap<>();
+    private final ScopeMatcher scopeMatcher = new ScopeMatcher();
 
     @Override
     public ServiceResult<Void> authorize(SecurityContext securityContext, String resourceOwnerId, String resourceId, Class<? extends ParticipantResource> resourceClass) {
-        var securityPrincipalName = securityContext.getUserPrincipal().getName();
+        var principal = securityContext.getUserPrincipal();
+        var securityPrincipalName = principal.getName();
 
         if (resourceOwnerId == null) {
             return ServiceResult.unauthorized("resourceOwnerId is mandatory but was null when querying for object with ID '%s' of type '%s'. Security Principal: '%s'".formatted(resourceId, resourceClass, securityPrincipalName));
@@ -46,7 +49,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
             return ServiceResult.notFound("No Resource of type '%s' with ID '%s' was found for owner '%s'.".formatted(resourceClass, resourceId, resourceOwnerId));
         }
 
-        if (securityContext.isUserInRole(ParticipantPrincipal.ROLE_ADMIN) || securityContext.isUserInRole(ParticipantPrincipal.ROLE_PROVISIONER)) {
+        // a principal holding the admin scope is elevated and may access resources across participant contexts
+        if (principal instanceof ParticipantPrincipal participantPrincipal && scopeMatcher.isAdmin(participantPrincipal.scope())) {
             return ServiceResult.success();
         }
 
