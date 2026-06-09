@@ -30,6 +30,10 @@ import static org.eclipse.edc.spi.result.Result.failure;
  */
 public record Scope(String prefix, String resource, Action action) {
 
+    public Scope(String prefix, Action action) {
+        this(prefix, WILDCARD, action);
+    }
+
     public static final String WILDCARD = "*";
     public static final String DELIMITER = ":";
 

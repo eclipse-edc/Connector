@@ -89,6 +89,24 @@ class ScopeTest {
     }
 
     @Test
+    void satisfies_withoutResource() {
+        var granted = new Scope("management-api", Action.READ);
+        var required = new Scope("management-api", "policies", Action.READ);
+        assertThat(granted.satisfies(required)).isTrue();
+    }
+
+    @Test
+    void satisfied_scopedAdminGranted() {
+        var granted = new Scope("management-api", "policies", Action.ADMIN);
+
+        assertThat(granted.satisfies(new Scope("management-api", "policies", Action.READ))).isTrue();
+        assertThat(granted.satisfies(new Scope("management-api", "policies", Action.WRITE))).isTrue();
+        assertThat(granted.satisfies(new Scope("management-api", Action.WRITE))).isFalse();
+        assertThat(granted.satisfies(new Scope("management-api", Action.READ))).isFalse();
+        assertThat(granted.satisfies(new Scope("management-api", "assets", Action.READ))).isFalse();
+    }
+
+    @Test
     void satisfies_differentPrefix_isFalse() {
         var granted = new Scope("other-api", "*", Action.ADMIN);
         var required = new Scope("management-api", "assets", Action.READ);
