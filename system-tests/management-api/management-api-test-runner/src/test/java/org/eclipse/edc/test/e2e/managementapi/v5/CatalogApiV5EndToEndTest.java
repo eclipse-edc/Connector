@@ -171,31 +171,9 @@ public class CatalogApiV5EndToEndTest {
                     .then()
                     .log().ifValidationFails()
                     .statusCode(403)
-                    .body(matchesRegex("(?s).*Required scope.*management-api:read.*missing.*"));
+                    .body(matchesRegex("(?s).*Required scope.*management-api:catalog:read.*missing.*"));
         }
 
-        @Test
-        void requestCatalog_tokenHasWrongRole(ManagementEndToEndV5TestContext context, OauthServer authServer) {
-            var requestBody = createObjectBuilder()
-                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
-                    .add(TYPE, "CatalogRequest")
-                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
-                    .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("profile", context.profile())
-                    .build()
-                    .toString();
-
-            var offendingToken = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("role", "some-role"));
-
-            context.baseRequest(offendingToken)
-                    .contentType(JSON)
-                    .body(requestBody)
-                    .post("/v5beta/participants/%s/catalog/request".formatted(PARTICIPANT_CONTEXT_ID))
-                    .then()
-                    .log().ifValidationFails()
-                    .statusCode(403)
-                    .body(containsString("Required user role not satisfied"));
-        }
 
         @Test
         void requestCatalog_shouldReturnCatalog_withoutQuerySpec(ManagementEndToEndV5TestContext context) {
@@ -638,32 +616,9 @@ public class CatalogApiV5EndToEndTest {
                     .then()
                     .log().ifValidationFails()
                     .statusCode(403)
-                    .body(matchesRegex("(?s).*Required scope.*management-api:read.*missing.*"));
+                    .body(matchesRegex("(?s).*Required scope.*management-api:catalog:read.*missing.*"));
         }
 
-        @Test
-        void getDataset_tokenHasWrongRole(ManagementEndToEndV5TestContext context, OauthServer authServer) {
-            var requestBody = createObjectBuilder()
-                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
-                    .add(TYPE, "DatasetRequest")
-                    .add(ID, "asset-id")
-                    .add("counterPartyAddress", context.providerProtocolUrl(COUNTER_PARTY_ID, context.profile()))
-                    .add("counterPartyId", COUNTER_PARTY_ID)
-                    .add("profile", context.profile())
-                    .build()
-                    .toString();
-
-            var offendingToken = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("role", "some-role"));
-
-            context.baseRequest(offendingToken)
-                    .contentType(JSON)
-                    .body(requestBody)
-                    .post("/v5beta/participants/%s/catalog/dataset/request".formatted(PARTICIPANT_CONTEXT_ID))
-                    .then()
-                    .log().ifValidationFails()
-                    .statusCode(403)
-                    .body(containsString("Required user role not satisfied"));
-        }
 
         private void createContractOffer(PolicyDefinitionStore policyStore, ContractDefinitionStore contractDefStore, List<Criterion> assetsSelectorCritera) {
 

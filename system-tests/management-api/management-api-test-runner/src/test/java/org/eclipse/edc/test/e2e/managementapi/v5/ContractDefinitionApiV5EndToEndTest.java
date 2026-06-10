@@ -179,25 +179,7 @@ public class ContractDefinitionApiV5EndToEndTest {
                     .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
                     .then()
                     .statusCode(403)
-                    .body(matchesRegex("(?s).*Required scope.*management-api:write.*missing.*"));
-        }
-
-        @Test
-        void create_tokenHasWrongRole(ManagementEndToEndV5TestContext context, OauthServer authServer) {
-
-            var id = UUID.randomUUID().toString();
-            var requestJson = createDefinitionBuilder(id)
-                    .build()
-                    .toString();
-
-            var offendingToken = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("role", "barbaz"));
-            context.baseRequest(offendingToken)
-                    .contentType(JSON)
-                    .body(requestJson)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
-                    .then()
-                    .statusCode(403)
-                    .body(matchesRegex("Required user role not satisfied."));
+                    .body(matchesRegex("(?s).*Required scope.*management-api:contractdefinitions:write.*missing.*"));
         }
 
         @Test
@@ -377,22 +359,7 @@ public class ContractDefinitionApiV5EndToEndTest {
                     .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
                     .then()
                     .statusCode(403)
-                    .body(matchesRegex("(?s).*Required scope.*management-api:read.*missing.*"));
-        }
-
-        @Test
-        void query_tokenHasWrongRole(ManagementEndToEndV5TestContext context, OauthServer authServer, ContractDefinitionStore store) {
-            var id = UUID.randomUUID().toString();
-            store.save(createContractDefinition(id).build());
-
-            var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("role", "some-role"));
-
-            context.baseRequest(token)
-                    .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/request")
-                    .then()
-                    .statusCode(403)
-                    .body(containsString("Required user role not satisfied."));
+                    .body(matchesRegex("(?s).*Required scope.*management-api:contractdefinitions:read.*missing.*"));
         }
 
         @Test
@@ -478,20 +445,6 @@ public class ContractDefinitionApiV5EndToEndTest {
             store.save(entity);
 
             var offendingToken = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:foobar"));
-
-            context.baseRequest(offendingToken)
-                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
-                    .then()
-                    .statusCode(403);
-        }
-
-        @Test
-        void delete_tokenHasWrongRole(ManagementEndToEndV5TestContext context, OauthServer authServer, ContractDefinitionStore store) {
-            var id = UUID.randomUUID().toString();
-            var entity = createContractDefinition(id).build();
-            store.save(entity);
-
-            var offendingToken = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("role", "barbaz"));
 
             context.baseRequest(offendingToken)
                     .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions/" + id)
@@ -610,27 +563,6 @@ public class ContractDefinitionApiV5EndToEndTest {
                     .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
                     .then()
                     .statusCode(204);
-        }
-
-        @Test
-        void update_tokenHasWrongRole(ManagementEndToEndV5TestContext context, OauthServer authServer, ContractDefinitionStore store) {
-
-            var id = UUID.randomUUID().toString();
-            var entity = createContractDefinition(id).build();
-            store.save(entity);
-
-            var updated = createDefinitionBuilder(id)
-                    .add("accessPolicyId", "new-policy")
-                    .build()
-                    .toString();
-
-            var offendingToken = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("role", "barbaz"));
-            context.baseRequest(offendingToken)
-                    .contentType(JSON)
-                    .body(updated)
-                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractdefinitions")
-                    .then()
-                    .statusCode(403);
         }
 
         @Test

@@ -54,6 +54,8 @@ import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.jsonLdConte
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.matchesPattern;
+import static org.hamcrest.Matchers.matchesRegex;
 import static org.hamcrest.Matchers.nullValue;
 
 
@@ -134,7 +136,7 @@ public class CelExpressionApiV5EndToEndTest {
         }
 
         @Test
-        void create_NotAdmin(ManagementEndToEndV5TestContext context, OauthServer authServer) {
+        void create_notAdmin(ManagementEndToEndV5TestContext context, OauthServer authServer) {
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
                     .add(TYPE, "CelExpression")
@@ -151,7 +153,7 @@ public class CelExpressionApiV5EndToEndTest {
                     .then()
                     .log().ifError()
                     .statusCode(403)
-                    .body(containsString("Required user role not satisfied."));
+                    .body(matchesRegex("(?s).*Required scope.*management-api:admin.*missing.*"));
         }
 
         @Test
@@ -176,7 +178,7 @@ public class CelExpressionApiV5EndToEndTest {
 
 
         @Test
-        void get_NotAdmin(ManagementEndToEndV5TestContext context, CelExpressionStore store, OauthServer authServer) {
+        void get_notAdmin(ManagementEndToEndV5TestContext context, CelExpressionStore store, OauthServer authServer) {
 
             var expr = expression("leftOperand", "ctx.agent.id == 'agent-123'");
             store.create(expr)
@@ -190,7 +192,7 @@ public class CelExpressionApiV5EndToEndTest {
                     .then()
                     .log().ifError()
                     .statusCode(403)
-                    .body(containsString("Required user role not satisfied."));
+                    .body(matchesRegex("(?s).*Required scope.*management-api:admin.*missing.*"));
 
         }
 
@@ -229,7 +231,7 @@ public class CelExpressionApiV5EndToEndTest {
         }
 
         @Test
-        void query_NotAdmin(ManagementEndToEndV5TestContext context, CelExpressionStore store, OauthServer authServer) {
+        void query_notAdmin(ManagementEndToEndV5TestContext context, CelExpressionStore store, OauthServer authServer) {
             var expr = expression("leftOperand", "ctx.agent.id == 'agent-123'");
             store.create(expr)
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
@@ -247,7 +249,7 @@ public class CelExpressionApiV5EndToEndTest {
                     .then()
                     .log().ifError()
                     .statusCode(403)
-                    .body(containsString("Required user role not satisfied."));
+                    .body(matchesRegex("(?s).*Required scope.*management-api:admin.*missing.*"));
 
         }
 
@@ -297,7 +299,7 @@ public class CelExpressionApiV5EndToEndTest {
         }
 
         @Test
-        void update_NotAdmin(ManagementEndToEndV5TestContext context, OauthServer authServer) {
+        void update_notAdmin(ManagementEndToEndV5TestContext context, OauthServer authServer) {
 
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, jsonLdContext())
@@ -313,8 +315,7 @@ public class CelExpressionApiV5EndToEndTest {
                     .then()
                     .log().ifValidationFails()
                     .statusCode(403)
-                    .body(containsString("Required user role not satisfied."));
-
+                    .body(matchesRegex("(?s).*Required scope.*management-api:admin.*missing.*"));
         }
 
 
@@ -338,7 +339,7 @@ public class CelExpressionApiV5EndToEndTest {
 
 
         @Test
-        void delete_NotAdmin(ManagementEndToEndV5TestContext context, OauthServer authServer) {
+        void delete_notAdmin(ManagementEndToEndV5TestContext context, OauthServer authServer) {
 
             var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:write"));
 
@@ -346,7 +347,7 @@ public class CelExpressionApiV5EndToEndTest {
                     .delete("/v5beta/celexpressions/id")
                     .then()
                     .statusCode(403)
-                    .body(containsString("Required user role not satisfied."));
+                    .body(matchesRegex("(?s).*Required scope.*management-api:admin.*missing.*"));
         }
     }
 
