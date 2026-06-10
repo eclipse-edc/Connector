@@ -15,21 +15,16 @@
 package org.eclipse.edc.api.auth.spi;
 
 import java.security.Principal;
-import java.util.Collection;
-import java.util.List;
 
-public record ParticipantPrincipal(String participantContextId, String role, String scope) implements Principal {
-
-    public static final String ROLE_ADMIN = "admin";
-    public static final String ROLE_PROVISIONER = "provisioner";
-    public static final String ROLE_PARTICIPANT = "participant";
+/**
+ * Represents the security principal of an authenticated Management API request. The {@code participantContextId} is the
+ * identity carried by the token's {@code sub} claim; {@code scope} is the (space-delimited) set of granted scopes that
+ * determine what the principal may do.
+ */
+public record ParticipantPrincipal(String participantContextId, String scope) implements Principal {
 
     @Override
     public String getName() {
         return participantContextId;
-    }
-
-    public Collection<String> getRoles() {
-        return List.of(role);
     }
 }

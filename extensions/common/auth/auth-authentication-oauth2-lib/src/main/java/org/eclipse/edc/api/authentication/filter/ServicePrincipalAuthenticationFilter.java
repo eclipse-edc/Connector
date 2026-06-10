@@ -21,24 +21,26 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
+import org.eclipse.edc.api.auth.spi.ScopeMatcher;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.spi.iam.ClaimToken;
 
 import java.security.Principal;
 
 import static org.eclipse.edc.api.authentication.filter.Constants.REQUEST_PROPERTY_CLAIMS;
-import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID;
-import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_ROLE;
 import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_SCOPE;
+import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_SUBJECT;
 
 /**
  * A {@link ContainerRequestFilter} that extracts a {@link ParticipantPrincipal} from the Authorization Header, specifically,
- * the JWT that is contained in the Authorization Header.
+ * the JWT that is contained in the Authorization Header. The principal's identity is taken from the standard {@code sub}
+ * claim and its permissions from the {@code scope} claim.
  */
 @Priority(Priorities.AUTHENTICATION)
 public class ServicePrincipalAuthenticationFilter implements ContainerRequestFilter {
 
     private final ParticipantContextService participantContextService;
+    private final ScopeMatcher scopeMatcher = new ScopeMatcher();
 
     public ServicePrincipalAuthenticationFilter(ParticipantContextService participantContextService) {
         this.participantContextService = participantContextService;
@@ -49,18 +51,18 @@ public class ServicePrincipalAuthenticationFilter implements ContainerRequestFil
 
         var claims = containerRequestContext.getProperty(REQUEST_PROPERTY_CLAIMS);
         if (claims instanceof ClaimToken claimToken) {
-            var participantContextId = claimToken.getStringClaim(TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID);
-            var role = claimToken.getStringClaim(TOKEN_CLAIM_ROLE);
+            var subject = claimToken.getStringClaim(TOKEN_CLAIM_SUBJECT);
             var scope = claimToken.getStringClaim(TOKEN_CLAIM_SCOPE);
 
-            if (participantContextId != null) {
-                if (participantContextService.getParticipantContext(participantContextId).failed()) {
-                    containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED.getStatusCode(), "Authorization Header invalid: participant context not found").build());
-                    return;
-                }
+            // a non-admin principal is identified by its participant context, which must exist; an admin principal is
+            // elevated, so its subject need not correspond to a participant context (e.g. a service account)
+            if (!scopeMatcher.isAdmin(scope) && subject != null &&
+                    participantContextService.getParticipantContext(subject).failed()) {
+                containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED.getStatusCode(), "Authorization Header invalid: participant context not found").build());
+                return;
             }
 
-            var servicePrincipal = new ParticipantPrincipal(participantContextId, role, scope);
+            var servicePrincipal = new ParticipantPrincipal(subject, scope);
             containerRequestContext.setSecurityContext(new SecurityContext() {
                 @Override
                 public Principal getUserPrincipal() {
@@ -69,7 +71,7 @@ public class ServicePrincipalAuthenticationFilter implements ContainerRequestFil
 
                 @Override
                 public boolean isUserInRole(String s) {
-                    return servicePrincipal.getRoles().contains(s);
+                    return false;
                 }
 
                 @Override
@@ -85,7 +87,6 @@ public class ServicePrincipalAuthenticationFilter implements ContainerRequestFil
         } else {
             containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED.getStatusCode(), "Authorization failure: no '%s' found".formatted(REQUEST_PROPERTY_CLAIMS)).build());
         }
-
 
 
     }

@@ -78,7 +78,7 @@ class ScopeBasedAccessFilterTest {
     void filter_allowsWhenRequiredScopePresent() throws Exception {
         var request = mock(ContainerRequestContext.class);
         var securityContext = mock(SecurityContext.class);
-        var participant = new ParticipantPrincipal("some-id", ParticipantPrincipal.ROLE_PARTICIPANT, "openid management-api:read profile");
+        var participant = new ParticipantPrincipal("some-id", "openid management-api:read profile");
         when(securityContext.getUserPrincipal()).thenReturn(participant);
         when(request.getSecurityContext()).thenReturn(securityContext);
 
@@ -94,7 +94,7 @@ class ScopeBasedAccessFilterTest {
         var request = mock(ContainerRequestContext.class);
         var securityContext = mock(SecurityContext.class);
         // required is management-api:read; a write (or admin) grant satisfies it via the action hierarchy
-        var participant = new ParticipantPrincipal("some-id", ParticipantPrincipal.ROLE_PARTICIPANT, "management-api:write");
+        var participant = new ParticipantPrincipal("some-id", "management-api:write");
         when(securityContext.getUserPrincipal()).thenReturn(participant);
         when(request.getSecurityContext()).thenReturn(securityContext);
 
@@ -109,7 +109,7 @@ class ScopeBasedAccessFilterTest {
     void filter_abortsWithForbidden_whenRequiredScopeMissingForParticipant() throws Exception {
         var request = mock(ContainerRequestContext.class);
         var securityContext = mock(SecurityContext.class);
-        var participant = new ParticipantPrincipal("some-id", ParticipantPrincipal.ROLE_PARTICIPANT, "openid profile");
+        var participant = new ParticipantPrincipal("some-id", "openid profile");
         when(securityContext.getUserPrincipal()).thenReturn(participant);
         when(request.getSecurityContext()).thenReturn(securityContext);
 
@@ -125,7 +125,7 @@ class ScopeBasedAccessFilterTest {
     void filter_abortsWithForbidden_whenParticipantScopeIsEmpty() throws Exception {
         var request = mock(ContainerRequestContext.class);
         var securityContext = mock(SecurityContext.class);
-        var participant = new ParticipantPrincipal("some-id", ParticipantPrincipal.ROLE_PARTICIPANT, " ");
+        var participant = new ParticipantPrincipal("some-id", " ");
         when(securityContext.getUserPrincipal()).thenReturn(participant);
         when(request.getSecurityContext()).thenReturn(securityContext);
 
@@ -142,7 +142,7 @@ class ScopeBasedAccessFilterTest {
         var request = mock(ContainerRequestContext.class);
         var securityContext = mock(SecurityContext.class);
         // a resource-specific grant does not satisfy the wildcard-resource requirement (management-api:read ≡ *:read)
-        var participant = new ParticipantPrincipal("some-id", ParticipantPrincipal.ROLE_PARTICIPANT, "management-api:assets:read");
+        var participant = new ParticipantPrincipal("some-id", "management-api:assets:read");
         when(securityContext.getUserPrincipal()).thenReturn(participant);
         when(request.getSecurityContext()).thenReturn(securityContext);
 

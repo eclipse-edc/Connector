@@ -15,6 +15,7 @@
 package org.eclipse.edc.api.authentication.filter;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
+import org.eclipse.edc.api.auth.spi.ManagementApiScopes;
 import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
@@ -24,9 +25,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.eclipse.edc.api.authentication.filter.Constants.REQUEST_PROPERTY_CLAIMS;
-import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID;
-import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_ROLE;
 import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_SCOPE;
+import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_SUBJECT;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
@@ -54,8 +54,24 @@ class ServicePrincipalAuthenticationFilterTest {
         var request = mock(ContainerRequestContext.class);
         when(request.getProperty(REQUEST_PROPERTY_CLAIMS)).thenReturn(ClaimToken.Builder.newInstance()
                 .claim(TOKEN_CLAIM_SCOPE, "management-api:read")
-                .claim(TOKEN_CLAIM_ROLE, ParticipantPrincipal.ROLE_PARTICIPANT)
-                .claim(TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID, "test-context-id")
+                .claim(TOKEN_CLAIM_SUBJECT, "test-context-id")
+                .build());
+
+
+        filter.filter(request);
+
+        verify(request).getProperty(REQUEST_PROPERTY_CLAIMS);
+        verify(request).setSecurityContext(argThat(sc -> sc.getUserPrincipal() instanceof ParticipantPrincipal pp &&
+                "test-context-id".equals(pp.getName())));
+        verifyNoMoreInteractions(request);
+    }
+
+    @Test
+    void filter_success_noSubjectClaim() {
+        var request = mock(ContainerRequestContext.class);
+        when(request.getProperty(REQUEST_PROPERTY_CLAIMS)).thenReturn(ClaimToken.Builder.newInstance()
+                .claim(TOKEN_CLAIM_SCOPE, "management-api:read")
+                // missing: sub claim
                 .build());
 
 
@@ -67,20 +83,18 @@ class ServicePrincipalAuthenticationFilterTest {
     }
 
     @Test
-    void filter_success_noParticipantContextIdClaim() {
+    void filter_adminSubjectNotParticipantContext_isAllowed() {
+        // an admin token's subject need not be a participant context; the existence check must be skipped
+        when(participantContextService.getParticipantContext(anyString())).thenReturn(ServiceResult.notFound("not a participant context"));
         var request = mock(ContainerRequestContext.class);
         when(request.getProperty(REQUEST_PROPERTY_CLAIMS)).thenReturn(ClaimToken.Builder.newInstance()
-                .claim(TOKEN_CLAIM_SCOPE, "management-api:read")
-                .claim(TOKEN_CLAIM_ROLE, ParticipantPrincipal.ROLE_PARTICIPANT)
-                // missing: participant_context_id claim
+                .claim(TOKEN_CLAIM_SCOPE, ManagementApiScopes.ADMIN)
+                .claim(TOKEN_CLAIM_SUBJECT, "some-service-account")
                 .build());
-
 
         filter.filter(request);
 
-        verify(request).getProperty(REQUEST_PROPERTY_CLAIMS);
         verify(request).setSecurityContext(argThat(sc -> sc.getUserPrincipal() instanceof ParticipantPrincipal));
-        verifyNoMoreInteractions(request);
     }
 
     @Test
@@ -98,8 +112,7 @@ class ServicePrincipalAuthenticationFilterTest {
         var request = mock(ContainerRequestContext.class);
         when(request.getProperty(REQUEST_PROPERTY_CLAIMS)).thenReturn(ClaimToken.Builder.newInstance()
                 .claim(TOKEN_CLAIM_SCOPE, "management-api:read")
-                .claim(TOKEN_CLAIM_ROLE, ParticipantPrincipal.ROLE_PARTICIPANT)
-                .claim(TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID, "test-context-id")
+                .claim(TOKEN_CLAIM_SUBJECT, "test-context-id")
                 .build());
         filter.filter(request);
 

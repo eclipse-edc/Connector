@@ -20,7 +20,6 @@ import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.edc.api.auth.spi.ManagementApiScopes;
-import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -30,6 +29,8 @@ import java.util.UUID;
 import static com.nimbusds.jose.JWSAlgorithm.ES256;
 
 public class OauthServer implements OauthTokenProvider {
+
+    private static final String ADMIN_SUBJECT = "admin-subject";
 
     private final ECKey oauthServerSigningKey;
     private final String issuer;
@@ -41,35 +42,28 @@ public class OauthServer implements OauthTokenProvider {
         this.scopes = scopes;
     }
 
+    @Override
     public String createToken(String participantContextId) {
         return createToken(participantContextId, Map.of());
     }
 
-    public String createToken(String participantContextId, String role) {
-        return createToken(participantContextId, Map.of(), scopes, role);
-    }
-
-    public String createToken(String participantContextId, String scopes, String role) {
-        return createToken(participantContextId, Map.of(), scopes, role);
+    public String createToken(String participantContextId, String scopes) {
+        return createToken(participantContextId, Map.of(), scopes);
     }
 
     public String createToken(String participantContextId, Map<String, String> additionalClaims) {
-        return createToken(participantContextId, additionalClaims, scopes, ParticipantPrincipal.ROLE_PARTICIPANT);
+        return createToken(participantContextId, additionalClaims, scopes);
     }
 
-    public String createToken(String participantContextId, Map<String, String> additionalClaims, String scopes, String role) {
+    public String createToken(String participantContextId, Map<String, String> additionalClaims, String scopes) {
         var defaultClaims = new HashMap<String, Object>(Map.of(
-                "sub", "test-subject",
+                "sub", participantContextId != null ? participantContextId : ADMIN_SUBJECT,
                 "iss", issuer,
                 "iat", Instant.now().getEpochSecond(),
                 "exp", Instant.now().plusSeconds(3600).getEpochSecond(),
                 "jti", UUID.randomUUID().toString(),
-                "scope", scopes,
-                "role", role
+                "scope", scopes
         ));
-        if (participantContextId != null) {
-            defaultClaims.put("participant_context_id", participantContextId);
-        }
         defaultClaims.putAll(additionalClaims);
         return createToken(defaultClaims);
     }
@@ -88,11 +82,12 @@ public class OauthServer implements OauthTokenProvider {
         }
     }
 
+    @Override
     public String createAdminToken() {
-        return createToken(null, ManagementApiScopes.ADMIN, ParticipantPrincipal.ROLE_ADMIN);
+        return createToken(null, ManagementApiScopes.ADMIN);
     }
 
     public String createProvisionerToken() {
-        return createToken(null, ManagementApiScopes.ADMIN, ParticipantPrincipal.ROLE_PROVISIONER);
+        return createToken(null, ManagementApiScopes.ADMIN);
     }
 }
