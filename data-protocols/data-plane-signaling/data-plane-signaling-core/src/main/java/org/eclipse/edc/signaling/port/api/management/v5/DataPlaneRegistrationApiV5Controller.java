@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.signaling.port.api.management.v5;
 
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.PUT;
@@ -25,7 +24,6 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.AuthorizationProfile;
@@ -52,8 +50,7 @@ public class DataPlaneRegistrationApiV5Controller implements DataPlaneRegistrati
     }
 
     @PUT
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PROVISIONER, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:dataplanes:write")
     @Override
     public Response registerV5(@PathParam("participantContextId") String participantContextId,
                                DataPlaneRegistrationMessage registration,
@@ -79,8 +76,7 @@ public class DataPlaneRegistrationApiV5Controller implements DataPlaneRegistrati
 
     @DELETE
     @Path("/{dataplaneId}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PROVISIONER, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:dataplanes:write")
     @Override
     public Response deleteV5(@PathParam("participantContextId") String participantContextId,
                              @PathParam("dataplaneId") String dataplaneId,

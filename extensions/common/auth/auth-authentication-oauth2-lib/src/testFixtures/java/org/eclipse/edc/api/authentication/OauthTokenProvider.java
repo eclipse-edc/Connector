@@ -14,6 +14,10 @@
 
 package org.eclipse.edc.api.authentication;
 
+import java.util.Map;
+
 public interface OauthTokenProvider {
     String createToken(String participantContextId, String role);
+
+    String createToken(String participantContextId, Map<String, String> additionalClaims);
 }

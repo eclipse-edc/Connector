@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.catalog.v5;
 
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -26,7 +25,6 @@ import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest;
@@ -73,8 +71,7 @@ public class CatalogApiV5Controller implements CatalogApiV5 {
 
     @POST
     @Path("/request")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:catalog:read")
     @Override
     public void requestCatalogV5(@PathParam("participantContextId") String participantContextId,
                                  @SchemaType(CATALOG_REQUEST_TYPE_TERM) JsonObject requestBody,
@@ -102,8 +99,7 @@ public class CatalogApiV5Controller implements CatalogApiV5 {
 
     @POST
     @Path("/dataset/request")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:catalog:read")
     @Override
     public void getDatasetV5(@PathParam("participantContextId") String participantContextId,
                              @SchemaType(DATASET_REQUEST_TYPE_TERM) JsonObject requestBody,

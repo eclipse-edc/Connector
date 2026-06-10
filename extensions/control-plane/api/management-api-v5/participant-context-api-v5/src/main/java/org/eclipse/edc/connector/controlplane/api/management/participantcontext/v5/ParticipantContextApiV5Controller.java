@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.api.management.participantcontext.v5;
 
 
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
@@ -31,7 +30,6 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
@@ -69,8 +67,7 @@ public class ParticipantContextApiV5Controller implements ParticipantContextApiV
     }
 
     @POST
-    @RolesAllowed({ParticipantPrincipal.ROLE_PROVISIONER})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:admin")
     @Override
     public JsonObject createParticipantV5(@SchemaType(PARTICIPANT_CONTEXT_TYPE_TERM) JsonObject request) {
 
@@ -91,8 +88,7 @@ public class ParticipantContextApiV5Controller implements ParticipantContextApiV
 
     @GET
     @Path("{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_PROVISIONER, ParticipantPrincipal.ROLE_ADMIN})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:admin")
     @Override
     public JsonObject getParticipantV5(@PathParam("id") String id, @Context SecurityContext securityContext) {
 
@@ -105,8 +101,7 @@ public class ParticipantContextApiV5Controller implements ParticipantContextApiV
 
     @PUT
     @Path("{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_PROVISIONER})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:admin")
     @Override
     public void updateParticipantV5(@PathParam("id") String id, @SchemaType(PARTICIPANT_CONTEXT_TYPE_TERM) JsonObject request) {
         var participantContext = transformerRegistry.transform(request, ParticipantContext.class)
@@ -119,8 +114,7 @@ public class ParticipantContextApiV5Controller implements ParticipantContextApiV
 
     @DELETE
     @Path("{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_PROVISIONER})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:admin")
     @Override
     public void deleteParticipantV5(@PathParam("id") String participantContextId) {
         participantContextService.deleteParticipantContext(participantContextId)
@@ -128,8 +122,7 @@ public class ParticipantContextApiV5Controller implements ParticipantContextApiV
     }
 
     @GET
-    @RolesAllowed({ParticipantPrincipal.ROLE_PROVISIONER, ParticipantPrincipal.ROLE_ADMIN})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:admin")
     @Override
     public JsonArray getAllParticipantsV5(@DefaultValue("0") @QueryParam("offset") Integer offset,
                                           @DefaultValue("50") @QueryParam("limit") Integer limit) {

@@ -34,7 +34,7 @@ public class ParticipantContextApi {
      * @param participantContextDto the participant context to create
      */
     public void createParticipant(ParticipantContextDto participantContextDto) {
-        connector.baseManagementRequest(null, ParticipantPrincipal.ROLE_PROVISIONER)
+        connector.baseManagementRequest(null, "management-api:admin", ParticipantPrincipal.ROLE_PROVISIONER)
                 .contentType(JSON)
                 .body(new WithContext<>(participantContextDto))
                 .when()

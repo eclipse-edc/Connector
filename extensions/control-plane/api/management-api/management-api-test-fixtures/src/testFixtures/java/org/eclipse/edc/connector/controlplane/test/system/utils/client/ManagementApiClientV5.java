@@ -267,4 +267,10 @@ public class ManagementApiClientV5 {
         return given().baseUri(managementEndpoint.get().toString())
                 .header("Authorization", "Bearer " + token);
     }
+
+    public RequestSpecification baseManagementRequest(String participantContextId, String scope, String role) {
+        var token = oauthServer.createToken(participantContextId, Map.of("scope", scope, "role", role));
+        return given().baseUri(managementEndpoint.get().toString())
+                .header("Authorization", "Bearer " + token);
+    }
 }

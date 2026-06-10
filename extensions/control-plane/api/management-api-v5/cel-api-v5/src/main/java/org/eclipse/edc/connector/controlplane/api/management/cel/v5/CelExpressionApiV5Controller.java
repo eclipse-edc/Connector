@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.api.management.cel.v5;
 
 
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
@@ -26,7 +25,6 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
@@ -62,8 +60,7 @@ public class CelExpressionApiV5Controller implements CelExpressionApiV5 {
     }
 
     @POST
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PROVISIONER})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:admin")
     @Override
     public JsonObject createExpressionV5(@SchemaType(CEL_EXPRESSION_TYPE_TERM) JsonObject expression) {
 
@@ -84,8 +81,7 @@ public class CelExpressionApiV5Controller implements CelExpressionApiV5 {
 
     @POST
     @Path("test")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PROVISIONER})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:admin")
     @Override
     public JsonObject testExpressionV5(@SchemaType(CEL_EXPRESSION_TEST_REQUEST_TYPE_TERM) JsonObject test) {
 
@@ -102,8 +98,7 @@ public class CelExpressionApiV5Controller implements CelExpressionApiV5 {
 
     @GET
     @Path("{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PROVISIONER})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:admin")
     @Override
     public JsonObject getExpressionV5(@PathParam("id") String id) {
 
@@ -116,8 +111,7 @@ public class CelExpressionApiV5Controller implements CelExpressionApiV5 {
 
     @PUT
     @Path("{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PROVISIONER})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:admin")
     @Override
     public void updateExpressionV5(@PathParam("id") String id, @SchemaType(CEL_EXPRESSION_TYPE_TERM) JsonObject expression) {
 
@@ -132,8 +126,7 @@ public class CelExpressionApiV5Controller implements CelExpressionApiV5 {
 
     @POST
     @Path("request")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PROVISIONER})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:admin")
     @Override
     public JsonArray queryExpressionV5(@SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson) {
         QuerySpec querySpec;
@@ -153,8 +146,7 @@ public class CelExpressionApiV5Controller implements CelExpressionApiV5 {
 
     @DELETE
     @Path("{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PROVISIONER})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:admin")
     @Override
     public void deleteExpressionV5(@PathParam("id") String id) {
         service.delete(id)

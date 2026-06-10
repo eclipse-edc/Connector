@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v5;
 
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
@@ -27,7 +26,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.command.TerminateNegotiationCommand;
@@ -85,8 +83,7 @@ public class ContractNegotiationApiV5Controller implements ContractNegotiationAp
 
     @POST
     @Path("/request")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:negotiations:read")
     @Override
     public JsonArray queryNegotiationsV5(@PathParam("participantContextId") String participantContextId,
                                          @SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson,
@@ -117,8 +114,7 @@ public class ContractNegotiationApiV5Controller implements ContractNegotiationAp
 
     @GET
     @Path("/{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:negotiations:read")
     @Override
     public JsonObject getNegotiationV5(@PathParam("participantContextId") String participantContextId,
                                        @PathParam("id") String id,
@@ -136,8 +132,7 @@ public class ContractNegotiationApiV5Controller implements ContractNegotiationAp
 
     @GET
     @Path("/{id}/state")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:negotiations:read")
     @Override
     public JsonObject getNegotiationStateV5(@PathParam("participantContextId") String participantContextId,
                                             @PathParam("id") String id,
@@ -156,8 +151,7 @@ public class ContractNegotiationApiV5Controller implements ContractNegotiationAp
 
     @GET
     @Path("/{id}/agreement")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:negotiations:read")
     @Override
     public JsonObject getAgreementForNegotiationV5(@PathParam("participantContextId") String participantContextId,
                                                    @PathParam("id") String negotiationId,
@@ -173,8 +167,7 @@ public class ContractNegotiationApiV5Controller implements ContractNegotiationAp
     }
 
     @POST
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:negotiations:write")
     @Override
     public JsonObject initiateContractNegotiationV5(@PathParam("participantContextId") String participantContextId,
                                                     @SchemaType(CONTRACT_REQUEST_TYPE_TERM) JsonObject requestObject,
@@ -201,8 +194,7 @@ public class ContractNegotiationApiV5Controller implements ContractNegotiationAp
 
     @POST
     @Path("/{id}/terminate")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:negotiations:write")
     @Override
     public void terminateNegotiationV5(@PathParam("participantContextId") String participantContextId,
                                        @PathParam("id") String id,
@@ -220,8 +212,7 @@ public class ContractNegotiationApiV5Controller implements ContractNegotiationAp
 
     @DELETE
     @Path("/{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:negotiations:write")
     @Override
     public void deleteNegotiationV5(@PathParam("participantContextId") String participantContextId,
                                     @PathParam("id") String id,

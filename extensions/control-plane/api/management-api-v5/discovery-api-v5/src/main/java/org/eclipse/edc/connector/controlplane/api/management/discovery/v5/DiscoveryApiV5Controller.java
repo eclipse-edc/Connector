@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.discovery.v5;
 
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
@@ -25,7 +24,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.protocol.spi.discovery.DiscoveryRequest;
@@ -63,8 +61,7 @@ public class DiscoveryApiV5Controller implements DiscoveryApiV5 {
 
     @POST
     @Path("/request")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:discovery:read")
     @Override
     public JsonArray discoverV5(@PathParam("participantContextId") String participantContextId,
                                 @SchemaType(DISCOVERY_REQUEST_TYPE_TERM) JsonObject request,
