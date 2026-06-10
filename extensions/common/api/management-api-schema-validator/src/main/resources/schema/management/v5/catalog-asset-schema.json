@@ -7,7 +7,7 @@
       "$ref": "#/definitions/CatalogAsset"
     }
   ],
-  "$id": "https://w3id.org/edc/connector/management/schema/v4/catalog-asset-schema.json",
+  "$id": "https://w3id.org/edc/connector/management/schema/v5/catalog-asset-schema.json",
   "definitions": {
     "CatalogAsset": {
       "type": "object",
@@ -35,7 +35,8 @@
             "format": {
               "type": "string"
             }
-          }
+          },
+          "required": ["endpointURL", "format"]
         },
         "privateProperties": {
           "type": "object"

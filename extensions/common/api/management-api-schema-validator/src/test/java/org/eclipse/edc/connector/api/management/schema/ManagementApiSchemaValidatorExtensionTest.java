@@ -81,14 +81,14 @@ class ManagementApiSchemaValidatorExtensionTest {
     @Test
     void initialize_registersCustomValidators_withDistinctVersionPrefix(TestExtensionContext context) {
         context.setConfig(ConfigFactory.fromMap(Map.of(
-                "edc.mgmt.api.schema.custom.version", "v5",
+                "edc.mgmt.api.schema.custom.version", "v6",
                 "edc.mgmt.api.schema.custom.validator.asset.type", "Asset",
                 "edc.mgmt.api.schema.custom.validator.asset.schema", "https://w3id.org/edc/connector/management/schema/v4/asset-schema.json"
         )));
 
         extension.initialize(context);
 
-        verify(validatorRegistry).register(eq("v5:Asset"), any());
+        verify(validatorRegistry).register(eq("v6:Asset"), any());
     }
 
     @Test

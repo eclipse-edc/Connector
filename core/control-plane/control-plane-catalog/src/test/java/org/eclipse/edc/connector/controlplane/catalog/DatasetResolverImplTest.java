@@ -79,7 +79,7 @@ class DatasetResolverImplTest {
     @BeforeEach
     void setUp() {
         datasetResolver = new DatasetResolverImpl(definitionResolver, assetIndex, policyStore, distributionResolver,
-                CriterionOperatorRegistryImpl.ofDefaults());
+                CriterionOperatorRegistryImpl.ofDefaults(), mock());
     }
 
     private ContractDefinition.Builder contractDefinitionBuilder(String id) {

@@ -20,11 +20,12 @@ public interface ManagementApi {
     String MANAGEMENT_API_CONTEXT = "management-api";
 
     String MANAGEMENT_API_V_4 = "v4";
+    String MANAGEMENT_API_V_5 = "v5";
 
     // JSON-LD scope for management API
     String MANAGEMENT_SCOPE = "MANAGEMENT_API";
 
-    // JSON-LD scope for management API version 4 alpha
     String MANAGEMENT_SCOPE_V4 = MANAGEMENT_SCOPE + ":" + MANAGEMENT_API_V_4;
+    String MANAGEMENT_SCOPE_V5 = MANAGEMENT_SCOPE + ":" + MANAGEMENT_API_V_5;
 
 }

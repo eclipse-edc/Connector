@@ -45,11 +45,13 @@ public class Asset extends AbstractParticipantResource {
     public static final String EDC_CATALOG_ASSET_TYPE = EDC_NAMESPACE + EDC_CATALOG_ASSET_TYPE_TERM;
     public static final String EDC_ASSET_PROPERTIES = EDC_NAMESPACE + "properties";
     public static final String EDC_ASSET_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
+    @Deprecated(since = "0.18.0")
     public static final String EDC_ASSET_DATA_ADDRESS = EDC_NAMESPACE + "dataAddress";
     public static final String EDC_ASSET_DATAPLANE_METADATA = EDC_NAMESPACE + "dataplaneMetadata";
     private final Map<String, Object> properties = new HashMap<>();
     private final Map<String, Object> privateProperties = new HashMap<>();
     private DataplaneMetadata dataplaneMetadata;
+    @Deprecated(since = "0.18.0")
     private DataAddress dataAddress;
 
     private Asset() {
@@ -94,6 +96,7 @@ public class Asset extends AbstractParticipantResource {
         return privateProperties.get(key);
     }
 
+    @Deprecated(since = "0.18.0")
     public DataAddress getDataAddress() {
         return dataAddress;
     }
@@ -118,7 +121,7 @@ public class Asset extends AbstractParticipantResource {
         return true;
     }
 
-    private String getPropertyAsString(String key) {
+    public String getPropertyAsString(String key) {
         var val = getProperty(key);
         return val != null ? val.toString() : null;
     }
@@ -184,6 +187,7 @@ public class Asset extends AbstractParticipantResource {
             return self();
         }
 
+        @Deprecated(since = "0.18.0")
         public Builder dataAddress(DataAddress dataAddress) {
             entity.dataAddress = dataAddress;
             return self();

@@ -24,6 +24,7 @@ import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -52,6 +53,8 @@ public class CatalogCoreExtension implements ServiceExtension {
 
     @Inject
     private PolicyEngine policyEngine;
+    @Inject
+    private Monitor monitor;
 
     @Override
     public String name() {
@@ -67,7 +70,7 @@ public class CatalogCoreExtension implements ServiceExtension {
     public DatasetResolver datasetResolver() {
         var contractDefinitionResolver = new ContractDefinitionResolverImpl(contractDefinitionStore, policyEngine, policyDefinitionStore);
         return new DatasetResolverImpl(contractDefinitionResolver, assetIndex, policyDefinitionStore,
-                distributionResolver, criterionOperatorRegistry);
+                distributionResolver, criterionOperatorRegistry, monitor);
     }
 
 }

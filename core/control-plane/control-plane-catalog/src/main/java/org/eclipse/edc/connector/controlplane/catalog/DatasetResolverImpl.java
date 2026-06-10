@@ -26,11 +26,11 @@ import org.eclipse.edc.connector.controlplane.contract.spi.ContractOfferId;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
-import org.eclipse.edc.dataaddress.httpdata.spi.HttpDataAddressSchema;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +43,9 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.lang.Integer.MAX_VALUE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ENDPOINT_URL_ATTRIBUTE;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.filterByParticipantContextId;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 public class DatasetResolverImpl implements DatasetResolver {
 
@@ -52,15 +54,17 @@ public class DatasetResolverImpl implements DatasetResolver {
     private final PolicyDefinitionStore policyDefinitionStore;
     private final DistributionResolver distributionResolver;
     private final CriterionOperatorRegistry criterionOperatorRegistry;
+    private final Monitor monitor;
 
     public DatasetResolverImpl(ContractDefinitionResolver contractDefinitionResolver, AssetIndex assetIndex,
                                PolicyDefinitionStore policyDefinitionStore, DistributionResolver distributionResolver,
-                               CriterionOperatorRegistry criterionOperatorRegistry) {
+                               CriterionOperatorRegistry criterionOperatorRegistry, Monitor monitor) {
         this.contractDefinitionResolver = contractDefinitionResolver;
         this.assetIndex = assetIndex;
         this.policyDefinitionStore = policyDefinitionStore;
         this.distributionResolver = distributionResolver;
         this.criterionOperatorRegistry = criterionOperatorRegistry;
+        this.monitor = monitor;
     }
 
     @Override
@@ -104,11 +108,20 @@ public class DatasetResolverImpl implements DatasetResolver {
             return Dataset.Builder.newInstance();
         }
 
+        var endpointUrl = asset.getPropertyAsString(DCAT_ENDPOINT_URL_ATTRIBUTE);
+        if (endpointUrl == null) {
+            monitor.warning("""
+                        Asset %s has no 'endpointURL' property and the DataAddress baseUrl is used instead, please adapt it as the
+                        DataAddress will be removed from Asset in the forthcoming versions"""
+                    .formatted(asset.getId()));
+            endpointUrl = asset.getDataAddress().getStringProperty(EDC_NAMESPACE + "baseUrl", null);
+        }
+
         return Catalog.Builder.newInstance()
                 .dataService(DataService.Builder.newInstance()
                         .id(Base64.getUrlEncoder().encodeToString(asset.getId().getBytes()))
                         .endpointDescription(asset.getDescription())
-                        .endpointUrl(asset.getDataAddress().getStringProperty(HttpDataAddressSchema.BASE_URL, null))
+                        .endpointUrl(endpointUrl)
                         .build());
     }
 

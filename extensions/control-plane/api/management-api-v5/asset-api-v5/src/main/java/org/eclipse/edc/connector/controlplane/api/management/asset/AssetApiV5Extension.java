@@ -20,7 +20,6 @@ import org.eclipse.edc.connector.controlplane.api.management.asset.v5.AssetApiV5
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -33,10 +32,10 @@ import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.web.jersey.providers.jsonld.JerseyJsonLdInterceptor;
 import org.eclipse.edc.web.spi.WebService;
-import org.eclipse.edc.web.spi.configuration.ApiContext;
 
-import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V5;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
+import static org.eclipse.edc.web.spi.configuration.ApiContext.MANAGEMENT;
 
 @Extension(value = AssetApiV5Extension.NAME)
 public class AssetApiV5Extension implements ServiceExtension {
@@ -63,9 +62,6 @@ public class AssetApiV5Extension implements ServiceExtension {
     @Inject
     private AuthorizationService authorizationService;
 
-    @Inject
-    private ParticipantContextService participantContextService;
-
     @Override
     public String name() {
         return NAME;
@@ -79,8 +75,10 @@ public class AssetApiV5Extension implements ServiceExtension {
 
         authorizationService.addLookupFunction(Asset.class, this::findAsset);
 
-        webService.registerResource(ApiContext.MANAGEMENT, new AssetApiV5Controller(assetService, managementTypeTransformerRegistry, validatorRegistry, monitor, authorizationService));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, AssetApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerResource(MANAGEMENT, new AssetApiV5Controller(assetService, managementTypeTransformerRegistry,
+                validatorRegistry, monitor, authorizationService));
+        webService.registerDynamicResource(MANAGEMENT, AssetApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd,
+                typeManager, JSON_LD, MANAGEMENT_SCOPE_V5, validatorRegistry, ManagementApiJsonSchema.V5.version()));
 
     }
 

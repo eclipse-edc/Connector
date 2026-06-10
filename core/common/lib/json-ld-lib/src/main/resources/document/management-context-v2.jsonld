@@ -3,6 +3,7 @@
     "@version": 1.1,
     "edc": "https://w3id.org/edc/v0.0.1/ns/",
     "dct": "http://purl.org/dc/terms/",
+    "dcat": "http://www.w3.org/ns/dcat#",
     "Asset": {
       "@id": "edc:Asset",
       "@context": {
@@ -56,7 +57,15 @@
         "properties": {
           "@id": "edc:properties",
           "@context": {
-            "@vocab": "https://w3id.org/edc/v0.0.1/ns/"
+            "@vocab": "https://w3id.org/edc/v0.0.1/ns/",
+            "endpointURL": {
+              "@id": "dcat:endpointURL",
+              "@type": "@id"
+            },
+            "format": {
+              "@id": "dct:format",
+              "@type": "@id"
+            }
           }
         },
         "privateProperties": {
