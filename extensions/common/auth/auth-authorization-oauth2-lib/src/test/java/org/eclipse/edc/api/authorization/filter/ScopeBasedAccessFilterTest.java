@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 
 class ScopeBasedAccessFilterTest {
 
-    private final ScopeBasedAccessFilter filter = new ScopeBasedAccessFilter("required-scope");
+    private final ScopeBasedAccessFilter filter = new ScopeBasedAccessFilter("management-api:read");
 
     @Test
     void filter_abortsWithForbidden_whenSecurityContextIsNull() throws Exception {
@@ -78,7 +78,7 @@ class ScopeBasedAccessFilterTest {
     void filter_allowsWhenRequiredScopePresent() throws Exception {
         var request = mock(ContainerRequestContext.class);
         var securityContext = mock(SecurityContext.class);
-        var participant = new ParticipantPrincipal("some-id", ParticipantPrincipal.ROLE_PARTICIPANT, "foo required-scope bar");
+        var participant = new ParticipantPrincipal("some-id", ParticipantPrincipal.ROLE_PARTICIPANT, "openid management-api:read profile");
         when(securityContext.getUserPrincipal()).thenReturn(participant);
         when(request.getSecurityContext()).thenReturn(securityContext);
 
@@ -90,10 +90,26 @@ class ScopeBasedAccessFilterTest {
     }
 
     @Test
-    void filter_abortsWithUnauthorized_whenRequiredScopeMissingForParticipant() throws Exception {
+    void filter_allowsWhenHigherActionGranted() throws Exception {
         var request = mock(ContainerRequestContext.class);
         var securityContext = mock(SecurityContext.class);
-        var participant = new ParticipantPrincipal("some-id", ParticipantPrincipal.ROLE_PARTICIPANT, "foo bar");
+        // required is management-api:read; a write (or admin) grant satisfies it via the action hierarchy
+        var participant = new ParticipantPrincipal("some-id", ParticipantPrincipal.ROLE_PARTICIPANT, "management-api:write");
+        when(securityContext.getUserPrincipal()).thenReturn(participant);
+        when(request.getSecurityContext()).thenReturn(securityContext);
+
+        filter.filter(request);
+
+        verify(request).getSecurityContext();
+        verify(securityContext).getUserPrincipal();
+        verifyNoMoreInteractions(request, securityContext);
+    }
+
+    @Test
+    void filter_abortsWithForbidden_whenRequiredScopeMissingForParticipant() throws Exception {
+        var request = mock(ContainerRequestContext.class);
+        var securityContext = mock(SecurityContext.class);
+        var participant = new ParticipantPrincipal("some-id", ParticipantPrincipal.ROLE_PARTICIPANT, "openid profile");
         when(securityContext.getUserPrincipal()).thenReturn(participant);
         when(request.getSecurityContext()).thenReturn(securityContext);
 
@@ -106,7 +122,7 @@ class ScopeBasedAccessFilterTest {
     }
 
     @Test
-    void filter_abortsWithUnauthorized_whenParticipantScopeIsEmpty() throws Exception {
+    void filter_abortsWithForbidden_whenParticipantScopeIsEmpty() throws Exception {
         var request = mock(ContainerRequestContext.class);
         var securityContext = mock(SecurityContext.class);
         var participant = new ParticipantPrincipal("some-id", ParticipantPrincipal.ROLE_PARTICIPANT, " ");
@@ -122,11 +138,11 @@ class ScopeBasedAccessFilterTest {
     }
 
     @Test
-    void filter_doesNotMatchPartialNames() throws Exception {
+    void filter_abortsWithForbidden_whenGrantedScopeIsResourceSpecific() throws Exception {
         var request = mock(ContainerRequestContext.class);
         var securityContext = mock(SecurityContext.class);
-        // include similar token "required-scope-extra" to ensure exact token matching is required
-        var participant = new ParticipantPrincipal("some-id", ParticipantPrincipal.ROLE_PARTICIPANT, "required-scope-extra");
+        // a resource-specific grant does not satisfy the wildcard-resource requirement (management-api:read ≡ *:read)
+        var participant = new ParticipantPrincipal("some-id", ParticipantPrincipal.ROLE_PARTICIPANT, "management-api:assets:read");
         when(securityContext.getUserPrincipal()).thenReturn(participant);
         when(request.getSecurityContext()).thenReturn(securityContext);
 
@@ -137,6 +153,4 @@ class ScopeBasedAccessFilterTest {
         verify(request).abortWith(argThat(r -> r.getStatus() == 403));
         verifyNoMoreInteractions(request, securityContext);
     }
-
-
 }

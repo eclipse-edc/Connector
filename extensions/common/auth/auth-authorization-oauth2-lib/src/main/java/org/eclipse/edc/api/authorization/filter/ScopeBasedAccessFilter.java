@@ -20,13 +20,14 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
+import org.eclipse.edc.api.auth.spi.ScopeMatcher;
 
 import java.io.IOException;
-import java.util.Arrays;
 
 @Priority(Priorities.AUTHORIZATION)
 class ScopeBasedAccessFilter implements ContainerRequestFilter {
     private final String requiredScope;
+    private final ScopeMatcher scopeMatcher = new ScopeMatcher();
 
     ScopeBasedAccessFilter(String requiredScope) {
         this.requiredScope = requiredScope;
@@ -46,7 +47,7 @@ class ScopeBasedAccessFilter implements ContainerRequestFilter {
             return;
         }
         if (principal instanceof ParticipantPrincipal participantPrincipal) {
-            var matches = Arrays.asList(participantPrincipal.scope().split(" ")).contains(requiredScope);
+            var matches = scopeMatcher.isSatisfiedBy(requiredScope, participantPrincipal.scope());
             if (!matches) {
                 containerRequestContext.abortWith(Response.status(Response.Status.FORBIDDEN.getStatusCode(), "Required scope '%s' missing".formatted(requiredScope)).build());
             }

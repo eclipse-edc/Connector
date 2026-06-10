@@ -15,6 +15,7 @@
 package org.eclipse.edc.api.authorization.service;
 
 import jakarta.ws.rs.core.SecurityContext;
+import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.participantcontext.spi.types.AbstractParticipantResource;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.junit.jupiter.api.Test;
@@ -25,12 +26,7 @@ import java.security.Principal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class AuthorizationServiceImplTest {
@@ -93,26 +89,38 @@ class AuthorizationServiceImplTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "admin", "provisioner" })
-    void isAuthorized_whenRoleIsElevated(String role) {
+    @ValueSource(strings = { "management-api:admin", "openid management-api:admin" })
+    void authorize_whenAdminScope_bypassesOwnership(String scope) {
         authorizationService.addLookupFunction(TestResource.class, (owner, id) -> new AbstractParticipantResource() {
             @Override
             public String getParticipantContextId() {
-                return "test-id";
+                return "owner-id";
             }
         });
-        var principal = mock(Principal.class);
-        when(principal.getName()).thenReturn("test-id");
+        // principal name differs from the resource owner: only the admin scope grants access
+        var principal = new ParticipantPrincipal("a-different-principal", ParticipantPrincipal.ROLE_PARTICIPANT, scope);
         var securityContext = mock(SecurityContext.class);
         when(securityContext.getUserPrincipal()).thenReturn(principal);
-        when(securityContext.isUserInRole(eq(role))).thenReturn(true);
 
-        assertThat(authorizationService.authorize(securityContext, "test-id", "test-resource-id", TestResource.class))
+        assertThat(authorizationService.authorize(securityContext, "owner-id", "test-resource-id", TestResource.class))
                 .isSucceeded();
+    }
 
-        verify(securityContext, atLeastOnce()).isUserInRole(anyString());
-        verify(securityContext).getUserPrincipal();
-        verifyNoMoreInteractions(securityContext);
+    @Test
+    void authorize_whenParticipantPrincipalWithoutAdminScope_isNotElevated() {
+        authorizationService.addLookupFunction(TestResource.class, (owner, id) -> new AbstractParticipantResource() {
+            @Override
+            public String getParticipantContextId() {
+                return "owner-id";
+            }
+        });
+        var principal = new ParticipantPrincipal("a-different-principal", ParticipantPrincipal.ROLE_PARTICIPANT, "management-api:read management-api:write");
+        var securityContext = mock(SecurityContext.class);
+        when(securityContext.getUserPrincipal()).thenReturn(principal);
+
+        assertThat(authorizationService.authorize(securityContext, "owner-id", "test-resource-id", TestResource.class))
+                .isFailed()
+                .satisfies(f -> assertThat(f.getReason()).isEqualTo(ServiceFailure.Reason.UNAUTHORIZED));
     }
 
     @Test
