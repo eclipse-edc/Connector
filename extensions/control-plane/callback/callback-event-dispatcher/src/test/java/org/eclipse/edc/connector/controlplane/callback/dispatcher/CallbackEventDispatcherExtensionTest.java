@@ -15,10 +15,10 @@
 package org.eclipse.edc.connector.controlplane.callback.dispatcher;
 
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
+import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackClient;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventRouter;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,19 +40,17 @@ public class CallbackEventDispatcherExtensionTest {
     @BeforeEach
     void setUp(ServiceExtensionContext context, ObjectFactory factory) {
         context.registerService(EventRouter.class, router);
-        context.registerService(RemoteMessageDispatcherRegistry.class, mock(RemoteMessageDispatcherRegistry.class));
+        context.registerService(CallbackClient.class, mock(CallbackClient.class));
 
         extension = factory.constructInstance(CallbackEventDispatcherExtension.class);
     }
 
     @Test
     void initialize_shouldRegisterBothListeners(ServiceExtensionContext context) {
-
         extension.initialize(context);
 
         verify(router).register(eq(Event.class), argThat(callbackEventDispatcherMatcher(false)));
         verify(router).registerSync(eq(Event.class), argThat(callbackEventDispatcherMatcher(true)));
-
     }
 
     private ArgumentMatcher<CallbackEventDispatcher> callbackEventDispatcherMatcher(boolean transactional) {

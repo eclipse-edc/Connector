@@ -58,7 +58,6 @@ dependencies {
     api(project(":extensions:common:encryption:aes-encryption"))
     api(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"))
     api(project(":extensions:control-plane:callback:callback-event-dispatcher"))
-    api(project(":extensions:control-plane:callback:callback-http-dispatcher"))
     api(project(":extensions:control-plane:callback:callback-static-endpoint"))
 
     // libs

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,14 +8,13 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
-package org.eclipse.edc.connector.controlplane.callback.dispatcher.http;
+package org.eclipse.edc.connector.controlplane.callback.dispatcher;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackEventRemoteMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.event.TransferProcessCompleted;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.json.JacksonTypeManager;
@@ -29,10 +28,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -41,19 +38,14 @@ import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.controlplane.callback.dispatcher.http.GenericHttpRemoteDispatcherImpl.CALLBACK_EVENT_HTTP;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.http.client.testfixtures.HttpTestUtils.testHttpClient;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atMostOnce;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"unchecked", "rawtypes", "resource"})
 @ComponentTest
-public class GenericHttpRemoteDispatcherWrapperTest {
+public class CallbackHttpClientTest {
 
     private static final String CALLBACK_PATH = "hooks";
 
@@ -63,42 +55,34 @@ public class GenericHttpRemoteDispatcherWrapperTest {
             .build();
 
     private final TypeManager typeManager = new JacksonTypeManager();
-    private final EdcHttpClient httpClient = spy(testHttpClient());
+    private final EdcHttpClient httpClient = testHttpClient();
     private final Vault vault = mock();
-    private final GenericHttpRemoteDispatcherImpl dispatcher = new GenericHttpRemoteDispatcherImpl(httpClient);
+    private CallbackHttpClient callbackHttpClient;
 
     @BeforeEach
     void setup() {
-        dispatcher.registerDelegate(new CallbackEventRemoteMessageDispatcher(typeManager.getMapper(), vault));
+        callbackHttpClient = new CallbackHttpClient(httpClient, typeManager.getMapper(), vault);
     }
 
     @Test
-    public void send_shouldCallTheHttpCallback() throws IOException {
+    public void dispatch_shouldCallTheHttpCallback() {
         var callback = CallbackAddress.Builder.newInstance()
                 .events(Set.of("test"))
                 .uri(callbackUrl())
                 .build();
 
         var tpEvent = TransferProcessCompleted.Builder.newInstance().transferProcessId("test").callbackAddresses(List.of(callback)).build();
-
         var event = EventEnvelope.Builder.newInstance().id("test").at(10).payload(tpEvent).build();
 
         server.stubFor(post("/" + CALLBACK_PATH)
                 .withRequestBody(equalToJson(typeManager.writeValueAsString(event)))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withBody("{}")));
+                .willReturn(aResponse().withStatus(200).withBody("{}")));
 
-
-        var future = dispatcher.dispatch("id", Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP));
-
-        assertThat(future).succeedsWithin(5, TimeUnit.SECONDS);
-        verify(httpClient, atMostOnce()).execute(any());
-
+        assertThatCode(() -> callbackHttpClient.dispatch(callback, event)).doesNotThrowAnyException();
     }
 
     @Test
-    public void send_shouldCallTheHttpCallback_WithAuthHeader() throws IOException {
+    public void dispatch_shouldCallTheHttpCallback_WithAuthHeader() {
         var authKey = "authHeader";
         var authCodeId = "authCodeId";
         var authCodeIdValue = "authCodeIdValue";
@@ -113,46 +97,33 @@ public class GenericHttpRemoteDispatcherWrapperTest {
                 .build();
 
         var tpEvent = TransferProcessCompleted.Builder.newInstance().transferProcessId("test").callbackAddresses(List.of(callback)).build();
-
         var event = EventEnvelope.Builder.newInstance().id("test").at(10).payload(tpEvent).build();
-
 
         server.stubFor(post("/" + CALLBACK_PATH)
                 .withRequestBody(equalToJson(typeManager.writeValueAsString(event)))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withBody("{}")));
+                .willReturn(aResponse().withStatus(200).withBody("{}")));
 
-        var future = dispatcher.dispatch("id", Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP));
-
-        assertThat(future).succeedsWithin(5, TimeUnit.SECONDS);
-        verify(httpClient, atMostOnce()).execute(any());
+        callbackHttpClient.dispatch(callback, event);
 
         server.verify(1, postRequestedFor(urlEqualTo("/" + CALLBACK_PATH))
                 .withHeader(authKey, equalTo(authCodeIdValue)));
     }
 
     @Test
-    public void send_shouldThrowExceptionWhenTheCallbackFails() throws IOException {
+    public void dispatch_shouldThrowExceptionWhenTheCallbackFails() {
         var callback = CallbackAddress.Builder.newInstance()
                 .events(Set.of("test"))
                 .uri(callbackUrl())
                 .build();
 
         var tpEvent = TransferProcessCompleted.Builder.newInstance().transferProcessId("test").callbackAddresses(List.of(callback)).build();
-
         var event = EventEnvelope.Builder.newInstance().id("test").at(10).payload(tpEvent).build();
-
 
         server.stubFor(post("/" + CALLBACK_PATH)
                 .withRequestBody(equalToJson(typeManager.writeValueAsString(event)))
-                .willReturn(aResponse()
-                        .withStatus(400)
-                        .withBody("{}")));
-        var future = dispatcher.dispatch("id", Object.class, new CallbackEventRemoteMessage<>(callback, event, CALLBACK_EVENT_HTTP));
+                .willReturn(aResponse().withStatus(400).withBody("{}")));
 
-        assertThat(future).failsWithin(5, TimeUnit.SECONDS).withThrowableThat().havingCause().isInstanceOf(EdcException.class);
-        verify(httpClient, atMostOnce()).execute(any());
+        assertThatThrownBy(() -> callbackHttpClient.dispatch(callback, event)).isInstanceOf(EdcException.class);
     }
 
     private String callbackUrl() {
