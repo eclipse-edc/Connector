@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.asset.v5;
 
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
@@ -28,7 +27,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
@@ -75,8 +73,7 @@ public class AssetApiV5Controller implements AssetApiV5 {
     }
 
     @POST
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:assets:write")
     @Override
     public JsonObject createAssetV5(@PathParam("participantContextId") String participantContextId,
                                     @SchemaType({EDC_ASSET_TYPE_TERM, EDC_CATALOG_ASSET_TYPE_TERM}) JsonObject assetJson,
@@ -108,8 +105,7 @@ public class AssetApiV5Controller implements AssetApiV5 {
     @POST
     @Path("/request")
     @Override
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:assets:read")
     public JsonArray queryAssetsV5(@PathParam("participantContextId") String participantContextId,
                                    @SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson,
                                    @Context SecurityContext securityContext) {
@@ -141,8 +137,7 @@ public class AssetApiV5Controller implements AssetApiV5 {
 
     @GET
     @Path("{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:assets:read")
     @Override
     public JsonObject getAssetV5(@PathParam("participantContextId") String participantContextId,
                                  @PathParam("id") String assetId,
@@ -157,8 +152,7 @@ public class AssetApiV5Controller implements AssetApiV5 {
 
     @DELETE
     @Path("{assetId}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:assets:read")
     @Override
     public void removeAssetV5(@PathParam("participantContextId") String participantContextId,
                               @PathParam("assetId") String assetId,
@@ -171,8 +165,7 @@ public class AssetApiV5Controller implements AssetApiV5 {
     }
 
     @PUT
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:assets:write")
     @Override
     public void updateAssetV5(@PathParam("participantContextId") String participantContextId,
                               @SchemaType({EDC_ASSET_TYPE_TERM, EDC_CATALOG_ASSET_TYPE_TERM}) JsonObject assetJson,

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.transferprocess.v5;
 
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
@@ -26,7 +25,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
@@ -90,8 +88,7 @@ public class TransferProcessApiV5Controller implements TransferProcessApiV5 {
 
     @POST
     @Path("request")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:transfers:read")
     @Override
     public JsonArray queryTransferProcessesV5(@PathParam("participantContextId") String participantContextId,
                                               @SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson,
@@ -122,8 +119,7 @@ public class TransferProcessApiV5Controller implements TransferProcessApiV5 {
 
     @GET
     @Path("{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:transfers:read")
     @Override
     public JsonObject getTransferProcessV5(@PathParam("participantContextId") String participantContextId,
                                            @PathParam("id") String id,
@@ -144,8 +140,7 @@ public class TransferProcessApiV5Controller implements TransferProcessApiV5 {
 
     @GET
     @Path("/{id}/state")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:transfers:read")
     @Override
     public JsonObject getTransferProcessStateV5(@PathParam("participantContextId") String participantContextId,
                                                 @PathParam("id") String id,
@@ -164,8 +159,7 @@ public class TransferProcessApiV5Controller implements TransferProcessApiV5 {
     }
 
     @POST
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:transfers:write")
     @Override
     public JsonObject initiateTransferProcessV5(@PathParam("participantContextId") String participantContextId,
                                                 @SchemaType(TRANSFER_REQUEST_TYPE_TERM) JsonObject request,
@@ -197,8 +191,7 @@ public class TransferProcessApiV5Controller implements TransferProcessApiV5 {
 
     @POST
     @Path("/{id}/terminate")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:transfers:write")
     @Override
     public void terminateTransferProcessV5(@PathParam("participantContextId") String participantContextId,
                                            @PathParam("id") String id,
@@ -219,8 +212,7 @@ public class TransferProcessApiV5Controller implements TransferProcessApiV5 {
 
     @POST
     @Path("/{id}/suspend")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:transfers:write")
     @Override
     public void suspendTransferProcessV5(@PathParam("participantContextId") String participantContextId,
                                          @PathParam("id") String id,
@@ -240,8 +232,7 @@ public class TransferProcessApiV5Controller implements TransferProcessApiV5 {
 
     @POST
     @Path("/{id}/resume")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:transfers:write")
     @Override
     public void resumeTransferProcessV5(@PathParam("participantContextId") String participantContextId,
                                         @PathParam("id") String id,

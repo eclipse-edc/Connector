@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.policy.v5;
 
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
@@ -28,7 +27,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
@@ -75,8 +73,7 @@ public class PolicyDefinitionApiV5Controller implements PolicyDefinitionApiV5 {
 
     @POST
     @Path("request")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:policies:read")
     @Override
     public JsonArray queryPolicyDefinitionsV5(@PathParam("participantContextId") String participantContextId,
                                               @SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson,
@@ -107,8 +104,7 @@ public class PolicyDefinitionApiV5Controller implements PolicyDefinitionApiV5 {
 
     @GET
     @Path("{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:policies:read")
     @Override
     public JsonObject getPolicyDefinitionV5(@PathParam("participantContextId") String participantContextId,
                                             @PathParam("id") String id,
@@ -127,8 +123,7 @@ public class PolicyDefinitionApiV5Controller implements PolicyDefinitionApiV5 {
     }
 
     @POST
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:policies:write")
     @Override
     public JsonObject createPolicyDefinitionV5(@PathParam("participantContextId") String participantContextId,
                                                @SchemaType(EDC_POLICY_DEFINITION_TYPE_TERM) JsonObject policyDefinition,
@@ -158,8 +153,7 @@ public class PolicyDefinitionApiV5Controller implements PolicyDefinitionApiV5 {
 
     @DELETE
     @Path("{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:policies:write")
     @Override
     public void deletePolicyDefinitionV5(@PathParam("participantContextId") String participantContextId,
                                          @PathParam("id") String id,
@@ -175,8 +169,7 @@ public class PolicyDefinitionApiV5Controller implements PolicyDefinitionApiV5 {
 
     @PUT
     @Path("{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:policies:write")
     @Override
     public void updatePolicyDefinitionV5(@PathParam("participantContextId") String participantContextId,
                                          @PathParam("id") String id,
@@ -199,8 +192,7 @@ public class PolicyDefinitionApiV5Controller implements PolicyDefinitionApiV5 {
 
     @POST
     @Path("{id}/validate")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:policies:read")
     @Override
     public JsonObject validatePolicyDefinitionV5(@PathParam("participantContextId") String participantContextId,
                                                  @PathParam("id") String id,
@@ -227,8 +219,7 @@ public class PolicyDefinitionApiV5Controller implements PolicyDefinitionApiV5 {
 
     @POST
     @Path("{id}/evaluationplan")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:policies:read")
     @Override
     public JsonObject createExecutionPlanV5(@PathParam("participantContextId") String participantContextId,
                                             @PathParam("id") String id,

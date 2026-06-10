@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.api.management.participantcontext.config.v5;
 
 
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -25,7 +24,6 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.SecurityContext;
-import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
@@ -54,8 +52,7 @@ public class ParticipantContextConfigApiV5Controller implements ParticipantConte
     }
 
     @PUT
-    @RolesAllowed({ParticipantPrincipal.ROLE_PROVISIONER})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:admin")
     @Override
     public void setConfigV5(@PathParam("participantContextId") String participantContextId, @SchemaType(PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM) JsonObject request) {
 
@@ -71,8 +68,7 @@ public class ParticipantContextConfigApiV5Controller implements ParticipantConte
     }
 
     @GET
-    @RolesAllowed({ParticipantPrincipal.ROLE_PROVISIONER, ParticipantPrincipal.ROLE_ADMIN})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:admin")
     @Override
     public JsonObject getConfigV5(@PathParam("participantContextId") String participantContextId, @Context SecurityContext securityContext) {
 

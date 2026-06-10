@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.contractdefinition.v5;
 
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
@@ -28,7 +27,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.auth.spi.RequiredScope;
 import org.eclipse.edc.api.model.IdResponse;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
@@ -71,8 +69,7 @@ public class ContractDefinitionApiV5Controller implements ContractDefinitionApiV
     @POST
     @Path("/request")
     @Override
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:contractdefinitions:read")
     public JsonArray queryContractDefinitionsV5(@PathParam("participantContextId") String participantContextId,
                                                 @SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson,
                                                 @Context SecurityContext securityContext) {
@@ -103,8 +100,7 @@ public class ContractDefinitionApiV5Controller implements ContractDefinitionApiV
     @GET
     @Path("/{id}")
     @Override
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:read")
+    @RequiredScope("management-api:contractdefinitions:read")
     public JsonObject getContractDefinitionV5(@PathParam("participantContextId") String participantContextId,
                                               @PathParam("id") String id,
                                               @Context SecurityContext securityContext) {
@@ -118,8 +114,7 @@ public class ContractDefinitionApiV5Controller implements ContractDefinitionApiV
     }
 
     @POST
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:contractdefinitions:write")
     @Override
     public JsonObject createContractDefinitionV5(@PathParam("participantContextId") String participantContextId,
                                                  @SchemaType(CONTRACT_DEFINITION_TYPE_TERM) JsonObject createObject,
@@ -147,8 +142,7 @@ public class ContractDefinitionApiV5Controller implements ContractDefinitionApiV
 
     @DELETE
     @Path("{id}")
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:contractdefinitions:write")
     @Override
     public void deleteContractDefinitionV5(@PathParam("participantContextId") String participantContextId,
                                            @PathParam("id") String id,
@@ -161,8 +155,7 @@ public class ContractDefinitionApiV5Controller implements ContractDefinitionApiV
     }
 
     @PUT
-    @RolesAllowed({ParticipantPrincipal.ROLE_ADMIN, ParticipantPrincipal.ROLE_PARTICIPANT})
-    @RequiredScope("management-api:write")
+    @RequiredScope("management-api:contractdefinitions:write")
     @Override
     public void updateContractDefinitionV5(@PathParam("participantContextId") String participantContextId,
                                            @SchemaType(CONTRACT_DEFINITION_TYPE_TERM) JsonObject updateObject,
