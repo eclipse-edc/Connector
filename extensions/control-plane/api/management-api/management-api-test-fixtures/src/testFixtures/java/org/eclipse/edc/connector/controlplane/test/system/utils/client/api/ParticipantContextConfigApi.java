@@ -38,7 +38,7 @@ public class ParticipantContextConfigApi {
      * @param participantContextDto the participant context configuration to save
      */
     public void saveConfig(String participantContextId, ParticipantContextConfigDto participantContextDto) {
-        connector.baseManagementRequest(null, ParticipantPrincipal.ROLE_PROVISIONER)
+        connector.baseManagementRequest(null, "management-api:admin", ParticipantPrincipal.ROLE_PROVISIONER)
                 .contentType(JSON)
                 .body(new WithContext<>(participantContextDto))
                 .when()
