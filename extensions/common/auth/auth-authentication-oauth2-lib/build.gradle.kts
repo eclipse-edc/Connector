@@ -22,6 +22,7 @@ dependencies {
     api(project(":spi:common:core-spi"))
     api(project(":spi:common:token-spi"))
     api(project(":spi:common:auth-spi"))
+    api(project(":spi:common:jwt-spi"))
     api(project(":spi:common:connector-participant-context-spi"))
 
 

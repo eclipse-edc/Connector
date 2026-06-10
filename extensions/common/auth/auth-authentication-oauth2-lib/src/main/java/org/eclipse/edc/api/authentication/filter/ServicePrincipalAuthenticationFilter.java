@@ -28,8 +28,8 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import java.security.Principal;
 
 import static org.eclipse.edc.api.authentication.filter.Constants.REQUEST_PROPERTY_CLAIMS;
-import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_SCOPE;
-import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_SUBJECT;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SCOPE;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 
 /**
  * A {@link ContainerRequestFilter} that extracts a {@link ParticipantPrincipal} from the Authorization Header, specifically,
@@ -51,8 +51,8 @@ public class ServicePrincipalAuthenticationFilter implements ContainerRequestFil
 
         var claims = containerRequestContext.getProperty(REQUEST_PROPERTY_CLAIMS);
         if (claims instanceof ClaimToken claimToken) {
-            var subject = claimToken.getStringClaim(TOKEN_CLAIM_SUBJECT);
-            var scope = claimToken.getStringClaim(TOKEN_CLAIM_SCOPE);
+            var subject = claimToken.getStringClaim(SUBJECT);
+            var scope = claimToken.getStringClaim(SCOPE);
 
             // a non-admin principal is identified by its participant context, which must exist; an admin principal is
             // elevated, so its subject need not correspond to a participant context (e.g. a service account)
