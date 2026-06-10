@@ -14,18 +14,15 @@
 
 package org.eclipse.edc.connector.controlplane.services.spi.callback;
 
-import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
+import org.eclipse.edc.spi.event.Event;
+import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 /**
- * Registry for {@link CallbackProtocolResolver} resolvers. The registry resolves the scheme part {@link CallbackAddress#getUri()} to an internal
- * naming of {@link RemoteMessageDispatcher}
+ * Client for dispatching events to callback endpoints.
  */
-@ExtensionPoint
-public interface CallbackProtocolResolverRegistry {
+public interface CallbackClient {
 
-    void registerResolver(CallbackProtocolResolver resolver);
+    <E extends Event> void dispatch(CallbackAddress callbackAddress, EventEnvelope<E> eventEnvelope);
 
-    String resolve(String scheme);
 }
