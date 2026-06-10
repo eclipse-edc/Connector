@@ -97,3 +97,4 @@
 - [2026-04-09 EDR cache deprecation](2026-04-09-edr-cache-deprecation)
 - [2026-05-11 Multi-Profile Support in EDC Virtual](2026-05-11-multi-profile-virtual-connector)
 - [2026-06-06 Scope-based Management API Authorization](2026-06-06-scope-based-api-authorization)
+- [2026-06-10 Remove the DispatcherRegistry](2026-06-10-remove-dispatcher-registry)
