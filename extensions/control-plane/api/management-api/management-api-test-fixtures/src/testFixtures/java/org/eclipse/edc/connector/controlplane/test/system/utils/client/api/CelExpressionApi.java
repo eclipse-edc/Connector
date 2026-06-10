@@ -38,7 +38,7 @@ public class CelExpressionApi {
      * @return the ID of the created CEL expression
      */
     public String createExpression(CelExpressionDto expression) {
-        return connector.baseManagementRequest(null, "management-api:admin")
+        return connector.baseManagementRequest(null)
                 .contentType(JSON)
                 .body(new WithContext<>(expression))
                 .when()
