@@ -15,6 +15,7 @@
 package org.eclipse.edc.api.authentication.filter;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.edc.api.auth.spi.ManagementApiScopes;
 import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
@@ -30,6 +31,7 @@ import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -67,7 +69,7 @@ class ServicePrincipalAuthenticationFilterTest {
     }
 
     @Test
-    void filter_success_noSubjectClaim() {
+    void filter_noSubjectClaim_failure() {
         var request = mock(ContainerRequestContext.class);
         when(request.getProperty(REQUEST_PROPERTY_CLAIMS)).thenReturn(ClaimToken.Builder.newInstance()
                 .claim(SCOPE, "management-api:read")
@@ -78,7 +80,8 @@ class ServicePrincipalAuthenticationFilterTest {
         filter.filter(request);
 
         verify(request).getProperty(REQUEST_PROPERTY_CLAIMS);
-        verify(request).setSecurityContext(argThat(sc -> sc.getUserPrincipal() instanceof ParticipantPrincipal));
+        verify(request, never()).setSecurityContext(argThat(sc -> sc.getUserPrincipal() instanceof ParticipantPrincipal));
+        verify(request).abortWith(argThat(response -> response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode()));
         verifyNoMoreInteractions(request);
     }
 
