@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.controlplane.transfer;
 import jakarta.json.Json;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.connector.controlplane.transfer.listener.TransferProcessEventListener;
 import org.eclipse.edc.connector.controlplane.transfer.processors.TransferProcessorsImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessors;
@@ -31,7 +32,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.event.EventRouter;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -82,7 +82,7 @@ public class TransferCoreExtension implements ServiceExtension {
     @Inject
     private ProtocolWebhookResolver protocolWebhookResolver;
     @Inject
-    private RemoteMessageDispatcherRegistry dispatcherRegistry;
+    private ProtocolRemoteMessageDispatcher messageDispatcher;
     @Inject
     private Clock clock;
 
@@ -106,7 +106,7 @@ public class TransferCoreExtension implements ServiceExtension {
         var entityRetryProcessConfiguration = stateMachineConfiguration.entityRetryProcessConfiguration();
         var entityRetryProcessFactory = new EntityRetryProcessFactory(monitor, clock, entityRetryProcessConfiguration);
         return new TransferProcessorsImpl(policyArchive, entityRetryProcessFactory, dataFlowController, dataAddressStore,
-                observable, store, monitor.withPrefix("TransferProcessors"), addressResolver, protocolWebhookResolver, dispatcherRegistry);
+                observable, store, monitor.withPrefix("TransferProcessors"), addressResolver, protocolWebhookResolver, messageDispatcher);
     }
 
 }

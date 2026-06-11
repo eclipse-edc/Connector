@@ -16,9 +16,9 @@ package org.eclipse.edc.protocol.dsp.http.dispatcher;
 
 import okhttp3.HttpUrl;
 import okhttp3.Request;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRequestFactory;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspRequestBasePathProvider;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.RequestPathProvider;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestBasePathProvider;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestFactory;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestPathProvider;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 /**
@@ -26,11 +26,11 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
  *
  * @param <M> the message class.
  */
-public class GetDspHttpRequestFactory<M extends RemoteMessage> implements DspHttpRequestFactory<M> {
+public class GetDspHttpRequestFactory<M extends RemoteMessage> implements RequestFactory<M, Request> {
     private final RequestPathProvider<M> pathProvider;
-    private final DspRequestBasePathProvider dspBasePathProvider;
+    private final RequestBasePathProvider dspBasePathProvider;
 
-    public GetDspHttpRequestFactory(DspRequestBasePathProvider dspBasePathProvider, RequestPathProvider<M> pathProvider) {
+    public GetDspHttpRequestFactory(RequestBasePathProvider dspBasePathProvider, RequestPathProvider<M> pathProvider) {
         this.dspBasePathProvider = dspBasePathProvider;
         this.pathProvider = pathProvider;
     }

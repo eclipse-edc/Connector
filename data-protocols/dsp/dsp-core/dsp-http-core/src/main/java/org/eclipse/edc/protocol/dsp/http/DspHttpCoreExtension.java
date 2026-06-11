@@ -22,6 +22,8 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationTerminationMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractRemoteMessage;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestBasePathProvider;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferCompletionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRemoteMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferRequestMessage;
@@ -38,8 +40,6 @@ import org.eclipse.edc.protocol.dsp.http.dispatcher.DspHttpRemoteMessageDispatch
 import org.eclipse.edc.protocol.dsp.http.dispatcher.DspRequestBasePathProviderImpl;
 import org.eclipse.edc.protocol.dsp.http.message.DspRequestHandlerImpl;
 import org.eclipse.edc.protocol.dsp.http.serialization.JsonLdRemoteMessageSerializerImpl;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspRequestBasePathProvider;
 import org.eclipse.edc.protocol.dsp.http.spi.message.DspRequestHandler;
 import org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.protocol.dsp.http.transform.DspProtocolTypeTransformerRegistryImpl;
@@ -66,7 +66,7 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspConstants.DSP_TRANSFORMER
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
- * Provides an implementation of {@link DspHttpRemoteMessageDispatcher} to support sending dataspace
+ * Provides an implementation of {@link ProtocolRemoteMessageDispatcher} to support sending dataspace
  * protocol messages. The dispatcher can then be used by other extensions to add support for
  * specific message types.
  */
@@ -106,20 +106,20 @@ public class DspHttpCoreExtension implements ServiceExtension {
     }
 
     @Provider
-    public DspHttpRemoteMessageDispatcher dspHttpRemoteMessageDispatcher(ServiceExtensionContext context) {
+    public ProtocolRemoteMessageDispatcher dspHttpRemoteMessageDispatcher(ServiceExtensionContext context) {
         policyEngine.registerScope(TRANSFER_PROCESS_REQUEST_SCOPE, RequestTransferProcessPolicyContext.class);
         policyEngine.registerScope(CONTRACT_NEGOTIATION_REQUEST_SCOPE, RequestContractNegotiationPolicyContext.class);
         policyEngine.registerScope(CATALOGING_REQUEST_SCOPE, RequestCatalogPolicyContext.class);
 
-        TokenDecorator td; // either a decorator, or noop
+        TokenDecorator tokenDecorator; // either a decorator, or noop
         if (decorator != null) {
-            td = decorator;
+            tokenDecorator = decorator;
         } else {
             context.getMonitor().warning("No TokenDecorator was registered. The 'scope' field of outgoing protocol messages will be empty");
-            td = bldr -> bldr;
+            tokenDecorator = bldr -> bldr;
         }
 
-        var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, td, policyEngine, audienceResolver);
+        var dispatcher = new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecorator, policyEngine, audienceResolver);
         registerNegotiationPolicyScopes(dispatcher);
         registerTransferProcessPolicyScopes(dispatcher);
         registerCatalogPolicyScopes(dispatcher);
@@ -146,11 +146,11 @@ public class DspHttpCoreExtension implements ServiceExtension {
     }
 
     @Provider(isDefault = true)
-    public DspRequestBasePathProvider dspRequestBasePathProvider() {
+    public RequestBasePathProvider dspRequestBasePathProvider() {
         return new DspRequestBasePathProviderImpl();
     }
 
-    private void registerNegotiationPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
+    private void registerNegotiationPolicyScopes(ProtocolRemoteMessageDispatcher dispatcher) {
         dispatcher.registerPolicyScope(ContractAgreementMessage.class, ContractRemoteMessage::getPolicy, RequestContractNegotiationPolicyContext::new);
         dispatcher.registerPolicyScope(ContractNegotiationEventMessage.class, ContractRemoteMessage::getPolicy, RequestContractNegotiationPolicyContext::new);
         dispatcher.registerPolicyScope(ContractRequestMessage.class, ContractRemoteMessage::getPolicy, RequestContractNegotiationPolicyContext::new);
@@ -158,7 +158,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
         dispatcher.registerPolicyScope(ContractAgreementVerificationMessage.class, ContractRemoteMessage::getPolicy, RequestContractNegotiationPolicyContext::new);
     }
 
-    private void registerTransferProcessPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
+    private void registerTransferProcessPolicyScopes(ProtocolRemoteMessageDispatcher dispatcher) {
         dispatcher.registerPolicyScope(TransferCompletionMessage.class, TransferRemoteMessage::getPolicy, RequestTransferProcessPolicyContext::new);
         dispatcher.registerPolicyScope(TransferSuspensionMessage.class, TransferRemoteMessage::getPolicy, RequestTransferProcessPolicyContext::new);
         dispatcher.registerPolicyScope(TransferTerminationMessage.class, TransferRemoteMessage::getPolicy, RequestTransferProcessPolicyContext::new);
@@ -166,7 +166,7 @@ public class DspHttpCoreExtension implements ServiceExtension {
         dispatcher.registerPolicyScope(TransferRequestMessage.class, TransferRemoteMessage::getPolicy, RequestTransferProcessPolicyContext::new);
     }
 
-    private void registerCatalogPolicyScopes(DspHttpRemoteMessageDispatcher dispatcher) {
+    private void registerCatalogPolicyScopes(ProtocolRemoteMessageDispatcher dispatcher) {
         dispatcher.registerPolicyScope(CatalogRequestMessage.class, CatalogRequestMessage::getPolicy, RequestCatalogPolicyContext::new);
         dispatcher.registerPolicyScope(DatasetRequestMessage.class, DatasetRequestMessage::getPolicy, RequestCatalogPolicyContext::new);
     }

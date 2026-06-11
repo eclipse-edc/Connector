@@ -20,6 +20,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.crawler.spi.TargetNode;
 import org.eclipse.edc.crawler.spi.TargetNodeDirectory;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
@@ -29,12 +30,11 @@ import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -107,13 +107,17 @@ public class ControlPlaneCrawlerComponentTest {
                     )))
     );
 
-    private final DspHttpRemoteMessageDispatcher dispatcher = mock();
+    private final ProtocolRemoteMessageDispatcher dispatcher = mock();
+
+    @BeforeEach
+    void setUp(RuntimeExtension extension) {
+        extension.registerServiceMock(ProtocolRemoteMessageDispatcher.class, dispatcher);
+    }
 
     @Test
     @DisplayName("Verify crawler inside control plane: crawl single target, no results")
-    void crawlSingle_noResults(RemoteMessageDispatcherRegistry reg, TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
+    void crawlSingle_noResults(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
         directory.insert(targetNode());
-        reg.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, dispatcher);
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenReturn(emptyCatalog(catalog -> toBytes(ttr, catalog)));
 
@@ -126,9 +130,8 @@ public class ControlPlaneCrawlerComponentTest {
 
     @Test
     @DisplayName("Verify crawler inside control plane: crawl single target, yields results")
-    void crawlSingle_withResults(RemoteMessageDispatcherRegistry reg, TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
+    void crawlSingle_withResults(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
         directory.insert(targetNode());
-        reg.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, dispatcher);
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenReturn(randomCatalog(catalog -> toBytes(ttr, catalog), "test-catalog-id", 5))
                 .thenReturn(emptyCatalog(catalog -> toBytes(ttr, catalog))); // this is important, otherwise there is an endless loop!
@@ -141,11 +144,9 @@ public class ControlPlaneCrawlerComponentTest {
 
     @Test
     @DisplayName("Crawl a single target, returns a catalog of catalogs")
-    void crawlSingle_withCatalogOfCatalogs(RemoteMessageDispatcherRegistry reg, TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
+    void crawlSingle_withCatalogOfCatalogs(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
         // prepare node directory
         directory.insert(targetNode());
-        // intercept request egress
-        reg.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, dispatcher);
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenReturn(randomCatalog(catalog -> StatusResult.success(TestUtils.getResourceFileContentAsString("catalog_of_catalogs.json").getBytes()), "root-catalog-id", 5))
                 .thenReturn(randomCatalog(catalog -> StatusResult.success(TestUtils.getResourceFileContentAsString("catalog.json").getBytes()), "sub-catalog-id", 5));
@@ -161,8 +162,7 @@ public class ControlPlaneCrawlerComponentTest {
 
     @Test
     @DisplayName("Verify crawler inside control plane: crawl single target, correct originator")
-    void crawlSingle_verifyOriginator(RemoteMessageDispatcherRegistry reg, TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
-        reg.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, dispatcher);
+    void crawlSingle_verifyOriginator(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenReturn(randomCatalog(catalog -> toBytes(ttr, catalog), "test-catalog-id", 3))
                 .thenReturn(emptyCatalog(catalog -> toBytes(ttr, catalog)));
@@ -179,12 +179,9 @@ public class ControlPlaneCrawlerComponentTest {
 
     @Test
     @DisplayName("Crawl a single targets, > 100 results, needs paging")
-    void crawlSingle_withPagedResults(RemoteMessageDispatcherRegistry reg, TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
+    void crawlSingle_withPagedResults(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
         // prepare node directory
         directory.insert(targetNode());
-
-        // intercept request egress
-        reg.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, dispatcher);
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenReturn(randomCatalog(catalog -> toBytes(ttr, catalog), "test-catalog-id", 100))
                 .thenReturn(randomCatalog(catalog -> toBytes(ttr, catalog), "test-catalog-id", 100))
@@ -201,12 +198,11 @@ public class ControlPlaneCrawlerComponentTest {
 
     @Test
     @DisplayName("Verify crawler inside control plane: crawl multiple targets with distinct catalogs")
-    void crawlMultiple_shouldCollectAll(RemoteMessageDispatcherRegistry reg, TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
+    void crawlMultiple_shouldCollectAll(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
         var node1 = new TargetNode("test-node1", "did:web:" + UUID.randomUUID(), "http://test-node1.com", singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
         var node2 = new TargetNode("test-node2", "did:web:" + UUID.randomUUID(), "http://test-node2.com", singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
         directory.insert(node1);
         directory.insert(node2);
-        reg.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, dispatcher);
 
         when(dispatcher.dispatch(any(), eq(byte[].class), argThat(sentTo(node1.id(), node1.targetUrl()))))
                 .thenReturn(catalogOf(catalog -> toBytes(ttr, catalog), "catalog-node1", createDataset("offer1"), createDataset("offer2")))
@@ -225,9 +221,8 @@ public class ControlPlaneCrawlerComponentTest {
 
     @Test
     @DisplayName("Verify crawler inside control plane: crawl with asset deletions")
-    void crawlSingle_withDeletions(RemoteMessageDispatcherRegistry reg, TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
+    void crawlSingle_withDeletions(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
         directory.insert(targetNode());
-        reg.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, dispatcher);
 
         var catalogId = "test-catalog-id";
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
@@ -249,12 +244,9 @@ public class ControlPlaneCrawlerComponentTest {
 
     @Test
     @DisplayName("Crawl a single target twice, emulate deletion of assets")
-    void crawlSingle_withDeletions_shouldRemove(RemoteMessageDispatcherRegistry reg, TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
+    void crawlSingle_withDeletions_shouldRemove(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
         // prepare node directory
         directory.insert(targetNode());
-
-        // intercept request egress
-        reg.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, dispatcher);
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenReturn(completedFuture(toBytes(ttr, catalogBuilder().id("test-catalog-id").datasets(new ArrayList<>(List.of(
                         createDataset("offer1"), createDataset("offer2"), createDataset("offer3")
@@ -276,12 +268,9 @@ public class ControlPlaneCrawlerComponentTest {
 
     @Test
     @DisplayName("Crawl a single target twice, emulate deleting and re-adding of assets with same ID")
-    void crawlSingle_withUpdates_shouldReplace(RemoteMessageDispatcherRegistry reg, TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
+    void crawlSingle_withUpdates_shouldReplace(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
         // prepare node directory
         directory.insert(targetNode());
-
-        // intercept request egress
-        reg.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, dispatcher);
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenReturn(completedFuture(toBytes(ttr, catalogBuilder().id("test-catalog-id").datasets(new ArrayList<>(List.of(
                         createDataset("offer1"), createDataset("offer2"), createDataset("offer3")
@@ -302,12 +291,9 @@ public class ControlPlaneCrawlerComponentTest {
 
     @Test
     @DisplayName("Crawl a single target twice, emulate addition of assets")
-    void crawlSingle_withAdditions_shouldAdd(RemoteMessageDispatcherRegistry reg, TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
+    void crawlSingle_withAdditions_shouldAdd(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
         // prepare node directory
         directory.insert(targetNode());
-
-        // intercept request egress
-        reg.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, dispatcher);
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenAnswer(a -> completedFuture(toBytes(ttr, catalogBuilder().id("test-cat")
                         .datasets(List.of(createDataset("dataset1"), createDataset("dataset2"))).build())))
@@ -329,11 +315,9 @@ public class ControlPlaneCrawlerComponentTest {
 
     @Test
     @DisplayName("Crawl a single target, verify that the originator information is properly inserted")
-    void crawlSingle_verifyCorrectOriginator(RemoteMessageDispatcherRegistry reg, TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
+    void crawlSingle_verifyCorrectOriginator(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
         // prepare node directory
         directory.insert(targetNode());
-        // intercept request egress
-        reg.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, dispatcher);
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenReturn(randomCatalog(catalog -> toBytes(ttr, catalog), "test-catalog-id", 5))
                 .thenReturn(emptyCatalog(catalog -> toBytes(ttr, catalog))); // this is important, otherwise there is an endless loop!
@@ -348,13 +332,10 @@ public class ControlPlaneCrawlerComponentTest {
 
     @Test
     @DisplayName("Crawl 1000 targets, verify that all offers are collected")
-    void crawlMany_shouldCollectAll(RemoteMessageDispatcherRegistry reg, TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
+    void crawlMany_shouldCollectAll(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
 
         var numTotalAssets = new AtomicInteger();
         var rnd = new SecureRandom();
-
-        // create 1000 crawl targets, setup dispatcher mocks for them
-        reg.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, dispatcher);
         var numTargets = 50;
         range(0, numTargets)
                 .forEach(i -> {
@@ -381,13 +362,12 @@ public class ControlPlaneCrawlerComponentTest {
 
     @Test
     @DisplayName("Crawl multiple targets with conflicting asset IDs")
-    void crawlMultiple_whenConflictingAssetIds_shouldOverwrite(RemoteMessageDispatcherRegistry reg, TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
+    void crawlMultiple_whenConflictingAssetIds_shouldOverwrite(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
         var node1 = new TargetNode("test-node1", "did:web:" + UUID.randomUUID(), "http://test-node1.com", singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
         var node2 = new TargetNode("test-node2", "did:web:" + UUID.randomUUID(), "http://test-node2.com", singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
 
         directory.insert(node1);
         directory.insert(node2);
-        reg.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, dispatcher);
 
         when(dispatcher.dispatch(any(), eq(byte[].class), argThat(sentTo(node1.id(), node1.targetUrl()))))
                 .thenReturn(catalogOf(catalog -> toBytes(ttr, catalog), "catalog-" + node1.targetUrl(), createDataset("offer1"), createDataset("offer2"), createDataset("offer3")))

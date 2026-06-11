@@ -15,7 +15,7 @@
 package org.eclipse.edc.protocol.dsp.http.serialization;
 
 import okhttp3.ResponseBody;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.response.DspHttpResponseBodyExtractor;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolResponseBodyExtractor;
 import org.eclipse.edc.spi.EdcException;
 
 import java.io.IOException;
@@ -23,7 +23,7 @@ import java.io.IOException;
 /**
  * Extract the body as a byte[]
  */
-public class ByteArrayBodyExtractor implements DspHttpResponseBodyExtractor<byte[]> {
+public class ByteArrayBodyExtractor implements ProtocolResponseBodyExtractor<ResponseBody, byte[]> {
     @Override
     public byte[] extractBody(ResponseBody responseBody, String protocol) {
         try {

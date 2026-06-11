@@ -20,12 +20,12 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.crawler.spi.CrawlerAction;
 import org.eclipse.edc.crawler.spi.model.UpdateRequest;
 import org.eclipse.edc.crawler.spi.model.UpdateResponse;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
@@ -43,10 +43,10 @@ public class DspCatalogRequestAction implements CrawlerAction {
     private static final int BATCH_SIZE = 100;
     private final PagingCatalogFetcher fetcher;
 
-    public DspCatalogRequestAction(RemoteMessageDispatcherRegistry dispatcherRegistry, SingleParticipantContextSupplier participantContextSupplier,
+    public DspCatalogRequestAction(ProtocolRemoteMessageDispatcher messageDispatcher, SingleParticipantContextSupplier participantContextSupplier,
                                    Monitor monitor, ObjectMapper objectMapper, TypeTransformerRegistry transformerRegistry, JsonLd jsonLdService
     ) {
-        fetcher = new PagingCatalogFetcher(dispatcherRegistry, participantContextSupplier, monitor,  objectMapper, transformerRegistry, jsonLdService);
+        fetcher = new PagingCatalogFetcher(messageDispatcher, participantContextSupplier, monitor,  objectMapper, transformerRegistry, jsonLdService);
     }
 
     @Override

@@ -20,12 +20,12 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.message.Range;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
@@ -47,16 +47,16 @@ import static org.eclipse.edc.federatedcatalog.util.FederatedCatalogUtil.merge;
  * size.
  */
 public class PagingCatalogFetcher {
-    private final RemoteMessageDispatcherRegistry dispatcherRegistry;
+    private final ProtocolRemoteMessageDispatcher messageDispatcher;
     private final SingleParticipantContextSupplier participantContextSupplier;
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
     private final TypeTransformerRegistry transformerRegistry;
     private final JsonLd jsonLdService;
 
-    public PagingCatalogFetcher(RemoteMessageDispatcherRegistry dispatcherRegistry, SingleParticipantContextSupplier participantContextSupplier,
+    public PagingCatalogFetcher(ProtocolRemoteMessageDispatcher messageDispatcher, SingleParticipantContextSupplier participantContextSupplier,
                                 Monitor monitor, ObjectMapper objectMapper, TypeTransformerRegistry transformerRegistry, JsonLd jsonLdService) {
-        this.dispatcherRegistry = dispatcherRegistry;
+        this.messageDispatcher = messageDispatcher;
         this.participantContextSupplier = participantContextSupplier;
         this.monitor = monitor;
         this.objectMapper = objectMapper;
@@ -88,7 +88,7 @@ public class PagingCatalogFetcher {
             return failedFuture(new EdcException(participantResult.getFailureDetail()));
         }
 
-        return dispatcherRegistry.dispatch(participantResult.getContent(), byte[].class, rangedRequest)
+        return messageDispatcher.dispatch(participantResult.getContent(), byte[].class, rangedRequest)
                 .thenCompose(this::readCatalogFrom)
                 .thenApply(catalog -> copy(catalog).build())
                 .thenCompose(catalog -> {
