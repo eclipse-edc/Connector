@@ -20,6 +20,7 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
+import org.eclipse.edc.api.auth.spi.ManagementApiScopes;
 import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.auth.spi.ScopeMatcher;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
@@ -27,6 +28,7 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.result.Result;
 
 import java.security.Principal;
+import java.util.List;
 
 import static org.eclipse.edc.api.authentication.filter.Constants.REQUEST_PROPERTY_CLAIMS;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SCOPE;
@@ -42,9 +44,22 @@ public class ServicePrincipalAuthenticationFilter implements ContainerRequestFil
 
     private final ParticipantContextService participantContextService;
     private final ScopeMatcher scopeMatcher = new ScopeMatcher();
+    private final List<String> adminScopes;
 
     public ServicePrincipalAuthenticationFilter(ParticipantContextService participantContextService) {
+        this(participantContextService, ManagementApiScopes.ADMIN);
+    }
+
+    /**
+     * Creates a filter whose admin elevation is conferred by the supplied scopes.
+     *
+     * @param adminScopes the scopes that convey admin elevation. A token whose granted scope satisfies any of these is
+     *                    treated as an (elevated) service account, so its {@code sub} need not reference an existing
+     *                    participant context. Defaults to {@link ManagementApiScopes#ADMIN}.
+     */
+    public ServicePrincipalAuthenticationFilter(ParticipantContextService participantContextService, String... adminScopes) {
         this.participantContextService = participantContextService;
+        this.adminScopes = List.of(adminScopes);
     }
 
     @Override
@@ -102,7 +117,7 @@ public class ServicePrincipalAuthenticationFilter implements ContainerRequestFil
      */
     private Result<Void> isAuthorized(String scope, String subject) {
 
-        if (scopeMatcher.isAdmin(scope)) {
+        if (isAdmin(scope)) {
             return Result.success();
         }
         if (subject == null) {
@@ -112,5 +127,9 @@ public class ServicePrincipalAuthenticationFilter implements ContainerRequestFil
             return Result.failure("No participant for 'sub = %s' found".formatted(subject));
         }
         return Result.success();
+    }
+
+    private boolean isAdmin(String grantedScopes) {
+        return adminScopes.stream().anyMatch(adminScope -> scopeMatcher.isSatisfiedBy(adminScope, grantedScopes));
     }
 }
