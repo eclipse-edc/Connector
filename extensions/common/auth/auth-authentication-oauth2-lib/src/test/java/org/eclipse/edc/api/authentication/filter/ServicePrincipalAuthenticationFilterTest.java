@@ -15,6 +15,8 @@
 package org.eclipse.edc.api.authentication.filter;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.Response;
+import org.eclipse.edc.api.auth.spi.ManagementApiScopes;
 import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
@@ -24,12 +26,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.eclipse.edc.api.authentication.filter.Constants.REQUEST_PROPERTY_CLAIMS;
-import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID;
-import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_ROLE;
-import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_SCOPE;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SCOPE;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -53,34 +55,49 @@ class ServicePrincipalAuthenticationFilterTest {
     void filter_success() {
         var request = mock(ContainerRequestContext.class);
         when(request.getProperty(REQUEST_PROPERTY_CLAIMS)).thenReturn(ClaimToken.Builder.newInstance()
-                .claim(TOKEN_CLAIM_SCOPE, "management-api:read")
-                .claim(TOKEN_CLAIM_ROLE, ParticipantPrincipal.ROLE_PARTICIPANT)
-                .claim(TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID, "test-context-id")
+                .claim(SCOPE, "management-api:read")
+                .claim(SUBJECT, "test-context-id")
                 .build());
 
 
         filter.filter(request);
 
         verify(request).getProperty(REQUEST_PROPERTY_CLAIMS);
-        verify(request).setSecurityContext(argThat(sc -> sc.getUserPrincipal() instanceof ParticipantPrincipal));
+        verify(request).setSecurityContext(argThat(sc -> sc.getUserPrincipal() instanceof ParticipantPrincipal pp &&
+                "test-context-id".equals(pp.getName())));
         verifyNoMoreInteractions(request);
     }
 
     @Test
-    void filter_success_noParticipantContextIdClaim() {
+    void filter_noSubjectClaim_failure() {
         var request = mock(ContainerRequestContext.class);
         when(request.getProperty(REQUEST_PROPERTY_CLAIMS)).thenReturn(ClaimToken.Builder.newInstance()
-                .claim(TOKEN_CLAIM_SCOPE, "management-api:read")
-                .claim(TOKEN_CLAIM_ROLE, ParticipantPrincipal.ROLE_PARTICIPANT)
-                // missing: participant_context_id claim
+                .claim(SCOPE, "management-api:read")
+                // missing: sub claim
                 .build());
 
 
         filter.filter(request);
 
         verify(request).getProperty(REQUEST_PROPERTY_CLAIMS);
-        verify(request).setSecurityContext(argThat(sc -> sc.getUserPrincipal() instanceof ParticipantPrincipal));
+        verify(request, never()).setSecurityContext(argThat(sc -> sc.getUserPrincipal() instanceof ParticipantPrincipal));
+        verify(request).abortWith(argThat(response -> response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode()));
         verifyNoMoreInteractions(request);
+    }
+
+    @Test
+    void filter_adminSubjectNotParticipantContext_isAllowed() {
+        // an admin token's subject need not be a participant context; the existence check must be skipped
+        when(participantContextService.getParticipantContext(anyString())).thenReturn(ServiceResult.notFound("not a participant context"));
+        var request = mock(ContainerRequestContext.class);
+        when(request.getProperty(REQUEST_PROPERTY_CLAIMS)).thenReturn(ClaimToken.Builder.newInstance()
+                .claim(SCOPE, ManagementApiScopes.ADMIN)
+                .claim(SUBJECT, "some-service-account")
+                .build());
+
+        filter.filter(request);
+
+        verify(request).setSecurityContext(argThat(sc -> sc.getUserPrincipal() instanceof ParticipantPrincipal));
     }
 
     @Test
@@ -97,9 +114,8 @@ class ServicePrincipalAuthenticationFilterTest {
         when(participantContextService.getParticipantContext(anyString())).thenReturn(ServiceResult.notFound("test message"));
         var request = mock(ContainerRequestContext.class);
         when(request.getProperty(REQUEST_PROPERTY_CLAIMS)).thenReturn(ClaimToken.Builder.newInstance()
-                .claim(TOKEN_CLAIM_SCOPE, "management-api:read")
-                .claim(TOKEN_CLAIM_ROLE, ParticipantPrincipal.ROLE_PARTICIPANT)
-                .claim(TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID, "test-context-id")
+                .claim(SCOPE, "management-api:read")
+                .claim(SUBJECT, "test-context-id")
                 .build());
         filter.filter(request);
 

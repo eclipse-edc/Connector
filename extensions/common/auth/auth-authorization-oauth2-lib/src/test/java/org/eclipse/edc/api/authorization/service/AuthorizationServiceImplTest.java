@@ -98,7 +98,7 @@ class AuthorizationServiceImplTest {
             }
         });
         // principal name differs from the resource owner: only the admin scope grants access
-        var principal = new ParticipantPrincipal("a-different-principal", ParticipantPrincipal.ROLE_PARTICIPANT, scope);
+        var principal = new ParticipantPrincipal("a-different-principal", scope);
         var securityContext = mock(SecurityContext.class);
         when(securityContext.getUserPrincipal()).thenReturn(principal);
 
@@ -114,7 +114,7 @@ class AuthorizationServiceImplTest {
                 return "owner-id";
             }
         });
-        var principal = new ParticipantPrincipal("a-different-principal", ParticipantPrincipal.ROLE_PARTICIPANT, "management-api:read management-api:write");
+        var principal = new ParticipantPrincipal("a-different-principal", "management-api:read management-api:write");
         var securityContext = mock(SecurityContext.class);
         when(securityContext.getUserPrincipal()).thenReturn(principal);
 

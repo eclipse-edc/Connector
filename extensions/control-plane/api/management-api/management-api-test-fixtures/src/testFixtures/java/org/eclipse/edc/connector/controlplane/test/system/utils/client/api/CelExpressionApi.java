@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.test.system.utils.client.api;
 
-import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.ManagementApiClientV5;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.CelExpressionDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.WithContext;
@@ -39,7 +38,7 @@ public class CelExpressionApi {
      * @return the ID of the created CEL expression
      */
     public String createExpression(CelExpressionDto expression) {
-        return connector.baseManagementRequest(null, "management-api:admin", ParticipantPrincipal.ROLE_PROVISIONER)
+        return connector.baseManagementRequest(null)
                 .contentType(JSON)
                 .body(new WithContext<>(expression))
                 .when()

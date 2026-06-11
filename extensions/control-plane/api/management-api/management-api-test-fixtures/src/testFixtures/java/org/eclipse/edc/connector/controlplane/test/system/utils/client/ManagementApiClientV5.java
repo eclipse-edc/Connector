@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.test.system.utils.client;
 
 import io.restassured.specification.RequestSpecification;
-import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.api.authentication.OauthTokenProvider;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.AssetsApi;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.CatalogApi;
@@ -255,21 +254,9 @@ public class ManagementApiClientV5 {
     }
 
     public RequestSpecification baseManagementRequest(String participantContextId) {
-        if (participantContextId == null) {
-            return baseManagementRequest(null, ParticipantPrincipal.ROLE_ADMIN);
-        } else {
-            return baseManagementRequest(participantContextId, ParticipantPrincipal.ROLE_PARTICIPANT);
-        }
-    }
-
-    public RequestSpecification baseManagementRequest(String participantContextId, String role) {
-        var token = oauthServer.createToken(participantContextId, role);
-        return given().baseUri(managementEndpoint.get().toString())
-                .header("Authorization", "Bearer " + token);
-    }
-
-    public RequestSpecification baseManagementRequest(String participantContextId, String scope, String role) {
-        var token = oauthServer.createToken(participantContextId, Map.of("scope", scope, "role", role));
+        var token = participantContextId == null
+                ? oauthServer.createAdminToken()
+                : oauthServer.createToken(participantContextId);
         return given().baseUri(managementEndpoint.get().toString())
                 .header("Authorization", "Bearer " + token);
     }

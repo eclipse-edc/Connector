@@ -14,10 +14,15 @@
 
 package org.eclipse.edc.api.authentication;
 
-import java.util.Map;
-
 public interface OauthTokenProvider {
-    String createToken(String participantContextId, String role);
 
-    String createToken(String participantContextId, Map<String, String> additionalClaims);
+    /**
+     * Creates a token whose {@code sub} claim is the given participant context id (the principal identity).
+     */
+    String createToken(String participantContextId);
+
+    /**
+     * Creates an elevated, cross-tenant token carrying the {@code management-api:admin} scope.
+     */
+    String createAdminToken();
 }

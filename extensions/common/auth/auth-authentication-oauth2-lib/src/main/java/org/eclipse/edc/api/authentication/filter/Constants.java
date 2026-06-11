@@ -16,7 +16,4 @@ package org.eclipse.edc.api.authentication.filter;
 
 public interface Constants {
     String REQUEST_PROPERTY_CLAIMS = "claims";
-    String TOKEN_CLAIM_ROLE = "role";
-    String TOKEN_CLAIM_SCOPE = "scope";
-    String TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID = "participant_context_id";
 }

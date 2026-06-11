@@ -25,6 +25,7 @@ dependencies {
     api(project(":spi:common:connector-participant-context-spi"))
 
 
+    implementation(project(":spi:common:jwt-spi"))
     implementation(project(":spi:common:web-spi"))
     implementation(project(":core:common:lib:util-lib"))
 

@@ -21,24 +21,27 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
+import org.eclipse.edc.api.auth.spi.ScopeMatcher;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.spi.iam.ClaimToken;
+import org.eclipse.edc.spi.result.Result;
 
 import java.security.Principal;
 
 import static org.eclipse.edc.api.authentication.filter.Constants.REQUEST_PROPERTY_CLAIMS;
-import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID;
-import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_ROLE;
-import static org.eclipse.edc.api.authentication.filter.Constants.TOKEN_CLAIM_SCOPE;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SCOPE;
+import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.SUBJECT;
 
 /**
  * A {@link ContainerRequestFilter} that extracts a {@link ParticipantPrincipal} from the Authorization Header, specifically,
- * the JWT that is contained in the Authorization Header.
+ * the JWT that is contained in the Authorization Header. The principal's identity is taken from the standard {@code sub}
+ * claim and its permissions from the {@code scope} claim.
  */
 @Priority(Priorities.AUTHENTICATION)
 public class ServicePrincipalAuthenticationFilter implements ContainerRequestFilter {
 
     private final ParticipantContextService participantContextService;
+    private final ScopeMatcher scopeMatcher = new ScopeMatcher();
 
     public ServicePrincipalAuthenticationFilter(ParticipantContextService participantContextService) {
         this.participantContextService = participantContextService;
@@ -49,18 +52,18 @@ public class ServicePrincipalAuthenticationFilter implements ContainerRequestFil
 
         var claims = containerRequestContext.getProperty(REQUEST_PROPERTY_CLAIMS);
         if (claims instanceof ClaimToken claimToken) {
-            var participantContextId = claimToken.getStringClaim(TOKEN_CLAIM_PARTICIPANT_CONTEXT_ID);
-            var role = claimToken.getStringClaim(TOKEN_CLAIM_ROLE);
-            var scope = claimToken.getStringClaim(TOKEN_CLAIM_SCOPE);
+            var subject = claimToken.getStringClaim(SUBJECT);
+            var scope = claimToken.getStringClaim(SCOPE);
 
-            if (participantContextId != null) {
-                if (participantContextService.getParticipantContext(participantContextId).failed()) {
-                    containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED.getStatusCode(), "Authorization Header invalid: participant context not found").build());
-                    return;
-                }
+            // a non-admin principal is identified by its participant context (read from the 'sub' claim), which must exist;
+            // an admin principal is elevated, so its subject need not correspond to a participant context (e.g. a service account)
+            var authorized = isAuthorized(scope, subject);
+            if (authorized.failed()) {
+                containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED.getStatusCode()).entity("Not authorized: %s".formatted(authorized.getFailureDetail())).build());
+                return;
             }
 
-            var servicePrincipal = new ParticipantPrincipal(participantContextId, role, scope);
+            var servicePrincipal = new ParticipantPrincipal(subject, scope);
             containerRequestContext.setSecurityContext(new SecurityContext() {
                 @Override
                 public Principal getUserPrincipal() {
@@ -69,7 +72,7 @@ public class ServicePrincipalAuthenticationFilter implements ContainerRequestFil
 
                 @Override
                 public boolean isUserInRole(String s) {
-                    return servicePrincipal.getRoles().contains(s);
+                    return false;
                 }
 
                 @Override
@@ -86,7 +89,28 @@ public class ServicePrincipalAuthenticationFilter implements ContainerRequestFil
             containerRequestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED.getStatusCode(), "Authorization failure: no '%s' found".formatted(REQUEST_PROPERTY_CLAIMS)).build());
         }
 
+    }
 
+    /**
+     * Validates if a subject is authorized for a given scope. This is the case if the scope is an "admin" scope, in
+     * which case the subject claim is ignored, or if the scope is not admin, and the subject claim references an existing
+     * participant context
+     *
+     * @param scope   The scope for which authorization is being requested.
+     * @param subject The subject claim for which authorization is being verified.
+     * @return A {@link Result} indicating the authorization result.
+     */
+    private Result<Void> isAuthorized(String scope, String subject) {
 
+        if (scopeMatcher.isAdmin(scope)) {
+            return Result.success();
+        }
+        if (subject == null) {
+            return Result.failure("No 'sub' claim present");
+        }
+        if (participantContextService.getParticipantContext(subject).failed()) {
+            return Result.failure("No participant for 'sub = %s' found".formatted(subject));
+        }
+        return Result.success();
     }
 }

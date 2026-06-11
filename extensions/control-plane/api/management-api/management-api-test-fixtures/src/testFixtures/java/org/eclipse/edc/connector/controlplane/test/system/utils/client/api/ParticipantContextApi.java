@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.test.system.utils.client.api;
 
-import org.eclipse.edc.api.auth.spi.ParticipantPrincipal;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.ManagementApiClientV5;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.ParticipantContextDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.WithContext;
@@ -34,7 +33,7 @@ public class ParticipantContextApi {
      * @param participantContextDto the participant context to create
      */
     public void createParticipant(ParticipantContextDto participantContextDto) {
-        connector.baseManagementRequest(null, "management-api:admin", ParticipantPrincipal.ROLE_PROVISIONER)
+        connector.baseManagementRequest(null)
                 .contentType(JSON)
                 .body(new WithContext<>(participantContextDto))
                 .when()
