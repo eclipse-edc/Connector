@@ -70,7 +70,7 @@ public class ParticipantContextConfigApiV5EndToEndTest {
                     .build()
                     .toString();
 
-            var token = authServer.createProvisionerToken();
+            var token = authServer.createAdminToken();
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
@@ -97,7 +97,7 @@ public class ParticipantContextConfigApiV5EndToEndTest {
                     .build()
                     .toString();
 
-            var token = authServer.createProvisionerToken();
+            var token = authServer.createAdminToken();
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)

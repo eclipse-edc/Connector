@@ -152,7 +152,7 @@ public class DataPlaneRegistrationApiV5EndToEndTest {
 
             var message = createDataPlaneRegistrationMessage("dataplane-1", null);
 
-            context.baseRequest(authServer.createProvisionerToken())
+            context.baseRequest(authServer.createAdminToken())
                     .contentType(ContentType.JSON)
                     .body(message)
                     .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes")

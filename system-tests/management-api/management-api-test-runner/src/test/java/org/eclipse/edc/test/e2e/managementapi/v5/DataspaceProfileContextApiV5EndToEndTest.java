@@ -88,7 +88,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
 
             service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).identity(participantContextId).build());
 
-            var token = authServer.createProvisionerToken();
+            var token = authServer.createAdminToken();
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
@@ -144,7 +144,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
 
             service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).identity(participantContextId).build());
 
-            var token = authServer.createProvisionerToken();
+            var token = authServer.createAdminToken();
 
             var profiles = associateProfileJson(List.of("http-dsp-profile-2025-1"));
 
@@ -163,7 +163,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
 
             service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).identity(participantContextId).build());
 
-            var token = authServer.createProvisionerToken();
+            var token = authServer.createAdminToken();
 
             var profiles = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
@@ -186,7 +186,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
 
             service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).identity(participantContextId).build());
 
-            var token = authServer.createProvisionerToken();
+            var token = authServer.createAdminToken();
 
             var profiles = associateProfileJson(List.of("unknown-profile"));
 

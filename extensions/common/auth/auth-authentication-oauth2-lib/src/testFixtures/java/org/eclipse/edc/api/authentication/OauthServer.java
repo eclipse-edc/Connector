@@ -86,8 +86,4 @@ public class OauthServer implements OauthTokenProvider {
     public String createAdminToken() {
         return createToken(null, ManagementApiScopes.ADMIN);
     }
-
-    public String createProvisionerToken() {
-        return createToken(null, ManagementApiScopes.ADMIN);
-    }
 }

@@ -71,7 +71,7 @@ public class ParticipantContextApiV5EndToEndTest {
                     .build()
                     .toString();
 
-            var token = authServer.createProvisionerToken();
+            var token = authServer.createAdminToken();
 
             var su = context.baseRequest(token)
                     .contentType(JSON)
@@ -93,7 +93,7 @@ public class ParticipantContextApiV5EndToEndTest {
                     .build()
                     .toString();
 
-            var token = authServer.createProvisionerToken();
+            var token = authServer.createAdminToken();
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -176,7 +176,7 @@ public class ParticipantContextApiV5EndToEndTest {
                     .build()
                     .toString();
 
-            var token = authServer.createProvisionerToken();
+            var token = authServer.createAdminToken();
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -200,7 +200,7 @@ public class ParticipantContextApiV5EndToEndTest {
                     .build()
                     .toString();
 
-            var token = authServer.createProvisionerToken();
+            var token = authServer.createAdminToken();
 
             context.baseRequest(token)
                     .contentType(JSON)
@@ -244,7 +244,7 @@ public class ParticipantContextApiV5EndToEndTest {
                 service.createParticipantContext(participantContext(participantContextId));
             });
 
-            var token = authServer.createProvisionerToken();
+            var token = authServer.createAdminToken();
             context.baseRequest(token)
                     .contentType(JSON)
                     .get("/v5beta/participants")
@@ -261,7 +261,7 @@ public class ParticipantContextApiV5EndToEndTest {
                 service.createParticipantContext(participantContext(participantContextId));
             });
 
-            var token = authServer.createProvisionerToken();
+            var token = authServer.createAdminToken();
             context.baseRequest(token)
                     .contentType(JSON)
                     .get("/v5beta/participants?offset=2&limit=4")
