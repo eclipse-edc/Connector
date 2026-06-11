@@ -29,6 +29,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractO
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
@@ -46,12 +47,9 @@ import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.iam.VerificationContext;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -87,6 +85,7 @@ class ContractNegotiationEventDispatchTest {
     protected DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();
     protected ParticipantIdentityResolver identityResolver = mock();
     protected ProtocolWebhookResolver protocolWebhookResolver = mock();
+    private final ProtocolRemoteMessageDispatcher dspDispatcher = mock();
 
     @BeforeEach
     void setUp(RuntimeExtension extension) {
@@ -104,20 +103,19 @@ class ContractNegotiationEventDispatchTest {
         extension.registerServiceMock(DataPlaneClientFactory.class, mock());
         extension.registerServiceMock(DataFlowController.class, mock());
         extension.registerServiceMock(ProtocolWebhookResolver.class, protocolWebhookResolver);
-
+        extension.registerServiceMock(ProtocolRemoteMessageDispatcher.class, dspDispatcher);
 
         when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> "http://callback.address");
         when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> CONSUMER);
+        when(dspDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
     }
 
     @Test
     void shouldDispatchEventsOnProviderContractNegotiationStateChanges(EventRouter eventRouter,
-                                                                       RemoteMessageDispatcherRegistry dispatcherRegistry,
                                                                        ContractNegotiationProtocolService service,
                                                                        ContractDefinitionStore contractDefinitionStore,
                                                                        PolicyDefinitionStore policyDefinitionStore,
                                                                        AssetIndex assetIndex) {
-        dispatcherRegistry.register("test", succeedingDispatcher());
 
         when(identityService.verifyJwtToken(any(), eq(tokenRepresentation), isA(VerificationContext.class))).thenReturn(Result.success(token));
         when(identityResolver.getParticipantId(any(), any())).thenReturn("provider");
@@ -157,13 +155,6 @@ class ContractNegotiationEventDispatchTest {
                 .contractOffer(contractOffer)
                 .consumerPid("consumerPid")
                 .build();
-    }
-
-    @NotNull
-    private RemoteMessageDispatcher succeedingDispatcher() {
-        var testDispatcher = mock(RemoteMessageDispatcher.class);
-        when(testDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
-        return testDispatcher;
     }
 
 }

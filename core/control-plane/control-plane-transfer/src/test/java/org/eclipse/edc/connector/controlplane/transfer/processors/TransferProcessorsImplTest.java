@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.transfer.processors;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.connector.controlplane.transfer.observe.TransferProcessObservableImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessListener;
@@ -31,7 +32,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
@@ -90,7 +90,7 @@ class TransferProcessorsImplTest {
     private final TransferProcessListener listener = mock();
     private final ProtocolWebhookResolver protocolWebhookResolver = mock();
     private final DataAddressResolver addressResolver = mock();
-    private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
+    private final ProtocolRemoteMessageDispatcher messageDispatcher = mock();
 
     private TransferProcessorsImpl processors;
 
@@ -106,7 +106,7 @@ class TransferProcessorsImplTest {
         var entityRetryProcessConfiguration = new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L));
         var entityRetryProcessFactory = new EntityRetryProcessFactory(mock(), Clock.systemUTC(), entityRetryProcessConfiguration);
         processors = new TransferProcessorsImpl(policyArchive, entityRetryProcessFactory, dataFlowController,
-                dataAddressStore, observable, store, mock(), addressResolver, protocolWebhookResolver, dispatcherRegistry);
+                dataAddressStore, observable, store, mock(), addressResolver, protocolWebhookResolver, messageDispatcher);
     }
 
     @Nested
@@ -253,14 +253,14 @@ class TransferProcessorsImplTest {
         void shouldSendRequestAndTransitionToRequested() {
             var process = processBuilder(REQUESTING).type(CONSUMER).correlationId(null).build();
             var ack = TransferProcessAck.Builder.newInstance().providerPid("providerPid").build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
             when(dataAddressStore.resolve(any())).thenReturn(StoreResult.notFound("not found"));
             when(store.findById(process.getId())).thenReturn(process);
 
             processors.processRequesting(process).join();
 
             var captor = ArgumentCaptor.<TransferRequestMessage>captor();
-            verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(TransferProcessAck.class), captor.capture());
+            verify(messageDispatcher).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(TransferProcessAck.class), captor.capture());
             var message = captor.getValue();
             assertThat(message.getCallbackAddress()).isEqualTo("http://protocol.webhook/url");
             assertThat(message.getProcessId()).isEqualTo(process.getId());
@@ -275,14 +275,14 @@ class TransferProcessorsImplTest {
             var dataAddress = DataAddress.Builder.newInstance().type("any").build();
             var process = processBuilder(REQUESTING).type(CONSUMER).build();
             var ack = TransferProcessAck.Builder.newInstance().providerPid("providerPid").build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
             when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(dataAddress));
             when(store.findById(process.getId())).thenReturn(process);
 
             processors.processRequesting(process).join();
 
             var captor = ArgumentCaptor.<TransferRequestMessage>captor();
-            verify(dispatcherRegistry).dispatch(any(), any(), captor.capture());
+            verify(messageDispatcher).dispatch(any(), any(), captor.capture());
             assertThat(captor.getValue().getDataAddress()).isSameAs(dataAddress);
         }
 
@@ -293,7 +293,7 @@ class TransferProcessorsImplTest {
 
             processors.processRequesting(process).join();
 
-            verifyNoInteractions(dispatcherRegistry);
+            verifyNoInteractions(messageDispatcher);
             verify(store).save(argThat(p -> p.getState() == TERMINATED.code()));
         }
 
@@ -304,14 +304,14 @@ class TransferProcessorsImplTest {
 
             processors.processRequesting(process).join();
 
-            verifyNoInteractions(dispatcherRegistry);
+            verifyNoInteractions(messageDispatcher);
             verify(store).save(argThat(p -> p.getState() == TERMINATED.code()));
         }
 
         @Test
         void shouldTransitionToTerminated_whenRetriesExhausted() {
             var process = processBuilder(REQUESTING).type(CONSUMER).stateCount(RETRY_LIMIT + 1).build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
             when(dataAddressStore.resolve(any())).thenReturn(StoreResult.notFound("any"));
             when(store.findById(process.getId())).thenReturn(process);
 
@@ -354,14 +354,14 @@ class TransferProcessorsImplTest {
         @Test
         void shouldSendStartMessageAndTransitionToStarted_whenNoDataAddress() {
             var process = processBuilder(STARTING).type(PROVIDER).correlationId("correlationId").build();
-            when(dispatcherRegistry.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(messageDispatcher.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
             when(dataAddressStore.resolve(any())).thenReturn(StoreResult.notFound("not found"));
             when(store.findById(process.getId())).thenReturn(process);
 
             processors.processStarting(process).join();
 
             var captor = ArgumentCaptor.<TransferStartMessage>captor();
-            verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), captor.capture());
+            verify(messageDispatcher).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), captor.capture());
             var message = captor.getValue();
             assertThat(message.getProviderPid()).isEqualTo(process.getId());
             assertThat(message.getConsumerPid()).isEqualTo("correlationId");
@@ -374,21 +374,21 @@ class TransferProcessorsImplTest {
         void shouldIncludeDataAddress_whenPresent() {
             var dataAddress = DataAddress.Builder.newInstance().type("type").build();
             var process = processBuilder(STARTING).type(PROVIDER).build();
-            when(dispatcherRegistry.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(messageDispatcher.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
             when(dataAddressStore.resolve(any())).thenReturn(StoreResult.success(dataAddress));
             when(store.findById(process.getId())).thenReturn(process);
 
             processors.processStarting(process).join();
 
             var captor = ArgumentCaptor.<TransferStartMessage>captor();
-            verify(dispatcherRegistry).dispatch(any(), any(), captor.capture());
+            verify(messageDispatcher).dispatch(any(), any(), captor.capture());
             assertThat(captor.getValue().getDataAddress()).isSameAs(dataAddress);
         }
 
         @Test
         void shouldTransitionToTerminating_whenRetriesExhausted() {
             var process = processBuilder(STARTING).type(PROVIDER).stateCount(RETRY_LIMIT + 1).build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
             when(dataAddressStore.resolve(any())).thenReturn(StoreResult.notFound("not found"));
             when(store.findById(process.getId())).thenReturn(process);
 
@@ -407,7 +407,7 @@ class TransferProcessorsImplTest {
             var process = processBuilder(RESUMING).type(PROVIDER).dataAddressOwner(true).build();
             var dataFlowResponse = DataFlowResponse.Builder.newInstance().dataAddress(dataAddress).build();
             when(dataFlowController.resume(any())).thenReturn(StatusResult.success(dataFlowResponse));
-            when(dispatcherRegistry.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(messageDispatcher.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
             when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
             when(store.findById(process.getId())).thenReturn(process);
 
@@ -415,7 +415,7 @@ class TransferProcessorsImplTest {
 
             verify(dataFlowController).resume(process);
             var captor = ArgumentCaptor.<TransferStartMessage>captor();
-            verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), captor.capture());
+            verify(messageDispatcher).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), captor.capture());
             assertThat(captor.getValue().getDataAddress()).usingRecursiveComparison().isEqualTo(dataAddress);
             verify(store).save(argThat(p -> p.getState() == STARTED.code()));
             verify(listener).started(eq(process), any());
@@ -429,7 +429,7 @@ class TransferProcessorsImplTest {
 
             processors.processResuming(process).join();
 
-            verifyNoInteractions(dispatcherRegistry);
+            verifyNoInteractions(messageDispatcher);
             verify(store).save(argThat(p -> p.getState() == STARTED.code()));
             verify(listener).started(eq(process), any());
         }
@@ -437,13 +437,13 @@ class TransferProcessorsImplTest {
         @Test
         void consumer_shouldSendStartMessageAndTransitionToResumed_whenResumingRequested() {
             var process = processBuilder(RESUMING_REQUESTED).type(CONSUMER).correlationId("correlationId").build();
-            when(dispatcherRegistry.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(messageDispatcher.dispatch(any(), any(), isA(TransferStartMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
             when(store.findById(process.getId())).thenReturn(process);
 
             processors.processResuming(process).join();
 
             var captor = ArgumentCaptor.<TransferStartMessage>captor();
-            verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), captor.capture());
+            verify(messageDispatcher).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), captor.capture());
             var message = captor.getValue();
             assertThat(message.getConsumerPid()).isEqualTo(process.getId());
             assertThat(message.getProviderPid()).isEqualTo("correlationId");
@@ -459,13 +459,13 @@ class TransferProcessorsImplTest {
         @Test
         void provider_shouldSendCompletionMessageAndTransitionToCompleted() {
             var process = processBuilder(COMPLETING).type(PROVIDER).correlationId("correlationId").build();
-            when(dispatcherRegistry.dispatch(any(), any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(messageDispatcher.dispatch(any(), any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
             when(store.findById(process.getId())).thenReturn(process);
 
             processors.processCompleting(process).join();
 
             var captor = ArgumentCaptor.<TransferCompletionMessage>captor();
-            verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
+            verify(messageDispatcher).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
             var message = captor.getValue();
             assertThat(message.getProviderPid()).isEqualTo(process.getId());
             assertThat(message.getConsumerPid()).isEqualTo("correlationId");
@@ -477,13 +477,13 @@ class TransferProcessorsImplTest {
         @Test
         void consumer_shouldSendCompletionMessageAndTransitionToCompleted() {
             var process = processBuilder(COMPLETING).type(CONSUMER).correlationId("correlationId").build();
-            when(dispatcherRegistry.dispatch(any(), any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(messageDispatcher.dispatch(any(), any(), isA(TransferCompletionMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
             when(store.findById(process.getId())).thenReturn(process);
 
             processors.processCompleting(process).join();
 
             var captor = ArgumentCaptor.<TransferCompletionMessage>captor();
-            verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
+            verify(messageDispatcher).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
             var message = captor.getValue();
             assertThat(message.getProviderPid()).isEqualTo("correlationId");
             assertThat(message.getConsumerPid()).isEqualTo(process.getId());
@@ -502,13 +502,13 @@ class TransferProcessorsImplTest {
             processors.processCompleting(process).join();
 
             verify(dataFlowController).completed(process);
-            verifyNoInteractions(dispatcherRegistry);
+            verifyNoInteractions(messageDispatcher);
         }
 
         @Test
         void shouldTransitionToTerminating_whenRetriesExhausted() {
             var process = processBuilder(COMPLETING).type(CONSUMER).stateCount(RETRY_LIMIT + 1).build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
             when(store.findById(process.getId())).thenReturn(process);
 
             processors.processCompleting(process).join();
@@ -524,14 +524,14 @@ class TransferProcessorsImplTest {
         void provider_shouldSuspendDataFlowAndSendSuspensionMessage() {
             var process = processBuilder(SUSPENDING).type(PROVIDER).correlationId("correlationId").build();
             when(dataFlowController.suspend(any())).thenReturn(StatusResult.success());
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
             when(store.findById(process.getId())).thenReturn(process);
 
             processors.processSuspending(process).join();
 
             verify(dataFlowController).suspend(process);
             var captor = ArgumentCaptor.<TransferSuspensionMessage>captor();
-            verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
+            verify(messageDispatcher).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
             var message = captor.getValue();
             assertThat(message.getProviderPid()).isEqualTo(process.getId());
             assertThat(message.getConsumerPid()).isEqualTo("correlationId");
@@ -543,13 +543,13 @@ class TransferProcessorsImplTest {
         void consumer_shouldSuspendDataFlowAndSendSuspensionMessage() {
             var process = processBuilder(SUSPENDING).type(CONSUMER).correlationId("correlationId").build();
             when(dataFlowController.suspend(any())).thenReturn(StatusResult.success());
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
             when(store.findById(process.getId())).thenReturn(process);
 
             processors.processSuspending(process).join();
 
             var captor = ArgumentCaptor.<TransferSuspensionMessage>captor();
-            verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
+            verify(messageDispatcher).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
             var message = captor.getValue();
             assertThat(message.getProviderPid()).isEqualTo("correlationId");
             assertThat(message.getConsumerPid()).isEqualTo(process.getId());
@@ -565,7 +565,7 @@ class TransferProcessorsImplTest {
             processors.processSuspending(process).join();
 
             verify(dataFlowController).suspend(process);
-            verifyNoInteractions(dispatcherRegistry);
+            verifyNoInteractions(messageDispatcher);
             verify(store).save(argThat(p -> p.getState() == SUSPENDED.code()));
             verify(listener).suspended(process);
         }
@@ -574,7 +574,7 @@ class TransferProcessorsImplTest {
         void shouldTransitionToTerminating_whenRetriesExhausted() {
             var process = processBuilder(SUSPENDING).type(PROVIDER).stateCount(RETRY_LIMIT + 1).build();
             when(dataFlowController.suspend(any())).thenReturn(StatusResult.success());
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
             when(store.findById(process.getId())).thenReturn(process);
 
             processors.processSuspending(process).join();
@@ -592,7 +592,7 @@ class TransferProcessorsImplTest {
 
             processors.processTerminating(process).join();
 
-            verifyNoInteractions(dispatcherRegistry, dataFlowController);
+            verifyNoInteractions(messageDispatcher, dataFlowController);
             verify(store).save(argThat(p -> p.getState() == TERMINATED.code()));
         }
 
@@ -600,14 +600,14 @@ class TransferProcessorsImplTest {
         void provider_shouldTerminateDataFlowAndSendTerminationMessage() {
             var process = processBuilder(TERMINATING).type(PROVIDER).correlationId("correlationId").build();
             when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
-            when(dispatcherRegistry.dispatch(any(), any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(messageDispatcher.dispatch(any(), any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
             when(store.findById(process.getId())).thenReturn(process);
 
             processors.processTerminating(process).join();
 
             verify(dataFlowController).terminate(process);
             var captor = ArgumentCaptor.<TransferTerminationMessage>captor();
-            verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
+            verify(messageDispatcher).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
             var message = captor.getValue();
             assertThat(message.getProviderPid()).isEqualTo(process.getId());
             assertThat(message.getConsumerPid()).isEqualTo("correlationId");
@@ -620,14 +620,14 @@ class TransferProcessorsImplTest {
         void consumer_shouldTerminateDataFlowAndSendTerminationMessage() {
             var process = processBuilder(TERMINATING).type(CONSUMER).correlationId("correlationId").build();
             when(dataFlowController.terminate(any())).thenReturn(StatusResult.success());
-            when(dispatcherRegistry.dispatch(any(), any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
+            when(messageDispatcher.dispatch(any(), any(), isA(TransferTerminationMessage.class))).thenReturn(completedFuture(StatusResult.success("any")));
             when(store.findById(process.getId())).thenReturn(process);
 
             processors.processTerminating(process).join();
 
             verify(dataFlowController).terminate(process);
             var captor = ArgumentCaptor.<TransferTerminationMessage>captor();
-            verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
+            verify(messageDispatcher).dispatch(eq(PARTICIPANT_CONTEXT_ID), eq(Object.class), captor.capture());
             var message = captor.getValue();
             assertThat(message.getProviderPid()).isEqualTo("correlationId");
             assertThat(message.getConsumerPid()).isEqualTo(process.getId());
@@ -646,7 +646,7 @@ class TransferProcessorsImplTest {
             processors.processTerminating(process).join();
 
             verify(dataFlowController).terminate(process);
-            verifyNoInteractions(dispatcherRegistry);
+            verifyNoInteractions(messageDispatcher);
             verify(store).save(argThat(p -> p.getState() == TERMINATED.code()));
         }
 

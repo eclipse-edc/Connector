@@ -31,6 +31,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractValidationService;
 import org.eclipse.edc.connector.controlplane.contract.validation.ContractValidationServiceImpl;
 import org.eclipse.edc.connector.controlplane.policy.contract.ContractExpiryCheckFunction;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.engine.spi.RuleBindingRegistry;
@@ -42,7 +43,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.spi.event.EventRouter;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
@@ -91,7 +91,7 @@ public class ContractCoreExtension implements ServiceExtension {
     @Inject
     private ParticipantIdentityResolver identityResolver;
     @Inject
-    private RemoteMessageDispatcherRegistry dispatcherRegistry;
+    private ProtocolRemoteMessageDispatcher messageDispatcher;
 
     @Override
     public String name() {
@@ -110,7 +110,7 @@ public class ContractCoreExtension implements ServiceExtension {
     @Provider
     public NegotiationProcessors negotiationProcessors() {
         return new NegotiationProcessorsImpl(monitor, protocolWebhookResolver, observable, store,
-                identityResolver, clock, dispatcherRegistry, stateMachineConfiguration.entityRetryProcessConfiguration()
+                identityResolver, clock, messageDispatcher, stateMachineConfiguration.entityRetryProcessConfiguration()
         );
     }
 

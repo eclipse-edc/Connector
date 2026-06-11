@@ -18,9 +18,9 @@ import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRequestFactory;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspRequestBasePathProvider;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.RequestPathProvider;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestBasePathProvider;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestFactory;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestPathProvider;
 import org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
@@ -29,14 +29,14 @@ import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
  *
  * @param <M> the message class.
  */
-public class PostDspHttpRequestFactory<M extends RemoteMessage> implements DspHttpRequestFactory<M> {
+public class PostDspHttpRequestFactory<M extends RemoteMessage> implements RequestFactory<M, Request> {
 
     public static final String APPLICATION_JSON = "application/json";
     private final RequestPathProvider<M> pathProvider;
     private final JsonLdRemoteMessageSerializer serializer;
-    private final DspRequestBasePathProvider dspBasePathProvider;
+    private final RequestBasePathProvider dspBasePathProvider;
 
-    public PostDspHttpRequestFactory(JsonLdRemoteMessageSerializer serializer, DspRequestBasePathProvider dspBasePathProvider, RequestPathProvider<M> pathProvider) {
+    public PostDspHttpRequestFactory(JsonLdRemoteMessageSerializer serializer, RequestBasePathProvider dspBasePathProvider, RequestPathProvider<M> pathProvider) {
         this.serializer = serializer;
         this.dspBasePathProvider = dspBasePathProvider;
         this.pathProvider = pathProvider;

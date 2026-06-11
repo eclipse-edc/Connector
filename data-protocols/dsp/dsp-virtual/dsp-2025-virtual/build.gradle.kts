@@ -20,7 +20,6 @@ plugins {
 dependencies {
     api(project(":data-protocols:dsp:dsp-core"))
 
-    api(project(":data-protocols:dsp:dsp-2025:dsp-http-dispatcher-2025"))
     api(project(":data-protocols:dsp:dsp-virtual:dsp-2025-virtual:dsp-catalog-http-api-2025-virtual"))
     api(project(":data-protocols:dsp:dsp-2025:dsp-catalog-2025:dsp-catalog-transform-2025"))
     api(project(":data-protocols:dsp:dsp-virtual:dsp-2025-virtual:dsp-negotiation-http-api-2025-virtual"))

@@ -26,11 +26,11 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.retry.ExponentialWaitStrategy;
@@ -77,7 +77,7 @@ class NegotiationProcessorsImplTest {
     private static final int RETRY_LIMIT = 1;
 
     private final ContractNegotiationStore store = mock();
-    private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
+    private final ProtocolRemoteMessageDispatcher messageDispatcher = mock();
     private final ContractNegotiationListener listener = mock();
     private final ProtocolWebhookResolver protocolWebhookResolver = mock();
     private final ParticipantIdentityResolver identityResolver = mock();
@@ -90,7 +90,7 @@ class NegotiationProcessorsImplTest {
         var observable = new ContractNegotiationObservableImpl();
         observable.registerListener(listener);
         processors = new NegotiationProcessorsImpl(mock(), protocolWebhookResolver, observable, store,
-                identityResolver, Clock.systemDefaultZone(), dispatcherRegistry,
+                identityResolver, Clock.systemDefaultZone(), messageDispatcher,
                 new EntityRetryProcessConfiguration(RETRY_LIMIT, () -> new ExponentialWaitStrategy(0L)));
     }
 
@@ -114,14 +114,14 @@ class NegotiationProcessorsImplTest {
         void shouldSendRequestAndTransitionToRequested() {
             var negotiation = consumerNegotiationBuilder().state(REQUESTING.code()).correlationId("correlationId").contractOffer(contractOffer()).build();
             var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
             when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> "http://callback.url");
             when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
             processors.processRequesting(negotiation).join();
 
             var captor = ArgumentCaptor.<ContractRequestMessage>captor();
-            verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), captor.capture());
+            verify(messageDispatcher).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), captor.capture());
             var message = captor.getValue();
             assertThat(message.getCallbackAddress()).isEqualTo("http://callback.url");
             assertThat(message.getType()).isEqualTo(ContractRequestMessage.Type.INITIAL);
@@ -135,14 +135,14 @@ class NegotiationProcessorsImplTest {
             var negotiation = consumerNegotiationBuilder().state(REQUESTING.code()).correlationId("correlationId")
                     .contractOffer(contractOffer()).contractOffer(contractOffer()).build();
             var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
             when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> "http://callback.url");
             when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
             processors.processRequesting(negotiation).join();
 
             var captor = ArgumentCaptor.<ContractRequestMessage>captor();
-            verify(dispatcherRegistry).dispatch(any(), any(), captor.capture());
+            verify(messageDispatcher).dispatch(any(), any(), captor.capture());
             assertThat(captor.getValue().getType()).isEqualTo(ContractRequestMessage.Type.COUNTER_OFFER);
         }
 
@@ -153,7 +153,7 @@ class NegotiationProcessorsImplTest {
 
             processors.processRequesting(negotiation).join();
 
-            verifyNoInteractions(dispatcherRegistry);
+            verifyNoInteractions(messageDispatcher);
             verify(store).save(argThat(n -> n.getState() == TERMINATED.code()));
             verify(listener).terminated(negotiation);
         }
@@ -161,7 +161,7 @@ class NegotiationProcessorsImplTest {
         @Test
         void shouldTransitionToTerminated_whenRetriesExhausted() {
             var negotiation = consumerNegotiationBuilder().state(REQUESTING.code()).stateCount(RETRY_LIMIT + 1).contractOffer(contractOffer()).build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
             when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> "http://callback.url");
             when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
@@ -173,7 +173,7 @@ class NegotiationProcessorsImplTest {
         @Test
         void shouldTransitionToRequesting_whenRetriesNotExhausted() {
             var negotiation = consumerNegotiationBuilder().state(REQUESTING.code()).stateCount(RETRY_LIMIT).contractOffer(contractOffer()).build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
             when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> "http://callback.url");
             when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
@@ -189,13 +189,13 @@ class NegotiationProcessorsImplTest {
         @Test
         void shouldSendAcceptedEventAndTransitionToAccepted() {
             var negotiation = consumerNegotiationBuilder().state(ACCEPTING.code()).contractOffer(contractOffer()).build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
             when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
             processors.processAccepting(negotiation).join();
 
             var captor = ArgumentCaptor.<ContractNegotiationEventMessage>captor();
-            verify(dispatcherRegistry).dispatch(any(), any(), captor.capture());
+            verify(messageDispatcher).dispatch(any(), any(), captor.capture());
             assertThat(captor.getValue().getType()).isEqualTo(ContractNegotiationEventMessage.Type.ACCEPTED);
             assertThat(captor.getValue().getPolicy()).isNotNull();
             verify(store).save(argThat(n -> n.getState() == ACCEPTED.code()));
@@ -205,7 +205,7 @@ class NegotiationProcessorsImplTest {
         @Test
         void shouldTransitionToTerminating_whenRetriesExhausted() {
             var negotiation = consumerNegotiationBuilder().state(ACCEPTING.code()).stateCount(RETRY_LIMIT + 1).contractOffer(contractOffer()).build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
             when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
             processors.processAccepting(negotiation).join();
@@ -224,7 +224,7 @@ class NegotiationProcessorsImplTest {
             processors.processAgreed(negotiation).join();
 
             verify(store).save(argThat(n -> n.getState() == VERIFYING.code()));
-            verifyNoInteractions(dispatcherRegistry);
+            verifyNoInteractions(messageDispatcher);
         }
     }
 
@@ -234,12 +234,12 @@ class NegotiationProcessorsImplTest {
         @Test
         void shouldSendVerificationAndTransitionToVerified() {
             var negotiation = consumerNegotiationBuilder().state(VERIFYING.code()).contractAgreement(contractAgreement()).build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
             when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
             processors.processVerifying(negotiation).join();
 
-            verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), isA(ContractAgreementVerificationMessage.class));
+            verify(messageDispatcher).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), isA(ContractAgreementVerificationMessage.class));
             verify(store).save(argThat(n -> n.getState() == VERIFIED.code()));
             verify(listener).verified(negotiation);
         }
@@ -247,7 +247,7 @@ class NegotiationProcessorsImplTest {
         @Test
         void shouldTransitionToTerminating_whenRetriesExhausted() {
             var negotiation = consumerNegotiationBuilder().state(VERIFYING.code()).stateCount(RETRY_LIMIT + 1).contractAgreement(contractAgreement()).build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
             when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
             processors.processVerifying(negotiation).join();
@@ -263,7 +263,7 @@ class NegotiationProcessorsImplTest {
         void shouldSendOfferAndTransitionToOffered() {
             var negotiation = providerNegotiationBuilder().state(OFFERING.code()).contractOffer(contractOffer()).build();
             var ack = ContractNegotiationAck.Builder.newInstance().consumerPid("consumerPid").build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
             when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> "http://callback.url");
             when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
@@ -280,7 +280,7 @@ class NegotiationProcessorsImplTest {
 
             processors.processOffering(negotiation).join();
 
-            verifyNoInteractions(dispatcherRegistry);
+            verifyNoInteractions(messageDispatcher);
             verify(store).save(argThat(n -> n.getState() == TERMINATED.code()));
             verify(listener).terminated(negotiation);
         }
@@ -288,7 +288,7 @@ class NegotiationProcessorsImplTest {
         @Test
         void shouldTransitionToTerminating_whenRetriesExhausted() {
             var negotiation = providerNegotiationBuilder().state(OFFERING.code()).stateCount(RETRY_LIMIT + 1).contractOffer(contractOffer()).build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
             when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> "http://callback.url");
             when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
@@ -308,7 +308,7 @@ class NegotiationProcessorsImplTest {
             processors.processRequested(negotiation).join();
 
             verify(store).save(argThat(n -> n.getState() == AGREEING.code()));
-            verifyNoInteractions(dispatcherRegistry);
+            verifyNoInteractions(messageDispatcher);
         }
     }
 
@@ -322,7 +322,7 @@ class NegotiationProcessorsImplTest {
             processors.processAccepted(negotiation).join();
 
             verify(store).save(argThat(n -> n.getState() == AGREEING.code()));
-            verifyNoInteractions(dispatcherRegistry);
+            verifyNoInteractions(messageDispatcher);
         }
     }
 
@@ -332,7 +332,7 @@ class NegotiationProcessorsImplTest {
         @Test
         void shouldCreateAgreementAndSendMessageAndTransitionToAgreed() {
             var negotiation = providerNegotiationBuilder().state(AGREEING.code()).contractOffer(contractOffer()).build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
             when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> "http://callback.url");
             when(identityResolver.getParticipantId(any(), any())).thenReturn("providerId");
             when(store.findById(negotiation.getId())).thenReturn(negotiation);
@@ -340,7 +340,7 @@ class NegotiationProcessorsImplTest {
             processors.processAgreeing(negotiation).join();
 
             var captor = ArgumentCaptor.<ContractAgreementMessage>captor();
-            verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), captor.capture());
+            verify(messageDispatcher).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), captor.capture());
             var message = captor.getValue();
             assertThat(message.getContractAgreement()).isNotNull();
             assertThat(message.getCallbackAddress()).isEqualTo("http://callback.url");
@@ -357,14 +357,14 @@ class NegotiationProcessorsImplTest {
         void shouldReuseExistingAgreement_whenAlreadySet() {
             var agreement = contractAgreement();
             var negotiation = providerNegotiationBuilder().state(AGREEING.code()).contractOffer(contractOffer()).contractAgreement(agreement).build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
             when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> "http://callback.url");
             when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
             processors.processAgreeing(negotiation).join();
 
             var captor = ArgumentCaptor.<ContractAgreementMessage>captor();
-            verify(dispatcherRegistry).dispatch(any(), any(), captor.capture());
+            verify(messageDispatcher).dispatch(any(), any(), captor.capture());
             assertThat(captor.getValue().getContractAgreement()).isSameAs(agreement);
         }
 
@@ -375,7 +375,7 @@ class NegotiationProcessorsImplTest {
 
             processors.processAgreeing(negotiation).join();
 
-            verifyNoInteractions(dispatcherRegistry);
+            verifyNoInteractions(messageDispatcher);
             verify(store).save(argThat(n -> n.getState() == TERMINATED.code()));
             verify(listener).terminated(negotiation);
         }
@@ -383,7 +383,7 @@ class NegotiationProcessorsImplTest {
         @Test
         void shouldTransitionToTerminating_whenRetriesExhausted() {
             var negotiation = providerNegotiationBuilder().state(AGREEING.code()).stateCount(RETRY_LIMIT + 1).contractOffer(contractOffer()).build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
             when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> "http://callback.url");
             when(identityResolver.getParticipantId(any(), any())).thenReturn("providerId");
             when(store.findById(negotiation.getId())).thenReturn(negotiation);
@@ -404,7 +404,7 @@ class NegotiationProcessorsImplTest {
             processors.processVerified(negotiation).join();
 
             verify(store).save(argThat(n -> n.getState() == FINALIZING.code()));
-            verifyNoInteractions(dispatcherRegistry);
+            verifyNoInteractions(messageDispatcher);
         }
     }
 
@@ -414,12 +414,12 @@ class NegotiationProcessorsImplTest {
         @Test
         void shouldSendFinalizedEventAndTransitionToFinalized() {
             var negotiation = providerNegotiationBuilder().state(FINALIZING.code()).contractOffer(contractOffer()).contractAgreement(contractAgreement()).build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
             when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
             processors.processFinalizing(negotiation).join();
 
-            verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(),
+            verify(messageDispatcher).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(),
                     argThat(m -> m instanceof ContractNegotiationEventMessage e && e.getType() == ContractNegotiationEventMessage.Type.FINALIZED));
             verify(store).save(argThat(n -> n.getState() == FINALIZED.code()));
             verify(listener).finalized(negotiation);
@@ -428,7 +428,7 @@ class NegotiationProcessorsImplTest {
         @Test
         void shouldTransitionToTerminating_whenRetriesExhausted() {
             var negotiation = providerNegotiationBuilder().state(FINALIZING.code()).stateCount(RETRY_LIMIT + 1).contractOffer(contractOffer()).contractAgreement(contractAgreement()).build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
             when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
             processors.processFinalizing(negotiation).join();
@@ -443,12 +443,12 @@ class NegotiationProcessorsImplTest {
         @Test
         void shouldSendTerminationAndTransitionToTerminated_forConsumer() {
             var negotiation = consumerNegotiationBuilder().state(TERMINATING.code()).contractOffer(contractOffer()).errorDetail("an error").build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
             when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
             processors.processTerminating(negotiation).join();
 
-            verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), isA(ContractNegotiationTerminationMessage.class));
+            verify(messageDispatcher).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), isA(ContractNegotiationTerminationMessage.class));
             verify(store).save(argThat(n -> n.getState() == TERMINATED.code()));
             verify(listener).terminated(negotiation);
         }
@@ -456,12 +456,12 @@ class NegotiationProcessorsImplTest {
         @Test
         void shouldSendTerminationAndTransitionToTerminated_forProvider() {
             var negotiation = providerNegotiationBuilder().state(TERMINATING.code()).contractOffer(contractOffer()).errorDetail("an error").build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
             when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
             processors.processTerminating(negotiation).join();
 
-            verify(dispatcherRegistry).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), isA(ContractNegotiationTerminationMessage.class));
+            verify(messageDispatcher).dispatch(eq(PARTICIPANT_CONTEXT_ID), any(), isA(ContractNegotiationTerminationMessage.class));
             verify(store).save(argThat(n -> n.getState() == TERMINATED.code()));
             verify(listener).terminated(negotiation);
         }
@@ -469,7 +469,7 @@ class NegotiationProcessorsImplTest {
         @Test
         void shouldTransitionToTerminated_whenRetriesExhausted() {
             var negotiation = consumerNegotiationBuilder().state(TERMINATING.code()).stateCount(RETRY_LIMIT + 1).contractOffer(contractOffer()).errorDetail("an error").build();
-            when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
+            when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(failedFuture(new RuntimeException("error")));
             when(store.findById(negotiation.getId())).thenReturn(negotiation);
 
             processors.processTerminating(negotiation).join();

@@ -16,6 +16,7 @@ package org.eclipse.edc.controlplane.transfer.process.tasks.executor;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.connector.controlplane.transfer.processors.TransferProcessorsImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessPendingGuard;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessors;
@@ -41,7 +42,6 @@ import org.eclipse.edc.controlplane.transfer.spi.tasks.TerminateDataFlow;
 import org.eclipse.edc.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -95,7 +95,7 @@ class TransferProcessTaskExecutorImplTest {
     private final TransferProcessObservable observable = mock();
     private final DataFlowController dataFlowController = mock();
     private final TransferProcessStore transferStore = mock();
-    private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
+    private final ProtocolRemoteMessageDispatcher messageDispatcher = mock();
     private final ProtocolWebhookResolver webhookResolver = mock();
     private final DataAddressResolver addressResolver = mock();
     private final PolicyArchive policyArchive = mock();
@@ -110,7 +110,7 @@ class TransferProcessTaskExecutorImplTest {
     private final EntityRetryProcessFactory entityRetryProcessFactory = new EntityRetryProcessFactory(monitor, clock, retryConfig);
 
     private final TransferProcessors transferProcessors = new TransferProcessorsImpl(policyArchive, entityRetryProcessFactory, dataFlowController,
-            dataAddressStore, observable, transferStore, monitor, addressResolver, webhookResolver, dispatcherRegistry);
+            dataAddressStore, observable, transferStore, monitor, addressResolver, webhookResolver, messageDispatcher);
     private TransferProcessTaskExecutor executor;
 
     @BeforeEach
@@ -151,7 +151,7 @@ class TransferProcessTaskExecutorImplTest {
         when(dataAddressStore.remove(any())).thenReturn(StoreResult.success());
         when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
 
-        when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(TransferProcessAck.Builder.newInstance().build())));
+        when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(TransferProcessAck.Builder.newInstance().build())));
         when(webhookResolver.getWebhook(any(), any())).thenReturn(() -> protocolWebhookUrl);
         var transferProcess = TransferProcess.Builder.newInstance()
                 .id(payload.getProcessId())

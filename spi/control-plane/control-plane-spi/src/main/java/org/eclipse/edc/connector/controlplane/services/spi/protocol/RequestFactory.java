@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,22 +8,22 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
-package org.eclipse.edc.protocol.dsp.http.spi.dispatcher;
+package org.eclipse.edc.connector.controlplane.services.spi.protocol;
 
-import okhttp3.Request;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 /**
  * Creates an HTTP request for the DSP HTTP Bindings given the message instance
  *
  * @param <M> the message type.
+ * @param <R> the request type.
  */
 @FunctionalInterface
-public interface DspHttpRequestFactory<M extends RemoteMessage> {
+public interface RequestFactory<M extends RemoteMessage, R> {
 
     /**
      * Create the request given the message and a {@link RequestPathProvider}
@@ -31,5 +31,5 @@ public interface DspHttpRequestFactory<M extends RemoteMessage> {
      * @param message the message.
      * @return the request.
      */
-    Request createRequest(M message);
+    R createRequest(M message);
 }

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V.
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,36 +8,49 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
-package org.eclipse.edc.protocol.dsp.http.spi.dispatcher;
+package org.eclipse.edc.connector.controlplane.services.spi.protocol;
 
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.response.DspHttpResponseBodyExtractor;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcher;
+import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.types.domain.message.ProtocolRemoteMessage;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 /**
- * {@link RemoteMessageDispatcher} for sending dataspace protocol messages.
+ * Dispatcher for sending dataspace protocol messages.
  */
-public interface DspHttpRemoteMessageDispatcher extends RemoteMessageDispatcher<ProtocolRemoteMessage> {
+public interface ProtocolRemoteMessageDispatcher {
+
+    /**
+     * Binds and sends the message.
+     *
+     * @param participantContextId the participant context id
+     * @param responseType         the expected response type
+     * @param message              the message
+     * @return a future that can be used to retrieve the response when the operation has completed
+     */
+    <T, M extends ProtocolRemoteMessage> CompletableFuture<StatusResult<T>> dispatch(String participantContextId, Class<T> responseType, M message);
 
     /**
      * Registers a message request factory and response parser
      *
      * @param <M>            the type of message
-     * @param <R>            the response type
+     * @param <RSP>          the response type
+     * @param <REQ>          the request type
+     * @param <RB>           the response body type
      * @param clazz          the message class.
      * @param requestFactory the request factory.
      * @param bodyExtractor  the body extractor function.
      */
-    <M extends ProtocolRemoteMessage, R> void registerMessage(Class<M> clazz, DspHttpRequestFactory<M> requestFactory,
-                                                      DspHttpResponseBodyExtractor<R> bodyExtractor);
+    <M extends ProtocolRemoteMessage, RSP, REQ, RB> void registerMessage(Class<M> clazz,
+                                                                         RequestFactory<M, REQ> requestFactory,
+                                                                         ProtocolResponseBodyExtractor<RB, RSP> bodyExtractor);
 
     /**
      * Registers a {@link Policy} scope to be evaluated for certain types of messages

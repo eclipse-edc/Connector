@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2023 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,23 +8,22 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
-package org.eclipse.edc.protocol.dsp.http.spi.dispatcher.response;
-
-import okhttp3.ResponseBody;
+package org.eclipse.edc.connector.controlplane.services.spi.protocol;
 
 /**
  * Extract the body from a http response body into a concrete type
  *
- * @param <R> the type of the body.
+ * @param <RB> the type of the response body.
+ * @param <B> the type of the extracted body.
  */
 @FunctionalInterface
-public interface DspHttpResponseBodyExtractor<R> {
+public interface ProtocolResponseBodyExtractor<RB, B> {
 
-    DspHttpResponseBodyExtractor<Object> NOOP = (r, p) -> null;
+    ProtocolResponseBodyExtractor<Object, Object> NOOP = (r, p) -> null;
 
     /**
      * Extract the body from the Response
@@ -32,5 +31,5 @@ public interface DspHttpResponseBodyExtractor<R> {
      * @param responseBody the Response.
      * @return the body.
      */
-    R extractBody(ResponseBody responseBody, String protocol);
+    B extractBody(RB responseBody, String protocol);
 }

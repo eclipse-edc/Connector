@@ -16,8 +16,8 @@ package org.eclipse.edc.protocol.dsp.http.serialization;
 
 import jakarta.json.JsonObject;
 import okhttp3.ResponseBody;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolResponseBodyExtractor;
 import org.eclipse.edc.jsonld.spi.JsonLd;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.response.DspHttpResponseBodyExtractor;
 import org.eclipse.edc.protocol.dsp.spi.transform.DspProtocolTypeTransformerRegistry;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Failure;
@@ -33,7 +33,7 @@ import static java.lang.String.join;
 /**
  * Extract a Json-LD represented body from {@link ResponseBody}
  */
-public class JsonLdResponseBodyDeserializer<T> implements DspHttpResponseBodyExtractor<T> {
+public class JsonLdResponseBodyDeserializer<T> implements ProtocolResponseBodyExtractor<ResponseBody, T> {
     private final Class<T> type;
     private final TypeManager typeManager;
     private final String typeContext;

@@ -15,12 +15,12 @@
 package org.eclipse.edc.catalog.crawler;
 
 import org.eclipse.edc.catalog.crawler.cache.query.DspCatalogRequestAction;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.crawler.spi.CrawlerActionRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -36,7 +36,7 @@ public class CatalogCrawlerActionExtension implements ServiceExtension {
     public static final String NAME = "Federated Catalog Cache DSP 2025/1";
 
     @Inject
-    private RemoteMessageDispatcherRegistry dispatcherRegistry;
+    private ProtocolRemoteMessageDispatcher messageDispatcher;
     @Inject
     private CrawlerActionRegistry crawlerActionRegistry;
     @Inject
@@ -57,7 +57,7 @@ public class CatalogCrawlerActionExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var mapper = typeManager.getMapper(JSON_LD);
         var dspTransformerRegistry = registry.forContext(DSP_TRANSFORMER_CONTEXT_V_2025_1);
-        var adapter = new DspCatalogRequestAction(dispatcherRegistry, participantContextSupplier, context.getMonitor(), mapper, dspTransformerRegistry, jsonLdService);
+        var adapter = new DspCatalogRequestAction(messageDispatcher, participantContextSupplier, context.getMonitor(), mapper, dspTransformerRegistry, jsonLdService);
         crawlerActionRegistry.register(DATASPACE_PROTOCOL_HTTP_V_2025_1, adapter);
     }
 

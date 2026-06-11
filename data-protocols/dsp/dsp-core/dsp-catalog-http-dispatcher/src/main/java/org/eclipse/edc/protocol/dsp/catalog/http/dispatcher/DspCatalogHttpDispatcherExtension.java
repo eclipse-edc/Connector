@@ -16,11 +16,11 @@ package org.eclipse.edc.protocol.dsp.catalog.http.dispatcher;
 
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequestMessage;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestBasePathProvider;
 import org.eclipse.edc.protocol.dsp.http.dispatcher.GetDspHttpRequestFactory;
 import org.eclipse.edc.protocol.dsp.http.dispatcher.PostDspHttpRequestFactory;
 import org.eclipse.edc.protocol.dsp.http.serialization.ByteArrayBodyExtractor;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspRequestBasePathProvider;
 import org.eclipse.edc.protocol.dsp.http.spi.serialization.JsonLdRemoteMessageSerializer;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -41,11 +41,11 @@ public class DspCatalogHttpDispatcherExtension implements ServiceExtension {
     public static final String NAME = "Dataspace Protocol Catalog HTTP Dispatcher Extension";
 
     @Inject
-    private DspHttpRemoteMessageDispatcher messageDispatcher;
+    private ProtocolRemoteMessageDispatcher messageDispatcher;
     @Inject
     private JsonLdRemoteMessageSerializer remoteMessageSerializer;
     @Inject
-    private DspRequestBasePathProvider dspRequestBasePathProvider;
+    private RequestBasePathProvider requestBasePathProvider;
 
     @Override
     public String name() {
@@ -58,12 +58,12 @@ public class DspCatalogHttpDispatcherExtension implements ServiceExtension {
 
         messageDispatcher.registerMessage(
                 CatalogRequestMessage.class,
-                new PostDspHttpRequestFactory<>(remoteMessageSerializer, dspRequestBasePathProvider, m -> BASE_PATH + CATALOG_REQUEST),
+                new PostDspHttpRequestFactory<>(remoteMessageSerializer, requestBasePathProvider, m -> BASE_PATH + CATALOG_REQUEST),
                 byteArrayBodyExtractor
         );
         messageDispatcher.registerMessage(
                 DatasetRequestMessage.class,
-                new GetDspHttpRequestFactory<>(dspRequestBasePathProvider, m -> BASE_PATH + DATASET_REQUEST + "/" + m.getDatasetId()),
+                new GetDspHttpRequestFactory<>(requestBasePathProvider, m -> BASE_PATH + DATASET_REQUEST + "/" + m.getDatasetId()),
                 byteArrayBodyExtractor
         );
     }

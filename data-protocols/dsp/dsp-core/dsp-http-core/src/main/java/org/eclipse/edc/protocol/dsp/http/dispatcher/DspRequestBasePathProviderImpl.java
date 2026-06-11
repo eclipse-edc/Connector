@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.protocol.dsp.http.dispatcher;
 
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspRequestBasePathProvider;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestBasePathProvider;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
-public class DspRequestBasePathProviderImpl implements DspRequestBasePathProvider {
+public class DspRequestBasePathProviderImpl implements RequestBasePathProvider {
 
     public DspRequestBasePathProviderImpl() {
     }
