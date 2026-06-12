@@ -20,11 +20,11 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.catalog.spi.model.CatalogUpdateResponse;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.crawler.spi.model.UpdateRequest;
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.participantcontext.single.spi.SingleParticipantContextSupplier;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
@@ -45,13 +45,13 @@ import static org.mockito.Mockito.when;
 
 class DspCatalogRequestActionTest {
 
-    private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
+    private final ProtocolRemoteMessageDispatcher messageDispatcher = mock();
     private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl();
     private final TitaniumJsonLd jsonLdService = new TitaniumJsonLd(mock());
     private final ObjectMapper objectMapper = createObjectMapper();
     private final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(
             ParticipantContext.Builder.newInstance().participantContextId("participantContext").identity("identity").build());
-    private final DspCatalogRequestAction action = new DspCatalogRequestAction(dispatcherRegistry, participantContextSupplier,
+    private final DspCatalogRequestAction action = new DspCatalogRequestAction(messageDispatcher, participantContextSupplier,
             mock(), objectMapper, typeTransformerRegistry, jsonLdService);
 
     @BeforeEach
@@ -64,7 +64,7 @@ class DspCatalogRequestActionTest {
         var request = new UpdateRequest("test-node-id", "https://example.com/test-node-id", DATASPACE_PROTOCOL_HTTP_V_2025_1);
 
         var catalog = toBytes(createCatalog("test-catalog-id"));
-        when(dispatcherRegistry.dispatch(any(), eq(byte[].class), any(CatalogRequestMessage.class)))
+        when(messageDispatcher.dispatch(any(), eq(byte[].class), any(CatalogRequestMessage.class)))
                 .thenReturn(completedFuture(catalog));
 
         assertThat(action.apply(request)).isCompletedWithValueMatching(updateResponse -> {
@@ -86,7 +86,7 @@ class DspCatalogRequestActionTest {
         var nestedCatalog = createCatalog("nested-catalog-id");
         rootCatalog.getDatasets().add(nestedCatalog);
 
-        when(dispatcherRegistry.dispatch(any(), eq(byte[].class), any(CatalogRequestMessage.class)))
+        when(messageDispatcher.dispatch(any(), eq(byte[].class), any(CatalogRequestMessage.class)))
                 .thenReturn(completedFuture(toBytes(rootCatalog)))
                 .thenReturn(completedFuture(toBytes(nestedCatalog)));
 
@@ -109,7 +109,7 @@ class DspCatalogRequestActionTest {
         var nestedCatalog = createCatalog("nested-catalog-id");
         rootCatalog.getDatasets().add(nestedCatalog);
 
-        when(dispatcherRegistry.dispatch(any(), eq(byte[].class), any(CatalogRequestMessage.class)))
+        when(messageDispatcher.dispatch(any(), eq(byte[].class), any(CatalogRequestMessage.class)))
                 .thenReturn(completedFuture(toBytes(rootCatalog)))
                 .thenReturn(completedFuture(toBytes(nestedCatalog)));
 

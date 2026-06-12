@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.services.secret;
 
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
@@ -55,6 +56,7 @@ public class SecretEventDispatchTest {
         extension.registerServiceMock(IdentityService.class, mock());
         extension.registerServiceMock(DataPlaneClientFactory.class, mock());
         extension.registerServiceMock(DataFlowController.class, mock());
+        extension.registerServiceMock(ProtocolRemoteMessageDispatcher.class, mock());
         extension.setConfiguration(Map.of(
                 "web.http.port", String.valueOf(getFreePort()),
                 "web.http.path", "/api"

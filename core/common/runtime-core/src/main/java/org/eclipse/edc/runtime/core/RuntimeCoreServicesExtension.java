@@ -25,7 +25,6 @@ import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.runtime.core.api.ApiVersionServiceImpl;
 import org.eclipse.edc.runtime.core.command.CommandHandlerRegistryImpl;
 import org.eclipse.edc.runtime.core.event.EventRouterImpl;
-import org.eclipse.edc.runtime.core.message.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.edc.runtime.core.validator.JsonObjectValidatorRegistryImpl;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -33,7 +32,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.event.EventRouter;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -110,11 +108,6 @@ public class RuntimeCoreServicesExtension implements ServiceExtension {
     @Provider
     public CriterionOperatorRegistry criterionOperatorRegistry() {
         return CriterionOperatorRegistryImpl.ofDefaults();
-    }
-
-    @Provider
-    public RemoteMessageDispatcherRegistry remoteMessageDispatcherRegistry() {
-        return new RemoteMessageDispatcherRegistryImpl();
     }
 
     @Provider

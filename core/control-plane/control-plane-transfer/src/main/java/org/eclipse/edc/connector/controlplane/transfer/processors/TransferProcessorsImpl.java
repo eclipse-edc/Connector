@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.transfer.processors;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyArchive;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.connector.controlplane.transfer.spi.TransferProcessors;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
@@ -34,7 +35,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.Transf
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferSuspensionMessage;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferTerminationMessage;
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -65,14 +65,14 @@ public class TransferProcessorsImpl implements TransferProcessors {
     private final Monitor monitor;
     private final DataAddressResolver addressResolver;
     private final ProtocolWebhookResolver protocolWebhookResolver;
-    private final RemoteMessageDispatcherRegistry dispatcherRegistry;
+    private final ProtocolRemoteMessageDispatcher messageDispatcher;
 
     public TransferProcessorsImpl(PolicyArchive policyArchive, EntityRetryProcessFactory entityRetryProcessFactory,
                                   DataFlowController dataFlowController, DataAddressStore dataAddressStore,
                                   TransferProcessObservable observable, TransferProcessStore store, Monitor monitor,
                                   DataAddressResolver addressResolver,
                                   ProtocolWebhookResolver protocolWebhookResolver,
-                                  RemoteMessageDispatcherRegistry dispatcherRegistry) {
+                                  ProtocolRemoteMessageDispatcher messageDispatcher) {
         this.policyArchive = policyArchive;
         this.entityRetryProcessFactory = entityRetryProcessFactory;
         this.dataFlowController = dataFlowController;
@@ -82,7 +82,7 @@ public class TransferProcessorsImpl implements TransferProcessors {
         this.monitor = monitor;
         this.addressResolver = addressResolver;
         this.protocolWebhookResolver = protocolWebhookResolver;
-        this.dispatcherRegistry = dispatcherRegistry;
+        this.messageDispatcher = messageDispatcher;
     }
 
     @WithSpan
@@ -403,7 +403,7 @@ public class TransferProcessorsImpl implements TransferProcessors {
 
         process.lastSentProtocolMessage(message.getId());
 
-        return dispatcherRegistry.dispatch(process.getParticipantContextId(), responseType, message);
+        return messageDispatcher.dispatch(process.getParticipantContextId(), responseType, message);
     }
 
     private void transitionToInitial(TransferProcess process) {

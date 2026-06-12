@@ -14,16 +14,17 @@
 
 package org.eclipse.edc.protocol.dsp.http.dispatcher;
 
+import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolResponseBodyExtractor;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestFactory;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRequestFactory;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.response.DspHttpResponseBodyExtractor;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -52,7 +53,7 @@ import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 /**
  * Dispatches remote messages using the dataspace protocol.
  */
-public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageDispatcher {
+public class DspHttpRemoteMessageDispatcherImpl implements ProtocolRemoteMessageDispatcher {
 
     private static final String AUDIENCE_CLAIM = "aud";
     private static final String SCOPE_CLAIM = "scope";
@@ -63,7 +64,6 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
     private final PolicyEngine policyEngine;
     private final TokenDecorator tokenDecorator;
     private final AudienceResolver audienceResolver;
-
 
     public DspHttpRemoteMessageDispatcherImpl(EdcHttpClient httpClient,
                                               IdentityService identityService,
@@ -128,9 +128,11 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
     }
 
     @Override
-    public <M extends ProtocolRemoteMessage, R> void registerMessage(Class<M> clazz, DspHttpRequestFactory<M> requestFactory,
-                                                             DspHttpResponseBodyExtractor<R> bodyExtractor) {
-        handlers.put(clazz, new MessageHandler<>(requestFactory, bodyExtractor));
+    @SuppressWarnings("unchecked")
+    public <M extends ProtocolRemoteMessage, RSP, REQ, RB> void registerMessage(Class<M> clazz, RequestFactory<M, REQ> requestFactory,
+                                                                                ProtocolResponseBodyExtractor<RB, RSP> bodyExtractor) {
+        handlers.put(clazz, new MessageHandler<>((RequestFactory<M, Request>) requestFactory,
+                (ProtocolResponseBodyExtractor<ResponseBody, RSP>) bodyExtractor));
     }
 
     @Override
@@ -141,7 +143,7 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
     }
 
     @NotNull
-    private <T> StatusResult<T> handleResponse(Response response, String protocol, Class<T> responseType, DspHttpResponseBodyExtractor<T> bodyExtractor) {
+    private <T> StatusResult<T> handleResponse(Response response, String protocol, Class<T> responseType, ProtocolResponseBodyExtractor<ResponseBody, T> bodyExtractor) {
         try (var responseBody = response.body()) {
             if (response.isSuccessful()) {
                 var responsePayload = bodyExtractor.extractBody(responseBody, protocol);
@@ -165,8 +167,8 @@ public class DspHttpRemoteMessageDispatcherImpl implements DspHttpRemoteMessageD
     }
 
     private record MessageHandler<M extends RemoteMessage, R>(
-            DspHttpRequestFactory<M> requestFactory,
-            DspHttpResponseBodyExtractor<R> bodyExtractor) {
+            RequestFactory<M, Request> requestFactory,
+            ProtocolResponseBodyExtractor<ResponseBody, R> bodyExtractor) {
     }
 
     private record PolicyScope<M extends RemoteMessage>(

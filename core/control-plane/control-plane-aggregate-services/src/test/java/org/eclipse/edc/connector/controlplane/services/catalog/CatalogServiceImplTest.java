@@ -17,8 +17,8 @@ package org.eclipse.edc.connector.controlplane.services.catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequestMessage;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.when;
 
 class CatalogServiceImplTest {
 
-    private final RemoteMessageDispatcherRegistry dispatcher = mock(RemoteMessageDispatcherRegistry.class);
+    private final ProtocolRemoteMessageDispatcher dispatcher = mock(ProtocolRemoteMessageDispatcher.class);
     private final CatalogService service = new CatalogServiceImpl(dispatcher);
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
             .participantContextId("participantContextId")

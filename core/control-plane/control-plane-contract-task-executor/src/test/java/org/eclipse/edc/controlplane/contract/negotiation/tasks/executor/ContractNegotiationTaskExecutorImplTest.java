@@ -23,6 +23,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.ContractNegotiationTaskExecutor;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.AgreeNegotiation;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
@@ -38,7 +39,6 @@ import org.eclipse.edc.controlplane.tasks.TaskService;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -88,9 +88,9 @@ class ContractNegotiationTaskExecutorImplTest {
     private final TransactionContext transactionContext = new NoopTransactionContext();
     private final ProtocolWebhookResolver protocolWebhookResolver = mock();
     private final ParticipantIdentityResolver identityResolver = mock();
-    private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock();
+    private final ProtocolRemoteMessageDispatcher messageDispatcher = mock();
     private final EntityRetryProcessConfiguration retryConfig = new EntityRetryProcessConfiguration(1, () -> new ExponentialWaitStrategy(0L));
-    private final NegotiationProcessors negotiationProcessors = new NegotiationProcessorsImpl(monitor, protocolWebhookResolver, mock(), negotiationStore, identityResolver, clock, dispatcherRegistry, retryConfig);
+    private final NegotiationProcessors negotiationProcessors = new NegotiationProcessorsImpl(monitor, protocolWebhookResolver, mock(), negotiationStore, identityResolver, clock, messageDispatcher, retryConfig);
     private final String protocolWebhookUrl = "http://protocol.webhook/url";
     private ContractNegotiationTaskExecutor executor;
 
@@ -101,7 +101,7 @@ class ContractNegotiationTaskExecutorImplTest {
         when(pendingGuard.test(any())).thenReturn(false);
         when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> protocolWebhookUrl);
         var ack = ContractNegotiationAck.Builder.newInstance().providerPid("providerPid").build();
-        when(dispatcherRegistry.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
+        when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success(ack)));
 
 
         executor = ContractNegotiationTaskExecutorImpl.Builder.newInstance()

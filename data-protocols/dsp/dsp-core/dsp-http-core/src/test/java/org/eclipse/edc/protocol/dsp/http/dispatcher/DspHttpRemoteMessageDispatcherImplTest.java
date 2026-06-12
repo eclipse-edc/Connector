@@ -19,15 +19,15 @@ import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.ResponseBody;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolResponseBodyExtractor;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.RequestFactory;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRemoteMessageDispatcher;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.DspHttpRequestFactory;
-import org.eclipse.edc.protocol.dsp.http.spi.dispatcher.response.DspHttpResponseBodyExtractor;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
@@ -75,7 +75,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
     private final IdentityService identityService = mock();
     private final PolicyEngine policyEngine = mock();
     private final TokenDecorator tokenDecorator = mock();
-    private final DspHttpRequestFactory<TestMessage> requestFactory = mock();
+    private final RequestFactory<TestMessage, Request> requestFactory = mock();
     private final AudienceResolver audienceResolver = mock();
     private final Duration timeout = Duration.of(5, SECONDS);
 
@@ -84,7 +84,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
             .identity("participantId")
             .build();
 
-    private final DspHttpRemoteMessageDispatcher dispatcher =
+    private final ProtocolRemoteMessageDispatcher dispatcher =
             new DspHttpRemoteMessageDispatcherImpl(httpClient, identityService, tokenDecorator, policyEngine, audienceResolver);
 
     private static okhttp3.Response dummyResponse(int code) {
@@ -277,7 +277,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         var authToken = "token";
         Map<String, Object> additional = Map.of("foo", "bar");
         var policy = Policy.Builder.newInstance().build();
-        DspHttpRequestFactory<CatalogRequestMessage> rqFactory = mock();
+        RequestFactory<CatalogRequestMessage, Request> rqFactory = mock();
         when(audienceResolver.resolve(any())).thenReturn(Result.success(AUDIENCE_VALUE));
         when(tokenDecorator.decorate(any())).thenAnswer(a -> a.getArgument(0, TokenParameters.Builder.class).claims(additional));
         when(rqFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
@@ -367,7 +367,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
     @Nested
     class Response {
 
-        private final DspHttpResponseBodyExtractor<Object> bodyExtractor = mock();
+        private final ProtocolResponseBodyExtractor<ResponseBody, Object> bodyExtractor = mock();
 
         @Test
         void shouldShouldReturnSuccess_whenResponseIsSuccessful() {
@@ -411,7 +411,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
             verify(bodyExtractor, never()).extractBody(any(), any());
         }
 
-        private void respondWith(okhttp3.Response response, DspHttpResponseBodyExtractor<Object> bodyExtractor) {
+        private void respondWith(okhttp3.Response response, ProtocolResponseBodyExtractor<ResponseBody, Object> bodyExtractor) {
             when(audienceResolver.resolve(any())).thenReturn(Result.success(AUDIENCE_VALUE));
             when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
             when(httpClient.executeAsync(any(), isA(List.class))).thenReturn(completedFuture(response));

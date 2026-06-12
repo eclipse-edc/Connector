@@ -27,10 +27,10 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractOfferMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
+import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
-import org.eclipse.edc.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.StoreResult;
@@ -56,12 +56,12 @@ public class NegotiationProcessorsImpl implements NegotiationProcessors {
     private final EntityRetryProcessFactory entityRetryProcessFactory;
     private final ParticipantIdentityResolver identityResolver;
     private final Clock clock;
-    private final RemoteMessageDispatcherRegistry dispatcherRegistry;
+    private final ProtocolRemoteMessageDispatcher messageDispatcher;
 
     public NegotiationProcessorsImpl(Monitor monitor, ProtocolWebhookResolver protocolWebhookResolver,
                                      ContractNegotiationObservable observable, ContractNegotiationStore store,
                                      ParticipantIdentityResolver identityResolver, Clock clock,
-                                     RemoteMessageDispatcherRegistry dispatcherRegistry,
+                                     ProtocolRemoteMessageDispatcher messageDispatcher,
                                      EntityRetryProcessConfiguration entityRetryProcessConfiguration) {
         this.monitor = monitor;
         this.protocolWebhookResolver = protocolWebhookResolver;
@@ -69,7 +69,7 @@ public class NegotiationProcessorsImpl implements NegotiationProcessors {
         this.store = store;
         this.identityResolver = identityResolver;
         this.clock = clock;
-        this.dispatcherRegistry = dispatcherRegistry;
+        this.messageDispatcher = messageDispatcher;
         this.entityRetryProcessFactory = new EntityRetryProcessFactory(monitor, clock, entityRetryProcessConfiguration);
     }
 
@@ -271,7 +271,7 @@ public class NegotiationProcessorsImpl implements NegotiationProcessors {
         negotiation.lastSentProtocolMessage(message.getId());
 
         return entityRetryProcessFactory.retryProcessor(negotiation)
-                .doProcess(futureResult(name, (n, v) -> dispatcherRegistry.dispatch(negotiation.getParticipantContextId(), responseType, message)));
+                .doProcess(futureResult(name, (n, v) -> messageDispatcher.dispatch(negotiation.getParticipantContextId(), responseType, message)));
     }
 
     private void transitionToRequesting(ContractNegotiation negotiation) {
