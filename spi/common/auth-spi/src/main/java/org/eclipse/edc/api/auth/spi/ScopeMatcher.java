@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.api.auth.spi;
 
+import org.eclipse.edc.spi.result.AbstractResult;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -54,8 +56,8 @@ public class ScopeMatcher {
         return Arrays.stream(grantedScopes.trim().split(SCOPE_SEPARATOR))
                 .filter(s -> !s.isBlank())
                 .map(Scope::parse)
-                .filter(result -> result.succeeded())
-                .map(result -> result.getContent())
+                .filter(AbstractResult::succeeded)
+                .map(AbstractResult::getContent)
                 .toList();
     }
 }

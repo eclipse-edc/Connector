@@ -124,6 +124,42 @@ class AuthorizationServiceImplTest {
     }
 
     @Test
+    void authorize_whenCustomAdminScope_bypassesOwnership() {
+        var service = new AuthorizationServiceImpl("identity-api:admin");
+        service.addLookupFunction(TestResource.class, (owner, id) -> new AbstractParticipantResource() {
+            @Override
+            public String getParticipantContextId() {
+                return "owner-id";
+            }
+        });
+        var principal = new ParticipantPrincipal("a-different-principal", "identity-api:admin");
+        var securityContext = mock(SecurityContext.class);
+        when(securityContext.getUserPrincipal()).thenReturn(principal);
+
+        assertThat(service.authorize(securityContext, "owner-id", "test-resource-id", TestResource.class))
+                .isSucceeded();
+    }
+
+    @Test
+    void authorize_whenCustomAdminScope_managementAdminDoesNotElevate() {
+        // with a custom admin scope configured, the default management-api:admin no longer elevates
+        var service = new AuthorizationServiceImpl("identity-api:admin");
+        service.addLookupFunction(TestResource.class, (owner, id) -> new AbstractParticipantResource() {
+            @Override
+            public String getParticipantContextId() {
+                return "owner-id";
+            }
+        });
+        var principal = new ParticipantPrincipal("a-different-principal", "management-api:admin");
+        var securityContext = mock(SecurityContext.class);
+        when(securityContext.getUserPrincipal()).thenReturn(principal);
+
+        assertThat(service.authorize(securityContext, "owner-id", "test-resource-id", TestResource.class))
+                .isFailed()
+                .satisfies(f -> assertThat(f.getReason()).isEqualTo(ServiceFailure.Reason.UNAUTHORIZED));
+    }
+
+    @Test
     void authorize_whenNoOwner() {
         authorizationService.addLookupFunction(TestResource.class, (owner, id) -> new AbstractParticipantResource() {
             @Override

@@ -101,6 +101,38 @@ class ServicePrincipalAuthenticationFilterTest {
     }
 
     @Test
+    void filter_customAdminScope_skipsExistenceCheck() {
+        // a filter configured with a custom admin scope treats that scope (not management-api:admin) as elevated
+        var customFilter = new ServicePrincipalAuthenticationFilter(participantContextService, "identity-api:admin");
+        when(participantContextService.getParticipantContext(anyString())).thenReturn(ServiceResult.notFound("not a participant context"));
+        var request = mock(ContainerRequestContext.class);
+        when(request.getProperty(REQUEST_PROPERTY_CLAIMS)).thenReturn(ClaimToken.Builder.newInstance()
+                .claim(SCOPE, "identity-api:admin")
+                .claim(SUBJECT, "some-service-account")
+                .build());
+
+        customFilter.filter(request);
+
+        verify(request).setSecurityContext(argThat(sc -> sc.getUserPrincipal() instanceof ParticipantPrincipal));
+    }
+
+    @Test
+    void filter_customAdminScope_managementAdminNotElevated() {
+        // with a custom admin scope configured, a management-api:admin token is not elevated, so its subject must exist
+        var customFilter = new ServicePrincipalAuthenticationFilter(participantContextService, "identity-api:admin");
+        when(participantContextService.getParticipantContext(anyString())).thenReturn(ServiceResult.notFound("not a participant context"));
+        var request = mock(ContainerRequestContext.class);
+        when(request.getProperty(REQUEST_PROPERTY_CLAIMS)).thenReturn(ClaimToken.Builder.newInstance()
+                .claim(SCOPE, ManagementApiScopes.ADMIN)
+                .claim(SUBJECT, "some-service-account")
+                .build());
+
+        customFilter.filter(request);
+
+        verify(request).abortWith(argThat(response -> response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode()));
+    }
+
+    @Test
     void filter_claimsNotPresent() {
         var request = mock(ContainerRequestContext.class);
         when(request.getProperty(REQUEST_PROPERTY_CLAIMS)).thenReturn(null);
