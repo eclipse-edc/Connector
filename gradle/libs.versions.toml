@@ -45,7 +45,7 @@ dps-tck = "1.0.0"
 junit = "6.0.3"
 wiremock = "3.13.2"
 cel = "0.11.1"
-nats = "2.25.2"
+nats = "2.25.3"
 
 [libraries]
 iron-vc = { module = "com.apicatalog:iron-verifiable-credentials", version.ref = "apicatalog" }
