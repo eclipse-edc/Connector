@@ -22,7 +22,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.security.Vault;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
-import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
+import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProviderFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,18 +37,18 @@ class HashicorpVault implements Vault {
     private final ParticipantContextConfig participantContextConfig;
     private final Monitor monitor;
     private final HashicorpVaultConfig vaultConfig;
-    private final HashicorpVaultTokenProvider defaultTokenProvider;
+    private final HashicorpVaultTokenProviderFactory tokenProviderFactory;
     private final EdcHttpClient edcHttpClient;
     private final ObjectMapper mapper;
 
     HashicorpVault(ParticipantContextConfig participantContextConfig,
                    Monitor monitor,
-                   HashicorpVaultConfig vaultConfig, HashicorpVaultTokenProvider defaultTokenProvider,
+                   HashicorpVaultConfig vaultConfig, HashicorpVaultTokenProviderFactory tokenProviderFactory,
                    EdcHttpClient edcHttpClient) {
         this.participantContextConfig = participantContextConfig;
         this.monitor = monitor;
         this.vaultConfig = vaultConfig;
-        this.defaultTokenProvider = defaultTokenProvider;
+        this.tokenProviderFactory = tokenProviderFactory;
         this.edcHttpClient = edcHttpClient;
         this.mapper = new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
@@ -99,7 +99,7 @@ class HashicorpVault implements Vault {
 
         var settings = forParticipant(vaultPartition, participantContextConfig);
         if (settings != null) {
-            return new HashicorpVaultClient(monitor, settings.config(), edcHttpClient, mapper, settings.tokenProvider(edcHttpClient));
+            return new HashicorpVaultClient(monitor, settings.config(), edcHttpClient, mapper, tokenProviderFactory.create(vaultPartition));
         }
 
         if (vaultConfig.isAllowFallback()) {
@@ -112,7 +112,7 @@ class HashicorpVault implements Vault {
      * creates a new HashicorpVaultClient with the "global" configuration / auth-settings taken from the runtime configuration.
      */
     private HashicorpVaultClient createDefault() {
-        return new HashicorpVaultClient(monitor, vaultConfig, edcHttpClient, mapper, defaultTokenProvider);
+        return new HashicorpVaultClient(monitor, vaultConfig, edcHttpClient, mapper, tokenProviderFactory.create(null));
     }
 
 }

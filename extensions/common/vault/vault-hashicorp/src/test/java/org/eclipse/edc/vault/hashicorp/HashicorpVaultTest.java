@@ -25,8 +25,8 @@ import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
-import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultCredentials;
 import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
+import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProviderFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -65,6 +65,7 @@ class HashicorpVaultTest {
 
     private final ParticipantContextConfig participantContextConfig = mock();
     private final HashicorpVaultTokenProvider tokenProvider = mock();
+    private final HashicorpVaultTokenProviderFactory tokenProviderFactory = resource -> tokenProvider;
     private final EdcHttpClient httpClient = new EdcHttpClientImpl(new OkHttpClient(), RetryPolicy.ofDefaults(), mock());
     private final ObjectMapper mapper = new ObjectMapper();
     private HashicorpVault vault;
@@ -80,7 +81,7 @@ class HashicorpVaultTest {
                 .build();
 
         when(tokenProvider.vaultToken()).thenReturn("root");
-        vault = new HashicorpVault(participantContextConfig, mock(), vaultConfig, tokenProvider, httpClient);
+        vault = new HashicorpVault(participantContextConfig, mock(), vaultConfig, tokenProviderFactory, httpClient);
     }
 
     @Test
@@ -130,10 +131,7 @@ class HashicorpVaultTest {
                 .ttl(10)
                 .build();
 
-        var creds = HashicorpVaultCredentials.Builder.newInstance()
-                .token("foo-token")
-                .build();
-        when(participantContextConfig.getSensitiveString("partition1", VAULT_CONFIG)).thenReturn(asJson(new HashicorpVaultSettings(vaultConfig, creds)));
+        when(participantContextConfig.getSensitiveString("partition1", VAULT_CONFIG)).thenReturn(asJson(new HashicorpVaultSettings(vaultConfig)));
 
 
         var secret = vault.resolveSecret("partition1", "quizz");
@@ -153,10 +151,7 @@ class HashicorpVaultTest {
                 .ttl(10)
                 .build();
 
-        var creds = HashicorpVaultCredentials.Builder.newInstance()
-                .token("foo-token")
-                .build();
-        when(participantContextConfig.getSensitiveString("partition1", VAULT_CONFIG)).thenReturn(asJson(new HashicorpVaultSettings(vaultConfig, creds)));
+        when(participantContextConfig.getSensitiveString("partition1", VAULT_CONFIG)).thenReturn(asJson(new HashicorpVaultSettings(vaultConfig)));
 
 
         var secret = vault.resolveSecret("partition1", "bizz");
@@ -205,10 +200,7 @@ class HashicorpVaultTest {
                 .ttl(10)
                 .build();
 
-        var creds = HashicorpVaultCredentials.Builder.newInstance()
-                .token("foo-token")
-                .build();
-        when(participantContextConfig.getSensitiveString("partition1", VAULT_CONFIG)).thenReturn(asJson(new HashicorpVaultSettings(vaultConfig, creds)));
+        when(participantContextConfig.getSensitiveString("partition1", VAULT_CONFIG)).thenReturn(asJson(new HashicorpVaultSettings(vaultConfig)));
 
         wireMock.stubFor(post(urlPathMatching("/v1/participants/data/participant1.*"))
                 .willReturn(okJson("{}")));
@@ -248,10 +240,7 @@ class HashicorpVaultTest {
                 .ttl(10)
                 .build();
 
-        var creds = HashicorpVaultCredentials.Builder.newInstance()
-                .token("foo-token")
-                .build();
-        when(participantContextConfig.getSensitiveString("participant1", VAULT_CONFIG)).thenReturn(asJson(new HashicorpVaultSettings(vaultConfig, creds)));
+        when(participantContextConfig.getSensitiveString("participant1", VAULT_CONFIG)).thenReturn(asJson(new HashicorpVaultSettings(vaultConfig)));
 
         wireMock.stubFor(delete(urlPathMatching("/v1/participants/data/participant1/foo.*"))
                 .willReturn(status(204)));
@@ -272,10 +261,7 @@ class HashicorpVaultTest {
                 .ttl(10)
                 .build();
 
-        var creds = HashicorpVaultCredentials.Builder.newInstance()
-                .token("foo-token")
-                .build();
-        when(participantContextConfig.getSensitiveString("participant1", VAULT_CONFIG)).thenReturn(asJson(new HashicorpVaultSettings(vaultConfig, creds)));
+        when(participantContextConfig.getSensitiveString("participant1", VAULT_CONFIG)).thenReturn(asJson(new HashicorpVaultSettings(vaultConfig)));
 
         wireMock.stubFor(delete(urlPathMatching("/v1/participants/data/participant1/foo.*"))
                 .willReturn(notFound()));
@@ -320,7 +306,7 @@ class HashicorpVaultTest {
                 .ttl(10)
                 .build();
 
-        vault = new HashicorpVault(participantContextConfig, mock(), defaultVaultConfig, tokenProvider, httpClient);
+        vault = new HashicorpVault(participantContextConfig, mock(), defaultVaultConfig, tokenProviderFactory, httpClient);
 
         when(participantContextConfig.getSensitiveString(anyString(), anyString())).thenReturn(vaultConfig);
         assertThatThrownBy(() -> vault.deleteSecret("participant1", "foo"))

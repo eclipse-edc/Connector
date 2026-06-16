@@ -33,7 +33,7 @@ import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultHealthService;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultTokenRenewService;
 import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultTokenRenewTask;
-import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProvider;
+import org.eclipse.edc.vault.hashicorp.spi.auth.HashicorpVaultTokenProviderFactory;
 import org.jetbrains.annotations.NotNull;
 
 import static com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES;
@@ -50,7 +50,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
     private ExecutorInstrumentation executorInstrumentation;
 
     @Inject
-    private HashicorpVaultTokenProvider tokenProvider;
+    private HashicorpVaultTokenProviderFactory tokenProviderFactory;
 
     @Inject
     private ParticipantContextConfig participantContextConfig;
@@ -72,19 +72,19 @@ public class HashicorpVaultExtension implements ServiceExtension {
 
     @Provider
     public Vault hashicorpVault() {
-        return new HashicorpVault(participantContextConfig, monitor, defaultVaultConfig, tokenProvider, httpClient);
+        return new HashicorpVault(participantContextConfig, monitor, defaultVaultConfig, tokenProviderFactory, httpClient);
     }
 
     @Provider
     public SignatureService signatureService() {
-        return new HashicorpVaultSignatureService(monitor, defaultVaultConfig, httpClient, MAPPER, tokenProvider);
+        return new HashicorpVaultSignatureService(monitor, defaultVaultConfig, httpClient, MAPPER, tokenProviderFactory.create(null));
     }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor().withPrefix(NAME);
-        
-        var tokenRenewService = new HashicorpVaultTokenRenewService(httpClient, MAPPER, defaultVaultConfig, tokenProvider, monitor);
+
+        var tokenRenewService = new HashicorpVaultTokenRenewService(httpClient, MAPPER, defaultVaultConfig, tokenProviderFactory.create(null), monitor);
         tokenRenewalTask = new HashicorpVaultTokenRenewTask(
                 NAME,
                 executorInstrumentation,
@@ -96,7 +96,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
     @Provider
     public @NotNull HashicorpVaultHealthService createHealthService() {
         if (healthService == null) {
-            healthService = new HashicorpVaultHealthService(httpClient, defaultVaultConfig, tokenProvider);
+            healthService = new HashicorpVaultHealthService(httpClient, defaultVaultConfig, tokenProviderFactory.create(null));
         }
         return healthService;
     }
