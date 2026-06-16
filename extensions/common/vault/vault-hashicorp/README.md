@@ -13,15 +13,37 @@ creating secrets the EDC should consume.
 
 ## Configuration
 
-| Key                                         | Description                                                                                                      | Mandatory | Default          |
-|:--------------------------------------------|:-----------------------------------------------------------------------------------------------------------------|-----------|------------------|
-| edc.vault.hashicorp.url                     | URL to connect to the HashiCorp Vault                                                                            | X         |                  |     |
-| edc.vault.hashicorp.token                   | Value for [Token Authentication](https://www.vaultproject.io/docs/auth/token) with the vault                     | X         |                  |     |
-| edc.vault.hashicorp.timeout.seconds         | Request timeout in seconds when contacting the vault                                                             |           | `30`             |
-| edc.vault.hashicorp.health.check.enabled    | Enable health checks to ensure vault is initialized, unsealed and active                                         |           | `true`           |
-| edc.vault.hashicorp.health.check.standby.ok | Specifies if a vault in standby is healthy. This is useful when Vault is behind a non-configurable load balancer |           | `false`          |
-| edc.vault.hashicorp.api.secret.path         | Path to the [secret api](https://www.vaultproject.io/api-docs/secret/kv/kv-v1)                                   |           | `/v1/secret`     |
-| edc.vault.hashicorp.api.health.check.path   | Path to the [health api](https://www.vaultproject.io/api-docs/system/health)                                     |           | `/v1/sys/health` |
+| Key                                                  | Description                                                                                                      | Mandatory | Default          |
+|:-----------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------|-----------|------------------|
+| edc.vault.hashicorp.url                              | URL to connect to the HashiCorp Vault                                                                            | X         |                  |     |
+| edc.vault.hashicorp.token                            | Value for [Token Authentication](https://www.vaultproject.io/docs/auth/token). Required unless token exchange is configured | (*)       |                  |     |
+| edc.vault.hashicorp.auth.tokenexchange.url           | Base URL of the token-exchange service (e.g. `jwtlet`). Setting it enables token-exchange authentication         | (*)       |                  |     |
+| edc.vault.hashicorp.auth.tokenexchange.subjecttokenpath | Path to the file holding the projected workload (ServiceAccount) token used as the subject token              |           |                  |     |
+| edc.vault.hashicorp.auth.tokenexchange.audience      | Audience requested for the exchanged token; must match the token-exchange service's configured audience          |           | `edcv`           |
+| edc.vault.hashicorp.auth.tokenexchange.scope         | Abstract scope (tier) requested for the exchanged token                                                          |           | `read`           |
+| edc.vault.hashicorp.auth.tokenexchange.resource      | Participant context id used as the `resource` for the default vault partition (optional)                         |           |                  |     |
+| edc.vault.hashicorp.auth.jwt.role                    | The Vault JWT auth method role to authenticate with                                                              |           | `participant`    |
+| edc.vault.hashicorp.timeout.seconds                  | Request timeout in seconds when contacting the vault                                                             |           | `30`             |
+| edc.vault.hashicorp.health.check.enabled             | Enable health checks to ensure vault is initialized, unsealed and active                                         |           | `true`           |
+| edc.vault.hashicorp.health.check.standby.ok          | Specifies if a vault in standby is healthy. This is useful when Vault is behind a non-configurable load balancer |           | `false`          |
+| edc.vault.hashicorp.api.secret.path                  | Path to the [secret api](https://www.vaultproject.io/api-docs/secret/kv/kv-v1)                                   |           | `/v1/secret`     |
+| edc.vault.hashicorp.api.health.check.path            | Path to the [health api](https://www.vaultproject.io/api-docs/system/health)                                     |           | `/v1/sys/health` |
+
+(*) Exactly one authentication mechanism must be configured: either a static `edc.vault.hashicorp.token`, or token
+exchange (`edc.vault.hashicorp.auth.tokenexchange.url`). Both may be combined, in which case the static token is used for
+the default vault partition and token exchange for named (per-participant) partitions.
+
+## Authentication
+
+The extension supports two ways of obtaining a Vault token:
+
+- **Static token** (`edc.vault.hashicorp.token`): the configured token is used directly as the `X-Vault-Token`.
+- **Token exchange** (`edc.vault.hashicorp.auth.tokenexchange.*`): the connector reads its projected Kubernetes
+  ServiceAccount token from `subjecttokenpath`, exchanges it at the token-exchange service (RFC 8693, e.g. `jwtlet`) for
+  a participant-scoped JWT, and presents that JWT to Vault's [JWT auth method](https://developer.hashicorp.com/vault/docs/auth/jwt)
+  (`v1/auth/jwt/login`, role `edc.vault.hashicorp.auth.jwt.role`). For named vault partitions the participant context id
+  is used as the exchange `resource`, so the issued Vault token is scoped to that participant. The resulting Vault token
+  is cached until shortly before it expires.
 
 ## Health Check
 

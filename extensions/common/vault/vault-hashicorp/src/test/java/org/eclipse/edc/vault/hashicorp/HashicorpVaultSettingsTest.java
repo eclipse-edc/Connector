@@ -16,10 +16,6 @@ package org.eclipse.edc.vault.hashicorp;
 
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.vault.hashicorp.auth.HashicorpJwtTokenProvider;
-import org.eclipse.edc.vault.hashicorp.auth.HashicorpVaultTokenProviderImpl;
-import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultConfig;
-import org.eclipse.edc.vault.hashicorp.client.HashicorpVaultCredentials;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
@@ -34,10 +30,6 @@ import static org.mockito.Mockito.when;
 class HashicorpVaultSettingsTest {
 
     private final ParticipantContextConfig participantContextConfig = mock();
-
-    @Test
-    void forParticipant() {
-    }
 
     @Test
     void forParticipant_whenParticipantNotFound_shouldReturnFailure() {
@@ -62,33 +54,6 @@ class HashicorpVaultSettingsTest {
 
         assertThat(HashicorpVaultSettings.forParticipant("participant1", participantContextConfig))
                 .isNotNull()
-                .satisfies(settings -> {
-                    assertThat(settings.config()).isNull();
-                    assertThat(settings.credentials()).isNull();
-                });
-    }
-
-    @Test
-    void tokenProvider_whenVaultToken() {
-        var creds = HashicorpVaultCredentials.Builder.newInstance()
-                .token("some-vault-token")
-                .build();
-        var config = HashicorpVaultConfig.Builder.newInstance()
-                .vaultUrl("http://example.com/vault")
-                .build();
-        assertThat(new HashicorpVaultSettings(config, creds).tokenProvider(mock())).isInstanceOf(HashicorpVaultTokenProviderImpl.class);
-    }
-
-    @Test
-    void tokenProvider_whenJwtToken() {
-        var creds = HashicorpVaultCredentials.Builder.newInstance()
-                .clientId("client-id")
-                .tokenUrl("http://example.com/token")
-                .clientSecret("client-secret")
-                .build();
-        var config = HashicorpVaultConfig.Builder.newInstance()
-                .vaultUrl("http://example.com/vault")
-                .build();
-        assertThat(new HashicorpVaultSettings(config, creds).tokenProvider(mock())).isInstanceOf(HashicorpJwtTokenProvider.class);
+                .satisfies(settings -> assertThat(settings.config()).isNull());
     }
 }
