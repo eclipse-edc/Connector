@@ -113,9 +113,9 @@ maven/mavencentral/io.cloudevents/cloudevents-core/4.0.2, , restricted, clearlyd
 maven/mavencentral/io.cloudevents/cloudevents-http-basic/4.0.2, , restricted, clearlydefined
 maven/mavencentral/io.cloudevents/cloudevents-json-jackson/4.0.2, , restricted, clearlydefined
 maven/mavencentral/io.github.classgraph/classgraph/4.8.184, MIT, approved, CQ22530
-maven/mavencentral/io.micrometer/micrometer-commons/1.17.0, , restricted, clearlydefined
-maven/mavencentral/io.micrometer/micrometer-core/1.17.0, , restricted, clearlydefined
-maven/mavencentral/io.micrometer/micrometer-observation/1.17.0, , restricted, clearlydefined
+maven/mavencentral/io.micrometer/micrometer-commons/1.17.0, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #28746
+maven/mavencentral/io.micrometer/micrometer-core/1.17.0, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #28755
+maven/mavencentral/io.micrometer/micrometer-observation/1.17.0, Apache-2.0, approved, #28734
 maven/mavencentral/io.nats/jnats/2.25.3, , restricted, clearlydefined
 maven/mavencentral/io.opentelemetry.instrumentation/opentelemetry-instrumentation-annotations/1.32.0, Apache-2.0, approved, #11684
 maven/mavencentral/io.opentelemetry.proto/opentelemetry-proto/1.10.0-alpha, , restricted, clearlydefined
