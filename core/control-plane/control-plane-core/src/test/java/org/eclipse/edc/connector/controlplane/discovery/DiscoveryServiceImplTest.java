@@ -131,6 +131,30 @@ class DiscoveryServiceImplTest {
     }
 
     @Test
+    void shouldReturnFilteredMatchesWhenProfileIsPresent() {
+        service.registerResolver(resolver(true, ServiceResult.success(COUNTER_PARTY_BASE)));
+        when(participantProfileService.resolveAll(PARTICIPANT)).thenReturn(List.of(
+                profile("dsp-2025-1-ext", new ProtocolVersion("2025-1", "/local-2025-ext", "http"))
+        ));
+        stubHttpVersions("""
+                {"protocolVersions":[
+                    {"version":"2025-1", "profile": "dsp-2025-1", "path":"/remote-2025","binding":"http"},
+                    {"version":"2025-1", "profile": "dsp-2025-1-ext", "path":"/remote-2025-ext","binding":"http"}
+                ]}""");
+
+        var result = service.discover(PARTICIPANT, new DiscoveryRequest(null, COUNTER_PARTY_BASE));
+
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent()).hasSize(1)
+                .allSatisfy(m -> {
+                    assertThat(m.profile()).isEqualTo("dsp-2025-1-ext");
+                    assertThat(m.version()).isEqualTo("2025-1");
+                    assertThat(m.counterParty().path()).isEqualTo("/remote-2025-ext");
+                    assertThat(m.binding()).isEqualTo("http");
+                });
+    }
+
+    @Test
     void shouldFilterByBothVersionAndBinding() {
         service.registerResolver(resolver(true, ServiceResult.success(COUNTER_PARTY_BASE)));
         when(participantProfileService.resolveAll(PARTICIPANT)).thenReturn(List.of(
@@ -151,7 +175,7 @@ class DiscoveryServiceImplTest {
             assertThat(m.counterParty().path()).isEqualTo("/remote-http");
         });
     }
-    
+
     @Test
     void shouldFailWhenResolverReturnsFailure() {
         service.registerResolver(resolver(true, ServiceResult.notFound("no DataService endpoint")));
