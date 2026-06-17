@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.transfer.spi.flow;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.types.domain.transfer.TransferType;
 
+@Deprecated(since = "0.18.0")
 public interface TransferTypeParser {
 
     /**

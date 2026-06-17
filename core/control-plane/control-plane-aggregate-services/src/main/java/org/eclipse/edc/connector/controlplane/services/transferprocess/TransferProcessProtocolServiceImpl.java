@@ -46,7 +46,6 @@ import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -65,7 +64,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     private final TransactionContext transactionContext;
     private final ContractNegotiationStore negotiationStore;
     private final ContractValidationService contractValidationService;
-    private final DataAddressValidatorRegistry dataAddressValidator;
     private final TransferProcessObservable observable;
     private final ProtocolTokenValidator protocolTokenValidator;
     private final Monitor monitor;
@@ -78,7 +76,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
                                               ContractNegotiationStore negotiationStore,
                                               ContractValidationService contractValidationService,
                                               ProtocolTokenValidator protocolTokenValidator,
-                                              DataAddressValidatorRegistry dataAddressValidator,
                                               TransferProcessObservable observable,
                                               Monitor monitor,
                                               DataFlowController dataFlowController, DataAddressStore dataAddressStore,
@@ -88,7 +85,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
         this.negotiationStore = negotiationStore;
         this.contractValidationService = contractValidationService;
         this.protocolTokenValidator = protocolTokenValidator;
-        this.dataAddressValidator = dataAddressValidator;
         this.observable = observable;
         this.monitor = monitor;
         this.dataFlowController = dataFlowController;
@@ -158,14 +154,6 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
     @NotNull
     private ServiceResult<TransferProcess> requestedAction(ParticipantContext participantContext, TransferRequestMessage message, ClaimTokenContext context) {
-        var destination = message.getDataAddress();
-        if (destination != null) {
-            var validDestination = dataAddressValidator.validateDestination(destination);
-            if (validDestination.failed()) {
-                return ServiceResult.badRequest(validDestination.getFailureMessages());
-            }
-        }
-
         var transferType = message.getTransferType();
         var supportedTransferTypes = dataFlowController.transferTypesFor(context.agreement().getAssetId());
         if (!supportedTransferTypes.contains(transferType)) {

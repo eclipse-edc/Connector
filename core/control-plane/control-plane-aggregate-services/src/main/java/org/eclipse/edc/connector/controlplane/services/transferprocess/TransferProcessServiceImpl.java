@@ -18,7 +18,6 @@ package org.eclipse.edc.connector.controlplane.services.transferprocess;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
@@ -35,9 +34,7 @@ import org.eclipse.edc.spi.command.CommandHandlerRegistry;
 import org.eclipse.edc.spi.command.EntityCommand;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
-import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,20 +47,16 @@ public class TransferProcessServiceImpl implements TransferProcessService {
     private final TransferProcessStore transferProcessStore;
     private final TransactionContext transactionContext;
     private final QueryValidator queryValidator;
-    private final DataAddressValidatorRegistry dataAddressValidator;
     private final CommandHandlerRegistry commandHandlerRegistry;
-    private final TransferTypeParser transferTypeParser;
     private final ContractNegotiationStore contractNegotiationStore;
 
     public TransferProcessServiceImpl(TransferProcessStore transferProcessStore,
-                                      TransactionContext transactionContext, DataAddressValidatorRegistry dataAddressValidator,
-                                      CommandHandlerRegistry commandHandlerRegistry, TransferTypeParser transferTypeParser,
+                                      TransactionContext transactionContext,
+                                      CommandHandlerRegistry commandHandlerRegistry,
                                       ContractNegotiationStore contractNegotiationStore, QueryValidator queryValidator) {
         this.transferProcessStore = transferProcessStore;
         this.transactionContext = transactionContext;
-        this.dataAddressValidator = dataAddressValidator;
         this.commandHandlerRegistry = commandHandlerRegistry;
-        this.transferTypeParser = transferTypeParser;
         this.contractNegotiationStore = contractNegotiationStore;
         this.queryValidator = queryValidator;
     }
@@ -112,23 +105,9 @@ public class TransferProcessServiceImpl implements TransferProcessService {
 
     @Override
     public @NotNull ServiceResult<TransferProcess> initiateTransfer(ParticipantContext participantContext, TransferRequest request) {
-        var transferTypeParse = transferTypeParser.parse(request.getTransferType());
-        if (transferTypeParse.failed()) {
-            return ServiceResult.badRequest("Property transferType not valid: " + transferTypeParse.getFailureDetail());
-        }
-
         var agreement = contractNegotiationStore.findContractAgreement(request.getContractId());
         if (agreement == null) {
             return ServiceResult.badRequest("Contract agreement with id %s not found".formatted(request.getContractId()));
-        }
-
-        var flowType = transferTypeParse.getContent().flowType();
-
-        if (flowType == FlowType.PUSH && request.getDataDestination() != null) {
-            var validDestination = dataAddressValidator.validateDestination(request.getDataDestination());
-            if (validDestination.failed()) {
-                return ServiceResult.badRequest(validDestination.getFailureMessages());
-            }
         }
 
         return transactionContext.execute(() -> commandHandlerRegistry

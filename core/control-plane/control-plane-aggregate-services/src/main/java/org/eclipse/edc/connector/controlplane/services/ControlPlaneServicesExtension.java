@@ -63,7 +63,6 @@ import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferP
 import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessProviderFactory;
 import org.eclipse.edc.connector.controlplane.services.transferprocess.TransferProcessServiceImpl;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
@@ -89,7 +88,6 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
 
 import java.time.Clock;
 
@@ -146,8 +144,6 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Inject
     private CommandHandlerRegistry commandHandlerRegistry;
     @Inject
-    private DataAddressValidatorRegistry dataAddressValidator;
-    @Inject
     private IdentityService identityService;
     @Inject
     private PolicyEngine policyEngine;
@@ -155,8 +151,6 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     private ProtocolTokenValidator protocolTokenValidator;
     @Inject
     private DataspaceProfileContextRegistry dataspaceProfileContextRegistry;
-    @Inject
-    private TransferTypeParser transferTypeParser;
     @Inject
     private ParticipantIdentityResolver identityResolver;
     @Inject
@@ -238,7 +232,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     @Provider
     public TransferProcessService transferProcessService() {
         return new TransferProcessServiceImpl(transferProcessStore, transactionContext,
-                dataAddressValidator, commandHandlerRegistry, transferTypeParser, contractNegotiationStore,
+                commandHandlerRegistry, contractNegotiationStore,
                 QueryValidators.transferProcess());
     }
 
@@ -246,7 +240,7 @@ public class ControlPlaneServicesExtension implements ServiceExtension {
     public TransferProcessProtocolService transferProcessProtocolService() {
         var factory = new TransferProcessProviderFactory(clock, telemetry, assetIndex);
         return new TransferProcessProtocolServiceImpl(transferProcessStore, transactionContext, contractNegotiationStore,
-                contractValidationService, protocolTokenValidator(), dataAddressValidator, transferProcessObservable,
+                contractValidationService, protocolTokenValidator(), transferProcessObservable,
                 monitor, dataFlowController, dataAddressStore, factory);
     }
 

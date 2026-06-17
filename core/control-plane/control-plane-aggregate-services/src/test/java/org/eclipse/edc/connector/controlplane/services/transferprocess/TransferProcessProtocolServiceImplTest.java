@@ -48,8 +48,6 @@ import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
-import org.eclipse.edc.validator.spi.ValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -86,7 +84,6 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
-import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -107,7 +104,6 @@ class TransferProcessProtocolServiceImplTest {
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
     private final ContractNegotiationStore negotiationStore = mock();
     private final ContractValidationService validationService = mock();
-    private final DataAddressValidatorRegistry dataAddressValidator = mock();
     private final TransferProcessListener listener = mock();
     private final ProtocolTokenValidator protocolTokenValidator = mock();
     private final DataAddressStore dataAddressStore = mock();
@@ -124,7 +120,7 @@ class TransferProcessProtocolServiceImplTest {
         var observable = new TransferProcessObservableImpl();
         observable.registerListener(listener);
         service = new TransferProcessProtocolServiceImpl(store, transactionContext, negotiationStore, validationService,
-                protocolTokenValidator, dataAddressValidator, observable, mock(), dataFlowController,
+                protocolTokenValidator, observable, mock(), dataFlowController,
                 dataAddressStore, transferProcessProviderFactory);
         when(store.save(any())).thenReturn(StoreResult.success());
     }
@@ -340,7 +336,6 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
-            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
             when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.success());
             var transferProcess = transferProcess(INITIAL, "transferProcessId");
@@ -374,7 +369,6 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.failure("invalid credentials"));
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
-            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             var transferProcess = transferProcess(INITIAL, "transferProcessId");
             when(transferProcessProviderFactory.create(any(), any(), any(), any())).thenReturn(ServiceResult.success(transferProcess));
 
@@ -404,7 +398,6 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
-            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
             when(dataAddressStore.store(any(), any())).thenReturn(StoreResult.generalError("error"));
             when(transferProcessProviderFactory.create(any(), any(), any(), any())).thenReturn(ServiceResult.success(transferProcess(INITIAL, "transferProcessId")));
@@ -433,7 +426,6 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
-            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
             when(transferProcessProviderFactory.create(any(), any(), any(), any())).thenReturn(ServiceResult.badRequest("cannot create transfer process"));
 
@@ -464,7 +456,6 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(null));
-            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             when(store.findForCorrelationId(any())).thenReturn(transferProcess(REQUESTED, "transferProcessId"));
             when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
 
@@ -492,7 +483,6 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.failure("error"));
-            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("transferType"));
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
@@ -517,7 +507,6 @@ class TransferProcessProtocolServiceImplTest {
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement()));
             when(protocolTokenValidator.verify(eq(participantContext), eq(tokenRepresentation), any(), any(), eq(message))).thenReturn(ServiceResult.success(participantAgent));
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
-            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
 
@@ -544,7 +533,6 @@ class TransferProcessProtocolServiceImplTest {
             when(validationService.validateRequest(any(), isA(ContractAgreement.class))).thenReturn(Result.success());
             when(negotiationStore.queryAgreements(any())).thenReturn(Stream.of(contractAgreement));
             when(validationService.validateAgreement(any(ParticipantAgent.class), any())).thenReturn(Result.success(contractAgreement));
-            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             when(dataFlowController.transferTypesFor(anyString())).thenReturn(Set.of("supported-transfer-type"));
 
             var result = service.notifyRequested(participantContext, message, tokenRepresentation);
