@@ -25,6 +25,6 @@ dependencies {
 
     testImplementation(project(":core:common:junit-base"));
     testImplementation(project(":core:common:lib:json-lib"))
-    testImplementation(project(":core:common:lib:json-ld-lib"))
+    testImplementation(testFixtures(project(":core:common:lib:json-ld-lib")))
     testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
 }

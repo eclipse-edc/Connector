@@ -19,6 +19,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
@@ -40,7 +41,6 @@ import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneM
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata.EDC_DATAPLANE_METADATA_PROFILES;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata.EDC_DATAPLANE_METADATA_PROPERTIES;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata.EDC_DATAPLANE_METADATA_SIMPLE_TYPE;
-import static org.eclipse.edc.connector.controlplane.transform.TestInput.getExpanded;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
@@ -80,7 +80,7 @@ class JsonObjectToDataplaneMetadataTransformerTest {
                 )
                 .build();
 
-        var result = typeTransformerRegistry.transform(getExpanded(jsonObj), DataplaneMetadata.class);
+        var result = typeTransformerRegistry.transform(TestJsonLd.expand(jsonObj), DataplaneMetadata.class);
 
         assertThat(result).isSucceeded().satisfies(metadata -> {
             assertThat(metadata.getLabels()).containsExactly("label", "label2");
@@ -99,7 +99,7 @@ class JsonObjectToDataplaneMetadataTransformerTest {
                 .add(EDC_DATAPLANE_METADATA_PROPERTIES, jsonFactory.createArrayBuilder())
                 .build();
 
-        var result = typeTransformerRegistry.transform(getExpanded(jsonObj), DataplaneMetadata.class);
+        var result = typeTransformerRegistry.transform(TestJsonLd.expand(jsonObj), DataplaneMetadata.class);
 
         assertThat(result).isSucceeded().satisfies(metadata -> {
             assertThat(metadata.getProperties()).isEmpty();
@@ -115,7 +115,7 @@ class JsonObjectToDataplaneMetadataTransformerTest {
                 .add(EDC_DATAPLANE_METADATA_LABELS, jsonFactory.createArrayBuilder().add(1))
                 .build();
 
-        var result = typeTransformerRegistry.transform(getExpanded(jsonObj), DataplaneMetadata.class);
+        var result = typeTransformerRegistry.transform(TestJsonLd.expand(jsonObj), DataplaneMetadata.class);
 
         assertThat(result).isFailed();
     }
@@ -129,7 +129,7 @@ class JsonObjectToDataplaneMetadataTransformerTest {
                 .add("profiles", jsonFactory.createArrayBuilder().add("profile1").add("profile2"))
                 .build();
 
-        var result = typeTransformerRegistry.transform(getExpanded(jsonObj), DataplaneMetadata.class);
+        var result = typeTransformerRegistry.transform(TestJsonLd.expand(jsonObj), DataplaneMetadata.class);
 
         assertThat(result).isSucceeded().satisfies(metadata -> {
             assertThat(metadata.getProfiles()).containsExactly("profile1", "profile2");
@@ -145,7 +145,7 @@ class JsonObjectToDataplaneMetadataTransformerTest {
                 .add(EDC_DATAPLANE_METADATA_PROFILES, jsonFactory.createArrayBuilder().add(1))
                 .build();
 
-        var result = typeTransformerRegistry.transform(getExpanded(jsonObj), DataplaneMetadata.class);
+        var result = typeTransformerRegistry.transform(TestJsonLd.expand(jsonObj), DataplaneMetadata.class);
 
         assertThat(result).isFailed();
     }

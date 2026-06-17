@@ -18,6 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
@@ -25,7 +26,6 @@ import java.util.Map;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERMINATION_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CODE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
@@ -59,7 +59,7 @@ class JsonObjectToContractNegotiationTerminationMessageTransformerTest {
                 .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_REASON_TERM), reasonArray)
                 .build();
 
-        var result = transformer.transform(getExpanded(message), context);
+        var result = transformer.transform(TestJsonLd.expand(message), context);
 
         assertThat(result).isNotNull();
 
@@ -82,7 +82,7 @@ class JsonObjectToContractNegotiationTerminationMessageTransformerTest {
                 .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM), "providerPid")
                 .build();
 
-        var result = transformer.transform(getExpanded(message), context);
+        var result = transformer.transform(TestJsonLd.expand(message), context);
 
         assertThat(result).isNotNull();
 

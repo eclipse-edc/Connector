@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_FILTER_EXPRESSION;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_LIMIT;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_OFFSET;
@@ -30,7 +31,6 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_SORT_FIELD;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_SORT_ORDER;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
 import static org.eclipse.edc.spi.query.SortOrder.DESC;
-import static org.eclipse.edc.transform.transformer.TestInput.getExpanded;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -65,7 +65,7 @@ class JsonObjectToQuerySpecTransformerTest {
                 .add(EDC_QUERY_SPEC_SORT_FIELD, "fieldName")
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(expand(json), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getOffset()).isEqualTo(10);

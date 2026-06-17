@@ -18,6 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +27,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.api.signaling.transform.TestFunctions.getExpanded;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
@@ -59,7 +59,7 @@ class JsonObjectToDataFlowResponseMessageTransformerTest {
                 .add("dataAddress", jsonFactory.createObjectBuilder().build())
                 .build();
 
-        var message = transformer.transform(getExpanded(jsonObj), context);
+        var message = transformer.transform(TestJsonLd.expand(jsonObj), context);
 
         assertThat(message).isNotNull();
         assertThat(message.getDataAddress()).isNotNull();
@@ -73,7 +73,7 @@ class JsonObjectToDataFlowResponseMessageTransformerTest {
                 .add(TYPE, DATA_FLOW_RESPONSE_MESSAGE_SIMPLE_TYPE)
                 .build();
 
-        var message = transformer.transform(getExpanded(jsonObj), context);
+        var message = transformer.transform(TestJsonLd.expand(jsonObj), context);
 
         assertThat(message).isNotNull();
         assertThat(message.getDataAddress()).isNull();

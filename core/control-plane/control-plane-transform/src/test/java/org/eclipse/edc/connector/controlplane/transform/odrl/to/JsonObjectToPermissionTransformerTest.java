@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.controlplane.transform.odrl.to;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.transform.TestInput;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;
@@ -68,7 +68,7 @@ class JsonObjectToPermissionTransformerTest {
     @MethodSource("jsonSource")
     void transform_attributesAsObjects_returnPermission(JsonObject permission) {
 
-        var result = transformer.transform(TestInput.getExpanded(permission), context);
+        var result = transformer.transform(TestJsonLd.expand(permission), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getAction()).isEqualTo(action);

@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transform.to;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to.JsonObjectToTransferRequestMessageTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
@@ -31,7 +32,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_CONTRACT_AGREEMENT_ID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_REQUEST_MESSAGE_TERM;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transform.to.TestInput.getExpanded;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -63,7 +63,7 @@ class JsonObjectToTransferRequestMessageTransformerTest {
                 .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM), "processId")
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(TestJsonLd.expand(json), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getContractId()).isEqualTo(contractId);
@@ -88,7 +88,7 @@ class JsonObjectToTransferRequestMessageTransformerTest {
                 .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM), "processId")
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(TestJsonLd.expand(json), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getContractId()).isEqualTo(contractId);
@@ -110,7 +110,7 @@ class JsonObjectToTransferRequestMessageTransformerTest {
                 .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM), callbackAddress)
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(TestJsonLd.expand(json), context);
 
         assertThat(result).isNull();
         verify(context).reportProblem(anyString());

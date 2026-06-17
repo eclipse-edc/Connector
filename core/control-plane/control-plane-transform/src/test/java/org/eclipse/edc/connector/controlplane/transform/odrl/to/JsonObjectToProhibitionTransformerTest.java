@@ -16,6 +16,7 @@ package org.eclipse.edc.connector.controlplane.transform.odrl.to;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;
@@ -25,7 +26,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.controlplane.transform.TestInput.getExpanded;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_CONSTRAINT_ATTRIBUTE;
@@ -67,7 +67,7 @@ class JsonObjectToProhibitionTransformerTest {
                 .add(ODRL_TARGET_ATTRIBUTE, "target")
                 .build();
 
-        var result = transformer.transform(getExpanded(prohibition), context);
+        var result = transformer.transform(TestJsonLd.expand(prohibition), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getAction()).isEqualTo(action);

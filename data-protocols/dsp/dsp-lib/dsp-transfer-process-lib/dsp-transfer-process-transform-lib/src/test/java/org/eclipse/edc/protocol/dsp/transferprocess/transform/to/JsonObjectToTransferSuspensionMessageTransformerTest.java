@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transform.to;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.Json;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to.JsonObjectToTransferSuspensionMessageTransformer;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -39,7 +40,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_REASON_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE_TERM;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transform.to.TestInput.getExpanded;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -73,7 +73,7 @@ class JsonObjectToTransferSuspensionMessageTransformerTest {
                         .add("reason"))
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(TestJsonLd.expand(json), context);
 
         assertThat(result).isNotNull();
 
@@ -98,7 +98,7 @@ class JsonObjectToTransferSuspensionMessageTransformerTest {
                 .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_REASON_TERM), Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reasonArray).build())
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(TestJsonLd.expand(json), context);
 
         assertThat(result).isNull();
         verify(context).reportProblem(anyString());

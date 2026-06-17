@@ -24,5 +24,6 @@ dependencies {
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:json-ld"))
+    testImplementation(testFixtures(project(":core:common:lib:json-ld-lib")))
 
 }

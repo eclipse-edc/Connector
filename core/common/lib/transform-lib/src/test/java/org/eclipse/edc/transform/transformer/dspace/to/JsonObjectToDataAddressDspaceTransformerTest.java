@@ -27,9 +27,9 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_RESPONSE_CHANNEL;
-import static org.eclipse.edc.transform.transformer.TestInput.getExpanded;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.DSPACE_DATAADDRESS_TYPE_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_PROPERTY_TYPE_TERM;
@@ -69,7 +69,7 @@ class JsonObjectToDataAddressDspaceTransformerTest {
                         .property("internal", "prop")
                         .build());
 
-        var dataAddress = transformer.transform(getExpanded(jsonObj), context);
+        var dataAddress = transformer.transform(expand(jsonObj), context);
 
         assertThat(dataAddress).isNotNull();
         assertThat(dataAddress.getType()).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");

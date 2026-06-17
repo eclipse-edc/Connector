@@ -19,8 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.api.management.secret.transform.JsonObjectToSecretTransformer;
 import org.eclipse.edc.connector.api.management.secret.validation.SecretsValidator;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
@@ -36,6 +34,7 @@ import static org.eclipse.edc.connector.api.management.secret.v3.SecretsApiV3.Se
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_VALUE;
@@ -45,7 +44,6 @@ import static org.mockito.Mockito.when;
 class SecretsApiTest {
     private final TypeManager typeManager = mock();
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
-    private final JsonLd jsonLd = new TitaniumJsonLd(mock());
     private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
 
     @BeforeEach
@@ -62,27 +60,23 @@ class SecretsApiTest {
         var jsonObject = objectMapper.readValue(SECRET_INPUT_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();
 
-        var expanded = jsonLd.expand(jsonObject);
-        assertThat(expanded).isSucceeded()
-                .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
-                .extracting(e -> transformer.transform(e, Secret.class).getContent())
-                .isNotNull()
-                .satisfies(transformed -> {
-                    assertThat(transformed.getId()).isNotBlank();
-                    assertThat(transformed.getValue()).isNotBlank();
+        var expanded = expand(jsonObject);
+        assertThat(validator.validate(expanded)).isSucceeded();
+        var transformed = transformer.transform(expanded, Secret.class).getContent();
+        assertThat(transformed).isNotNull()
+                .satisfies(t -> {
+                    assertThat(t.getId()).isNotBlank();
+                    assertThat(t.getValue()).isNotBlank();
                 });
     }
 
     @Test
     void secretOutputExample() throws JsonProcessingException {
         var jsonObject = objectMapper.readValue(SECRET_OUTPUT_EXAMPLE, JsonObject.class);
-        var expanded = jsonLd.expand(jsonObject);
+        var expanded = expand(jsonObject);
 
-        assertThat(expanded).isSucceeded().satisfies(content -> {
-            assertThat(content.getString(ID)).isNotBlank();
-
-            assertThat(content.getJsonArray(TYPE).getString(0)).isEqualTo(EDC_SECRET_TYPE);
-            assertThat(content.getJsonArray(EDC_SECRET_VALUE).getJsonObject(0).getString(VALUE)).isNotBlank();
-        });
+        assertThat(expanded.getString(ID)).isNotBlank();
+        assertThat(expanded.getJsonArray(TYPE).getString(0)).isEqualTo(EDC_SECRET_TYPE);
+        assertThat(expanded.getJsonArray(EDC_SECRET_VALUE).getJsonObject(0).getString(VALUE)).isNotBlank();
     }
 }

@@ -30,6 +30,7 @@ dependencies {
 
     implementation(libs.jakarta.rsApi)
 
+    testImplementation(testFixtures(project(":core:common:lib:json-ld-lib")))
     testImplementation(project(":core:common:lib:transform-lib"))
     testImplementation(project(":core:control-plane:control-plane-transform"))
     testImplementation(project(":core:control-plane:control-plane-core"))

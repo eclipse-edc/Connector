@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transform.to;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to.JsonObjectToTransferStartMessageTransformer;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
@@ -29,7 +30,6 @@ import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPA
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_PROPERTY_DATA_ADDRESS_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_START_MESSAGE_TERM;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transform.to.TestInput.getExpanded;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -55,7 +55,7 @@ class JsonObjectToTransferStartMessageTransformerTest {
                 .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM), "providerPid")
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(TestJsonLd.expand(json), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getConsumerPid()).isEqualTo("consumerPid");
@@ -71,7 +71,7 @@ class JsonObjectToTransferStartMessageTransformerTest {
                 .add(TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_TRANSFER_START_MESSAGE_TERM))
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(TestJsonLd.expand(json), context);
 
         assertThat(result).isNull();
         verify(context).reportProblem(anyString());
@@ -91,7 +91,7 @@ class JsonObjectToTransferStartMessageTransformerTest {
 
         when(context.transform(isA(JsonObject.class), eq(DataAddress.class))).thenReturn(dataAddress);
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(TestJsonLd.expand(json), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getDataAddress()).isSameAs(dataAddress);
@@ -108,7 +108,7 @@ class JsonObjectToTransferStartMessageTransformerTest {
                 .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_DATA_ADDRESS_TERM), Json.createObjectBuilder().build())
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(TestJsonLd.expand(json), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getDataAddress()).isNull();

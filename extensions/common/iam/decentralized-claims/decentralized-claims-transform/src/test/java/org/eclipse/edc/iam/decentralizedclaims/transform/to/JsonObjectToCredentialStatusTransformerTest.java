@@ -19,8 +19,6 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.iam.decentralizedclaims.transform.TestObject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialStatus;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +28,7 @@ import java.util.Map;
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.eclipse.edc.iam.decentralizedclaims.transform.TestData.TEST_NAMESPACE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -38,7 +37,6 @@ import static org.mockito.Mockito.when;
 class JsonObjectToCredentialStatusTransformerTest {
 
     private final TransformerContext context = mock();
-    private final JsonLd jsonLdService = new TitaniumJsonLd(mock());
     private JsonObjectToCredentialStatusTransformer transformer;
 
     @BeforeEach
@@ -52,7 +50,7 @@ class JsonObjectToCredentialStatusTransformerTest {
                 .add(CredentialStatus.CREDENTIAL_STATUS_ID_PROPERTY, "test-id")
                 .add(CredentialStatus.CREDENTIAL_STATUS_TYPE_PROPERTY, "SomeTestCredential")
                 .build();
-        var status = transformer.transform(jsonLdService.expand(jsonObj).getContent(), context);
+        var status = transformer.transform(expand(jsonObj), context);
         assertThat(status).isNotNull();
         assertThat(status.id()).isEqualTo("test-id");
         assertThat(status.type()).isEqualTo("SomeTestCredential");
@@ -70,7 +68,7 @@ class JsonObjectToCredentialStatusTransformerTest {
                 .build();
         when(context.transform(isA(JsonValue.class), eq(Object.class))).thenAnswer(a -> ((JsonObject) a.getArgument(0)).getString(VALUE));
 
-        var status = transformer.transform(jsonLdService.expand(jsonObj).getContent(), context);
+        var status = transformer.transform(expand(jsonObj), context);
         assertThat(status).isNotNull();
         assertThat(status.id()).isEqualTo("test-id");
         assertThat(status.type()).isEqualTo("SomeTestCredential");
@@ -91,7 +89,7 @@ class JsonObjectToCredentialStatusTransformerTest {
                 .build();
         when(context.transform(isA(JsonObject.class), eq(Object.class))).thenReturn(new TestObject("bar", Map.of("goo", 42)));
 
-        var status = transformer.transform(jsonLdService.expand(jsonObj).getContent(), context);
+        var status = transformer.transform(expand(jsonObj), context);
         assertThat(status).isNotNull();
         assertThat(status.id()).isEqualTo("test-id");
         assertThat(status.type()).isEqualTo("SomeTestCredential");

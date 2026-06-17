@@ -18,7 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
-import org.eclipse.edc.connector.controlplane.transform.TestInput;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -93,7 +93,7 @@ class JsonObjectToAssetTransformerTest {
                 )
                 .build();
 
-        var result = typeTransformerRegistry.transform(TestInput.getExpanded(jsonObj), Asset.class);
+        var result = typeTransformerRegistry.transform(TestJsonLd.expand(jsonObj), Asset.class);
 
         assertThat(result).isSucceeded().satisfies(asset -> {
             assertThat(asset.getProperties())
@@ -118,7 +118,7 @@ class JsonObjectToAssetTransformerTest {
                 .add(EDC_ASSET_PRIVATE_PROPERTIES, jsonFactory.createObjectBuilder().add("test-prop", "test-val").build())
                 .build();
 
-        var asset = typeTransformerRegistry.transform(TestInput.getExpanded(jsonObj), Asset.class);
+        var asset = typeTransformerRegistry.transform(TestJsonLd.expand(jsonObj), Asset.class);
 
         assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
         assertThat(asset.getContent().getProperties())
@@ -142,7 +142,7 @@ class JsonObjectToAssetTransformerTest {
                         .build())
                 .build();
 
-        var asset = typeTransformerRegistry.transform(TestInput.getExpanded(jsonObj), Asset.class);
+        var asset = typeTransformerRegistry.transform(TestJsonLd.expand(jsonObj), Asset.class);
 
         assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
         assertThat(asset.getContent().getProperties())
@@ -163,7 +163,7 @@ class JsonObjectToAssetTransformerTest {
                 .add("edc:properties", createPropertiesBuilder().build())
                 .build();
 
-        var asset = typeTransformerRegistry.transform(TestInput.getExpanded(jsonObj), Asset.class);
+        var asset = typeTransformerRegistry.transform(TestJsonLd.expand(jsonObj), Asset.class);
 
         assertThat(asset.getContent().getProperties()).hasSize(2)
                 .containsEntry(PROPERTY_ID, TEST_ASSET_ID)
@@ -181,7 +181,7 @@ class JsonObjectToAssetTransformerTest {
                 .add("properties", createPropertiesBuilder().add("payload", createPayloadBuilder().build()).build())
                 .build();
 
-        var asset = typeTransformerRegistry.transform(TestInput.getExpanded(jsonObj), Asset.class);
+        var asset = typeTransformerRegistry.transform(TestJsonLd.expand(jsonObj), Asset.class);
 
         assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
         assertThat(asset.getContent().getProperties())
@@ -199,7 +199,7 @@ class JsonObjectToAssetTransformerTest {
                 .add("thisShouldBeIgnored", "any value")
                 .build();
 
-        var result = typeTransformerRegistry.transform(TestInput.getExpanded(jsonObj), Asset.class);
+        var result = typeTransformerRegistry.transform(TestJsonLd.expand(jsonObj), Asset.class);
 
         assertThat(result).isSucceeded().extracting(Asset::getProperties)
                 .asInstanceOf(map(String.class, Object.class)).doesNotContainKey(EDC_NAMESPACE + "thisShouldBeIgnored");
@@ -214,7 +214,7 @@ class JsonObjectToAssetTransformerTest {
                 .add(EDC_ASSET_PROPERTIES, createPropertiesBuilder().build())
                 .build();
 
-        var asset = typeTransformerRegistry.transform(TestInput.getExpanded(jsonObj), Asset.class);
+        var asset = typeTransformerRegistry.transform(TestJsonLd.expand(jsonObj), Asset.class);
 
         assertThat(asset).withFailMessage(asset::getFailureDetail).isSucceeded();
         assertThat(asset).isSucceeded()

@@ -14,6 +14,7 @@
 
 plugins {
     `java-library`
+    `java-test-fixtures`
 }
 
 dependencies {
@@ -29,4 +30,6 @@ dependencies {
     testImplementation(project(":core:common:junit-base"))
 
     testImplementation(libs.wiremock)
+
+    testFixturesApi(project(":spi:common:json-ld-spi"))
 }

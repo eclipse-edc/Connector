@@ -20,10 +20,7 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +42,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_AT
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_TARGET_ATTRIBUTE;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.IS_TRANSACTIONAL;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.URI;
@@ -55,7 +53,6 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToContractRequestTransformerTest {
 
-    private final JsonLd jsonLd = new TitaniumJsonLd(mock(Monitor.class));
     private final TransformerContext context = mock();
     private JsonObjectToContractRequestTransformer transformer;
 
@@ -81,7 +78,7 @@ class JsonObjectToContractRequestTransformerTest {
         var offer = createContractOffer("test-provider-id");
         when(context.transform(any(JsonValue.class), eq(ContractOffer.class))).thenReturn(offer);
 
-        var request = transformer.transform(jsonLd.expand(jsonObject).getContent(), context);
+        var request = transformer.transform(expand(jsonObject), context);
 
         assertThat(request).isNotNull();
         assertThat(request.getProviderId()).isEqualTo("test-provider-id");
@@ -108,7 +105,7 @@ class JsonObjectToContractRequestTransformerTest {
         var offer = createContractOffer("test-provider-id");
         when(context.transform(any(JsonValue.class), eq(ContractOffer.class))).thenReturn(offer);
 
-        var request = transformer.transform(jsonLd.expand(jsonObject).getContent(), context);
+        var request = transformer.transform(expand(jsonObject), context);
 
         assertThat(request).isNotNull();
         assertThat(request.getProviderId()).isEqualTo("test-provider-id");
@@ -129,7 +126,7 @@ class JsonObjectToContractRequestTransformerTest {
                 .build();
         when(context.transform(any(JsonValue.class), eq(ContractOffer.class))).thenReturn(createContractOffer("test-address"));
 
-        var request = transformer.transform(jsonLd.expand(jsonObject).getContent(), context);
+        var request = transformer.transform(expand(jsonObject), context);
 
         assertThat(request).isNotNull();
         assertThat(request.getProviderId()).isEqualTo("test-address");

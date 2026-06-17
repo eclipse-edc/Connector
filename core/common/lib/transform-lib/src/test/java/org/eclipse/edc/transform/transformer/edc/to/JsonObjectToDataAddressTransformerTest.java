@@ -16,10 +16,7 @@ package org.eclipse.edc.transform.transformer.edc.to;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
@@ -39,6 +36,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.mockito.ArgumentMatchers.any;
@@ -58,7 +56,6 @@ class JsonObjectToDataAddressTransformerTest {
     private final TypeManager typeManager = mock();
 
     private final JsonValueToGenericTypeTransformer objectTransformer = new JsonValueToGenericTypeTransformer(typeManager, "test");
-    private final JsonLd jsonLd = new TitaniumJsonLd(mock(Monitor.class));
     private JsonObjectToDataAddressTransformer transformer;
     private TransformerContext transformerContext;
 
@@ -220,7 +217,4 @@ class JsonObjectToDataAddressTransformerTest {
                 .add("age", CUSTOM_PAYLOAD_AGE);
     }
 
-    private JsonObject expand(JsonObject jsonObject) {
-        return jsonLd.expand(jsonObject).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
-    }
 }

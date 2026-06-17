@@ -20,6 +20,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreementMessage;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
@@ -40,7 +41,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNEE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_AGREEMENT;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_AGREEMENT_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_ID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_ID_TERM;
@@ -110,7 +110,7 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
 
-        var result = transformer.transform(getExpanded(message), context);
+        var result = transformer.transform(TestJsonLd.expand(message), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getClass()).isEqualTo(ContractAgreementMessage.class);
@@ -149,7 +149,7 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(null);
 
-        assertThat(transformer.transform(getExpanded(message), context)).isNull();
+        assertThat(transformer.transform(TestJsonLd.expand(message), context)).isNull();
 
         verify(context, times(1)).reportProblem(anyString());
     }
@@ -174,7 +174,7 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
 
-        assertThat(transformer.transform(getExpanded(message), context)).isNull();
+        assertThat(transformer.transform(TestJsonLd.expand(message), context)).isNull();
 
         verify(context, times(1)).reportProblem(contains(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_TIMESTAMP_TERM)));
     }
@@ -198,7 +198,7 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
 
-        assertThat(transformer.transform(getExpanded(message), context)).isNull();
+        assertThat(transformer.transform(TestJsonLd.expand(message), context)).isNull();
 
         verify(context, times(1)).reportProblem(contains(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_TIMESTAMP_TERM)));
     }
@@ -226,7 +226,7 @@ class JsonObjectToContractAgreementMessageTransformerTest {
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
 
-        assertThat(transformer.transform(getExpanded(message), context)).isNotNull();
+        assertThat(transformer.transform(TestJsonLd.expand(message), context)).isNotNull();
 
         var captor = ArgumentCaptor.forClass(JsonObject.class);
 

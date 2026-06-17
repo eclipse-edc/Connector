@@ -36,6 +36,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.catalog.crawler.TestUtil.createCatalog;
 import static org.eclipse.edc.catalog.crawler.TestUtil.registerTransformers;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.mockito.ArgumentMatchers.any;
@@ -47,12 +48,11 @@ class DspCatalogRequestActionTest {
 
     private final ProtocolRemoteMessageDispatcher messageDispatcher = mock();
     private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl();
-    private final TitaniumJsonLd jsonLdService = new TitaniumJsonLd(mock());
     private final ObjectMapper objectMapper = createObjectMapper();
     private final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(
             ParticipantContext.Builder.newInstance().participantContextId("participantContext").identity("identity").build());
     private final DspCatalogRequestAction action = new DspCatalogRequestAction(messageDispatcher, participantContextSupplier,
-            mock(), objectMapper, typeTransformerRegistry, jsonLdService);
+            mock(), objectMapper, typeTransformerRegistry, new TitaniumJsonLd(mock()));
 
     @BeforeEach
     void setup() {
@@ -129,7 +129,7 @@ class DspCatalogRequestActionTest {
     private StatusResult<byte[]> toBytes(Catalog catalog) {
         try {
             var jo = typeTransformerRegistry.transform(catalog, JsonObject.class).getContent();
-            var expanded = jsonLdService.expand(jo).getContent();
+            var expanded = expand(jo);
             var expandedStr = objectMapper.writeValueAsString(expanded);
             return StatusResult.success(expandedStr.getBytes());
         } catch (JsonProcessingException e) {

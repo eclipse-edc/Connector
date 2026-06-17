@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.to;
 
-import com.apicatalog.jsonld.document.JsonDocument;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.from.JsonObjectToAssociateDataspaceProfileContextTransformer;
@@ -24,9 +23,9 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static com.apicatalog.jsonld.JsonLd.expand;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.eclipse.edc.protocol.spi.AssociateDataspaceProfileContext.ASSOCIATE_DATASPACE_PROFILE_CONTEXT_PROFILES_TERM;
 import static org.eclipse.edc.protocol.spi.AssociateDataspaceProfileContext.ASSOCIATE_DATASPACE_PROFILE_CONTEXT_TYPE_TERM;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
@@ -52,7 +51,7 @@ class JsonObjectToAssociateDataspaceProfileContextTransformerTest {
                 .add(ASSOCIATE_DATASPACE_PROFILE_CONTEXT_PROFILES_TERM, Json.createArrayBuilder(List.of("profile1", "profile2")))
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(expand(json), context);
 
         assertThat(result).isNotNull();
         assertThat(result.profiles()).containsExactly("profile1", "profile2");
@@ -67,7 +66,7 @@ class JsonObjectToAssociateDataspaceProfileContextTransformerTest {
                 .add(ASSOCIATE_DATASPACE_PROFILE_CONTEXT_PROFILES_TERM, "only-profile")
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(expand(json), context);
 
         assertThat(result).isNotNull();
         assertThat(result.profiles()).containsExactly("only-profile");
@@ -81,18 +80,11 @@ class JsonObjectToAssociateDataspaceProfileContextTransformerTest {
                 .add(TYPE, ASSOCIATE_DATASPACE_PROFILE_CONTEXT_TYPE_TERM)
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(expand(json), context);
 
         assertThat(result).isNotNull();
         assertThat(result.profiles()).isEmpty();
         verifyNoInteractions(context);
     }
 
-    private JsonObject getExpanded(JsonObject message) {
-        try {
-            return expand(JsonDocument.of(message)).get().asJsonArray().getJsonObject(0);
-        } catch (Exception e) {
-            throw new AssertionError(e);
-        }
-    }
 }

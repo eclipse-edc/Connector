@@ -27,5 +27,5 @@ dependencies {
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:lib:json-ld-lib"))
+    testImplementation(testFixtures(project(":core:common:lib:json-ld-lib")))
 }

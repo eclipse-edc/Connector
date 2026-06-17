@@ -23,7 +23,7 @@ dependencies {
     implementation(libs.swagger.annotations.jakarta)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:lib:json-ld-lib"))
+    testImplementation(testFixtures(project(":core:common:lib:json-ld-lib")))
     testImplementation(project(":core:common:lib:query-lib"))
     testImplementation(project(":core:common:lib:transform-lib"))
 }

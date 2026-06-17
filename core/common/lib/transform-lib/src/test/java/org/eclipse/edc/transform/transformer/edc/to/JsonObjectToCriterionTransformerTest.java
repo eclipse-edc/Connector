@@ -28,11 +28,11 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_LEFT;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERAND_RIGHT;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_OPERATOR;
 import static org.eclipse.edc.spi.query.Criterion.CRITERION_TYPE;
-import static org.eclipse.edc.transform.transformer.TestInput.getExpanded;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -63,7 +63,7 @@ class JsonObjectToCriterionTransformerTest {
                 .add(CRITERION_OPERAND_RIGHT, "bar")
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(expand(json), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getOperandLeft()).isEqualTo("foo");
@@ -83,7 +83,7 @@ class JsonObjectToCriterionTransformerTest {
                 .add(CRITERION_OPERAND_RIGHT, Json.createArrayBuilder().add("bar").add("baz"))
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(expand(json), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getOperandLeft()).isEqualTo("foo");
@@ -104,7 +104,7 @@ class JsonObjectToCriterionTransformerTest {
                 .add(CRITERION_OPERAND_RIGHT, 42)
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(expand(json), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getOperandRight()).satisfies(obj -> {

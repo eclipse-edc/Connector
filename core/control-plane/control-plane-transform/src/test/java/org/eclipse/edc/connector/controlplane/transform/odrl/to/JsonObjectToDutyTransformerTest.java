@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.transform.odrl.to;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.transform.TestInput;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;
@@ -75,7 +75,7 @@ class JsonObjectToDutyTransformerTest {
                 .add(ODRL_TARGET_ATTRIBUTE, TARGET)
                 .build();
 
-        var result = transformer.transform(TestInput.getExpanded(jsonDuty), context);
+        var result = transformer.transform(TestJsonLd.expand(jsonDuty), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getAction()).isEqualTo(action);

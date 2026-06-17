@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.api.signaling.transform.to;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObjectBuilder;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.api.signaling.transform.TestFunctions.getExpanded;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
@@ -54,7 +54,7 @@ class JsonObjectToDataFlowTerminateMessageTransformerTest {
                 .add("reason", "reason")
                 .build();
 
-        var message = transformer.transform(getExpanded(jsonObj), context);
+        var message = transformer.transform(TestJsonLd.expand(jsonObj), context);
 
         assertThat(message).isNotNull();
 
@@ -69,7 +69,7 @@ class JsonObjectToDataFlowTerminateMessageTransformerTest {
                 .add(TYPE, DATA_FLOW_TERMINATE_MESSAGE_TYPE)
                 .build();
 
-        var message = transformer.transform(getExpanded(jsonObj), context);
+        var message = transformer.transform(TestJsonLd.expand(jsonObj), context);
 
         assertThat(message).isNotNull();
 

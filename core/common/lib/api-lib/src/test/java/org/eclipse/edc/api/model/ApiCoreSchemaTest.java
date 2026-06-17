@@ -18,8 +18,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.validation.DataAddressValidator;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.query.CriterionOperatorRegistryImpl;
 import org.eclipse.edc.spi.query.Criterion;
@@ -45,6 +43,7 @@ import static org.eclipse.edc.api.model.ApiCoreSchema.DataAddressSchema.DATA_ADD
 import static org.eclipse.edc.api.model.ApiCoreSchema.IdResponseSchema.ID_RESPONSE_EXAMPLE;
 import static org.eclipse.edc.api.model.ApiCoreSchema.QuerySpecSchema.QUERY_SPEC_EXAMPLE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -53,7 +52,6 @@ class ApiCoreSchemaTest {
 
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final TypeManager typeManager = mock();
-    private final JsonLd jsonLd = new TitaniumJsonLd(mock());
     private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
     private final CriterionOperatorRegistry criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
 
@@ -73,15 +71,14 @@ class ApiCoreSchemaTest {
         var jsonObject = objectMapper.readValue(CRITERION_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();
 
-        var expanded = jsonLd.expand(jsonObject);
-        assertThat(expanded).isSucceeded()
-                .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
-                .extracting(e -> transformer.transform(e, Criterion.class).getContent())
-                .isNotNull()
-                .satisfies(transformed -> {
-                    assertThat(transformed.getOperandLeft()).isNotNull();
-                    assertThat(transformed.getOperator()).isNotBlank();
-                    assertThat(transformed.getOperandRight()).isNotNull();
+        var expanded = expand(jsonObject);
+        assertThat(validator.validate(expanded)).isSucceeded();
+        var transformed = transformer.transform(expanded, Criterion.class).getContent();
+        assertThat(transformed).isNotNull()
+                .satisfies(t -> {
+                    assertThat(t.getOperandLeft()).isNotNull();
+                    assertThat(t.getOperator()).isNotBlank();
+                    assertThat(t.getOperandRight()).isNotNull();
                 });
     }
 
@@ -92,16 +89,15 @@ class ApiCoreSchemaTest {
         var jsonObject = objectMapper.readValue(QUERY_SPEC_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();
 
-        var expanded = jsonLd.expand(jsonObject);
-        assertThat(expanded).isSucceeded()
-                .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
-                .extracting(e -> transformer.transform(e, QuerySpec.class).getContent())
-                .isNotNull()
-                .satisfies(transformed -> {
-                    assertThat(transformed.getOffset()).isGreaterThan(0);
-                    assertThat(transformed.getLimit()).isGreaterThan(1);
-                    assertThat(transformed.getSortOrder()).isNotNull();
-                    assertThat(transformed.getSortField()).isNotBlank();
+        var expanded = expand(jsonObject);
+        assertThat(validator.validate(expanded)).isSucceeded();
+        var transformed = transformer.transform(expanded, QuerySpec.class).getContent();
+        assertThat(transformed).isNotNull()
+                .satisfies(t -> {
+                    assertThat(t.getOffset()).isGreaterThan(0);
+                    assertThat(t.getLimit()).isGreaterThan(1);
+                    assertThat(t.getSortOrder()).isNotNull();
+                    assertThat(t.getSortField()).isNotBlank();
                 });
     }
 
@@ -131,14 +127,13 @@ class ApiCoreSchemaTest {
         var jsonObject = objectMapper.readValue(DATA_ADDRESS_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();
 
-        var expanded = jsonLd.expand(jsonObject);
-        assertThat(expanded).isSucceeded()
-                .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
-                .extracting(e -> transformer.transform(e, DataAddress.class).getContent())
-                .isNotNull()
-                .satisfies(transformed -> {
-                    assertThat(transformed.getType()).isNotBlank();
-                    assertThat(transformed.getProperties()).asInstanceOf(map(String.class, Object.class)).isNotEmpty();
+        var expanded = expand(jsonObject);
+        assertThat(validator.validate(expanded)).isSucceeded();
+        var transformed = transformer.transform(expanded, DataAddress.class).getContent();
+        assertThat(transformed).isNotNull()
+                .satisfies(t -> {
+                    assertThat(t.getType()).isNotBlank();
+                    assertThat(t.getProperties()).asInstanceOf(map(String.class, Object.class)).isNotEmpty();
                 });
     }
 

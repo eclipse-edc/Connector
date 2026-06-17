@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.api.signaling.transform.to;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObjectBuilder;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.transfer.DataFlowStartMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
@@ -30,7 +31,6 @@ import java.net.URI;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.api.signaling.transform.TestFunctions.getExpanded;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
@@ -73,7 +73,7 @@ class JsonObjectToDataFlowStartMessageTransformerTest {
                 .add("callbackAddress", "http://localhost")
                 .build();
 
-        var message = transformer.transform(getExpanded(jsonObj), context);
+        var message = transformer.transform(TestJsonLd.expand(jsonObj), context);
 
         assertThat(message).isNotNull();
 
@@ -103,7 +103,7 @@ class JsonObjectToDataFlowStartMessageTransformerTest {
                 .add("callbackAddress", "http://localhost")
                 .build();
 
-        var message = transformer.transform(getExpanded(jsonObj), context);
+        var message = transformer.transform(TestJsonLd.expand(jsonObj), context);
 
         assertThat(message).isNull();
         verify(context).reportProblem(any());

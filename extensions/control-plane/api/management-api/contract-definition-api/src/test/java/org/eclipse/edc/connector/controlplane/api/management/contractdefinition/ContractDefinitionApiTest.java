@@ -20,8 +20,6 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.validation.ContractDefinitionValidator;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.transform.edc.contractdefinition.to.JsonObjectToContractDefinitionTransformer;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -36,13 +34,13 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.Co
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.Mockito.mock;
 
 class ContractDefinitionApiTest {
 
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
-    private final JsonLd jsonLd = new TitaniumJsonLd(mock());
     private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
 
     @BeforeEach
@@ -57,30 +55,27 @@ class ContractDefinitionApiTest {
         var jsonObject = objectMapper.readValue(CONTRACT_DEFINITION_INPUT_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();
 
-        var expanded = jsonLd.expand(jsonObject);
-        assertThat(expanded).isSucceeded()
-                .satisfies(exp -> assertThat(validator.validate(exp)).isSucceeded())
-                .extracting(e -> transformer.transform(e, ContractDefinition.class).getContent())
-                .isNotNull()
-                .satisfies(transformed -> {
-                    assertThat(transformed.getId()).isNotBlank();
-                    assertThat(transformed.getAccessPolicyId()).isNotBlank();
-                    assertThat(transformed.getContractPolicyId()).isNotBlank();
-                    assertThat(transformed.getAssetsSelector()).asList().isEmpty();
+        var expanded = expand(jsonObject);
+        assertThat(validator.validate(expanded)).isSucceeded();
+        var transformed = transformer.transform(expanded, ContractDefinition.class).getContent();
+        assertThat(transformed).isNotNull()
+                .satisfies(t -> {
+                    assertThat(t.getId()).isNotBlank();
+                    assertThat(t.getAccessPolicyId()).isNotBlank();
+                    assertThat(t.getContractPolicyId()).isNotBlank();
+                    assertThat(t.getAssetsSelector()).asList().isEmpty();
                 });
     }
 
     @Test
     void contractDefinitionOutputExample() throws JsonProcessingException {
         var jsonObject = objectMapper.readValue(CONTRACT_DEFINITION_OUTPUT_EXAMPLE, JsonObject.class);
-        var expanded = jsonLd.expand(jsonObject);
+        var expanded = expand(jsonObject);
 
-        assertThat(expanded).isSucceeded().satisfies(content -> {
-            assertThat(content.getString(ID)).isNotBlank();
-            assertThat(content.getJsonArray(CONTRACT_DEFINITION_ACCESSPOLICY_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
-            assertThat(content.getJsonArray(CONTRACT_DEFINITION_CONTRACTPOLICY_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
-            assertThat(content.getJsonArray(CONTRACT_DEFINITION_ASSETS_SELECTOR)).asList().isEmpty();
-        });
+        assertThat(expanded.getString(ID)).isNotBlank();
+        assertThat(expanded.getJsonArray(CONTRACT_DEFINITION_ACCESSPOLICY_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
+        assertThat(expanded.getJsonArray(CONTRACT_DEFINITION_CONTRACTPOLICY_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
+        assertThat(expanded.getJsonArray(CONTRACT_DEFINITION_ASSETS_SELECTOR)).asList().isEmpty();
     }
 
 }

@@ -18,13 +18,13 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_NEGOTIATION_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
@@ -47,7 +47,7 @@ class JsonObjectToContractNegotiationAckTransformerTest {
                 .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_STATE_TERM), "STATE")
                 .build();
 
-        var result = transformer.transform(getExpanded(message), context);
+        var result = transformer.transform(TestJsonLd.expand(message), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getConsumerPid()).isEqualTo("consumerPid");

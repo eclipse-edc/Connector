@@ -16,6 +16,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transform.to;
 
 import jakarta.json.Json;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to.JsonObjectToTransferTerminationMessageTransformer;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -57,7 +58,7 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
                 .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_REASON_TERM), Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reasonArray).build())
                 .build();
 
-        var result = transformer.transform(TestInput.getExpanded(json), context);
+        var result = transformer.transform(TestJsonLd.expand(json), context);
 
         assertThat(result).isNotNull();
 
@@ -81,7 +82,7 @@ class JsonObjectToTransferTerminationMessageTransformerTest {
                 .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_REASON_TERM), Json.createBuilderFactory(Map.of()).createArrayBuilder().add(reasonArray).build())
                 .build();
 
-        var result = transformer.transform(TestInput.getExpanded(json), context);
+        var result = transformer.transform(TestJsonLd.expand(json), context);
 
         assertThat(result).isNull();
         verify(context).reportProblem(anyString());

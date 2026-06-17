@@ -37,6 +37,7 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.catalog.crawler.TestUtil.createCatalog;
 import static org.eclipse.edc.catalog.crawler.TestUtil.registerTransformers;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.mockito.ArgumentCaptor.forClass;
@@ -52,7 +53,6 @@ class PagingCatalogFetcherTest {
 
     private final ProtocolRemoteMessageDispatcher messageDispatcherMock = mock();
     private final ObjectMapper objectMapper = createObjectMapper();
-    private final TitaniumJsonLd jsonLdService = new TitaniumJsonLd(mock());
     private final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(
             ParticipantContext.Builder.newInstance().participantContextId("participantContext").identity("identity").build());
     private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl();
@@ -62,7 +62,8 @@ class PagingCatalogFetcherTest {
     void setup() {
         registerTransformers(typeTransformerRegistry);
 
-        fetcher = new PagingCatalogFetcher(messageDispatcherMock, participantContextSupplier, mock(), objectMapper, typeTransformerRegistry, jsonLdService);
+        fetcher = new PagingCatalogFetcher(messageDispatcherMock, participantContextSupplier, mock(), objectMapper,
+                typeTransformerRegistry, new TitaniumJsonLd(mock()));
     }
 
     @Test
@@ -96,8 +97,7 @@ class PagingCatalogFetcherTest {
 
     private StatusResult<byte[]> toBytes(Catalog catalog) throws JsonProcessingException {
         var jo = typeTransformerRegistry.transform(catalog, JsonObject.class).getContent();
-        var expanded = jsonLdService.expand(jo).getContent();
-        var expandedStr = objectMapper.writeValueAsString(expanded);
+        var expandedStr = objectMapper.writeValueAsString(expand(jo));
         return StatusResult.success(expandedStr.getBytes());
     }
 

@@ -16,7 +16,6 @@ package org.eclipse.edc.transform.transformer.edc.to;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +36,7 @@ import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlan
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.URL;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -49,7 +49,6 @@ class JsonObjectToDataPlaneInstanceTransformerTest {
 
     private final JsonObjectToDataPlaneInstanceTransformer transformer = new JsonObjectToDataPlaneInstanceTransformer();
     private final TransformerContext context = mock();
-    private final TitaniumJsonLd jsonLd = new TitaniumJsonLd(mock());
 
     @BeforeEach
     void setUp() {
@@ -97,7 +96,4 @@ class JsonObjectToDataPlaneInstanceTransformerTest {
         verify(context).reportProblem(anyString());
     }
 
-    private JsonObject expand(JsonObject jsonObject) {
-        return jsonLd.expand(jsonObject).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
-    }
 }

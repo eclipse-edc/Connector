@@ -17,8 +17,6 @@ package org.eclipse.edc.connector.controlplane.api.management.edr;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.junit.jupiter.api.Test;
 
@@ -31,26 +29,22 @@ import static org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry.EDR_ENTRY
 import static org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry.EDR_ENTRY_PROVIDER_ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
-import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.mockito.Mockito.mock;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 
 public class EdrCacheApiTest {
 
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
-    private final JsonLd jsonLd = new TitaniumJsonLd(mock());
 
     @Test
     void edrEntryOutputExample() throws JsonProcessingException {
         var jsonObject = objectMapper.readValue(EDR_ENTRY_OUTPUT_EXAMPLE, JsonObject.class);
-        var expanded = jsonLd.expand(jsonObject);
+        var expanded = expand(jsonObject);
 
-        assertThat(expanded).isSucceeded().satisfies(content -> {
-            assertThat(content.getString(ID)).isNotBlank();
-            assertThat(content.getJsonArray(EDR_ENTRY_AGREEMENT_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
-            assertThat(content.getJsonArray(EDR_ENTRY_CONTRACT_NEGOTIATION_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
-            assertThat(content.getJsonArray(EDR_ENTRY_PROVIDER_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
-            assertThat(content.getJsonArray(EDR_ENTRY_ASSET_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
-            assertThat(content.getJsonArray(EDR_ENTRY_CREATED_AT).getJsonObject(0).getJsonNumber(VALUE)).isNotNull();
-        });
+        assertThat(expanded.getString(ID)).isNotBlank();
+        assertThat(expanded.getJsonArray(EDR_ENTRY_AGREEMENT_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
+        assertThat(expanded.getJsonArray(EDR_ENTRY_CONTRACT_NEGOTIATION_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
+        assertThat(expanded.getJsonArray(EDR_ENTRY_PROVIDER_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
+        assertThat(expanded.getJsonArray(EDR_ENTRY_ASSET_ID).getJsonObject(0).getString(VALUE)).isNotBlank();
+        assertThat(expanded.getJsonArray(EDR_ENTRY_CREATED_AT).getJsonObject(0).getJsonNumber(VALUE)).isNotNull();
     }
 }

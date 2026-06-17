@@ -15,10 +15,7 @@
 package org.eclipse.edc.api.transformer;
 
 import jakarta.json.Json;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
@@ -26,6 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.AUTH_CODE_ID;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.AUTH_KEY;
 import static org.eclipse.edc.spi.types.domain.callback.CallbackAddress.EVENTS;
@@ -38,7 +36,6 @@ import static org.mockito.Mockito.when;
 
 class JsonObjectToCallbackAddressTransformerTest {
 
-    private final JsonLd jsonLd = new TitaniumJsonLd(mock(Monitor.class));
     private final TypeManager typeManager = mock();
     private JsonObjectToCallbackAddressTransformer transformer;
 
@@ -66,7 +63,7 @@ class JsonObjectToCallbackAddressTransformerTest {
         var genericTransformer = new JsonValueToGenericTypeTransformer(typeManager, "test");
         when(contextMock.transform(any(), eq(String.class))).thenAnswer(a -> genericTransformer.transform(a.getArgument(0), contextMock));
 
-        var cba = transformer.transform(jsonLd.expand(jobj).getContent(), contextMock);
+        var cba = transformer.transform(expand(jobj), contextMock);
 
         assertThat(cba).isNotNull();
         assertThat(cba.getEvents()).containsExactlyInAnyOrder("foo", "bar", "baz");

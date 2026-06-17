@@ -18,10 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.junit.assertions.AbstractResultAssert;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -33,6 +30,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.selector.api.v3.DataPlaneInstanceSchemaV3.DATAPLANE_INSTANCE_EXAMPLE;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -40,7 +38,6 @@ public class DataPlaneApiSelectorV3Test {
 
     private final TypeManager typeManager = mock();
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
-    private final JsonLd jsonLd = new TitaniumJsonLd(mock());
     private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
 
     @BeforeEach
@@ -57,16 +54,14 @@ public class DataPlaneApiSelectorV3Test {
         var jsonObject = objectMapper.readValue(DATAPLANE_INSTANCE_EXAMPLE, JsonObject.class);
         assertThat(jsonObject).isNotNull();
 
-        var expanded = jsonLd.expand(jsonObject);
-        AbstractResultAssert.assertThat(expanded).isSucceeded()
-                .extracting(e -> transformer.transform(e, DataPlaneInstance.class).getContent())
-                .isNotNull()
-                .satisfies(transformed -> {
-                    assertThat(transformed.getId()).isNotBlank();
-                    assertThat(transformed.getUrl().toString()).isEqualTo("http://somewhere.com:1234/api/v1");
-                    assertThat(transformed.getAllowedDestTypes()).containsExactlyInAnyOrder("your-dest-type");
-                    assertThat(transformed.getAllowedSourceTypes()).containsExactlyInAnyOrder("source-type1", "source-type2");
-                    assertThat(transformed.getAllowedTransferTypes()).containsExactlyInAnyOrder("transfer-type");
+        var transformed = transformer.transform(expand(jsonObject), DataPlaneInstance.class).getContent();
+        assertThat(transformed).isNotNull()
+                .satisfies(t -> {
+                    assertThat(t.getId()).isNotBlank();
+                    assertThat(t.getUrl().toString()).isEqualTo("http://somewhere.com:1234/api/v1");
+                    assertThat(t.getAllowedDestTypes()).containsExactlyInAnyOrder("your-dest-type");
+                    assertThat(t.getAllowedSourceTypes()).containsExactlyInAnyOrder("source-type1", "source-type2");
+                    assertThat(t.getAllowedTransferTypes()).containsExactlyInAnyOrder("transfer-type");
                 });
     }
 
