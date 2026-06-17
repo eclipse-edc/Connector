@@ -33,6 +33,7 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.eclipse.edc.spi.types.TypeManager;
 
 import java.io.IOException;
@@ -65,6 +66,9 @@ public class NatsPublishingExtension implements ServiceExtension {
     @Inject
     private Hostname hostname;
 
+    @Inject
+    private Telemetry telemetry;
+
     private Connection natsConnection;
 
     @Override
@@ -76,7 +80,7 @@ public class NatsPublishingExtension implements ServiceExtension {
     public void prepare() {
         try {
             var natsEventPublisher = new NatsEventPublisher(monitor.withPrefix("NATS events"),
-                    natsConnection.jetStream(), typeManager.getMapper(), hostname.get());
+                    natsConnection.jetStream(), typeManager.getMapper(), hostname.get(), telemetry);
             eventRouter.register(Event.class, natsEventPublisher);
         } catch (IOException e) {
             throw new EdcException("Error connecting to NATS", e);

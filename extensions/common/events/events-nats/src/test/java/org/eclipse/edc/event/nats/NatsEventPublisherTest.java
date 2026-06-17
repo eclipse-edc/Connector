@@ -24,12 +24,16 @@ import io.nats.client.impl.Headers;
 import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.telemetry.Telemetry;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -43,7 +47,7 @@ import static org.mockito.Mockito.when;
 class NatsEventPublisherTest {
     private final JetStream jetstream = mock();
     private final Monitor monitor = mock();
-    private final NatsEventPublisher natsEventPublisher = new NatsEventPublisher(monitor, jetstream, new ObjectMapper(), "localhost/test");
+    private final NatsEventPublisher natsEventPublisher = new NatsEventPublisher(monitor, jetstream, new ObjectMapper(), "localhost/test", new Telemetry());
 
     @Test
     void onEvent_shouldPublish() throws JetStreamApiException, IOException {
@@ -63,6 +67,20 @@ class NatsEventPublisherTest {
 
         verify(monitor).severe(anyString(), isA(JetStreamApiException.class));
         verify(jetstream).publish(eq("events.dummy.foobar"), any(Headers.class), notNull(), any(PublishOptions.class));
+    }
+
+    @Test
+    void onEvent_shouldInjectTraceContextIntoHeaders() throws JetStreamApiException, IOException {
+        var traceparent = "00-0102030405060708090a0b0c0d0e0f10-0102030405060708-01";
+        var telemetry = mock(Telemetry.class);
+        when(telemetry.getCurrentTraceContext()).thenReturn(Map.of("traceparent", traceparent));
+        var publisher = new NatsEventPublisher(monitor, jetstream, new ObjectMapper(), "localhost/test", telemetry);
+        var headers = ArgumentCaptor.forClass(Headers.class);
+
+        publisher.on(payload(new DummyEvent("foobar")));
+
+        verify(jetstream).publish(eq("events.dummy.foobar"), headers.capture(), notNull(), any(PublishOptions.class));
+        assertThat(headers.getValue().get("traceparent")).containsExactly(traceparent);
     }
 
     @SuppressWarnings("unchecked")
