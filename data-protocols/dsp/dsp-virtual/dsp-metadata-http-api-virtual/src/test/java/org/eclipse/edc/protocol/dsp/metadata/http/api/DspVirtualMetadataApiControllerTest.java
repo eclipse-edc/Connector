@@ -36,7 +36,6 @@ import java.util.List;
 import static io.restassured.RestAssured.given;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.hamcrest.CoreMatchers.is;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -57,18 +56,10 @@ class DspVirtualMetadataApiControllerTest extends RestControllerTestBase {
                 .thenReturn(ServiceResult.success(ParticipantContext.Builder.newInstance().identity("identity")
                         .participantContextId("participantcontextId").build()));
         var protocolVersion = new ProtocolVersion("version", "/1.0", "binding");
-        var output = Json.createObjectBuilder()
-                .add("protocolVersions", Json.createArrayBuilder()
-                        .add(Json.createObjectBuilder()
-                                .add("version", protocolVersion.version())
-                                .add("path", protocolVersion.path())
-                                .add("binding", protocolVersion.binding())).build()).build();
 
         var profile = new DataspaceProfileContext("profileId", protocolVersion, mock(), mock(), new JsonLdNamespace("https://example.org/dspace/"), List.of("https://example.org/context.jsonld"));
 
         when(profileResolver.resolveAll(participantContextId)).thenReturn(List.of(profile));
-        when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(output));
-
 
         baseRequest()
                 .get("participantcontextId/.well-known/dspace-version")
@@ -76,9 +67,11 @@ class DspVirtualMetadataApiControllerTest extends RestControllerTestBase {
                 .log().ifError()
                 .statusCode(200)
                 .contentType(APPLICATION_JSON)
+                .body("protocolVersions[0].profile", is("profileId"))
                 .body("protocolVersions[0].version", is(protocolVersion.version()))
                 .body("protocolVersions[0].path", is(protocolVersion.path()))
                 .body("protocolVersions[0].binding", is(protocolVersion.binding()));
+
 
     }
 

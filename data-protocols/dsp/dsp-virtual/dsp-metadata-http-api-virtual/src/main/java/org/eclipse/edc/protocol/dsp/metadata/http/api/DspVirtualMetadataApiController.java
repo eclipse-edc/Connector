@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.metadata.http.api;
 
+import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -24,13 +25,17 @@ import org.eclipse.edc.connector.controlplane.services.spi.protocol.VersionsErro
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextService;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.ParticipantProfileService;
-import org.eclipse.edc.protocol.spi.ProtocolVersions;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 
 import java.util.List;
 
+import static jakarta.json.stream.JsonCollectors.toJsonArray;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_BINDING;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PATH;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_PROTOCOL_VERSIONS;
+import static org.eclipse.edc.protocol.dsp.spi.type.DspVersionPropertyAndTypeNames.DSPACE_PROPERTY_VERSION;
 
 @Produces(APPLICATION_JSON)
 @Path("/{participantContextId}/.well-known/dspace-version")
@@ -57,31 +62,17 @@ public class DspVirtualMetadataApiController {
         // Advertise only the DSP versions of profiles this participant is associated with.
         // A participant with no associated profiles returns an empty version list.
         var versions = profileResolver.resolveAll(participantContextId).stream()
-                .map(DataspaceProfileContext::protocolVersion)
+                .map(this::mapToProtocolVersion)
                 .distinct()
-                .toList();
+                .collect(toJsonArray());
 
-        var protocolVersions = new ProtocolVersions(versions);
-        var body = transformerRegistry.transform(protocolVersions, JsonObject.class);
-
-        if (body.failed()) {
-            return internalServerError(body.getFailureMessages());
-        }
         return Response.status(Response.Status.OK)
-                .entity(body.getContent())
+                .entity(Json.createObjectBuilder().add(DSPACE_PROPERTY_PROTOCOL_VERSIONS, versions).build())
                 .build();
     }
-
-    private Response badRequest(List<String> messages) {
-        return errorResponse(Response.Status.BAD_REQUEST, messages);
-    }
-
+    
     private Response notFound() {
         return errorResponse(Response.Status.NOT_FOUND, List.of());
-    }
-
-    private Response internalServerError(List<String> messages) {
-        return errorResponse(Response.Status.INTERNAL_SERVER_ERROR, messages);
     }
 
     private Response errorResponse(Response.Status status, List<String> messages) {
@@ -91,6 +82,16 @@ public class DspVirtualMetadataApiController {
 
         return Response.status(status)
                 .entity(body)
+                .build();
+    }
+
+    private JsonObject mapToProtocolVersion(DataspaceProfileContext context) {
+        var protocolVersion = context.protocolVersion();
+        return Json.createObjectBuilder()
+                .add(DSPACE_PROPERTY_VERSION, protocolVersion.version())
+                .add(DSPACE_PROPERTY_PATH, protocolVersion.path())
+                .add(DSPACE_PROPERTY_BINDING, protocolVersion.binding())
+                .add("profile", context.name())
                 .build();
     }
 

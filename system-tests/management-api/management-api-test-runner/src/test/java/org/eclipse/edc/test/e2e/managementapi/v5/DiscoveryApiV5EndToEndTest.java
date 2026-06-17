@@ -87,7 +87,7 @@ public class DiscoveryApiV5EndToEndTest {
             var discovery = fetchDiscovery(context, providerContextId, participantTokenJwt, consumerContextId);
 
 
-            assertThat(discovery).hasSize(2).allSatisfy(entry -> {
+            assertThat(discovery).hasSize(1).allSatisfy(entry -> {
                 assertThat(entry.asJsonObject().getString(TYPE)).isEqualTo("DiscoveryResponse");
                 assertThat(entry.asJsonObject().getString("profile")).isEqualTo("dsp2025_1");
                 assertThat(entry.asJsonObject().getString("version")).isEqualTo("2025-1");

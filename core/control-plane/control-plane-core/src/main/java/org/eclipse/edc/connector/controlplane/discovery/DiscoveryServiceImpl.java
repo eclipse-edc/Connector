@@ -20,19 +20,19 @@ import okhttp3.Response;
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.ParticipantProfileService;
-import org.eclipse.edc.protocol.spi.ProtocolVersion;
-import org.eclipse.edc.protocol.spi.ProtocolVersions;
 import org.eclipse.edc.protocol.spi.discovery.DiscoveryRequest;
 import org.eclipse.edc.protocol.spi.discovery.DiscoveryResponse;
 import org.eclipse.edc.protocol.spi.discovery.DiscoveryService;
 import org.eclipse.edc.protocol.spi.discovery.DiscoveryUrlResolver;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class DiscoveryServiceImpl implements DiscoveryService {
@@ -82,16 +82,14 @@ public class DiscoveryServiceImpl implements DiscoveryService {
 
         var localProfiles = participantProfileService.resolveAll(participantContextId);
         var matches = localProfiles.stream()
-                .flatMap(profileMatcher(wellKnownUrl, versionsResult.getContent()))
+                .flatMap((profile) -> profileFilter(profile, wellKnownUrl, versionsResult.getContent()))
                 .toList();
 
         return ServiceResult.success(matches);
     }
 
-    private Function<DataspaceProfileContext, Stream<? extends DiscoveryResponse>> profileMatcher(String wellKnownUrl, List<ProtocolVersion> versions) {
-        return profile -> versions.stream()
-                .filter(v -> v.version().equals(profile.protocolVersion().version()) &&
-                        v.binding().equals(profile.protocolVersion().binding()))
+    private Stream<DiscoveryResponse> profileFilter(DataspaceProfileContext profile, String wellKnownUrl, List<ProtocolVersion> versions) {
+        return versions.stream().filter(getProtocolVersionPredicate(profile))
                 .map(v -> new DiscoveryResponse(
                         profile.name(),
                         v.version(),
@@ -99,6 +97,11 @@ public class DiscoveryServiceImpl implements DiscoveryService {
                         v.binding()));
     }
 
+    private @NotNull Predicate<ProtocolVersion> getProtocolVersionPredicate(DataspaceProfileContext profile) {
+        return v -> v.version().equals(profile.protocolVersion().version()) &&
+                v.binding().equals(profile.protocolVersion().binding()) &&
+                Optional.ofNullable(v.profile).map(profile.name()::equals).orElse(true);
+    }
 
     private ServiceResult<List<ProtocolVersion>> fetchProtocolVersions(String url) {
         var request = new Request.Builder().url(url).get().build();
@@ -125,5 +128,14 @@ public class DiscoveryServiceImpl implements DiscoveryService {
     @Override
     public void registerResolver(DiscoveryUrlResolver resolver) {
         resolvers.add(resolver);
+    }
+
+    // Records for deserializing the well-known document with experimental profile field.
+    private record ProtocolVersions(List<ProtocolVersion> protocolVersions) {
+
+    }
+
+    private record ProtocolVersion(String profile, String version, String path, String binding) {
+
     }
 }
