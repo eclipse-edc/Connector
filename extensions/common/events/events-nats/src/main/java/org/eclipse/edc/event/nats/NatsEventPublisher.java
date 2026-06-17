@@ -27,6 +27,7 @@ import org.eclipse.edc.spi.event.Event;
 import org.eclipse.edc.spi.event.EventEnvelope;
 import org.eclipse.edc.spi.event.EventSubscriber;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.telemetry.Telemetry;
 
 import java.io.IOException;
 import java.net.URI;
@@ -41,13 +42,15 @@ public class NatsEventPublisher implements EventSubscriber {
     private final JetStream jetStream;
     private final ObjectMapper objectMapper;
     private final String hostname;
+    private final Telemetry telemetry;
     private final JsonFormat jsonFormat = new JsonFormat();
 
-    public NatsEventPublisher(Monitor monitor, JetStream jetStream, ObjectMapper objectMapper, String hostname) {
+    public NatsEventPublisher(Monitor monitor, JetStream jetStream, ObjectMapper objectMapper, String hostname, Telemetry telemetry) {
         this.monitor = monitor;
         this.jetStream = jetStream;
         this.objectMapper = objectMapper;
         this.hostname = hostname;
+        this.telemetry = telemetry;
     }
 
     @Override
@@ -82,6 +85,9 @@ public class NatsEventPublisher implements EventSubscriber {
     private Headers getHeaders() {
         var h = new Headers();
         h.add("Content-Type", "application/cloudevents+json");
+        // Propagate the current trace context (W3C traceparent/baggage) so consumers can
+        // continue the trace across the NATS boundary instead of starting a new root span.
+        telemetry.getCurrentTraceContext().forEach((key, value) -> h.add(key, value));
         return h;
     }
 }
