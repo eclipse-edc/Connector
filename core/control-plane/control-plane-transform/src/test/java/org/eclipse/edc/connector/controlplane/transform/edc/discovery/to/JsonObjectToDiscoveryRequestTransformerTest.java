@@ -14,16 +14,15 @@
 
 package org.eclipse.edc.connector.controlplane.transform.edc.discovery.to;
 
-import com.apicatalog.jsonld.document.JsonDocument;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.protocol.spi.discovery.DiscoveryRequest;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.Test;
 
-import static com.apicatalog.jsonld.JsonLd.expand;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.eclipse.edc.protocol.spi.discovery.DiscoveryRequest.DISCOVERY_REQUEST_COUNTER_PARTY_ADDRESS_TERM;
 import static org.eclipse.edc.protocol.spi.discovery.DiscoveryRequest.DISCOVERY_REQUEST_COUNTER_PARTY_ID_TERM;
 import static org.eclipse.edc.protocol.spi.discovery.DiscoveryRequest.DISCOVERY_REQUEST_TYPE_TERM;
@@ -49,7 +48,7 @@ class JsonObjectToDiscoveryRequestTransformerTest {
                 .add(DISCOVERY_REQUEST_COUNTER_PARTY_ADDRESS_TERM, "https://example.org")
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(expand(json), context);
 
         assertThat(result).isNotNull();
         assertThat(result.counterPartyAddress()).isEqualTo("https://example.org");
@@ -64,7 +63,7 @@ class JsonObjectToDiscoveryRequestTransformerTest {
                 .add(DISCOVERY_REQUEST_COUNTER_PARTY_ID_TERM, "did:web:example")
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(expand(json), context);
 
         assertThat(result.counterPartyId()).isEqualTo("did:web:example");
         assertThat(result.counterPartyAddress()).isNull();
@@ -77,17 +76,10 @@ class JsonObjectToDiscoveryRequestTransformerTest {
                 .add(TYPE, DISCOVERY_REQUEST_TYPE_TERM)
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(expand(json), context);
 
         assertThat(result.counterPartyId()).isNull();
         assertThat(result.counterPartyAddress()).isNull();
     }
 
-    private JsonObject getExpanded(JsonObject message) {
-        try {
-            return expand(JsonDocument.of(message)).get().asJsonArray().getJsonObject(0);
-        } catch (Exception e) {
-            throw new AssertionError(e);
-        }
-    }
 }

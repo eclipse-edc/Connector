@@ -20,8 +20,8 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.protocol.dsp.catalog.transform.TestInput;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -85,7 +85,7 @@ class JsonObjectToDatasetTransformerTest {
                 .add(DCAT_DISTRIBUTION_ATTRIBUTE, distributionJson)
                 .build();
 
-        var result = transformer.transform(TestInput.getExpanded(dataset), context);
+        var result = transformer.transform(TestJsonLd.expand(dataset), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(DATASET_ID);
@@ -114,7 +114,7 @@ class JsonObjectToDatasetTransformerTest {
                 .add(propertyKey, propertyValue)
                 .build();
 
-        var result = transformer.transform(TestInput.getExpanded(dataset), context);
+        var result = transformer.transform(TestJsonLd.expand(dataset), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(DATASET_ID);
@@ -138,7 +138,7 @@ class JsonObjectToDatasetTransformerTest {
                 .add(DCAT_DISTRIBUTION_ATTRIBUTE, distributionJson)
                 .build();
 
-        var result = transformer.transform(TestInput.getExpanded(dataset), context);
+        var result = transformer.transform(TestJsonLd.expand(dataset), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(DATASET_ID);

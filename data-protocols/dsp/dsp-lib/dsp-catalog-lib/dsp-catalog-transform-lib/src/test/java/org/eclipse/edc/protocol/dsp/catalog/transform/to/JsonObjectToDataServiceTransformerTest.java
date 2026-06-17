@@ -16,7 +16,7 @@ package org.eclipse.edc.protocol.dsp.catalog.transform.to;
 
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
-import org.eclipse.edc.protocol.dsp.catalog.transform.TestInput;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,7 +62,7 @@ class JsonObjectToDataServiceTransformerTest {
                 .add(DCAT_ENDPOINT_URL_ATTRIBUTE, url)
                 .build();
 
-        var result = transformer.transform(TestInput.getExpanded(dataService), context);
+        var result = transformer.transform(TestJsonLd.expand(dataService), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(DATA_SERVICE_ID);
@@ -76,7 +76,7 @@ class JsonObjectToDataServiceTransformerTest {
     void transform_invalidType_reportProblem() {
         var dataService = jsonFactory.createObjectBuilder().add(TYPE, "not-a-data-service").build();
 
-        transformer.transform(TestInput.getExpanded(dataService), context);
+        transformer.transform(TestJsonLd.expand(dataService), context);
 
         verify(context, never()).reportProblem(anyString());
     }

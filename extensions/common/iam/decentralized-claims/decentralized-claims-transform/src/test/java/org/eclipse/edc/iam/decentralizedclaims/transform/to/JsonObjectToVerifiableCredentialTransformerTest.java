@@ -18,7 +18,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.TypeManager;
@@ -30,12 +29,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URISyntaxException;
+import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.decentralizedclaims.transform.TestData.EXAMPLE_VC_JSONLD;
 import static org.eclipse.edc.iam.decentralizedclaims.transform.TestData.EXAMPLE_VC_JSONLD_ISSUER_IS_URL;
 import static org.eclipse.edc.iam.decentralizedclaims.transform.TestData.EXAMPLE_VC_JSONLD_WITH_SCHEMA;
 import static org.eclipse.edc.iam.decentralizedclaims.transform.TestData.EXAMPLE_VC_SUB_IS_ARRAY_JSONLD;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -46,12 +47,11 @@ import static org.mockito.Mockito.when;
 class JsonObjectToVerifiableCredentialTransformerTest {
     public static final ObjectMapper OBJECT_MAPPER = JacksonJsonLd.createObjectMapper();
     private final TypeManager typeManager = mock();
-    private final JsonLd jsonLdService = new TitaniumJsonLd(mock());
     private TransformerContext context;
     private JsonObjectToVerifiableCredentialTransformer transformer;
 
     @BeforeEach
-    void setUp() throws URISyntaxException {
+    void setUp() {
         transformer = new JsonObjectToVerifiableCredentialTransformer();
         var registry = new TypeTransformerRegistryImpl();
         registry.register(new JsonObjectToCredentialSubjectTransformer());
@@ -62,7 +62,6 @@ class JsonObjectToVerifiableCredentialTransformerTest {
         registry.register(transformer);
 
         context = spy(new TransformerContextImpl(registry));
-        jsonLdService.registerCachedDocument("https://www.w3.org/2018/credentials/v2", Thread.currentThread().getContextClassLoader().getResource("document/credentials.v2.jsonld").toURI());
         when(typeManager.getMapper("test")).thenReturn(OBJECT_MAPPER);
     }
 
@@ -70,7 +69,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
     void transform() throws JsonProcessingException {
 
         var jsonObj = OBJECT_MAPPER.readValue(EXAMPLE_VC_JSONLD, JsonObject.class);
-        var vc = transformer.transform(jsonLdService.expand(jsonObj).getContent(), context);
+        var vc = transformer.transform(expand(jsonObj, withCredentialsV2()), context);
 
         assertThat(vc).isNotNull();
         assertThat(vc.getCredentialSubject()).isNotNull().hasSize(1);
@@ -87,7 +86,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
     void transform_credentialSubjectIsArray() throws JsonProcessingException {
 
         var jsonObj = OBJECT_MAPPER.readValue(EXAMPLE_VC_SUB_IS_ARRAY_JSONLD, JsonObject.class);
-        var vc = transformer.transform(jsonLdService.expand(jsonObj).getContent(), context);
+        var vc = transformer.transform(expand(jsonObj, withCredentialsV2()), context);
 
         assertThat(vc).isNotNull();
         assertThat(vc.getCredentialSubject()).isNotNull().hasSize(2);
@@ -104,7 +103,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
     void transform_issuerIsUrl() throws JsonProcessingException {
 
         var jsonObj = OBJECT_MAPPER.readValue(EXAMPLE_VC_JSONLD_ISSUER_IS_URL, JsonObject.class);
-        var vc = transformer.transform(jsonLdService.expand(jsonObj).getContent(), context);
+        var vc = transformer.transform(expand(jsonObj, withCredentialsV2()), context);
 
         assertThat(vc).isNotNull();
         assertThat(vc.getCredentialSubject()).isNotNull().hasSize(1);
@@ -119,10 +118,21 @@ class JsonObjectToVerifiableCredentialTransformerTest {
     @Test
     void transform_withCredentialSchema() throws JsonProcessingException {
         var jsonObj = OBJECT_MAPPER.readValue(EXAMPLE_VC_JSONLD_WITH_SCHEMA, JsonObject.class);
-        var vc = transformer.transform(jsonLdService.expand(jsonObj).getContent(), context);
+        var vc = transformer.transform(expand(jsonObj, withCredentialsV2()), context);
 
         assertThat(vc).isNotNull();
         assertThat(vc.getCredentialSchema()).isNotNull().hasSize(2);
         verify(context, never()).reportProblem(anyString());
+    }
+
+    private static Consumer<JsonLd> withCredentialsV2() {
+        return jsonLd -> {
+            try {
+                jsonLd.registerCachedDocument("https://www.w3.org/2018/credentials/v2",
+                        Thread.currentThread().getContextClassLoader().getResource("document/credentials.v2.jsonld").toURI());
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+        };
     }
 }

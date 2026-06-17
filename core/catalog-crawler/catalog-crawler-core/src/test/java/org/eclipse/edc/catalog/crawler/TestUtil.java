@@ -21,7 +21,6 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFromPolicyTransformer;
 import org.eclipse.edc.connector.controlplane.transform.odrl.to.JsonObjectToPolicyTransformer;
-import org.eclipse.edc.crawler.spi.TargetNode;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.policy.model.Policy;
@@ -34,12 +33,10 @@ import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToDatasetTran
 import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToDistributionTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.v2025.to.JsonObjectToCatalogTransformer;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -71,11 +68,6 @@ public class TestUtil {
                 .participantId("test-participant")
                 .id(id)
                 .properties(new HashMap<>());
-    }
-
-    @NotNull
-    public static TargetNode createNode() {
-        return new TargetNode("testnode" + UUID.randomUUID(), "did:web:" + UUID.randomUUID(), "http://test.com", List.of(TEST_PROTOCOL));
     }
 
     public static Catalog createCatalog(int howManyOffers) {

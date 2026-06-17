@@ -21,7 +21,6 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.spi.TransformerContext;
-import org.eclipse.edc.transform.transformer.TestInput;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +30,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -66,7 +66,7 @@ class JsonValueToGenericPropertyTransformerTest {
 
         when(mapper.readValue(anyString(), eq(Object.class))).thenReturn(object);
 
-        var result = transformer.transform(TestInput.getExpanded(jsonObject), context);
+        var result = transformer.transform(expand(jsonObject), context);
 
         assertThat(result).isNotNull().isInstanceOf(Object.class).isEqualTo(object);
 
@@ -100,7 +100,7 @@ class JsonValueToGenericPropertyTransformerTest {
 
         when(mapper.readValue(anyString(), eq(Object.class))).thenThrow(JsonProcessingException.class);
 
-        var result = transformer.transform(TestInput.getExpanded(jsonObject), context);
+        var result = transformer.transform(expand(jsonObject), context);
 
         assertThat(result).isNull();
         verify(context, times(1)).reportProblem(anyString());

@@ -25,5 +25,5 @@ dependencies {
     implementation(project(":core:common:lib:transform-lib"))
     implementation(project(":data-protocols:dsp:dsp-lib:dsp-catalog-lib:dsp-catalog-transform-lib"))
 
-    testImplementation(project(":extensions:common:json-ld"))
+    testImplementation(testFixtures(project(":core:common:lib:json-ld-lib")))
 }

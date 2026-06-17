@@ -17,8 +17,8 @@ package org.eclipse.edc.connector.controlplane.transform.odrl.to;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import org.eclipse.edc.connector.controlplane.transform.TestInput;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
@@ -61,7 +61,7 @@ class JsonObjectToActionTransformerTest {
     void transform_onlyActionType_returnAction() {
         var action = jsonFactory.createObjectBuilder().add(ODRL_ACTION_TYPE_ATTRIBUTE, "use").build();
 
-        var result = transformer.transform(TestInput.getExpanded(action), context);
+        var result = transformer.transform(TestJsonLd.expand(action), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getType()).isEqualTo("use");
@@ -74,7 +74,7 @@ class JsonObjectToActionTransformerTest {
     @Test
     void transform_onlyActionAttribute_returnAction() {
         var actionContainer = jsonFactory.createObjectBuilder().add(ODRL_ACTION_ATTRIBUTE, "use").build();
-        var expanded = TestInput.getExpanded(actionContainer);
+        var expanded = TestJsonLd.expand(actionContainer);
         var action = expanded.getJsonArray(ODRL_ACTION_ATTRIBUTE).get(0).asJsonObject();
 
         var result = transformer.transform(action, context);
@@ -119,7 +119,7 @@ class JsonObjectToActionTransformerTest {
                 .add(ODRL_REFINEMENT_ATTRIBUTE, jsonFactory.createObjectBuilder().build())
                 .build();
 
-        var result = transformer.transform(TestInput.getExpanded(action), context);
+        var result = transformer.transform(TestJsonLd.expand(action), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getType()).isEqualTo("use");
@@ -145,7 +145,7 @@ class JsonObjectToActionTransformerTest {
                 .add(ODRL_REFINEMENT_ATTRIBUTE, jsonFactory.createObjectBuilder().build())
                 .build();
 
-        var result = transformer.transform(TestInput.getExpanded(action), context);
+        var result = transformer.transform(TestJsonLd.expand(action), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getType()).isEqualTo("use");

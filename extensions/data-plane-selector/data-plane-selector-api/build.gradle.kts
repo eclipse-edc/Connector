@@ -32,6 +32,7 @@ dependencies {
     
     implementation(libs.jakarta.rsApi)
 
+    testImplementation(testFixtures(project(":core:common:lib:json-ld-lib")))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))

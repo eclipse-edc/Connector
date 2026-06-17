@@ -18,7 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.connector.controlplane.transform.TestInput;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
@@ -102,7 +102,7 @@ class JsonObjectToPolicyTransformerTest {
                 .add(ODRL_OBLIGATION_ATTRIBUTE, dutyJson)
                 .build();
 
-        var result = transformer.transform(TestInput.getExpanded(policy), context);
+        var result = transformer.transform(TestJsonLd.expand(policy), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getTarget()).isEqualTo(TARGET);
@@ -135,7 +135,7 @@ class JsonObjectToPolicyTransformerTest {
                 .add(propertyKey, propertyValue)
                 .build();
 
-        var result = transformer.transform(TestInput.getExpanded(policy), context);
+        var result = transformer.transform(TestJsonLd.expand(policy), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getExtensibleProperties()).hasSize(1);
@@ -155,7 +155,7 @@ class JsonObjectToPolicyTransformerTest {
                 .add(ODRL_ASSIGNER_ATTRIBUTE, "assigner")
                 .build();
 
-        var result = transformer.transform(TestInput.getExpanded(policy), context);
+        var result = transformer.transform(TestJsonLd.expand(policy), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getType()).isEqualTo(policyType);
@@ -169,7 +169,7 @@ class JsonObjectToPolicyTransformerTest {
                 .build();
         when(context.problem()).thenReturn(new ProblemBuilder(context));
 
-        var result = transformer.transform(TestInput.getExpanded(policy), context);
+        var result = transformer.transform(TestJsonLd.expand(policy), context);
 
         assertThat(result).isNull();
         verify(context).reportProblem(anyString());
@@ -185,7 +185,7 @@ class JsonObjectToPolicyTransformerTest {
                 .add(ODRL_ASSIGNER_ATTRIBUTE, "assigner")
                 .build();
 
-        var result = transformer.transform(TestInput.getExpanded(policy), context);
+        var result = transformer.transform(TestJsonLd.expand(policy), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getType()).isEqualTo(CONTRACT);
@@ -199,7 +199,7 @@ class JsonObjectToPolicyTransformerTest {
                 .add(ODRL_PROFILE_ATTRIBUTE, jsonFactory.createObjectBuilder().add(ID, "http://example.com/odrl:profile:01"))
                 .build();
 
-        var result = transformer.transform(TestInput.getExpanded(policy), context);
+        var result = transformer.transform(TestJsonLd.expand(policy), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getProfiles().get(0)).isEqualTo("http://example.com/odrl:profile:01");

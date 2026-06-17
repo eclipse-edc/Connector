@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":core:common:lib:store-lib"))
     implementation(project(":core:common:lib:util-lib"))
 
+    testImplementation(testFixtures(project(":core:common:lib:json-ld-lib")))
     testImplementation(libs.awaitility)
     testImplementation(project(":data-protocols:dsp:dsp-lib:dsp-catalog-lib:dsp-catalog-transform-lib"))
     testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-catalog-2025:dsp-catalog-transform-2025"))

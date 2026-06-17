@@ -19,6 +19,7 @@ import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.JsonLdKeywords;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.policy.model.Action;
 import org.eclipse.edc.policy.model.Duty;
 import org.eclipse.edc.policy.model.Permission;
@@ -33,7 +34,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
-import static org.eclipse.edc.protocol.dsp.negotiation.transform.to.TestInput.getExpanded;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_PROPERTY_OFFER_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspNegotiationPropertyAndTypeNames.DSPACE_TYPE_CONTRACT_REQUEST_MESSAGE_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CALLBACK_ADDRESS_TERM;
@@ -79,7 +79,7 @@ class JsonObjectToContractRequestMessageTransformerTest {
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
 
-        var result = transformer.transform(getExpanded(message), context);
+        var result = transformer.transform(TestJsonLd.expand(message), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getConsumerPid()).isEqualTo("consumerPid");
@@ -107,7 +107,7 @@ class JsonObjectToContractRequestMessageTransformerTest {
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
 
-        var result = transformer.transform(getExpanded(message), context);
+        var result = transformer.transform(TestJsonLd.expand(message), context);
 
         assertThat(result).isNotNull();
 
@@ -129,7 +129,7 @@ class JsonObjectToContractRequestMessageTransformerTest {
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(policy());
 
-        var result = transformer.transform(getExpanded(message), context);
+        var result = transformer.transform(TestJsonLd.expand(message), context);
 
         assertThat(result).isNull();
 
@@ -149,7 +149,7 @@ class JsonObjectToContractRequestMessageTransformerTest {
 
         when(context.transform(any(JsonObject.class), eq(Policy.class))).thenReturn(null);
 
-        assertThat(transformer.transform(getExpanded(message), context)).isNull();
+        assertThat(transformer.transform(TestJsonLd.expand(message), context)).isNull();
 
         verify(context, times(1)).reportProblem(anyString());
     }

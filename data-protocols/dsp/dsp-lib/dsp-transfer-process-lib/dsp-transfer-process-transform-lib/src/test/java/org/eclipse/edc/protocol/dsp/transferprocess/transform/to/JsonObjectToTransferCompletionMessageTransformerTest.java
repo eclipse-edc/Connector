@@ -16,6 +16,7 @@ package org.eclipse.edc.protocol.dsp.transferprocess.transform.to;
 
 import jakarta.json.Json;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.protocol.dsp.transferprocess.transform.type.to.JsonObjectToTransferCompletionMessageTransformer;
 import org.eclipse.edc.transform.spi.ProblemBuilder;
 import org.eclipse.edc.transform.spi.TransformerContext;
@@ -26,7 +27,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_CONSUMER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspPropertyAndTypeNames.DSPACE_PROPERTY_PROVIDER_PID_TERM;
 import static org.eclipse.edc.protocol.dsp.spi.type.DspTransferProcessPropertyAndTypeNames.DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_TERM;
-import static org.eclipse.edc.protocol.dsp.transferprocess.transform.to.TestInput.getExpanded;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -49,7 +49,7 @@ class JsonObjectToTransferCompletionMessageTransformerTest {
                 .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM), "consumerPid")
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(TestJsonLd.expand(json), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getProviderPid()).isEqualTo("providerPid");
@@ -65,7 +65,7 @@ class JsonObjectToTransferCompletionMessageTransformerTest {
                 .add(TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_TRANSFER_COMPLETION_MESSAGE_TERM))
                 .build();
 
-        var result = transformer.transform(getExpanded(json), context);
+        var result = transformer.transform(TestJsonLd.expand(json), context);
 
         assertThat(result).isNull();
 

@@ -23,7 +23,7 @@ dependencies {
     testImplementation(project(":spi:common:json-ld-spi"))
     testImplementation(project(":spi:control-plane:catalog-spi"))
     testImplementation(project(":data-protocols:dsp"))
-    testImplementation(project(":core:common:lib:json-ld-lib"))
+    testImplementation(testFixtures(project(":core:common:lib:json-ld-lib")))
     testImplementation(project(":extensions:common:http:jetty-core"))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":spi:data-plane-selector:data-plane-selector-spi"))

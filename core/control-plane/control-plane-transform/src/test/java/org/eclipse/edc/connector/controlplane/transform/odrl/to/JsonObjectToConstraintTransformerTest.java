@@ -18,7 +18,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
-import org.eclipse.edc.connector.controlplane.transform.TestInput;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.policy.model.AndConstraint;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.Constraint;
@@ -87,7 +87,7 @@ class JsonObjectToConstraintTransformerTest {
                 .add(ODRL_RIGHT_OPERAND_ATTRIBUTE, jsonFactory.createArrayBuilder().add(value(right)))
                 .build();
 
-        var result = transformer.transform(TestInput.getExpanded(constraint), context);
+        var result = transformer.transform(TestJsonLd.expand(constraint), context);
 
         assertThat(result).isNotNull().asInstanceOf(type(AtomicConstraint.class)).satisfies(atomicConstraint -> {
             assertThat(((LiteralExpression) atomicConstraint.getLeftExpression()).getValue()).isEqualTo(left);
@@ -107,7 +107,7 @@ class JsonObjectToConstraintTransformerTest {
                 .add(ODRL_RIGHT_OPERAND_ATTRIBUTE, jsonNumber)
                 .build();
 
-        var result = transformer.transform(TestInput.getExpanded(constraint), context);
+        var result = transformer.transform(TestJsonLd.expand(constraint), context);
 
         assertThat(result).isNull();
         verify(context, atLeast(1)).reportProblem(anyString());
@@ -119,7 +119,7 @@ class JsonObjectToConstraintTransformerTest {
                 .add(TYPE, ODRL_CONSTRAINT_TYPE)
                 .build();
 
-        transformer.transform(TestInput.getExpanded(constraint), context);
+        transformer.transform(TestJsonLd.expand(constraint), context);
 
         verify(context, atLeast(1)).reportProblem(anyString());
     }
@@ -140,7 +140,7 @@ class JsonObjectToConstraintTransformerTest {
         var atomicConstraint = AtomicConstraint.Builder.newInstance().build();
         when(context.transform(any(), eq(Constraint.class))).thenReturn(atomicConstraint);
 
-        var result = transformer.transform(TestInput.getExpanded(logicalConstraintJson), context);
+        var result = transformer.transform(TestJsonLd.expand(logicalConstraintJson), context);
 
         assertThat(result).isNotNull().isInstanceOf(expectedType)
                 .asInstanceOf(type(MultiplicityConstraint.class))
@@ -157,7 +157,7 @@ class JsonObjectToConstraintTransformerTest {
                 .add(operand, jsonFactory.createArrayBuilder().build())
                 .build();
 
-        var result = transformer.transform(TestInput.getExpanded(logicalConstraintJson), context);
+        var result = transformer.transform(TestJsonLd.expand(logicalConstraintJson), context);
 
         assertThat(result).isNotNull().isInstanceOf(expectedType)
                 .asInstanceOf(type(MultiplicityConstraint.class))

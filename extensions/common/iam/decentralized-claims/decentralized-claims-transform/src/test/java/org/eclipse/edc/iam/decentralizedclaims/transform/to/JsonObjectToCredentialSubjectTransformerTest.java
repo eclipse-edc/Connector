@@ -17,8 +17,6 @@ package org.eclipse.edc.iam.decentralizedclaims.transform.to;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.decentralizedclaims.transform.TestObject;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.iam.decentralizedclaims.transform.TestData.TEST_NAMESPACE;
 import static org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject.CREDENTIAL_SUBJECT_ID_PROPERTY;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
+import static org.eclipse.edc.jsonld.test.TestJsonLd.expand;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -37,7 +36,6 @@ import static org.mockito.Mockito.when;
 class JsonObjectToCredentialSubjectTransformerTest {
 
     private final TransformerContext context = mock();
-    private final JsonLd jsonLdService = new TitaniumJsonLd(mock());
     private JsonObjectToCredentialSubjectTransformer transformer;
 
     @BeforeEach
@@ -52,7 +50,7 @@ class JsonObjectToCredentialSubjectTransformerTest {
                 .add(TEST_NAMESPACE + "simpleclaim2", "value2")
                 .build();
         when(context.transform(isA(JsonObject.class), eq(Object.class))).thenAnswer(a -> ((JsonObject) a.getArgument(0)).getString(VALUE));
-        var subj = transformer.transform(jsonLdService.expand(json).getContent(), context);
+        var subj = transformer.transform(expand(json), context);
 
         assertThat(subj).isNotNull();
         assertThat(subj.getId()).isNull();
@@ -69,7 +67,7 @@ class JsonObjectToCredentialSubjectTransformerTest {
                 .add(TEST_NAMESPACE + "simpleclaim2", "value2")
                 .build();
         when(context.transform(isA(JsonObject.class), eq(Object.class))).thenAnswer(a -> ((JsonObject) a.getArgument(0)).getString(VALUE));
-        var subj = transformer.transform(jsonLdService.expand(json).getContent(), context);
+        var subj = transformer.transform(expand(json), context);
 
         assertThat(subj).isNotNull();
         assertThat(subj.getId()).isEqualTo("test-id");
@@ -88,7 +86,7 @@ class JsonObjectToCredentialSubjectTransformerTest {
                 .build();
 
         when(context.transform(isA(JsonObject.class), eq(Object.class))).thenReturn(new TestObject("bar", Map.of("goo", 42)));
-        var subj = transformer.transform(jsonLdService.expand(json).getContent(), context);
+        var subj = transformer.transform(expand(json), context);
 
         assertThat(subj).isNotNull();
         assertThat(subj.getId()).isEqualTo("test-id");

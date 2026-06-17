@@ -16,6 +16,7 @@ package org.eclipse.edc.protocol.dsp.catalog.transform.to;
 
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ACCESS_SERVICE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DISTRIBUTION_TYPE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCT_FORMAT_ATTRIBUTE;
-import static org.eclipse.edc.protocol.dsp.catalog.transform.TestInput.getExpanded;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -57,7 +57,7 @@ class JsonObjectToDistributionTransformerTest {
                 .add(DCAT_ACCESS_SERVICE_ATTRIBUTE, dataServiceId)
                 .build();
 
-        var result = transformer.transform(getExpanded(distribution), context);
+        var result = transformer.transform(TestJsonLd.expand(distribution), context);
 
         assertThat(result).isNotNull();
         assertThat(result.getFormat()).isEqualTo(format);
@@ -73,7 +73,7 @@ class JsonObjectToDistributionTransformerTest {
                 .add(TYPE, "not-a-distribution")
                 .build();
 
-        transformer.transform(getExpanded(distribution), context);
+        transformer.transform(TestJsonLd.expand(distribution), context);
 
         verify(context, times(1)).reportProblem(anyString());
     }
@@ -84,7 +84,7 @@ class JsonObjectToDistributionTransformerTest {
                 .add(TYPE, DCAT_DISTRIBUTION_TYPE)
                 .build();
 
-        var result = transformer.transform(getExpanded(distribution), context);
+        var result = transformer.transform(TestJsonLd.expand(distribution), context);
 
         assertThat(result).isNull();
         verify(context, times(1)).reportProblem(anyString());

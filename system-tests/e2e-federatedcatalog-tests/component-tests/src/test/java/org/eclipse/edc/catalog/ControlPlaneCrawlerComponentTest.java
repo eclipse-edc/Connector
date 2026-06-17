@@ -23,8 +23,8 @@ import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.crawler.spi.TargetNode;
 import org.eclipse.edc.crawler.spi.TargetNodeDirectory;
-import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
+import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
@@ -86,7 +86,6 @@ public class ControlPlaneCrawlerComponentTest {
 
     private static final Duration TEST_TIMEOUT = ofSeconds(10);
     private static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
-    private static final JsonLd JSON_LD_SERVICE = new TitaniumJsonLd(mock());
 
     @RegisterExtension
     protected static RuntimeExtension runtime = new RuntimePerMethodExtension(
@@ -392,7 +391,7 @@ public class ControlPlaneCrawlerComponentTest {
         try {
             var dspTransformerRegistry = transformerRegistry.forContext(DSP_TRANSFORMER_CONTEXT_V_2025_1);
             var jo = dspTransformerRegistry.transform(catalog, JsonObject.class).orElseThrow(AssertionError::new);
-            var expanded = JSON_LD_SERVICE.expand(jo).orElseThrow(AssertionError::new);
+            var expanded = TestJsonLd.expand(jo);
             var expandedStr = OBJECT_MAPPER.writeValueAsString(expanded);
             return StatusResult.success(expandedStr.getBytes());
         } catch (JsonProcessingException ex) {
