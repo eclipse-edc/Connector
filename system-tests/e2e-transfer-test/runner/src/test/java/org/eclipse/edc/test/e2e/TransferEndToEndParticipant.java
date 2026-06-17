@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.test.e2e;
 
-import io.restassured.common.mapper.TypeRef;
 import jakarta.json.JsonObject;
 import org.assertj.core.api.ThrowingConsumer;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participant;
@@ -55,30 +54,6 @@ public class TransferEndToEndParticipant extends Participant {
     }
 
     /**
-     * Get the EDR from the EDR cache by transfer process id.
-     *
-     * @param transferProcessId The transfer process id
-     * @return The cached {@link DataAddress}
-     */
-    public DataAddress getEdr(String transferProcessId) {
-        var dataAddressRaw = baseManagementRequest()
-                .contentType(JSON)
-                .when()
-                .get("/edrs/{id}/dataaddress", transferProcessId)
-                .then()
-                .log().ifError()
-                .statusCode(200)
-                .contentType(JSON)
-                .extract().body().as(new TypeRef<Map<String, Object>>() {
-                });
-
-
-        var builder = DataAddress.Builder.newInstance();
-        dataAddressRaw.forEach(builder::property);
-        return builder.build();
-    }
-
-    /**
      * Pull data from provider using EDR.
      *
      * @param edr           endpoint data reference
@@ -92,20 +67,6 @@ public class TransferEndToEndParticipant extends Participant {
                 .queryParams(queryParams)
                 .when()
                 .get()
-                .then()
-                .log().ifError()
-                .statusCode(200)
-                .extract().body().asString();
-
-        assertThat(data).satisfies(bodyAssertion);
-    }
-
-    public void postResponse(DataAddress edr, ThrowingConsumer<String> bodyAssertion) {
-        var data = given()
-                .baseUri(edr.getStringProperty("responseChannel-endpoint"))
-                .header("Authorization", edr.getStringProperty("responseChannel-authorization"))
-                .when()
-                .post()
                 .then()
                 .log().ifError()
                 .statusCode(200)
