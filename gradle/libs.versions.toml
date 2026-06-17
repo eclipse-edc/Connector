@@ -39,9 +39,6 @@ titanium = "1.7.0"
 kafkaClients = "4.2.0"
 testcontainers = "2.0.5"
 tink = "1.21.0"
-dcp-tck = "1.0.0-SNAPSHOT"
-dsp-tck = "1.0.0-SNAPSHOT"
-dps-tck = "1.0.0"
 junit = "6.0.3"
 wiremock = "3.13.2"
 cel = "0.11.1"
@@ -81,6 +78,7 @@ jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty
 jetty-ee10-servlet = { module = "org.eclipse.jetty.ee10:jetty-ee10-servlet", version.ref = "jetty" }
 jetty-websocket = { module = "org.eclipse.jetty.websocket:jetty-websocket", version.ref = "jetty" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "jupiter" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit" }
 junit-pioneer = { module = "org.junit-pioneer:junit-pioneer", version.ref = "junit-pioneer" }
 micrometer = { module = "io.micrometer:micrometer-core", version.ref = "micrometer" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
@@ -114,24 +112,9 @@ kafkaClients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka
 jsonschema = { module = "com.networknt:json-schema-validator", version = "2.0.0" }
 nats = { module = "io.nats:jnats", version = "2.25.3" }
 
-# DSP-TCK libraries
-dsp-tck-runtime = { module = "org.eclipse.dataspacetck.dsp:tck-runtime", version.ref = "dsp-tck" }
-dsp-tck-core = { module = "org.eclipse.dataspacetck.dsp:core", version.ref = "dsp-tck" }
-dsp-tck-api = { module = "org.eclipse.dataspacetck.dsp:dsp-api", version.ref = "dsp-tck" }
-dsp-tck-system = { module = "org.eclipse.dataspacetck.dsp:dsp-system", version.ref = "dsp-tck" }
-dsp-tck-metadata = { module = "org.eclipse.dataspacetck.dsp:dsp-metadata", version.ref = "dsp-tck" }
-dsp-tck-catalog = { module = "org.eclipse.dataspacetck.dsp:dsp-catalog", version.ref = "dsp-tck" }
-dsp-tck-contractnegotiation = { module = "org.eclipse.dataspacetck.dsp:dsp-contract-negotiation", version.ref = "dsp-tck" }
-dsp-tck-transferprocess = { module = "org.eclipse.dataspacetck.dsp:dsp-transfer-process", version.ref = "dsp-tck" }
-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit" }
-
-# DCP-TCK libraries
-dcp-testcases = { module = "org.eclipse.dataspacetck.dcp:dcp-testcases", version.ref = "dcp-tck" }
-dcp-tck-runtime = { module = "org.eclipse.dataspacetck.dsp:tck-runtime", version.ref = "dcp-tck" }
-dcp-system = { module = "org.eclipse.dataspacetck.dcp:dcp-system", version.ref = "dcp-tck" }
-dsp-core = { module = "org.eclipse.dataspacetck.dsp:core", version.ref = "dcp-tck" }
-
-dps-tck = { module = "org.eclipse.dataspacetck.dps:dps-tck", version.ref = "dps-tck" }
+dcp-tck = { module = "org.eclipse.dataspacetck.dcp:dcp-tck", version = "1.0.2" }
+dsp-tck = { module = "org.eclipse.dataspacetck.dsp:dsp-tck", version = "1.0.1" }
+dps-tck = { module = "org.eclipse.dataspacetck.dps:dps-tck", version = "1.1.2" }
 
 [bundles]
 jackson = ["jackson-annotations", "jackson-databind"]

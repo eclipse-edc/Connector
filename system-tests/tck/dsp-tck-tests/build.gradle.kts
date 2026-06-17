@@ -30,14 +30,7 @@ dependencies {
     testImplementation(testFixtures(project(":data-protocols:data-plane-signaling:data-plane-signaling-spi")))
     runtimeOnly(libs.parsson)
 
-    testImplementation(libs.dsp.tck.api)
-    testImplementation(libs.dsp.tck.core)
-    testImplementation(libs.dsp.tck.runtime)
-    testImplementation(libs.dsp.tck.system)
-    testRuntimeOnly(libs.dsp.tck.catalog)
-    testRuntimeOnly(libs.dsp.tck.contractnegotiation)
-    testRuntimeOnly(libs.dsp.tck.metadata)
-    testRuntimeOnly(libs.dsp.tck.transferprocess)
+    testImplementation(libs.dsp.tck)
 
     testCompileOnly(project(":system-tests:tck:dsp-tck-connector-under-test"))
 }

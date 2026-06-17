@@ -29,10 +29,7 @@ dependencies {
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
     runtimeOnly(libs.parsson)
 
-    testImplementation(libs.dsp.core)
-    testImplementation(libs.dcp.tck.runtime)
-    testImplementation(libs.dcp.system)
-    testRuntimeOnly(libs.dcp.testcases)
+    testImplementation(libs.dcp.tck)
 
     testCompileOnly(project(":dist:bom:controlplane-dcp-bom"))
 }
