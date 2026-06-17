@@ -20,6 +20,7 @@ import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
@@ -41,7 +42,6 @@ import java.util.function.UnaryOperator;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
-import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -49,7 +49,6 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_DATASET_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ASSIGNER_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_ATTRIBUTE;
@@ -73,6 +72,7 @@ public class Participant {
     protected Duration timeout = Duration.ofSeconds(30);
     protected Protocol protocol = new Protocol("dataspace-protocol-http:2025-1", "/2025-1");
     protected String managementVersionBasePath = "/v4";
+    protected JsonValue managementContext = Json.createValue(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2);
 
     protected Participant() {
     }
@@ -129,7 +129,7 @@ public class Participant {
      */
     public String createAsset(String assetId, Map<String, Object> properties, Map<String, Object> dataAddressProperties) {
         var requestBody = createObjectBuilder()
-                .add(CONTEXT, "https://w3id.org/edc/connector/management/v2")
+                .add(CONTEXT, managementContext)
                 .add(TYPE, "Asset")
                 .add(ID, assetId)
                 .add("properties", createObjectBuilder(properties))
@@ -156,7 +156,7 @@ public class Participant {
      */
     public String createPolicyDefinition(JsonObject policy) {
         var requestBody = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add(CONTEXT, managementContext)
                 .add(TYPE, "PolicyDefinition")
                 .add("policy", policy)
                 .build();
@@ -184,7 +184,7 @@ public class Participant {
      */
     public String createContractDefinition(String assetId, String definitionId, String accessPolicyId, String contractPolicyId) {
         var requestBody = createObjectBuilder()
-                .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                .add(CONTEXT, managementContext)
                 .add(ID, definitionId)
                 .add(TYPE, "ContractDefinition")
                 .add(EDC_NAMESPACE + "accessPolicyId", accessPolicyId)
@@ -229,7 +229,7 @@ public class Participant {
     public JsonArray getCatalogDatasets(Participant provider, JsonObject querySpec) {
         var datasetReference = new AtomicReference<JsonArray>();
         var requestBodyBuilder = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add(CONTEXT, managementContext)
                 .add(TYPE, "CatalogRequest")
                 .add("counterPartyId", provider.id)
                 .add("counterPartyAddress", provider.getProtocolUrl())
@@ -272,7 +272,7 @@ public class Participant {
      */
     public JsonObject getDatasetForAsset(Participant provider, String assetId) {
         var requestBody = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add(CONTEXT, managementContext)
                 .add(TYPE, "DatasetRequest")
                 .add(ID, assetId)
                 .add("counterPartyId", provider.id)
@@ -323,7 +323,7 @@ public class Participant {
      */
     public String initContractNegotiation(Participant provider, JsonObject policy) {
         var requestBody = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add(CONTEXT, managementContext)
                 .add(TYPE, "ContractRequest")
                 .add("counterPartyAddress", provider.getProtocolUrl())
                 .add("protocol", protocol.name())
@@ -387,7 +387,7 @@ public class Participant {
      */
     public String initiateTransfer(Participant provider, String contractAgreementId, JsonObject privateProperties, JsonObject destination, String transferType, JsonArray callbacks) {
         var requestBodyBuilder = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add(CONTEXT, managementContext)
                 .add(TYPE, "TransferRequest")
                 .add("protocol", protocol.name())
                 .add("contractId", contractAgreementId)
@@ -430,7 +430,7 @@ public class Participant {
      */
     public JsonArray getTransferProcesses() {
         var query = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add(CONTEXT, managementContext)
                 .add(TYPE, "QuerySpec")
                 .build();
         return getTransferProcesses(query);
@@ -488,7 +488,7 @@ public class Participant {
      */
     public void suspendTransfer(String id, String reason) {
         var requestBodyBuilder = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add(CONTEXT, managementContext)
                 .add(TYPE, "SuspendTransfer")
                 .add("reason", reason);
 
@@ -519,7 +519,7 @@ public class Participant {
 
     public void terminateTransfer(String id) {
         var requestBodyBuilder = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add(CONTEXT, managementContext)
                 .add(TYPE, "TerminateTransfer")
                 .add("reason", "any reason");
 
@@ -628,6 +628,11 @@ public class Participant {
 
         public B managementVersionBasePath(String managementVersionBasePath) {
             participant.managementVersionBasePath = managementVersionBasePath;
+            return self();
+        }
+
+        public B managementContext(JsonValue managementContext) {
+            participant.managementContext = managementContext;
             return self();
         }
 
