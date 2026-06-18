@@ -28,16 +28,16 @@ maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.22.0, MIT AND BSD-2
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.18.3, Apache-2.0, approved, #16372
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.19.1, Apache-2.0, approved, #21909
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.19.2, Apache-2.0, approved, #21909
-maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.21.0, Apache-2.0, approved, #25591
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.21.2, Apache-2.0, approved, #25591
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.21.3, Apache-2.0, approved, #25591
+maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.21.4, Apache-2.0, approved, #25591
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.22.0, Apache-2.0, approved, #28621
 maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.18.3, Apache-2.0, approved, #16370
 maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.19.2, Apache-2.0, approved, #21912
 maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.22.0, Apache-2.0, approved, #28622
-maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.21.0, Apache-2.0, approved, #26448
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.21.2, Apache-2.0, approved, #26448
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.21.3, Apache-2.0, approved, #26448
+maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.21.4, Apache-2.0, approved, #26448
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.22.0, , restricted, clearlydefined
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.19.2, Apache-2.0, approved, #23299
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.21.3, Apache-2.0, approved, #26441
@@ -87,7 +87,6 @@ maven/mavencentral/com.squareup.okhttp3/okhttp-dnsoverhttps/5.3.2, Apache-2.0, a
 maven/mavencentral/com.squareup.okhttp3/okhttp-jvm/5.3.2, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.squareup.okhttp3/okhttp-jvm/5.4.0, , restricted, clearlydefined
 maven/mavencentral/com.squareup.okhttp3/okhttp/4.9.3, Apache-2.0 AND MPL-2.0, approved, #3225
-maven/mavencentral/com.squareup.okhttp3/okhttp/5.3.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.squareup.okhttp3/okhttp/5.3.2, Apache-2.0, approved, clearlydefined
 maven/mavencentral/com.squareup.okhttp3/okhttp/5.4.0, , restricted, clearlydefined
 maven/mavencentral/com.squareup.okio/okio-jvm/3.16.4, Apache-2.0, approved, clearlydefined
@@ -213,19 +212,18 @@ maven/mavencentral/org.eclipse.dataspacetck.common/boot/1.0.0, Apache-2.0, appro
 maven/mavencentral/org.eclipse.dataspacetck.common/core-api/1.0.0, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.common/core/1.0.0, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.common/tck-runtime/1.0.0, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-api/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-system/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-testcases/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dps/dps-tck/1.0.0, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dsp/boot/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dsp/core/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-api/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-catalog/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-contract-negotiation/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-metadata/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-system/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-transfer-process/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dsp/tck-runtime/1.0.0-SNAPSHOT, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-api/1.0.2, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-system/1.0.2, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-tck/1.0.2, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-testcases/1.0.2, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dps/dps-tck/1.1.2, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-api/1.0.1, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-catalog/1.0.1, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-contract-negotiation/1.0.1, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-metadata/1.0.1, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-system/1.0.1, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-tck/1.0.1, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-transfer-process/1.0.1, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.edc/autodoc-processor/0.18.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.edc/runtime-metamodel/0.18.0-SNAPSHOT, Apache-2.0, approved, technology.edc
 maven/mavencentral/org.eclipse.jetty.ee10/jetty-ee10-bom/12.0.30, EPL-2.0 OR Apache-2.0, approved, rt.jetty
@@ -294,7 +292,6 @@ maven/mavencentral/org.junit.jupiter/junit-jupiter-engine/6.0.3, EPL-2.0, approv
 maven/mavencentral/org.junit.jupiter/junit-jupiter-engine/6.1.0, EPL-2.0, approved, #28334
 maven/mavencentral/org.junit.jupiter/junit-jupiter-params/6.0.3, EPL-2.0, approved, #23934
 maven/mavencentral/org.junit.jupiter/junit-jupiter-params/6.1.0, EPL-2.0, approved, #28329
-maven/mavencentral/org.junit.jupiter/junit-jupiter/6.0.3, EPL-2.0, approved, #25620
 maven/mavencentral/org.junit.jupiter/junit-jupiter/6.1.0, , restricted, clearlydefined
 maven/mavencentral/org.junit.platform/junit-platform-commons/6.0.3, EPL-2.0, approved, #22893
 maven/mavencentral/org.junit.platform/junit-platform-commons/6.1.0, EPL-2.0, approved, #28333
@@ -302,9 +299,7 @@ maven/mavencentral/org.junit.platform/junit-platform-engine/6.0.3, EPL-2.0, appr
 maven/mavencentral/org.junit.platform/junit-platform-engine/6.1.0, EPL-2.0, approved, #28327
 maven/mavencentral/org.junit.platform/junit-platform-launcher/6.0.3, EPL-2.0, approved, #23935
 maven/mavencentral/org.junit.platform/junit-platform-launcher/6.1.0, EPL-2.0, approved, #28331
-maven/mavencentral/org.junit.platform/junit-platform-suite-api/6.0.3, EPL-2.0, approved, #23939
 maven/mavencentral/org.junit.platform/junit-platform-suite-api/6.1.0, EPL-2.0, approved, #28332
-maven/mavencentral/org.junit.platform/junit-platform-suite-engine/6.0.3, EPL-2.0, approved, #23937
 maven/mavencentral/org.junit.platform/junit-platform-suite-engine/6.1.0, EPL-2.0, approved, #28325
 maven/mavencentral/org.junit/junit-bom/5.11.2, EPL-2.0, approved, #16062
 maven/mavencentral/org.junit/junit-bom/6.0.3, EPL-2.0, approved, #26480
