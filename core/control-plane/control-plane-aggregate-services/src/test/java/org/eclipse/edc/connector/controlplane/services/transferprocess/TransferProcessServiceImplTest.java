@@ -19,7 +19,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
-import org.eclipse.edc.connector.controlplane.transfer.spi.flow.TransferTypeParser;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
@@ -36,12 +35,8 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.types.domain.DataAddress;
-import org.eclipse.edc.spi.types.domain.transfer.FlowType;
-import org.eclipse.edc.spi.types.domain.transfer.TransferType;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
-import org.eclipse.edc.validator.spi.DataAddressValidatorRegistry;
-import org.eclipse.edc.validator.spi.ValidationResult;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -55,7 +50,6 @@ import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.NOT_FOUND;
-import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -72,14 +66,12 @@ class TransferProcessServiceImplTest {
     private final QuerySpec query = QuerySpec.Builder.newInstance().limit(5).offset(2).build();
     private final TransferProcessStore store = mock();
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
-    private final DataAddressValidatorRegistry dataAddressValidator = mock();
     private final CommandHandlerRegistry commandHandlerRegistry = mock();
-    private final TransferTypeParser transferTypeParser = mock();
     private final ContractNegotiationStore contractNegotiationStore = mock();
     private final QueryValidator queryValidator = mock();
 
     private final TransferProcessService service = new TransferProcessServiceImpl(store, transactionContext,
-            dataAddressValidator, commandHandlerRegistry, transferTypeParser, contractNegotiationStore, queryValidator);
+            commandHandlerRegistry, contractNegotiationStore, queryValidator);
 
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
             .participantContextId("participantContextId")
@@ -195,8 +187,6 @@ class TransferProcessServiceImplTest {
             var transferProcess = transferProcess();
             when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
                     .thenReturn(createContractAgreement(transferProcess.getContractId(), "assetId"));
-            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
-            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success(transferProcess));
 
             var result = service.initiateTransfer(participantContext, transferRequest);
@@ -207,22 +197,7 @@ class TransferProcessServiceImplTest {
         }
 
         @Test
-        void shouldFail_whenTransferTypeIsNotValid() {
-            when(transferTypeParser.parse(any())).thenReturn(Result.failure("cannot parse"));
-
-            var result = service.initiateTransfer(participantContext, transferRequest());
-
-            assertThat(result).isFailed()
-                    .extracting(ServiceFailure::getReason)
-                    .isEqualTo(BAD_REQUEST);
-            assertThat(result.getFailureDetail()).contains("cannot parse");
-        }
-
-        @Test
         void shouldFail_whenContractAgreementNotFound() {
-            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
-            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
-
             var result = service.initiateTransfer(participantContext, transferRequest());
 
             assertThat(result).isFailed()
@@ -232,29 +207,11 @@ class TransferProcessServiceImplTest {
         }
 
         @Test
-        void shouldFail_whenDestinationIsNotValid() {
-            var transferRequest = transferRequest();
-            when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
-                    .thenReturn(createContractAgreement(transferRequest.getContractId(), "assetId"));
-            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
-            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.failure(violation("invalid data address", "path")));
-
-            var result = service.initiateTransfer(participantContext, transferRequest);
-
-            assertThat(result).isFailed()
-                    .extracting(ServiceFailure::getReason)
-                    .isEqualTo(BAD_REQUEST);
-            assertThat(result.getFailureMessages()).containsExactly("invalid data address");
-        }
-
-        @Test
         void shouldFail_whenCommandFails() {
             var transferRequest = transferRequest();
             var transferProcess = transferProcess();
             when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
                     .thenReturn(createContractAgreement(transferProcess.getContractId(), "assetId"));
-            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
-            when(dataAddressValidator.validateDestination(any())).thenReturn(ValidationResult.success());
             when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.notExecutable("error"));
 
             var result = service.initiateTransfer(participantContext, transferRequest);
@@ -268,14 +225,12 @@ class TransferProcessServiceImplTest {
             var transferProcess = transferProcess();
             when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
                     .thenReturn(createContractAgreement(transferProcess.getContractId(), "assetId"));
-            when(transferTypeParser.parse(any())).thenReturn(Result.success(new TransferType("DestinationType", FlowType.PUSH)));
             when(commandHandlerRegistry.execute(any())).thenReturn(CommandResult.success(transferProcess));
 
             var result = service.initiateTransfer(participantContext, transferRequest);
 
             assertThat(result).isSucceeded().isEqualTo(transferProcess);
             verify(transactionContext).execute(any(TransactionContext.ResultTransactionBlock.class));
-            verifyNoInteractions(dataAddressValidator);
         }
     }
 
