@@ -7,12 +7,11 @@ modules. The target structure is:
 
 - `core-spi` — everything needed to build a _runtime_, but not necessarily a _connector_ (boot, web/http, json-ld,
   transactions, tokens/keys, base participant context, identity primitives).
-- `controlplane-spi` — everything needed to build a _connector_ runtime, including all control-plane domain types and
+- `control-plane-spi` — everything needed to build a _connector_ runtime, including all control-plane domain types and
   stores.
-- `dataplane-spi` — everything needed to build a _data plane_ runtime (pipeline, source/sink, manager, registry).
+- `data-plane-spi` — everything needed to build a _data plane_ runtime (pipeline, source/sink, manager, registry).
 - One SPI module per protocol: `dcp-spi` (Decentralized Claims Protocol), `signaling-spi` (Dataplane Signaling) and
   `dataspace-protocol-spi` (DSP binding).
-- The remaining domain SPIs, e.g. `federated-catalog-spi`, stay as dedicated modules.
 
 We accept that this removes published Maven coordinates and is therefore a breaking change for downstream adopters that
 depend on the individual modules directly.
@@ -47,19 +46,19 @@ REST APIs:
 boot-spi  core-spi  http-spi  web-spi  json-ld-spi  transform-spi  validator-spi
 transaction-spi  transaction-datasource-spi  policy-model  token-spi  jwt-spi  keys-spi
 encryption-spi  oauth2-spi  auth-spi  connector-participant-context-spi
-identity-did-spi  verifiable-credentials-spi  vault-hashicorp-spi
+identity-did-spi  verifiable-credentials-spi  vault-hashicorp-spi 
 ```
 
-**`controlplane-spi`** — connector domain types and stores:
+**`control-plane-spi`** — connector domain types and stores:
 
 ```
 control-plane-spi  asset-spi  catalog-spi  contract-spi  transfer-spi  policy-spi
 policy-engine-spi  participant-spi  request-policy-context-spi  cel-spi
 participant-context-single-spi  participant-context-config-spi  secrets-spi
-edr-store-spi  task-spi  policy-monitor-spi  data-plane-selector-spi
+edr-store-spi  task-spi  policy-monitor-spi  data-plane-selector-spi federated-catalog-spi  crawler-spi
 ```
 
-**`dataplane-spi`** — data-plane runtime framework (deprecated, scheduled for removal):
+**`data-plane-spi`** — data-plane runtime framework (deprecated, scheduled for removal):
 
 ```
 data-plane-spi  data-plane-http-spi
@@ -83,21 +82,15 @@ protocol-spi
 signaling-spi
 ```
 
-**`federated-catalog-spi`** — federated catalog and crawler:
-
-```
-federated-catalog-spi  crawler-spi
-```
-
 Note that this is not an exhaustive list of SPI modules. There are several others that will be relocated/merged to fit
 the pattern established here.
 
 ### Resulting layering
 
-The target modules form an acyclic layering. `core-spi` is the base. `controlplane-spi`, `dataplane-spi` and the
-protocol modules build on top of it, and `federated-catalog-spi` builds on `controlplane-spi`. One protocol module,
-`dcp-spi`, additionally depends on `controlplane-spi`, because `decentralized-claims-spi` reuses `policy-engine-spi`
-and `participant-spi` for credential-scope policy evaluation, and those now live in `controlplane-spi`.
+The target modules form an acyclic layering. `core-spi` is the base. `control-plane-spi`, `data-plane-spi` and the
+protocol modules build on top of it, and `federated-catalog-spi` builds on `control-plane-spi`. One protocol module,
+`dcp-spi`, additionally depends on `control-plane-spi`, because `decentralized-claims-spi` reuses `policy-engine-spi`
+and `participant-spi` for credential-scope policy evaluation, and those now live in `control-plane-spi`.
 
 ```mermaid
 block-beta
@@ -107,9 +100,9 @@ block-beta
     end
     space
     block
-        A["controlplane-spi"]
+        A["control-plane-spi"]
         B["dataspace-protocol-spi"]
-        C["dataplane-spi*"]
+        C["data-plane-spi*"]
         D["dcp-spi"]
         E["signaling-spi"]
     end
@@ -128,9 +121,9 @@ block-beta
 
 *) deprecated
 
-The single upward edge from a protocol module — `dcp-spi → controlplane-spi` — is a deliberate trade-off: keeping the
+The single upward edge from a protocol module — `dcp-spi → control-plane-spi` — is a deliberate trade-off: keeping the
 policy and participant SPIs out of `core-spi` (because they are not generic to every runtime) means the
-credential-scope policy types that `decentralized-claims-spi` reuses now sit in `controlplane-spi`.
+credential-scope policy types that `decentralized-claims-spi` reuses now sit in `control-plane-spi`.
 
 During refactoring we may find edge cases that don't really fit anywhere. Unless there is a strong reason against it,
 those edge cases should collectively go into `core-spi`.
@@ -139,15 +132,15 @@ those edge cases should collectively go into `core-spi`.
 
 A few assignments are deliberate judgment calls and can be revisited:
 
-- `dataplane-spi` as a separate module. The data-plane framework SPI is large and domain-specific, and it is deprecated.
+- `data-plane-spi` as a separate module. The data-plane framework SPI is large and domain-specific, and it is deprecated.
   This will make deletion easier once the DPF is removed altogether.
 - `oauth2-spi` is placed in `core-spi` as a token primitive; alternatively, it could become its own (centralized)
   identity-protocol module alongside `dcp-spi`.
 - `auth-spi` (Management API authentication) is placed in `core-spi` as generic web-API auth, but we may need to split
-  it and move some parts into `controlplane-spi`, because some interfaces and model classes are specific to the
+  it and move some parts into `control-plane-spi`, because some interfaces and model classes are specific to the
   Management API, e.g. `ManagementApiScopes` and `ParticipantPrincipal`
 - `participant-context` is split: `connector-participant-context-spi` stays in `core-spi`, since non-connector
   runtimes (e.g. identity hubs) also need it, while the `participant-context-single-spi` and
-  `participant-context-config-spi` variants are connector-runtime concerns and go into `controlplane-spi`.
+  `participant-context-config-spi` variants are connector-runtime concerns and go into `control-plane-spi`.
 
   
