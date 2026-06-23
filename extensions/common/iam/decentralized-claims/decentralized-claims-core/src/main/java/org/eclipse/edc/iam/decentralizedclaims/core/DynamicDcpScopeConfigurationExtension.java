@@ -24,7 +24,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
-import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
 import java.util.Map;
 
@@ -47,11 +46,6 @@ public class DynamicDcpScopeConfigurationExtension implements ServiceExtension {
     @Inject
     private Monitor monitor;
 
-    @Override
-    public void initialize(ServiceExtensionContext context) {
-        scopeConfig.values().forEach(this::addScope);
-    }
-
     private void addScope(DcpScopeConfig config) {
         var prefixMapping = config.prefixMapping() != null ? config.prefixMapping() : config.prefixMappingLegacy();
         var scope = DcpScope.Builder.newInstance().id(config.id())
@@ -64,6 +58,10 @@ public class DynamicDcpScopeConfigurationExtension implements ServiceExtension {
         scopeRegistry.register(scope).orElseThrow(e -> new EdcException("Failed to register DCP scope with id " + config.id()));
     }
 
+    @Override
+    public void prepare() {
+        scopeConfig.values().forEach(this::addScope);
+    }
 
     @Settings
     private record DcpScopeConfig(

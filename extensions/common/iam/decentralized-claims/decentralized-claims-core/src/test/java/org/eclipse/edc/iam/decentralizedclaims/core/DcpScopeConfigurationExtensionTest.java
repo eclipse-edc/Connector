@@ -53,7 +53,7 @@ public class DcpScopeConfigurationExtensionTest {
                 "edc.iam.dcp.scopes.membership.type", "DEFAULT")));
 
         var ext = factory.constructInstance(DynamicDcpScopeConfigurationExtension.class);
-        ext.initialize(context);
+        ext.prepare();
 
         var captor = ArgumentCaptor.forClass(DcpScope.class);
         verify(registry).register(captor.capture());
@@ -75,7 +75,7 @@ public class DcpScopeConfigurationExtensionTest {
 
         var ext = factory.constructInstance(DynamicDcpScopeConfigurationExtension.class);
 
-        ext.initialize(context);
+        ext.prepare();
 
         var captor = ArgumentCaptor.forClass(DcpScope.class);
         verify(registry).register(captor.capture());
@@ -98,7 +98,7 @@ public class DcpScopeConfigurationExtensionTest {
 
         var ext = factory.constructInstance(DynamicDcpScopeConfigurationExtension.class);
 
-        ext.initialize(context);
+        ext.prepare();
 
         var captor = ArgumentCaptor.forClass(DcpScope.class);
         verify(registry).register(captor.capture());

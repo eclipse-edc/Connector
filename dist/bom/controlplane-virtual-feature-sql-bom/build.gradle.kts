@@ -24,6 +24,7 @@ dependencies {
     api(project(":extensions:control-plane:store:sql:participantcontext-config-store-sql"))
     api(project(":extensions:common:store:sql:cel-store-sql"))
     api(project(":extensions:common:store:sql:task-store-sql"))
+    api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-store-sql"))
 }
 
 edcBuild {
