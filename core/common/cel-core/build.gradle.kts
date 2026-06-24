@@ -17,16 +17,14 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:cel-spi"))
-    api(project(":spi:common:transaction-spi"))
-    api(project(":spi:control-plane:control-plane-spi"))
-    api(project(":spi:policy-monitor:policy-monitor-spi"))
+    api(project(":spi:control-plane-spi"))
+    api(project(":spi:core-spi"))
 
     implementation(project(":core:common:lib:store-lib"))
     implementation(libs.cel)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(testFixtures(project(":spi:common:cel-spi")))
+    testImplementation(testFixtures(project(":spi:control-plane-spi")))
     testImplementation(project(":core:common:lib:query-lib"))
 
 }

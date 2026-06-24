@@ -18,10 +18,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:http-spi"))
-    api(project(":spi:common:vault-hashicorp-spi"))
-    api(project(":spi:common:participant-context-config-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
 
     implementation(project(":core:common:lib:util-lib"))
 

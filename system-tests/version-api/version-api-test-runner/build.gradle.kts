@@ -19,14 +19,10 @@ plugins {
 dependencies {
     testImplementation(project(":core:common:junit"))
     // gives access to the Json LD models, etc.
-    testImplementation(project(":spi:common:json-ld-spi"))
-    testImplementation(project(":spi:control-plane:asset-spi"))
-    testImplementation(project(":spi:control-plane:contract-spi"))
-    testImplementation(project(":spi:data-plane-selector:data-plane-selector-spi"))
+    testImplementation(project(":spi:core-spi"))
+    testImplementation(project(":spi:control-plane-spi"))
 
     //useful for generic DTOs etc.
-    testImplementation(project(":spi:control-plane:policy-spi"))
-    testImplementation(project(":spi:control-plane:transfer-spi"))
 
     //we need the JacksonJsonLd util class
     testImplementation(project(":core:common:lib:json-ld-lib"))

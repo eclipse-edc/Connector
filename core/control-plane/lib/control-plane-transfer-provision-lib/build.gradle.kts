@@ -19,7 +19,7 @@ plugins {
 
 
 dependencies {
-    api(project(":spi:control-plane:transfer-spi"))
+    api(project(":spi:control-plane-spi"))
 
     implementation(project(":core:common:lib:util-lib"))
     implementation(libs.opentelemetry.instrumentation.annotations)

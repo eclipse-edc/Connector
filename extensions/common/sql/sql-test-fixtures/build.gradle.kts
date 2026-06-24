@@ -18,9 +18,7 @@ plugins {
 }
 
 dependencies {
-    testFixturesImplementation(project(":spi:common:core-spi"))
-    testFixturesImplementation(project(":spi:common:transaction-datasource-spi"))
-    testFixturesImplementation(project(":spi:common:transaction-spi"))
+    testFixturesImplementation(project(":spi:core-spi"))
     testFixturesImplementation(project(":core:common:junit"))
     testFixturesImplementation(project(":core:common:lib:sql-lib"))
     testFixturesImplementation(project(":extensions:common:sql:sql-lease"))

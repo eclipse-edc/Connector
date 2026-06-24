@@ -19,9 +19,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:transaction-spi"))
-    implementation(project(":spi:common:transaction-datasource-spi"))
+    api(project(":spi:core-spi"))
+    implementation(project(":spi:core-spi"))
     implementation(project(":core:common:lib:sql-lib"))
 
     testImplementation(project(":core:common:junit"))

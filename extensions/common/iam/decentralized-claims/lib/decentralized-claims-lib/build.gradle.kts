@@ -18,9 +18,9 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:decentralized-claims-spi"))
-    api(project(":spi:common:jwt-spi"))
+    api(project(":spi:dcp-spi"))
+    api(project(":spi:core-spi"))
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(testFixtures(project(":spi:common:verifiable-credentials-spi")))
+    testImplementation(testFixtures(project(":spi:core-spi")))
 }

@@ -17,7 +17,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":spi:common:json-ld-spi"))
+    implementation(project(":spi:core-spi"))
     implementation(project(":extensions:common:json-ld"))
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:crypto-common-lib"))

@@ -21,8 +21,7 @@ plugins {
 dependencies {
     api(project(":core:common:junit-base"))
 
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:http-spi"))
+    api(project(":spi:core-spi"))
     api(project(":core:common:boot"))
     api(project(":core:common:lib:http-lib"))
     api(project(":core:common:lib:json-lib"))

@@ -17,12 +17,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:policy-monitor:policy-monitor-spi"))
-    api(project(":spi:common:json-ld-spi"))
-    api(project(":spi:common:transaction-spi"))
-    api(project(":spi:control-plane:control-plane-spi"))
-    api(project(":spi:control-plane:policy-spi"))
-    api(project(":spi:control-plane:transfer-spi"))
+    api(project(":spi:control-plane-spi"))
+    api(project(":spi:core-spi"))
 
     implementation(project(":core:common:lib:state-machine-lib"))
     implementation(project(":core:common:lib:store-lib"))
@@ -31,7 +27,7 @@ dependencies {
     testImplementation(project(":core:common:lib:query-lib"))
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)
-    testImplementation(testFixtures(project(":spi:policy-monitor:policy-monitor-spi")))
+    testImplementation(testFixtures(project(":spi:control-plane-spi")))
 }
 
 

@@ -87,10 +87,11 @@ the pattern established here.
 
 ### Resulting layering
 
-The target modules form an acyclic layering. `core-spi` is the base. `control-plane-spi`, `data-plane-spi` and the
-protocol modules build on top of it, and `federated-catalog-spi` builds on `control-plane-spi`. One protocol module,
-`dcp-spi`, additionally depends on `control-plane-spi`, because `decentralized-claims-spi` reuses `policy-engine-spi`
-and `participant-spi` for credential-scope policy evaluation, and those now live in `control-plane-spi`.
+The target modules form an acyclic layering. `core-spi` is the base; `control-plane-spi`, `data-plane-spi` and the
+protocol modules build on top of it (the federated-catalog and crawler SPIs are folded into `control-plane-spi`). One
+protocol module, `dcp-spi`, additionally depends on `control-plane-spi`, because `decentralized-claims-spi` reuses
+`policy-engine-spi` and `participant-spi` for credential-scope policy evaluation, and those now live in
+`control-plane-spi`.
 
 ```mermaid
 block-beta
@@ -106,16 +107,12 @@ block-beta
         D["dcp-spi"]
         E["signaling-spi"]
     end
-    space
-    block
-        F["federated-catalog-spi"]
-    end
     A --> R
     B --> R
     C --> R
     D --> R
     E --> R
-    F --> A
+    D --> A
 
 ```
 

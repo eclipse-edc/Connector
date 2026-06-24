@@ -17,7 +17,7 @@ plugins {
 }
 
 dependencies {
-    testImplementation(project(":spi:federated-catalog-spi"))
+    testImplementation(project(":spi:control-plane-spi"))
     testImplementation(project(":core:catalog-crawler:catalog-crawler-core"))
     testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:lib:transform-lib"))

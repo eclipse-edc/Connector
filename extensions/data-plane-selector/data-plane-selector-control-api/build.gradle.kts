@@ -19,9 +19,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:web-spi"))
-    api(project(":spi:common:participant-context-single-spi"))
-    api(project(":spi:data-plane-selector:data-plane-selector-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
 
     implementation(project(":core:common:lib:api-lib"))
     implementation(project(":core:common:lib:transform-lib"))

@@ -18,8 +18,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:policy:request-policy-context-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
     api(project(":data-protocols:dsp:dsp-spi"))
 
     api(libs.okhttp)
@@ -27,5 +27,5 @@ dependencies {
     api(libs.jakarta.rsApi)
 
     testFixturesApi(project(":core:common:junit"))
-    testFixturesApi(project(":spi:common:json-ld-spi"))
+    testFixturesApi(project(":spi:core-spi"))
 }

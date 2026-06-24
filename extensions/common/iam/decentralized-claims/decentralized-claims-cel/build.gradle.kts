@@ -18,8 +18,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:cel-spi"))
-    api(project(":spi:common:verifiable-credentials-spi"))
+    api(project(":spi:control-plane-spi"))
+    api(project(":spi:core-spi"))
 
     testImplementation(project(":core:common:junit"))
 }

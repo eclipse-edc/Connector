@@ -4,18 +4,12 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:decentralized-claims-spi"))
-    api(project(":spi:common:policy:request-policy-context-spi"))
-    api(project(":spi:common:transaction-spi"))
-    api(project(":spi:control-plane:catalog-spi"))
-    api(project(":spi:control-plane:contract-spi"))
-    api(project(":spi:control-plane:transfer-spi"))
-    implementation(project(":spi:common:json-ld-spi"))
-    implementation(project(":spi:common:http-spi"))
-    implementation(project(":spi:common:keys-spi"))
-    implementation(project(":spi:common:participant-spi"))
-    implementation(project(":spi:common:participant-context-config-spi"))
-    implementation(project(":spi:common:protocol-spi"))
+    api(project(":spi:dcp-spi"))
+    api(project(":spi:control-plane-spi"))
+    api(project(":spi:core-spi"))
+    implementation(project(":spi:core-spi"))
+    implementation(project(":spi:control-plane-spi"))
+    implementation(project(":spi:dataspace-protocol-spi"))
 
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:crypto-common-lib"))
@@ -32,8 +26,8 @@ dependencies {
     implementation(libs.nimbus.jwt)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(testFixtures(project(":spi:common:decentralized-claims-spi")))
-    testImplementation(testFixtures(project(":spi:common:verifiable-credentials-spi")))
+    testImplementation(testFixtures(project(":spi:dcp-spi")))
+    testImplementation(testFixtures(project(":spi:core-spi")))
     testImplementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":core:common:lib:query-lib"))
     testImplementation(project(":extensions:common:json-ld"))

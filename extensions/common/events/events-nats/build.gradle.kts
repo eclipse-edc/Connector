@@ -18,7 +18,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
+    api(project(":spi:core-spi"))
     implementation(libs.nats)
     implementation(libs.cloudEvents)
     implementation(libs.cloudEvents.json)

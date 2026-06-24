@@ -19,8 +19,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:keys-spi"))
-    api(project(":spi:common:boot-spi"))
+    api(project(":spi:core-spi"))
     implementation(libs.bouncyCastle.bcpkixJdk18on)
     implementation(libs.nimbus.jwt)
     implementation(libs.tink)

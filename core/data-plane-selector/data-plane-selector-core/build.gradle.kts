@@ -17,8 +17,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:data-plane-selector:data-plane-selector-spi"))
-    api(project(":spi:common:transaction-spi"))
+    api(project(":spi:control-plane-spi"))
+    api(project(":spi:core-spi"))
 
     implementation(project(":core:common:lib:query-lib"))
     implementation(project(":core:common:lib:state-machine-lib"))
@@ -26,7 +26,7 @@ dependencies {
     implementation(project(":core:common:lib:util-lib"))
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(testFixtures(project(":spi:data-plane-selector:data-plane-selector-spi")))
+    testImplementation(testFixtures(project(":spi:control-plane-spi")))
 
     testImplementation(libs.awaitility)
 }

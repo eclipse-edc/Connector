@@ -21,7 +21,7 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-core:dsp-http-core"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
     api(project(":extensions:common:json-ld"))
-    api(project(":spi:control-plane:catalog-spi"))
+    api(project(":spi:control-plane-spi"))
 
     testImplementation(testFixtures(project(":data-protocols:dsp:dsp-http-spi")))
 }

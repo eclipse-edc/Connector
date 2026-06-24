@@ -17,15 +17,14 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:transaction-spi"))
+    api(project(":spi:core-spi"))
 
     implementation(project(":core:common:lib:sql-lib"))
     implementation(project(":extensions:common:sql:sql-bootstrapper"))
-    implementation(project(":spi:common:edr-store-spi"))
-    implementation(project(":spi:common:transaction-datasource-spi"))
+    implementation(project(":spi:control-plane-spi"))
+    implementation(project(":spi:core-spi"))
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
-    testImplementation(testFixtures(project(":spi:common:edr-store-spi")))
+    testImplementation(testFixtures(project(":spi:control-plane-spi")))
 
 }

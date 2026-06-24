@@ -18,9 +18,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:auth-spi"))
-    api(project(":spi:common:web-spi"))
-    api(project(":spi:control-plane:transfer-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
     api(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
     implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
 

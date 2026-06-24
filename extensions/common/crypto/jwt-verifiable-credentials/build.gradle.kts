@@ -19,9 +19,8 @@ plugins {
 dependencies {
     implementation(libs.nimbus.jwt)
 
-    implementation(project(":spi:common:json-ld-spi"))
-    implementation(project(":spi:common:jwt-spi"))
-    implementation(project(":spi:common:decentralized-claims-spi"))
+    implementation(project(":spi:core-spi"))
+    implementation(project(":spi:dcp-spi"))
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:token-lib"))
 
@@ -29,7 +28,7 @@ dependencies {
     testImplementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:crypto-common-lib"))
-    testImplementation(testFixtures(project(":spi:common:jwt-spi")))
+    testImplementation(testFixtures(project(":spi:core-spi")))
     testFixturesImplementation(libs.nimbus.jwt)
-    testFixturesImplementation(project(":spi:common:identity-did-spi"))
+    testFixturesImplementation(project(":spi:core-spi"))
 }

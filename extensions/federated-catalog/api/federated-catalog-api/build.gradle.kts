@@ -18,9 +18,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:federated-catalog-spi"))
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:control-plane:contract-spi"))
+    api(project(":spi:control-plane-spi"))
+    api(project(":spi:core-spi"))
     api(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
 
     implementation(project(":core:common:lib:api-lib"))
@@ -28,9 +27,7 @@ dependencies {
     implementation(project(":data-protocols:dsp:dsp-lib:dsp-catalog-lib:dsp-catalog-transform-lib"))
     implementation(project(":extensions:common:api:lib:management-api-lib"))
     implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
-    implementation(project(":spi:common:transform-spi"))
-    implementation(project(":spi:common:validator-spi"))
-    implementation(project(":spi:common:web-spi"))
+    implementation(project(":spi:core-spi"))
 
     // required for integration test
     testImplementation(project(":data-protocols:dsp:dsp-http-spi"))

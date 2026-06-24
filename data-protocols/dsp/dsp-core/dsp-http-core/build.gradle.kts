@@ -17,12 +17,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:http-spi"))
-    api(project(":spi:common:json-ld-spi"))
-    api(project(":spi:common:validator-spi"))
-    api(project(":spi:common:token-spi"))
-    api(project(":spi:control-plane:contract-spi"))
-    api(project(":spi:control-plane:transfer-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
     api(project(":extensions:common:json-ld"))
     api(project(":data-protocols:dsp:dsp-spi"))
     api(project(":data-protocols:dsp:dsp-http-spi"))

@@ -18,9 +18,8 @@ plugins {
 
 
 dependencies {
-    api(project(":spi:common:policy-engine-spi"))
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:control-plane:contract-spi"))
+    api(project(":spi:control-plane-spi"))
+    api(project(":spi:core-spi"))
 
     testImplementation(project(":core:common:lib:policy-engine-lib"))
     testImplementation(project(":core:common:junit"))

@@ -18,8 +18,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:boot-spi"))
-    api(project(":spi:common:participant-context-single-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
 
     implementation(project(":core:common:lib:boot-lib"))
 

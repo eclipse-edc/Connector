@@ -18,9 +18,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:validator-spi"))
-    api(project(":spi:common:data-address:data-address-http-data-spi"))
+    api(project(":spi:core-spi"))
 
     testImplementation(project(":core:common:junit-base"));
 

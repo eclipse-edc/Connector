@@ -17,11 +17,10 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:web-spi"))
-    api(project(":spi:data-plane:data-plane-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:data-plane-spi"))
 
-    implementation(project(":spi:common:token-spi"))
+    implementation(project(":spi:core-spi"))
     implementation(project(":core:common:lib:store-lib"))
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:data-plane:data-plane-util"))
@@ -32,7 +31,7 @@ dependencies {
     testImplementation(project(":core:common:lib:query-lib"))
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)
-    testImplementation(testFixtures(project(":spi:data-plane:data-plane-spi")))
+    testImplementation(testFixtures(project(":spi:data-plane-spi")))
 }
 
 

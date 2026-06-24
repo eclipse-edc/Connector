@@ -17,13 +17,13 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:federated-catalog-spi"))
+    api(project(":spi:control-plane-spi"))
     implementation(project(":core:common:lib:sql-lib"))
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":extensions:common:sql:sql-bootstrapper"))
-    implementation(project(":spi:common:transaction-datasource-spi"))
+    implementation(project(":spi:core-spi"))
 
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
-    testImplementation(testFixtures(project(":spi:federated-catalog-spi")))
+    testImplementation(testFixtures(project(":spi:control-plane-spi")))
 }

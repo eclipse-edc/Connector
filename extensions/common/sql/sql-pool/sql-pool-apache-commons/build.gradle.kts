@@ -20,7 +20,7 @@ plugins {
 
 
 dependencies {
-    api(project(":spi:common:transaction-datasource-spi"))
+    api(project(":spi:core-spi"))
 
     implementation(project(":core:common:lib:sql-lib"))
 

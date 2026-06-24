@@ -21,7 +21,7 @@ dependencies {
     implementation(project(":extensions:common:http:jetty-core"))
     api(libs.micrometer)
 
-    api(project(":spi:common:core-spi"))
+    api(project(":spi:core-spi"))
 
 }
 

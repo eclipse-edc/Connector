@@ -17,9 +17,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:http-spi"))
-    api(project(":spi:common:oauth2-spi"))
-    api(project(":spi:common:keys-spi"))
+    api(project(":spi:core-spi"))
     api(project(":data-protocols:data-plane-signaling:data-plane-signaling-spi"))
 
     implementation(project(":core:common:lib:keys-lib"))

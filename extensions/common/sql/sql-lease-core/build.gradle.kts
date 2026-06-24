@@ -20,9 +20,7 @@ plugins {
 
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:transaction-spi"))
-    api(project(":spi:common:transaction-datasource-spi"))
+    api(project(":spi:core-spi"))
     api(project(":extensions:common:sql:sql-lease-spi"))
     implementation(project(":extensions:common:sql:sql-lease"))
     implementation(project(":core:common:lib:sql-lib"))

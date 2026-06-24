@@ -18,16 +18,14 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:decentralized-claims-spi"))
-    api(project(":spi:common:json-ld-spi"))
-    api(project(":spi:common:transform-spi"))
-    api(project(":spi:common:transform-spi"))
+    api(project(":spi:dcp-spi"))
+    api(project(":spi:core-spi"))
     api(libs.nimbus.jwt)
 
     testImplementation(testFixtures(project(":core:common:lib:json-ld-lib")))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(project(":core:common:lib:transform-lib")) //for the TransformerContextImpl
     testImplementation(project(":core:common:junit")) //for the TestUtils
-    testImplementation(testFixtures(project(":spi:common:decentralized-claims-spi")))
+    testImplementation(testFixtures(project(":spi:dcp-spi")))
 }
 

@@ -18,11 +18,11 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:policy-engine-spi"))
-    api(project(":spi:common:policy-model"))
+    api(project(":spi:control-plane-spi"))
+    api(project(":spi:core-spi"))
     implementation(project(":core:common:lib:policy-evaluator-lib"))
 
-    testImplementation(project(":spi:common:participant-spi"))
+    testImplementation(project(":spi:control-plane-spi"))
     testImplementation(project(":core:common:junit-base"))
 }
 

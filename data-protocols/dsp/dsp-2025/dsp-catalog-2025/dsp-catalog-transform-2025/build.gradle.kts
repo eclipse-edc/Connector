@@ -19,7 +19,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
+    api(project(":spi:core-spi"))
     api(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
 
     implementation(project(":core:common:lib:transform-lib"))

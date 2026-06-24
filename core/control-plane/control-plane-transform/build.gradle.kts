@@ -18,17 +18,9 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:json-ld-spi"))
-    api(project(":spi:common:participant-spi"))
-    api(project(":spi:common:cel-spi"))
-    api(project(":spi:common:participant-context-config-spi"))
-    api(project(":spi:common:transform-spi"))
-    api(project(":spi:common:protocol-spi"))
-    api(project(":spi:control-plane:asset-spi"))
-    api(project(":spi:control-plane:policy-spi"))
-    api(project(":spi:control-plane:contract-spi"))
-    api(project(":spi:control-plane:transfer-spi"))
-    api(project(":spi:control-plane:catalog-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
+    api(project(":spi:dataspace-protocol-spi"))
 
     testImplementation(project(":core:common:junit-base"));
     testImplementation(project(":core:common:lib:json-lib"))

@@ -17,13 +17,10 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:control-plane:transfer-spi"))
-    api(project(":spi:control-plane:control-plane-spi"))
-    api(project(":spi:control-plane:policy-spi"))
-    api(project(":spi:common:edr-store-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
 
-    implementation(project(":spi:common:transaction-spi"))
+    implementation(project(":spi:core-spi"))
 
     testImplementation(project(":core:common:junit"))
 

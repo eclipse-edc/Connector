@@ -16,13 +16,9 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:protocol-spi"))
-    api(project(":spi:common:transform-spi"))
-    api(project(":spi:control-plane:asset-spi"))
-    api(project(":spi:control-plane:contract-spi"))
-    api(project(":spi:control-plane:control-plane-spi"))
-    api(project(":spi:control-plane:policy-spi"))
-    api(project(":spi:control-plane:transfer-spi"))
+    api(project(":spi:dataspace-protocol-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
 
     implementation(project(":core:common:lib:transform-lib"))
     implementation(project(":core:common:lib:state-machine-lib"))
