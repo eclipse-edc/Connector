@@ -50,7 +50,7 @@ still form an acyclic graph layered above the SPI modules.
 | **`core-lib`**          | `query-lib`, `crypto-common-lib`, `keys-lib`, `token-lib`, `encryption-lib`, `auth-authentication-oauth2-lib`, `auth-authorization-oauth2-lib`, `verifiable-credentials-lib`, `decentralized-claims-lib`, `decentralized-claims-sts-remote-lib`,`jersey-providers-lib`, `boot-lib`, `http-lib`, `nats-lib`, `util-lib`, `sql-lib`, `api-lib`, `management-api-lib`  |
 | **`control-plane-lib`** | `policy-engine-lib`, `policy-evaluator-lib`, `store-lib`, `control-plane-policies-lib`, `catalog-util-lib`, `control-plane-transfer-provision-lib`, `state-machine-lib`                                                                                                                                                                                             |
 
-**Left standalone**: `jws2020-lib` because it is constrained by a dependency onto the `":extensions:common:json-ld"`).
+**Left standalone**: `jws2020-lib` because it is constrained by a dependency onto the `:extensions:common:json-ld`.
 This is a known issue and should be addressed in a future iteration, at which point the `jws2020-lib` can be folded into
 `core-lib`.
 
