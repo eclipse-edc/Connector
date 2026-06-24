@@ -188,6 +188,7 @@ include(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:de
 include(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:lib:decentralized-claims-sts-remote-lib")
 include(":extensions:common:iam:decentralized-claims:decentralized-claims-issuers-configuration")
 include(":extensions:common:iam:decentralized-claims:decentralized-claims-cel")
+include(":extensions:common:iam:decentralized-claims:decentralized-claims-store-sql")
 
 include(":extensions:common:json-ld")
 include(":extensions:common:metrics:micrometer-core")
