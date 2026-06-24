@@ -36,7 +36,6 @@ restAssured = "6.0.0"
 rsApi = "4.0.0"
 swagger = "2.2.50"
 titanium = "1.7.0"
-kafkaClients = "4.2.0"
 testcontainers = "2.0.5"
 tink = "1.21.0"
 junit = "6.0.3"
@@ -94,7 +93,6 @@ restAssured = { module = "io.rest-assured:rest-assured", version.ref = "restAssu
 swagger-annotations-jakarta = { module = "io.swagger.core.v3:swagger-annotations-jakarta", version.ref = "swagger" }
 titaniumJsonLd = { module = "com.apicatalog:titanium-json-ld", version.ref = "titanium" }
 testcontainers-junit = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers" }
-testcontainers-kafka = { module = "org.testcontainers:testcontainers-kafka", version.ref = "testcontainers" }
 testcontainers-postgres = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
 testcontainers-vault = { module = "org.testcontainers:testcontainers-vault", version.ref = "testcontainers" }
 tink = { module = "com.google.crypto.tink:tink", version.ref = "tink" }
@@ -108,7 +106,6 @@ atomikos-jdbc = { module = "com.atomikos:transactions-jdbc", version.ref = "atom
 cloudEvents = { module = "io.cloudevents:cloudevents-http-basic", version.ref = "cloudEvents" }
 cloudEvents-json = { module = "io.cloudevents:cloudevents-json-jackson", version.ref = "cloudEvents" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
-kafkaClients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafkaClients" }
 jsonschema = { module = "com.networknt:json-schema-validator", version = "2.0.0" }
 nats = { module = "io.nats:jnats", version = "2.25.3" }
 

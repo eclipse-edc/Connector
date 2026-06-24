@@ -18,7 +18,6 @@ plugins {
 
 dependencies {
     implementation(project(":dist:bom:dataplane-base-bom"))
-    implementation(project(":extensions:data-plane:data-plane-kafka"))
 }
 
 edcBuild {

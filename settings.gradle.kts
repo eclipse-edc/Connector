@@ -165,7 +165,6 @@ include(":extensions:common:transaction")
 include(":extensions:common:transaction:transaction-atomikos")
 include(":extensions:common:transaction:transaction-local")
 include(":extensions:common:validator:validator-data-address-http-data")
-include(":extensions:common:validator:validator-data-address-kafka")
 include(":extensions:common:vault:vault-hashicorp")
 include(":extensions:common:store:sql:edr-index-sql")
 include(":extensions:common:store:sql:jti-validation-store-sql")
@@ -232,7 +231,6 @@ include(":extensions:data-plane:data-plane-http-oauth2")
 include(":extensions:data-plane:data-plane-http-oauth2-core")
 include(":extensions:data-plane:data-plane-iam")
 include(":extensions:data-plane:data-plane-integration-tests")
-include(":extensions:data-plane:data-plane-kafka")
 include(":extensions:data-plane:data-plane-provision-http")
 include(":extensions:data-plane:data-plane-self-registration")
 include(":extensions:data-plane:data-plane-signaling:data-plane-signaling-api")
@@ -255,9 +253,6 @@ include(":spi:data-plane-spi")
 include(":spi:decentralized-claims-spi")
 include(":spi:dataspace-protocol-spi")
 include(":core:common:junit-base")
-
-
-
 
 
 // modules for system tests ------------------------------------------------------------------------
