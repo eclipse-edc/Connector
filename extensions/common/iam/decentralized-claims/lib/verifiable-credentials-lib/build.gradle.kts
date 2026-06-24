@@ -18,7 +18,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:dcp-spi"))
+    api(project(":spi:decentralized-claims-spi"))
     api(project(":spi:core-spi"))
     implementation(project(":core:common:lib:util-lib"))
 
@@ -26,7 +26,7 @@ dependencies {
     implementation(libs.jsonschema)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(testFixtures(project(":spi:dcp-spi"))) //test functions
+    testImplementation(testFixtures(project(":spi:decentralized-claims-spi"))) //test functions
     testImplementation(testFixtures(project(":spi:core-spi")))
     testImplementation(project(":core:common:lib:http-lib"))
     testImplementation(project(":core:common:lib:util-lib"))

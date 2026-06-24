@@ -18,7 +18,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:dcp-spi"))
+    api(project(":spi:decentralized-claims-spi"))
 
     testImplementation(project(":core:common:junit"))
 }

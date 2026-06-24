@@ -24,7 +24,7 @@ dependencies {
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.wiremock)
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":spi:dcp-spi"))
+    testImplementation(project(":spi:decentralized-claims-spi"))
     testImplementation(project(":spi:core-spi"))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
     runtimeOnly(libs.parsson)

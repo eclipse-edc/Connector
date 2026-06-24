@@ -20,7 +20,7 @@ dependencies {
     implementation(libs.nimbus.jwt)
 
     implementation(project(":spi:core-spi"))
-    implementation(project(":spi:dcp-spi"))
+    implementation(project(":spi:decentralized-claims-spi"))
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:token-lib"))
 

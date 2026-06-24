@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:dcp-spi"))
+    api(project(":spi:decentralized-claims-spi"))
     api(project(":spi:core-spi"))
     api(project(":spi:control-plane-spi"))
     implementation(project(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:lib:decentralized-claims-sts-remote-lib"))

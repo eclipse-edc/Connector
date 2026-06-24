@@ -10,7 +10,7 @@ modules. The target structure is:
 - `control-plane-spi` — everything needed to build a _connector_ runtime, including all control-plane domain types and
   stores.
 - `data-plane-spi` — everything needed to build a _data plane_ runtime (pipeline, source/sink, manager, registry).
-- One SPI module per protocol: `dcp-spi` (Decentralized Claims Protocol), `signaling-spi` (Dataplane Signaling) and
+- One SPI module per protocol: `decentralized-claims-spi` (Decentralized Claims Protocol), `signaling-spi` (Dataplane Signaling) and
   `dataspace-protocol-spi` (DSP binding).
 
 We accept that this removes published Maven coordinates and is therefore a breaking change for downstream adopters that
@@ -64,7 +64,7 @@ edr-store-spi  task-spi  policy-monitor-spi  data-plane-selector-spi federated-c
 data-plane-spi  data-plane-http-spi
 ```
 
-**`dcp-spi`** — Decentralized Claims Protocol / identity:
+**`decentralized-claims-spi`** — Decentralized Claims Protocol / identity:
 
 ```
 decentralized-claims-spi
@@ -89,7 +89,7 @@ the pattern established here.
 
 The target modules form an acyclic layering. `core-spi` is the base; `control-plane-spi`, `data-plane-spi` and the
 protocol modules build on top of it (the federated-catalog and crawler SPIs are folded into `control-plane-spi`). One
-protocol module, `dcp-spi`, additionally depends on `control-plane-spi`, because `decentralized-claims-spi` reuses
+protocol module, `decentralized-claims-spi`, additionally depends on `control-plane-spi`, because it reuses
 `policy-engine-spi` and `participant-spi` for credential-scope policy evaluation, and those now live in
 `control-plane-spi`.
 
@@ -104,7 +104,7 @@ block-beta
         A["control-plane-spi"]
         B["dataspace-protocol-spi"]
         C["data-plane-spi*"]
-        D["dcp-spi"]
+        D["decentralized-claims-spi"]
         E["signaling-spi"]
     end
     A --> R
@@ -118,7 +118,7 @@ block-beta
 
 *) deprecated
 
-The single upward edge from a protocol module — `dcp-spi → control-plane-spi` — is a deliberate trade-off: keeping the
+The single upward edge from a protocol module — `decentralized-claims-spi → control-plane-spi` — is a deliberate trade-off: keeping the
 policy and participant SPIs out of `core-spi` (because they are not generic to every runtime) means the
 credential-scope policy types that `decentralized-claims-spi` reuses now sit in `control-plane-spi`.
 
@@ -132,7 +132,7 @@ A few assignments are deliberate judgment calls and can be revisited:
 - `data-plane-spi` as a separate module. The data-plane framework SPI is large and domain-specific, and it is deprecated.
   This will make deletion easier once the DPF is removed altogether.
 - `oauth2-spi` is placed in `core-spi` as a token primitive; alternatively, it could become its own (centralized)
-  identity-protocol module alongside `dcp-spi`.
+  identity-protocol module alongside `decentralized-claims-spi`.
 - `auth-spi` (Management API authentication) is placed in `core-spi` as generic web-API auth, but we may need to split
   it and move some parts into `control-plane-spi`, because some interfaces and model classes are specific to the
   Management API, e.g. `ManagementApiScopes` and `ParticipantPrincipal`

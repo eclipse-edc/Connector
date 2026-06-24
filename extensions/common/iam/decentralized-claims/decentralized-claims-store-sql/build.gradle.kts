@@ -19,12 +19,12 @@ plugins {
 
 dependencies {
     api(project(":spi:core-spi"))
-    api(project(":spi:dcp-spi"))
+    api(project(":spi:decentralized-claims-spi"))
 
     implementation(project(":core:common:lib:sql-lib"))
     implementation(project(":extensions:common:sql:sql-bootstrapper"))
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(testFixtures(project(":spi:dcp-spi")))
+    testImplementation(testFixtures(project(":spi:decentralized-claims-spi")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
 }
