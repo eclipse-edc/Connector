@@ -101,10 +101,10 @@ maven/mavencentral/dev.cel/cel/0.11.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/dev.failsafe/failsafe-okhttp/3.3.2, Apache-2.0, approved, #15208
 maven/mavencentral/dev.failsafe/failsafe/3.3.2, Apache-2.0, approved, #9268
 maven/mavencentral/info.picocli/picocli/4.7.7, Apache-2.0, approved, #4365
-maven/mavencentral/io.cloudevents/cloudevents-api/4.1.1, , restricted, clearlydefined
-maven/mavencentral/io.cloudevents/cloudevents-core/4.1.1, , restricted, clearlydefined
-maven/mavencentral/io.cloudevents/cloudevents-http-basic/4.1.1, , restricted, clearlydefined
-maven/mavencentral/io.cloudevents/cloudevents-json-jackson/4.1.1, , restricted, clearlydefined
+maven/mavencentral/io.cloudevents/cloudevents-api/4.1.1, Apache-2.0, approved, https://gitlab.eclipse.org/eclip
+maven/mavencentral/io.cloudevents/cloudevents-core/4.1.1, Apache-2.0, approved, https://gitlab.eclipse.org/eclip
+maven/mavencentral/io.cloudevents/cloudevents-http-basic/4.1.1, Apache-2.0, approved, https://gitlab.eclipse.org/eclip
+maven/mavencentral/io.cloudevents/cloudevents-json-jackson/4.1.1, Apache-2.0, approved, https://gitlab.eclipse.org/eclip
 maven/mavencentral/io.github.classgraph/classgraph/4.8.184, MIT, approved, CQ22530
 maven/mavencentral/io.micrometer/micrometer-commons/1.17.0, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #28746
 maven/mavencentral/io.micrometer/micrometer-core/1.17.0, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #28755
@@ -321,7 +321,7 @@ maven/mavencentral/org.testcontainers/testcontainers-jdbc/2.0.5, Apache-2.0, app
 maven/mavencentral/org.testcontainers/testcontainers-junit-jupiter/2.0.5, MIT, approved, #26032
 maven/mavencentral/org.testcontainers/testcontainers-kafka/2.0.5, None, restricted, https://gitlab.eclipse.org/eclip
 maven/mavencentral/org.testcontainers/testcontainers-postgresql/2.0.5, MIT, approved, #25273
-maven/mavencentral/org.testcontainers/testcontainers-vault/2.0.5, None, restricted, https://gitlab.eclipse.org/eclip
+maven/mavencentral/org.testcontainers/testcontainers-vault/2.0.5, MIT, approved, https://gitlab.eclipse.org/eclip
 maven/mavencentral/org.testcontainers/testcontainers/2.0.5, MIT, approved, #25274
 maven/mavencentral/org.threeten/threeten-extra/1.8.0, BSD-3-Clause, approved, clearlydefined
 maven/mavencentral/org.wiremock/wiremock-jetty12/3.13.2, Apache-2.0, approved, #21027
