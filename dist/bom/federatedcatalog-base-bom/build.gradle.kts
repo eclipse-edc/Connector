@@ -19,9 +19,9 @@ plugins {
 dependencies {
     api(project(":core:catalog-crawler:catalog-crawler-core"))
     api(project(":extensions:federated-catalog:api:federated-catalog-api"))
-    api(project(":spi:federated-catalog-spi"))
+    api(project(":spi:control-plane-spi"))
     api(project(":core:common:lib:util-lib"))
-    api(project(":spi:common:json-ld-spi"))
+    api(project(":spi:core-spi"))
 
     api(project(":core:common:boot"))
     api(project(":core:common:runtime-core"))

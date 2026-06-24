@@ -19,9 +19,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:boot-spi"))
-    api(project(":spi:common:json-ld-spi"))
-    api(project(":spi:common:web-spi"))
+    api(project(":spi:core-spi"))
 
     implementation(libs.jakarta.rsApi)
 

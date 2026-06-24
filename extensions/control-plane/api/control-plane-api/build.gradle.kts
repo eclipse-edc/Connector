@@ -19,9 +19,8 @@ plugins {
 
 dependencies {
 
-    api(project(":spi:control-plane:control-plane-spi"))
-    api(project(":spi:common:web-spi"))
-    api(project(":spi:common:auth-spi"))
+    api(project(":spi:control-plane-spi"))
+    api(project(":spi:core-spi"))
 
     implementation(libs.jakarta.rsApi)
 

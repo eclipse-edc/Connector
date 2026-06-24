@@ -18,10 +18,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:auth-spi"))
-    api(project(":spi:common:http-spi"))
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:data-plane-selector:data-plane-selector-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:transform-lib"))
     implementation(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))

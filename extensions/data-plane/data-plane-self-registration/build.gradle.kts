@@ -18,8 +18,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:web-spi"))
-    api(project(":spi:data-plane-selector:data-plane-selector-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
 
     testImplementation(project(":core:common:junit"))
 }

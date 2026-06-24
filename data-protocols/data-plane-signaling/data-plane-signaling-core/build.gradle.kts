@@ -18,17 +18,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:http-spi"))
-    api(project(":spi:common:json-ld-spi"))
-    api(project(":spi:common:transform-spi"))
-    api(project(":spi:common:web-spi"))
-    api(project(":spi:common:auth-spi"))
-    api(project(":spi:common:participant-context-single-spi"))
-    api(project(":spi:control-plane:contract-spi"))
-    api(project(":spi:control-plane:control-plane-spi"))
-    api(project(":spi:control-plane:transfer-spi"))
-    api(project(":spi:data-plane-selector:data-plane-selector-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
     api(project(":data-protocols:data-plane-signaling:data-plane-signaling-spi"))
     implementation(project(":core:common:lib:api-lib"))
     implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))

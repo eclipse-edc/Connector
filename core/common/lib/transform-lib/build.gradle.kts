@@ -18,10 +18,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:json-ld-spi"))
-    api(project(":spi:common:transform-spi"))
-    api(project(":spi:data-plane-selector:data-plane-selector-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
 
     testImplementation(project(":core:common:junit-base"));
     testImplementation(project(":core:common:lib:json-lib"))

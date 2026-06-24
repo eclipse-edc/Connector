@@ -20,11 +20,8 @@ plugins {
 dependencies {
     implementation(project(":dist:bom:controlplane-base-bom"))
     implementation(project(":data-protocols:data-plane-signaling:data-plane-signaling-core"))
-    implementation(project(":spi:common:participant-context-single-spi"))
-    implementation(project(":spi:common:web-spi"))
-    implementation(project(":spi:control-plane:control-plane-spi"))
-    implementation(project(":spi:control-plane:transfer-spi"))
-    implementation(project(":spi:data-plane-selector:data-plane-selector-spi"))
+    implementation(project(":spi:control-plane-spi"))
+    implementation(project(":spi:core-spi"))
     implementation(project(":extensions:common:iam:iam-mock"))
     implementation(libs.jakarta.rsApi)
     runtimeOnly(libs.parsson)

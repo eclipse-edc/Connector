@@ -18,10 +18,9 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:auth-spi"))
+    api(project(":spi:core-spi"))
 
-    implementation(project(":spi:common:web-spi"))
+    implementation(project(":spi:core-spi"))
     implementation(libs.jakarta.rsApi)
     implementation(libs.jakarta.annotation)
     implementation(libs.nimbus.jwt)

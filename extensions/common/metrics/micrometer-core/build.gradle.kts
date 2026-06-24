@@ -18,7 +18,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
+    api(project(":spi:core-spi"))
     api(libs.micrometer)
     api(libs.okhttp)
 }

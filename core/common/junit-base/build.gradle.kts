@@ -19,7 +19,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:boot-spi"))
+    api(project(":spi:core-spi"))
 
     implementation(libs.assertj)
     implementation(libs.testcontainers.junit)

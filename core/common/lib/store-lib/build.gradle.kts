@@ -19,7 +19,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
+    api(project(":spi:core-spi"))
     implementation(project(":core:common:lib:util-lib"))
 
     testImplementation(project(":core:common:lib:query-lib"))

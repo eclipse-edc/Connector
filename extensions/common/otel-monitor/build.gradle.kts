@@ -21,7 +21,7 @@ plugins {
 
 dependencies {
 
-    api(project(":spi:common:boot-spi"))
+    api(project(":spi:core-spi"))
     implementation(libs.opentelemetry.api)
 
     testImplementation(libs.junit.jupiter.api)

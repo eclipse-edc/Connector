@@ -18,14 +18,14 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:edr-store-spi"))
+    api(project(":spi:control-plane-spi"))
 
-    implementation(project(":spi:common:transaction-spi"))
+    implementation(project(":spi:core-spi"))
     implementation(project(":core:common:lib:store-lib"))
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:boot-lib"))
 
     testImplementation(project(":core:common:lib:query-lib"))
-    testImplementation(testFixtures(project(":spi:common:edr-store-spi")))
+    testImplementation(testFixtures(project(":spi:control-plane-spi")))
 }

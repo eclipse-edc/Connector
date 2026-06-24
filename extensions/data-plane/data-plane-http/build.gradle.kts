@@ -17,9 +17,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:http-spi"))
-    api(project(":spi:data-plane:data-plane-spi"))
-    api(project(":spi:data-plane:data-plane-http-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:data-plane-spi"))
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:data-plane:data-plane-util"))
 
@@ -31,7 +30,7 @@ dependencies {
     testImplementation(libs.wiremock)
 
     testImplementation(testFixtures(project(":core:common:lib:http-lib")))
-    testImplementation(testFixtures(project(":spi:data-plane:data-plane-spi")))
+    testImplementation(testFixtures(project(":spi:data-plane-spi")))
 }
 
 

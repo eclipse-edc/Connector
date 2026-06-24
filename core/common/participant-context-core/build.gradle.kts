@@ -18,13 +18,13 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:connector-participant-context-spi"))
-    implementation(project(":spi:common:transaction-spi"))
-    implementation(project(":spi:common:protocol-spi"))
+    api(project(":spi:core-spi"))
+    implementation(project(":spi:core-spi"))
+    implementation(project(":spi:dataspace-protocol-spi"))
     implementation(project(":core:common:lib:store-lib"))
 
     testImplementation(project(":core:common:junit-base"))
-    testImplementation(testFixtures(project(":spi:common:connector-participant-context-spi")))
+    testImplementation(testFixtures(project(":spi:core-spi")))
     testImplementation(project(":core:common:lib:query-lib"))
     testImplementation(project(":core:common:junit"))
 

@@ -17,8 +17,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:http-spi"))
-    api(project(":spi:common:oauth2-spi"))
+    api(project(":spi:core-spi"))
 
     testImplementation(project(":core:common:lib:json-lib"))
     testImplementation(project(":core:common:lib:util-lib"))

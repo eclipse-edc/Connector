@@ -17,8 +17,8 @@ plugins {
 }
 
 dependencies {
-    testImplementation(project(":spi:common:json-ld-spi"))
-    testImplementation(project(":spi:control-plane:catalog-spi"))
+    testImplementation(project(":spi:core-spi"))
+    testImplementation(project(":spi:control-plane-spi"))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(project(":core:common:connector-core"))

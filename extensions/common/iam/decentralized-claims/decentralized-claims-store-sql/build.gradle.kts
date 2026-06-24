@@ -18,14 +18,13 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:transaction-spi"))
-    api(project(":spi:common:decentralized-claims-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:decentralized-claims-spi"))
 
-    implementation(project(":spi:common:transaction-datasource-spi"))
     implementation(project(":core:common:lib:sql-lib"))
     implementation(project(":extensions:common:sql:sql-bootstrapper"))
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(testFixtures(project(":spi:common:decentralized-claims-spi")))
+    testImplementation(testFixtures(project(":spi:decentralized-claims-spi")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
 }

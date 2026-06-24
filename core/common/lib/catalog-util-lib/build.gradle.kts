@@ -17,7 +17,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:control-plane:catalog-spi"))
+    api(project(":spi:control-plane-spi"))
 
     testImplementation(project(":core:common:junit"))
 }

@@ -18,9 +18,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:json-ld-spi"))
-    api(project(":spi:common:web-spi"))
-    api(project(":spi:data-plane:data-plane-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:data-plane-spi"))
 
     implementation(project(":core:common:lib:transform-lib"))
     implementation(project(":extensions:common:http:lib:jersey-providers-lib"))

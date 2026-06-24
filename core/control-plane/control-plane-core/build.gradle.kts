@@ -18,9 +18,8 @@ plugins {
 
 
 dependencies {
-    api(project(":spi:control-plane:asset-spi"))
-    api(project(":spi:control-plane:control-plane-spi"))
-    api(project(":spi:common:http-spi"))
+    api(project(":spi:control-plane-spi"))
+    api(project(":spi:core-spi"))
 
     implementation(project(":core:common:lib:store-lib"))
     implementation(project(":core:common:boot"))
@@ -35,10 +34,7 @@ dependencies {
     implementation(project(":core:common:lib:policy-engine-lib"))
     implementation(project(":core:common:lib:query-lib"))
 
-    testImplementation(testFixtures(project(":spi:control-plane:asset-spi")))
-    testImplementation(testFixtures(project(":spi:control-plane:contract-spi")))
-    testImplementation(testFixtures(project(":spi:control-plane:policy-spi")))
-    testImplementation(testFixtures(project(":spi:control-plane:transfer-spi")))
+    testImplementation(testFixtures(project(":spi:control-plane-spi")))
 }
 
 

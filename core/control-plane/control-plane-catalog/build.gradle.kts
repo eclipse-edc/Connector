@@ -17,13 +17,10 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:json-ld-spi"))
-    api(project(":spi:control-plane:catalog-spi"))
-    api(project(":spi:control-plane:contract-spi"))
-    api(project(":spi:control-plane:transfer-spi"))
-    api(project(":spi:control-plane:asset-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
 
-    implementation(project(":spi:common:data-address:data-address-http-data-spi"))
+    implementation(project(":spi:core-spi"))
     testImplementation(project(":core:common:junit-base"))
 
     testImplementation(project(":core:control-plane:control-plane-core"))

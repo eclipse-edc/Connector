@@ -20,8 +20,7 @@ dependencies {
     api(libs.jackson.datatype.jakarta.jsonp)
     api(libs.titaniumJsonLd)
 
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:json-ld-spi"))
+    api(project(":spi:core-spi"))
 
     implementation(project(":core:common:lib:json-ld-lib"))
     testImplementation(project(":core:common:junit"));

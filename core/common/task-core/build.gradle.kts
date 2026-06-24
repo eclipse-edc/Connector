@@ -17,11 +17,11 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:task-spi"))
-    api(project(":spi:common:transaction-spi"))
+    api(project(":spi:control-plane-spi"))
+    api(project(":spi:core-spi"))
     implementation(project(":core:common:lib:store-lib"))
     testImplementation(project(":core:common:lib:query-lib"))
-    testImplementation(testFixtures(project(":spi:common:task-spi")))
+    testImplementation(testFixtures(project(":spi:control-plane-spi")))
     testImplementation(project(":core:common:junit-base"))
 
 }

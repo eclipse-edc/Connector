@@ -18,17 +18,16 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:decentralized-claims-spi"))
-    api(project(":spi:common:identity-did-spi"))
-    api(project(":spi:common:http-spi"))
+    api(project(":spi:decentralized-claims-spi"))
+    api(project(":spi:core-spi"))
     implementation(project(":core:common:lib:util-lib"))
 
     implementation(libs.jakarta.rsApi)
     implementation(libs.jsonschema)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(testFixtures(project(":spi:common:decentralized-claims-spi"))) //test functions
-    testImplementation(testFixtures(project(":spi:common:verifiable-credentials-spi")))
+    testImplementation(testFixtures(project(":spi:decentralized-claims-spi"))) //test functions
+    testImplementation(testFixtures(project(":spi:core-spi")))
     testImplementation(project(":core:common:lib:http-lib"))
     testImplementation(project(":core:common:lib:util-lib"))
     testImplementation(libs.wiremock)

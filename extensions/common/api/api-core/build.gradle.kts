@@ -17,10 +17,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:auth-spi"))
-    api(project(":spi:common:transform-spi"))
-    api(project(":spi:common:web-spi"))
-    api(project(":spi:common:json-ld-spi"))
+    api(project(":spi:core-spi"))
 
     implementation(project(":core:common:lib:api-lib"))
     implementation(project(":core:common:lib:transform-lib"))

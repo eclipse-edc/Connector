@@ -19,7 +19,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
+    api(project(":spi:core-spi"))
     testImplementation(libs.awaitility)
 
 }

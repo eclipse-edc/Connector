@@ -18,8 +18,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:data-plane-selector:data-plane-selector-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
 
     testFixturesImplementation(libs.restAssured)
     testFixturesImplementation(libs.awaitility)

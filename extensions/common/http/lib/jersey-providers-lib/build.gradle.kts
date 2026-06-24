@@ -18,8 +18,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:json-ld-spi"))
-    api(project(":spi:common:web-spi"))
+    api(project(":spi:core-spi"))
 
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
     testImplementation(libs.restAssured)

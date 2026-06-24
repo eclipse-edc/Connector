@@ -17,12 +17,12 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:task-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
     implementation(project(":core:common:lib:nats-lib"))
     implementation(libs.nats.client)
     
-    testImplementation(project(":spi:control-plane:contract-spi"))
+    testImplementation(project(":spi:control-plane-spi"))
     testImplementation(libs.awaitility)
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":core:common:lib:nats-lib")))

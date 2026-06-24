@@ -18,8 +18,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:http-spi"))
+    api(project(":spi:core-spi"))
 
     implementation(libs.cloudEvents)
     implementation(libs.failsafe.core)

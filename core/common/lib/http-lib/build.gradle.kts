@@ -19,8 +19,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:auth-spi"))
-    api(project(":spi:common:http-spi"))
+    api(project(":spi:core-spi"))
 
     implementation(libs.okhttp)
     implementation(libs.dnsOverHttps)

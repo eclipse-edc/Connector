@@ -18,8 +18,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:json-ld-spi"))
-    api(project(":spi:common:validator-spi"))
+    api(project(":spi:core-spi"))
 
     testImplementation(project(":core:common:junit-base"));
 

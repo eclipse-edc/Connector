@@ -21,7 +21,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:auth-spi"))
+    api(project(":spi:core-spi"))
 
     implementation(project(":core:common:lib:api-lib"))
     implementation(project(":core:common:lib:validator-lib"))

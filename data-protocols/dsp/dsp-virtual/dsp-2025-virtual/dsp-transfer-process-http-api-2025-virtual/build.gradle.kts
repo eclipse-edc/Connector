@@ -18,8 +18,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:control-plane:transfer-spi"))
-    api(project(":spi:control-plane:control-plane-spi"))
+    api(project(":spi:control-plane-spi"))
     api(project(":data-protocols:dsp:dsp-spi"))
     api(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
     api(project(":data-protocols:dsp:dsp-http-spi"))

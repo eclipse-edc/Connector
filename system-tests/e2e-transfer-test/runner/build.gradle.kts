@@ -17,21 +17,19 @@ plugins {
 }
 
 dependencies {
-    testImplementation(project(":spi:control-plane:transfer-spi"))
-    testImplementation(project(":spi:common:cel-spi"))
-    testImplementation(project(":spi:data-plane:data-plane-spi"))
-    testImplementation(project(":spi:data-plane-selector:data-plane-selector-spi"))
+    testImplementation(project(":spi:control-plane-spi"))
+    testImplementation(project(":spi:data-plane-spi"))
     testImplementation(project(":extensions:common:sql:sql-core"))
     testImplementation(project(":extensions:common:transaction:transaction-local"))
 
-    testImplementation(project(":spi:common:web-spi"))
+    testImplementation(project(":spi:core-spi"))
     testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":core:common:lib:http-lib")))
     testImplementation(testFixtures(project(":core:common:lib:nats-lib")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
     testImplementation(testFixtures(project(":extensions:control-plane:api:management-api:management-api-test-fixtures")))
-    testImplementation(testFixtures(project(":spi:common:decentralized-claims-spi")))
+    testImplementation(testFixtures(project(":spi:decentralized-claims-spi")))
     testImplementation(testFixtures(project(":data-protocols:data-plane-signaling:data-plane-signaling-spi")))
 
     testImplementation(project(":extensions:common:json-ld"))

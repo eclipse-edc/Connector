@@ -17,14 +17,14 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:control-plane:contract-spi"))
-    api(project(":spi:common:protocol-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
+    api(project(":spi:dataspace-protocol-spi"))
 
     implementation(project(":core:common:lib:state-machine-lib"))
     implementation(libs.opentelemetry.instrumentation.annotations)
 
-    testImplementation(project(":spi:common:transaction-spi"))
+    testImplementation(project(":spi:core-spi"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":core:control-plane:control-plane-contract"))
     testImplementation(project(":core:control-plane:control-plane-aggregate-services"))

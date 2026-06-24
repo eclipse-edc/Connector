@@ -19,10 +19,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:edr-store-spi"))
-    api(project(":spi:common:validator-spi"))
-    api(project(":spi:common:web-spi"))
-    api(project(":spi:control-plane:control-plane-spi"))
+    api(project(":spi:control-plane-spi"))
+    api(project(":spi:core-spi"))
     implementation(project(":core:common:lib:api-lib"))
     implementation(project(":core:common:lib:validator-lib"))
     implementation(project(":extensions:common:api:lib:management-api-lib"))

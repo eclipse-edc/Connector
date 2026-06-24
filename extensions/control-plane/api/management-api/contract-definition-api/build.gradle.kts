@@ -18,9 +18,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:control-plane:control-plane-spi"))
-    api(project(":spi:common:transaction-spi"))
-    api(project(":spi:common:participant-context-single-spi"))
+    api(project(":spi:control-plane-spi"))
+    api(project(":spi:core-spi"))
 
     implementation(project(":extensions:common:api:lib:management-api-lib"))
     implementation(project(":core:common:lib:api-lib"))

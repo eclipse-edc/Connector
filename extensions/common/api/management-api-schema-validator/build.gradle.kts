@@ -17,14 +17,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:participant-context-config-spi"))
-    api(project(":spi:common:edr-store-spi"))
-    api(project(":spi:common:validator-spi"))
-    api(project(":spi:common:cel-spi"))
-    api(project(":spi:control-plane:transfer-spi"))
-    api(project(":spi:control-plane:catalog-spi"))
-    api(project(":spi:data-plane-selector:data-plane-selector-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
 
     implementation(project(":extensions:common:api:lib:management-api-lib"))
 

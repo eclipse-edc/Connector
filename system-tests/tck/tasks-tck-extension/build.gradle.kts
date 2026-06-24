@@ -17,12 +17,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:control-plane:control-plane-spi"))
-    api(project(":spi:common:connector-participant-context-spi"))
-    api(project(":spi:common:participant-context-config-spi"))
-    api(project(":spi:common:task-spi"))
-    api(project(":spi:common:web-spi"))
-    api(project(":spi:common:transaction-spi"))
+    api(project(":spi:control-plane-spi"))
+    api(project(":spi:core-spi"))
     implementation(libs.nimbus.jwt)
 }
 

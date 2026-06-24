@@ -18,12 +18,12 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:protocol-spi"))
-    api(project(":spi:common:transaction-spi"))
-    api(project(":spi:common:participant-context-config-spi"))
+    api(project(":spi:dataspace-protocol-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
 
     testImplementation(project(":core:common:junit-base"))
     testImplementation(project(":core:common:junit"))
-    testImplementation(testFixtures(project(":spi:common:participant-context-config-spi")))
+    testImplementation(testFixtures(project(":spi:control-plane-spi")))
 
 }

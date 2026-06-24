@@ -17,7 +17,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:auth-spi"))
+    api(project(":spi:core-spi"))
 
     testImplementation(project(":core:common:junit"))
 }

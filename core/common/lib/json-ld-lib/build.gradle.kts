@@ -24,12 +24,11 @@ dependencies {
     implementation(libs.jackson.datatype.jsr310)
 
     implementation(project(":core:common:lib:validator-lib"))
-    implementation(project(":spi:common:core-spi"))
-    implementation(project(":spi:common:json-ld-spi"))
+    implementation(project(":spi:core-spi"))
     testImplementation(project(":core:common:lib:util-lib"))
     testImplementation(project(":core:common:junit-base"))
 
     testImplementation(libs.wiremock)
 
-    testFixturesApi(project(":spi:common:json-ld-spi"))
+    testFixturesApi(project(":spi:core-spi"))
 }

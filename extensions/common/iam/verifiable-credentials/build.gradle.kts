@@ -18,14 +18,12 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:verifiable-credentials-spi"))
-    api(project(":spi:common:http-spi"))
-    implementation(project(":spi:common:token-spi"))
-    implementation(project(":spi:common:identity-did-spi"))
+    api(project(":spi:core-spi"))
+    implementation(project(":spi:core-spi"))
     implementation(project(":extensions:common:iam:decentralized-claims:lib:verifiable-credentials-lib"))
     implementation(libs.jsonschema)
 
     testImplementation(project(":core:common:junit-base"))
-    testImplementation(testFixtures(project(":spi:common:verifiable-credentials-spi")))
+    testImplementation(testFixtures(project(":spi:core-spi")))
 }
 

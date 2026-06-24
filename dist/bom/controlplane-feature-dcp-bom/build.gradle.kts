@@ -18,7 +18,7 @@ plugins {
 
 dependencies {
     // DCP dependencies, JWT and LDP
-    api(project(":spi:common:jwt-spi"))
+    api(project(":spi:core-spi"))
 
     api(project(":extensions:common:crypto:ldp-verifiable-credentials"))
     api(project(":extensions:common:crypto:jwt-verifiable-credentials"))

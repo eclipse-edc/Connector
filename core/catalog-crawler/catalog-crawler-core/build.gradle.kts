@@ -18,9 +18,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:json-ld-spi"))
-    api(project(":spi:common:participant-context-single-spi"))
-    api(project(":spi:federated-catalog-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
     api(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
     implementation(project(":core:common:lib:catalog-util-lib"))
     implementation(project(":core:common:lib:json-ld-lib"))
@@ -35,6 +34,5 @@ dependencies {
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:common:lib:transform-lib"))
     testImplementation(project(":core:control-plane:control-plane-transform"))
-    testImplementation(testFixtures(project(":spi:federated-catalog-spi")))
-    testImplementation(testFixtures(project(":spi:crawler-spi")))
+    testImplementation(testFixtures(project(":spi:control-plane-spi")))
 }

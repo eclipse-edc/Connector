@@ -17,11 +17,10 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:data-plane:data-plane-http-spi"))
-    api(project(":spi:common:oauth2-spi"))
-    api(project(":spi:common:jwt-spi"))
+    api(project(":spi:data-plane-spi"))
+    api(project(":spi:core-spi"))
     implementation(project(":core:common:lib:token-lib"))
-    implementation(project(":spi:common:keys-spi"))
+    implementation(project(":spi:core-spi"))
 
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.restAssured)

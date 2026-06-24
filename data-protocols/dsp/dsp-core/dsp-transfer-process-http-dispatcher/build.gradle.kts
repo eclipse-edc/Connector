@@ -19,8 +19,8 @@ plugins {
 
 dependencies {
 
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:control-plane:control-plane-spi"))
+    api(project(":spi:core-spi"))
+    api(project(":spi:control-plane-spi"))
 
     api(project(":data-protocols:dsp:dsp-http-spi"))
     implementation(project(":data-protocols:dsp:dsp-core:dsp-http-core"))

@@ -18,7 +18,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:policy-model"))
+    api(project(":spi:core-spi"))
 }
 
 

@@ -16,16 +16,14 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:data-plane-selector:data-plane-selector-spi"))
-    api(project(":spi:common:auth-spi"))
-    api(project(":spi:common:http-spi"))
-    api(project(":spi:common:transform-spi"))
+    api(project(":spi:control-plane-spi"))
+    api(project(":spi:core-spi"))
     implementation(project(":core:common:lib:transform-lib"))
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":extensions:common:json-ld"))
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":spi:common:participant-context-single-spi"))
+    testImplementation(project(":spi:control-plane-spi"))
 }
 
 

@@ -18,7 +18,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:participant-spi"))
+    api(project(":spi:control-plane-spi"))
 
     implementation(project(":core:common:lib:http-lib"))
     implementation(project(":core:common:lib:keys-lib"))

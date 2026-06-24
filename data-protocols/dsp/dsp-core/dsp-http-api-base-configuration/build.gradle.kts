@@ -17,7 +17,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:web-spi"))
+    api(project(":spi:core-spi"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
 
     implementation(project(":extensions:common:http:lib:jersey-providers-lib"))

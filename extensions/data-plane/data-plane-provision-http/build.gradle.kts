@@ -19,9 +19,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:data-plane:data-plane-spi"))
-    api(project(":spi:common:http-spi"))
-    api(project(":spi:common:web-spi"))
+    api(project(":spi:data-plane-spi"))
+    api(project(":spi:core-spi"))
     implementation(project(":extensions:common:validator:validator-data-address-http-data"))
 
     implementation(libs.jakarta.rsApi)

@@ -17,11 +17,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:core-spi"))
-    api(project(":spi:common:encryption-spi"))
-    api(project(":spi:common:http-spi"))
-    api(project(":spi:common:transaction-spi"))
-    api(project(":spi:common:transaction-datasource-spi"))
+    api(project(":spi:core-spi"))
 
     implementation(project(":core:common:lib:http-lib"))
     implementation(project(":core:common:lib:json-lib"))

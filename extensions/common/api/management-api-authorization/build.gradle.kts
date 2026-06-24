@@ -18,7 +18,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:auth-spi"))
+    api(project(":spi:core-spi"))
     api(libs.jakarta.rsApi)
     implementation(project(":extensions:common:auth:auth-authorization-oauth2-lib"))
     implementation(libs.jakarta.annotation)

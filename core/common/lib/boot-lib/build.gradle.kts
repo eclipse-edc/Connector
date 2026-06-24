@@ -19,8 +19,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:boot-spi"))
-    api(project(":spi:common:connector-participant-context-spi"))
+    api(project(":spi:core-spi"))
 
     testImplementation(libs.awaitility)
     testImplementation(project(":core:common:lib:json-lib"))

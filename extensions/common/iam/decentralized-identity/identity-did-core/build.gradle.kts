@@ -4,8 +4,8 @@ plugins {
 
 
 dependencies {
-    api(project(":spi:common:identity-did-spi"))
-    implementation(project(":spi:common:keys-spi"))
+    api(project(":spi:core-spi"))
+    implementation(project(":spi:core-spi"))
     implementation(project(":core:common:lib:util-lib"))
     implementation(project(":core:common:lib:keys-lib"))
 

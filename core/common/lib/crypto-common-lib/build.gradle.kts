@@ -16,10 +16,9 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:common:keys-spi"))
+    api(project(":spi:core-spi"))
     api(libs.nimbus.jwt) // nimbus classes are exposed on the API surface of CryptoConverter and DefaultJwsSignerProvider
-    implementation(project(":spi:common:boot-spi"))
-    implementation(project(":spi:common:jwt-spi"))
+    implementation(project(":spi:core-spi"))
 
     // used for the Ed25519 Verifier in conjunction with OctetKeyPairs (OKP)
     runtimeOnly(libs.tink)
