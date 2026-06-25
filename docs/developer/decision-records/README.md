@@ -98,4 +98,5 @@
 - [2026-05-11 Multi-Profile Support in EDC Virtual](2026-05-11-multi-profile-virtual-connector)
 - [2026-06-06 Scope-based Management API Authorization](2026-06-06-scope-based-api-authorization)
 - [2026-06-10 Remove the DispatcherRegistry](2026-06-10-remove-dispatcher-registry)
+- [2026-06-18 Lib Module Consolidation](2026-06-18-lib-module-consolidation)
 - [2026-06-18 SPI Module Consolidation](2026-06-18-spi-module-consolidation)
