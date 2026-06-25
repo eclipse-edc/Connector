@@ -47,6 +47,8 @@ import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.f
 import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.to.JsonObjectToParticipantContextTransformer;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
+import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScope;
+import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScopeRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
@@ -135,6 +137,8 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dataPaneInsta
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.datasetRequestObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.datasetRequestObjectWithProfile;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.datasetRequestObjectWithProfileAndProtocol;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dcpScopeObject;
+import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dcpScopePolicyObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.inForceDatePermission;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.participantContextConfigObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.participantContextObject;
@@ -911,10 +915,13 @@ public class SerdeEndToEndTest {
         static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
                 .name(Runtimes.ControlPlane.NAME)
                 .modules(Runtimes.ControlPlane.MODULES)
-                .modules(":extensions:common:api:management-api-schema-validator", ":extensions:data-plane-selector:data-plane-selector-control-api")
+                .modules(":extensions:common:api:management-api-schema-validator",
+                        ":extensions:data-plane-selector:data-plane-selector-control-api",
+                        ":extensions:control-plane:api:management-api-v5:dcp-scope-api-v5")
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(SerdeEndToEndTest::config)
-                .build();
+                .build()
+                .registerServiceMock(DcpScopeRegistry.class, mock());
 
         @BeforeAll
         static void beforeAll(TypeTransformerRegistry registry) {
@@ -929,7 +936,6 @@ public class SerdeEndToEndTest {
             registry.register(new JsonObjectToCelExpressionTestRequestTransformer());
             registry.register(new JsonObjectFromDataspaceProfileContextTransformer(factory));
             registry.register(new JsonObjectToAssociateDataspaceProfileContextTransformer());
-
         }
 
         @Override
@@ -1001,6 +1007,16 @@ public class SerdeEndToEndTest {
             var deserialized = deserialize(typeTransformerRegistry, validatorRegistry, jsonLd, request, AssociateDataspaceProfileContext.class);
 
             assertThat(deserialized.profiles()).contains("profile1", "profile2");
+        }
+
+        @Test
+        void serde_DcpScope(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            verifySerde(typeTransformerRegistry, validatorRegistry, jsonLd, dcpScopeObject(jsonLdContext()), DcpScope.class, null);
+        }
+
+        @Test
+        void serde_DcpScope_policy(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
+            verifySerde(typeTransformerRegistry, validatorRegistry, jsonLd, dcpScopePolicyObject(jsonLdContext()), DcpScope.class, null);
         }
     }
 

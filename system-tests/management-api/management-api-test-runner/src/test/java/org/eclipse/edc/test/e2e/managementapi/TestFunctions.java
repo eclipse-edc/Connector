@@ -181,6 +181,29 @@ public class TestFunctions {
                 .build();
     }
 
+    public static JsonObject dcpScopeObject(String context) {
+        return createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "DcpScope")
+                .add(ID, "dcp-scope-id")
+                .add("type", "DEFAULT")
+                .add("value", "org.eclipse.edc.vc.type:SomeCredential:read")
+                .add("profile", "test-profile")
+                .build();
+    }
+
+    public static JsonObject dcpScopePolicyObject(String context) {
+        return createObjectBuilder()
+                .add(CONTEXT, createContextBuilder(context).build())
+                .add(TYPE, "DcpScope")
+                .add(ID, "dcp-scope-policy-id")
+                .add("type", "POLICY")
+                .add("value", "org.eclipse.edc.vc.type:SomeCredential:read")
+                .add("profile", "test-profile")
+                .add("prefixMapping", "someMapping")
+                .build();
+    }
+
     public static JsonObject participantContextConfigObject(String context) {
         return createObjectBuilder()
                 .add(CONTEXT, createContextBuilder(context).build())

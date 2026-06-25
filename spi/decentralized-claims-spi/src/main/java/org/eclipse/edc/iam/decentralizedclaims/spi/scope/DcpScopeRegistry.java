@@ -15,6 +15,7 @@
 package org.eclipse.edc.iam.decentralizedclaims.spi.scope;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
 
 import java.util.List;
@@ -32,6 +33,30 @@ public interface DcpScopeRegistry {
      * @return a service result indicating success or failure
      */
     ServiceResult<Void> register(DcpScope scope);
+
+    /**
+     * Creates a DCP scope. Fails with a conflict if a scope with the same id already exists.
+     *
+     * @param scope the scope to create
+     * @return a service result indicating success or failure
+     */
+    ServiceResult<Void> create(DcpScope scope);
+
+    /**
+     * Updates an existing DCP scope. Fails with a not-found if no scope with the given id exists.
+     *
+     * @param scope the scope to update
+     * @return a service result indicating success or failure
+     */
+    ServiceResult<Void> update(DcpScope scope);
+
+    /**
+     * Queries DCP scopes based on the provided query specification.
+     *
+     * @param spec the query specification
+     * @return a service result containing the list of matching scopes
+     */
+    ServiceResult<List<DcpScope>> query(QuerySpec spec);
 
     /**
      * Removes a DCP scope by its ID.

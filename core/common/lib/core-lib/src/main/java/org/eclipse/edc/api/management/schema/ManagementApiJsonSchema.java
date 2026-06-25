@@ -55,6 +55,7 @@ public interface ManagementApiJsonSchema {
         String ASSOCIATE_DATASPACE_PROFILE_CONTEXT = EDC_MGMT_V4_SCHEMA_PREFIX + "/associate-dataspace-profile-schema.json";
         String DISCOVERY_REQUEST = EDC_MGMT_V4_SCHEMA_PREFIX + "/discovery-request-schema.json";
         String DISCOVERY_RESPONSE = EDC_MGMT_V4_SCHEMA_PREFIX + "/discovery-response-schema.json";
+        String DCP_SCOPE = EDC_MGMT_V4_SCHEMA_PREFIX + "/dcp-scope-schema.json";
 
 
         static String version() {

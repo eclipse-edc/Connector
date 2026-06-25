@@ -41,6 +41,12 @@ public interface Runtimes {
 
         };
 
+        // DCP-enabled control plane (the DCP stack provides the IdentityService, so iam-mock is omitted)
+        String[] VIRTUAL_DCP_MODULES = new String[]{
+                ":dist:bom:controlplane-virtual-base-bom",
+                ":dist:bom:controlplane-virtual-feature-dcp-bom"
+        };
+
         String[] SQL_MODULES = new String[]{
                 ":dist:bom:controlplane-feature-sql-bom"
         };

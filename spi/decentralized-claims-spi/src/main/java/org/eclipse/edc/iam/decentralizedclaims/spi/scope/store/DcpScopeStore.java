@@ -27,6 +27,10 @@ import java.util.List;
 @ExtensionPoint
 public interface DcpScopeStore {
 
+    default String notFoundErrorMessage(String id) {
+        return "A DcpScope with ID '%s' does not exist.".formatted(id);
+    }
+
     /**
      * Saves a DCP scope.
      *

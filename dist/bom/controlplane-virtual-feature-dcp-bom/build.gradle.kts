@@ -19,6 +19,7 @@ plugins {
 dependencies {
     api(project(":dist:bom:controlplane-feature-dcp-bom"))
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-cel"))
+    api(project(":extensions:control-plane:api:management-api-v5:dcp-scope-api-v5"))
 }
 
 edcBuild {

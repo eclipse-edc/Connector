@@ -23,6 +23,7 @@ dependencies {
     testImplementation(project(":data-protocols:dsp:dsp-spi"))
     testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
     testImplementation(project(":spi:control-plane-spi"))
+    testImplementation(project(":spi:decentralized-claims-spi"))
     testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:edr-store-core"))
     testImplementation(project(":core:control-plane:control-plane-transform"))

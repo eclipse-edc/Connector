@@ -16,6 +16,8 @@ package org.eclipse.edc.iam.decentralizedclaims.spi.scope;
 
 import java.util.Objects;
 
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+
 /**
  * Represents a scope used by  control plane.
  *
@@ -28,6 +30,17 @@ import java.util.Objects;
 public class DcpScope {
 
     public static final String WILDCARD = "*";
+
+    public static final String DCP_SCOPE_TYPE_TERM = "DcpScope";
+    public static final String DCP_SCOPE_TYPE_IRI = EDC_NAMESPACE + DCP_SCOPE_TYPE_TERM;
+    public static final String DCP_SCOPE_VALUE_TERM = "value";
+    public static final String DCP_SCOPE_VALUE_IRI = EDC_NAMESPACE + DCP_SCOPE_VALUE_TERM;
+    public static final String DCP_SCOPE_TYPE_PROPERTY_TERM = "type";
+    public static final String DCP_SCOPE_TYPE_PROPERTY_IRI = EDC_NAMESPACE + DCP_SCOPE_TYPE_PROPERTY_TERM;
+    public static final String DCP_SCOPE_PROFILE_TERM = "profile";
+    public static final String DCP_SCOPE_PROFILE_IRI = EDC_NAMESPACE + DCP_SCOPE_PROFILE_TERM;
+    public static final String DCP_SCOPE_PREFIX_MAPPING_TERM = "prefixMapping";
+    public static final String DCP_SCOPE_PREFIX_MAPPING_IRI = EDC_NAMESPACE + DCP_SCOPE_PREFIX_MAPPING_TERM;
 
     public String profile = WILDCARD;
 
