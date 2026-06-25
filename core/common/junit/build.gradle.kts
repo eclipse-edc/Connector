@@ -23,16 +23,15 @@ dependencies {
 
     api(project(":spi:core-spi"))
     api(project(":core:common:boot"))
-    api(project(":core:common:lib:http-lib"))
-    api(project(":core:common:lib:json-lib"))
-    api(project(":core:common:lib:util-lib"))
+    api(project(":core:common:lib:core-lib"))
+    api(project(":core:common:lib:jsonld-lib"))
 
     implementation(libs.okhttp)
     implementation(libs.mockito.core)
     implementation(libs.junit.jupiter.api)
     implementation(libs.testcontainers.junit)
 
-    testImplementation(project(":core:common:lib:boot-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
 }
 
 

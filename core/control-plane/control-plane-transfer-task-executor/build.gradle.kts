@@ -22,6 +22,6 @@ dependencies {
     implementation(libs.opentelemetry.instrumentation.annotations)
     testImplementation(project(":core:common:junit-base"))
     testImplementation(project(":core:control-plane:control-plane-transfer"))
-    testImplementation(project(":core:common:lib:state-machine-lib"))
+    testImplementation(project(":core:control-plane:lib:control-plane-lib"))
 }
 

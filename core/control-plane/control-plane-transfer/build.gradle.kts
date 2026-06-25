@@ -20,9 +20,8 @@ dependencies {
     api(project(":spi:core-spi"))
     api(project(":spi:control-plane-spi"))
 
-    implementation(project(":core:common:lib:transform-lib"))
-    implementation(project(":core:common:lib:state-machine-lib"))
-    implementation(project(":core:control-plane:lib:control-plane-transfer-provision-lib"))
+    implementation(project(":core:common:lib:jsonld-lib"))
+    implementation(project(":core:control-plane:lib:control-plane-lib"))
     implementation(libs.opentelemetry.instrumentation.annotations)
     implementation(libs.jakarta.json.api)
 

@@ -20,9 +20,8 @@ plugins {
 dependencies {
     api(project(":spi:control-plane-spi"))
 
-    implementation(project(":core:common:lib:http-lib"))
-    implementation(project(":core:common:lib:keys-lib"))
-    implementation(project(":core:common:lib:policy-engine-lib"))
+    implementation(project(":core:common:lib:core-lib"))
+    implementation(project(":core:control-plane:lib:control-plane-lib"))
 
     implementation(libs.bouncyCastle.bcpkixJdk18on)
     implementation(libs.nimbus.jwt)

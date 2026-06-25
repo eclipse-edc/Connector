@@ -20,9 +20,8 @@ dependencies {
     testImplementation(project(":spi:data-plane-spi"))
     testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:lib:keys-lib"))
-    testImplementation(project(":core:common:lib:transform-lib")) // for the transformer registry impl
-    testImplementation(project(":core:common:lib:crypto-common-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
+    testImplementation(project(":core:common:lib:jsonld-lib")) // for the transformer registry impl
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))

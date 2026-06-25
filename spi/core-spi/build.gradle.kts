@@ -41,7 +41,7 @@ dependencies {
     implementation(libs.jakarta.annotation)
 
     testImplementation(project(":core:common:junit-base"))
-    testImplementation(project(":core:common:lib:json-lib"))
+    testImplementation(project(":core:common:lib:jsonld-lib"))
 
     testFixturesImplementation(project(":core:common:junit"))
     testFixturesImplementation(project(":core:common:junit-base"))

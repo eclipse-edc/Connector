@@ -20,21 +20,20 @@ plugins {
 dependencies {
     api(project(":spi:core-spi"))
     api(project(":spi:control-plane-spi"))
-    implementation(project(":core:common:lib:util-lib"))
-    implementation(project(":core:common:lib:transform-lib"))
+    implementation(project(":core:common:lib:core-lib"))
+    implementation(project(":core:common:lib:jsonld-lib"))
     implementation(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
     implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
 
     implementation(libs.opentelemetry.instrumentation.annotations)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:lib:transform-lib"))
-    testImplementation(project(":core:common:lib:json-ld-lib"))
+    testImplementation(project(":core:common:lib:jsonld-lib"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(libs.restAssured)
     testImplementation(libs.wiremock)
 
-    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
+    testImplementation(testFixtures(project(":core:common:lib:core-lib")))
 }
 
 

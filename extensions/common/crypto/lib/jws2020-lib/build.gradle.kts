@@ -19,8 +19,7 @@ plugins {
 dependencies {
     implementation(project(":spi:core-spi"))
     implementation(project(":extensions:common:json-ld"))
-    implementation(project(":core:common:lib:util-lib"))
-    implementation(project(":core:common:lib:crypto-common-lib"))
+    implementation(project(":core:common:lib:core-lib"))
     implementation(libs.nimbus.jwt)
     // used for the Ed25519 Verifier in conjunction with OctetKeyPairs (OKP)
     runtimeOnly(libs.tink)
@@ -31,8 +30,8 @@ dependencies {
     }
 
     testImplementation(testFixtures(project(":core:common:junit")))
-    testImplementation(project(":core:common:lib:json-ld-lib"))
+    testImplementation(project(":core:common:lib:jsonld-lib"))
     testFixturesImplementation(testFixtures(project(":core:common:junit")))
     testFixturesImplementation(libs.nimbus.jwt)
-    testFixturesImplementation(project(":core:common:lib:json-ld-lib"))
+    testFixturesImplementation(project(":core:common:lib:jsonld-lib"))
 }

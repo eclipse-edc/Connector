@@ -20,7 +20,7 @@ plugins {
 
 dependencies {
     api(project(":spi:core-spi"))
-    implementation(project(":core:common:lib:sql-lib"))
+    implementation(project(":core:common:lib:core-lib"))
 }
 
 

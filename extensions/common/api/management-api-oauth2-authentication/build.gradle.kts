@@ -19,10 +19,7 @@ plugins {
 
 dependencies {
     api(project(":spi:core-spi"))
-    implementation(project(":core:common:lib:token-lib"))
-    implementation(project(":core:common:lib:crypto-common-lib"))
-    implementation(project(":core:common:lib:keys-lib"))
-    implementation(project(":extensions:common:auth:auth-authentication-oauth2-lib"))
+    implementation(project(":core:common:lib:core-lib"))
     implementation(libs.jakarta.rsApi)
     implementation(libs.jakarta.annotation)
 

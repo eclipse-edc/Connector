@@ -26,7 +26,7 @@ dependencies {
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
+    testImplementation(testFixtures(project(":core:common:lib:core-lib")))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
     testImplementation(libs.awaitility)
     testImplementation(libs.wiremock)

@@ -23,7 +23,7 @@ dependencies {
     api(project(":spi:data-plane-spi"))
     api(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
 
-    implementation(project(":core:common:lib:transform-lib"))
+    implementation(project(":core:common:lib:jsonld-lib"))
     implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
     implementation(libs.jakarta.rsApi)
 

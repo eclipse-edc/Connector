@@ -20,8 +20,8 @@ plugins {
 dependencies {
     api(project(":spi:core-spi"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
-    implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
-    implementation(project(":data-protocols:dsp:dsp-lib:dsp-version-transform-lib"))
+    implementation(project(":core:common:lib:core-lib"))
+    implementation(project(":data-protocols:dsp:dsp-lib"))
 
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":extensions:common:json-ld"))

@@ -20,15 +20,12 @@ dependencies {
     api(project(":spi:core-spi"))
     api(project(":spi:control-plane-spi"))
 
-    implementation(project(":core:common:lib:api-lib"))
-    implementation(project(":core:common:lib:util-lib"))
-    implementation(project(":core:common:lib:validator-lib"))
-    implementation(project(":extensions:common:api:lib:management-api-lib"))
-    implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
+    implementation(project(":core:common:lib:core-lib"))
+    implementation(project(":core:common:lib:jsonld-lib"))
     implementation(project(":core:control-plane:control-plane-transform"))
     implementation(libs.jakarta.rsApi)
 
-    testImplementation(project(":core:common:lib:transform-lib"))
+    testImplementation(project(":core:common:lib:jsonld-lib"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
     testImplementation(project(":extensions:common:http"))

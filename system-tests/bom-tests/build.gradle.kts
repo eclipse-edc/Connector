@@ -18,7 +18,7 @@ plugins {
 
 dependencies {
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:lib:boot-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(libs.restAssured)
     testImplementation(libs.awaitility)
     testImplementation(libs.wiremock) {

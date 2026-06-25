@@ -19,8 +19,8 @@ plugins {
 dependencies {
     api(project(":spi:control-plane-spi"))
     api(project(":spi:core-spi"))
-    implementation(project(":core:common:lib:store-lib"))
-    testImplementation(project(":core:common:lib:query-lib"))
+    implementation(project(":core:control-plane:lib:control-plane-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(testFixtures(project(":spi:control-plane-spi")))
     testImplementation(project(":core:common:junit-base"))
 

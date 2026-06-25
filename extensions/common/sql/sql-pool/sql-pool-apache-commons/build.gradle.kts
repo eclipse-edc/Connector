@@ -22,7 +22,7 @@ plugins {
 dependencies {
     api(project(":spi:core-spi"))
 
-    implementation(project(":core:common:lib:sql-lib"))
+    implementation(project(":core:common:lib:core-lib"))
 
     implementation(libs.apache.commons.pool)
 
@@ -31,7 +31,7 @@ dependencies {
 
     // required for statically mocking the JDBC DriverManager
     testImplementation(libs.mockito.inline)
-    testImplementation(project(":core:common:lib:boot-lib")) //in-mem vault
+    testImplementation(project(":core:common:lib:core-lib")) //in-mem vault
 }
 
 

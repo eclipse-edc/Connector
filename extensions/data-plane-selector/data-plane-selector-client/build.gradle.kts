@@ -18,8 +18,8 @@ plugins {
 dependencies {
     api(project(":spi:control-plane-spi"))
     api(project(":spi:core-spi"))
-    implementation(project(":core:common:lib:transform-lib"))
-    implementation(project(":core:common:lib:util-lib"))
+    implementation(project(":core:common:lib:jsonld-lib"))
+    implementation(project(":core:common:lib:core-lib"))
     implementation(project(":extensions:common:json-ld"))
 
     testImplementation(project(":core:common:junit"))

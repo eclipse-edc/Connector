@@ -21,7 +21,7 @@ dependencies {
     api(project(":spi:control-plane-spi"))
     api(project(":spi:core-spi"))
 
-    implementation(project(":core:common:lib:store-lib"))
+    implementation(project(":core:control-plane:lib:control-plane-lib"))
     implementation(project(":core:common:boot"))
     implementation(project(":core:common::participant-context-core"))
     implementation(project(":core:common::participant-context-connector-core"))
@@ -30,9 +30,7 @@ dependencies {
     implementation(project(":core:control-plane:control-plane-contract"))
     implementation(project(":core:control-plane:control-plane-transfer"))
     implementation(project(":core:control-plane:control-plane-aggregate-services"))
-    implementation(project(":core:common:lib:util-lib"))
-    implementation(project(":core:common:lib:policy-engine-lib"))
-    implementation(project(":core:common:lib:query-lib"))
+    implementation(project(":core:common:lib:core-lib"))
 
     testImplementation(testFixtures(project(":spi:control-plane-spi")))
 }

@@ -19,7 +19,7 @@ plugins {
 dependencies {
     api(project(":spi:core-spi"))
 
-    implementation(project(":core:common:lib:sql-lib"))
+    implementation(project(":core:common:lib:core-lib"))
     implementation(project(":extensions:common:sql:sql-bootstrapper"))
     implementation(project(":spi:core-spi"))
     testImplementation(project(":core:common:junit"))

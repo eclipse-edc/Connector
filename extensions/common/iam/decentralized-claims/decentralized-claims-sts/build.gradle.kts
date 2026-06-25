@@ -19,6 +19,6 @@ plugins {
 
 dependencies {
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:decentralized-claims-sts-remote-client"))
-    api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:lib:decentralized-claims-sts-remote-lib"))
+    api(project(":core:common:lib:core-lib"))
 }
 

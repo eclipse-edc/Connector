@@ -21,11 +21,10 @@ dependencies {
     api(project(":spi:control-plane-spi"))
 
     implementation(project(":spi:core-spi"))
-    implementation(project(":core:common:lib:store-lib"))
+    implementation(project(":core:control-plane:lib:control-plane-lib"))
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:lib:boot-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
 
-    testImplementation(project(":core:common:lib:query-lib"))
     testImplementation(testFixtures(project(":spi:control-plane-spi")))
 }

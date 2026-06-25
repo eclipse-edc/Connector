@@ -26,7 +26,7 @@ dependencies {
         exclude("com.github.multiformats")
     }
 
-    testImplementation(project(":core:common:lib:json-lib"))
+    testImplementation(project(":core:common:lib:jsonld-lib"))
     testImplementation(testFixtures(project(":spi:core-spi")))
 
     testFixturesImplementation(libs.nimbus.jwt)

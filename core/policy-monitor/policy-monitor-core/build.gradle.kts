@@ -20,11 +20,9 @@ dependencies {
     api(project(":spi:control-plane-spi"))
     api(project(":spi:core-spi"))
 
-    implementation(project(":core:common:lib:state-machine-lib"))
-    implementation(project(":core:common:lib:store-lib"))
-    implementation(project(":core:control-plane:lib:control-plane-policies-lib"))
+    implementation(project(":core:control-plane:lib:control-plane-lib"))
 
-    testImplementation(project(":core:common:lib:query-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)
     testImplementation(testFixtures(project(":spi:control-plane-spi")))

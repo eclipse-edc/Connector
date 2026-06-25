@@ -19,7 +19,7 @@ plugins {
 dependencies {
     api(project(":spi:data-plane-spi"))
     api(project(":spi:core-spi"))
-    implementation(project(":core:common:lib:token-lib"))
+    implementation(project(":core:common:lib:core-lib"))
     implementation(project(":spi:core-spi"))
 
     testImplementation(project(":core:common:junit"))

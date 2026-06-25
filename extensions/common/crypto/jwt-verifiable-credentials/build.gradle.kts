@@ -21,13 +21,12 @@ dependencies {
 
     implementation(project(":spi:core-spi"))
     implementation(project(":spi:decentralized-claims-spi"))
-    implementation(project(":core:common:lib:util-lib"))
-    implementation(project(":core:common:lib:token-lib"))
+    implementation(project(":core:common:lib:core-lib"))
 
 
-    testImplementation(project(":core:common:lib:json-ld-lib"))
+    testImplementation(project(":core:common:lib:jsonld-lib"))
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:lib:crypto-common-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(testFixtures(project(":spi:core-spi")))
     testFixturesImplementation(libs.nimbus.jwt)
     testFixturesImplementation(project(":spi:core-spi"))

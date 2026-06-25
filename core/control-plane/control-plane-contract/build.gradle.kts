@@ -22,8 +22,7 @@ dependencies {
     api(project(":spi:control-plane-spi"))
     api(project(":spi:dataspace-protocol-spi"))
 
-    implementation(project(":core:common:lib:state-machine-lib"))
-    implementation(project(":core:control-plane:lib:control-plane-policies-lib"))
+    implementation(project(":core:control-plane:lib:control-plane-lib"))
     implementation(libs.opentelemetry.instrumentation.annotations)
 
     testImplementation(project(":core:common:junit"))

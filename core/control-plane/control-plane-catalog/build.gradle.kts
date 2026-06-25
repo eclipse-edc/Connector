@@ -24,7 +24,7 @@ dependencies {
     testImplementation(project(":core:common:junit-base"))
 
     testImplementation(project(":core:control-plane:control-plane-core"))
-    testImplementation(project(":core:common:lib:query-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
 }
 
 
