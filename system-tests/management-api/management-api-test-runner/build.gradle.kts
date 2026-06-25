@@ -31,8 +31,8 @@ dependencies {
     //useful for generic DTOs etc.
 
     //we need the JacksonJsonLd util class
-    testImplementation(project(":core:common:lib:json-ld-lib"))
-    testImplementation(project(":core:common:lib:api-lib"))
+    testImplementation(project(":core:common:lib:jsonld-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(project(":extensions:common:json-ld"))
 
     testImplementation(libs.restAssured)
@@ -42,7 +42,7 @@ dependencies {
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.postgres)
     
-    testImplementation(testFixtures(project(":extensions:common:auth:auth-authentication-oauth2-lib")))
+    testImplementation(testFixtures(project(":core:common:lib:core-lib")))
 }
 
 edcBuild {

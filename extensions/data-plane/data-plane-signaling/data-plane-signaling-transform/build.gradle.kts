@@ -21,10 +21,10 @@ dependencies {
     api(project(":spi:core-spi"))
     api(project(":spi:data-plane-spi"))
 
-    implementation(project(":core:common:lib:transform-lib"))
-    implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
+    implementation(project(":core:common:lib:jsonld-lib"))
+    implementation(project(":core:common:lib:core-lib"))
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(testFixtures(project(":core:common:lib:json-ld-lib")))
+    testImplementation(testFixtures(project(":core:common:lib:jsonld-lib")))
 }

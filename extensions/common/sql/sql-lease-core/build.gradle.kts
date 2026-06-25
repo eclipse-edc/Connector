@@ -23,7 +23,7 @@ dependencies {
     api(project(":spi:core-spi"))
     api(project(":extensions:common:sql:sql-lease-spi"))
     implementation(project(":extensions:common:sql:sql-lease"))
-    implementation(project(":core:common:lib:sql-lib"))
+    implementation(project(":core:common:lib:core-lib"))
 }
 
 

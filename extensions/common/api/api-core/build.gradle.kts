@@ -19,10 +19,8 @@ plugins {
 dependencies {
     api(project(":spi:core-spi"))
 
-    implementation(project(":core:common:lib:api-lib"))
-    implementation(project(":core:common:lib:transform-lib"))
-    implementation(project(":core:common:lib:util-lib"))
-    implementation(project(":core:common:lib:validator-lib"))
+    implementation(project(":core:common:lib:core-lib"))
+    implementation(project(":core:common:lib:jsonld-lib"))
     implementation(libs.jakarta.rsApi)
     implementation(libs.swagger.annotations.jakarta)
 
@@ -30,8 +28,8 @@ dependencies {
     testImplementation(libs.jersey.server)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:lib:query-lib"))
-    testImplementation(project(":core:common:lib:json-ld-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
+    testImplementation(project(":core:common:lib:jsonld-lib"))
 }
 
 

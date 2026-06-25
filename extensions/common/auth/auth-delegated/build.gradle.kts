@@ -18,15 +18,13 @@ plugins {
 
 dependencies {
     api(project(":spi:core-spi"))
-    implementation(project(":core:common:lib:crypto-common-lib"))
-    implementation(project(":core:common:lib:keys-lib"))
-    implementation(project(":core:common:lib:token-lib"))
+    implementation(project(":core:common:lib:core-lib"))
 
     implementation(libs.jakarta.rsApi)
     implementation(libs.nimbus.jwt)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:lib:keys-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(libs.wiremock)
     testImplementation(libs.awaitility)
 }

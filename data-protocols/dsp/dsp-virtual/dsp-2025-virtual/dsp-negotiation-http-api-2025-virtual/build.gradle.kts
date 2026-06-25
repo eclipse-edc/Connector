@@ -25,16 +25,15 @@ dependencies {
     api(project(":spi:core-spi"))
     api(project(":spi:control-plane-spi"))
 
-    implementation(project(":data-protocols:dsp:dsp-lib:dsp-negotiation-lib:dsp-negotiation-validation-lib"))
-    implementation(project(":data-protocols:dsp:dsp-lib:dsp-negotiation-lib:dsp-negotiation-http-api-lib"))
-    implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
+    implementation(project(":data-protocols:dsp:dsp-lib"))
+    implementation(project(":core:common:lib:core-lib"))
 
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
     testImplementation(libs.restAssured)
-    testImplementation(testFixtures(project(":data-protocols:dsp:dsp-lib:dsp-negotiation-lib:dsp-negotiation-http-api-lib")))
+    testImplementation(testFixtures(project(":data-protocols:dsp:dsp-lib")))
 
 }
 

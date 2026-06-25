@@ -20,7 +20,7 @@ dependencies {
     api(project(":spi:core-spi"))
     api(project(":spi:data-plane-spi"))
 
-    implementation(project(":core:common:lib:token-lib"))
+    implementation(project(":core:common:lib:core-lib"))
 
     testImplementation(project(":core:common:junit"))
 }

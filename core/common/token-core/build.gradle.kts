@@ -18,8 +18,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":core:common:lib:token-lib"))
-    implementation(project(":core:common:lib:crypto-common-lib"))
+    implementation(project(":core:common:lib:core-lib"))
 }
 
 

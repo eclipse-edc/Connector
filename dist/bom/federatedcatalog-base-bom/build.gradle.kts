@@ -20,7 +20,7 @@ dependencies {
     api(project(":core:catalog-crawler:catalog-crawler-core"))
     api(project(":extensions:federated-catalog:api:federated-catalog-api"))
     api(project(":spi:control-plane-spi"))
-    api(project(":core:common:lib:util-lib"))
+    api(project(":core:common:lib:core-lib"))
     api(project(":spi:core-spi"))
 
     api(project(":core:common:boot"))
@@ -45,8 +45,6 @@ dependencies {
     api(project(":core:control-plane:control-plane-core"))
     api(project(":extensions:common:http:jetty-core"))
     api(project(":core:common:token-core"))
-    api(project(":extensions:common:http:lib:jersey-providers-lib"))
-    api(project(":core:common:lib:boot-lib"))
     api(project(":core:data-plane-selector:data-plane-selector-core"))
     api(project(":extensions:control-plane:transfer:transfer-data-plane-signaling"))
     api(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"))

@@ -23,7 +23,6 @@ dependencies {
     api(project(":spi:dataspace-protocol-spi"))
 
     testImplementation(project(":core:common:junit-base"));
-    testImplementation(project(":core:common:lib:json-lib"))
-    testImplementation(testFixtures(project(":core:common:lib:json-ld-lib")))
-    testImplementation(project(":core:common:lib:transform-lib"))
+    testImplementation(project(":core:common:lib:jsonld-lib"))
+    testImplementation(testFixtures(project(":core:common:lib:jsonld-lib")))
 }

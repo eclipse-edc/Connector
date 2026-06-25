@@ -6,8 +6,8 @@ dependencies {
     api(project(":spi:core-spi"))
     api(project(":spi:data-plane-spi"))
 
-    implementation(project(":core:common:lib:util-lib"))
-    implementation(project(":core:common:lib:validator-lib"))
+    implementation(project(":core:common:lib:core-lib"))
+    implementation(project(":core:common:lib:jsonld-lib"))
     implementation(project(":core:data-plane:data-plane-util"))
     implementation(project(":extensions:common:validator:validator-data-address-kafka"))
     implementation(libs.kafkaClients)

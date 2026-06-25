@@ -8,7 +8,7 @@ dependencies {
     api(project(":spi:data-plane-spi"))
 
     implementation(project(":spi:core-spi"))
-    implementation(project(":core:common:lib:sql-lib"))
+    implementation(project(":core:common:lib:core-lib"))
     implementation(project(":extensions:common:sql:sql-lease"))
     implementation(project(":extensions:common:sql:sql-bootstrapper"))
 

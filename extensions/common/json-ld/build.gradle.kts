@@ -22,7 +22,7 @@ dependencies {
 
     api(project(":spi:core-spi"))
 
-    implementation(project(":core:common:lib:json-ld-lib"))
+    implementation(project(":core:common:lib:jsonld-lib"))
     testImplementation(project(":core:common:junit"));
     
 }

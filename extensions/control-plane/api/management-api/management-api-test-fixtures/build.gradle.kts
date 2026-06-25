@@ -21,9 +21,9 @@ dependencies {
     testFixturesApi(project(":core:common:junit"))
     testFixturesApi(project(":spi:core-spi"))
     testFixturesApi(project(":spi:control-plane-spi"))
-    testFixturesApi(project(":core:common:lib:util-lib"))
-    testFixturesApi(project(":core:common:lib:json-ld-lib"))
-    testFixturesApi(testFixtures(project(":extensions:common:auth:auth-authentication-oauth2-lib")))
+    testFixturesApi(project(":core:common:lib:core-lib"))
+    testFixturesApi(project(":core:common:lib:jsonld-lib"))
+    testFixturesApi(testFixtures(project(":core:common:lib:core-lib")))
 
     testFixturesImplementation(libs.restAssured)
     testFixturesImplementation(libs.awaitility)

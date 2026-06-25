@@ -21,14 +21,13 @@ dependencies {
     api(project(":spi:data-plane-spi"))
 
     implementation(project(":spi:core-spi"))
-    implementation(project(":core:common:lib:store-lib"))
-    implementation(project(":core:common:lib:util-lib"))
+    implementation(project(":core:control-plane:lib:control-plane-lib"))
+    implementation(project(":core:common:lib:core-lib"))
     implementation(project(":core:data-plane:data-plane-util"))
-    implementation(project(":core:common:lib:state-machine-lib"))
 
     implementation(libs.opentelemetry.instrumentation.annotations)
 
-    testImplementation(project(":core:common:lib:query-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)
     testImplementation(testFixtures(project(":spi:data-plane-spi")))

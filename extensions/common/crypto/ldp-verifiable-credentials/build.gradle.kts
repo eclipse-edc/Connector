@@ -20,7 +20,7 @@ dependencies {
     api(project(":extensions:common:crypto:lib:jws2020-lib"))
     implementation(project(":spi:core-spi"))
     implementation(project(":spi:decentralized-claims-spi"))
-    implementation(project(":core:common:lib:util-lib")) //exposes SignatureSuite in its public API
+    implementation(project(":core:common:lib:core-lib")) //exposes SignatureSuite in its public API
 
     api(project(":spi:core-spi"))
     // used for the Ed25519 Verifier in conjunction with OctetKeyPairs (OKP)
@@ -32,11 +32,11 @@ dependencies {
 
     testImplementation(testFixtures(project(":core:common:junit")))
     testImplementation(project(":extensions:common:crypto:lib:jws2020-lib"))
-    testImplementation(project(":core:common:lib:json-ld-lib"))
+    testImplementation(project(":core:common:lib:jsonld-lib"))
 
     // deps for test fixtures
     testFixturesImplementation(project(":spi:core-spi"))
-    testFixturesImplementation(project(":core:common:lib:json-ld-lib"))
+    testFixturesImplementation(project(":core:common:lib:jsonld-lib"))
     testFixturesImplementation(project(":extensions:common:crypto:lib:jws2020-lib"))
     testFixturesApi(libs.nimbus.jwt)
     testFixturesApi(testFixtures(project(":extensions:common:crypto:lib:jws2020-lib")))

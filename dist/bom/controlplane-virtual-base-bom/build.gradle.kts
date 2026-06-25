@@ -61,7 +61,7 @@ dependencies {
     api(project(":extensions:control-plane:callback:callback-static-endpoint"))
 
     // libs
-    api(project(":core:common:lib:transform-lib"))
+    api(project(":core:common:lib:jsonld-lib"))
 }
 
 edcBuild {

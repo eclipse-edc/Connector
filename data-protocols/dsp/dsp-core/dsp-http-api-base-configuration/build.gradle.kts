@@ -20,7 +20,7 @@ dependencies {
     api(project(":spi:core-spi"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
 
-    implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
+    implementation(project(":core:common:lib:core-lib"))
 
     testImplementation(project(":core:common:junit"))
 }

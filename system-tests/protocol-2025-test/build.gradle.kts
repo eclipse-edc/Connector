@@ -21,7 +21,7 @@ dependencies {
     testImplementation(project(":data-protocols:dsp:dsp-http-spi"))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":spi:core-spi"))
-    testImplementation(project(":core:common:lib:json-ld-lib"))
+    testImplementation(project(":core:common:lib:jsonld-lib"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(libs.restAssured)
 }

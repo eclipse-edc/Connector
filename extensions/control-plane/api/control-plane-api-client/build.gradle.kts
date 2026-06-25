@@ -36,7 +36,7 @@ dependencies {
     testImplementation(project(":extensions:common:http"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"))
-    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
+    testImplementation(testFixtures(project(":core:common:lib:core-lib")))
     testImplementation(libs.awaitility)
 
 

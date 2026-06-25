@@ -18,8 +18,7 @@ plugins {
 
 dependencies {
     api(project(":spi:control-plane-spi"))
-    implementation(project(":core:common:lib:sql-lib"))
-    implementation(project(":core:common:lib:util-lib"))
+    implementation(project(":core:common:lib:core-lib"))
     implementation(project(":extensions:common:sql:sql-bootstrapper"))
     implementation(project(":spi:core-spi"))
 

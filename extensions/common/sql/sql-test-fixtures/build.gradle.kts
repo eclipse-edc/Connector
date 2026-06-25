@@ -20,7 +20,7 @@ plugins {
 dependencies {
     testFixturesImplementation(project(":spi:core-spi"))
     testFixturesImplementation(project(":core:common:junit"))
-    testFixturesImplementation(project(":core:common:lib:sql-lib"))
+    testFixturesImplementation(project(":core:common:lib:core-lib"))
     testFixturesImplementation(project(":extensions:common:sql:sql-lease"))
 
     testFixturesImplementation(libs.postgres)

@@ -19,12 +19,8 @@ plugins {
 dependencies {
     api(project(":spi:core-spi"))
 
-    implementation(project(":core:common:lib:http-lib"))
-    implementation(project(":core:common:lib:json-lib"))
-    implementation(project(":core:common:lib:query-lib"))
-    implementation(project(":core:common:lib:transform-lib"))
-    implementation(project(":core:common:lib:validator-lib"))
-    implementation(project(":core:common:lib:encryption-lib"))
+    implementation(project(":core:common:lib:core-lib"))
+    implementation(project(":core:common:lib:jsonld-lib"))
 
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)

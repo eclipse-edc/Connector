@@ -22,9 +22,8 @@ dependencies {
     api(project(":spi:core-spi"))
     api(project(":spi:control-plane-spi"))
 
-    implementation(project(":core:common:lib:api-lib"))
-    implementation(project(":core:common:lib:transform-lib"))
-    implementation(project(":core:common:lib:validator-lib"))
+    implementation(project(":core:common:lib:core-lib"))
+    implementation(project(":core:common:lib:jsonld-lib"))
     implementation(libs.jakarta.rsApi)
 
     testImplementation(project(":core:common:junit"))

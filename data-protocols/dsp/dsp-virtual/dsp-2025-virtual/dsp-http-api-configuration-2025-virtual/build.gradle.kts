@@ -22,7 +22,7 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
     api(project(":data-protocols:dsp:dsp-http-spi"))
 
-    implementation(project(":core:common:lib:transform-lib"))
+    implementation(project(":core:common:lib:jsonld-lib"))
     implementation(project(":core:control-plane:control-plane-transform"))
     testImplementation(project(":core:common:junit"))
 }

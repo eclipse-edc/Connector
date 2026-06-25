@@ -20,7 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:core-spi"))
     implementation(project(":spi:core-spi"))
-    implementation(project(":extensions:common:iam:decentralized-claims:lib:verifiable-credentials-lib"))
+    implementation(project(":core:common:lib:core-lib"))
     implementation(libs.jsonschema)
 
     testImplementation(project(":core:common:junit-base"))

@@ -5,9 +5,9 @@ plugins {
 
 dependencies {
     api(project(":spi:core-spi"))
-    api(project(":core:common:lib:util-lib"))
+    api(project(":core:common:lib:core-lib"))
 
-    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
+    testImplementation(testFixtures(project(":core:common:lib:core-lib")))
 }
 
 

@@ -22,28 +22,23 @@ dependencies {
     api(project(":spi:core-spi"))
     api(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
 
-    implementation(project(":core:common:lib:api-lib"))
-    implementation(project(":core:common:lib:catalog-util-lib"))
-    implementation(project(":data-protocols:dsp:dsp-lib:dsp-catalog-lib:dsp-catalog-transform-lib"))
-    implementation(project(":extensions:common:api:lib:management-api-lib"))
-    implementation(project(":extensions:common:http:lib:jersey-providers-lib"))
+    implementation(project(":core:common:lib:core-lib"))
+    implementation(project(":core:control-plane:lib:control-plane-lib"))
+    implementation(project(":data-protocols:dsp:dsp-lib"))
     implementation(project(":spi:core-spi"))
 
     // required for integration test
     testImplementation(project(":data-protocols:dsp:dsp-http-spi"))
     testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
-    testImplementation(project(":core:common:lib:boot-lib"))
+    testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:lib:json-lib"))
+    testImplementation(project(":core:common:lib:jsonld-lib"))
     testImplementation(project(":extensions:common:http"))
     testImplementation(libs.restAssured)
     testImplementation(project(":extensions:common:iam:iam-mock"))
-    testImplementation(project(":core:common:lib:json-ld-lib"))
-    testImplementation(project(":data-protocols:dsp:dsp-lib:dsp-catalog-lib:dsp-catalog-transform-lib"))
+    testImplementation(project(":data-protocols:dsp:dsp-lib"))
     testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-catalog-2025:dsp-catalog-transform-2025"))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
-    testImplementation(project(":core:common:lib:transform-lib"))
-    testImplementation(project(":core:common:lib:query-lib"))
 }
 
 edcBuild {

@@ -21,10 +21,10 @@ dependencies {
     api(project(":spi:core-spi"))
     api(project(":spi:control-plane-spi"))
 
-    implementation(project(":core:common:lib:util-lib"))
+    implementation(project(":core:common:lib:core-lib"))
 
     testImplementation(project(":core:common:runtime-core"))
-    testImplementation(testFixtures(project(":core:common:lib:http-lib")))
+    testImplementation(testFixtures(project(":core:common:lib:core-lib")))
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.jakarta.json.api)
     testImplementation(libs.wiremock)
