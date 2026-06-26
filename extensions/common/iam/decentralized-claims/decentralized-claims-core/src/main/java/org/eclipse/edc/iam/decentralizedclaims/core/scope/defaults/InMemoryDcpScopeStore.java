@@ -48,9 +48,11 @@ public class InMemoryDcpScopeStore implements DcpScopeStore {
 
     @Override
     public StoreResult<Void> delete(String scopeId) {
-        scopes.remove(scopeId);
-        return StoreResult.success();
+        return scopes.remove(scopeId) != null
+                ? StoreResult.success()
+                : StoreResult.notFound(notFoundErrorMessage(scopeId));
     }
+
 
     @Override
     public StoreResult<List<DcpScope>> query(QuerySpec spec) {

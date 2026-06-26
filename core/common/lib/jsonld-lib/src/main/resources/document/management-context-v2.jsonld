@@ -612,6 +612,15 @@
         }
       }
     },
+    "DcpScope": {
+      "@id": "edc:DcpScope",
+      "@context": {
+        "type": "edc:type",
+        "value": "edc:value",
+        "profile": "edc:profile",
+        "prefixMapping": "edc:prefixMapping"
+      }
+    },
     "inForceDate": "edc:inForceDate",
     "ruleFunctions": {
       "@id": "edc:ruleFunctions",

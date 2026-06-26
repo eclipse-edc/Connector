@@ -207,6 +207,7 @@ include(":extensions:control-plane:api:management-api-v5:participant-context-con
 include(":extensions:control-plane:api:management-api-v5:cel-api-v5")
 include(":extensions:control-plane:api:management-api-v5:dataspace-profile-context-api-v5")
 include(":extensions:control-plane:api:management-api-v5:discovery-api-v5")
+include(":extensions:control-plane:api:management-api-v5:dcp-scope-api-v5")
 
 include(":extensions:control-plane:store:sql:asset-index-sql")
 include(":extensions:control-plane:store:sql:contract-definition-store-sql")

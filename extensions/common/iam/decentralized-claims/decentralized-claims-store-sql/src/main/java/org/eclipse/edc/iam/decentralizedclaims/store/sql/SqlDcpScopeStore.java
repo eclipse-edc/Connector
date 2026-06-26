@@ -71,7 +71,10 @@ public class SqlDcpScopeStore extends AbstractSqlStore implements DcpScopeStore 
     public StoreResult<Void> delete(String scopeId) {
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                queryExecutor.execute(connection, statements.getDeleteTemplate(), scopeId);
+                var deleted = queryExecutor.execute(connection, statements.getDeleteTemplate(), scopeId);
+                if (deleted == 0) {
+                    return StoreResult.notFound("DcpScope with id %s not found".formatted(scopeId));
+                }
                 return StoreResult.success();
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);

@@ -20,9 +20,12 @@ import org.eclipse.edc.iam.decentralizedclaims.spi.scope.store.DcpScopeStore;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.ServiceResult;
+import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.util.List;
+
+import static org.eclipse.edc.spi.query.Criterion.criterion;
 
 /**
  * Implementation of {@link DcpScopeRegistry}.
@@ -43,8 +46,38 @@ public class DcpScopeRegistryImpl implements DcpScopeRegistry {
     }
 
     @Override
+    public ServiceResult<Void> create(DcpScope scope) {
+        return transactionContext.execute(() -> findById(scope.getId())
+                .compose(existing -> existing.isEmpty()
+                        ? store.save(scope)
+                        : StoreResult.<Void>alreadyExists("DcpScope with id %s already exists".formatted(scope.getId())))
+                .flatMap(ServiceResult::from));
+    }
+
+    @Override
+    public ServiceResult<Void> update(DcpScope scope) {
+        return transactionContext.execute(() -> findById(scope.getId())
+                .compose(existing -> existing.isEmpty()
+                        ? StoreResult.<Void>notFound("DcpScope with id %s does not exist".formatted(scope.getId()))
+                        : store.save(scope))
+                .flatMap(ServiceResult::from));
+    }
+
+    @Override
+    public ServiceResult<List<DcpScope>> query(QuerySpec spec) {
+        return transactionContext.execute(() -> store.query(spec).flatMap(ServiceResult::from));
+    }
+
+    @Override
     public ServiceResult<Void> remove(String scopeId) {
         return transactionContext.execute(() -> store.delete(scopeId).flatMap(ServiceResult::from));
+    }
+
+    private StoreResult<List<DcpScope>> findById(String id) {
+        var query = QuerySpec.Builder.newInstance()
+                .filter(criterion("id", "=", id))
+                .build();
+        return store.query(query);
     }
 
     @Override
