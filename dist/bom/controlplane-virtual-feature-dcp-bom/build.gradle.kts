@@ -17,9 +17,13 @@ plugins {
 }
 
 dependencies {
-    api(project(":dist:bom:controlplane-feature-dcp-bom"))
+    api(project(":dist:bom:controlplane-feature-dcp-bom")) {
+        exclude("org.eclipse.edc", "decentralized-claims-sts-remote-client")
+    }
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-cel"))
     api(project(":extensions:control-plane:api:management-api-v5:dcp-scope-api-v5"))
+    api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:decentralized-claims-sts-registry"))
+    api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:decentralized-claims-sts-remote-registrar"))
 }
 
 edcBuild {
