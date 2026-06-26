@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "DcpScopeSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/DcpScope"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/dcp-scope-schema.json",
+  "definitions": {
+    "DcpScope": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "DcpScope"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "DEFAULT",
+            "POLICY"
+          ]
+        },
+        "value": {
+          "type": "string"
+        },
+        "profile": {
+          "type": "string"
+        },
+        "prefixMapping": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "value"
+      ]
+    }
+  }
+}
