@@ -1612,6 +1612,51 @@ paths:
           description: default response
           content:
             '*/*': {}
+  /v5beta/dcpscopes:
+    post:
+      tags:
+      - DcpScope v5beta
+      description: Creates a new DcpScope object.
+      operationId: createDcpScopeV5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/dcp-scope-schema"
+      responses:
+        "200":
+          description: "The DcpScope was created successfully, its id is returned\
+            \ in the response body."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/id-response-schema"
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: "Can't create the DcpScope, because an object with the same\
+            \ ID already exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v4/policydefinitions/request:
     post:
       tags:
@@ -3853,6 +3898,43 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v5beta/dcpscopes/request:
+    post:
+      tags:
+      - DcpScope v5beta
+      description: Returns all DcpScope objects according to a query.
+      operationId: queryDcpScopesV5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The list of DcpScopes.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/dcp-scope-schema"
+        "400":
+          description: The query was malformed or was not understood by the server.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v5beta/participants/{participantContextId}/profiles:
     get:
       tags:
@@ -3945,6 +4027,86 @@ paths:
                   $ref: "#/components/schemas/api-error-schema"
         "404":
           description: A ParticipantContext with the given ID does not exist.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5beta/dcpscopes/{id}:
+    put:
+      tags:
+      - DcpScope v5beta
+      description: Updates an existing DcpScope object.
+      operationId: updateDcpScopeV5
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/dcp-scope-schema"
+      responses:
+        "204":
+          description: The DcpScope was updated successfully.
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A DcpScope with the given ID does not exist.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    delete:
+      tags:
+      - DcpScope v5beta
+      description: Deletes a DcpScope.
+      operationId: deleteDcpScopeV5
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: The DcpScope was deleted successfully
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A DcpScope with the given ID does not exist.
           content:
             application/json:
               schema:
@@ -7643,6 +7805,48 @@ components:
             \ Takes precedence over counterPartyId."
           format: uri
       nullable: true
+    dcp-scope-schema:
+      title: DcpScopeSchema
+      type: object
+      example:
+        prefixMapping: prefixMapping
+        '@type': '@type'
+        profile: profile
+        '@id': '@id'
+        type: DEFAULT
+        '@context':
+        - '@context'
+        - '@context'
+        value: value
+      allOf:
+      - $ref: "#/components/schemas/DcpScope"
+    DcpScope:
+      required:
+      - '@context'
+      - '@type'
+      - value
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        '@id':
+          type: string
+        type:
+          type: string
+          enum:
+          - DEFAULT
+          - POLICY
+        value:
+          type: string
+        profile:
+          type: string
+        prefixMapping:
+          type: string
     AssetInputV3:
       required:
       - '@context'
