@@ -37,7 +37,7 @@ class DataPlaneHttpOauth2ExtensionTest {
     }
 
     @Test
-    void verifyRegisterKafkaSource(DataPlaneHttpOauth2Extension extension, ServiceExtensionContext context) {
+    void verifyRegisterSource(DataPlaneHttpOauth2Extension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
         verify(paramsProvider).registerSourceDecorator(isA(Oauth2HttpRequestParamsDecorator.class));

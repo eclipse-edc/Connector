@@ -34,11 +34,9 @@ dependencies {
     testImplementation(project(":extensions:common:json-ld"))
 
     testImplementation(libs.awaitility)
-    testImplementation(libs.kafkaClients)
     testImplementation(libs.postgres)
     testImplementation(libs.restAssured)
     testImplementation(libs.testcontainers.junit)
-    testImplementation(libs.testcontainers.kafka)
     testImplementation(libs.testcontainers.postgres)
     testImplementation(libs.wiremock) {
         exclude("com.networknt", "json-schema-validator")
