@@ -1589,29 +1589,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /{flowId}/{resourceId}/deprovision:
-    post:
-      operationId: deprovision
-      parameters:
-      - name: flowId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: resourceId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            '*/*': {}
   /v5beta/dcpscopes:
     post:
       tags:
@@ -4864,34 +4841,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /{flowId}/{resourceId}/provision:
-    post:
-      operationId: provision
-      parameters:
-      - name: flowId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: resourceId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          '*/*':
-            schema:
-              $ref: "#/components/schemas/ProvisionHttpResponse"
-      responses:
-        default:
-          description: default response
-          content:
-            '*/*': {}
   /v4/contractdefinitions/request:
     post:
       tags:
@@ -9977,25 +9926,6 @@ components:
           '@vocab': https://w3id.org/edc/v0.0.1/ns/
         '@type': PolicyEvaluationPlanRequest
         policyScope: catalog
-    ProvisionHttpResponse:
-      type: object
-      properties:
-        dataAddress:
-          $ref: "#/components/schemas/DataAddress_1"
-      example:
-        dataAddress:
-          properties:
-            key: "{}"
-    DataAddress_1:
-      type: object
-      properties:
-        properties:
-          type: object
-          additionalProperties:
-            type: object
-      example:
-        properties:
-          key: "{}"
     TransferProcessV3:
       type: object
       properties:
