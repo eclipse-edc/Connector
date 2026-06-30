@@ -14,23 +14,17 @@
 
 package org.eclipse.edc.test.bom;
 
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
-import java.util.Map;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static io.restassured.RestAssured.given;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
@@ -133,34 +127,6 @@ public class BomSmokeTests {
                                 }})
                         )
         );
-    }
-
-    @Nested
-    @EndToEndTest
-    public class DataPlaneBase extends SmokeTest {
-
-        @RegisterExtension
-        static WireMockExtension server = WireMockExtension.newInstance()
-                .options(wireMockConfig().dynamicPort())
-                .build();
-
-        @RegisterExtension
-        protected RuntimeExtension runtime =
-                new RuntimePerMethodExtension(new EmbeddedRuntime("data-plane-base-bom", ":dist:bom:dataplane-base-bom")
-                        .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
-                                "edc.transfer.proxy.token.verifier.publickey.alias", "test-alias",
-                                "edc.transfer.proxy.token.signer.privatekey.alias", "private-alias",
-                                "edc.dpf.selector.url", "http://localhost:%s/selector".formatted(server.getPort()),
-                                "web.http.control.port", "8081",
-                                "web.http.control.path", "/api/control",
-                                "web.http.port", DEFAULT_PORT,
-                                "web.http.path", DEFAULT_PATH)))
-                );
-
-        @BeforeEach
-        void setup() {
-            server.stubFor(post("/selector").willReturn(ok()));
-        }
     }
 
 }

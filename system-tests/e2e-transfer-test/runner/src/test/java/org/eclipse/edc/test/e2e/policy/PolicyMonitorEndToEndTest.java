@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.test.e2e.policy;
 
+import org.eclipse.edc.connector.controlplane.test.system.utils.ManagementApiClientV4;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.annotations.Runtime;
@@ -176,6 +177,7 @@ class PolicyMonitorEndToEndTest {
                 .endpoints(CONSUMER_ENDPOINTS)
                 .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
                 .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .paramProvider(ManagementApiClientV4.class, ManagementApiClientV4::forContext)
                 .build();
 
         @RegisterExtension
@@ -186,6 +188,7 @@ class PolicyMonitorEndToEndTest {
                 .endpoints(PROVIDER_ENDPOINTS)
                 .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
                 .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .paramProvider(ManagementApiClientV4.class, ManagementApiClientV4::forContext)
                 .build();
 
         @RegisterExtension
@@ -244,6 +247,7 @@ class PolicyMonitorEndToEndTest {
                 .configurationProvider(() -> Runtimes.ControlPlane.config(CONSUMER_ID))
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(CONSUMER_DB))
                 .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .paramProvider(ManagementApiClientV4.class, ManagementApiClientV4::forContext)
                 .build();
 
         @RegisterExtension
@@ -256,6 +260,7 @@ class PolicyMonitorEndToEndTest {
                 .configurationProvider(() -> Runtimes.ControlPlane.config(PROVIDER_ID))
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(PROVIDER_DB))
                 .paramProvider(TransferEndToEndParticipant.class, TransferEndToEndParticipant::forContext)
+                .paramProvider(ManagementApiClientV4.class, ManagementApiClientV4::forContext)
                 .build();
 
         @RegisterExtension

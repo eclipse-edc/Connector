@@ -45,7 +45,6 @@ dependencies {
     testImplementation(libs.nimbus.jwt)
 
     testCompileOnly(project(":system-tests:e2e-transfer-test:control-plane"))
-    testCompileOnly(project(":system-tests:e2e-transfer-test:data-plane"))
     testCompileOnly(project(":system-tests:e2e-transfer-test:signaling-data-plane"))
 }
 

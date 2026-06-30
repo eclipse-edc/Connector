@@ -97,9 +97,10 @@ class FederatedCatalogTest {
                             entry("web.http.protocol.path", CONNECTOR_PROTOCOL.path()),
                             entry("web.http.control.port", CONNECTOR_CONTROL.port()),
                             entry("web.http.control.path", CONNECTOR_CONTROL.path()),
+                            entry("web.http.signaling.port", String.valueOf(getFreePort())),
                             entry("web.http.management.port", CONNECTOR_MANAGEMENT.port()),
-                            entry("edc.participant.id", "test-connector"),
                             entry("web.http.management.path", CONNECTOR_MANAGEMENT.path()),
+                            entry("edc.participant.id", "test-connector"),
                             entry("edc.web.rest.cors.headers", "origin,content-type,accept,authorization,x-api-key"),
                             entry("edc.dsp.callback.address", "http://localhost:%s%s".formatted(CONNECTOR_PROTOCOL.port(), CONNECTOR_PROTOCOL.path()))
                     )))

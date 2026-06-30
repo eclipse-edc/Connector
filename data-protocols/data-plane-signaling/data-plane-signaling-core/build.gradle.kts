@@ -22,7 +22,6 @@ dependencies {
     api(project(":spi:control-plane-spi"))
     api(project(":data-protocols:data-plane-signaling:data-plane-signaling-spi"))
     implementation(project(":core:common:lib:core-lib"))
-    implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-transform"))
     implementation(libs.jakarta.annotation)
 
     testImplementation(project(":core:common:junit"))

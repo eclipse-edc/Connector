@@ -21,7 +21,6 @@ import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 import static org.eclipse.edc.util.io.Ports.getFreePort;
@@ -49,17 +48,6 @@ public interface Runtimes {
 
         String[] VIRTUAL_NATS_MODULES = new String[]{
                 ":dist:bom:controlplane-virtual-feature-nats-bom",
-        };
-
-        String[] LEGACY_SIGNALING_MODULES = new String[]{
-                ":system-tests:e2e-transfer-test:control-plane",
-                ":extensions:control-plane:transfer:transfer-data-plane-signaling"
-        };
-
-        String[] EMBEDDED_DP_MODULES = new String[]{
-                ":system-tests:e2e-transfer-test:control-plane",
-                ":extensions:control-plane:transfer:transfer-data-plane-signaling",
-                ":system-tests:e2e-transfer-test:data-plane"
         };
 
         String[] SQL_MODULES = new String[]{
@@ -90,42 +78,6 @@ public interface Runtimes {
                     put("edc.data.plane.selector.state-machine.iteration-wait-millis", "100");
                     put("edc.core.retry.retries.max", "1");
                     put("edc.policy.monitor.period", "PT2S");
-                }
-            });
-        }
-
-        static Config dataPlaneSelectorFor(Endpoints endpoints) {
-            var controlEndpoint = Objects.requireNonNull(endpoints.getEndpoint("control"));
-            return ConfigFactory.fromMap(Map.of(
-                    "edc.dpf.selector.url", controlEndpoint.get() + "/v1/dataplanes"
-            ));
-        }
-    }
-
-    interface DataPlane {
-
-        String[] IN_MEM_MODULES = new String[]{
-                ":system-tests:e2e-transfer-test:data-plane",
-                ":extensions:data-plane-selector:data-plane-selector-client"
-        };
-
-        String[] SQL_MODULES = new String[]{
-                ":system-tests:e2e-transfer-test:data-plane",
-                ":dist:bom:dataplane-feature-sql-bom",
-                ":extensions:data-plane-selector:data-plane-selector-client"
-        };
-
-        Endpoints.Builder ENDPOINTS = Endpoints.Builder.newInstance()
-                .endpoint("control", () -> URI.create("http://localhost:" + getFreePort() + "/control"));
-
-        static Config config() {
-            return ConfigFactory.fromMap(new HashMap<>() {
-                {
-                    put("edc.transfer.proxy.token.signer.privatekey.alias", "private-key");
-                    put("edc.transfer.proxy.token.verifier.publickey.alias", "public-key");
-                    put("edc.dataplane.http.sink.partition.size", "1");
-                    put("edc.dataplane.send.retry.limit", "1");
-                    put("edc.dataplane.state-machine.iteration-wait-millis", "50");
                 }
             });
         }

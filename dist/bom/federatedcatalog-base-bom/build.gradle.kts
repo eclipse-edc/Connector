@@ -46,8 +46,7 @@ dependencies {
     api(project(":extensions:common:http:jetty-core"))
     api(project(":core:common:token-core"))
     api(project(":core:data-plane-selector:data-plane-selector-core"))
-    api(project(":extensions:control-plane:transfer:transfer-data-plane-signaling"))
-    api(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"))
 
     api(project(":data-protocols:dsp"))
+    api(project(":data-protocols:data-plane-signaling"))
 }
