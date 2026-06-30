@@ -28,7 +28,6 @@ import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.query.Criterion;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.managementapi.ManagementEndToEndTestContext;
 import org.eclipse.edc.test.e2e.managementapi.Runtimes;
@@ -47,6 +46,7 @@ import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.DCAT_ENDPOINT_URL_ATTRIBUTE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -87,8 +87,8 @@ public class CatalogApiV4EndToEndTest {
                                                               PolicyDefinitionStore policyDefinitionStore,
                                                               ContractDefinitionStore contractDefinitionStore) {
 
-            assetIndex.create(createAsset("id-1", "test-type").build());
-            assetIndex.create(createAsset("id-2", "test-type").build());
+            assetIndex.create(createAsset("id-1").build());
+            assetIndex.create(createAsset("id-2").build());
             createContractOffer(policyDefinitionStore, contractDefinitionStore, List.of());
 
             var criteria = createArrayBuilder()
@@ -154,15 +154,15 @@ public class CatalogApiV4EndToEndTest {
 
             // create CatalogAsset
             var catalogAssetId = "catalog-asset-" + UUID.randomUUID();
-            var httpData = createAsset(catalogAssetId, "HttpData")
+            var httpData = createAsset(catalogAssetId)
                     .property(Asset.PROPERTY_IS_CATALOG, true)
+                    .property(DCAT_ENDPOINT_URL_ATTRIBUTE, "http://quizzqua.zz/buzz")
                     .build();
-            httpData.getDataAddress().getProperties().put(EDC_NAMESPACE + "baseUrl", "http://quizzqua.zz/buzz");
             assetIndex.create(httpData);
 
             // create conventional asset
             var normalAssetId = "normal-asset-" + UUID.randomUUID();
-            assetIndex.create(createAsset(normalAssetId, "test-type").build());
+            assetIndex.create(createAsset(normalAssetId).build());
 
             var assetSelectorCriteria = List.of(Criterion.criterion("id", "in", List.of(catalogAssetId, normalAssetId)));
 
@@ -200,12 +200,13 @@ public class CatalogApiV4EndToEndTest {
                                             PolicyDefinitionStore policyDefinitionStore,
                                             ContractDefinitionStore contractDefinitionStore,
                                             DataPlaneInstanceStore dataPlaneInstanceStore) {
-            var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
+            var dataPlaneInstance = DataPlaneInstance.Builder.newInstance()
+                    .participantContextId("anonymous").url("http://localhost/any")
                     .allowedSourceType("test-type").allowedTransferType("any-PULL").build();
             dataPlaneInstanceStore.save(dataPlaneInstance);
 
             createContractOffer(policyDefinitionStore, contractDefinitionStore, List.of());
-            assetIndex.create(createAsset("asset-id", "test-type").build());
+            assetIndex.create(createAsset("asset-id").build());
             var requestBody = createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
                     .add(TYPE, "DatasetRequest")
@@ -226,50 +227,6 @@ public class CatalogApiV4EndToEndTest {
                     .body(ID, is("asset-id"))
                     .body(TYPE, is("Dataset"))
                     .body("distribution[0].accessService.'@id'", notNullValue());
-        }
-
-        @Test
-        void getDatasetWithResponseChannel_shouldReturnDataset(ManagementEndToEndTestContext context, AssetIndex assetIndex,
-                                                               DataPlaneInstanceStore dataPlaneInstanceStore,
-                                                               PolicyDefinitionStore policyDefinitionStore,
-                                                               ContractDefinitionStore contractDefinitionStore) {
-
-            createContractOffer(policyDefinitionStore, contractDefinitionStore, List.of());
-
-            var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
-                    .allowedDestType("any").allowedSourceType("test-type")
-                    .allowedTransferType("any-PULL").allowedTransferType("any-PULL-response").build();
-            dataPlaneInstanceStore.save(dataPlaneInstance);
-
-            var responseChannel = DataAddress.Builder.newInstance()
-                    .type("response")
-                    .build();
-
-            var dataAddressWithResponseChannel = DataAddress.Builder.newInstance()
-                    .type("test-type")
-                    .responseChannel(responseChannel)
-                    .build();
-            assetIndex.create(createAsset("asset-response", dataAddressWithResponseChannel).build());
-            var requestBody = createObjectBuilder()
-                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
-                    .add(TYPE, "DatasetRequest")
-                    .add(ID, "asset-response")
-                    .add("counterPartyAddress", context.providerDsp2025url())
-                    .add("counterPartyId", "counter-party-id")
-                    .add("protocol", "dataspace-protocol-http:2025-1")
-                    .build();
-
-            context.baseRequest()
-                    .contentType(JSON)
-                    .body(requestBody)
-                    .post("/v4/catalog/dataset/request")
-                    .then()
-                    .log().ifValidationFails()
-                    .statusCode(200)
-                    .contentType(JSON)
-                    .body(ID, is("asset-response"))
-                    .body(TYPE, is("Dataset"))
-                    .body("distribution[0].format", is("any-PULL-response"));
         }
 
         private void createContractOffer(PolicyDefinitionStore policyStore, ContractDefinitionStore contractDefStore, List<Criterion> assetsSelectorCritera) {
@@ -295,16 +252,8 @@ public class CatalogApiV4EndToEndTest {
 
         }
 
-        private Asset.Builder createAsset(String id, String sourceType) {
-            var address = DataAddress.Builder.newInstance()
-                    .type(sourceType)
-                    .build();
-            return createAsset(id, address);
-        }
-
-        private Asset.Builder createAsset(String id, DataAddress address) {
+        private Asset.Builder createAsset(String id) {
             return Asset.Builder.newInstance()
-                    .dataAddress(address)
                     .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .id(id);
         }

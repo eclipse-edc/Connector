@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":core:common::participant-context-connector-classic-core"))
     implementation(project(":data-protocols:dsp"))
     implementation(project(":data-protocols:dsp:dsp-2025"))
+    implementation(project(":data-protocols:data-plane-signaling"))
     implementation(project(":extensions:common:http"))
     implementation(project(":extensions:common:iam:iam-mock"))
     implementation(project(":extensions:common:json-ld"))
@@ -32,8 +33,6 @@ dependencies {
     implementation(project(":extensions:control-plane:api:management-api"))
     implementation(project(":extensions:control-plane:api:management-api:secrets-api"))
     implementation(project(":extensions:data-plane-selector:data-plane-selector-api"))
-    implementation(project(":extensions:data-plane:data-plane-signaling:data-plane-signaling-client"))
-    implementation(project(":extensions:control-plane:transfer:transfer-data-plane-signaling"))
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))
 }
 

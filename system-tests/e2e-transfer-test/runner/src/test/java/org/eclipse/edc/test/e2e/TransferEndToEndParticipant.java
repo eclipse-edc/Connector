@@ -15,18 +15,13 @@
 package org.eclipse.edc.test.e2e;
 
 import jakarta.json.JsonObject;
-import org.assertj.core.api.ThrowingConsumer;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participant;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.utils.LazySupplier;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 
 import java.net.URI;
-import java.util.Map;
 
-import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.web.spi.configuration.ApiContext.MANAGEMENT;
 import static org.eclipse.edc.web.spi.configuration.ApiContext.PROTOCOL;
 import static org.eclipse.edc.web.spi.configuration.ApiContext.SIGNALING;
@@ -51,28 +46,6 @@ public class TransferEndToEndParticipant extends Participant {
                 .managementUrl(ctx.getEndpoint(MANAGEMENT))
                 .protocolUrl(ctx.getEndpoint(PROTOCOL))
                 .signalingUrl(ctx.getEndpoint(SIGNALING));
-    }
-
-    /**
-     * Pull data from provider using EDR.
-     *
-     * @param edr           endpoint data reference
-     * @param queryParams   query parameters
-     * @param bodyAssertion assertion to be verified on the body
-     */
-    public void pullData(DataAddress edr, Map<String, String> queryParams, ThrowingConsumer<String> bodyAssertion) {
-        var data = given()
-                .baseUri(edr.getStringProperty("endpoint"))
-                .header("Authorization", edr.getStringProperty("authorization"))
-                .queryParams(queryParams)
-                .when()
-                .get()
-                .then()
-                .log().ifError()
-                .statusCode(200)
-                .extract().body().asString();
-
-        assertThat(data).satisfies(bodyAssertion);
     }
 
     public void registerDataPlane(JsonObject dataPlaneRegistrationMessage) {
