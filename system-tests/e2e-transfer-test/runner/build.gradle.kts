@@ -38,6 +38,7 @@ dependencies {
     testImplementation(libs.restAssured)
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.postgres)
+    testImplementation(libs.testcontainers.vault)
     testImplementation(libs.wiremock) {
         exclude("com.networknt", "json-schema-validator")
     }

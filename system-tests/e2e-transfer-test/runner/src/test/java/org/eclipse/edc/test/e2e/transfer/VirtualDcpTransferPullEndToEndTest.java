@@ -36,6 +36,7 @@ import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.nats.testfixtures.NatsEndToEndExtension;
+import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.signaling.auth.Oauth2Extension;
 import org.eclipse.edc.signaling.client.DataPlaneSignalingTestClient;
 import org.eclipse.edc.spi.security.Vault;
@@ -43,6 +44,8 @@ import org.eclipse.edc.spi.system.configuration.Config;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.Runtimes;
+import org.eclipse.edc.test.e2e.fixtures.VaultApi;
+import org.eclipse.edc.test.e2e.fixtures.VaultEndToEndExtension;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
@@ -54,6 +57,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.CONSUMER_DP;
@@ -63,17 +67,29 @@ import static org.eclipse.edc.test.e2e.transfer.VirtualTransferEndToEndTestBase.
 
 class VirtualDcpTransferPullEndToEndTest {
 
+
+    private static final String CONSUMER_VAULT_KEY = "consumer-" + UUID.randomUUID();
+
     private static Participants participants(ComponentRuntimeContext ctx, CredentialServiceEndToEndExtension ext) {
         var protocolEndpoint = ctx.getEndpoint("protocol");
         var signalingEndpoint = ctx.getEndpoint("signaling");
         var providerDid = ext.didFor(PROVIDER_CONTEXT);
         var providerCfg = ext.dcpConfig(PROVIDER_CONTEXT);
         var consumerDid = ext.didFor(CONSUMER_CONTEXT);
-        var consumerCfg = ext.dcpConfig(CONSUMER_CONTEXT);
+        var consumerCfg = ext.dcpConfig(CONSUMER_CONTEXT).merge(stsSignatureConfig(CONSUMER_VAULT_KEY, consumerDid + "#additional-key"));
+
         return new Participants(
                 new Participants.Participant(PROVIDER_CONTEXT, providerDid, protocolEndpoint, signalingEndpoint, providerCfg.getEntries()),
                 new Participants.Participant(CONSUMER_CONTEXT, consumerDid, protocolEndpoint, signalingEndpoint, consumerCfg.getEntries())
         );
+    }
+
+    private static Config stsSignatureConfig(String keyName, String kid) {
+        return ConfigFactory.fromMap(Map.of(
+                "edc.iam.sts.type", "signature",
+                "edc.iam.sts.signature.keyname", keyName,
+                "edc.iam.sts.signature.kid", kid
+        ));
     }
 
     @SuppressWarnings("JUnitMalformedDeclaration")
@@ -88,8 +104,12 @@ class VirtualDcpTransferPullEndToEndTest {
                           CredentialService credentialService,
                           Participants participants,
                           @Runtime(Runtimes.ControlPlane.NAME) Vault vault,
-                          TrustedIssuerRegistry trustedIssuerRegistry) {
+                          TrustedIssuerRegistry trustedIssuerRegistry,
+                          VaultApi vaultApi,
 
+                          ParticipantContextConfigService configService) {
+
+            vaultApi.enableTransitEngine();
             trustedIssuerRegistry.register(new Issuer(issuer.getDid(), Map.of()), "*");
 
             var consumerContextId = participants.consumer().contextId();
@@ -97,7 +117,9 @@ class VirtualDcpTransferPullEndToEndTest {
             vault.storeSecret(consumerContextId, "%s-alias".formatted(consumerContextId), "%s-sts-secret".formatted(consumerContextId));
             vault.storeSecret(providerContextId, "%s-alias".formatted(providerContextId), "%s-sts-secret".formatted(providerContextId));
 
-            credentialService.addParticipant(participants.consumer().contextId());
+            var key = vaultApi.addTransitEngineKey(CONSUMER_VAULT_KEY, participants.consumer().id() + "#additional-key");
+
+            credentialService.addParticipant(participants.consumer().contextId(), key);
             credentialService.addParticipant(participants.provider().contextId());
 
             var consumerMembershipCredential = issuer.issueCredential(participants.consumer().id(), "MembershipCredential", Map.of("status", "active"));
@@ -202,6 +224,10 @@ class VirtualDcpTransferPullEndToEndTest {
         @RegisterExtension
         static final PostgresqlEndToEndExtension POSTGRESQL_EXTENSION = new PostgresqlEndToEndExtension();
 
+        @Order(0)
+        @RegisterExtension
+        static final VaultEndToEndExtension VAULT_END_TO_END_EXTENSION = new VaultEndToEndExtension();
+
         @Order(1)
         @RegisterExtension
         static final BeforeAllCallback SETUP = context -> {
@@ -216,6 +242,7 @@ class VirtualDcpTransferPullEndToEndTest {
                 .modules(Runtimes.ControlPlane.VIRTUAL_SQL_MODULES)
                 .modules(Runtimes.ControlPlane.VIRTUAL_DCP_MODULES)
                 .modules(Runtimes.ControlPlane.VIRTUAL_NATS_MODULES)
+                .modules(":extensions:common:vault:vault-hashicorp")
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(PostgresDcp::runtimeConfiguration)
                 .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.did.web.use.https", "false")))
@@ -223,6 +250,7 @@ class VirtualDcpTransferPullEndToEndTest {
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
                 .configurationProvider(NATS_EXTENSION::configFor)
                 .configurationProvider(AUTH_SERVER_EXTENSION::getConfig)
+                .configurationProvider(VAULT_END_TO_END_EXTENSION::configFor)
                 .paramProvider(ManagementApiClientV5.class, (ctx) -> ManagementApiClientV5.forContext(ctx, AUTH_SERVER_EXTENSION.getAuthServer()))
                 .paramProvider(Participants.class, (ctx) -> participants(ctx, CREDENTIAL_SERVICE))
                 .build();
