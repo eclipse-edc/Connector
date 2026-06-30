@@ -24,6 +24,7 @@ dependencies {
     api(project(":extensions:control-plane:api:management-api-v5:dcp-scope-api-v5"))
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:decentralized-claims-sts-registry"))
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:decentralized-claims-sts-remote-registrar"))
+    api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:decentralized-claims-sts-signature-registrar"))
 }
 
 edcBuild {

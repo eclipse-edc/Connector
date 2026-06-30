@@ -17,9 +17,13 @@ package org.eclipse.edc.iam.decentralizedclaims.spi.credentialservice;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.Ed25519Signer;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.OctetKeyPair;
 import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
@@ -52,7 +56,7 @@ public class CredentialService {
         this.port = port;
     }
 
-    private static ECKey generateKey(String participantContextId, String did) {
+    private static JWK generateKey(String participantContextId, String did) {
         try {
             return new ECKeyGenerator(Curve.P_256)
                     .keyID(did + "#key1")
@@ -68,7 +72,7 @@ public class CredentialService {
      *
      * @param participantContextId the participant context identifier
      */
-    public void addParticipant(String participantContextId) {
+    public void addParticipant(String participantContextId, JWK additionalKey) {
         if (participants.containsKey(participantContextId)) {
             throw new IllegalArgumentException("Participant already registered: " + participantContextId);
         }
@@ -78,16 +82,29 @@ public class CredentialService {
 
         var ecKey = generateKey(participantContextId, did);
 
+        var verificationMethods = new ArrayList<VerificationMethod>();
+        verificationMethods.add(VerificationMethod.Builder.newInstance()
+                .id(ecKey.getKeyID())
+                .type("JsonWebKey2020")
+                .controller(did)
+                .publicKeyJwk(ecKey.toPublicJWK().toJSONObject())
+                .build());
+
+        if (additionalKey != null) {
+            verificationMethods.add(VerificationMethod.Builder.newInstance()
+                    .id(additionalKey.getKeyID())
+                    .type("JsonWebKey2020")
+                    .controller(did)
+                    .publicKeyJwk(additionalKey.toPublicJWK().toJSONObject())
+                    .build());
+        }
+
+
         var didDocument = DidDocument.Builder.newInstance()
                 .id(did)
-                .verificationMethod(List.of(
-                        VerificationMethod.Builder.newInstance()
-                                .id(ecKey.getKeyID())
-                                .type("JsonWebKey2020")
-                                .controller(did)
-                                .publicKeyJwk(ecKey.toPublicJWK().toJSONObject())
-                                .build()
-                ))
+                .verificationMethod(
+                        verificationMethods
+                )
                 .service(List.of(new Service(
                         UUID.randomUUID().toString(),
                         "CredentialService",
@@ -96,6 +113,16 @@ public class CredentialService {
 
         var ctx = new ParticipantContext(didDocument, ecKey);
         participants.put(participantContextId, ctx);
+    }
+
+    /**
+     * Registers a new participant context. Generates an EC key pair, creates a DID document,
+     * and stubs the DID resolution and presentation query endpoints for this participant.
+     *
+     * @param participantContextId the participant context identifier
+     */
+    public void addParticipant(String participantContextId) {
+        addParticipant(participantContextId, null);
     }
 
     public @NonNull String didFor(String participantContextId) {
@@ -150,11 +177,11 @@ public class CredentialService {
             }
 
             var header = new JWSHeader.Builder(JWSAlgorithm.ES256)
-                    .keyID(ctx.ecKey.getKeyID())
+                    .keyID(ctx.jwk.getKeyID())
                     .build();
 
             var signedJwt = new SignedJWT(header, claimsSet.build());
-            signedJwt.sign(new ECDSASigner(ctx.ecKey));
+            signedJwt.sign(createSigner(ctx.jwk));
 
             return signedJwt.serialize();
         } catch (JOSEException e) {
@@ -188,11 +215,11 @@ public class CredentialService {
                     .build();
 
             var header = new JWSHeader.Builder(JWSAlgorithm.ES256)
-                    .keyID(ctx.ecKey.getKeyID())
+                    .keyID(ctx.jwk.getKeyID())
                     .build();
 
             var signedJwt = new SignedJWT(header, claimsSet);
-            signedJwt.sign(new ECDSASigner(ctx.ecKey));
+            signedJwt.sign(createSigner(ctx.jwk));
 
             return signedJwt.serialize();
         } catch (JOSEException e) {
@@ -200,14 +227,30 @@ public class CredentialService {
         }
     }
 
+
+    private JWSSigner createSigner(JWK jwk) {
+        try {
+            if (jwk instanceof ECKey) {
+                return new ECDSASigner((ECKey) jwk);
+            }
+            if (jwk instanceof OctetKeyPair) {
+                return new Ed25519Signer((OctetKeyPair) jwk);
+            }
+            throw new IllegalArgumentException("Unsupported JWK type: " + jwk.getClass().getSimpleName());
+        } catch (JOSEException e) {
+            throw new RuntimeException("Failed to create signer for JWK: " + jwk.getKeyID(), e);
+        }
+    }
+
+
     private static class ParticipantContext {
         private final DidDocument document;
-        private final ECKey ecKey;
+        private final JWK jwk;
         private final List<String> storedCredentials = new ArrayList<>();
 
-        ParticipantContext(DidDocument document, ECKey ecKey) {
+        ParticipantContext(DidDocument document, JWK jwk) {
             this.document = document;
-            this.ecKey = ecKey;
+            this.jwk = jwk;
         }
     }
 }
