@@ -134,6 +134,58 @@ public class ParticipantContextConfigApiV5EndToEndTest {
         }
 
         @Test
+        void patch_shouldMergeEntries(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService service) {
+            var participantContextId = "test-user";
+
+            service.save(ParticipantContextConfiguration.Builder.newInstance().participantContextId(participantContextId)
+                    .entries(Map.of("key1", "value1", "key2", "value2"))
+                    .build());
+
+            var body = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "ParticipantContextConfig")
+                    .add("entries", createObjectBuilder(Map.of("key2", "updated", "key3", "value3")))
+                    .build()
+                    .toString();
+
+            var token = authServer.createAdminToken();
+
+            context.baseRequest(token)
+                    .contentType(ContentType.JSON)
+                    .body(body)
+                    .patch("/v5beta/participants/" + participantContextId + "/config")
+                    .then()
+                    .log().all()
+                    .statusCode(204);
+
+            var cfg = service.get(participantContextId)
+                    .orElseThrow(f -> new AssertionError("Participant context config not found"));
+
+            assertThat(cfg.getEntries()).isEqualTo(Map.of("key1", "value1", "key2", "updated", "key3", "value3"));
+        }
+
+        @Test
+        void patch_shouldReturnNotFound_whenConfigDoesNotExist(ManagementEndToEndV5TestContext context, OauthServer authServer) {
+            var participantContextId = "user-without-config";
+
+            var body = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "ParticipantContextConfig")
+                    .add("entries", createObjectBuilder(Map.of("key1", "value1")))
+                    .build()
+                    .toString();
+
+            var token = authServer.createAdminToken();
+
+            context.baseRequest(token)
+                    .contentType(ContentType.JSON)
+                    .body(body)
+                    .patch("/v5beta/participants/" + participantContextId + "/config")
+                    .then()
+                    .statusCode(404);
+        }
+
+        @Test
         void get(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService srv) {
             var participantContextId = "test-user";
             var entries = Map.of("key1", "value1", "key2", "value2");

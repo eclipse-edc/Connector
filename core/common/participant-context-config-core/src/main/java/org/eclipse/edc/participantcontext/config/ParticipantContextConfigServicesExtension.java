@@ -28,6 +28,8 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
+import java.time.Clock;
+
 import static org.eclipse.edc.participantcontext.config.ParticipantContextConfigServicesExtension.NAME;
 
 @Extension(NAME)
@@ -54,9 +56,12 @@ public class ParticipantContextConfigServicesExtension implements ServiceExtensi
     @Inject
     private Monitor monitor;
 
+    @Inject
+    private Clock clock;
+
     @Provider
     public ParticipantContextConfigService participantContextConfigService() {
-        return new ParticipantContextConfigServiceImpl(encryptionRegistry, encryptionAlgorithm, configStore, transactionContext);
+        return new ParticipantContextConfigServiceImpl(encryptionRegistry, encryptionAlgorithm, configStore, transactionContext, clock);
     }
 
     @Provider
