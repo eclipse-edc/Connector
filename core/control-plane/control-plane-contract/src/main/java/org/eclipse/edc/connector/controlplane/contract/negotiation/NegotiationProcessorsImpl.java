@@ -28,13 +28,13 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractNegotiationAck;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
+import org.eclipse.edc.controlplane.ProcessRemoteMessage;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessConfiguration;
 import org.eclipse.edc.statemachine.retry.EntityRetryProcessFactory;
 import org.eclipse.edc.statemachine.retry.processor.RetryProcessor;

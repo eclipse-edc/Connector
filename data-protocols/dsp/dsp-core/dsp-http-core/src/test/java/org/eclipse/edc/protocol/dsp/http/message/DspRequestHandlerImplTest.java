@@ -17,6 +17,7 @@ package org.eclipse.edc.protocol.dsp.http.message;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.controlplane.ProcessRemoteMessage;
 import org.eclipse.edc.jsonld.spi.Namespaces;
 import org.eclipse.edc.participantcontext.spi.service.ParticipantContextSupplier;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
@@ -29,7 +30,6 @@ import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
-import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;

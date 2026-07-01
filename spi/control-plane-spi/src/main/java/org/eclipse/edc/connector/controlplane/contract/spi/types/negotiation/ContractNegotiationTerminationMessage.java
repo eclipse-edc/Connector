@@ -15,8 +15,8 @@
 package org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation;
 
 import org.eclipse.edc.connector.controlplane.contract.spi.types.protocol.ContractRemoteMessage;
+import org.eclipse.edc.controlplane.ProcessRemoteMessage;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.jetbrains.annotations.Nullable;
 
 public class ContractNegotiationTerminationMessage extends ContractRemoteMessage {

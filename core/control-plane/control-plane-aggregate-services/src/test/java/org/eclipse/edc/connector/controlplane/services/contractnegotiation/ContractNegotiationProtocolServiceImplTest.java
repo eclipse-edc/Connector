@@ -36,6 +36,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.validation.ContractVa
 import org.eclipse.edc.connector.controlplane.contract.spi.validation.ValidatableConsumerOffer;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolTokenValidator;
+import org.eclipse.edc.controlplane.ProcessRemoteMessage;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
@@ -45,7 +46,6 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.result.StoreResult;
-import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;

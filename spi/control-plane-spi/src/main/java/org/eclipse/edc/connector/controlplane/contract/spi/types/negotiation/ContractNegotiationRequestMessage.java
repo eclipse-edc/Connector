@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import org.eclipse.edc.spi.types.domain.message.ProtocolRemoteMessage;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 
 import java.util.Objects;
 

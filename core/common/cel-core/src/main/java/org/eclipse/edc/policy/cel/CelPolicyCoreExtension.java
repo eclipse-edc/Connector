@@ -52,8 +52,8 @@ import static org.eclipse.edc.connector.controlplane.catalog.spi.policy.CatalogP
 import static org.eclipse.edc.connector.controlplane.contract.spi.policy.ContractNegotiationPolicyContext.NEGOTIATION_SCOPE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.policy.TransferProcessPolicyContext.TRANSFER_SCOPE;
 import static org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorContext.POLICY_MONITOR_SCOPE;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_SCHEMA;
 import static org.eclipse.edc.policy.cel.CelPolicyCoreExtension.NAME;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 
 @Extension(NAME)
 public class CelPolicyCoreExtension implements ServiceExtension {

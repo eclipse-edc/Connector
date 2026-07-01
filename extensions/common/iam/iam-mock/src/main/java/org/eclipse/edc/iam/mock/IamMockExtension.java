@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.iam.mock;
 
+import org.eclipse.edc.controlplane.iam.AudienceResolver;
 import org.eclipse.edc.participantcontext.spi.config.ParticipantContextConfig;
 import org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
@@ -22,7 +23,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
-import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;

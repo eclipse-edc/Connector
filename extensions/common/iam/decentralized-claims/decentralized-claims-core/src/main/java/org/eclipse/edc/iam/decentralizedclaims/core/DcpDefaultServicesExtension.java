@@ -15,6 +15,7 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.core;
 
+import org.eclipse.edc.controlplane.iam.AudienceResolver;
 import org.eclipse.edc.iam.decentralizedclaims.core.defaults.DefaultDcpParticipantIdExtractionFunction;
 import org.eclipse.edc.iam.decentralizedclaims.core.defaults.DefaultTrustedIssuerRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.core.defaults.InMemorySignatureSuiteRegistry;
@@ -29,7 +30,6 @@ import org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
-import org.eclipse.edc.spi.iam.AudienceResolver;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.result.Result;

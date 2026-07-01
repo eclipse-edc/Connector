@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.http;
 
-import org.eclipse.edc.spi.types.domain.message.ProtocolRemoteMessage;
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 
 import java.util.Objects;
 

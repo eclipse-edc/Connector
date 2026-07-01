@@ -16,7 +16,6 @@ package org.eclipse.edc.jsonld.spi;
 
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCAT_SCHEMA;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DCT_SCHEMA;
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 /**
@@ -43,6 +42,7 @@ public interface PropertyAndTypeNames {
     String DCT_FORMAT_ATTRIBUTE = DCT_SCHEMA + "format";
     String DCT_CONFORMS_TO_ATTRIBUTE = DCT_SCHEMA + "conformsTo";
 
+    String ODRL_SCHEMA = "http://www.w3.org/ns/odrl/2/";
     String ODRL_POLICY_ATTRIBUTE = ODRL_SCHEMA + "hasPolicy";
     String ODRL_POLICY_TYPE_SET = ODRL_SCHEMA + "Set";
     String ODRL_POLICY_TYPE_OFFER = ODRL_SCHEMA + "Offer";
@@ -75,4 +75,6 @@ public interface PropertyAndTypeNames {
     String ODRL_USE_ACTION_ATTRIBUTE = ODRL_SCHEMA + "use";
     String ODRL_PROFILE_ATTRIBUTE = ODRL_SCHEMA + "profile";
     String DSPACE_PROPERTY_PARTICIPANT_ID_TERM = "participantId";
+    // ref: https://www.w3.org/ns/odrl.jsonld
+    String ODRL_PREFIX = "odrl";
 }

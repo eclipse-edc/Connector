@@ -14,13 +14,8 @@
 
 package org.eclipse.edc.spi.iam;
 
-import org.eclipse.edc.policy.model.Policy;
-
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -28,20 +23,10 @@ import java.util.Set;
  */
 public class VerificationContext {
 
-    private final Map<Class<?>, Object> additional;
-    private Policy policy;
     private Set<String> scopes = new HashSet<>();
 
     private VerificationContext() {
-        additional = new HashMap<>();
-    }
 
-
-    /**
-     * Returns the {@link Policy} associated with the verification context
-     */
-    public Policy getPolicy() {
-        return policy;
     }
 
     /**
@@ -51,20 +36,6 @@ public class VerificationContext {
      */
     public Set<String> getScopes() {
         return scopes;
-    }
-
-    /**
-     * Gets additional data from the context by type.
-     *
-     * @param type the type class.
-     * @param <T>  the type of data.
-     * @return the object associated with the type, or null.
-     */
-
-
-    @SuppressWarnings("unchecked")
-    public <T> T getContextData(Class<T> type) {
-        return (T) additional.get(type);
     }
 
     public static class Builder {
@@ -78,24 +49,12 @@ public class VerificationContext {
             return new Builder();
         }
 
-        public Builder data(Class<?> clazz, Object object) {
-            context.additional.put(clazz, object);
-            return this;
-        }
-
-        public Builder policy(Policy policy) {
-            context.policy = policy;
-            return this;
-        }
-
         public Builder scopes(Collection<String> scopes) {
             context.scopes = new HashSet<>(scopes);
             return this;
         }
 
         public VerificationContext build() {
-
-            Objects.requireNonNull(this.context.policy, "Policy cannot be null");
             return context;
         }
     }

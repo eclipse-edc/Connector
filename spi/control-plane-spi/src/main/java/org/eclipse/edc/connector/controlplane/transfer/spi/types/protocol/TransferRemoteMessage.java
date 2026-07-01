@@ -14,8 +14,8 @@
 
 package org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol;
 
+import org.eclipse.edc.controlplane.ProcessRemoteMessage;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.types.domain.message.ProcessRemoteMessage;
 
 /**
  * A remote message related to the TransferProcess context
