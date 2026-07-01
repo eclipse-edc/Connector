@@ -289,6 +289,66 @@ public abstract class AssetIndexTestBase {
         }
 
         @Test
+        void shouldFilterByDoubleProperty() {
+            var expected = createAssetBuilder("id1").property("score", 10.0).build();
+            var different = createAssetBuilder("id2").property("score", 20.0).build();
+            getAssetIndex().create(expected);
+            getAssetIndex().create(different);
+
+            var assets = getAssetIndex().queryAssets(filter(criterion("score", "=", 10.0)));
+
+            assertThat(assets).hasSize(1).map(Asset::getId).containsExactly(expected.getId());
+        }
+
+        @Test
+        void shouldFilterByIntegerProperty() {
+            var expected = createAssetBuilder("id1").property("count", 42).build();
+            var different = createAssetBuilder("id2").property("count", 99).build();
+            getAssetIndex().create(expected);
+            getAssetIndex().create(different);
+
+            var assets = getAssetIndex().queryAssets(filter(criterion("count", "=", 42)));
+
+            assertThat(assets).hasSize(1).map(Asset::getId).containsExactly(expected.getId());
+        }
+
+        @Test
+        void shouldFilterByLongProperty() {
+            var expected = createAssetBuilder("id1").property("timestamp", 123456789L).build();
+            var different = createAssetBuilder("id2").property("timestamp", 987654321L).build();
+            getAssetIndex().create(expected);
+            getAssetIndex().create(different);
+
+            var assets = getAssetIndex().queryAssets(filter(criterion("timestamp", "=", 123456789L)));
+
+            assertThat(assets).hasSize(1).map(Asset::getId).containsExactly(expected.getId());
+        }
+
+        @Test
+        void shouldFilterByFloatProperty() {
+            var expected = createAssetBuilder("id1").property("rating", 4.5F).build();
+            var different = createAssetBuilder("id2").property("rating", 3.5F).build();
+            getAssetIndex().create(expected);
+            getAssetIndex().create(different);
+
+            var assets = getAssetIndex().queryAssets(filter(criterion("rating", "=", 4.5F)));
+
+            assertThat(assets).hasSize(1).map(Asset::getId).containsExactly(expected.getId());
+        }
+
+        @Test
+        void shouldFilterByShortProperty() {
+            var expected = createAssetBuilder("id1").property("priority", (short) 1).build();
+            var different = createAssetBuilder("id2").property("priority", (short) 2).build();
+            getAssetIndex().create(expected);
+            getAssetIndex().create(different);
+
+            var assets = getAssetIndex().queryAssets(filter(criterion("priority", "=", (short) 1)));
+
+            assertThat(assets).hasSize(1).map(Asset::getId).containsExactly(expected.getId());
+        }
+
+        @Test
         void shouldFilterByNestedProperty() {
             var nested = EDC_NAMESPACE + "nested";
             var version = EDC_NAMESPACE + "version";
