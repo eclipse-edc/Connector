@@ -20,7 +20,6 @@ package org.eclipse.edc.web.spi.configuration;
 public interface ApiContext {
 
     String MANAGEMENT = "management";
-    String CONTROL = "control";
     String SIGNALING = "signaling";
     String PROTOCOL = "protocol";
 

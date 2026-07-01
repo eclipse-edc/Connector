@@ -37,7 +37,6 @@ dependencies {
     api(project(":extensions:common:console-monitor"))
     api(project(":extensions:common:api:api-core"))
     api(project(":extensions:common:api:management-api-configuration"))
-    api(project(":extensions:common:api:control-api-configuration"))
     api(project(":extensions:common:auth:auth-tokenbased"))
     api(project(":extensions:common:auth:auth-configuration"))
     api(project(":extensions:common:auth:auth-delegated"))

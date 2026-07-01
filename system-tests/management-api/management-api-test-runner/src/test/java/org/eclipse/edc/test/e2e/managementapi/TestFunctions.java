@@ -150,20 +150,6 @@ public class TestFunctions {
                 .build();
     }
 
-    public static JsonObject dataPaneInstanceObject(String context) {
-        return createObjectBuilder()
-                .add(CONTEXT, createContextBuilder(context).build())
-                .add(TYPE, "DataPlaneInstance")
-                .add(ID, "data-plane-instance-id")
-                .add("url", "http://test.local/")
-                .add("lastActive", 1234567890L)
-                .add("allowedSourceTypes", createArrayBuilder().add("Source"))
-                .add("allowedTransferTypes", createArrayBuilder().add("TransferType"))
-                .add("destinationProvisionTypes", createArrayBuilder().add("ProvisionType"))
-                .add("stateTimestamp", 1234567890L)
-                .build();
-    }
-
     public static JsonObject participantContextObject(String context) {
         return createObjectBuilder()
                 .add(CONTEXT, createContextBuilder(context).build())
