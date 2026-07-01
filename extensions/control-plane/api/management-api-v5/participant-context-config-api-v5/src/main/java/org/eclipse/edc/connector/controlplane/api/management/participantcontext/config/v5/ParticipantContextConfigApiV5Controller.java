@@ -18,6 +18,7 @@ package org.eclipse.edc.connector.controlplane.api.management.participantcontext
 import jakarta.json.JsonObject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -63,6 +64,22 @@ public class ParticipantContextConfigApiV5Controller implements ParticipantConte
                 .build();
 
         configService.save(config)
+                .orElseThrow(exceptionMapper(ParticipantContextConfiguration.class, config.getParticipantContextId()));
+
+    }
+
+    @PATCH
+    @RequiredScope("management-api:admin")
+    @Override
+    public void patchConfigV5(@PathParam("participantContextId") String participantContextId, @SchemaType(PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM) JsonObject request) {
+
+        var config = transformerRegistry.transform(request, ParticipantContextConfiguration.class)
+                .orElseThrow(InvalidRequestException::new)
+                .toBuilder()
+                .participantContextId(participantContextId)
+                .build();
+
+        configService.merge(config)
                 .orElseThrow(exceptionMapper(ParticipantContextConfiguration.class, config.getParticipantContextId()));
 
     }

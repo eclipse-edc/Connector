@@ -148,4 +148,70 @@ public abstract class ParticipantContextConfigApiControllerTestBase extends Rest
         }
     }
 
+    @Nested
+    class Patch {
+        @Test
+        void patch() {
+            var contextConfig = createParticipantContextConfig();
+            when(transformerRegistry.transform(any(), eq(ParticipantContextConfiguration.class))).thenReturn(Result.success(contextConfig));
+            when(service.merge(any())).thenReturn(ServiceResult.success());
+            var requestBody = Json.createObjectBuilder()
+                    .add("policy", Json.createObjectBuilder()
+                            .add(CONTEXT, "context")
+                            .add(TYPE, "Set")
+                            .build())
+                    .build();
+
+            baseRequest()
+                    .body(requestBody)
+                    .contentType(JSON)
+                    .patch("/participants/" + contextConfig.getParticipantContextId() + "/config")
+                    .then()
+                    .statusCode(204);
+            verify(transformerRegistry).transform(isA(JsonObject.class), eq(ParticipantContextConfiguration.class));
+            verify(service).merge(argThat(ctx ->
+                    ctx.getParticipantContextId().equals(contextConfig.getParticipantContextId()) &&
+                            ctx.getEntries().equals(contextConfig.getEntries())));
+        }
+
+        @Test
+        void patch_shouldReturnBadRequest_whenTransformationFails() {
+            when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
+            var requestBody = Json.createObjectBuilder()
+                    .add("policy", Json.createObjectBuilder()
+                            .add(CONTEXT, "context")
+                            .add(TYPE, "Set")
+                            .build())
+                    .build();
+
+            baseRequest()
+                    .body(requestBody)
+                    .contentType(JSON)
+                    .patch("/participants/id/config")
+                    .then()
+                    .statusCode(400);
+            verifyNoInteractions(service);
+        }
+
+        @Test
+        void patch_shouldReturnNotFound_whenConfigDoesNotExist() {
+            var contextConfig = createParticipantContextConfig();
+            when(transformerRegistry.transform(any(), eq(ParticipantContextConfiguration.class))).thenReturn(Result.success(contextConfig));
+            when(service.merge(any())).thenReturn(ServiceResult.notFound("not found"));
+            var requestBody = Json.createObjectBuilder()
+                    .add("policy", Json.createObjectBuilder()
+                            .add(CONTEXT, "context")
+                            .add(TYPE, "Set")
+                            .build())
+                    .build();
+
+            baseRequest()
+                    .body(requestBody)
+                    .contentType(JSON)
+                    .patch("/participants/" + contextConfig.getParticipantContextId() + "/config")
+                    .then()
+                    .statusCode(404);
+        }
+    }
+
 }

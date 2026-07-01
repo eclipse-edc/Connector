@@ -31,6 +31,16 @@ public interface ParticipantContextConfigService {
     ServiceResult<Void> save(ParticipantContextConfiguration config);
 
     /**
+     * Merges the given configuration into the existing one for the same participant context. Entries and private
+     * entries present in the patch are added or overwritten, while existing entries that are not part of the patch are
+     * preserved. Fails if no configuration currently exists for the participant context.
+     *
+     * @param config the configuration containing the entries to merge
+     * @return a ServiceResult indicating success or failure
+     */
+    ServiceResult<Void> merge(ParticipantContextConfiguration config);
+
+    /**
      * Retrieves the configuration for a given participant context.
      *
      * @param participantContextId the participant context identifier

@@ -22,6 +22,8 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
+import java.time.Clock;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,12 +34,14 @@ public class ParticipantContextConfigServiceImpl implements ParticipantContextCo
     private final String encryptionAlgorithm;
     private final ParticipantContextConfigStore configStore;
     private final TransactionContext transactionContext;
+    private final Clock clock;
 
-    public ParticipantContextConfigServiceImpl(EncryptionAlgorithmRegistry encryptionRegistry, String encryptionAlgorithm, ParticipantContextConfigStore configStore, TransactionContext transactionContext) {
+    public ParticipantContextConfigServiceImpl(EncryptionAlgorithmRegistry encryptionRegistry, String encryptionAlgorithm, ParticipantContextConfigStore configStore, TransactionContext transactionContext, Clock clock) {
         this.encryptionRegistry = encryptionRegistry;
         this.encryptionAlgorithm = encryptionAlgorithm;
         this.configStore = configStore;
         this.transactionContext = transactionContext;
+        this.clock = clock;
     }
 
     @Override
@@ -46,6 +50,30 @@ public class ParticipantContextConfigServiceImpl implements ParticipantContextCo
                 .onSuccess(configStore::save)
                 .flatMap(ServiceResult::from)
                 .mapEmpty());
+    }
+
+    @Override
+    public ServiceResult<Void> merge(ParticipantContextConfiguration config) {
+        return transactionContext.execute(() -> {
+            var existing = configStore.get(config.getParticipantContextId());
+            if (existing == null) {
+                return ServiceResult.notFound("No configuration found for participant context with id " + config.getParticipantContextId());
+            }
+            return ServiceResult.from(encryptEntries(config))
+                    .map(encryptedPatch -> {
+                        var mergedEntries = new HashMap<>(existing.getEntries());
+                        mergedEntries.putAll(encryptedPatch.getEntries());
+                        var mergedPrivateEntries = new HashMap<>(existing.getPrivateEntries());
+                        mergedPrivateEntries.putAll(encryptedPatch.getPrivateEntries());
+                        return existing.toBuilder()
+                                .entries(mergedEntries)
+                                .privateEntries(mergedPrivateEntries)
+                                .lastModified(clock.millis())
+                                .build();
+                    })
+                    .onSuccess(configStore::save)
+                    .mapEmpty();
+        });
     }
 
 
