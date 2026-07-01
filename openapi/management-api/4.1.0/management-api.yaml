@@ -2647,6 +2647,54 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+    patch:
+      tags:
+      - Participant Context config v5beta
+      description: "Merges the provided entries into the existing ParticipantContext\
+        \ config. Entries present in the request are added or overwritten, existing\
+        \ entries are preserved."
+      operationId: patchConfigV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/participant-context-config-schema"
+      responses:
+        "204":
+          description: The Config was merged successfully
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A ParticipantContext config with the given ID does not exist.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v3/transferprocesses/{id}/deprovision:
     post:
       tags:
