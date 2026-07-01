@@ -104,7 +104,7 @@ class JsonFieldTranslatorTest {
 
             var result = translator.toWhereClause(PathItem.parse("field"), criterion, operator);
 
-            assertThat(result.sql()).isEqualTo("(column_name ->> 'field')::double = ?");
+            assertThat(result.sql()).isEqualTo("(column_name ->> 'field')::double precision = ?");
             assertThat(result.parameters()).containsExactly(100.0);
         }
 
@@ -115,7 +115,7 @@ class JsonFieldTranslatorTest {
 
             var result = translator.toWhereClause(PathItem.parse("field"), criterion, operator);
 
-            assertThat(result.sql()).isEqualTo("(column_name ->> 'field')::float = ?");
+            assertThat(result.sql()).isEqualTo("(column_name ->> 'field')::real = ?");
             assertThat(result.parameters()).containsExactly(100.0F);
         }
 
@@ -126,7 +126,7 @@ class JsonFieldTranslatorTest {
 
             var result = translator.toWhereClause(PathItem.parse("field"), criterion, operator);
 
-            assertThat(result.sql()).isEqualTo("(column_name ->> 'field')::long = ?");
+            assertThat(result.sql()).isEqualTo("(column_name ->> 'field')::bigint = ?");
             assertThat(result.parameters()).containsExactly(100L);
         }
 
@@ -137,7 +137,7 @@ class JsonFieldTranslatorTest {
 
             var result = translator.toWhereClause(PathItem.parse("field"), criterion, operator);
 
-            assertThat(result.sql()).isEqualTo("(column_name ->> 'field')::short = ?");
+            assertThat(result.sql()).isEqualTo("(column_name ->> 'field')::smallint = ?");
             assertThat(result.parameters()).containsExactly((short) 1);
         }
 

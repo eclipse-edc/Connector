@@ -72,19 +72,19 @@ public class JsonFieldTranslator implements FieldTranslator {
         }
 
         if (type.equals(Double.class)) {
-            return format("(%s)::double", statement);
+            return format("(%s)::double precision", statement);
         }
 
         if (type.equals(Float.class)) {
-            return format("(%s)::float", statement);
+            return format("(%s)::real", statement);
         }
 
         if (type.equals(Long.class)) {
-            return format("(%s)::long", statement);
+            return format("(%s)::bigint", statement);
         }
 
         if (type.equals(Short.class)) {
-            return format("(%s)::short", statement);
+            return format("(%s)::smallint", statement);
         }
 
         return statement;
