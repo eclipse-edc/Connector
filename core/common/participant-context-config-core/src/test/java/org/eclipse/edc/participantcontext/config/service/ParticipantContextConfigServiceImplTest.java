@@ -102,15 +102,96 @@ public class ParticipantContextConfigServiceImplTest {
     }
 
     @Test
-    void merge_whenNotFound() {
+    void merge_whenNotFound_shouldCreate() {
+        when(registry.encrypt(anyString(), anyString())).then(a -> Result.success("enc(" + a.getArgument(1) + ")"));
+        when(store.get("participantContext")).thenReturn(null);
+
         var patch = ParticipantContextConfiguration.Builder.newInstance()
                 .participantContextId("participantContext")
                 .entries(Map.of("key", "value"))
+                .privateEntries(Map.of("secret", "plain"))
                 .build();
 
         var result = service.merge(patch);
+        assertThat(result).isSucceeded();
 
-        assertThat(result).isFailed().detail().contains("No configuration found for participant context");
+        verify(store).save(argThat(saved ->
+                saved.getParticipantContextId().equals("participantContext") &&
+                        saved.getCreatedAt() == 5000 &&
+                        saved.getLastModified() == 5000 &&
+                        saved.getEntries().equals(Map.of("key", "value")) &&
+                        saved.getPrivateEntries().equals(Map.of("secret", "enc(plain)"))));
+        verify(registry).encrypt(anyString(), anyString());
+    }
+
+    @Test
+    void merge_shouldRemoveEntry_whenValueIsNull() {
+        when(registry.encrypt(anyString(), anyString())).then(a -> Result.success("enc(" + a.getArgument(1) + ")"));
+
+        var existing = ParticipantContextConfiguration.Builder.newInstance()
+                .participantContextId("participantContext")
+                .createdAt(1000)
+                .lastModified(1000)
+                .entries(new HashMap<>(Map.of("key", "value", "keep", "kept")))
+                .privateEntries(new HashMap<>(Map.of("secret", "enc(existing)", "keepSecret", "enc(kept)")))
+                .build();
+        when(store.get("participantContext")).thenReturn(existing);
+
+        var entries = new HashMap<String, String>();
+        entries.put("key", null);
+        var privateEntries = new HashMap<String, String>();
+        privateEntries.put("secret", null);
+        var patch = ParticipantContextConfiguration.Builder.newInstance()
+                .participantContextId("participantContext")
+                .entries(entries)
+                .privateEntries(privateEntries)
+                .build();
+
+        var result = service.merge(patch);
+        assertThat(result).isSucceeded();
+
+        verify(store).save(argThat(saved ->
+                saved.getEntries().equals(Map.of("keep", "kept")) &&
+                        saved.getPrivateEntries().equals(Map.of("keepSecret", "enc(kept)"))));
+        // null values are removal signals and must never be encrypted
+        verify(registry, never()).encrypt(anyString(), any());
+    }
+
+    @Test
+    void merge_whenKeyAbsent_nullIsNoop() {
+        when(registry.encrypt(anyString(), anyString())).then(a -> Result.success("enc(" + a.getArgument(1) + ")"));
+
+        var existing = ParticipantContextConfiguration.Builder.newInstance()
+                .participantContextId("participantContext")
+                .entries(new HashMap<>(Map.of("keep", "kept")))
+                .build();
+        when(store.get("participantContext")).thenReturn(existing);
+
+        var entries = new HashMap<String, String>();
+        entries.put("missing", null);
+        var patch = ParticipantContextConfiguration.Builder.newInstance()
+                .participantContextId("participantContext")
+                .entries(entries)
+                .build();
+
+        var result = service.merge(patch);
+        assertThat(result).isSucceeded();
+
+        verify(store).save(argThat(saved -> saved.getEntries().equals(Map.of("keep", "kept"))));
+    }
+
+    @Test
+    void save_shouldReturnBadRequest_whenNullValue() {
+        var entries = new HashMap<String, String>();
+        entries.put("key", null);
+        var config = ParticipantContextConfiguration.Builder.newInstance()
+                .participantContextId("participantContext")
+                .entries(entries)
+                .build();
+
+        var result = service.save(config);
+
+        assertThat(result).isFailed().detail().contains("Null values are not allowed");
         verify(store, never()).save(any());
     }
 
