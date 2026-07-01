@@ -32,7 +32,6 @@ dependencies {
     implementation(project(":extensions:common:api:version-api"))
     implementation(project(":extensions:common:api:api-observability"))
     implementation(project(":core:data-plane-selector:data-plane-selector-core"))
-    implementation(project(":extensions:common:api:control-api-configuration"))
 }
 
 edcBuild {

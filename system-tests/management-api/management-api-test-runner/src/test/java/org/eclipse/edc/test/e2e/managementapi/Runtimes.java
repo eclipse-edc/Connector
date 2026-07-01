@@ -22,7 +22,6 @@ import java.net.URI;
 import java.util.Map;
 
 import static org.eclipse.edc.util.io.Ports.getFreePort;
-import static org.eclipse.edc.web.spi.configuration.ApiContext.CONTROL;
 import static org.eclipse.edc.web.spi.configuration.ApiContext.MANAGEMENT;
 import static org.eclipse.edc.web.spi.configuration.ApiContext.PROTOCOL;
 
@@ -58,7 +57,6 @@ public interface Runtimes {
 
         Endpoints.Builder ENDPOINTS = Endpoints.Builder.newInstance()
                 .endpoint(MANAGEMENT, () -> URI.create("http://localhost:" + getFreePort() + "/management"))
-                .endpoint(CONTROL, () -> URI.create("http://localhost:" + getFreePort() + "/control"))
                 .endpoint(PROTOCOL, () -> URI.create("http://localhost:" + getFreePort() + "/protocol"));
 
 

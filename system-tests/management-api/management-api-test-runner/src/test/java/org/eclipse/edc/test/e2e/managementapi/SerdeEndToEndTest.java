@@ -133,7 +133,6 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createEdrEntr
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createPolicyEvaluationPlan;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createTransferProcess;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dataAddressObject;
-import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dataPaneInstanceObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.datasetRequestObject;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.datasetRequestObjectWithProfile;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.datasetRequestObjectWithProfileAndProtocol;
@@ -755,7 +754,6 @@ public class SerdeEndToEndTest {
                         Arguments.of(querySpecObject(jsonLdContext), QuerySpec.class, null),
                         Arguments.of(policyDefinitionObject(jsonLdContext, strictSchema), PolicyDefinition.class, mapper),
                         Arguments.of(dataAddressObject(jsonLdContext), DataAddress.class, null),
-                        Arguments.of(dataPaneInstanceObject(jsonLdContext), DataPlaneInstance.class, null),
                         Arguments.of(participantContextObject(jsonLdContext), ParticipantContext.class, null),
                         Arguments.of(participantContextConfigObject(jsonLdContext), ParticipantContextConfiguration.class, null),
                         Arguments.of(celExpression(jsonLdContext), CelExpression.class, null)
@@ -789,7 +787,7 @@ public class SerdeEndToEndTest {
         private static final RuntimeExtension RUNTIME = ComponentRuntimeExtension.Builder.newInstance()
                 .name(Runtimes.ControlPlane.NAME)
                 .modules(Runtimes.ControlPlane.MODULES)
-                .modules(":extensions:common:api:management-api-schema-validator", ":extensions:data-plane-selector:data-plane-selector-control-api")
+                .modules(":extensions:common:api:management-api-schema-validator")
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(SerdeEndToEndTest::config)
                 .build();
@@ -916,7 +914,6 @@ public class SerdeEndToEndTest {
                 .name(Runtimes.ControlPlane.NAME)
                 .modules(Runtimes.ControlPlane.MODULES)
                 .modules(":extensions:common:api:management-api-schema-validator",
-                        ":extensions:data-plane-selector:data-plane-selector-control-api",
                         ":extensions:control-plane:api:management-api-v5:dcp-scope-api-v5")
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(SerdeEndToEndTest::config)

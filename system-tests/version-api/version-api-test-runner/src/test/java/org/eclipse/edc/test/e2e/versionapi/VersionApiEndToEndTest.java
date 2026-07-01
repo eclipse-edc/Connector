@@ -48,7 +48,6 @@ public class VersionApiEndToEndTest {
                 {
                     put("web.http.path", "/");
                     put("web.http.port", String.valueOf(DEFAULT_CONTEXT_PORT));
-                    put("web.http.control.port", String.valueOf(Ports.getFreePort()));
                     put("web.http.management.path", "/management");
                     put("web.http.management.port", String.valueOf(8181));
                     var dspPort = Ports.getFreePort();
@@ -73,7 +72,7 @@ public class VersionApiEndToEndTest {
                 .extract().body().as(new TypeRef<Map<String, List<VersionRecord>>>() {
                 });
 
-        assertThat(result).containsKeys("management", "version", "control", "observability");
+        assertThat(result).containsKeys("management", "version", "observability");
         assertThat(result.get("management")).hasSize(3)
                 .anyMatch(vr -> vr.version().startsWith("3.") && vr.maturity().equals("deprecated"))
                 .anyMatch(vr -> vr.version().startsWith("4.") && vr.maturity().equals("stable"))

@@ -41,7 +41,6 @@ import java.util.HashMap;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.hamcrest.Matchers.equalTo;
 
 @EndToEndTest
@@ -67,8 +66,6 @@ public class NatsEventTest {
                                 put("edc.iam.sts.oauth.client.secret.alias", "test-alias");
                                 put("web.http.port", DEFAULT_PORT);
                                 put("web.http.path", DEFAULT_PATH);
-                                put("web.http.control.port", String.valueOf(getFreePort()));
-                                put("web.http.control.path", "/api/control");
                                 put("web.http.management.port", MANAGEMENT_PORT);
                                 put("web.http.management.path", MANAGEMENT_PATH);
                                 put("edc.iam.sts.privatekey.alias", "privatekey");
