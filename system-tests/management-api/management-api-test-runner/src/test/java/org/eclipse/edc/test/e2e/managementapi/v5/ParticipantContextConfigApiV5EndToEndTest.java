@@ -165,7 +165,63 @@ public class ParticipantContextConfigApiV5EndToEndTest {
         }
 
         @Test
-        void patch_shouldReturnNotFound_whenConfigDoesNotExist(ManagementEndToEndV5TestContext context, OauthServer authServer) {
+        void patch_shouldRemoveEntry_whenValueIsNull(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService service) {
+            var participantContextId = "test-user";
+
+            service.save(ParticipantContextConfiguration.Builder.newInstance().participantContextId(participantContextId)
+                    .entries(Map.of("key1", "value1", "key2", "value2"))
+                    .build());
+
+            var body = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "ParticipantContextConfig")
+                    .add("entries", createObjectBuilder()
+                            .add("key1", "updated")
+                            .addNull("key2"))
+                    .build()
+                    .toString();
+
+            var token = authServer.createAdminToken();
+
+            context.baseRequest(token)
+                    .contentType(ContentType.JSON)
+                    .body(body)
+                    .patch("/v5beta/participants/" + participantContextId + "/config")
+                    .then()
+                    .log().all()
+                    .statusCode(204);
+
+            var cfg = service.get(participantContextId)
+                    .orElseThrow(f -> new AssertionError("Participant context config not found"));
+
+            assertThat(cfg.getEntries()).isEqualTo(Map.of("key1", "updated"));
+        }
+
+        @Test
+        void set_shouldReturnBadRequest_whenValueIsNull(ManagementEndToEndV5TestContext context, OauthServer authServer) {
+            var participantContextId = "test-user";
+
+            var body = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "ParticipantContextConfig")
+                    .add("entries", createObjectBuilder()
+                            .add("key1", "value1")
+                            .addNull("key2"))
+                    .build()
+                    .toString();
+
+            var token = authServer.createAdminToken();
+
+            context.baseRequest(token)
+                    .contentType(ContentType.JSON)
+                    .body(body)
+                    .put("/v5beta/participants/" + participantContextId + "/config")
+                    .then()
+                    .statusCode(400);
+        }
+
+        @Test
+        void patch_shouldCreateConfig_whenConfigDoesNotExist(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextConfigService service) {
             var participantContextId = "user-without-config";
 
             var body = createObjectBuilder()
@@ -182,7 +238,12 @@ public class ParticipantContextConfigApiV5EndToEndTest {
                     .body(body)
                     .patch("/v5beta/participants/" + participantContextId + "/config")
                     .then()
-                    .statusCode(404);
+                    .statusCode(204);
+
+            var cfg = service.get(participantContextId)
+                    .orElseThrow(f -> new AssertionError("Participant context config not found"));
+
+            assertThat(cfg.getEntries()).isEqualTo(Map.of("key1", "value1"));
         }
 
         @Test

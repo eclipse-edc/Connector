@@ -23,8 +23,10 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration.PARTICIPANT_CONTEXT_CONFIG_ENTRIES_IRI;
 import static org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration.PARTICIPANT_CONTEXT_CONFIG_PRIVATE_ENTRIES_IRI;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 class JsonObjectToParticipantContextConfigurationTransformerTest {
@@ -80,6 +82,27 @@ class JsonObjectToParticipantContextConfigurationTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getEntries()).isEmpty();
 
+    }
+
+    @Test
+    void transform_withNullValues_shouldKeepNullAndNotReportProblem() {
+        var jsonObject = createObjectBuilder()
+                .add(PARTICIPANT_CONTEXT_CONFIG_ENTRIES_IRI, createObjectBuilder()
+                        .add(VALUE, createObjectBuilder()
+                                .add("key1", "value1")
+                                .addNull("key2")))
+                .add(PARTICIPANT_CONTEXT_CONFIG_PRIVATE_ENTRIES_IRI, createObjectBuilder()
+                        .add(VALUE, createObjectBuilder()
+                                .addNull("secret")))
+                .build();
+
+        var result = transformer.transform(jsonObject, context);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getEntries()).containsEntry("key1", "value1")
+                .containsEntry("key2", null);
+        assertThat(result.getPrivateEntries()).containsEntry("secret", null);
+        verify(context, never()).reportProblem(anyString());
     }
 
     @Test

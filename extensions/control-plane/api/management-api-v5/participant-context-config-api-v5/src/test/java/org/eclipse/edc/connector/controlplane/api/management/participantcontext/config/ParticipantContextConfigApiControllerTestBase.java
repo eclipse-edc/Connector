@@ -146,6 +146,26 @@ public abstract class ParticipantContextConfigApiControllerTestBase extends Rest
                     .statusCode(400);
             verifyNoInteractions(service);
         }
+
+        @Test
+        void set_shouldReturnBadRequest_whenServiceRejectsNullValues() {
+            var contextConfig = createParticipantContextConfig();
+            when(transformerRegistry.transform(any(), eq(ParticipantContextConfiguration.class))).thenReturn(Result.success(contextConfig));
+            when(service.save(any())).thenReturn(ServiceResult.badRequest("Null values are not allowed when setting a configuration"));
+            var requestBody = Json.createObjectBuilder()
+                    .add("policy", Json.createObjectBuilder()
+                            .add(CONTEXT, "context")
+                            .add(TYPE, "Set")
+                            .build())
+                    .build();
+
+            baseRequest()
+                    .body(requestBody)
+                    .contentType(JSON)
+                    .put("/participants/" + contextConfig.getParticipantContextId() + "/config")
+                    .then()
+                    .statusCode(400);
+        }
     }
 
     @Nested
@@ -191,26 +211,6 @@ public abstract class ParticipantContextConfigApiControllerTestBase extends Rest
                     .then()
                     .statusCode(400);
             verifyNoInteractions(service);
-        }
-
-        @Test
-        void patch_shouldReturnNotFound_whenConfigDoesNotExist() {
-            var contextConfig = createParticipantContextConfig();
-            when(transformerRegistry.transform(any(), eq(ParticipantContextConfiguration.class))).thenReturn(Result.success(contextConfig));
-            when(service.merge(any())).thenReturn(ServiceResult.notFound("not found"));
-            var requestBody = Json.createObjectBuilder()
-                    .add("policy", Json.createObjectBuilder()
-                            .add(CONTEXT, "context")
-                            .add(TYPE, "Set")
-                            .build())
-                    .build();
-
-            baseRequest()
-                    .body(requestBody)
-                    .contentType(JSON)
-                    .patch("/participants/" + contextConfig.getParticipantContextId() + "/config")
-                    .then()
-                    .statusCode(404);
         }
     }
 

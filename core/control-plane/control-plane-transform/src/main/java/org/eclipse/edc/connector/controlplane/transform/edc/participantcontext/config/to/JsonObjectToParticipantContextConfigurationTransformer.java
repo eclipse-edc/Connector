@@ -49,7 +49,13 @@ public class JsonObjectToParticipantContextConfigurationTransformer extends Abst
         if (properties != null) {
             var jsonValue = nodeJsonValue(properties);
             if (jsonValue instanceof JsonObject json) {
-                visitProperties(json, (key, value) -> action.accept(key, transformString(value, context)));
+                visitProperties(json, (key, value) -> {
+                    if (value == null || value.getValueType() == JsonValue.ValueType.NULL) {
+                        action.accept(key, null);
+                    } else {
+                        action.accept(key, transformString(value, context));
+                    }
+                });
             } else {
                 context.reportProblem("Expected properties to be a JsonObject");
                 return true;

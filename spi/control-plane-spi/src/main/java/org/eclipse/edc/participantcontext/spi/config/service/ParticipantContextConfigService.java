@@ -23,7 +23,8 @@ import org.eclipse.edc.spi.result.ServiceResult;
 public interface ParticipantContextConfigService {
 
     /**
-     * Saves the configuration for a given participant context.
+     * Saves the configuration for a given participant context. Null entry values are rejected with a bad-request
+     * result; removal semantics are only supported through {@link #merge(ParticipantContextConfiguration)}.
      *
      * @param config the configuration to save
      * @return a ServiceResult indicating success or failure
@@ -31,9 +32,10 @@ public interface ParticipantContextConfigService {
     ServiceResult<Void> save(ParticipantContextConfiguration config);
 
     /**
-     * Merges the given configuration into the existing one for the same participant context. Entries and private
-     * entries present in the patch are added or overwritten, while existing entries that are not part of the patch are
-     * preserved. Fails if no configuration currently exists for the participant context.
+     * Merges the given configuration into the existing one for the same participant context, following JSON Merge Patch
+     * (RFC 7396) semantics. Entries and private entries present in the patch with a non-null value are added or
+     * overwritten; entries present with a null value are removed; existing entries that are not part of the patch are
+     * preserved. If no configuration currently exists for the participant context, a new one is created from the patch.
      *
      * @param config the configuration containing the entries to merge
      * @return a ServiceResult indicating success or failure
