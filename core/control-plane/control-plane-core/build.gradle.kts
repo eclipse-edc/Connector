@@ -33,6 +33,7 @@ dependencies {
     implementation(project(":core:common:lib:core-lib"))
 
     testImplementation(testFixtures(project(":spi:control-plane-spi")))
+    testImplementation(testFixtures(project(":spi:dataspace-protocol-spi")))
 }
 
 

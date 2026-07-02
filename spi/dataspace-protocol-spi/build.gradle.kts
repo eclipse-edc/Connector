@@ -15,12 +15,17 @@
 plugins {
     `java-library`
     `maven-publish`
+    `java-test-fixtures`
 }
 
 dependencies {
     api(project(":spi:core-spi"))
 
     api(libs.jetbrains.annotations)
+
+    testFixturesApi(project(":spi:core-spi"))
+    testFixturesApi(libs.junit.jupiter.api)
+    testFixturesApi(libs.assertj)
 }
 
 

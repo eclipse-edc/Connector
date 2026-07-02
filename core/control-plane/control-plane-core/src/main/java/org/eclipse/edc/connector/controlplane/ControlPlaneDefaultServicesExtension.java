@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.controlplane.defaults.callback.CallbackRegistry
 import org.eclipse.edc.connector.controlplane.defaults.storage.assetindex.InMemoryAssetIndex;
 import org.eclipse.edc.connector.controlplane.defaults.storage.contractdefinition.InMemoryContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.defaults.storage.contractnegotiation.InMemoryContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.defaults.storage.dataspaceprofile.InMemoryDataspaceProfileStore;
 import org.eclipse.edc.connector.controlplane.defaults.storage.policydefinition.InMemoryPolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.defaults.storage.transferprocess.InMemoryTransferProcessStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
@@ -30,6 +31,7 @@ import org.eclipse.edc.connector.controlplane.query.asset.AssetPropertyLookup;
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackRegistry;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.store.DataspaceProfileStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Provider;
@@ -91,6 +93,11 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
     @Provider(isDefault = true)
     public PolicyDefinitionStore defaultPolicyStore() {
         return new InMemoryPolicyDefinitionStore(criterionOperatorRegistry);
+    }
+
+    @Provider(isDefault = true)
+    public DataspaceProfileStore defaultDataspaceProfileStore() {
+        return new InMemoryDataspaceProfileStore(criterionOperatorRegistry);
     }
 
     @Provider(isDefault = true)

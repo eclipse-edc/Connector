@@ -64,6 +64,7 @@ public class DspVirtualHttpCoreExtension implements ServiceExtension {
         webService.registerResource(ApiContext.PROTOCOL, new ProfileJerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, DSP_SCOPE, this::profileFromUri));
         webService.registerResource(ApiContext.PROTOCOL, new UrlInfoRequestFilter());
         webService.registerResource(ApiContext.PROTOCOL, new DspVirtualProfileDispatcher(participantProfileService, dpsVirtualSubResourceLocator()));
+        dataspaceProfileContextRegistry.addRegistrationCallback(this::registerJsonLdContext);
     }
 
     @Provider
@@ -72,11 +73,6 @@ public class DspVirtualHttpCoreExtension implements ServiceExtension {
             resourceLocator = new DspVirtualSubResourceLocatorImpl();
         }
         return resourceLocator;
-    }
-
-    @Override
-    public void prepare() {
-        dataspaceProfileContextRegistry.getProfiles().forEach(this::registerJsonLdContext);
     }
 
     void registerJsonLdContext(DataspaceProfileContext profileContext) {
