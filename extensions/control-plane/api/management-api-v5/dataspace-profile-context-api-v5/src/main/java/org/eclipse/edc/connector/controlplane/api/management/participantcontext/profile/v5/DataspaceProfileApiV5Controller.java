@@ -108,7 +108,7 @@ public class DataspaceProfileApiV5Controller implements DataspaceProfileApiV5 {
         }
 
         return transformerRegistry.transform(profile, JsonObject.class)
-                .orElseThrow(f -> new ObjectNotFoundException(DataspaceProfile.class, name));
+                .orElseThrow(InvalidRequestException::new);
     }
 
     @DELETE

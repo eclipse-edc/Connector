@@ -28,6 +28,7 @@ import org.eclipse.edc.sql.store.AbstractSqlStore;
 import org.eclipse.edc.transaction.datasource.spi.DataSourceRegistry;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -50,11 +51,10 @@ public class SqlDataspaceProfileStore extends AbstractSqlStore implements Datasp
 
     @Override
     public DataspaceProfile findById(String name) {
+        Objects.requireNonNull(name);
         return transactionContext.execute(() -> {
-            var query = QuerySpec.Builder.newInstance().filter(List.of(new Criterion("name", "=", name))).build();
-            try {
-                var queryStatement = statements.createQuery(query);
-                return queryExecutor.single(getConnection(), true, this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
+            try (var connection = getConnection()) {
+                return findByIdInternal(connection, name);
             } catch (SQLException exception) {
                 throw new EdcPersistenceException(exception);
             }
@@ -77,48 +77,11 @@ public class SqlDataspaceProfileStore extends AbstractSqlStore implements Datasp
     @Override
     public StoreResult<DataspaceProfile> create(DataspaceProfile profile) {
         Objects.requireNonNull(profile);
-        var name = profile.getName();
-        return transactionContext.execute(() -> {
-            if (findById(name) != null) {
-                return StoreResult.alreadyExists(format(PROFILE_ALREADY_EXISTS, name));
-            }
-            insert(profile);
-            return StoreResult.success(profile);
-        });
-    }
-
-    @Override
-    public StoreResult<DataspaceProfile> update(DataspaceProfile profile) {
-        var name = profile.getName();
-        return transactionContext.execute(() -> {
-            if (findById(name) == null) {
-                return StoreResult.notFound(format(PROFILE_NOT_FOUND, name));
-            }
-            updateInternal(profile);
-            return StoreResult.success(profile);
-        });
-    }
-
-    @Override
-    public StoreResult<DataspaceProfile> delete(String name) {
-        Objects.requireNonNull(name);
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
-                var entity = findById(name);
-                if (entity != null) {
-                    queryExecutor.execute(connection, statements.getDeleteTemplate(), name);
-                    return StoreResult.success(entity);
+                if (findByIdInternal(connection, profile.getName()) != null) {
+                    return StoreResult.alreadyExists(format(PROFILE_ALREADY_EXISTS, profile.getName()));
                 }
-                return StoreResult.notFound(format(PROFILE_NOT_FOUND, name));
-            } catch (Exception e) {
-                throw new EdcPersistenceException(e.getMessage(), e);
-            }
-        });
-    }
-
-    private void insert(DataspaceProfile profile) {
-        transactionContext.execute(() -> {
-            try (var connection = getConnection()) {
                 queryExecutor.execute(connection, statements.getInsertTemplate(),
                         profile.getName(),
                         profile.getProtocolVersion(),
@@ -127,15 +90,21 @@ public class SqlDataspaceProfileStore extends AbstractSqlStore implements Datasp
                         profile.getNamespace(),
                         toJson(profile.getJsonLdContextsUrl(), stringListType),
                         profile.getCreatedAt());
-            } catch (Exception e) {
-                throw new EdcPersistenceException(e.getMessage(), e);
+                return StoreResult.success(profile);
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
             }
         });
     }
 
-    private void updateInternal(DataspaceProfile profile) {
-        transactionContext.execute(() -> {
+    @Override
+    public StoreResult<DataspaceProfile> update(DataspaceProfile profile) {
+        Objects.requireNonNull(profile);
+        return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
+                if (findByIdInternal(connection, profile.getName()) == null) {
+                    return StoreResult.notFound(format(PROFILE_NOT_FOUND, profile.getName()));
+                }
                 queryExecutor.execute(connection, statements.getUpdateTemplate(),
                         profile.getProtocolVersion(),
                         profile.getPath(),
@@ -143,10 +112,34 @@ public class SqlDataspaceProfileStore extends AbstractSqlStore implements Datasp
                         profile.getNamespace(),
                         toJson(profile.getJsonLdContextsUrl(), stringListType),
                         profile.getName());
-            } catch (Exception e) {
-                throw new EdcPersistenceException(e.getMessage(), e);
+                return StoreResult.success(profile);
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
             }
         });
+    }
+
+    @Override
+    public StoreResult<DataspaceProfile> delete(String name) {
+        Objects.requireNonNull(name);
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                var entity = findByIdInternal(connection, name);
+                if (entity != null) {
+                    queryExecutor.execute(connection, statements.getDeleteTemplate(), name);
+                    return StoreResult.success(entity);
+                }
+                return StoreResult.notFound(format(PROFILE_NOT_FOUND, name));
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
+    private DataspaceProfile findByIdInternal(Connection connection, String name) {
+        var query = QuerySpec.Builder.newInstance().filter(new Criterion("name", "=", name)).build();
+        var queryStatement = statements.createQuery(query);
+        return queryExecutor.single(connection, false, this::mapResultSet, queryStatement.getQueryAsString(), queryStatement.getParameters());
     }
 
     private DataspaceProfile mapResultSet(ResultSet resultSet) throws SQLException {
