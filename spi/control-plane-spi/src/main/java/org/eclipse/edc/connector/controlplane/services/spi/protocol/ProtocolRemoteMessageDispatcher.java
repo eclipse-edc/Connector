@@ -14,10 +14,10 @@
 
 package org.eclipse.edc.connector.controlplane.services.spi.protocol;
 
+import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.response.StatusResult;
-import org.eclipse.edc.spi.types.domain.message.ProtocolRemoteMessage;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;

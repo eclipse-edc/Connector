@@ -63,7 +63,6 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
         var policyContext = policyContextProvider.instantiate(requestContext, requestScopeBuilder);
         policyEngine.evaluate(policy, policyContext);
         var verificationContext = VerificationContext.Builder.newInstance()
-                .policy(policy)
                 .scopes(policyContext.requestScopeBuilder().build().getScopes())
                 .build();
         var tokenValidation = identityService.verifyJwtToken(participantContext.getParticipantContextId(), tokenRepresentation, verificationContext);

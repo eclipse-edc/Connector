@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.policy.model;
 
-import static org.eclipse.edc.policy.model.OdrlNamespace.ODRL_SCHEMA;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_SCHEMA;
 
 /**
  * The set of supported expression operators. Not all operators may be supported for particular expression types.

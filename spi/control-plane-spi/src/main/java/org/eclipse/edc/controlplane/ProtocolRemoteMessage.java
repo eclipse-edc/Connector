@@ -12,7 +12,9 @@
  *
  */
 
-package org.eclipse.edc.spi.types.domain.message;
+package org.eclipse.edc.controlplane;
+
+import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
 /**
  * Envelope that represent a message that is sent through the Dataspace Protocol

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.spi.types.domain.message;
+package org.eclipse.edc.controlplane;
 
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.result.Result;

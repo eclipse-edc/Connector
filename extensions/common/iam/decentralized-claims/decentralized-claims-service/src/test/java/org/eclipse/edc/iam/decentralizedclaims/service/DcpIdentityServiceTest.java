@@ -26,7 +26,6 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialFormat;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.CredentialSubject;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
-import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.TokenParameters;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -94,7 +93,6 @@ class DcpIdentityServiceTest {
 
     private VerificationContext verificationContext() {
         return VerificationContext.Builder.newInstance()
-                .policy(Policy.Builder.newInstance().build())
                 .scopes(List.of("org.eclipse.dspace.dcp.vc.type:test-type:read"))
                 .build();
     }
@@ -344,7 +342,6 @@ class DcpIdentityServiceTest {
             var token = TestFunctions.createToken(CONSUMER_DID, EXPECTED_OWN_DID);
 
             var context = VerificationContext.Builder.newInstance()
-                    .policy(Policy.Builder.newInstance().build())
                     .scopes(List.of("org.eclipse.dspace.dcp.vc.type:test-type:read", "org.eclipse.dspace.dcp.vc.type:not-provided-type:read")) //should trigger a failure
                     .build();
 
@@ -375,7 +372,6 @@ class DcpIdentityServiceTest {
             var token = TestFunctions.createToken(CONSUMER_DID, EXPECTED_OWN_DID);
 
             var context = VerificationContext.Builder.newInstance()
-                    .policy(Policy.Builder.newInstance().build())
                     .scopes(List.of("org.eclipse.dspace.dcp.vc.type:not-provided-type:read")) //should trigger a failure
                     .build();
 
