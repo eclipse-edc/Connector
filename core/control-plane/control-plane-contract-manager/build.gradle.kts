@@ -32,7 +32,6 @@ dependencies {
     testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(project(":core:control-plane:lib:control-plane-lib"))
 
-//    testImplementation(project(":core:control-plane:lib:control-plane-lib"))
     testImplementation(libs.awaitility)
 }
 

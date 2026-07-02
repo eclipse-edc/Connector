@@ -13,5 +13,3 @@
 #
 
 org.eclipse.edc.connector.controlplane.ControlPlaneDefaultServicesExtension
-org.eclipse.edc.connector.controlplane.discovery.DiscoveryDefaultServicesExtension
-org.eclipse.edc.connector.controlplane.discovery.DiscoveryServicesExtension

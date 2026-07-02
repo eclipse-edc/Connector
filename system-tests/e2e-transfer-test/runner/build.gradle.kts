@@ -22,7 +22,6 @@ dependencies {
     testImplementation(project(":extensions:common:transaction:transaction-local"))
 
     testImplementation(project(":spi:core-spi"))
-    testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:junit"))
     testImplementation(testFixtures(project(":core:common:lib:core-lib")))
     testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))

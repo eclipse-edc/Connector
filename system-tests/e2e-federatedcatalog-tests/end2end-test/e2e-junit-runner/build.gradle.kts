@@ -18,18 +18,14 @@ plugins {
 
 dependencies {
     testImplementation(project(":spi:control-plane-spi"))
-    testImplementation(project(":core:catalog-crawler:catalog-crawler-core"))
-    testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:lib:jsonld-lib"))
     testImplementation(project(":core:control-plane:control-plane-transform"))
     testImplementation(libs.awaitility)
-    testImplementation(project(":extensions:control-plane:api:management-api"))
     testImplementation(project(":data-protocols:dsp:dsp-lib"))
     testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-catalog-2025:dsp-catalog-transform-2025"))
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.jackson.datatype.jsr310)
 
-    testCompileOnly(project(":dist:bom:federatedcatalog-base-bom"))
     testCompileOnly(project(":extensions:common:iam:iam-mock"))
     testCompileOnly(project(":system-tests:e2e-federatedcatalog-tests:end2end-test:catalog-runtime"))
     testCompileOnly(project(":system-tests:e2e-federatedcatalog-tests:end2end-test:connector-runtime"))

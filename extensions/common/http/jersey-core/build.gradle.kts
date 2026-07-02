@@ -30,7 +30,6 @@ dependencies {
     implementation(libs.jersey.servlet)
 
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:common:connector-core"))
     testImplementation(project(":core:common:runtime-core"))
 
     testImplementation(libs.restAssured)
