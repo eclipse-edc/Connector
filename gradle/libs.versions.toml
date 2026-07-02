@@ -106,7 +106,7 @@ atomikos-jdbc = { module = "com.atomikos:transactions-jdbc", version.ref = "atom
 cloudEvents = { module = "io.cloudevents:cloudevents-http-basic", version.ref = "cloudEvents" }
 cloudEvents-json = { module = "io.cloudevents:cloudevents-json-jackson", version.ref = "cloudEvents" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
-jsonschema = { module = "com.networknt:json-schema-validator", version = "2.0.0" }
+jsonschema = { module = "com.networknt:json-schema-validator", version = "3.0.5" }
 nats = { module = "io.nats:jnats", version = "2.25.3" }
 
 dcp-tck = { module = "org.eclipse.dataspacetck.dcp:dcp-tck", version = "1.0.2" }
