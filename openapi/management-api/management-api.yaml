@@ -1589,6 +1589,61 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v5beta/dataspaceprofiles/{name}:
+    get:
+      tags:
+      - Dataspace Profile v5beta
+      description: Gets a dataspace profile by its name.
+      operationId: getProfileV5
+      parameters:
+      - name: name
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The dataspace profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/dataspace-profile-schema"
+        "404":
+          description: A dataspace profile with the given name does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+    delete:
+      tags:
+      - Dataspace Profile v5beta
+      description: Deletes a dataspace profile by its name. The profile is removed
+        from the store; the change takes effect on the running registry after the
+        next boot.
+      operationId: deleteProfileV5
+      parameters:
+      - name: name
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "204":
+          description: The dataspace profile was deleted successfully
+        "404":
+          description: A dataspace profile with the given name does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v5beta/dcpscopes:
     post:
       tags:
@@ -3626,6 +3681,41 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v5beta/dataspaceprofiles:
+    post:
+      tags:
+      - Dataspace Profile v5beta
+      description: Creates a new dataspace profile. On success the profile is persisted
+        and registered into the running connector's dataspace profile context registry.
+      operationId: createProfileV5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/updateExpressionV5_request"
+      responses:
+        "200":
+          description: The dataspace profile was created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/dataspace-profile-schema"
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "409":
+          description: A dataspace profile with the given name already exists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v5beta/participants/{participantContextId}/transferprocesses/request:
     post:
       tags:
@@ -3816,6 +3906,34 @@ paths:
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
       deprecated: true
+  /v5beta/dataspaceprofiles/request:
+    post:
+      tags:
+      - Dataspace Profile v5beta
+      description: Queries the dataspace profiles.
+      operationId: queryProfilesV5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/updateExpressionV5_request"
+      responses:
+        "200":
+          description: The dataspace profiles matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/dataspace-profile-schema"
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v3/policydefinitions/request:
     post:
       tags:
@@ -7802,6 +7920,49 @@ components:
             \ Takes precedence over counterPartyId."
           format: uri
       nullable: true
+    dataspace-profile-schema:
+      title: DataspaceProfileSchema
+      type: object
+      example:
+        protocol:
+          path: path
+          namespace: namespace
+          binding: binding
+          version: version
+        '@type': '@type'
+        jsonLdContextsUrl:
+        - https://openapi-generator.tech
+        - https://openapi-generator.tech
+        name: name
+        '@context':
+        - '@context'
+        - '@context'
+      allOf:
+      - $ref: "#/components/schemas/DataspaceProfile"
+    DataspaceProfile:
+      required:
+      - '@context'
+      - '@type'
+      - name
+      - protocol
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        name:
+          type: string
+        protocol:
+          $ref: "#/components/schemas/DataspaceProfile_protocol"
+        jsonLdContextsUrl:
+          type: array
+          items:
+            type: string
+            format: uri
     dcp-scope-schema:
       title: DcpScopeSchema
       type: object
@@ -9852,49 +10013,6 @@ components:
         sortOrder: DESC
         sortField: fieldName
         filterExpression: []
-    dataspace-profile-schema:
-      title: DataspaceProfileSchema
-      type: object
-      example:
-        protocol:
-          path: path
-          namespace: namespace
-          binding: binding
-          version: version
-        '@type': '@type'
-        jsonLdContextsUrl:
-        - https://openapi-generator.tech
-        - https://openapi-generator.tech
-        name: name
-        '@context':
-        - '@context'
-        - '@context'
-      allOf:
-      - $ref: "#/components/schemas/DataspaceProfile"
-    DataspaceProfile:
-      required:
-      - '@context'
-      - '@type'
-      - name
-      - protocol
-      type: object
-      properties:
-        '@context':
-          title: ContextSchema
-          type: array
-          items:
-            type: string
-        '@type':
-          type: string
-        name:
-          type: string
-        protocol:
-          $ref: "#/components/schemas/DataspaceProfile_protocol"
-        jsonLdContextsUrl:
-          type: array
-          items:
-            type: string
-            format: uri
     participant-context-schema:
       title: ParticipantContextSchema
       type: object
