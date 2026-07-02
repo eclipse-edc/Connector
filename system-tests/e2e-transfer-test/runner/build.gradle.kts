@@ -18,7 +18,6 @@ plugins {
 
 dependencies {
     testImplementation(project(":spi:control-plane-spi"))
-    testImplementation(project(":spi:data-plane-spi"))
     testImplementation(project(":extensions:common:sql:sql-core"))
     testImplementation(project(":extensions:common:transaction:transaction-local"))
 
