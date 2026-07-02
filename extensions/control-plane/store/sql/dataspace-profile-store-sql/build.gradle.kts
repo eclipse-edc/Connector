@@ -12,34 +12,19 @@
  *
  */
 
-
-
 plugins {
     `java-library`
-    id(libs.plugins.swagger.get().pluginId)
-
+    `maven-publish`
 }
 
 dependencies {
     api(project(":spi:core-spi"))
-    api(project(":spi:control-plane-spi"))
     api(project(":spi:dataspace-protocol-spi"))
-
     implementation(project(":core:common:lib:core-lib"))
-    implementation(project(":core:common:lib:jsonld-lib"))
-    implementation(project(":core:control-plane:control-plane-transform"))
-    implementation(libs.jakarta.rsApi)
-    implementation(libs.jakarta.annotation)
+    implementation(project(":extensions:common:sql:sql-bootstrapper"))
 
-    testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
-    testImplementation(libs.restAssured)
-    testImplementation(libs.awaitility)
+    testImplementation(project(":core:common:junit"))
+    testImplementation(libs.postgres)
+    testImplementation(testFixtures(project(":spi:dataspace-protocol-spi")))
+    testImplementation(testFixtures(project(":extensions:common:sql:sql-test-fixtures")))
 }
-
-edcBuild {
-    swagger {
-        apiGroup("management-api")
-    }
-}
-
-

@@ -36,7 +36,6 @@ import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.nats.testfixtures.NatsEndToEndExtension;
-import org.eclipse.edc.participantcontext.spi.config.service.ParticipantContextConfigService;
 import org.eclipse.edc.signaling.auth.Oauth2Extension;
 import org.eclipse.edc.signaling.client.DataPlaneSignalingTestClient;
 import org.eclipse.edc.spi.security.Vault;
@@ -105,9 +104,7 @@ class VirtualDcpTransferPullEndToEndTest {
                           Participants participants,
                           @Runtime(Runtimes.ControlPlane.NAME) Vault vault,
                           TrustedIssuerRegistry trustedIssuerRegistry,
-                          VaultApi vaultApi,
-
-                          ParticipantContextConfigService configService) {
+                          VaultApi vaultApi) {
 
             vaultApi.enableTransitEngine();
             trustedIssuerRegistry.register(new Issuer(issuer.getDid(), Map.of()), "*");

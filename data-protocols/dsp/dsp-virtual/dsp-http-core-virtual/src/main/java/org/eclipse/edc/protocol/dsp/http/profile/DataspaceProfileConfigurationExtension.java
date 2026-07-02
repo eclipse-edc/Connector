@@ -14,22 +14,27 @@
 
 package org.eclipse.edc.protocol.dsp.http.profile;
 
-import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.protocol.dsp.http.spi.api.DspBaseWebhookAddress;
-import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
+import org.eclipse.edc.protocol.spi.DataspaceProfile;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction;
-import org.eclipse.edc.protocol.spi.ProtocolVersion;
+import org.eclipse.edc.protocol.spi.service.DataspaceProfileService;
+import org.eclipse.edc.protocol.spi.store.DataspaceProfileStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+import org.eclipse.edc.transaction.spi.TransactionContext;
 
 import java.util.Arrays;
 import java.util.Map;
+
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
 
 @Extension(value = DataspaceProfileConfigurationExtension.NAME)
 public class DataspaceProfileConfigurationExtension implements ServiceExtension {
@@ -56,29 +61,62 @@ public class DataspaceProfileConfigurationExtension implements ServiceExtension 
     @Inject
     private DspBaseWebhookAddress dspWebhookAddress;
 
+    @Inject
+    private DataspaceProfileStore store;
+
+    @Inject
+    private TransactionContext transactionContext;
+
+    private DataspaceProfileMapper mapper;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
-        profileConfiguration.values().stream()
-                .map(this::toDataspaceProfileContext)
-                .forEach(profileRegistry::register);
+        mapper = new DataspaceProfileMapper(dspWebhookAddress, participantIdExtractionFunction);
     }
 
-    private DataspaceProfileContext toDataspaceProfileContext(DataspaceProfileConfiguration config) {
-        var namespace = new JsonLdNamespace(config.protocolNamespace());
-        var protocolVersion = new ProtocolVersion(config.protocolVersion(), "/" + config.name(), config.protocolBinding());
+    @Override
+    public void prepare() {
+        transactionContext.execute(() -> {
+            // seed the profiles defined via configuration into the store, so the store is the single
+            // source of truth for what gets registered.
+            profileConfiguration.values().stream()
+                    .map(this::toDataspaceProfile)
+                    .forEach(this::upsert);
 
+            // populate the registry from the store
+            try (var stream = store.findAll(QuerySpec.max())) {
+                stream.map(mapper::toContext).forEach(profileRegistry::register);
+            }
+        });
+    }
+
+    @Provider
+    public DataspaceProfileService dataspaceProfileService() {
+        return new DataspaceProfileServiceImpl(transactionContext, store, profileRegistry,
+                new DataspaceProfileMapper(dspWebhookAddress, participantIdExtractionFunction));
+    }
+
+    private void upsert(DataspaceProfile profile) {
+        var result = store.create(profile);
+        if (result.failed() && result.reason() == ALREADY_EXISTS) {
+            store.update(profile);
+        }
+    }
+
+    private DataspaceProfile toDataspaceProfile(DataspaceProfileConfiguration config) {
         var jsonLdContextsUrl = Arrays.stream(config.jsonLdContextsUrl().split(","))
                 .map(String::trim)
                 .filter(s -> !s.isBlank())
                 .toList();
 
-        return new DataspaceProfileContext(
-                config.name(),
-                protocolVersion,
-                () -> dspWebhookAddress.get() + "/" + config.name(),
-                participantIdExtractionFunction,
-                namespace,
-                jsonLdContextsUrl);
+        return DataspaceProfile.Builder.newInstance()
+                .name(config.name())
+                .protocolVersion(config.protocolVersion())
+                .path("/" + config.name())
+                .binding(config.protocolBinding())
+                .namespace(config.protocolNamespace())
+                .jsonLdContextsUrl(jsonLdContextsUrl)
+                .build();
     }
 
     @Settings

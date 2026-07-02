@@ -17,11 +17,15 @@ package org.eclipse.edc.connector.controlplane.api.management.participantcontext
 import jakarta.json.Json;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
+import org.eclipse.edc.connector.controlplane.api.management.participantcontext.profile.v5.DataspaceProfileApiV5Controller;
 import org.eclipse.edc.connector.controlplane.api.management.participantcontext.profile.v5.DataspaceProfileContextApiV5Controller;
 import org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.from.JsonObjectFromDataspaceProfileContextTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.from.JsonObjectFromDataspaceProfileTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.from.JsonObjectToAssociateDataspaceProfileContextTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.to.JsonObjectToDataspaceProfileTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.spi.ParticipantProfileService;
+import org.eclipse.edc.protocol.spi.service.DataspaceProfileService;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -68,15 +72,25 @@ public class DataspaceProfileContextManagementApiExtension implements ServiceExt
     @Inject
     private AuthorizationService authorizationService;
 
+    @Inject
+    private DataspaceProfileService dataspaceProfileService;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         var factory = Json.createBuilderFactory(Map.of());
         var managementApiTransformerRegistry = transformerRegistry.forContext("management-api");
         managementApiTransformerRegistry.register(new JsonObjectFromDataspaceProfileContextTransformer(factory));
         managementApiTransformerRegistry.register(new JsonObjectToAssociateDataspaceProfileContextTransformer());
+        managementApiTransformerRegistry.register(new JsonObjectFromDataspaceProfileTransformer(factory));
+        managementApiTransformerRegistry.register(new JsonObjectToDataspaceProfileTransformer());
+
+        var jsonLdInterceptor = new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version());
 
         webService.registerResource(ApiContext.MANAGEMENT, new DataspaceProfileContextApiV5Controller(authorizationService, profileResolver, managementApiTransformerRegistry, monitor));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, DataspaceProfileContextApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, DataspaceProfileContextApiV5Controller.class, jsonLdInterceptor);
+
+        webService.registerResource(ApiContext.MANAGEMENT, new DataspaceProfileApiV5Controller(dataspaceProfileService, managementApiTransformerRegistry, monitor));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, DataspaceProfileApiV5Controller.class, jsonLdInterceptor);
 
     }
 }
