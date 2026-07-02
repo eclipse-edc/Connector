@@ -17,7 +17,6 @@ package org.eclipse.edc.end2end;
 import jakarta.json.Json;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFromPolicyTransformer;
-import org.eclipse.edc.connector.core.agent.NoOpParticipantIdMapper;
 import org.eclipse.edc.crawler.spi.TargetNode;
 import org.eclipse.edc.crawler.spi.TargetNodeDirectory;
 import org.eclipse.edc.json.JacksonTypeManager;
@@ -28,6 +27,7 @@ import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
+import org.eclipse.edc.participant.spi.NoOpParticipantIdMapper;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromCatalogV2025Transformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDataServiceTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.from.JsonObjectFromDatasetTransformer;
@@ -37,6 +37,7 @@ import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToDatasetTran
 import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToDistributionTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.v2025.to.JsonObjectToCatalogTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -64,12 +65,16 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.controlplane.transform.odrl.OdrlTransformersFactory.jsonObjectToOdrlTransformers;
 import static org.eclipse.edc.end2end.TestFunctions.createContractDef;
 import static org.eclipse.edc.end2end.TestFunctions.createPolicy;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_CONTEXT_2025_1;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.V_2025_1_VERSION;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 @EndToEndTest
@@ -79,7 +84,6 @@ class FederatedCatalogTest {
     private static final Endpoint CONNECTOR_MANAGEMENT = new Endpoint("/management", "8081");
     private static final Endpoint CONNECTOR_PROTOCOL = new Endpoint("/api/v1/dsp", "8082");
     private static final Endpoint CONNECTOR_DEFAULT = new Endpoint("/api/v1/", "8080");
-    private static final Endpoint CONNECTOR_CONTROL = new Endpoint("/api/v1/control", "8083");
 
     private static final Endpoint CATALOG_MANAGEMENT = new Endpoint("/management", "8091");
     private static final Endpoint CATALOG_PROTOCOL = new Endpoint("/api/v1/dsp", "8092");
@@ -180,7 +184,10 @@ class FederatedCatalogTest {
                 .pollInterval(ofSeconds(1))
                 .atMost(TIMEOUT)
                 .untilAsserted(() -> {
-                    var emptyQuery = TestFunctions.createEmptyQuery();
+                    var emptyQuery = Json.createObjectBuilder()
+                            .add(CONTEXT, EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2)
+                            .add(TYPE, EDC_QUERY_SPEC_TYPE_TERM)
+                            .build();
                     var catalogsJson = apiClient.queryCatalogs(emptyQuery);
                     assertThat(catalogsJson).contains(DSPACE_CONTEXT_2025_1);
 
@@ -192,7 +199,10 @@ class FederatedCatalogTest {
                 .pollInterval(ofSeconds(1))
                 .atMost(TIMEOUT)
                 .untilAsserted(() -> {
-                    var queryWithExistingAssetId = TestFunctions.createQuerySpecWithFilterExpressionForAssetId(id);
+                    var queryWithExistingAssetId = Json.createObjectBuilder()
+                            .add(TYPE, EDC_QUERY_SPEC_TYPE_TERM)
+                            .add(QuerySpec.EDC_QUERY_SPEC_FILTER_EXPRESSION, TestFunctions.createCriterionBuilder("datasets.id", "=", id))
+                            .build();
                     var catalogs = apiClient.deserializeCatalogs(apiClient.queryCatalogs(queryWithExistingAssetId));
 
                     assertCatalogContainsOffer(assetIdBase64, catalogs);

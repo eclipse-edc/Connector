@@ -70,13 +70,13 @@ class CatalogApiClient {
     }
 
     public String queryCatalogs(JsonObject querySpec) {
-        var rq = createPostRequest(querySpec, catalog("/v3/catalogs/request"));
+        var rq = createPostRequest(querySpec, catalogBaseUrl + "/v3/catalogs/request");
 
         try (var response = getClient().newCall(rq).execute()) {
             if (response.isSuccessful()) {
                 return response.body().string();
             }
-            throw new RuntimeException(format("Error getting catalog: %s", response));
+            throw new RuntimeException(format("Error getting catalog: %s. %s", response, response.body().string()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -95,18 +95,14 @@ class CatalogApiClient {
         }
     }
 
-    private String catalog(String path) {
-        return catalogBaseUrl + path;
-    }
-
     @NotNull
     private Result<String> postObjectWithId(Request policy) {
         try (var response = getClient()
                 .newCall(policy)
                 .execute()) {
-            var stringbody = response.body().string();
+            var stringBody = response.body().string();
             return response.isSuccessful() ?
-                    Result.success(fromJson(stringbody, JsonObject.class).getString("@id")) :
+                    Result.success(fromJson(stringBody, JsonObject.class).getString("@id")) :
                     Result.failure(response.message());
 
 
