@@ -15,6 +15,7 @@
 package org.eclipse.edc.monitor.opentelemetry;
 
 import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.logs.LogRecordBuilder;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.logs.LoggerBuilder;
@@ -50,7 +51,7 @@ class OtelMonitorTest {
         when(logger.logRecordBuilder()).thenReturn(builder);
         when(builder.setSeverity(any())).thenReturn(builder);
         when(builder.setBody(anyString())).thenReturn(builder);
-        when(builder.setAttribute(any(), anyString())).thenReturn(builder);
+        when(builder.setAttribute(any(AttributeKey.class), any())).thenReturn(builder);
 
         return new OtelMonitor(level, () -> openTelemetry);
     }
@@ -185,7 +186,7 @@ class OtelMonitorTest {
             monitor.severe(() -> "test");
             monitor.severe(() -> "test", new Exception("test"));
             verify(builder, times(2)).emit();
-            verify(builder, times(3)).setAttribute(any(), any());
+            verify(builder, times(3)).setAttribute(any(AttributeKey.class), anyString());
         }
     }
 }

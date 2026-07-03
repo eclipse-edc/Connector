@@ -18,6 +18,9 @@ import jakarta.json.Json;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+import java.util.stream.Stream;
+
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -57,13 +60,20 @@ public class MicrometerEndToEndTest extends BaseTelemetryEndToEndTest {
 
         var metrics = metricsResponseBody.split("\n");
 
-        assertThat(metrics)
-                .anyMatch(it -> it.startsWith("executor_")) // ExecutorMetrics added by MicrometerExtension
-                .anyMatch(it -> it.startsWith("jvm_memory_")) // JvmMemoryMetrics added by MicrometerExtension
-                .anyMatch(it -> it.startsWith("jvm_gc")) // JvmGcMetrics added by MicrometerExtension
-                .anyMatch(it -> it.startsWith("system_cpu_")) // ProcessorMetrics added by MicrometerExtension
-                .anyMatch(it -> it.startsWith("jvm_threads_")) // JvmThreadMetrics added by MicrometerExtension
-                .anyMatch(it -> it.startsWith("jetty_")) // Added by JettyMicrometerExtension
-                .anyMatch(it -> it.startsWith("http_client_")); // OkHttp metrics
+        Stream.of(
+                        "executor_", // ExecutorMetrics added by MicrometerExtension
+                        "jvm_memory_", // JvmMemoryMetrics added by MicrometerExtension
+                        "jvm_gc", // JvmGcMetrics added by MicrometerExtension
+                        "system_cpu_", // ProcessorMetrics added by MicrometerExtension
+                        "jvm_threads_", // JvmThreadMetrics added by MicrometerExtension
+                        "jetty_", // Added by JettyMicrometerExtension
+                        "http_client_" // OkHttp metrics
+                )
+                .forEach(metricPrefix -> {
+                    assertThat(metrics)
+                            .overridingErrorMessage(() -> "expecting at least one metric starting with '%s', but got %s"
+                                    .formatted(metricPrefix, Arrays.toString(metrics)))
+                            .anyMatch(it -> it.startsWith(metricPrefix));
+                });
     }
 }
