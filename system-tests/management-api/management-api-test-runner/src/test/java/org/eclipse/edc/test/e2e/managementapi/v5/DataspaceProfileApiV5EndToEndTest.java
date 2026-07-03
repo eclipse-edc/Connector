@@ -136,6 +136,26 @@ public class DataspaceProfileApiV5EndToEndTest {
                     .statusCode(404);
         }
 
+        @Test
+        void create_shouldReturnBadRequest_whenSchemaInvalid(ManagementEndToEndV5TestContext context, OauthServer authServer) {
+            var token = authServer.createAdminToken();
+
+            // missing the required "protocol" object, so the schema validation must reject it
+            var invalidProfile = createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "DataspaceProfile")
+                    .add("name", "invalid-profile")
+                    .build();
+
+            context.baseRequest(token)
+                    .contentType(ContentType.JSON)
+                    .body(invalidProfile)
+                    .post("/v5beta/dataspaceprofiles")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(400);
+        }
+
         private JsonObject profileJson(String name) {
             return createObjectBuilder()
                     .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))

@@ -40,7 +40,6 @@
           },
           "required": [
             "version",
-            "path",
             "binding",
             "namespace"
           ]
