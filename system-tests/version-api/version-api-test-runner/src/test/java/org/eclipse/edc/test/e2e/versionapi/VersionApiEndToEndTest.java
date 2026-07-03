@@ -17,7 +17,6 @@ package org.eclipse.edc.test.e2e.versionapi;
 import io.restassured.common.mapper.TypeRef;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
 import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
-import org.eclipse.edc.connector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
@@ -56,7 +55,6 @@ public class VersionApiEndToEndTest {
                     put("edc.dsp.callback.address", "http://localhost:" + dspPort + "/protocol");
                 }
             }))
-            .registerServiceMock(DataPlaneManager.class, mock())
             .registerServiceMock(DataFlowController.class, mock())
             .registerServiceMock(DataPlaneClientFactory.class, mock()));
 
