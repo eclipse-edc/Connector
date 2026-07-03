@@ -35,7 +35,7 @@ edcBuild {
     publish.set(false)
 }
 
-val opentelemetryVersion = libs.versions.opentelemetry.asProvider().get()!!
+val opentelemetryVersion = libs.versions.opentelemetry.instrumentation.get()
 tasks.withType<Test> {
     afterEvaluate {
         val download = { url: String, destFile: File -> ant.invokeMethod("get", mapOf("src" to url, "dest" to destFile)) }
