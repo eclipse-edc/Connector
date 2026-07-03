@@ -100,13 +100,11 @@ public class StateMachineManager {
     }
 
     private void logic() {
-        if (active.get()) {
-            try {
-                performLogic();
-            } catch (Throwable e) {
-                active.set(false);
-                monitor.severe(format("StateMachineManager [%s] unrecoverable error", name), e);
-            }
+        try {
+            performLogic();
+        } catch (Throwable e) {
+            active.set(false);
+            monitor.severe(format("StateMachineManager [%s] unrecoverable error", name), e);
         }
     }
 
@@ -126,7 +124,9 @@ public class StateMachineManager {
 
         var delay = processed == 0 ? waitStrategy.waitForMillis() : 0;
 
-        scheduleNextIterationIn(delay);
+        if (isActive()) {
+            scheduleNextIterationIn(delay);
+        }
 
     }
 

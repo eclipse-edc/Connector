@@ -24,6 +24,8 @@ import org.junit.jupiter.api.Test;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -150,5 +152,24 @@ class StateMachineManagerTest {
             assertThat(stateMachine.isActive()).isTrue();
             verify(successful, atLeastOnce()).process();
         });
+    }
+
+    @Test
+    void shouldNotThrowException_whenStoppedDuringProcessorRunning() {
+        var slowProcessor = mock(Processor.class);
+        when(slowProcessor.process()).thenAnswer(i -> {
+            Thread.sleep(200L);
+            return 1L;
+        });
+        var stateMachine = StateMachineManager.Builder.newInstance("test", monitor, instrumentation, waitStrategy)
+                .processor(slowProcessor)
+                .build();
+
+        stateMachine.start();
+
+        await().untilAsserted(() -> verify(slowProcessor).process()); // wait processor to be called
+        stateMachine.stop(); // stop right away
+
+        verify(monitor, never()).severe(anyString(), any());
     }
 }
