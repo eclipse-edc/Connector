@@ -10274,7 +10274,6 @@ components:
       required:
       - binding
       - namespace
-      - path
       - version
       type: object
       properties:
