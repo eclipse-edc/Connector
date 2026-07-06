@@ -122,6 +122,7 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
             put("AssociateDataspaceProfile", V4.ASSOCIATE_DATASPACE_PROFILE_CONTEXT);
             put("DiscoveryRequest", V4.DISCOVERY_REQUEST);
             put("DcpScope", V4.DCP_SCOPE);
+            put("DataspaceProfile", V4.DATASPACE_PROFILE_CONTEXT);
         }
     };
 
