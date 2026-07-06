@@ -19,7 +19,6 @@ import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
-import org.eclipse.edc.spi.query.QuerySpec;
 
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_DATA_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_PROPERTIES;
@@ -35,7 +34,6 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.junit.testfixtures.TestUtils.getResourceFileContentAsString;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
-import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_FILTER_EXPRESSION;
 
 public class TestFunctions {
 
@@ -65,21 +63,8 @@ public class TestFunctions {
                 .build();
     }
 
-    public static JsonObject createEmptyQuery() {
-        return Json.createObjectBuilder()
-                .add(TYPE, QuerySpec.EDC_QUERY_SPEC_TYPE)
-                .build();
-    }
 
-    public static JsonObject createQuerySpecWithFilterExpressionForAssetId(String id) {
-        return Json.createObjectBuilder()
-                .add(TYPE, QuerySpec.EDC_QUERY_SPEC_TYPE)
-                .add(EDC_QUERY_SPEC_FILTER_EXPRESSION, createCriterionBuilder("datasets.id", "=", id))
-                .build();
-    }
-
-
-    private static JsonArrayBuilder createCriterionBuilder(String operandLeft, String operator, String operandRight) {
+    public static JsonArrayBuilder createCriterionBuilder(String operandLeft, String operator, String operandRight) {
         return Json.createArrayBuilder()
                 .add(Json.createObjectBuilder()
                         .add(TYPE, EDC_NAMESPACE + "Criterion")

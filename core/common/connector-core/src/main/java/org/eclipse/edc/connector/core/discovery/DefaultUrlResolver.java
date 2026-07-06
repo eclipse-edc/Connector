@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.discovery;
+package org.eclipse.edc.connector.core.discovery;
 
 import org.eclipse.edc.protocol.spi.discovery.DiscoveryRequest;
 import org.eclipse.edc.protocol.spi.discovery.DiscoveryUrlResolver;

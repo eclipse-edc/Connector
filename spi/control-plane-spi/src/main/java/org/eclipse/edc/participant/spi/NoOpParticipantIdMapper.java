@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2024 Bayerische Motoren Werke Aktiengesellschaft (BMW AG)
+ *  Copyright (c) 2026 Think-it GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,13 +8,11 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Think-it GmbH - initial API and implementation
  *
  */
 
-package org.eclipse.edc.connector.core.agent;
-
-import org.eclipse.edc.participant.spi.ParticipantIdMapper;
+package org.eclipse.edc.participant.spi;
 
 /**
  * No-op implementation of the mapper, the ID is already its IRI representation.

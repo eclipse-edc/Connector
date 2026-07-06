@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.discovery;
+package org.eclipse.edc.connector.core.discovery;
 
 import org.eclipse.edc.http.spi.EdcHttpClient;
 import org.eclipse.edc.protocol.spi.ParticipantProfileService;

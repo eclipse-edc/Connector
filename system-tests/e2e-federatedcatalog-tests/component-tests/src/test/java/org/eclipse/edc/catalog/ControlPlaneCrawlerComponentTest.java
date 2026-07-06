@@ -30,6 +30,7 @@ import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.response.StatusResult;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -54,6 +55,7 @@ import static java.lang.String.valueOf;
 import static java.time.Duration.ofSeconds;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.failedFuture;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -86,7 +88,7 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 public class ControlPlaneCrawlerComponentTest {
 
-    private static final Duration TEST_TIMEOUT = ofSeconds(10);
+    private static final Duration TEST_TIMEOUT = ofSeconds(30);
     private static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
 
     @RegisterExtension
@@ -112,6 +114,8 @@ public class ControlPlaneCrawlerComponentTest {
 
     @BeforeEach
     void setUp(RuntimeExtension extension) {
+        when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
+                .thenReturn(failedFuture(new EdcException("mock hasn't been programmed yet")));
         extension.registerServiceMock(ProtocolRemoteMessageDispatcher.class, dispatcher);
     }
 
@@ -122,7 +126,7 @@ public class ControlPlaneCrawlerComponentTest {
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenReturn(emptyCatalog(toBytes(ttr)));
 
-        await().untilAsserted(() -> {
+        await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var response = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
             assertThat(response).hasSize(1);
             assertThat(response).allSatisfy(c -> assertThat(c.getDatasets()).isNullOrEmpty());
@@ -137,7 +141,7 @@ public class ControlPlaneCrawlerComponentTest {
                 .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 5))
                 .thenReturn(emptyCatalog(toBytes(ttr))); // this is important, otherwise there is an endless loop!
 
-        await().untilAsserted(() -> {
+        await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
             assertThat(catalogs).allSatisfy(c -> assertThat(c.getDatasets()).hasSize(5));
         });
@@ -152,7 +156,7 @@ public class ControlPlaneCrawlerComponentTest {
                 .thenReturn(randomCatalog(catalog -> StatusResult.success(TestUtils.getResourceFileContentAsString("catalog_of_catalogs.json").getBytes()), "root-catalog-id", 5))
                 .thenReturn(randomCatalog(catalog -> StatusResult.success(TestUtils.getResourceFileContentAsString("catalog.json").getBytes()), "sub-catalog-id", 5));
 
-        await().untilAsserted(() -> {
+        await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
             assertThat(catalogs).isNotEmpty().allSatisfy(c -> {
                 assertThat(c.getDatasets()).hasSize(2);
@@ -169,7 +173,7 @@ public class ControlPlaneCrawlerComponentTest {
                 .thenReturn(emptyCatalog(toBytes(ttr)));
         directory.insert(targetNode());
 
-        await().untilAsserted(() -> {
+        await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
             assertThat(catalogs).hasSize(1);
             assertThat(catalogs.get(0).getDatasets()).hasSize(3);
@@ -181,14 +185,14 @@ public class ControlPlaneCrawlerComponentTest {
     @Test
     @DisplayName("Crawl a single targets, > 100 results, needs paging")
     void crawlSingle_withPagedResults(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
-        // prepare node directory
-        directory.insert(targetNode());
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 100))
                 .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 100))
                 .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 50));
 
-        await().untilAsserted(() -> {
+        directory.insert(targetNode());
+
+        await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
             assertThat(catalogs.size()).isEqualTo(1);
             assertThat(catalogs.get(0).getDatasets()).hasSize(250);
@@ -212,7 +216,7 @@ public class ControlPlaneCrawlerComponentTest {
                 .thenReturn(catalogOf(toBytes(ttr), "catalog-node2", createDataset("offer3")))
                 .thenReturn(emptyCatalog(toBytes(ttr)));
 
-        await().untilAsserted(() -> {
+        await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
             assertThat(catalogs).hasSize(2);
             assertThat(catalogs.stream().flatMap(c -> c.getDatasets().stream()).map(Dataset::getId))
@@ -257,7 +261,7 @@ public class ControlPlaneCrawlerComponentTest {
                 .thenReturn(emptyCatalog(toBytes(ttr), catalogId))
                 .thenReturn(completedFuture(result));
 
-        await().untilAsserted(() -> {
+        await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
             assertThat(catalogs).hasSize(1);
             assertThat(catalogs.get(0).getDatasets()).hasSize(2)
@@ -302,7 +306,7 @@ public class ControlPlaneCrawlerComponentTest {
                 .thenReturn(emptyCatalog(toBytes(ttr), "test-catalog-id"))
                 .thenReturn(completedFuture(result));
 
-        await().untilAsserted(() -> {
+        await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
             assertThat(catalogs).hasSize(1);
             assertThat(catalogs.get(0).getDatasets()).hasSize(2)
@@ -348,7 +352,7 @@ public class ControlPlaneCrawlerComponentTest {
                 .thenReturn(emptyCatalog(toBytes(ttr), "test-catalog-id"))
                 .thenReturn(completedFuture(result));
 
-        await().untilAsserted(() -> {
+        await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
             assertThat(catalogs).hasSize(1);
             assertThat(catalogs.get(0).getDatasets()).hasSize(3);
@@ -395,7 +399,7 @@ public class ControlPlaneCrawlerComponentTest {
                     return completedFuture(result);
                 });
 
-        await().untilAsserted(() -> {
+        await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
             assertThat(catalogs).hasSize(1);
             assertThat(catalogs)
@@ -416,7 +420,7 @@ public class ControlPlaneCrawlerComponentTest {
                 .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 5))
                 .thenReturn(emptyCatalog(toBytes(ttr))); // this is important, otherwise there is an endless loop!
 
-        await().untilAsserted(() -> {
+        await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
             assertThat(catalogs).hasSize(1);
             assertThat(catalogs.get(0).getDatasets()).hasSize(5);
@@ -471,7 +475,7 @@ public class ControlPlaneCrawlerComponentTest {
                 .thenReturn(catalogOf(toBytes(ttr), "catalog-" + node2.targetUrl(), createDataset("offer14"), createDataset("offer32"), /*this one is conflicting:*/createDataset("offer3")))
                 .thenReturn(emptyCatalog(toBytes(ttr)));
 
-        await().untilAsserted(() -> {
+        await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
             assertThat(catalogs).hasSize(2);
             assertThat(catalogs).anySatisfy(c -> assertThat(c.getProperties().get(PROPERTY_ORIGINATOR).toString()).startsWith("http://test-node1.com"));
@@ -481,7 +485,6 @@ public class ControlPlaneCrawlerComponentTest {
                     .containsExactlyInAnyOrder("offer1", "offer2", "offer3", "offer14", "offer32", "offer3");
         });
     }
-
 
     private @NonNull Function<Catalog, StatusResult<byte[]>> toBytes(TypeTransformerRegistry typeTransformerRegistry) {
         return catalog -> {

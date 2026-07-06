@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.controlplane.discovery;
+package org.eclipse.edc.connector.core.discovery;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.Request;

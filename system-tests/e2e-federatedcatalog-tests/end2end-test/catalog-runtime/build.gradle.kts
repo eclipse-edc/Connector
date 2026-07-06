@@ -19,7 +19,7 @@ plugins {
 }
 
 dependencies {
-    runtimeOnly(project(":dist:bom:federatedcatalog-dcp-bom"))
+    implementation(project(":dist:bom:federatedcatalog-dcp-bom"))
 }
 
 application {
