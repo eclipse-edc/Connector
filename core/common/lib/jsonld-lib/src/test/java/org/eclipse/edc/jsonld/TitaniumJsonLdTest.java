@@ -230,6 +230,48 @@ class TitaniumJsonLdTest {
     }
 
     @Test
+    void registerCachedDocument_fromContent_shouldBeUsedForExpansion() {
+        var context = "http://schema.org/";
+        var contextDocument = createObjectBuilder()
+                .add("@context", createObjectBuilder()
+                        .add("@vocab", "http://schema.org/")
+                        .add("name", createObjectBuilder().add("@id", "http://schema.org/name")))
+                .build();
+        var input = createObjectBuilder()
+                .add("@context", createArrayBuilder().add(context).build())
+                .add("name", "Jane Doe")
+                .build();
+
+        var service = defaultService();
+        service.registerCachedDocument(context, contextDocument);
+
+        var expanded = service.expand(input);
+
+        assertThat(expanded).isSucceeded().satisfies(c ->
+                Assertions.assertThat(c.getJsonArray("http://schema.org/name").get(0).asJsonObject()
+                        .getJsonString(JsonLdKeywords.VALUE).getString()).isEqualTo("Jane Doe"));
+    }
+
+    @Test
+    void unregisterCachedDocument_shouldRemoveDocumentFromCache() {
+        var context = "http://schema.org/";
+        var contextDocument = createObjectBuilder()
+                .add("@context", createObjectBuilder().add("@vocab", "http://schema.org/"))
+                .build();
+        var input = createObjectBuilder()
+                .add("@context", createArrayBuilder().add(context).build())
+                .add("name", "Jane Doe")
+                .build();
+
+        var service = defaultService(JsonLdConfiguration.Builder.newInstance().build());
+        service.registerCachedDocument(context, contextDocument);
+        service.unregisterCachedDocument(context);
+
+        // with http resolution disabled and no cached document, the context can no longer be resolved
+        assertThat(service.expand(input)).isFailed();
+    }
+
+    @Test
     void expandAndCompact_withCustomContextAndNameClash() {
         var schemaContext = "http://schema.org/";
         var testSchemaContext = "http://test.org/";

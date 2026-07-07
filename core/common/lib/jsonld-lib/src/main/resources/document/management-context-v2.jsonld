@@ -621,6 +621,18 @@
         "prefixMapping": "edc:prefixMapping"
       }
     },
+    "CachedJsonLdContext": {
+      "@id": "edc:CachedJsonLdContext",
+      "@context": {
+        "url": "edc:url",
+        "pullStrategy": "edc:pullStrategy",
+        "updatedAt": "edc:updatedAt",
+        "content": {
+          "@id": "edc:content",
+          "@type": "@json"
+        }
+      }
+    },
     "inForceDate": "edc:inForceDate",
     "ruleFunctions": {
       "@id": "edc:ruleFunctions",
