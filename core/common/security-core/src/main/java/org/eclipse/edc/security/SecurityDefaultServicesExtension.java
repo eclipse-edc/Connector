@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.core;
+package org.eclipse.edc.security;
 
 import org.eclipse.edc.keys.KeyParserRegistryImpl;
 import org.eclipse.edc.keys.VaultPrivateKeyResolver;
@@ -28,11 +28,11 @@ import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
 
-import static org.eclipse.edc.connector.core.SecurityDefaultServicesExtension.NAME;
+import static org.eclipse.edc.security.SecurityDefaultServicesExtension.NAME;
 
 /**
  * This extension provides default/standard implementation for the {@link PrivateKeyResolver}
- * Those provider methods CANNOT be implemented in {@link CoreDefaultServicesExtension}, because that could potentially cause
+ * Those provider methods CANNOT be implemented in the core default services extension, because that could potentially cause
  * a conflict with injecting/providing the {@link Vault}
  */
 @Extension(value = NAME)

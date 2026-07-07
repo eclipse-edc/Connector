@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.core;
+package org.eclipse.edc.security;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;

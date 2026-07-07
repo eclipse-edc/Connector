@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.core;
+package org.eclipse.edc.security;
 
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.keys.VaultPrivateKeyResolver;

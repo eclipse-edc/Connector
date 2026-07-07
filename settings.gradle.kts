@@ -43,6 +43,7 @@ include(":core:common:participant-context-connector-classic-core")
 include(":core:common:participant-context-config-core")
 include(":core:common:cel-core")
 include(":core:common:task-core")
+include(":core:common:security-core")
 
 include(":core:common:lib:core-lib")
 include(":core:common:lib:jsonld-lib")

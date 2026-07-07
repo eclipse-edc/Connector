@@ -19,13 +19,10 @@ plugins {
 
 dependencies {
     api(project(":spi:control-plane-spi"))
+    api(project(":core:common:security-core"))
 
     implementation(project(":core:common:lib:core-lib"))
     implementation(project(":core:control-plane:lib:control-plane-lib"))
-
-    implementation(libs.bouncyCastle.bcpkixJdk18on)
-    implementation(libs.nimbus.jwt)
-    implementation(libs.tink)
 
     testImplementation(project(":core:common:junit"))
     testImplementation(libs.awaitility)

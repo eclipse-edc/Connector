@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.core;
+package org.eclipse.edc.security;
 
 import org.eclipse.edc.keys.LocalPublicKeyServiceImpl;
 import org.eclipse.edc.keys.spi.KeyParserRegistry;
@@ -33,7 +33,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.eclipse.edc.connector.core.SecurityDefaultServicesExtension.NAME;
+import static org.eclipse.edc.security.SecurityDefaultServicesExtension.NAME;
 
 @Extension(value = NAME)
 @Provides(LocalPublicKeyService.class)
