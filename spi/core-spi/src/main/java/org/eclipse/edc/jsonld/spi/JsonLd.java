@@ -120,4 +120,23 @@ public interface JsonLd {
      */
     void registerCachedDocument(String url, URI uri);
 
+    /**
+     * Register a cached JsonLD document directly from its (already parsed) JSON content.
+     * When a document is cached, that url won't be resolved through http/https, but the provided content
+     * will be served instead. Unlike {@link #registerCachedDocument(String, URI)}, this method is meant to
+     * be used at runtime to add or replace cached documents dynamically.
+     *
+     * @param url      the context url
+     * @param document the JSON-LD document content
+     */
+    void registerCachedDocument(String url, JsonObject document);
+
+    /**
+     * Removes a previously cached document. After removal the url will be resolved normally again (through
+     * the configured loaders) or fail if resolution is disabled.
+     *
+     * @param url the context url to evict from the cache
+     */
+    void unregisterCachedDocument(String url);
+
 }

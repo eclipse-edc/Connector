@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -151,6 +152,16 @@ public class TitaniumJsonLd implements JsonLd {
         documentLoader.register(contextUrl, uri);
     }
 
+    @Override
+    public void registerCachedDocument(String contextUrl, JsonObject document) {
+        documentLoader.register(contextUrl, document);
+    }
+
+    @Override
+    public void unregisterCachedDocument(String contextUrl) {
+        documentLoader.unregister(contextUrl);
+    }
+
     private JsonObject injectVocab(JsonObject json) {
         var jsonObjectBuilder = createObjectBuilder(json);
 
@@ -224,8 +235,8 @@ public class TitaniumJsonLd implements JsonLd {
 
     private static class CachedDocumentLoader implements DocumentLoader {
 
-        private final Map<String, URI> uriCache = new HashMap<>();
-        private final Map<URI, Document> documentCache = new HashMap<>();
+        private final Map<String, URI> uriCache = new ConcurrentHashMap<>();
+        private final Map<URI, Document> documentCache = new ConcurrentHashMap<>();
         private final DocumentLoader loader;
         private final Monitor monitor;
 
@@ -258,6 +269,19 @@ public class TitaniumJsonLd implements JsonLd {
                 documentCache.put(uri, loader.loadDocument(uri, new DocumentLoaderOptions()));
             } catch (JsonLdError e) {
                 monitor.warning("Error caching context URL '%s' for URI '%s'. Subsequent attempts to expand this context URL may fail.".formatted(contextUrl, uri));
+            }
+        }
+
+        public void register(String contextUrl, JsonObject document) {
+            var uri = URI.create(contextUrl);
+            uriCache.put(contextUrl, uri);
+            documentCache.put(uri, JsonDocument.of(document));
+        }
+
+        public void unregister(String contextUrl) {
+            var uri = uriCache.remove(contextUrl);
+            if (uri != null) {
+                documentCache.remove(uri);
             }
         }
 

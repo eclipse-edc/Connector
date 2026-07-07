@@ -130,6 +130,7 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
         {
             put(EDC_ASSET_TYPE_TERM, V5.ASSET);
             put(EDC_CATALOG_ASSET_TYPE_TERM, V5.CATALOG_ASSET);
+            put("CachedJsonLdContext", V5.CACHED_JSON_LD_CONTEXT);
         }
     };
 
