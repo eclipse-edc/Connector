@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.edc.connector.core;
+package org.eclipse.edc.security;
 
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
@@ -33,8 +33,8 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.edc.connector.core.LocalPublicKeyDefaultExtension.EDC_PUBLIC_KEYS_PREFIX;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.security.LocalPublicKeyDefaultExtension.EDC_PUBLIC_KEYS_PREFIX;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
