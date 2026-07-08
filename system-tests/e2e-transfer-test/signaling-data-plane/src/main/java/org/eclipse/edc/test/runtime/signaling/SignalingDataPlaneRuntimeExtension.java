@@ -22,6 +22,8 @@ import org.eclipse.dataplane.domain.Result;
 import org.eclipse.dataplane.domain.dataflow.DataFlow;
 import org.eclipse.dataplane.domain.registration.Oauth2ClientCredentialsAuthorization;
 import org.eclipse.dataplane.logic.OnPrepare;
+import org.eclipse.dataplane.port.DataPlaneRegistrationApiController;
+import org.eclipse.dataplane.port.DataPlaneSignalingApiController;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
@@ -69,12 +71,12 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
                 .id(dataplaneId)
                 .registerAuthorization(new Oauth2ClientCredentialsAuthorization())
                 .endpoint(apiConfiguration.dataFlowEndpoint())
-                .transferType("Finite-PUSH")
-                .transferType("Finite-PULL")
-                .transferType("NonFinite-PUSH")
-                .transferType("NonFinite-PULL")
-                .transferType("AsyncPrepare-PUSH")
-                .transferType("AsyncStart-PULL")
+                .profile("Finite-PUSH")
+                .profile("Finite-PULL")
+                .profile("NonFinite-PUSH")
+                .profile("NonFinite-PULL")
+                .profile("AsyncPrepare-PUSH")
+                .profile("AsyncStart-PULL")
                 .onPrepare(new DataplaneOnPrepare())
                 .onStart(this::startDataFlow)
                 .onStarted(this::receiveDataFlow)
@@ -87,8 +89,8 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
 
         dataplane = builder.build();
 
-        webService.registerResource(dataplane.controller());
-        webService.registerResource(dataplane.registrationController());
+        webService.registerResource(new DataPlaneSignalingApiController(dataplane));
+        webService.registerResource(new DataPlaneRegistrationApiController(dataplane));
         webService.registerResource(new DataController(monitor));
         webService.registerResource(new ControlController(monitor, dataplane, apiConfiguration));
     }
@@ -99,7 +101,7 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
     }
 
     private @NotNull Result<DataFlow> startDataFlow(DataFlow dataFlow) {
-        switch (dataFlow.getTransferType()) {
+        switch (dataFlow.getProfile()) {
             case "NonFinite-PUSH" -> {
                 if (dataFlow.getDataAddress() == null) {
                     return Result.failure(new InvalidRequestException("DataAddress should not be null for PUSH transfers"));
@@ -129,7 +131,7 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
                 return Result.success(dataFlow);
             }
             case "NonFinite-PULL", "Finite-PULL" -> {
-                var dataAddress = new DataAddress(dataFlow.getTransferType(), "http", apiConfiguration.dataSourceEndpoint(), emptyList());
+                var dataAddress = new DataAddress("http", apiConfiguration.dataSourceEndpoint(), emptyList());
                 dataFlow.setDataAddress(dataAddress);
                 return Result.success(dataFlow);
             }
@@ -138,7 +140,7 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
                 return Result.success(dataFlow);
             }
             default -> {
-                return Result.failure(new RuntimeException("TransferType %s not supported".formatted(dataFlow.getTransferType())));
+                return Result.failure(new RuntimeException("TransferType %s not supported".formatted(dataFlow.getProfile())));
             }
         }
     }
@@ -150,7 +152,7 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
     }
 
     private Result<DataFlow> receiveDataFlow(DataFlow dataFlow) {
-        switch (dataFlow.getTransferType()) {
+        switch (dataFlow.getProfile()) {
             case "NonFinite-PULL" -> {
                 var sourceUri = URI.create(dataFlow.getDataAddress().endpoint());
                 var future = executor.scheduleAtFixedRate(() -> requestData(dataFlow, sourceUri), 0, 200, TimeUnit.MILLISECONDS);
@@ -240,11 +242,11 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
     private class DataplaneOnPrepare implements OnPrepare {
         @Override
         public Result<DataFlow> action(DataFlow dataFlow) {
-            if (dataFlow.getTransferType().startsWith("AsyncPrepare-")) {
+            if (dataFlow.getProfile().startsWith("AsyncPrepare-")) {
                 dataFlow.transitionToPreparing();
                 return Result.success(dataFlow);
             }
-            var destination = new DataAddress("Finite-PUSH", "http", apiConfiguration.receiveDataEndpoint(), emptyList());
+            var destination = new DataAddress("http", apiConfiguration.receiveDataEndpoint(), emptyList());
             dataFlow.setDataAddress(destination);
             return Result.success(dataFlow);
         }

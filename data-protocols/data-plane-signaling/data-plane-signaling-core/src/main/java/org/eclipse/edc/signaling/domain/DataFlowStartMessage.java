@@ -30,7 +30,7 @@ public final class DataFlowStartMessage {
     private String agreementId;
     private String datasetId;
     private URI callbackAddress;
-    private String transferType;
+    private String profile;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private DspDataAddress dataAddress;
     private List<String> labels;
@@ -72,8 +72,8 @@ public final class DataFlowStartMessage {
         return callbackAddress;
     }
 
-    public String getTransferType() {
-        return transferType;
+    public String getProfile() {
+        return profile;
     }
 
     public DspDataAddress getDataAddress() {
@@ -143,13 +143,8 @@ public final class DataFlowStartMessage {
             return this;
         }
 
-        public Builder callbackAddress(URI callbackAddress) {
-            instance.callbackAddress = callbackAddress;
-            return this;
-        }
-
-        public Builder transferType(String transferType) {
-            instance.transferType = transferType;
+        public Builder profile(String profile) {
+            instance.profile = profile;
             return this;
         }
 

@@ -18,7 +18,8 @@ plugins {
 dependencies {
     implementation(project(":core:common:runtime-core"))
     implementation(project(":extensions:common:http"))
-    implementation(libs.dataplane.sdk)
+    implementation(libs.dataplane.sdk.core)
+    implementation(libs.dataplane.sdk.jakarta.ee)
 }
 
 edcBuild {
