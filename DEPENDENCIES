@@ -21,33 +21,35 @@ maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.20, Apache-2
 maven/mavencentral/com.fasterxml.jackson.core/jackson-annotations/2.22, Apache-2.0, approved, #28540
 maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.19.2, Apache-2.0 AND MIT, approved, #21916
 maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.21.3, Apache-2.0 AND MIT, approved, #25590
-maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.22.0, MIT AND BSD-2-Clause AND BSL-1.0 AND Apache-2.0, approved, #28625
+maven/mavencentral/com.fasterxml.jackson.core/jackson-core/2.22.1, MIT AND BSD-2-Clause AND BSL-1.0 AND Apache-2.0, approved, #28625
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.18.3, Apache-2.0, approved, #16372
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.19.1, Apache-2.0, approved, #21909
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.19.2, Apache-2.0, approved, #21909
-maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.21.2, Apache-2.0, approved, #25591
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.21.3, Apache-2.0, approved, #25591
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.21.4, Apache-2.0, approved, #25591
 maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.22.0, Apache-2.0, approved, #28621
+maven/mavencentral/com.fasterxml.jackson.core/jackson-databind/2.22.1, Apache-2.0, approved, #28621
 maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.18.3, Apache-2.0, approved, #16370
 maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.19.2, Apache-2.0, approved, #21912
-maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.22.0, Apache-2.0, approved, #28622
+maven/mavencentral/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/2.22.1, Apache-2.0, approved, #28622
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.21.2, Apache-2.0, approved, #26448
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.21.4, Apache-2.0, approved, #26448
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.22.0, Apache-2.0, approved, #29009
+maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jakarta-jsonp/2.22.1, Apache-2.0, approved, #29009
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.19.2, Apache-2.0, approved, #23299
 maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.22.0, Apache-2.0, approved, #29010
-maven/mavencentral/com.fasterxml.jackson.jakarta.rs/jackson-jakarta-rs-base/2.22.0, Apache-2.0, approved, #29012
+maven/mavencentral/com.fasterxml.jackson.datatype/jackson-datatype-jsr310/2.22.1, Apache-2.0, approved, #29010
+maven/mavencentral/com.fasterxml.jackson.jakarta.rs/jackson-jakarta-rs-base/2.22.1, Apache-2.0, approved, #29012
 maven/mavencentral/com.fasterxml.jackson.jakarta.rs/jackson-jakarta-rs-json-provider/2.19.2, Apache-2.0, approved, #20839
-maven/mavencentral/com.fasterxml.jackson.jakarta.rs/jackson-jakarta-rs-json-provider/2.22.0, Apache-2.0, approved, #29002
+maven/mavencentral/com.fasterxml.jackson.jakarta.rs/jackson-jakarta-rs-json-provider/2.22.1, Apache-2.0, approved, #29002
 maven/mavencentral/com.fasterxml.jackson.jaxrs/jackson-jaxrs-base/2.19.2, Apache-2.0, approved, #20897
 maven/mavencentral/com.fasterxml.jackson.jaxrs/jackson-jaxrs-json-provider/2.19.2, Apache-2.0, approved, #21914
 maven/mavencentral/com.fasterxml.jackson.module/jackson-module-jakarta-xmlbind-annotations/2.19.1, Apache-2.0, approved, #21910
-maven/mavencentral/com.fasterxml.jackson.module/jackson-module-jakarta-xmlbind-annotations/2.22.0, Apache-2.0, approved, #28627
+maven/mavencentral/com.fasterxml.jackson.module/jackson-module-jakarta-xmlbind-annotations/2.22.1, Apache-2.0, approved, #28627
 maven/mavencentral/com.fasterxml.jackson.module/jackson-module-jaxb-annotations/2.19.2, Apache-2.0, approved, #21913
 maven/mavencentral/com.fasterxml.jackson/jackson-bom/2.19.2, Apache-2.0, approved, #20843
 maven/mavencentral/com.fasterxml.jackson/jackson-bom/2.20.1, Apache-2.0, approved, #26450
-maven/mavencentral/com.fasterxml.jackson/jackson-bom/2.22.0, Apache-2.0, approved, #28982
+maven/mavencentral/com.fasterxml.jackson/jackson-bom/2.22.1, Apache-2.0, approved, #28982
 maven/mavencentral/com.github.docker-java/docker-java-api/3.7.1, Apache-2.0, approved, #26612
 maven/mavencentral/com.github.docker-java/docker-java-transport-zerodep/3.7.1, Apache-2.0 AND MPL-2.0, approved, #25269
 maven/mavencentral/com.github.docker-java/docker-java-transport/3.7.1, Apache-2.0, approved, #26615
@@ -73,10 +75,11 @@ maven/mavencentral/com.jayway.jsonpath/json-path/2.10.0, Apache-2.0, approved, c
 maven/mavencentral/com.networknt/json-schema-validator/1.5.9, Apache-2.0 AND Unicode-TOU, approved, #15630
 maven/mavencentral/com.networknt/json-schema-validator/2.0.0, Apache-2.0 AND Unicode-TOU, approved, #25988
 maven/mavencentral/com.networknt/json-schema-validator/2.0.1, Apache-2.0 AND Unicode-TOU, approved, #25988
+maven/mavencentral/com.networknt/json-schema-validator/3.0.5, Apache-2.0 AND Unicode-3.0, approved, #26454
 maven/mavencentral/com.nimbusds/nimbus-jose-jwt/10.9, Apache-2.0, approved, #29000
 maven/mavencentral/com.nimbusds/nimbus-jose-jwt/10.9.1, Apache-2.0, approved, #29000
 maven/mavencentral/com.puppycrawl.tools/checkstyle/12.3.0, LGPL-2.1-or-later, approved, #26456
-maven/mavencentral/com.squareup.okhttp3/okhttp-dnsoverhttps/5.4.0, , restricted, clearlydefined
+maven/mavencentral/com.squareup.okhttp3/okhttp-dnsoverhttps/5.4.0, Apache-2.0, approved, #29652
 maven/mavencentral/com.squareup.okhttp3/okhttp-jvm/5.4.0, Apache-2.0, approved, #29005
 maven/mavencentral/com.squareup.okhttp3/okhttp/4.9.3, Apache-2.0 AND MPL-2.0, approved, #3225
 maven/mavencentral/com.squareup.okhttp3/okhttp/5.4.0, Apache-2.0, approved, #29015
@@ -198,16 +201,21 @@ maven/mavencentral/org.codehaus.plexus/plexus-component-annotations/2.1.0, Apach
 maven/mavencentral/org.codehaus.plexus/plexus-container-default/2.1.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.codehaus.plexus/plexus-utils/3.1.1, , approved, CQ16492
 maven/mavencentral/org.codehaus.plexus/plexus-utils/3.3.0, , approved, CQ21066
-maven/mavencentral/org.eclipse.dataplane-core/dataplane-sdk/0.0.10-SNAPSHOT, Apache-2.0, approved, technology.dataplane-core
+maven/mavencentral/org.eclipse.dataplane-core/dataplane-sdk-core/1.0.0, Apache-2.0, approved, technology.dataplane-core
+maven/mavencentral/org.eclipse.dataplane-core/dataplane-sdk-jakarta-ee/1.0.0, Apache-2.0, approved, technology.dataplane-core
 maven/mavencentral/org.eclipse.dataspacetck.common/boot/1.0.0, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.common/boot/1.2.2, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.common/core-api/1.0.0, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.common/core-api/1.2.2, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.common/core/1.0.0, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.common/core/1.2.2, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.common/tck-runtime/1.0.0, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.common/tck-runtime/1.2.2, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-api/1.0.2, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-system/1.0.2, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-tck/1.0.2, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dcp/dcp-testcases/1.0.2, Apache-2.0, approved, technology.dataspacetck
-maven/mavencentral/org.eclipse.dataspacetck.dps/dps-tck/1.1.2, Apache-2.0, approved, technology.dataspacetck
+maven/mavencentral/org.eclipse.dataspacetck.dps/dps-tck/1.2.0, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-api/1.0.1, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-catalog/1.0.1, Apache-2.0, approved, technology.dataspacetck
 maven/mavencentral/org.eclipse.dataspacetck.dsp/dsp-contract-negotiation/1.0.1, Apache-2.0, approved, technology.dataspacetck
@@ -320,6 +328,7 @@ maven/mavencentral/org.slf4j/slf4j-api/2.0.18, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-api/2.0.9, MIT, approved, #5915
 maven/mavencentral/org.slf4j/slf4j-nop/2.0.18, MIT, approved, #10370
 maven/mavencentral/org.slf4j/slf4j-simple/2.0.17, MIT, approved, #10372
+maven/mavencentral/org.snakeyaml/snakeyaml-engine/3.0.1, Apache-2.0, approved, clearlydefined
 maven/mavencentral/org.testcontainers/testcontainers-database-commons/2.0.5, Apache-2.0, approved, #25271
 maven/mavencentral/org.testcontainers/testcontainers-jdbc/2.0.5, Apache-2.0, approved, #25272
 maven/mavencentral/org.testcontainers/testcontainers-junit-jupiter/2.0.5, MIT, approved, #26032
@@ -336,3 +345,9 @@ maven/mavencentral/org.xmlunit/xmlunit-placeholders/2.11.0, Apache-2.0, approved
 maven/mavencentral/org.yaml/snakeyaml/2.3, Apache-2.0 AND (Apache-2.0 OR BSD-3-Clause OR EPL-1.0 OR GPL-2.0-or-later OR LGPL-2.1-or-later), approved, #16046
 maven/mavencentral/org.yaml/snakeyaml/2.4, Apache-2.0, approved, #19469
 maven/mavencentral/org.yaml/snakeyaml/2.5, Apache-2.0, approved, #23100
+maven/mavencentral/tools.jackson.core/jackson-core/3.2.0, Apache-2.0 AND BSD-2-Clause AND BSL-1.0 AND MIT, approved, clearlydefined
+maven/mavencentral/tools.jackson.core/jackson-databind/3.1.1, Apache-2.0, approved, #26439
+maven/mavencentral/tools.jackson.core/jackson-databind/3.2.0, Apache-2.0, approved, clearlydefined
+maven/mavencentral/tools.jackson.dataformat/jackson-dataformat-yaml/3.1.1, Apache-2.0, approved, #26517
+maven/mavencentral/tools.jackson.dataformat/jackson-dataformat-yaml/3.2.0, , restricted, clearlydefined
+maven/mavencentral/tools.jackson/jackson-bom/3.2.0, , restricted, clearlydefined
