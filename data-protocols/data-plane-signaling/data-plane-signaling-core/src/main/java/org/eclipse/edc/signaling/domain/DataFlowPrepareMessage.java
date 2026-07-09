@@ -27,7 +27,7 @@ public final class DataFlowPrepareMessage {
     private String agreementId;
     private String datasetId;
     private URI callbackAddress;
-    private String transferType;
+    private String profile;
     private List<String> labels;
     private Map<String, Object> metadata;
     private Map<String, Object> claims;
@@ -67,8 +67,8 @@ public final class DataFlowPrepareMessage {
         return callbackAddress;
     }
 
-    public String getTransferType() {
-        return transferType;
+    public String getProfile() {
+        return profile;
     }
 
     public List<String> getLabels() {
@@ -134,13 +134,8 @@ public final class DataFlowPrepareMessage {
             return this;
         }
 
-        public Builder callbackAddress(URI callbackAddress) {
-            instance.callbackAddress = callbackAddress;
-            return this;
-        }
-
-        public Builder transferType(String transferType) {
-            instance.transferType = transferType;
+        public Builder profile(String profile) {
+            instance.profile = profile;
             return this;
         }
 

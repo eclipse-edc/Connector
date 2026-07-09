@@ -44,7 +44,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -70,8 +69,7 @@ public class DataPlaneSignalingFlowControllerTest {
     private final DataAddressStore dataAddressStore = mock();
     private final AssetIndex assetIndex = mock();
 
-    private final DataPlaneSignalingFlowController flowController = new DataPlaneSignalingFlowController(
-            URI.create("http://localhost"), selectorService,
+    private final DataPlaneSignalingFlowController flowController = new DataPlaneSignalingFlowController(selectorService,
             typeTransformerRegistry, clientFactory, dataAddressStore, assetIndex);
 
     @NotNull

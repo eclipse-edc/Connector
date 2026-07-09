@@ -63,7 +63,7 @@ public class DataPlaneSignalingFlowControllerExtension implements ServiceExtensi
         typeTransformerRegistry.register(new DataAddressToDspDataAddressTransformer());
         typeTransformerRegistry.register(new DataFlowStatusMessageToDataFlowResponseTransformer());
         typeTransformerRegistry.register(new DspDataAddressToDataAddressTransformer());
-        return new DataPlaneSignalingFlowController(apiConfiguration.createPublicUri(), dataPlaneSelectorService,
+        return new DataPlaneSignalingFlowController(dataPlaneSelectorService,
                 typeTransformerRegistry, clientFactory, dataAddressStore, assetIndex);
     }
 }

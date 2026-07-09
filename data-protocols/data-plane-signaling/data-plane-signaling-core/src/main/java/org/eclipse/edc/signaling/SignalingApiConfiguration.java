@@ -16,13 +16,7 @@ package org.eclipse.edc.signaling;
 
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
-
-import java.net.URI;
-
-import static java.lang.String.format;
-import static java.util.Optional.ofNullable;
 
 @Settings
 record SignalingApiConfiguration(
@@ -46,13 +40,4 @@ record SignalingApiConfiguration(
     private static final String DEFAULT_SIGNALING_PATH = "/api/signaling";
     private static final int DEFAULT_SIGNALING_PORT = 8182;
 
-    public URI createPublicUri() {
-        var callbackAddress = ofNullable(publicUri).orElseGet(() -> format("http://localhost:%s%s", port(), path()));
-
-        try {
-            return URI.create(callbackAddress);
-        } catch (IllegalArgumentException e) {
-            throw new EdcException("Error creating signaling endpoint url", e);
-        }
-    }
 }

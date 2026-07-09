@@ -43,6 +43,7 @@ public class DpsTckTest {
     private static final int TCK_PORT = getFreePort();
     private static final URI TCK_WEBHOOK_URL = URI.create("http://localhost:" + getFreePort() + "/tck");
     private static final URI PROTOCOL_URL = URI.create("http://localhost:" + getFreePort() + "/protocol");
+    private static final URI SIGNALING_URL = URI.create("http://localhost:%d/api/signaling".formatted(getFreePort()));
 
     @RegisterExtension
     static RuntimeExtension runtime = ComponentRuntimeExtension.Builder.newInstance()
@@ -52,7 +53,7 @@ public class DpsTckTest {
                     .endpoint("default", () -> URI.create("http://localhost:%d/api".formatted(getFreePort())))
                     .endpoint("management", () -> URI.create("http://localhost:%d/api/management".formatted(getFreePort())))
                     .endpoint("protocol", () -> PROTOCOL_URL)
-                    .endpoint("signaling", () -> URI.create("http://localhost:%d/api/signaling".formatted(getFreePort())))
+                    .endpoint("signaling", () -> SIGNALING_URL)
                     .endpoint("tck", () -> TCK_WEBHOOK_URL)
                     .build())
             .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
@@ -74,6 +75,7 @@ public class DpsTckTest {
         properties.put("dataspacetck.port", String.valueOf(TCK_PORT));
         properties.put("dataspacetck.dps.controlplane.webhook.url", TCK_WEBHOOK_URL.toString());
         properties.put("dataspacetck.dps.controlplane.protocol.url", PROTOCOL_URL + "/2025-1");
+        properties.put("dataspacetck.dps.controlplane.signaling.url", SIGNALING_URL.toString());
 
         var result = TckRuntime.Builder.newInstance()
                 .properties(properties)

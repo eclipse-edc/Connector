@@ -9,7 +9,7 @@ atomikos = "6.0.1"
 awaitility = "4.2.2"
 bouncyCastle-jdk18on = "1.84"
 cloudEvents = "4.1.1"
-dataplane-sdk = "0.0.10-SNAPSHOT"
+dataplane-sdk = "1.0.0"
 edc = "0.19.0-SNAPSHOT"
 failsafe = "3.3.2"
 h2 = "2.4.240"
@@ -51,7 +51,8 @@ assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 awaitility = { module = "org.awaitility:awaitility", version.ref = "awaitility" }
 bouncyCastle-bcpkixJdk18on = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncyCastle-jdk18on" }
 bouncyCastle-bcprovJdk18on = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncyCastle-jdk18on" }
-dataplane-sdk = { module = "org.eclipse.dataplane-core:dataplane-sdk", version.ref = "dataplane-sdk" }
+dataplane-sdk-core = { module = "org.eclipse.dataplane-core:dataplane-sdk-core", version.ref = "dataplane-sdk" }
+dataplane-sdk-jakarta-ee = { module = "org.eclipse.dataplane-core:dataplane-sdk-jakarta-ee", version.ref = "dataplane-sdk" }
 dnsOverHttps = { module = "com.squareup.okhttp3:okhttp-dnsoverhttps", version.ref = "okhttp" }
 edc-runtime-metamodel = { module = "org.eclipse.edc:runtime-metamodel", version.ref = "edc" }
 failsafe-core = { module = "dev.failsafe:failsafe", version.ref = "failsafe" }
@@ -112,7 +113,7 @@ nats = { module = "io.nats:jnats", version = "2.25.3" }
 
 dcp-tck = { module = "org.eclipse.dataspacetck.dcp:dcp-tck", version = "1.0.2" }
 dsp-tck = { module = "org.eclipse.dataspacetck.dsp:dsp-tck", version = "1.0.1" }
-dps-tck = { module = "org.eclipse.dataspacetck.dps:dps-tck", version = "1.1.2" }
+dps-tck = { module = "org.eclipse.dataspacetck.dps:dps-tck", version = "1.2.0" }
 
 [bundles]
 jackson = ["jackson-annotations", "jackson-databind"]
