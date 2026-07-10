@@ -19,6 +19,7 @@ import org.eclipse.edc.spi.entity.Entity;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
@@ -126,6 +127,9 @@ public class CelExpression extends Entity {
         @Override
         public CelExpression build() {
             super.build();
+            if (entity.getId() == null) {
+                id(UUID.randomUUID().toString());
+            }
             Objects.requireNonNull(entity.leftOperand, "CelExpression leftOperand cannot be null");
             Objects.requireNonNull(entity.expression, "CelExpression expression cannot be null");
             Objects.requireNonNull(entity.description, "CelExpression description cannot be null");
