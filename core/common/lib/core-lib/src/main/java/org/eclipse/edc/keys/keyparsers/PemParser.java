@@ -76,7 +76,8 @@ public class PemParser implements KeyParser {
                     .map(keyPair -> keyPair.getPrivate() != null ? keyPair.getPrivate() : keyPair.getPublic())
                     .findFirst()
                     .map(Result::success)
-                    .orElseGet(() -> Result.failure("PEM-encoded structure did not contain a private key."));
+                    .orElseGet(() -> Result.failure("PEM-encoded structure did not contain a private key."))
+                    .map(Key.class::cast);
         }
 
         return keypair.mapEmpty();
