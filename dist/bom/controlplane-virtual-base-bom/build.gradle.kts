@@ -50,7 +50,6 @@ dependencies {
 
     api(project(":extensions:common:http"))
     api(project(":extensions:common:iam:oauth2:oauth2-client"))
-    api(project(":extensions:common:validator:validator-data-address-http-data"))
     api(project(":extensions:control-plane:api:management-api-v5"))
     api(project(":extensions:common:api:json-ld-cache-api"))
     api(project(":extensions:common:api:management-api-authorization"))
