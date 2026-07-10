@@ -349,5 +349,5 @@ maven/mavencentral/tools.jackson.core/jackson-core/3.2.0, Apache-2.0 AND BSD-2-C
 maven/mavencentral/tools.jackson.core/jackson-databind/3.1.1, Apache-2.0, approved, #26439
 maven/mavencentral/tools.jackson.core/jackson-databind/3.2.0, Apache-2.0, approved, clearlydefined
 maven/mavencentral/tools.jackson.dataformat/jackson-dataformat-yaml/3.1.1, Apache-2.0, approved, #26517
-maven/mavencentral/tools.jackson.dataformat/jackson-dataformat-yaml/3.2.0, , restricted, clearlydefined
-maven/mavencentral/tools.jackson/jackson-bom/3.2.0, , restricted, clearlydefined
+maven/mavencentral/tools.jackson.dataformat/jackson-dataformat-yaml/3.2.0, Apache-2.0, approved, #29717
+maven/mavencentral/tools.jackson/jackson-bom/3.2.0, Apache-2.0, approved, #29716
