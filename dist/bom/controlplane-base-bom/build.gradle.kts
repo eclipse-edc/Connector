@@ -50,7 +50,6 @@ dependencies {
 
     api(project(":extensions:common:http"))
     api(project(":extensions:common:iam:oauth2:oauth2-client"))
-    api(project(":extensions:common:validator:validator-data-address-http-data"))
     api(project(":extensions:control-plane:api:management-api"))
     api(project(":extensions:control-plane:callback:callback-event-dispatcher"))
     api(project(":extensions:control-plane:callback:callback-static-endpoint"))
