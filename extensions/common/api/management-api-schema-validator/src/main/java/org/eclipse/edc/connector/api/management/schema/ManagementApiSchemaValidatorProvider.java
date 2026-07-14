@@ -20,7 +20,9 @@ import com.networknt.schema.SchemaLocation;
 import com.networknt.schema.SchemaRegistry;
 import com.networknt.schema.dialect.Dialects;
 import com.networknt.schema.resource.IriResourceLoader;
+import com.networknt.schema.resource.MapResourceLoader;
 import jakarta.json.JsonObject;
+import org.eclipse.edc.validator.registration.spi.SchemaValidatorFactory;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
 import org.eclipse.edc.validator.spi.Violation;
@@ -28,9 +30,10 @@ import org.eclipse.edc.validator.spi.Violation;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class ManagementApiSchemaValidatorProvider {
+public class ManagementApiSchemaValidatorProvider implements SchemaValidatorFactory {
 
     private SchemaRegistry schemaFactory;
     private Supplier<ObjectMapper> objectMapperSupplier;
@@ -38,6 +41,7 @@ public class ManagementApiSchemaValidatorProvider {
     private ManagementApiSchemaValidatorProvider() {
     }
 
+    @Override
     public Validator<JsonObject> validatorFor(String schema) {
         var schemaValidator = schemaFactory.getSchema(SchemaLocation.of(schema));
         return (input) -> {
@@ -62,6 +66,8 @@ public class ManagementApiSchemaValidatorProvider {
 
         private final Map<String, String> prefixMappings = new HashMap<>();
 
+        private Function<String, String> cachedSchemaResolver;
+
         private Builder() {
             provider = new ManagementApiSchemaValidatorProvider();
         }
@@ -82,11 +88,26 @@ public class ManagementApiSchemaValidatorProvider {
             return this;
         }
 
+        /**
+         * Registers a function that resolves a schema {@code $id} to its raw JSON content, or {@code null} if it is
+         * not cached. It is consulted before the network loader, so a locally cached schema is served without an HTTP
+         * request (see the document cache, {@link org.eclipse.edc.document.cache.spi.CachedDocumentType#JSON_SCHEMA}).
+         */
+        public Builder cachedSchemaResolver(Function<String, String> cachedSchemaResolver) {
+            this.cachedSchemaResolver = cachedSchemaResolver;
+            return this;
+        }
+
         public ManagementApiSchemaValidatorProvider build() {
             Objects.requireNonNull(provider.objectMapperSupplier);
             provider.schemaFactory = SchemaRegistry.withDialect(Dialects.getDraft201909(), builder -> builder
                     .schemaIdResolvers(schemaIdResolvers -> prefixMappings.forEach(schemaIdResolvers::mapPrefix))
-                    .resourceLoaders(resourceLoaders -> resourceLoaders.add(IriResourceLoader.getInstance())));
+                    .resourceLoaders(resourceLoaders -> {
+                        if (cachedSchemaResolver != null) {
+                            resourceLoaders.add(new MapResourceLoader(cachedSchemaResolver));
+                        }
+                        resourceLoaders.add(IriResourceLoader.getInstance());
+                    }));
 
             return provider;
         }

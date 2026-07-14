@@ -24,7 +24,8 @@ dependencies {
     api(project(":extensions:control-plane:store:sql:participantcontext-config-store-sql"))
     api(project(":extensions:control-plane:store:sql:dataspace-profile-store-sql"))
     api(project(":extensions:common:store:sql:cel-store-sql"))
-    api(project(":extensions:common:store:sql:json-ld-cache-store-sql"))
+    api(project(":extensions:common:store:sql:document-cache-store-sql"))
+    api(project(":extensions:common:store:sql:schema-validation-store-sql"))
     api(project(":extensions:common:store:sql:task-store-sql"))
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-store-sql"))
 }

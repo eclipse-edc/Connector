@@ -57,6 +57,23 @@ class ManagementApiSchemaValidatorProviderTest {
     }
 
     @Test
+    void validatorFor_resolvesSchemaFromCachedSchemaResolver_withoutNetwork() {
+        var schemaId = "https://example.org/cached/person-schema.json";
+        var provider = ManagementApiSchemaValidatorProvider.Builder.newInstance()
+                .objectMapper(JacksonJsonLd::createObjectMapper)
+                .cachedSchemaResolver(iri -> schemaId.equals(iri) ? SCHEMA_CONTENT : null)
+                .build();
+
+        var validator = provider.validatorFor(schemaId);
+
+        var valid = Json.createObjectBuilder().add("name", "asset-1").build();
+        assertThat(validator.validate(valid).succeeded()).isTrue();
+
+        var invalid = Json.createObjectBuilder().build();
+        assertThat(validator.validate(invalid).succeeded()).isFalse();
+    }
+
+    @Test
     void validatorFor_resolvesSchemaDirectlyFromFileUri(@TempDir Path tempDir) throws Exception {
         var schemaFile = tempDir.resolve("direct-schema.json");
         Files.writeString(schemaFile, SCHEMA_CONTENT);

@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "CachedDocumentSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/CachedDocument"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v5/cached-document-schema.json",
+  "definitions": {
+    "CachedDocument": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "CachedDocument"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "documentType": {
+          "type": "string",
+          "enum": [
+            "JSON_LD",
+            "JSON_SCHEMA"
+          ]
+        },
+        "pullStrategy": {
+          "type": "string",
+          "enum": [
+            "NEVER",
+            "IF_NOT_PRESENT",
+            "ALWAYS"
+          ]
+        },
+        "content": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "url"
+      ]
+    }
+  }
+}

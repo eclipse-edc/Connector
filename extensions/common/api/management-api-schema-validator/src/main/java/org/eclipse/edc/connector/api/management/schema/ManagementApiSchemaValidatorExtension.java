@@ -18,12 +18,16 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V4;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema.V5;
 import org.eclipse.edc.connector.api.management.schema.CustomSchemaValidatorConfigParser.CustomValidatorGroup;
+import org.eclipse.edc.document.cache.spi.CachedDocumentType;
+import org.eclipse.edc.document.cache.spi.store.CachedDocumentStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
+import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.validator.registration.spi.SchemaValidatorFactory;
 import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 import org.eclipse.edc.validator.spi.ValidationResult;
 import org.eclipse.edc.validator.spi.Validator;
@@ -63,6 +67,7 @@ import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE_TERM;
 
 @Extension(NAME)
+@Provides(SchemaValidatorFactory.class)
 public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
 
     public static final String NAME = "Management API Schema Validator";
@@ -130,7 +135,8 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
         {
             put(EDC_ASSET_TYPE_TERM, V5.ASSET);
             put(EDC_CATALOG_ASSET_TYPE_TERM, V5.CATALOG_ASSET);
-            put("CachedJsonLdContext", V5.CACHED_JSON_LD_CONTEXT);
+            put("CachedDocument", V5.CACHED_DOCUMENT);
+            put("SchemaValidatorRegistration", V5.SCHEMA_VALIDATOR_REGISTRATION);
         }
     };
 
@@ -138,6 +144,8 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
     private TypeManager typeManager;
     @Inject
     private JsonObjectValidatorRegistry validator;
+    @Inject(required = false)
+    private CachedDocumentStore cachedDocumentStore;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -145,6 +153,7 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
 
         var builder = ManagementApiSchemaValidatorProvider.Builder.newInstance()
                 .objectMapper(() -> typeManager.getMapper(JSON_LD))
+                .cachedSchemaResolver(this::resolveCachedSchema)
                 .prefixMapping(EDC_MGMT_V4_SCHEMA_PREFIX, EDC_CLASSPATH_SCHEMA_V4)
                 .prefixMapping(EDC_MGMT_V5_SCHEMA_PREFIX, EDC_CLASSPATH_SCHEMA_V5)
                 .prefixMapping(DSPACE_2025_SCHEMA_PREFIX, DSPACE_CLASSPATH_SCHEMA);
@@ -159,6 +168,26 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
         schemaV4.forEach((type, schema) -> validator.register(V_4_PREFIX + type, schemaValidatorProvider.validatorFor(schema)));
         schemaV5.forEach((type, schema) -> validator.register(V_5_PREFIX + type, schemaValidatorProvider.validatorFor(schema)));
         registerCustomValidators(schemaValidatorProvider, customGroups);
+
+        // Expose the provider so the runtime schema validator registration vertical can build validators for
+        // schemas configured through the management API.
+        context.registerService(SchemaValidatorFactory.class, schemaValidatorProvider);
+    }
+
+    /**
+     * Resolves a schema {@code $id} to its raw JSON content from the document cache, or {@code null} when the schema
+     * is not cached as a {@link CachedDocumentType#JSON_SCHEMA} document. The cache is optional: when the document
+     * cache module is not present, this always returns {@code null} and the network loader is used.
+     */
+    private String resolveCachedSchema(String schemaId) {
+        if (cachedDocumentStore == null) {
+            return null;
+        }
+        var document = cachedDocumentStore.findByUrl(schemaId);
+        if (document == null || document.getType() != CachedDocumentType.JSON_SCHEMA) {
+            return null;
+        }
+        return document.getContent();
     }
 
     void registerCustomValidators(ManagementApiSchemaValidatorProvider validatorProvider, List<CustomValidatorGroup> groups) {

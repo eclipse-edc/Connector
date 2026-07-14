@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "SchemaValidatorRegistrationSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/SchemaValidatorRegistration"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v5/schema-validator-registration-schema.json",
+  "definitions": {
+    "SchemaValidatorRegistration": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "SchemaValidatorRegistration"
+        },
+        "@id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "validatedType": {
+          "type": "string"
+        },
+        "schema": {
+          "type": "string"
+        },
+        "profiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "@context",
+        "@type",
+        "version",
+        "validatedType",
+        "schema"
+      ]
+    }
+  }
+}
