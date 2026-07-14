@@ -67,7 +67,8 @@ public interface ManagementApiJsonSchema {
 
         String ASSET = EDC_MGMT_V5_SCHEMA_PREFIX + "/asset-schema.json";
         String CATALOG_ASSET = EDC_MGMT_V5_SCHEMA_PREFIX + "/catalog-asset-schema.json";
-        String CACHED_JSON_LD_CONTEXT = EDC_MGMT_V5_SCHEMA_PREFIX + "/cached-json-ld-context-schema.json";
+        String CACHED_DOCUMENT = EDC_MGMT_V5_SCHEMA_PREFIX + "/cached-document-schema.json";
+        String SCHEMA_VALIDATOR_REGISTRATION = EDC_MGMT_V5_SCHEMA_PREFIX + "/schema-validator-registration-schema.json";
 
 
         static String version() {
