@@ -621,15 +621,29 @@
         "prefixMapping": "edc:prefixMapping"
       }
     },
-    "CachedJsonLdContext": {
-      "@id": "edc:CachedJsonLdContext",
+    "CachedDocument": {
+      "@id": "edc:CachedDocument",
       "@context": {
         "url": "edc:url",
+        "documentType": "edc:documentType",
         "pullStrategy": "edc:pullStrategy",
         "updatedAt": "edc:updatedAt",
         "content": {
           "@id": "edc:content",
           "@type": "@json"
+        }
+      }
+    },
+    "SchemaValidatorRegistration": {
+      "@id": "edc:SchemaValidatorRegistration",
+      "@context": {
+        "version": "edc:version",
+        "validatedType": "edc:validatedType",
+        "schema": "edc:schema",
+        "updatedAt": "edc:updatedAt",
+        "profiles": {
+          "@id": "edc:profiles",
+          "@container": "@set"
         }
       }
     },
