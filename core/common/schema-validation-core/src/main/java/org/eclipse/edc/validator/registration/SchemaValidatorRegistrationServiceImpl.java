@@ -84,11 +84,19 @@ public class SchemaValidatorRegistrationServiceImpl implements SchemaValidatorRe
     }
 
     private ServiceResult<Void> schemaAvailable(String schema) {
-        var document = cachedDocumentStore.findByUrl(schema);
+        // A schema reference may target a subschema through a fragment (e.g. '.../schema.json#/definitions/Foo').
+        // Only the document URL (the part before '#') is cached, so strip the fragment before the lookup.
+        var documentUrl = stripFragment(schema);
+        var document = cachedDocumentStore.findByUrl(documentUrl);
         if (document == null || document.getType() != CachedDocumentType.JSON_SCHEMA) {
-            return ServiceResult.badRequest("The referenced schema '%s' is not cached as a JSON_SCHEMA document. Cache it first via the document cache API.".formatted(schema));
+            return ServiceResult.badRequest("The referenced schema '%s' is not cached as a JSON_SCHEMA document. Cache it first via the document cache API.".formatted(documentUrl));
         }
         return ServiceResult.success();
+    }
+
+    private String stripFragment(String schema) {
+        var hashIndex = schema.indexOf('#');
+        return hashIndex < 0 ? schema : schema.substring(0, hashIndex);
     }
 
     private void register(SchemaValidatorRegistration registration) {

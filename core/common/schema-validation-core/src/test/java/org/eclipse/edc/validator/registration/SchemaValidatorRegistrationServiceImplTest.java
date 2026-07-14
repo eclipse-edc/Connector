@@ -84,6 +84,21 @@ class SchemaValidatorRegistrationServiceImplTest {
     }
 
     @Test
+    void create_stripsSchemaFragment_whenCheckingCache() {
+        var withFragment = SchemaValidatorRegistration.Builder.newInstance()
+                .version("v5").validatedType("PolicyDefinition")
+                .schema(SCHEMA + "#/definitions/PolicyDefinition").profiles(List.of()).build();
+        when(cachedDocumentStore.findByUrl(SCHEMA)).thenReturn(schemaDocument(CachedDocumentType.JSON_SCHEMA));
+        when(store.create(any())).thenAnswer(i -> StoreResult.success(i.getArgument(0)));
+
+        var result = service.create(withFragment);
+
+        assertThat(result.succeeded()).isTrue();
+        verify(cachedDocumentStore).findByUrl(SCHEMA); // looked up without the fragment
+        verify(registrar).ensureRegistered("v5", "PolicyDefinition");
+    }
+
+    @Test
     void update_evictsPreviousSchemaAndReRegisters() {
         var existing = SchemaValidatorRegistration.Builder.newInstance()
                 .id("id1").version("v5").validatedType("Asset").schema("https://example.com/schema/old.json").build();
