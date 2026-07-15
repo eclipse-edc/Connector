@@ -444,8 +444,6 @@ paths:
                   $ref: "#/components/schemas/ApiErrorDetail"
   /v5beta/schemavalidators:
     $ref: ./schema-validation-api.yaml#/paths/~1v5beta~1schemavalidators
-  /v3/contractdefinitions/request:
-    $ref: ./contract-definition-api.yaml#/paths/~1v3~1contractdefinitions~1request
   /v3/contractagreements/{id}:
     $ref: "./contract-agreement-api.yaml#/paths/~1v3~1contractagreements~1{id}"
   /v3/edrs/{transferProcessId}/dataaddress:
@@ -454,6 +452,8 @@ paths:
     $ref: ./contract-negotiation-api.yaml#/paths/~1v3~1contractnegotiations~1request
   /v4/contractnegotiations/{id}/state:
     $ref: "./contract-negotiation-api.yaml#/paths/~1v4~1contractnegotiations~1{id}~1state"
+  /v3/contractdefinitions/request:
+    $ref: ./contract-definition-api.yaml#/paths/~1v3~1contractdefinitions~1request
   /v5beta/participants/{participantContextId}/contractdefinitions/{id}:
     $ref: "./contract-definition-api-v5.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1contractdefinitions~1{id}"
   /v4/contractnegotiations/request:
@@ -478,10 +478,10 @@ paths:
     $ref: "./policy-definition-api.yaml#/paths/~1v4~1policydefinitions~1{id}"
   /v5beta/participants/{participantContextId}/contractagreements/{id}/negotiation:
     $ref: "./contract-agreement-api-v5.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1contractagreements~1{id}~1negotiation"
-  /v3/secrets/{id}:
-    $ref: "./secrets-api.yaml#/paths/~1v3~1secrets~1{id}"
   /v4/transferprocesses/{id}/resume:
     $ref: "./transfer-process-api.yaml#/paths/~1v4~1transferprocesses~1{id}~1resume"
+  /v3/secrets/{id}:
+    $ref: "./secrets-api.yaml#/paths/~1v3~1secrets~1{id}"
   /v4/secrets/{id}:
     $ref: "./secrets-api.yaml#/paths/~1v4~1secrets~1{id}"
   /v5beta/participants/{participantContextId}/contractnegotiations/{id}/state:
@@ -496,10 +496,10 @@ paths:
     $ref: ./policy-definition-api.yaml#/paths/~1v4~1policydefinitions~1request
   /v3/assets:
     $ref: ./asset-api.yaml#/paths/~1v3~1assets
-  /v4/contractdefinitions:
-    $ref: ./contract-definition-api.yaml#/paths/~1v4~1contractdefinitions
   /v3/transferprocesses/{id}/state:
     $ref: "./transfer-process-api.yaml#/paths/~1v3~1transferprocesses~1{id}~1state"
+  /v4/contractdefinitions:
+    $ref: ./contract-definition-api.yaml#/paths/~1v4~1contractdefinitions
   /v5beta/celexpressions/request:
     $ref: ./cel-api-v5.yaml#/paths/~1v5beta~1celexpressions~1request
   /v4/contractagreements/{id}/negotiation:
@@ -508,34 +508,34 @@ paths:
     $ref: "./contract-negotiation-api-v5.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1contractnegotiations"
   /v5beta/participants/{participantContextId}/dataplanes/{dataplaneId}:
     $ref: "./data-plane-signaling-core.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1dataplanes~1{dataplaneId}"
-  /v5beta/participants/{participantContextId}/contractnegotiations/{id}/agreement:
-    $ref: "./contract-negotiation-api-v5.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1contractnegotiations~1{id}~1agreement"
   /v5beta/participants/{participantContextId}/transferprocesses/{id}/suspend:
     $ref: "./transfer-process-api-v5.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1transferprocesses~1{id}~1suspend"
+  /v5beta/participants/{participantContextId}/contractnegotiations/{id}/agreement:
+    $ref: "./contract-negotiation-api-v5.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1contractnegotiations~1{id}~1agreement"
   /v3/contractagreements/request:
     $ref: ./contract-agreement-api.yaml#/paths/~1v3~1contractagreements~1request
   /v3/policydefinitions/{id}:
     $ref: "./policy-definition-api.yaml#/paths/~1v3~1policydefinitions~1{id}"
-  /v3/edrs/request:
-    $ref: ./edr-cache-api.yaml#/paths/~1v3~1edrs~1request
   /v3/catalog/request:
     $ref: ./catalog-api.yaml#/paths/~1v3~1catalog~1request
+  /v3/edrs/request:
+    $ref: ./edr-cache-api.yaml#/paths/~1v3~1edrs~1request
+  /v4/catalog/dataset/request:
+    $ref: ./catalog-api.yaml#/paths/~1v4~1catalog~1dataset~1request
   /v3/transferprocesses/{id}/terminate:
     $ref: "./transfer-process-api.yaml#/paths/~1v3~1transferprocesses~1{id}~1terminate"
   /v4/transferprocesses/{id}/terminate:
     $ref: "./transfer-process-api.yaml#/paths/~1v4~1transferprocesses~1{id}~1terminate"
-  /v4/catalog/dataset/request:
-    $ref: ./catalog-api.yaml#/paths/~1v4~1catalog~1dataset~1request
   /v4/transferprocesses/{id}/state:
     $ref: "./transfer-process-api.yaml#/paths/~1v4~1transferprocesses~1{id}~1state"
   /v5beta/participants/{participantContextId}/transferprocesses/{id}/resume:
     $ref: "./transfer-process-api-v5.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1transferprocesses~1{id}~1resume"
   /v5beta/schemavalidators/{id}:
     $ref: "./schema-validation-api.yaml#/paths/~1v5beta~1schemavalidators~1{id}"
-  /v3/contractnegotiations/{id}/terminate:
-    $ref: "./contract-negotiation-api.yaml#/paths/~1v3~1contractnegotiations~1{id}~1terminate"
   /v4/policydefinitions/{id}/validate:
     $ref: "./policy-definition-api.yaml#/paths/~1v4~1policydefinitions~1{id}~1validate"
+  /v3/contractnegotiations/{id}/terminate:
+    $ref: "./contract-negotiation-api.yaml#/paths/~1v3~1contractnegotiations~1{id}~1terminate"
   /v5beta/participants/{participantContextId}/config:
     $ref: "./participant-context-config-api-v5.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1config"
   /v3/transferprocesses/{id}/deprovision:
@@ -544,14 +544,14 @@ paths:
     $ref: ./data-plane-selector-api.yaml#/paths/~1v3~1dataplanes
   /v3/catalog/dataset/request:
     $ref: ./catalog-api.yaml#/paths/~1v3~1catalog~1dataset~1request
-  /v4/dataplanes/{dataplaneId}:
-    $ref: "./data-plane-signaling-core.yaml#/paths/~1v4~1dataplanes~1{dataplaneId}"
   /v5beta/participants/{participantContextId}/contractdefinitions:
     $ref: "./contract-definition-api-v5.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1contractdefinitions"
-  /v5beta/cacheddocuments/{id}:
-    $ref: "./document-cache-api.yaml#/paths/~1v5beta~1cacheddocuments~1{id}"
+  /v4/dataplanes/{dataplaneId}:
+    $ref: "./data-plane-signaling-core.yaml#/paths/~1v4~1dataplanes~1{dataplaneId}"
   /v5beta/participants/{participantContextId}/contractdefinitions/request:
     $ref: "./contract-definition-api-v5.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1contractdefinitions~1request"
+  /v5beta/cacheddocuments/{id}:
+    $ref: "./document-cache-api.yaml#/paths/~1v5beta~1cacheddocuments~1{id}"
   /v5beta/celexpressions/{id}:
     $ref: "./cel-api-v5.yaml#/paths/~1v5beta~1celexpressions~1{id}"
   /v4/policydefinitions/{id}/evaluationplan:
@@ -567,7 +567,7 @@ paths:
   /v5beta/participants/{participantContextId}/contractagreements/{id}:
     $ref: "./contract-agreement-api-v5.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1contractagreements~1{id}"
   /v4/dataplanes:
-    $ref: ./data-plane-selector-api.yaml#/paths/~1v4~1dataplanes
+    $ref: ./data-plane-signaling-core.yaml#/paths/~1v4~1dataplanes
   /v3/transferprocesses:
     $ref: ./transfer-process-api.yaml#/paths/~1v3~1transferprocesses
   /v4/contractnegotiations/{id}/terminate:
@@ -590,10 +590,10 @@ paths:
     $ref: "./transfer-process-api-v5.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1transferprocesses~1request"
   /v3/secrets:
     $ref: ./secrets-api.yaml#/paths/~1v3~1secrets
-  /v5beta/participants/{participantContextId}/dataplanes:
-    $ref: "./data-plane-signaling-core.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1dataplanes"
   /v3/transferprocesses/{id}/suspend:
     $ref: "./transfer-process-api.yaml#/paths/~1v3~1transferprocesses~1{id}~1suspend"
+  /v5beta/participants/{participantContextId}/dataplanes:
+    $ref: "./data-plane-signaling-core.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1dataplanes"
   /v5beta/dataspaceprofiles/request:
     $ref: ./dataspace-profile-context-api-v5.yaml#/paths/~1v5beta~1dataspaceprofiles~1request
   /v3/policydefinitions/request:
@@ -634,10 +634,10 @@ paths:
     $ref: "./contract-negotiation-api.yaml#/paths/~1v4~1contractnegotiations~1{id}"
   /v4/contractagreements/request:
     $ref: ./contract-agreement-api.yaml#/paths/~1v4~1contractagreements~1request
-  /v4/contractdefinitions/request:
-    $ref: ./contract-definition-api.yaml#/paths/~1v4~1contractdefinitions~1request
   /v3/transferprocesses/request:
     $ref: ./transfer-process-api.yaml#/paths/~1v3~1transferprocesses~1request
+  /v4/contractdefinitions/request:
+    $ref: ./contract-definition-api.yaml#/paths/~1v4~1contractdefinitions~1request
   /v3/transferprocesses/{id}:
     $ref: "./transfer-process-api.yaml#/paths/~1v3~1transferprocesses~1{id}"
   /v5beta/cacheddocuments/{id}/refresh:
@@ -652,14 +652,14 @@ paths:
     $ref: "./edr-cache-api.yaml#/paths/~1v3~1edrs~1{transferProcessId}"
   /v5beta/participants/{participantContextId}/transferprocesses/{id}/state:
     $ref: "./transfer-process-api-v5.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1transferprocesses~1{id}~1state"
-  /v5beta/participants/{participantContextId}/catalog/request:
-    $ref: "./catalog-api-v5.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1catalog~1request"
   /v5beta/participants/{participantContextId}/transferprocesses:
     $ref: "./transfer-process-api-v5.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1transferprocesses"
-  /v4/contractdefinitions/{id}:
-    $ref: "./contract-definition-api.yaml#/paths/~1v4~1contractdefinitions~1{id}"
+  /v5beta/participants/{participantContextId}/catalog/request:
+    $ref: "./catalog-api-v5.yaml#/paths/~1v5beta~1participants~1{participantContextId}~1catalog~1request"
   /v4/transferprocesses/request:
     $ref: ./transfer-process-api.yaml#/paths/~1v4~1transferprocesses~1request
+  /v4/contractdefinitions/{id}:
+    $ref: "./contract-definition-api.yaml#/paths/~1v4~1contractdefinitions~1{id}"
   /v4/transferprocesses:
     $ref: ./transfer-process-api.yaml#/paths/~1v4~1transferprocesses
   /v4/assets/request:
