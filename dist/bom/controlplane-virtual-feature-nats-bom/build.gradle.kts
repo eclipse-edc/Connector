@@ -17,6 +17,7 @@ plugins {
 }
 
 dependencies {
+    api(project(":extensions:common:nats:nats-auth-nkey"))
     api(project(":extensions:control-plane:tasks:nats:publisher:negotiation-tasks-publisher-nats"))
     api(project(":extensions:control-plane:tasks:nats:publisher:transfer-tasks-publisher-nats"))
     api(project(":extensions:control-plane:tasks:nats:subscriber:negotiation-tasks-subscriber-nats"))

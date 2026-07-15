@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.virtual.controlplane.transfer.subscriber.nats;
 
+import io.nats.client.Options;
 import org.eclipse.edc.controlplane.tasks.TaskService;
 import org.eclipse.edc.controlplane.transfer.spi.TransferProcessTaskExecutor;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
@@ -55,12 +56,18 @@ public class NatsTransferProcessTaskSubscriberExtension implements ServiceExtens
     @Inject
     private TransactionContext transactionContext;
 
+    // authentication options can be contributed from the outside (e.g. the NKey auth extension).
+    // Note that the 'server' will be overwritten!
+    @Inject(required = false)
+    private Options authenticationOptions;
+
     private NatsTransferProcessTaskSubscriber subscriber;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         subscriber = NatsTransferProcessTaskSubscriber.Builder.newInstance()
                 .url(subscriberConfig.url())
+                .authenticationOptions(authenticationOptions)
                 .name(subscriberConfig.name())
                 .stream(subscriberConfig.stream)
                 .subject(subscriberConfig.subject())
