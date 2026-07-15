@@ -15,6 +15,7 @@
 package org.eclipse.edc.controlplane.tasks.publisher.nats;
 
 import io.nats.client.Nats;
+import io.nats.client.Options;
 import org.eclipse.edc.controlplane.tasks.TaskObservable;
 import org.eclipse.edc.controlplane.transfer.spi.tasks.TransferProcessTaskPayload;
 import org.eclipse.edc.nats.tasks.publisher.NatsTaskPublisher;
@@ -46,6 +47,11 @@ public class TransferTaskNatsPublisherExtension implements ServiceExtension {
     @Inject
     private TaskObservable taskObservable;
 
+    // authentication options can be contributed from the outside (e.g. the NKey auth extension).
+    // Note that the 'server' will be overwritten!
+    @Inject(required = false)
+    private Options authenticationOptions;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         try {
@@ -57,7 +63,8 @@ public class TransferTaskNatsPublisherExtension implements ServiceExtension {
 
     private void registerPublisher(String natsUrl, String subjectPrefix) {
         try {
-            var connection = Nats.connect(natsUrl);
+            var builder = authenticationOptions != null ? new Options.Builder(authenticationOptions) : new Options.Builder();
+            var connection = Nats.connect(builder.server(natsUrl).build());
             var js = connection.jetStream();
             var publisher = new NatsTaskPublisher(subjectPrefix, TransferProcessTaskPayload.class, js, monitor, () -> typeManager.getMapper());
 

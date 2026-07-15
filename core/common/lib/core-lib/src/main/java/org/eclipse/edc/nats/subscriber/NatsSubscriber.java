@@ -18,6 +18,7 @@ import io.nats.client.Connection;
 import io.nats.client.JetStreamSubscription;
 import io.nats.client.Message;
 import io.nats.client.Nats;
+import io.nats.client.Options;
 import io.nats.client.PullSubscribeOptions;
 import io.nats.client.api.StorageType;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -44,6 +45,8 @@ public abstract class NatsSubscriber {
     protected boolean autoCreate = false;
     protected Integer batchSize = 100;
     protected Integer maxWait = 100;
+    // externally contributed connect options (e.g. NKey authentication); the server URL is overwritten
+    protected Options authenticationOptions;
     private Connection connection;
 
 
@@ -86,7 +89,8 @@ public abstract class NatsSubscriber {
     private Connection getOrCreateConnection() {
         if (connection == null) {
             try {
-                connection = Nats.connect(url);
+                var builder = authenticationOptions != null ? new Options.Builder(authenticationOptions) : new Options.Builder();
+                connection = Nats.connect(builder.server(url).build());
             } catch (Exception e) {
                 throw new RuntimeException("Failed to create NATS connection", e);
             }
@@ -186,6 +190,11 @@ public abstract class NatsSubscriber {
 
         public B maxWait(int maxWait) {
             subscriber.maxWait = maxWait;
+            return self();
+        }
+
+        public B authenticationOptions(Options authenticationOptions) {
+            subscriber.authenticationOptions = authenticationOptions;
             return self();
         }
 
