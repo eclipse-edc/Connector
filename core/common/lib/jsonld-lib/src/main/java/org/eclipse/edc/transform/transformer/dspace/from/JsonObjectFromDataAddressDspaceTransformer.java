@@ -28,11 +28,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Set;
 
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.DSPACE_DATAADDRESS_TYPE_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_PROPERTY_TYPE_TERM;
+import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_TYPE_PROPERTY_TERM;
 
@@ -57,11 +59,16 @@ public class JsonObjectFromDataAddressDspaceTransformer extends AbstractNamespac
                 .map(it -> endpointProperty(it.getKey(), it.getValue(), context))
                 .collect(JsonCollectors.toJsonArray());
 
-        return jsonFactory.createObjectBuilder()
+        var builder = jsonFactory.createObjectBuilder()
                 .add(TYPE, forNamespace(DSPACE_DATAADDRESS_TYPE_TERM))
                 .add(forNamespace(ENDPOINT_TYPE_PROPERTY_TERM), createId(jsonFactory, dataAddress.getType()))
-                .add(forNamespace(ENDPOINT_PROPERTIES_PROPERTY_TERM), endpointProperties)
-                .build();
+                .add(forNamespace(ENDPOINT_PROPERTIES_PROPERTY_TERM), endpointProperties);
+
+        var endpoint = dataAddress.getStringProperty(EDC_NAMESPACE + "endpoint");
+        if (endpoint != null) {
+            builder.add(forNamespace(ENDPOINT_PROPERTY_TERM), endpoint);
+        }
+        return builder.build();
     }
 
     private JsonObject endpointProperty(String key, Object value, TransformerContext context) {

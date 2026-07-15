@@ -27,6 +27,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTIES_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_NAME_PROPERTY_TERM;
 import static org.eclipse.edc.transform.transformer.dspace.DataAddressDspaceSerialization.ENDPOINT_PROPERTY_TERM;
@@ -53,6 +54,7 @@ class JsonObjectFromDataAddressDspaceTransformerTest {
         var dataAddress = DataAddress.Builder.newInstance()
                 .type("https://w3id.org/idsa/v4.1/HTTP")
                 .property("endpoint", "https://example.com")
+                .property(EDC_NAMESPACE + "endpoint", "https://example.com")
                 .property("authorization", "secret-token")
                 .property("foo", "bar")
                 .build();
@@ -61,8 +63,8 @@ class JsonObjectFromDataAddressDspaceTransformerTest {
 
         assertThat(jsonObject).isNotNull();
         assertThat(jsonObject.getJsonObject(DSP_NAMESPACE.toIri(ENDPOINT_TYPE_PROPERTY_TERM)).getString(ID)).isEqualTo("https://w3id.org/idsa/v4.1/HTTP");
-        assertThat(jsonObject.get(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTY_TERM))).isEqualTo(null);
-        assertThat(jsonObject.getJsonArray(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTIES_PROPERTY_TERM))).hasSize(3)
+        assertThat(jsonObject.getString(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTY_TERM))).isEqualTo("https://example.com");
+        assertThat(jsonObject.getJsonArray(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTIES_PROPERTY_TERM))).hasSize(4)
                 .anySatisfy(jv -> {
                     assertThat(jv.asJsonObject().getString(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTY_NAME_PROPERTY_TERM))).isEqualTo("authorization");
                     assertThat(jv.asJsonObject().getString(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM))).isEqualTo("secret-token");
@@ -72,6 +74,10 @@ class JsonObjectFromDataAddressDspaceTransformerTest {
                 })
                 .anySatisfy(jv -> {
                     assertThat(jv.asJsonObject().getString(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTY_NAME_PROPERTY_TERM))).isEqualTo("endpoint");
+                    assertThat(jv.asJsonObject().getString(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM))).isEqualTo("https://example.com");
+                })
+                .anySatisfy(jv -> {
+                    assertThat(jv.asJsonObject().getString(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTY_NAME_PROPERTY_TERM))).isEqualTo(EDC_NAMESPACE + "endpoint");
                     assertThat(jv.asJsonObject().getString(DSP_NAMESPACE.toIri(ENDPOINT_PROPERTY_VALUE_PROPERTY_TERM))).isEqualTo("https://example.com");
                 });
     }
