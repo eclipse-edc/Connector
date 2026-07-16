@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.transferprocess;
 
 import jakarta.json.Json;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.v3.TransferProcessApiV3Controller;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.v4.TransferProcessApiV4Controller;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.validation.TerminateTransferValidator;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.validation.TransferRequestValidator;
@@ -40,7 +39,6 @@ import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import static java.util.Collections.emptyMap;
-import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TerminateTransfer.TERMINATE_TRANSFER_TYPE;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE;
@@ -91,9 +89,6 @@ public class TransferProcessApiExtension implements ServiceExtension {
 
         validatorRegistry.register(TRANSFER_REQUEST_TYPE, TransferRequestValidator.instance(context.getMonitor()));
         validatorRegistry.register(TERMINATE_TRANSFER_TYPE, TerminateTransferValidator.instance());
-
-        webService.registerResource(ApiContext.MANAGEMENT, new TransferProcessApiV3Controller(context.getMonitor(), service, managementApiTransformerRegistry, validatorRegistry, participantContextSupplier));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, TransferProcessApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
 
         webService.registerResource(ApiContext.MANAGEMENT, new TransferProcessApiV4Controller(context.getMonitor(), service, managementApiTransformerRegistry, validatorRegistry, participantContextSupplier));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, TransferProcessApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));

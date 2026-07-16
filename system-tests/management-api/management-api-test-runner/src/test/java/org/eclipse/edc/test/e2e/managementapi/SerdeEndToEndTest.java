@@ -108,7 +108,6 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiat
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.MANAGEMENT_API_CONTEXT;
@@ -129,7 +128,6 @@ import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.contractReque
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createCelExpressionTestResponse;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createContractAgreement;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createContractNegotiation;
-import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createEdrEntry;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createPolicyEvaluationPlan;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.createTransferProcess;
 import static org.eclipse.edc.test.e2e.managementapi.TestFunctions.dataAddressObject;
@@ -161,7 +159,6 @@ public class SerdeEndToEndTest {
             {
                 put("edc.dsp.context.enabled", "true");
                 put("edc.dsp.management.enabled", "true");
-                put("edc.management.context.enabled", "true");
             }
         });
     }
@@ -178,13 +175,9 @@ public class SerdeEndToEndTest {
             return List.of(MANAGEMENT_API_CONTEXT);
         }
 
-        protected String jsonLdContext() {
-            return EDC_CONNECTOR_MANAGEMENT_CONTEXT;
-        }
+        protected abstract String jsonLdContext();
 
-        protected String schemaVersion() {
-            return "v3";
-        }
+        protected abstract String schemaVersion();
 
         protected boolean strictSchema() {
             return false;
@@ -257,21 +250,6 @@ public class SerdeEndToEndTest {
             assertThat(compactResult.getJsonObject("dataDestination")).isNotNull();
             assertThat(compactResult.getJsonArray("callbackAddresses")).hasSize(transferProcess.getCallbackAddresses().size());
             assertThat(compactResult.getString("errorDetail")).isEqualTo(transferProcess.getErrorDetail());
-        }
-
-        @Test
-        void ser_EndpointDataReferenceEntry(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
-            var transferProcess = createEdrEntry();
-            var compactResult = serialize(typeTransformerRegistry, validatorRegistry, jsonLd, transferProcess);
-
-            assertThat(compactResult).isNotNull();
-            assertThat(compactResult.getString(ID)).isEqualTo(transferProcess.getId());
-            assertThat(compactResult.getString(TYPE)).isEqualTo("EndpointDataReferenceEntry");
-            assertThat(compactResult.getString("transferProcessId")).isEqualTo(transferProcess.getTransferProcessId());
-            assertThat(compactResult.getString("contractNegotiationId")).isEqualTo(transferProcess.getContractNegotiationId());
-            assertThat(compactResult.getString("assetId")).isEqualTo(transferProcess.getAssetId());
-            assertThat(compactResult.getString("providerId")).isEqualTo(transferProcess.getProviderId());
-            assertThat(compactResult.getString("agreementId")).isEqualTo(transferProcess.getAgreementId());
         }
 
         @Test
@@ -776,132 +754,6 @@ public class SerdeEndToEndTest {
                 jsonLdContext = withContext.value();
                 strictSchema = withContext.strictSchema();
             }
-        }
-    }
-
-    @Nested
-    @EndToEndTest
-    class SerdeV3Tests extends Tests {
-
-        @RegisterExtension
-        private static final RuntimeExtension RUNTIME = ComponentRuntimeExtension.Builder.newInstance()
-                .name(Runtimes.ControlPlane.NAME)
-                .modules(Runtimes.ControlPlane.MODULES)
-                .modules(":extensions:common:api:management-api-schema-validator")
-                .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
-                .configurationProvider(SerdeEndToEndTest::config)
-                .build();
-
-        private static boolean shouldSkipV3(JsonObject inputObject, Class<?> klass) {
-            return klass.equals(DataPlaneInstance.class) ||
-                    klass.equals(ParticipantContext.class) ||
-                    klass.equals(CelExpression.class) ||
-                    klass.equals(ParticipantContextConfiguration.class) ||
-                    inputObject.getString(TYPE).equals("CatalogAsset") ||
-                    (inputObject.getString(TYPE).equals("Asset") && inputObject.containsKey("dataplaneMetadata"));
-        }
-
-        /**
-         * Tests for entities that supports transformation from/to JsonObject
-         */
-        @ParameterizedTest(name = "{1}")
-        @ArgumentsSource(JsonInputProvider.class)
-        @WithContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT)
-        void serde(JsonObject inputObject, Class<?> klass, Function<JsonObject, JsonObject> mapper,
-                   JsonLd jsonLd, JsonObjectValidatorRegistry validatorRegistry,
-                   TypeTransformerRegistry typeTransformerRegistry) {
-            if (!shouldSkipV3(inputObject, klass)) {
-                verifySerde(typeTransformerRegistry, validatorRegistry, jsonLd, inputObject, klass, mapper);
-            }
-        }
-
-        @Override
-        @Disabled
-        void de_DatasetRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
-            super.de_DatasetRequest(typeTransformerRegistry, validatorRegistry, jsonLd);
-        }
-
-        @Override
-        @Disabled
-        void de_DatasetRequest_withProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
-            super.de_DatasetRequest_withProfile(typeTransformerRegistry, validatorRegistry, jsonLd);
-        }
-
-        @Override
-        @Disabled
-        void validate_DatasetRequest_WithBoth_ShouldFail(JsonObjectValidatorRegistry validatorRegistry) {
-            super.validate_DatasetRequest_WithBoth_ShouldFail(validatorRegistry);
-        }
-
-        @Override
-        @Disabled
-        void de_CatalogRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
-            super.de_CatalogRequest(typeTransformerRegistry, validatorRegistry, jsonLd);
-        }
-
-        @Override
-        @Disabled
-        void de_CatalogRequest_WithProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
-            super.de_CatalogRequest_WithProfile(typeTransformerRegistry, validatorRegistry, jsonLd);
-        }
-
-        @Override
-        @Disabled
-        void validate_CatalogRequest_WithBoth_ShouldFail(JsonObjectValidatorRegistry validatorRegistry) {
-            super.validate_CatalogRequest_WithBoth_ShouldFail(validatorRegistry);
-        }
-
-        @Override
-        @Disabled
-        void de_ContractRequest_withProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
-            super.de_ContractRequest_withProfile(typeTransformerRegistry, validatorRegistry, jsonLd);
-        }
-
-        @Override
-        @Disabled
-        void validate_ContractRequest_withProfileAndProtocol_shouldFail(JsonObjectValidatorRegistry validatorRegistry) {
-            super.validate_ContractRequest_withProfileAndProtocol_shouldFail(validatorRegistry);
-        }
-
-        @Override
-        @Disabled
-        void de_TransferRequest_withProfile(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
-            super.de_TransferRequest_withProfile(typeTransformerRegistry, validatorRegistry, jsonLd);
-        }
-
-        @Override
-        @Disabled
-        void validate_TransferRequest_withProfileAndProtocol_shouldFail(JsonObjectValidatorRegistry validatorRegistry) {
-            super.validate_TransferRequest_withProfileAndProtocol_shouldFail(validatorRegistry);
-        }
-
-        @Override
-        @Disabled
-        void de_TerminateNegotiation_v4(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
-            super.de_TerminateNegotiation_v4(typeTransformerRegistry, validatorRegistry, jsonLd);
-        }
-
-        @Override
-        @Disabled
-        void ser_DataPlaneInstance(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
-            super.ser_DataPlaneInstance(typeTransformerRegistry, validatorRegistry, jsonLd);
-        }
-
-        @Override
-        void de_CelExpressionTestRequest(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
-            super.de_CelExpressionTestRequest(typeTransformerRegistry, validatorRegistry, jsonLd);
-        }
-
-        @Disabled
-        @Override
-        void ser_CelExpressionTestResponse(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
-            super.ser_CelExpressionTestResponse(typeTransformerRegistry, validatorRegistry, jsonLd);
-        }
-
-        @Override
-        @Disabled
-        void ser_IdResponse(TypeTransformerRegistry typeTransformerRegistry, JsonObjectValidatorRegistry validatorRegistry, JsonLd jsonLd) {
-            super.ser_IdResponse(typeTransformerRegistry, validatorRegistry, jsonLd);
         }
     }
 

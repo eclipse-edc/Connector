@@ -58,19 +58,19 @@ class CatalogApiClient {
     }
 
     Result<String> postAsset(JsonObject entry) {
-        return postObjectWithId(createPostRequest(entry, managementBaseUrl + "/v3/assets"));
+        return postObjectWithId(createPostRequest(entry, managementBaseUrl + "/v4/assets"));
     }
 
     Result<String> postPolicy(String policyJsonLd) {
-        return postObjectWithId(createPostRequest(policyJsonLd, managementBaseUrl + "/v3/policydefinitions"));
+        return postObjectWithId(createPostRequest(policyJsonLd, managementBaseUrl + "/v4/policydefinitions"));
     }
 
     Result<String> postContractDefinition(JsonObject definition) {
-        return postObjectWithId(createPostRequest(definition, managementBaseUrl + "/v3/contractdefinitions"));
+        return postObjectWithId(createPostRequest(definition, managementBaseUrl + "/v4/contractdefinitions"));
     }
 
     public String queryCatalogs(JsonObject querySpec) {
-        var rq = createPostRequest(querySpec, catalogBaseUrl + "/v3/catalogs/request");
+        var rq = createPostRequest(querySpec, catalogBaseUrl + "/v4/catalogs/request");
 
         try (var response = getClient().newCall(rq).execute()) {
             if (response.isSuccessful()) {

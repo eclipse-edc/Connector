@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.catalog.api.query;
 
-import org.eclipse.edc.catalog.api.query.v3.CatalogsApiV3Controller;
 import org.eclipse.edc.catalog.api.query.v4.CatalogsApiV4Controller;
 import org.eclipse.edc.catalog.spi.QueryService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -29,7 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
+import static org.eclipse.edc.catalog.api.query.FederatedCatalogApiExtension.FEDERATED_CATALOG_SCOPE_V4;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_CONTEXT_2025_1;
 import static org.eclipse.edc.jsonld.spi.Namespaces.EDC_DSPACE_CONTEXT;
 import static org.eclipse.edc.web.spi.configuration.ApiContext.MANAGEMENT;
@@ -61,16 +60,13 @@ class FederatedCatalogApiExtensionTest {
     }
 
     @Test
-    void initialize_shouldRegisterV3AndV4ManagementApiResources(FederatedCatalogApiExtension extension, ServiceExtensionContext context) {
+    void initialize_shouldRegisterV4ManagementApiResources(FederatedCatalogApiExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
-
-        verify(webService).registerResource(eq(MANAGEMENT), isA(CatalogsApiV3Controller.class));
-        verify(webService).registerDynamicResource(eq(MANAGEMENT), eq(CatalogsApiV3Controller.class), isA(JerseyJsonLdInterceptor.class));
 
         verify(webService).registerResource(eq(MANAGEMENT), isA(CatalogsApiV4Controller.class));
         verify(webService).registerDynamicResource(eq(MANAGEMENT), eq(CatalogsApiV4Controller.class), isA(JerseyJsonLdInterceptor.class));
 
-        verify(jsonLd).registerContext(DSPACE_CONTEXT_2025_1, MANAGEMENT_SCOPE);
-        verify(jsonLd).registerContext(EDC_DSPACE_CONTEXT, MANAGEMENT_SCOPE);
+        verify(jsonLd).registerContext(DSPACE_CONTEXT_2025_1, FEDERATED_CATALOG_SCOPE_V4);
+        verify(jsonLd).registerContext(EDC_DSPACE_CONTEXT, FEDERATED_CATALOG_SCOPE_V4);
     }
 }

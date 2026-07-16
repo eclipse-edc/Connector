@@ -25,11 +25,6 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.HashMap;
 
-import static jakarta.json.Json.createArrayBuilder;
-import static jakarta.json.Json.createObjectBuilder;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.hamcrest.Matchers.is;
 
 /**
@@ -63,15 +58,11 @@ public class AuthConfigurationApiEndToEndTest {
     @Test
     void queryAsset(ManagementEndToEndTestContext context) {
 
-        var query = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add("filterExpression", createArrayBuilder()).build();
-
         context.baseRequest()
                 .header("x-api-key", API_KEY)
                 .contentType(ContentType.JSON)
-                .body(query)
-                .post("/v3/assets/request")
+                .body(context.queryV2())
+                .post("/v4/assets/request")
                 .then()
                 .log().ifError()
                 .statusCode(200)
@@ -81,15 +72,11 @@ public class AuthConfigurationApiEndToEndTest {
     @Test
     void queryAsset_notAuthorized(ManagementEndToEndTestContext context) {
 
-        var query = createObjectBuilder()
-                .add(CONTEXT, createObjectBuilder().add(EDC_PREFIX, EDC_NAMESPACE))
-                .add("filterExpression", createArrayBuilder()).build();
-
         context.baseRequest()
                 .header("x-api-key", "wrong-key")
                 .contentType(ContentType.JSON)
-                .body(query)
-                .post("/v3/assets/request")
+                .body(context.queryV2())
+                .post("/v4/assets/request")
                 .then()
                 .log().ifError()
                 .statusCode(401);

@@ -40,7 +40,6 @@ jobs:
       - name: copy contexts into public folder
         run: |
           mkdir -p public/context
-          cp core/common/lib/jsonld-lib/src/main/resources/document/management-context-v1.jsonld public/context/
           cp core/common/lib/jsonld-lib/src/main/resources/document/management-context-v2.jsonld public/context/
           cp core/common/lib/jsonld-lib/src/main/resources/document/dspace-edc-context-v1.jsonld public/context/
           mkdir -p public/schema

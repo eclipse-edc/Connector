@@ -26,7 +26,6 @@ import static java.lang.String.format;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_CONTEXT_2025_1;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_ODRL_PROFILE_2025_1;
 import static org.eclipse.edc.jsonld.spi.Namespaces.EDC_DSPACE_CONTEXT;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 
 /**
@@ -41,15 +40,14 @@ public class CachedDocumentRegistry {
      */
     public static Stream<Result<JsonLdContext>> getDocuments() {
         return Map.of(
-                "odrl.jsonld", "http://www.w3.org/ns/odrl.jsonld",
-                "management-context-v1.jsonld", EDC_CONNECTOR_MANAGEMENT_CONTEXT,
-                "management-context-v2.jsonld", EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2,
-                "dspace-edc-context-v1.jsonld", EDC_DSPACE_CONTEXT,
-                "dspace-v2025-1.jsonld", DSPACE_CONTEXT_2025_1,
-                "dspace-v2025-1-odrl.jsonld", DSPACE_ODRL_PROFILE_2025_1
-        ).entrySet().stream()
+                        "odrl.jsonld", "http://www.w3.org/ns/odrl.jsonld",
+                        "management-context-v2.jsonld", EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2,
+                        "dspace-edc-context-v1.jsonld", EDC_DSPACE_CONTEXT,
+                        "dspace-v2025-1.jsonld", DSPACE_CONTEXT_2025_1,
+                        "dspace-v2025-1-odrl.jsonld", DSPACE_ODRL_PROFILE_2025_1
+                ).entrySet().stream()
                 .map(entry -> getResourceUri("document/" + entry.getKey())
-                .map(uri -> new JsonLdContext(uri, entry.getValue())));
+                        .map(uri -> new JsonLdContext(uri, entry.getValue())));
     }
 
     static Result<URI> getResourceUri(String name) {

@@ -16,7 +16,7 @@ package org.eclipse.edc.catalog.api.query;
 
 import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
-import org.eclipse.edc.catalog.api.query.v3.CatalogsApiV3Controller;
+import org.eclipse.edc.catalog.api.query.v4.CatalogsApiV4Controller;
 import org.eclipse.edc.catalog.spi.QueryService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
 import org.eclipse.edc.json.JacksonTypeManager;
@@ -54,7 +54,7 @@ import static org.mockito.Mockito.when;
 @ApiTest
 class FederatedCatalogApiControllerTest extends RestControllerTestBase {
 
-    private static final String PATH = "/v3/catalogs/request";
+    private static final String PATH = "/v4/catalogs/request";
     private final QueryService queryService = mock();
 
     @Test
@@ -159,7 +159,7 @@ class FederatedCatalogApiControllerTest extends RestControllerTestBase {
         typeTransformerRegistry.register(new JsonObjectFromDistributionTransformer(factory));
         typeTransformerRegistry.register(new JsonObjectFromDataServiceTransformer(factory));
         typeTransformerRegistry.register(new JsonObjectToQuerySpecTransformer());
-        return new CatalogsApiV3Controller(queryService, typeTransformerRegistry);
+        return new CatalogsApiV4Controller(queryService, typeTransformerRegistry);
     }
 
     private RequestSpecification baseRequest() {

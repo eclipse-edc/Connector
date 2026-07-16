@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.transferprocess;
 
-import org.eclipse.edc.connector.controlplane.api.management.transferprocess.v3.TransferProcessApiV3Controller;
+import org.eclipse.edc.connector.controlplane.api.management.transferprocess.v4.TransferProcessApiV4Controller;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -60,6 +60,6 @@ class TransferProcessApiExtensionTest {
     void initialize_shouldRegisterControllers(ServiceExtensionContext context, TransferProcessApiExtension extension) {
         extension.initialize(context);
 
-        verify(webService).registerResource(any(), isA(TransferProcessApiV3Controller.class));
+        verify(webService).registerResource(any(), isA(TransferProcessApiV4Controller.class));
     }
 }

@@ -15,7 +15,7 @@
 package org.eclipse.edc.connector.controlplane.api.management.policy;
 
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
-import org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3Controller;
+import org.eclipse.edc.connector.controlplane.api.management.policy.v4.PolicyDefinitionApiV4Controller;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -61,6 +61,6 @@ class PolicyDefinitionApiExtensionTest {
     void initialize_shouldRegisterControllers(ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(webService).registerResource(any(), isA(PolicyDefinitionApiV3Controller.class));
+        verify(webService).registerResource(any(), isA(PolicyDefinitionApiV4Controller.class));
     }
 }

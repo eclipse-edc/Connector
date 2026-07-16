@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.contractnegotiatio
 
 import jakarta.json.Json;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v3.ContractNegotiationApiV3Controller;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v4.ContractNegotiationApiV4Controller;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.validation.ContractRequestValidator;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.validation.TerminateNegotiationValidator;
@@ -43,7 +42,6 @@ import org.eclipse.edc.web.spi.configuration.ApiContext;
 import java.util.Map;
 
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_V_4;
-import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_TYPE;
@@ -99,10 +97,6 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
         validatorRegistry.register(CONTRACT_REQUEST_TYPE, ContractRequestValidator.instance());
         validatorRegistry.register(TERMINATE_NEGOTIATION_TYPE, TerminateNegotiationValidator.instance());
         validatorRegistry.register(V_4_PREFIX + TERMINATE_NEGOTIATION_TYPE, TerminateNegotiationValidator.instanceV4());
-
-        webService.registerResource(ApiContext.MANAGEMENT, new ContractNegotiationApiV3Controller(service, managementApiTransformerRegistry, monitor, validatorRegistry, participantContextSupplier));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractNegotiationApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
-
 
         webService.registerResource(ApiContext.MANAGEMENT, new ContractNegotiationApiV4Controller(service, managementApiTransformerRegistry, monitor, validatorRegistry, participantContextSupplier));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractNegotiationApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));

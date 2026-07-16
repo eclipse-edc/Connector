@@ -71,8 +71,7 @@ public class VersionApiEndToEndTest {
                 });
 
         assertThat(result).containsKeys("management", "version", "observability");
-        assertThat(result.get("management")).hasSize(3)
-                .anyMatch(vr -> vr.version().startsWith("3.") && vr.maturity().equals("deprecated"))
+        assertThat(result.get("management")).hasSize(2)
                 .anyMatch(vr -> vr.version().startsWith("4.") && vr.maturity().equals("stable"))
                 .anyMatch(vr -> vr.version().startsWith("5.") && vr.maturity().equals("beta"));
         assertThat(result.get("version")).hasSize(1);

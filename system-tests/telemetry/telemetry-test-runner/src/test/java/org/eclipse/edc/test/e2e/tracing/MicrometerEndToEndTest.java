@@ -24,8 +24,10 @@ import java.util.stream.Stream;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE;
+import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE_TERM;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 
 @EndToEndTest
@@ -37,17 +39,18 @@ public class MicrometerEndToEndTest extends BaseTelemetryEndToEndTest {
     void testMicrometerMetrics() {
         // will request the catalog to itself, just to trigger okhttp metrics
         var requestBody = Json.createObjectBuilder()
-                .add(TYPE, CATALOG_REQUEST_TYPE)
-                .add(EDC_NAMESPACE + "counterPartyId", "counterPartyId")
-                .add(EDC_NAMESPACE + "counterPartyAddress", "http://localhost:" + PROTOCOL_PORT + "/protocol/2025-1")
-                .add(EDC_NAMESPACE + "protocol", "dataspace-protocol-http:2025-1")
+                .add(CONTEXT, Json.createObjectBuilder().add(VOCAB, EDC_NAMESPACE))
+                .add(TYPE, CATALOG_REQUEST_TYPE_TERM)
+                .add("counterPartyId", "counterPartyId")
+                .add("counterPartyAddress", "http://localhost:" + PROTOCOL_PORT + "/protocol/2025-1")
+                .add("protocol", "dataspace-protocol-http:2025-1")
                 .build();
 
         given()
                 .port(MANAGEMENT_PORT)
                 .contentType(JSON)
                 .body(requestBody)
-                .post("/management/v3/catalog/request")
+                .post("/management/v4/catalog/request")
                 .then()
                 .statusCode(200);
 

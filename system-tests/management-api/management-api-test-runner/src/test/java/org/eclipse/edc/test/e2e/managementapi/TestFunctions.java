@@ -22,7 +22,6 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.Contr
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry;
 import org.eclipse.edc.policy.cel.model.CelExpressionTestResponse;
 import org.eclipse.edc.policy.engine.spi.PolicyValidatorRule;
 import org.eclipse.edc.policy.engine.spi.plan.PolicyEvaluationPlan;
@@ -44,7 +43,6 @@ import org.eclipse.edc.policy.model.PolicyType;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
-import java.time.Clock;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -514,18 +512,6 @@ public class TestFunctions {
                 .callbackAddresses(List.of(CallbackAddress.Builder.newInstance().uri("http://any").events(emptySet()).build()))
                 .privateProperties(Map.of("fooPrivate", "bar"))
                 .errorDetail("an error")
-                .build();
-    }
-
-    public static EndpointDataReferenceEntry createEdrEntry() {
-        return EndpointDataReferenceEntry.Builder.newInstance()
-                .id("transferProcessId")
-                .transferProcessId("transferProcessId")
-                .agreementId("agreementId")
-                .assetId("assetId")
-                .providerId("providerId")
-                .contractNegotiationId("contractNegotiationId")
-                .createdAt(Clock.systemUTC().millis())
                 .build();
     }
 
