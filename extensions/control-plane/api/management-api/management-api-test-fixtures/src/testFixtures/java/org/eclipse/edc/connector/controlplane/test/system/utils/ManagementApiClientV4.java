@@ -272,7 +272,7 @@ public class ManagementApiClientV4 {
                 .contentType(JSON)
                 .body(requestBody)
                 .when()
-                .post("/v3/contractnegotiations")
+                .post("/v4/contractnegotiations")
                 .then()
                 .log().ifError()
                 .statusCode(200)

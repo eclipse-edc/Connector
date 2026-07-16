@@ -15,8 +15,6 @@
 package org.eclipse.edc.connector.api.management.configuration;
 
 import jakarta.json.Json;
-import jakarta.ws.rs.container.ContainerRequestContext;
-import jakarta.ws.rs.container.ContainerRequestFilter;
 import org.eclipse.edc.connector.controlplane.transform.edc.contractagreement.from.JsonObjectFromContractAgreementTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.from.JsonObjectFromAssetTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.from.JsonObjectFromDataplaneMetadataTransformer;
@@ -33,7 +31,6 @@ import org.eclipse.edc.runtime.metamodel.annotation.Provides;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.EdcException;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
 import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
@@ -63,16 +60,9 @@ import static java.lang.String.format;
 import static java.util.Optional.ofNullable;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_CONTEXT;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_V_4;
-import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V5;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PREFIX;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_SCHEMA;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 
 /**
@@ -86,12 +76,9 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
     static final int DEFAULT_MANAGEMENT_PORT = 8181;
     static final String DEFAULT_MANAGEMENT_PATH = "/api/management";
     private static final String API_VERSION_JSON_FILE = "management-api-version.json";
-    private static final boolean DEFAULT_MANAGEMENT_API_ENABLE_CONTEXT = false;
 
     @Setting(description = "Configures endpoint for reaching the Management API, in the format \"<hostname:management.port/management.path>\"", key = "edc.management.endpoint", required = false)
     private String managementApiEndpoint;
-    @Setting(description = "If set enable the usage of management api JSON-LD context.", defaultValue = "" + DEFAULT_MANAGEMENT_API_ENABLE_CONTEXT, key = "edc.management.context.enabled")
-    private boolean managementApiContextEnabled;
     @Configuration
     private ManagementApiConfiguration apiConfiguration;
 
@@ -126,20 +113,10 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
 
         context.registerService(ManagementApiUrl.class, managementApiUrl(context, portMapping));
 
-
-        if (managementApiContextEnabled) {
-            jsonLd.registerContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT, MANAGEMENT_SCOPE);
-        } else {
-            jsonLd.registerNamespace(VOCAB, EDC_NAMESPACE, MANAGEMENT_SCOPE);
-            jsonLd.registerNamespace(EDC_PREFIX, EDC_NAMESPACE, MANAGEMENT_SCOPE);
-            jsonLd.registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, MANAGEMENT_SCOPE);
-        }
-
         jsonLd.registerContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, MANAGEMENT_SCOPE_V4);
         jsonLd.registerContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, MANAGEMENT_SCOPE_V5);
 
         webService.registerResource(ApiContext.MANAGEMENT, new ObjectMapperProvider(typeManager, JSON_LD));
-        webService.registerResource(ApiContext.MANAGEMENT, new DeprecatedVersionLog(context.getMonitor()));
 
         var managementApiTransformerRegistry = transformerRegistry.forContext(MANAGEMENT_API_CONTEXT);
 
@@ -194,21 +171,5 @@ public class ManagementApiConfigurationExtension implements ServiceExtension {
             String path
     ) {
 
-    }
-
-    @Deprecated(since = "management-api:v3")
-    private static class DeprecatedVersionLog implements ContainerRequestFilter {
-        private final Monitor monitor;
-
-        DeprecatedVersionLog(Monitor monitor) {
-            this.monitor = monitor;
-        }
-
-        @Override
-        public void filter(ContainerRequestContext requestContext) {
-            if (requestContext.getUriInfo().getPath().startsWith("v3/")) {
-                monitor.warning("Management API V3 has been deprecated, please switch to V4 as V3 will be removed in the upcoming versions");
-            }
-        }
     }
 }

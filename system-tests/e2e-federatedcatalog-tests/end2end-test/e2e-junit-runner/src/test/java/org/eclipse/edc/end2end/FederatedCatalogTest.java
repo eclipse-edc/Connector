@@ -37,7 +37,6 @@ import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToDatasetTran
 import org.eclipse.edc.protocol.dsp.catalog.transform.to.JsonObjectToDistributionTransformer;
 import org.eclipse.edc.protocol.dsp.catalog.transform.v2025.to.JsonObjectToCatalogTransformer;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -200,8 +199,9 @@ class FederatedCatalogTest {
                 .atMost(TIMEOUT)
                 .untilAsserted(() -> {
                     var queryWithExistingAssetId = Json.createObjectBuilder()
+                            .add(CONTEXT, EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2)
                             .add(TYPE, EDC_QUERY_SPEC_TYPE_TERM)
-                            .add(QuerySpec.EDC_QUERY_SPEC_FILTER_EXPRESSION, TestFunctions.createCriterionBuilder("datasets.id", "=", id))
+                            .add("filterExpression", TestFunctions.createCriterionBuilder("datasets.id", "=", id))
                             .build();
                     var catalogs = apiClient.deserializeCatalogs(apiClient.queryCatalogs(queryWithExistingAssetId));
 

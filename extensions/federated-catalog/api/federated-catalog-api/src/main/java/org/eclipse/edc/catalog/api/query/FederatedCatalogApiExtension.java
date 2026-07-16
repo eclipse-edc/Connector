@@ -16,7 +16,6 @@ package org.eclipse.edc.catalog.api.query;
 
 import jakarta.json.Json;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
-import org.eclipse.edc.catalog.api.query.v3.CatalogsApiV3Controller;
 import org.eclipse.edc.catalog.api.query.v4.CatalogsApiV4Controller;
 import org.eclipse.edc.catalog.spi.QueryService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -37,8 +36,7 @@ import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import static java.util.Collections.emptyMap;
-import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
-import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_API_V_4;
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_CONTEXT_2025_1;
 import static org.eclipse.edc.jsonld.spi.Namespaces.EDC_DSPACE_CONTEXT;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
@@ -48,6 +46,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 public class FederatedCatalogApiExtension implements ServiceExtension {
 
     public static final String NAME = "Management API: Federated Catalog";
+
+    public static final String FEDERATED_CATALOG_SCOPE_V4 = "FEDERATED_CATALOG_API" + ":" + MANAGEMENT_API_V_4;
 
     @Inject
     private WebService webService;
@@ -79,13 +79,10 @@ public class FederatedCatalogApiExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectFromDistributionTransformer(jsonFactory));
         managementApiTransformerRegistry.register(new JsonObjectFromDataServiceTransformer(jsonFactory));
 
-        jsonLd.registerContext(DSPACE_CONTEXT_2025_1, MANAGEMENT_SCOPE);
-        jsonLd.registerContext(EDC_DSPACE_CONTEXT, MANAGEMENT_SCOPE);
-
-        webService.registerResource(ApiContext.MANAGEMENT, new CatalogsApiV3Controller(queryService, managementApiTransformerRegistry));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogsApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
+        jsonLd.registerContext(DSPACE_CONTEXT_2025_1, FEDERATED_CATALOG_SCOPE_V4);
+        jsonLd.registerContext(EDC_DSPACE_CONTEXT, FEDERATED_CATALOG_SCOPE_V4);
 
         webService.registerResource(ApiContext.MANAGEMENT, new CatalogsApiV4Controller(queryService, managementApiTransformerRegistry));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogsApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogsApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, FEDERATED_CATALOG_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
     }
 }

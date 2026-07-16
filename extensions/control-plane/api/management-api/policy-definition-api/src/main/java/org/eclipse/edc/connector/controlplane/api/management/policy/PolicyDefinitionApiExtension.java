@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.policy;
 
 import jakarta.json.Json;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
-import org.eclipse.edc.connector.controlplane.api.management.policy.v3.PolicyDefinitionApiV3Controller;
 import org.eclipse.edc.connector.controlplane.api.management.policy.v4.PolicyDefinitionApiV4Controller;
 import org.eclipse.edc.connector.controlplane.api.management.policy.validation.PolicyDefinitionValidator;
 import org.eclipse.edc.connector.controlplane.api.management.policy.validation.PolicyEvaluationPlanRequestValidator;
@@ -41,7 +40,6 @@ import org.eclipse.edc.web.spi.configuration.ApiContext;
 
 import java.util.Map;
 
-import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
 import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyEvaluationPlanRequest.EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE;
@@ -93,9 +91,6 @@ public class PolicyDefinitionApiExtension implements ServiceExtension {
         validatorRegistry.register(EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE, PolicyEvaluationPlanRequestValidator.instance());
 
         var monitor = context.getMonitor();
-        webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV3Controller(monitor, managementApiTransformerRegistry, service, validatorRegistry, participantContextSupplier));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, PolicyDefinitionApiV3Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE));
-
         webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV4Controller(monitor, managementApiTransformerRegistry, service, validatorRegistry, participantContextSupplier));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, PolicyDefinitionApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
     }

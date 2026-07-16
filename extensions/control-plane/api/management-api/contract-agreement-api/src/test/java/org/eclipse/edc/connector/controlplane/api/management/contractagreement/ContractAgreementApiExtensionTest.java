@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.contractagreement;
 
-import org.eclipse.edc.connector.controlplane.api.management.contractagreement.v3.ContractAgreementApiV3Controller;
+import org.eclipse.edc.connector.controlplane.api.management.contractagreement.v4.ContractAgreementApiV4Controller;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -47,6 +47,6 @@ class ContractAgreementApiExtensionTest {
     void initiate_shouldRegisterControllers(ContractAgreementApiExtension extension, ServiceExtensionContext context) {
         extension.initialize(context);
 
-        verify(webService).registerResource(any(), isA(ContractAgreementApiV3Controller.class));
+        verify(webService).registerResource(any(), isA(ContractAgreementApiV4Controller.class));
     }
 }

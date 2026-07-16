@@ -58,7 +58,6 @@ public class DpsTckTest {
                     .build())
             .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
                     "edc.participant.id", "participantContextId",
-                    "edc.management.context.enabled", "true",
                     "edc.component.id", "DPS-tck-test",
                     "edc.tck.dataplane.url", "http://localhost:" + TCK_PORT
             )))

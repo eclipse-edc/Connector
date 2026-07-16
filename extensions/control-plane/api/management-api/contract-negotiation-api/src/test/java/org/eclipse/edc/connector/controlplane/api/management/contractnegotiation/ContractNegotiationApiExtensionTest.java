@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.contractnegotiation;
 
-import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v3.ContractNegotiationApiV3Controller;
+import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v4.ContractNegotiationApiV4Controller;
 import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.from.JsonObjectFromContractNegotiationTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.from.JsonObjectFromNegotiationStateTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.contractnegotiation.to.JsonObjectToContractOfferTransformer;
@@ -64,7 +64,7 @@ class ContractNegotiationApiExtensionTest {
     void initiate_shouldRegisterControllers(ServiceExtensionContext context, ContractNegotiationApiExtension extension) {
         extension.initialize(context);
 
-        verify(webService).registerResource(any(), isA(ContractNegotiationApiV3Controller.class));
+        verify(webService).registerResource(any(), isA(ContractNegotiationApiV4Controller.class));
     }
 
     @Test

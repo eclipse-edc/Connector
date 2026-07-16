@@ -32,22 +32,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.Map;
-
-import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE;
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V4;
+import static org.eclipse.edc.api.management.ManagementApi.MANAGEMENT_SCOPE_V5;
 import static org.eclipse.edc.connector.api.management.configuration.ManagementApiConfigurationExtension.DEFAULT_MANAGEMENT_PATH;
 import static org.eclipse.edc.connector.api.management.configuration.ManagementApiConfigurationExtension.DEFAULT_MANAGEMENT_PORT;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PREFIX;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_SCHEMA;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -81,20 +74,8 @@ class ManagementApiConfigurationExtensionTest {
         verify(portMappingRegistry).register(new PortMapping(ApiContext.MANAGEMENT, DEFAULT_MANAGEMENT_PORT, DEFAULT_MANAGEMENT_PATH));
         verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(ObjectMapperProvider.class));
 
-        verify(jsonLd).registerNamespace(VOCAB, EDC_NAMESPACE, MANAGEMENT_SCOPE);
-        verify(jsonLd).registerNamespace(EDC_PREFIX, EDC_NAMESPACE, MANAGEMENT_SCOPE);
-        verify(jsonLd).registerNamespace(ODRL_PREFIX, ODRL_SCHEMA, MANAGEMENT_SCOPE);
-    }
-
-    @Test
-    void initialize_withContextEnabled(ObjectFactory factory, TestExtensionContext context) {
-        context.setConfig(ConfigFactory.fromMap(Map.of("edc.management.context.enabled", "true")));
-
-
-        factory.constructInstance(ManagementApiConfigurationExtension.class).initialize(context);
-
-        verify(jsonLd, times(0)).registerNamespace(any(), any(), any());
-        verify(jsonLd).registerContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT, MANAGEMENT_SCOPE);
+        verify(jsonLd).registerContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, MANAGEMENT_SCOPE_V4);
+        verify(jsonLd).registerContext(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2, MANAGEMENT_SCOPE_V5);
     }
 
 }

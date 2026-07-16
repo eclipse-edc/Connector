@@ -16,7 +16,7 @@ package org.eclipse.edc.connector.dataplane.selector;
 
 import org.eclipse.edc.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.edc.boot.system.injection.ObjectFactory;
-import org.eclipse.edc.connector.dataplane.selector.api.v3.DataplaneSelectorApiV3Controller;
+import org.eclipse.edc.connector.dataplane.selector.api.v4.DataplaneSelectorApiV4Controller;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.spi.monitor.Monitor;
@@ -77,7 +77,7 @@ class DataPlaneSelectorApiExtensionTest {
 
         extension.initialize(contextWithConfig(config));
 
-        verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(DataplaneSelectorApiV3Controller.class));
+        verify(webService).registerResource(eq(ApiContext.MANAGEMENT), isA(DataplaneSelectorApiV4Controller.class));
     }
 
     @NotNull
