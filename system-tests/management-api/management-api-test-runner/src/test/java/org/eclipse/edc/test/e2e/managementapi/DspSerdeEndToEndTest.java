@@ -44,8 +44,6 @@ import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.policy.model.Policy;
-import org.eclipse.edc.spi.system.configuration.Config;
-import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.spi.types.domain.message.ErrorMessage;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.Test;
@@ -57,7 +55,6 @@ import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -98,17 +95,7 @@ public class DspSerdeEndToEndTest {
             .name(Runtimes.ControlPlane.NAME)
             .modules(Runtimes.ControlPlane.MODULES)
             .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
-            .configurationProvider(DspSerdeEndToEndTest::config)
             .build();
-
-    private static Config config() {
-        return ConfigFactory.fromMap(new HashMap<>() {
-            {
-                put("edc.dsp.context.enabled", "true");
-                put("edc.dsp.management.enabled", "true");
-            }
-        });
-    }
 
 
     @ParameterizedTest
