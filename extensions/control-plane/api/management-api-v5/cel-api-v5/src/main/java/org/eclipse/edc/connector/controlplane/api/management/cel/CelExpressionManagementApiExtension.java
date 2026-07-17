@@ -75,7 +75,7 @@ public class CelExpressionManagementApiExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectToCelExpressionTestRequestTransformer());
 
         webService.registerResource(ApiContext.MANAGEMENT, new CelExpressionApiV5Controller(service, managementApiTransformerRegistry));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, CelExpressionApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, CelExpressionApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V5.version()));
 
     }
 }

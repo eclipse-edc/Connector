@@ -32,7 +32,7 @@ import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 public interface ParticipantContextConfigApiV5 {
 
     @Operation(description = "Set ParticipantContext config.",
-            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.PARTICIPANT_CONTEXT_CONFIG), mediaType = "application/json")),
+            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.PARTICIPANT_CONTEXT_CONFIG), mediaType = "application/json")),
             responses = {
                     @ApiResponse(responseCode = "204", description = "The Config was set successfully"),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
@@ -47,7 +47,7 @@ public interface ParticipantContextConfigApiV5 {
 
     @Operation(description = "Merges the provided entries into the existing ParticipantContext config. Entries present in the " +
             "request are added or overwritten, existing entries are preserved.",
-            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.PARTICIPANT_CONTEXT_CONFIG), mediaType = "application/json")),
+            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.PARTICIPANT_CONTEXT_CONFIG), mediaType = "application/json")),
             responses = {
                     @ApiResponse(responseCode = "204", description = "The Config was merged successfully"),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
@@ -63,7 +63,7 @@ public interface ParticipantContextConfigApiV5 {
     @Operation(description = "Gets ParticipantContexts config by ID.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The config of the ParticipantContext",
-                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.PARTICIPANT_CONTEXT_CONFIG))),
+                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.PARTICIPANT_CONTEXT_CONFIG))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",

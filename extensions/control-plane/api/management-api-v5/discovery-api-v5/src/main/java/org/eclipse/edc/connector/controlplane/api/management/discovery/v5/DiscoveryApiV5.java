@@ -37,10 +37,10 @@ public interface DiscoveryApiV5 {
             "`counterPartyAddress` or by resolving the `DataService` entry of the DID document for " +
             "`counterPartyId`) and returns the intersection with the profiles associated to the participant " +
             "context.",
-            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.DISCOVERY_REQUEST))),
+            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.DISCOVERY_REQUEST))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "The profiles that match the counter party.",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.DISCOVERY_RESPONSE)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V5.DISCOVERY_RESPONSE)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, the counter party could not be reached, or no DID service endpoint was found.",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",

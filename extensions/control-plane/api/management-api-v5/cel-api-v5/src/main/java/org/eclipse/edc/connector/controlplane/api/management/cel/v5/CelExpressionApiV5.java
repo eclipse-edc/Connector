@@ -32,7 +32,7 @@ import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 public interface CelExpressionApiV5 {
 
     @Operation(description = "Create a Cel Expression.",
-            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.CEL_EXPRESSION), mediaType = "application/json")),
+            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.CEL_EXPRESSION), mediaType = "application/json")),
             responses = {
                     @ApiResponse(responseCode = "200", description = "The Cel Expression was created successfully"),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
@@ -47,10 +47,10 @@ public interface CelExpressionApiV5 {
 
 
     @Operation(description = "Test a Cel Expression.",
-            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.CEL_EXPRESSION_TEST_REQUEST), mediaType = "application/json")),
+            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.CEL_EXPRESSION_TEST_REQUEST), mediaType = "application/json")),
             responses = {
                     @ApiResponse(responseCode = "200", description = "The Cel Expression was tested successfully",
-                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.CEL_EXPRESSION_TEST_RESPONSE))),
+                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.CEL_EXPRESSION_TEST_RESPONSE))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",
@@ -62,7 +62,7 @@ public interface CelExpressionApiV5 {
     @Operation(description = "Gets an Expression by ID.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The Cel Expression.",
-                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.CEL_EXPRESSION))),
+                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.CEL_EXPRESSION))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",
@@ -76,7 +76,7 @@ public interface CelExpressionApiV5 {
     @Operation(description = "Update an Expression.",
             responses = {
                     @ApiResponse(responseCode = "204", description = "The Cel Expression was updated successfully.",
-                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.CEL_EXPRESSION))),
+                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.CEL_EXPRESSION))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",
@@ -91,7 +91,7 @@ public interface CelExpressionApiV5 {
             requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.QUERY_SPEC))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "The cel expressions matching the query",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.CEL_EXPRESSION)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V5.CEL_EXPRESSION)))),
                     @ApiResponse(responseCode = "400", description = "Request was malformed",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR))))}
     )
@@ -100,7 +100,7 @@ public interface CelExpressionApiV5 {
     @Operation(description = "Delete an Expression by ID.",
             responses = {
                     @ApiResponse(responseCode = "204", description = "The Cel Expression was deleted.",
-                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.CEL_EXPRESSION))),
+                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.CEL_EXPRESSION))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",

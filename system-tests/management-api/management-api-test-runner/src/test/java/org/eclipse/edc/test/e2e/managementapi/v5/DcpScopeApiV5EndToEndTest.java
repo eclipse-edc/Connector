@@ -151,7 +151,7 @@ public class DcpScopeApiV5EndToEndTest {
                     .post(DCP_SCOPES_PATH)
                     .then()
                     .statusCode(400)
-                    .body("[0].message", containsString("value"));
+                    .body("[0].message", containsString("required property 'value' not found"));
         }
 
         @Test

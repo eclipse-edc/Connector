@@ -34,7 +34,7 @@ public interface DataspaceProfileApiV5 {
             "the running connector's dataspace profile context registry.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The dataspace profile was created successfully",
-                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.DATASPACE_PROFILE_CONTEXT))),
+                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.DATASPACE_PROFILE_CONTEXT))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "409", description = "A dataspace profile with the given name already exists",
@@ -46,7 +46,7 @@ public interface DataspaceProfileApiV5 {
     @Operation(description = "Queries the dataspace profiles.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The dataspace profiles matching the query",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.DATASPACE_PROFILE_CONTEXT)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V5.DATASPACE_PROFILE_CONTEXT)))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json"))
             }
@@ -56,7 +56,7 @@ public interface DataspaceProfileApiV5 {
     @Operation(description = "Gets a dataspace profile by its name.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The dataspace profile",
-                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.DATASPACE_PROFILE_CONTEXT))),
+                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.DATASPACE_PROFILE_CONTEXT))),
                     @ApiResponse(responseCode = "404", description = "A dataspace profile with the given name does not exist",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json"))
             }

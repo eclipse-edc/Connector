@@ -82,6 +82,6 @@ public class DiscoveryApiV5Extension implements ServiceExtension {
 
         webService.registerResource(ApiContext.MANAGEMENT, new DiscoveryApiV5Controller(authorizationService, discoveryService, managementApiTransformerRegistry, monitor));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, DiscoveryApiV5Controller.class,
-                new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+                new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V5.version()));
     }
 }

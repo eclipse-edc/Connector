@@ -80,7 +80,7 @@ public class ParticipantContextManagementApiExtension implements ServiceExtensio
         managementApiTransformerRegistry.register(new JsonObjectToParticipantContextTransformer());
 
         webService.registerResource(ApiContext.MANAGEMENT, new ParticipantContextApiV5Controller(participantContextService, authorizationService, managementApiTransformerRegistry, monitor));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, ParticipantContextApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, ParticipantContextApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V5.version()));
 
         authorizationService.addLookupFunction(ParticipantContext.class, this::findParticipant);
     }

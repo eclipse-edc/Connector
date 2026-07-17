@@ -84,7 +84,7 @@ public class DataspaceProfileContextManagementApiExtension implements ServiceExt
         managementApiTransformerRegistry.register(new JsonObjectFromDataspaceProfileTransformer(factory));
         managementApiTransformerRegistry.register(new JsonObjectToDataspaceProfileTransformer());
 
-        var jsonLdInterceptor = new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version());
+        var jsonLdInterceptor = new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V5.version());
 
         webService.registerResource(ApiContext.MANAGEMENT, new DataspaceProfileContextApiV5Controller(authorizationService, profileResolver, managementApiTransformerRegistry, monitor));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, DataspaceProfileContextApiV5Controller.class, jsonLdInterceptor);
