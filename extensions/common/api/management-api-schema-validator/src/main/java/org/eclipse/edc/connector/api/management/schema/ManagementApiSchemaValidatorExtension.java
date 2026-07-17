@@ -55,7 +55,6 @@ import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.TRANSFER_PROCESS_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_TYPE_TERM;
-import static org.eclipse.edc.edr.spi.types.EndpointDataReferenceEntry.EDR_ENTRY_TYPE_TERM;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration.PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantContext.PARTICIPANT_CONTEXT_TYPE_TERM;
@@ -103,7 +102,6 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
             put(EDC_POLICY_DEFINITION_TYPE_TERM, V4.POLICY_DEFINITION);
             put(CONTRACT_DEFINITION_TYPE_TERM, V4.CONTRACT_DEFINITION);
             put(DATAPLANE_INSTANCE_TYPE_TERM, V4.DATAPLANE_INSTANCE);
-            put(EDR_ENTRY_TYPE_TERM, V4.EDR_ENTRY);
             put("PolicyEvaluationPlanRequest", V4.POLICY_EVALUATION_REQUEST);
             put(EDC_POLICY_EVALUATION_PLAN_TYPE_TERM, V4.POLICY_EVALUATION_PLAN);
             put("PolicyValidationResult", V4.POLICY_VALIDATION_RESULT);

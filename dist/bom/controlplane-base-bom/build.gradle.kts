@@ -23,7 +23,6 @@ dependencies {
     // core dependencies
     api(project(":core:common:boot"))
     api(project(":core:common:connector-core"))
-    api(project(":core:common:edr-store-core"))
     api(project(":core:common:runtime-core"))
     api(project(":core:common:token-core"))
     api(project(":core:common::participant-context-connector-core"))
@@ -53,9 +52,7 @@ dependencies {
     api(project(":extensions:control-plane:api:management-api"))
     api(project(":extensions:control-plane:callback:callback-event-dispatcher"))
     api(project(":extensions:control-plane:callback:callback-static-endpoint"))
-    api(project(":extensions:control-plane:edr:edr-store-receiver"))
     api(project(":extensions:federated-catalog:api:federated-catalog-api"))
-
 
 
     // libs

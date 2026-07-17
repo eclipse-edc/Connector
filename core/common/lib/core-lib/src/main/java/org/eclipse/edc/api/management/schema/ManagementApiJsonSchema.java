@@ -29,7 +29,6 @@ public interface ManagementApiJsonSchema {
         String POLICY_DEFINITION = EDC_MGMT_V4_SCHEMA_PREFIX + "/policy-definition-schema.json";
         String CONTRACT_DEFINITION = EDC_MGMT_V4_SCHEMA_PREFIX + "/contract-definition-schema.json";
         String DATAPLANE_INSTANCE = EDC_MGMT_V4_SCHEMA_PREFIX + "/dataplane-instance-schema.json";
-        String EDR_ENTRY = EDC_MGMT_V4_SCHEMA_PREFIX + "/edr-entry-schema.json";
         String POLICY_EVALUATION_REQUEST = EDC_MGMT_V4_SCHEMA_PREFIX + "/policy-evaluation-plan-request-schema.json";
         String POLICY_EVALUATION_PLAN = EDC_MGMT_V4_SCHEMA_PREFIX + "/policy-evaluation-plan-schema.json";
         String POLICY_VALIDATION_RESULT = EDC_MGMT_V4_SCHEMA_PREFIX + "/policy-validation-result-schema.json";
