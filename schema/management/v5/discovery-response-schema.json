@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "DiscoveryResponseSchema",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "#/definitions/DiscoveryResponse"
+    }
+  ],
+  "$id": "https://w3id.org/edc/connector/management/schema/v4/discovery-response-schema.json",
+  "definitions": {
+    "DiscoveryResponse": {
+      "type": "object",
+      "properties": {
+        "@context": {
+          "$ref": "https://w3id.org/edc/connector/management/schema/v4/context-schema.json"
+        },
+        "@type": {
+          "type": "string",
+          "const": "DiscoveryResponse"
+        },
+        "profile": {
+          "type": "string",
+          "description": "The local dataspace profile id that matches a protocol version advertised by the counter party."
+        },
+        "version": {
+          "type": "string",
+          "description": "The DSP protocol version shared by the local profile and the counter party entry."
+        },
+        "counterParty": {
+          "$ref": "#/definitions/CounterParty"
+        },
+        "binding": {
+          "type": "string",
+          "description": "The protocol binding for this match (copied from the counter party version entry)."
+        }
+      },
+      "required": [
+        "@type",
+        "profile",
+        "version",
+        "counterParty",
+        "binding"
+      ]
+    },
+    "CounterParty": {
+      "type": "object",
+      "description": "Counter party coordinates for a matched protocol version.",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "The path under the counter party's base URL where the matching DSP version is exposed, as returned in the well-known versions document."
+        },
+        "dataServiceEndpoint": {
+          "type": "string",
+          "description": "The counter party's data service endpoint URL."
+        }
+      },
+      "required": [
+        "path"
+      ]
+    }
+  }
+}
