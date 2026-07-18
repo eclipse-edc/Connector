@@ -46,16 +46,6 @@ public interface ManagementApiJsonSchema {
         String TRANSFER_PROCESS_STATE = EDC_MGMT_V4_SCHEMA_PREFIX + "/transfer-process-schema.json#/definitions/TransferState";
         String TERMINATE_TRANSFER = EDC_MGMT_V4_SCHEMA_PREFIX + "/transfer-terminate-schema.json";
         String SUSPEND_TRANSFER = EDC_MGMT_V4_SCHEMA_PREFIX + "/transfer-suspend-schema.json";
-        String PARTICIPANT_CONTEXT = EDC_MGMT_V4_SCHEMA_PREFIX + "/participant-context-schema.json";
-        String PARTICIPANT_CONTEXT_CONFIG = EDC_MGMT_V4_SCHEMA_PREFIX + "/participant-context-config-schema.json";
-        String CEL_EXPRESSION = EDC_MGMT_V4_SCHEMA_PREFIX + "/cel-expression-schema.json";
-        String CEL_EXPRESSION_TEST_REQUEST = EDC_MGMT_V4_SCHEMA_PREFIX + "/cel-expression-test-request-schema.json";
-        String CEL_EXPRESSION_TEST_RESPONSE = EDC_MGMT_V4_SCHEMA_PREFIX + "/cel-expression-test-response-schema.json";
-        String DATASPACE_PROFILE_CONTEXT = EDC_MGMT_V4_SCHEMA_PREFIX + "/dataspace-profile-schema.json";
-        String ASSOCIATE_DATASPACE_PROFILE_CONTEXT = EDC_MGMT_V4_SCHEMA_PREFIX + "/associate-dataspace-profile-schema.json";
-        String DISCOVERY_REQUEST = EDC_MGMT_V4_SCHEMA_PREFIX + "/discovery-request-schema.json";
-        String DISCOVERY_RESPONSE = EDC_MGMT_V4_SCHEMA_PREFIX + "/discovery-response-schema.json";
-        String DCP_SCOPE = EDC_MGMT_V4_SCHEMA_PREFIX + "/dcp-scope-schema.json";
 
 
         static String version() {
@@ -67,6 +57,16 @@ public interface ManagementApiJsonSchema {
 
         String ASSET = EDC_MGMT_V5_SCHEMA_PREFIX + "/asset-schema.json";
         String CATALOG_ASSET = EDC_MGMT_V5_SCHEMA_PREFIX + "/catalog-asset-schema.json";
+        String PARTICIPANT_CONTEXT = EDC_MGMT_V5_SCHEMA_PREFIX + "/participant-context-schema.json";
+        String PARTICIPANT_CONTEXT_CONFIG = EDC_MGMT_V5_SCHEMA_PREFIX + "/participant-context-config-schema.json";
+        String CEL_EXPRESSION = EDC_MGMT_V5_SCHEMA_PREFIX + "/cel-expression-schema.json";
+        String CEL_EXPRESSION_TEST_REQUEST = EDC_MGMT_V5_SCHEMA_PREFIX + "/cel-expression-test-request-schema.json";
+        String CEL_EXPRESSION_TEST_RESPONSE = EDC_MGMT_V5_SCHEMA_PREFIX + "/cel-expression-test-response-schema.json";
+        String DATASPACE_PROFILE_CONTEXT = EDC_MGMT_V5_SCHEMA_PREFIX + "/dataspace-profile-schema.json";
+        String ASSOCIATE_DATASPACE_PROFILE_CONTEXT = EDC_MGMT_V5_SCHEMA_PREFIX + "/associate-dataspace-profile-schema.json";
+        String DISCOVERY_REQUEST = EDC_MGMT_V5_SCHEMA_PREFIX + "/discovery-request-schema.json";
+        String DISCOVERY_RESPONSE = EDC_MGMT_V5_SCHEMA_PREFIX + "/discovery-response-schema.json";
+        String DCP_SCOPE = EDC_MGMT_V5_SCHEMA_PREFIX + "/dcp-scope-schema.json";
         String CACHED_DOCUMENT = EDC_MGMT_V5_SCHEMA_PREFIX + "/cached-document-schema.json";
         String SCHEMA_VALIDATOR_REGISTRATION = EDC_MGMT_V5_SCHEMA_PREFIX + "/schema-validator-registration-schema.json";
 

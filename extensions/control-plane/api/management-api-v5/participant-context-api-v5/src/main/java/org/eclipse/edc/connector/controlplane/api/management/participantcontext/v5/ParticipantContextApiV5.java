@@ -34,7 +34,7 @@ import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 public interface ParticipantContextApiV5 {
 
     @Operation(description = "Creates a new ParticipantContext object.",
-            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.PARTICIPANT_CONTEXT), mediaType = "application/json")),
+            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.PARTICIPANT_CONTEXT), mediaType = "application/json")),
             responses = {
                     @ApiResponse(responseCode = "201", description = "The ParticipantContext was created successfully, its API token is returned in the response body.",
                             content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.ID_RESPONSE))),
@@ -51,7 +51,7 @@ public interface ParticipantContextApiV5 {
     @Operation(description = "Gets ParticipantContexts by ID.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The list of ParticipantContexts.",
-                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.PARTICIPANT_CONTEXT))),
+                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.PARTICIPANT_CONTEXT))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",
@@ -63,7 +63,7 @@ public interface ParticipantContextApiV5 {
     JsonObject getParticipantV5(String participantContextId, SecurityContext securityContext);
 
     @Operation(description = "Updates a ParticipantContext object.",
-            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.PARTICIPANT_CONTEXT), mediaType = "application/json")),
+            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.PARTICIPANT_CONTEXT), mediaType = "application/json")),
             responses = {
                     @ApiResponse(responseCode = "204", description = "The ParticipantContext was updated successfully."),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
@@ -95,7 +95,7 @@ public interface ParticipantContextApiV5 {
                     @Parameter(name = "limit", description = "the page size. defaults to 50")},
             responses = {
                     @ApiResponse(responseCode = "200", description = "The list of ParticipantContexts.",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.PARTICIPANT_CONTEXT)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V5.PARTICIPANT_CONTEXT)))),
                     @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "400", description = "The query was malformed or was not understood by the server.",

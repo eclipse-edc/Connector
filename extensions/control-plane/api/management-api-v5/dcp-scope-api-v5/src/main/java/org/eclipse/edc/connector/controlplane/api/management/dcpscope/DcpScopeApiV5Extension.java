@@ -76,6 +76,6 @@ public class DcpScopeApiV5Extension implements ServiceExtension {
 
         webService.registerResource(ApiContext.MANAGEMENT, new DcpScopeApiV5Controller(scopeRegistry, managementApiTransformerRegistry, monitor));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, DcpScopeApiV5Controller.class,
-                new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+                new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V5.version()));
     }
 }

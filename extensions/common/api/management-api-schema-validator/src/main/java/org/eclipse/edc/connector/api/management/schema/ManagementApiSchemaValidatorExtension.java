@@ -120,14 +120,7 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
             put("TransferState", V4.TRANSFER_PROCESS_STATE);
             put("TerminateTransfer", V4.TERMINATE_TRANSFER);
             put("SuspendTransfer", V4.SUSPEND_TRANSFER);
-            put(PARTICIPANT_CONTEXT_TYPE_TERM, V4.PARTICIPANT_CONTEXT);
-            put(PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM, V4.PARTICIPANT_CONTEXT_CONFIG);
-            put(CEL_EXPRESSION_TYPE_TERM, V4.CEL_EXPRESSION);
-            put(CEL_EXPRESSION_TEST_REQUEST_TYPE_TERM, V4.CEL_EXPRESSION_TEST_REQUEST);
-            put("AssociateDataspaceProfile", V4.ASSOCIATE_DATASPACE_PROFILE_CONTEXT);
-            put("DiscoveryRequest", V4.DISCOVERY_REQUEST);
-            put("DcpScope", V4.DCP_SCOPE);
-            put("DataspaceProfile", V4.DATASPACE_PROFILE_CONTEXT);
+
         }
     };
 
@@ -135,6 +128,14 @@ public class ManagementApiSchemaValidatorExtension implements ServiceExtension {
         {
             put(EDC_ASSET_TYPE_TERM, V5.ASSET);
             put(EDC_CATALOG_ASSET_TYPE_TERM, V5.CATALOG_ASSET);
+            put(PARTICIPANT_CONTEXT_TYPE_TERM, V5.PARTICIPANT_CONTEXT);
+            put(PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM, V5.PARTICIPANT_CONTEXT_CONFIG);
+            put(CEL_EXPRESSION_TYPE_TERM, V5.CEL_EXPRESSION);
+            put(CEL_EXPRESSION_TEST_REQUEST_TYPE_TERM, V5.CEL_EXPRESSION_TEST_REQUEST);
+            put("AssociateDataspaceProfile", V5.ASSOCIATE_DATASPACE_PROFILE_CONTEXT);
+            put("DiscoveryRequest", V5.DISCOVERY_REQUEST);
+            put("DcpScope", V5.DCP_SCOPE);
+            put("DataspaceProfile", V5.DATASPACE_PROFILE_CONTEXT);
             put("CachedDocument", V5.CACHED_DOCUMENT);
             put("SchemaValidatorRegistration", V5.SCHEMA_VALIDATOR_REGISTRATION);
         }

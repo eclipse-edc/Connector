@@ -32,7 +32,7 @@ import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 public interface DcpScopeApiV5 {
 
     @Operation(description = "Creates a new DcpScope object.",
-            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.DCP_SCOPE), mediaType = "application/json")),
+            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.DCP_SCOPE), mediaType = "application/json")),
             responses = {
                     @ApiResponse(responseCode = "200", description = "The DcpScope was created successfully, its id is returned in the response body.",
                             content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.ID_RESPONSE))),
@@ -47,7 +47,7 @@ public interface DcpScopeApiV5 {
     JsonObject createDcpScopeV5(JsonObject request);
 
     @Operation(description = "Updates an existing DcpScope object.",
-            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.DCP_SCOPE), mediaType = "application/json")),
+            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.DCP_SCOPE), mediaType = "application/json")),
             responses = {
                     @ApiResponse(responseCode = "204", description = "The DcpScope was updated successfully."),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
@@ -75,7 +75,7 @@ public interface DcpScopeApiV5 {
             requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.QUERY_SPEC))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "The list of DcpScopes.",
-                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.DCP_SCOPE)))),
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V5.DCP_SCOPE)))),
                     @ApiResponse(responseCode = "400", description = "The query was malformed or was not understood by the server.",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",

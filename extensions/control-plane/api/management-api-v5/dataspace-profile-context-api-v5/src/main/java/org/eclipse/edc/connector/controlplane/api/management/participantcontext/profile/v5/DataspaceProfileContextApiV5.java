@@ -34,7 +34,7 @@ public interface DataspaceProfileContextApiV5 {
     @Operation(description = "Gets Dataspace Profile contexts configured for the participant context id.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The dataspace profile contexts of the participant",
-                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.DATASPACE_PROFILE_CONTEXT))),
+                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.DATASPACE_PROFILE_CONTEXT))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",
@@ -48,7 +48,7 @@ public interface DataspaceProfileContextApiV5 {
     @Operation(description = "Associate Dataspace Profile contexts to a participant context.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "The dataspace profile contexts was successfully associated to the participant context",
-                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.DATASPACE_PROFILE_CONTEXT))),
+                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.ASSOCIATE_DATASPACE_PROFILE_CONTEXT))),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",

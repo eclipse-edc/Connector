@@ -71,7 +71,7 @@ public class ParticipantContextConfigManagementApiExtension implements ServiceEx
         managementApiTransformerRegistry.register(new JsonObjectToParticipantContextConfigurationTransformer());
 
         webService.registerResource(ApiContext.MANAGEMENT, new ParticipantContextConfigApiV5Controller(configService, managementApiTransformerRegistry));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, ParticipantContextConfigApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, ParticipantContextConfigApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V5.version()));
 
     }
 }
