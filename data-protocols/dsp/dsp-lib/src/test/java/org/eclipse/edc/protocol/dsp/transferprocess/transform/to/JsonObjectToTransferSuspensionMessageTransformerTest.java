@@ -104,4 +104,21 @@ class JsonObjectToTransferSuspensionMessageTransformerTest {
         verify(context).reportProblem(anyString());
     }
 
+    @Test
+    void shouldReportError_whenEmptyReason() {
+        when(context.problem()).thenReturn(new ProblemBuilder(context));
+
+        var json = createObjectBuilder()
+                .add(TYPE, DSP_NAMESPACE.toIri(DSPACE_TYPE_TRANSFER_SUSPENSION_MESSAGE_TERM))
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CONSUMER_PID_TERM), "consumerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_PROVIDER_PID_TERM), "providerPid")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_CODE_TERM), "testCode")
+                .add(DSP_NAMESPACE.toIri(DSPACE_PROPERTY_REASON_TERM), Json.createArrayBuilder())
+                .build();
+
+        transformer.transform(TestJsonLd.expand(json), context);
+
+        verify(context).reportProblem(anyString());
+    }
+
 }
