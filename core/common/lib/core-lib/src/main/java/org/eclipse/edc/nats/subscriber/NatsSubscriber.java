@@ -42,7 +42,8 @@ public abstract class NatsSubscriber {
     protected String subject;
     protected ExecutorService executorService;
     protected Monitor monitor;
-    protected boolean autoCreate = false;
+    protected boolean autoCreateStream = false;
+    protected boolean autoCreateConsumer = false;
     protected Integer batchSize = 100;
     protected Integer maxWait = 100;
     // externally contributed connect options (e.g. NKey authentication); the server URL is overwritten
@@ -50,16 +51,28 @@ public abstract class NatsSubscriber {
     private Connection connection;
 
 
+    public boolean isAutoCreateStream() {
+        return autoCreateStream;
+    }
+
+    public boolean isAutoCreateConsumer() {
+        return autoCreateConsumer;
+    }
+
     public void prepare() {
-        if (!autoCreate) {
+        if (!autoCreateStream && !autoCreateConsumer) {
             return;
         }
         try {
             var conn = getOrCreateConnection();
             conn.jetStream();
             var jsm = conn.jetStreamManagement();
-            createStream(jsm, stream, StorageType.Memory, subject);
-            createConsumer(jsm, stream, name, subject);
+            if (autoCreateStream) {
+                createStream(jsm, stream, StorageType.Memory, subject);
+            }
+            if (autoCreateConsumer) {
+                createConsumer(jsm, stream, name, subject);
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -178,8 +191,13 @@ public abstract class NatsSubscriber {
             return self();
         }
 
-        public B autoCreate(boolean autoCreate) {
-            subscriber.autoCreate = autoCreate;
+        public B autoCreateStream(boolean autoCreateStream) {
+            subscriber.autoCreateStream = autoCreateStream;
+            return self();
+        }
+
+        public B autoCreateConsumer(boolean autoCreateConsumer) {
+            subscriber.autoCreateConsumer = autoCreateConsumer;
             return self();
         }
 

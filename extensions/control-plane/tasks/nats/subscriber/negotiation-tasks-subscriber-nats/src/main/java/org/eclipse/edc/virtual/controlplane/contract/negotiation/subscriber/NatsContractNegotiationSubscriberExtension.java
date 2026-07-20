@@ -61,7 +61,8 @@ public class NatsContractNegotiationSubscriberExtension implements ServiceExtens
     @Inject(required = false)
     private Options authenticationOptions;
 
-    private NatsContractNegotiationTaskSubscriber subscriber;
+    // visible for testing
+    NatsContractNegotiationTaskSubscriber subscriber;
 
 
     @Override
@@ -75,7 +76,8 @@ public class NatsContractNegotiationSubscriberExtension implements ServiceExtens
                 .monitor(monitor)
                 .mapperSupplier(() -> typeManager.getMapper())
                 .taskExecutor(taskExecutor)
-                .autoCreate(subscriberConfig.autoCreate)
+                .autoCreateStream(subscriberConfig.autoCreate() || subscriberConfig.autoCreateStream())
+                .autoCreateConsumer(subscriberConfig.autoCreate() || subscriberConfig.autoCreateConsumer())
                 .executorInstrumentation(executorInstrumentation)
                 .batchSize(subscriberConfig.batchSize)
                 .maxWait(subscriberConfig.maxWait)
@@ -113,8 +115,12 @@ public class NatsContractNegotiationSubscriberExtension implements ServiceExtens
             String url,
             @Setting(key = "edc.nats.cn.subscriber.name", description = "The name of the consumer for contract negotiation events", defaultValue = "cn-subscriber")
             String name,
-            @Setting(key = "edc.nats.cn.subscriber.autocreate", description = "When true, it will automatically create the stream and the consumer if not present", defaultValue = "false")
+            @Setting(key = "edc.nats.cn.subscriber.autocreate", description = "Convenience flag: when true, it will automatically create both the stream and the consumer if not present", defaultValue = "false")
             Boolean autoCreate,
+            @Setting(key = "edc.nats.cn.subscriber.stream.autocreate", description = "When true, it will automatically create the stream if not present", defaultValue = "false")
+            Boolean autoCreateStream,
+            @Setting(key = "edc.nats.cn.subscriber.consumer.autocreate", description = "When true, it will automatically create the consumer if not present", defaultValue = "false")
+            Boolean autoCreateConsumer,
             @Setting(key = "edc.nats.cn.subscriber.stream", description = "The stream name where to attach the consumer", defaultValue = "cn-stream")
             String stream,
             @Setting(key = "edc.nats.cn.subscriber.subject", description = "The subject of the consumer for contract negotiation events", defaultValue = "negotiations.>")
