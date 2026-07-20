@@ -25,7 +25,6 @@ dependencies {
     testImplementation(project(":spi:control-plane-spi"))
     testImplementation(project(":spi:decentralized-claims-spi"))
     testImplementation(project(":core:common:connector-core"))
-    testImplementation(project(":core:common:edr-store-core"))
     testImplementation(project(":core:control-plane:control-plane-transform"))
     testImplementation(project(":core:common:participant-context-config-core"))
 
@@ -42,7 +41,7 @@ dependencies {
     testImplementation(project(":extensions:common:transaction:transaction-local"))
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.postgres)
-    
+
     testImplementation(testFixtures(project(":core:common:lib:core-lib")))
 }
 
