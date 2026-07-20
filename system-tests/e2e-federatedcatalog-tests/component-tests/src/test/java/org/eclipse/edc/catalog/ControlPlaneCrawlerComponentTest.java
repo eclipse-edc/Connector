@@ -15,11 +15,16 @@
 package org.eclipse.edc.catalog;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.restassured.http.ContentType;
+import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Catalog;
 import org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequestMessage;
+import org.eclipse.edc.connector.controlplane.catalog.spi.DataService;
 import org.eclipse.edc.connector.controlplane.catalog.spi.Dataset;
+import org.eclipse.edc.connector.controlplane.catalog.spi.Distribution;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.crawler.spi.TargetNode;
 import org.eclipse.edc.crawler.spi.TargetNodeDirectory;
@@ -30,8 +35,11 @@ import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.junit.testfixtures.TestUtils;
+import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.response.StatusResult;
+import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
@@ -44,32 +52,34 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
+import static io.restassured.RestAssured.given;
 import static java.lang.String.format;
 import static java.lang.String.valueOf;
 import static java.time.Duration.ofSeconds;
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.catalog.TestFunctions.catalogBuilder;
-import static org.eclipse.edc.catalog.TestFunctions.catalogOf;
-import static org.eclipse.edc.catalog.TestFunctions.createDataset;
-import static org.eclipse.edc.catalog.TestFunctions.emptyCatalog;
-import static org.eclipse.edc.catalog.TestFunctions.queryCatalogApi;
-import static org.eclipse.edc.catalog.TestFunctions.randomCatalog;
 import static org.eclipse.edc.catalog.matchers.CatalogRequestMatcher.sentTo;
 import static org.eclipse.edc.catalog.spi.CatalogConstants.PROPERTY_ORIGINATOR;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.util.JacksonJsonLd.createObjectMapper;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_PROTOCOL_HTTP_V_2025_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_TRANSFORMER_CONTEXT_V_2025_1;
+import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -88,11 +98,14 @@ import static org.mockito.Mockito.when;
 @ComponentTest
 public class ControlPlaneCrawlerComponentTest {
 
-    private static final Duration TEST_TIMEOUT = ofSeconds(30);
     private static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
+    private static final Duration TEST_TIMEOUT = ofSeconds(30);
+
+    private final int port = getFreePort();
+    private final String path = "/api/management";
 
     @RegisterExtension
-    protected static RuntimeExtension runtime = new RuntimePerMethodExtension(
+    private final RuntimeExtension runtime = new RuntimePerMethodExtension(
             new EmbeddedRuntime("controlplane-crawler",
                     ":dist:bom:controlplane-base-bom",
                     ":extensions:common:iam:iam-mock")
@@ -100,8 +113,8 @@ public class ControlPlaneCrawlerComponentTest {
                             Map.entry("edc.catalog.cache.execution.period.seconds", "2"),
                             Map.entry("edc.catalog.cache.partition.num.crawlers", "10"),
                             Map.entry("edc.catalog.cache.execution.delay.seconds", "1"),
-                            Map.entry("web.http.management.port", valueOf(TestFunctions.MANAGEMENT_PORT)),
-                            Map.entry("web.http.management.path", TestFunctions.MANAGEMENT_BASE_PATH),
+                            Map.entry("web.http.management.port", valueOf(port)),
+                            Map.entry("web.http.management.path", path),
                             Map.entry("web.http.port", valueOf(getFreePort())),
                             Map.entry("web.http.path", "/api"),
                             Map.entry("web.http.protocol.port", valueOf(getFreePort())),
@@ -150,7 +163,6 @@ public class ControlPlaneCrawlerComponentTest {
     @Test
     @DisplayName("Crawl a single target, returns a catalog of catalogs")
     void crawlSingle_withCatalogOfCatalogs(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
-        // prepare node directory
         directory.insert(targetNode());
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenReturn(randomCatalog(catalog -> StatusResult.success(TestUtils.getResourceFileContentAsString("catalog_of_catalogs.json").getBytes()), "root-catalog-id", 5))
@@ -188,7 +200,8 @@ public class ControlPlaneCrawlerComponentTest {
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 100))
                 .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 100))
-                .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 50));
+                .thenReturn(randomCatalog(toBytes(ttr), "test-catalog-id", 50))
+                .thenReturn(emptyCatalog(toBytes(ttr)));
 
         directory.insert(targetNode());
 
@@ -230,34 +243,15 @@ public class ControlPlaneCrawlerComponentTest {
         directory.insert(targetNode());
 
         var catalogId = "test-catalog-id";
-        StatusResult<byte[]> result;
-        Catalog catalog = catalogBuilder().id(catalogId).datasets(new ArrayList<>(List.of(
-                createDataset("offer1"), createDataset("offer2")
-        ))).build();
-        try {
-            var dspTransformerRegistry = ttr.forContext(DSP_TRANSFORMER_CONTEXT_V_2025_1);
-            var jo = dspTransformerRegistry.transform(catalog, JsonObject.class).orElseThrow(AssertionError::new);
-            var expanded = TestJsonLd.expand(jo);
-            var expandedStr = OBJECT_MAPPER.writeValueAsString(expanded);
-            result = StatusResult.success(expandedStr.getBytes());
-        } catch (JsonProcessingException ex) {
-            throw new AssertionError(ex);
-        }
-        StatusResult<byte[]> result1;
-        Catalog catalog1 = catalogBuilder().id(catalogId).datasets(new ArrayList<>(List.of(
-                createDataset("offer1"), createDataset("offer2"), createDataset("offer3")
-        ))).build();
-        try {
-            var dspTransformerRegistry = ttr.forContext(DSP_TRANSFORMER_CONTEXT_V_2025_1);
-            var jo = dspTransformerRegistry.transform(catalog1, JsonObject.class).orElseThrow(AssertionError::new);
-            var expanded = TestJsonLd.expand(jo);
-            var expandedStr = OBJECT_MAPPER.writeValueAsString(expanded);
-            result1 = StatusResult.success(expandedStr.getBytes());
-        } catch (JsonProcessingException ex) {
-            throw new AssertionError(ex);
-        }
+        var catalog = catalogBuilder().id(catalogId)
+                .datasets(List.of(createDataset("offer1"), createDataset("offer2")))
+                .build();
+        var result = toBytes(ttr).apply(catalog);
+        var catalog1 = catalogBuilder().id(catalogId)
+                .datasets(List.of(createDataset("offer1"), createDataset("offer2"), createDataset("offer3")))
+                .build();
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
-                .thenReturn(completedFuture(result1))
+                .thenReturn(completedFuture(toBytes(ttr).apply(catalog1)))
                 .thenReturn(emptyCatalog(toBytes(ttr), catalogId))
                 .thenReturn(completedFuture(result));
 
@@ -272,39 +266,17 @@ public class ControlPlaneCrawlerComponentTest {
     @Test
     @DisplayName("Crawl a single target twice, emulate deletion of assets")
     void crawlSingle_withDeletions_shouldRemove(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
-        // prepare node directory
         directory.insert(targetNode());
-        StatusResult<byte[]> result;
-        Catalog catalog = catalogBuilder().id("test-catalog-id").datasets(new ArrayList<>(List.of(
-                createDataset("offer1"), createDataset("offer2")/* this one is "deleted": createDataset("offer3") */
-        ))).build();
-        try {
-            var dspTransformerRegistry = ttr.forContext(DSP_TRANSFORMER_CONTEXT_V_2025_1);
-            var jo = dspTransformerRegistry.transform(catalog, JsonObject.class).orElseThrow(AssertionError::new);
-            var expanded = TestJsonLd.expand(jo);
-            var expandedStr = OBJECT_MAPPER.writeValueAsString(expanded);
-            result = StatusResult.success(expandedStr.getBytes());
-        } catch (JsonProcessingException ex) {
-            throw new AssertionError(ex);
-        }
-        /* this one is "deleted": createDataset("offer3") */
-        StatusResult<byte[]> result1;
-        Catalog catalog1 = catalogBuilder().id("test-catalog-id").datasets(new ArrayList<>(List.of(
-                createDataset("offer1"), createDataset("offer2"), createDataset("offer3")
-        ))).build();
-        try {
-            var dspTransformerRegistry = ttr.forContext(DSP_TRANSFORMER_CONTEXT_V_2025_1);
-            var jo = dspTransformerRegistry.transform(catalog1, JsonObject.class).orElseThrow(AssertionError::new);
-            var expanded = TestJsonLd.expand(jo);
-            var expandedStr = OBJECT_MAPPER.writeValueAsString(expanded);
-            result1 = StatusResult.success(expandedStr.getBytes());
-        } catch (JsonProcessingException ex) {
-            throw new AssertionError(ex);
-        }
+        var catalogDeletedDataset = catalogBuilder().id("test-catalog-id")
+                .datasets(List.of(createDataset("offer1"), createDataset("offer2")))
+                .build();
+        var catalog = catalogBuilder().id("test-catalog-id")
+                .datasets(List.of(createDataset("offer1"), createDataset("offer2"), createDataset("offer3")))
+                .build();
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
-                .thenReturn(completedFuture(result1))
+                .thenReturn(completedFuture(toBytes(ttr).apply(catalog)))
                 .thenReturn(emptyCatalog(toBytes(ttr), "test-catalog-id"))
-                .thenReturn(completedFuture(result));
+                .thenReturn(completedFuture(toBytes(ttr).apply(catalogDeletedDataset)));
 
         await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
             var catalogs = queryCatalogApi(jsonLd, jsonObject -> toCatalog(ttr, jsonObject));
@@ -313,40 +285,20 @@ public class ControlPlaneCrawlerComponentTest {
                     .noneMatch(offer -> offer.getId().equals("offer3"));
             verify(dispatcher, atLeast(4)).dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class));
         });
-
     }
 
     @Test
     @DisplayName("Crawl a single target twice, emulate deleting and re-adding of assets with same ID")
     void crawlSingle_withUpdates_shouldReplace(TypeTransformerRegistry ttr, TargetNodeDirectory directory, JsonLd jsonLd) {
-        // prepare node directory
         directory.insert(targetNode());
-        StatusResult<byte[]> result;
-        Catalog catalog = catalogBuilder().id("test-catalog-id").datasets(new ArrayList<>(List.of(
-                createDataset("offer1"), createDataset("offer2"), createDataset("offer3")
-        ))).build();
-        try {
-            var dspTransformerRegistry = ttr.forContext(DSP_TRANSFORMER_CONTEXT_V_2025_1);
-            var jo = dspTransformerRegistry.transform(catalog, JsonObject.class).orElseThrow(AssertionError::new);
-            var expanded = TestJsonLd.expand(jo);
-            var expandedStr = OBJECT_MAPPER.writeValueAsString(expanded);
-            result = StatusResult.success(expandedStr.getBytes());
-        } catch (JsonProcessingException ex) {
-            throw new AssertionError(ex);
-        }
-        StatusResult<byte[]> result1;
-        Catalog catalog1 = catalogBuilder().id("test-catalog-id").datasets(new ArrayList<>(List.of(
-                createDataset("offer1"), createDataset("offer2"), createDataset("offer3")
-        ))).build();
-        try {
-            var dspTransformerRegistry = ttr.forContext(DSP_TRANSFORMER_CONTEXT_V_2025_1);
-            var jo = dspTransformerRegistry.transform(catalog1, JsonObject.class).orElseThrow(AssertionError::new);
-            var expanded = TestJsonLd.expand(jo);
-            var expandedStr = OBJECT_MAPPER.writeValueAsString(expanded);
-            result1 = StatusResult.success(expandedStr.getBytes());
-        } catch (JsonProcessingException ex) {
-            throw new AssertionError(ex);
-        }
+        var catalog = catalogBuilder().id("test-catalog-id")
+                .datasets(List.of(createDataset("offer1"), createDataset("offer2"), createDataset("offer3")))
+                .build();
+        var result = toBytes(ttr).apply(catalog);
+        var catalog1 = catalogBuilder().id("test-catalog-id")
+                .datasets(List.of(createDataset("offer1"), createDataset("offer2"), createDataset("offer3")))
+                .build();
+        var result1 = toBytes(ttr).apply(catalog1);
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenReturn(completedFuture(result1))
                 .thenReturn(emptyCatalog(toBytes(ttr), "test-catalog-id"))
@@ -358,7 +310,6 @@ public class ControlPlaneCrawlerComponentTest {
             assertThat(catalogs.get(0).getDatasets()).hasSize(3);
             verify(dispatcher, atLeast(4)).dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class));
         });
-
     }
 
     @Test
@@ -368,35 +319,17 @@ public class ControlPlaneCrawlerComponentTest {
         directory.insert(targetNode());
         when(dispatcher.dispatch(any(), eq(byte[].class), isA(CatalogRequestMessage.class)))
                 .thenAnswer(a -> {
-                    StatusResult<byte[]> result;
-                    Catalog catalog = catalogBuilder().id("test-cat")
-                            .datasets(List.of(createDataset("dataset1"), createDataset("dataset2"))).build();
-                    try {
-                        var dspTransformerRegistry = ttr.forContext(DSP_TRANSFORMER_CONTEXT_V_2025_1);
-                        var jo = dspTransformerRegistry.transform(catalog, JsonObject.class).orElseThrow(AssertionError::new);
-                        var expanded = TestJsonLd.expand(jo);
-                        var expandedStr = OBJECT_MAPPER.writeValueAsString(expanded);
-                        result = StatusResult.success(expandedStr.getBytes());
-                    } catch (JsonProcessingException ex) {
-                        throw new AssertionError(ex);
-                    }
-                    return completedFuture(result);
+                    var catalog = catalogBuilder().id("test-cat")
+                            .datasets(List.of(createDataset("dataset1"), createDataset("dataset2")))
+                            .build();
+
+                    return completedFuture(toBytes(ttr).apply(catalog));
                 })
                 .thenAnswer(a -> {
-                    StatusResult<byte[]> result;
-                    Catalog catalog = catalogBuilder().id("test-cat")
+                    var catalog = catalogBuilder().id("test-cat")
                             .datasets(List.of(createDataset("dataset1"), createDataset("dataset2"),
                                     createDataset("dataset3"), createDataset("dataset4"))).build();
-                    try {
-                        var dspTransformerRegistry = ttr.forContext(DSP_TRANSFORMER_CONTEXT_V_2025_1);
-                        var jo = dspTransformerRegistry.transform(catalog, JsonObject.class).orElseThrow(AssertionError::new);
-                        var expanded = TestJsonLd.expand(jo);
-                        var expandedStr = OBJECT_MAPPER.writeValueAsString(expanded);
-                        result = StatusResult.success(expandedStr.getBytes());
-                    } catch (JsonProcessingException ex) {
-                        throw new AssertionError(ex);
-                    }
-                    return completedFuture(result);
+                    return completedFuture(toBytes(ttr).apply(catalog));
                 });
 
         await().atMost(TEST_TIMEOUT).untilAsserted(() -> {
@@ -442,7 +375,8 @@ public class ControlPlaneCrawlerComponentTest {
                     var nodeId = "did:web:" + i + "-count-" + numAssets;
                     var node = new TargetNode("test-node-" + i, nodeId, nodeUrl, singletonList(DATASPACE_PROTOCOL_HTTP_V_2025_1));
                     when(dispatcher.dispatch(any(), eq(byte[].class), argThat(sentTo(nodeId, nodeUrl))))
-                            .thenReturn(randomCatalog(toBytes(ttr), "catalog-" + nodeUrl, numAssets));
+                            .thenReturn(randomCatalog(toBytes(ttr), "catalog-" + nodeUrl, numAssets))
+                            .thenReturn(emptyCatalog(toBytes(ttr)));
 
                     directory.insert(node);
                     numTotalAssets.addAndGet(numAssets);
@@ -498,6 +432,72 @@ public class ControlPlaneCrawlerComponentTest {
                 throw new AssertionError(ex);
             }
         };
+    }
+
+    private List<Catalog> queryCatalogApi(JsonLd jsonLd, Function<JsonObject, Catalog> transformerFunction) {
+        var body = given()
+                .baseUri("http://localhost:" + port)
+                .basePath(path)
+                .contentType(ContentType.JSON)
+                .when()
+                .body(Json.createObjectBuilder()
+                        .add(CONTEXT, EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2)
+                        .add(TYPE, QuerySpec.EDC_QUERY_SPEC_TYPE_TERM)
+                        .build()
+                )
+                .post("/v4/catalogs/request")
+                .then()
+                .log().ifValidationFails()
+                .statusCode(200)
+                .extract().body();
+
+        try {
+            var maps = OBJECT_MAPPER.readValue(body.asString(), new TypeReference<List<Map<String, Object>>>() {
+            });
+            return maps.stream().map(map -> Json.createObjectBuilder(map).build())
+                    .map(jsonLd::expand)
+                    .map(Result::getContent)
+                    .map(transformerFunction)
+                    .toList();
+        } catch (JsonProcessingException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    private Dataset createDataset(String dataset1) {
+        return Dataset.Builder.newInstance()
+                .offer("test-offer", Policy.Builder.newInstance().build())
+                .distribution(Distribution.Builder.newInstance().format("test-format").dataService(DataService.Builder.newInstance().build()).build())
+                .id(dataset1)
+                .build();
+    }
+
+    private CompletableFuture<StatusResult<byte[]>> emptyCatalog(Function<Catalog, StatusResult<byte[]>> transformationFunction) {
+        return completedFuture(transformationFunction.apply(catalogBuilder().build()));
+    }
+
+    private CompletableFuture<StatusResult<byte[]>> emptyCatalog(Function<Catalog, StatusResult<byte[]>> transformationFunction, String catalogId) {
+        return completedFuture(transformationFunction.apply(catalogBuilder().id(catalogId).build()));
+    }
+
+    private Catalog.Builder catalogBuilder() {
+        return Catalog.Builder.newInstance()
+                .participantId("test-participant")
+                .id(UUID.randomUUID().toString())
+                .properties(new HashMap<>())
+                .dataServices(new ArrayList<>())
+                .datasets(new ArrayList<>());
+    }
+
+    private CompletableFuture<StatusResult<byte[]>> catalogOf(Function<Catalog, StatusResult<byte[]>> transformationFunction, String catId, Dataset... datasets) {
+        return completedFuture(transformationFunction.apply(catalogBuilder().id(catId).datasets(asList(datasets)).build()));
+    }
+
+    private CompletableFuture<StatusResult<byte[]>> randomCatalog(Function<Catalog, StatusResult<byte[]>> transformationFunction, String id, int howManyDatasets) {
+        return completedFuture(transformationFunction.apply(catalogBuilder()
+                .id(id)
+                .datasets(range(0, howManyDatasets).mapToObj(i -> createDataset("DataSet_" + UUID.randomUUID())).collect(toList()))
+                .build()));
     }
 
     private Catalog toCatalog(TypeTransformerRegistry ttr, JsonObject jsonObject) {
