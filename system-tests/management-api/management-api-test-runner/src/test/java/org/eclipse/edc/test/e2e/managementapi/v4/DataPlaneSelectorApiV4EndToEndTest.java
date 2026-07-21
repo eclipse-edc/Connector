@@ -15,8 +15,8 @@
 package org.eclipse.edc.test.e2e.managementapi.v4;
 
 import io.restassured.http.ContentType;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeExtension;

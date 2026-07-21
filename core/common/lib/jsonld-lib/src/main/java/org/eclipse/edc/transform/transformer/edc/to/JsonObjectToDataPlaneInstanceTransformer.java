@@ -18,7 +18,7 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonValue;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
@@ -31,16 +31,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptySet;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_TRANSFER_TYPES;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.Builder;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_STATE_TIMESTAMP;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.DESTINATION_PROVISION_TYPES;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.LAST_ACTIVE;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.PROPERTIES;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.TURN_COUNT;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.URL;
+import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
+import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
+import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.ALLOWED_TRANSFER_TYPES;
+import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.Builder;
+import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.DATAPLANE_INSTANCE_STATE_TIMESTAMP;
+import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.DESTINATION_PROVISION_TYPES;
+import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.LAST_ACTIVE;
+import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.PROPERTIES;
+import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.TURN_COUNT;
+import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.URL;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 
 public class JsonObjectToDataPlaneInstanceTransformer extends AbstractJsonLdTransformer<JsonObject, DataPlaneInstance> {

@@ -26,13 +26,12 @@ import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractD
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequestMessage;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractOffer;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationProtocolService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
-import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
@@ -100,7 +99,6 @@ class ContractNegotiationEventDispatchTest {
         extension.registerServiceMock(DataspaceProfileContextRegistry.class, dataspaceProfileContextRegistry);
         extension.registerServiceMock(DataPlaneInstanceStore.class, mock());
         extension.registerServiceMock(IdentityService.class, identityService);
-        extension.registerServiceMock(DataPlaneClientFactory.class, mock());
         extension.registerServiceMock(DataFlowController.class, mock());
         extension.registerServiceMock(ProtocolWebhookResolver.class, protocolWebhookResolver);
         extension.registerServiceMock(ProtocolRemoteMessageDispatcher.class, dspDispatcher);

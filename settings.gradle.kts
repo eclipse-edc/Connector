@@ -62,8 +62,6 @@ include(":core:control-plane:control-plane-transfer-manager")
 include(":core:control-plane:control-plane-transfer-task-executor")
 include(":core:control-plane:lib:control-plane-lib")
 
-include(":core:data-plane-selector:data-plane-selector-core")
-
 include(":core:policy-monitor:policy-monitor-core")
 
 // data plane signaling

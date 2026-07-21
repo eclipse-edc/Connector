@@ -15,8 +15,8 @@
 package org.eclipse.edc.connector.dataplane.selector.store.sql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.dataplane.selector.store.sql.schema.DataPlaneInstanceStatements;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;

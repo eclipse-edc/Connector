@@ -16,7 +16,7 @@ package org.eclipse.edc.signaling.port.api.management.v5;
 
 import io.restassured.http.ContentType;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.DataPlaneSelectorService;
 import org.eclipse.edc.signaling.domain.DataPlaneRegistrationMessage;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;

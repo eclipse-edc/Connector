@@ -18,13 +18,18 @@ import org.eclipse.edc.connector.controlplane.asset.spi.index.AssetIndex;
 import org.eclipse.edc.connector.controlplane.asset.spi.index.DataAddressResolver;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.contract.spi.offer.store.ContractDefinitionStore;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.strategy.RandomSelectionStrategy;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.strategy.SelectionStrategyRegistry;
 import org.eclipse.edc.connector.controlplane.defaults.callback.CallbackRegistryImpl;
 import org.eclipse.edc.connector.controlplane.defaults.storage.assetindex.InMemoryAssetIndex;
 import org.eclipse.edc.connector.controlplane.defaults.storage.contractdefinition.InMemoryContractDefinitionStore;
 import org.eclipse.edc.connector.controlplane.defaults.storage.contractnegotiation.InMemoryContractNegotiationStore;
+import org.eclipse.edc.connector.controlplane.defaults.storage.dataplane.InMemoryDataPlaneInstanceStore;
 import org.eclipse.edc.connector.controlplane.defaults.storage.dataspaceprofile.InMemoryDataspaceProfileStore;
 import org.eclipse.edc.connector.controlplane.defaults.storage.policydefinition.InMemoryPolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.defaults.storage.transferprocess.InMemoryTransferProcessStore;
+import org.eclipse.edc.connector.controlplane.defaults.strategy.DefaultSelectionStrategyRegistry;
 import org.eclipse.edc.connector.controlplane.policy.spi.store.PolicyDefinitionStore;
 import org.eclipse.edc.connector.controlplane.query.asset.AssetPropertyLookup;
 import org.eclipse.edc.connector.controlplane.services.spi.callback.CallbackRegistry;
@@ -102,7 +107,19 @@ public class ControlPlaneDefaultServicesExtension implements ServiceExtension {
     public CallbackRegistry defaultCallbackRegistry() {
         return new CallbackRegistryImpl();
     }
-    
+
+    @Provider(isDefault = true)
+    public DataPlaneInstanceStore instanceStore() {
+        return new InMemoryDataPlaneInstanceStore(clock, criterionOperatorRegistry);
+    }
+
+    @Provider(isDefault = true)
+    public SelectionStrategyRegistry selectionStrategyRegistry() {
+        var strategy = new DefaultSelectionStrategyRegistry();
+        strategy.add(new RandomSelectionStrategy());
+        return strategy;
+    }
+
     private ContractDefinitionStore getContractDefinitionStore() {
         if (contractDefinitionStore == null) {
             contractDefinitionStore = new InMemoryContractDefinitionStore(criterionOperatorRegistry);

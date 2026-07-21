@@ -30,7 +30,6 @@ dependencies {
     implementation(project(":extensions:control-plane:api:management-api:secrets-api"))
     implementation(project(":extensions:common:api:version-api"))
     implementation(project(":extensions:common:api:api-observability"))
-    implementation(project(":core:data-plane-selector:data-plane-selector-core"))
 }
 
 edcBuild {

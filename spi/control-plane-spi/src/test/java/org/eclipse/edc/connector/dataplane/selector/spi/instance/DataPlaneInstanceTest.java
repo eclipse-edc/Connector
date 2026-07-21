@@ -16,6 +16,8 @@ package org.eclipse.edc.connector.dataplane.selector.spi.instance;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.AuthorizationProfile;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.junit.jupiter.api.Test;

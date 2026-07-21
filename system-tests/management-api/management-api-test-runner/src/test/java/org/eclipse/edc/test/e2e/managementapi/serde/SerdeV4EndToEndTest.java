@@ -27,6 +27,8 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.Con
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstanceStates;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyEvaluationPlanRequest;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyValidationResult;
@@ -45,8 +47,6 @@ import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.c
 import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.config.to.JsonObjectToParticipantContextConfigurationTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.from.JsonObjectFromParticipantContextTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.to.JsonObjectToParticipantContextTransformer;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
 import org.eclipse.edc.iam.decentralizedclaims.spi.scope.DcpScopeRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;

@@ -14,12 +14,13 @@
 
 package org.eclipse.edc.connector.dataplane.selector.store.sql.schema;
 
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstanceStates;
 import org.eclipse.edc.sql.lease.StatefulEntityMapping;
 import org.eclipse.edc.sql.translation.JsonFieldTranslator;
 
 /**
- * Maps fields of a {@link org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance} onto the
+ * Maps fields of a {@link DataPlaneInstance} onto the
  * corresponding SQL schema (= column names) enabling access through Postgres JSON operators where applicable
  */
 public class DataPlaneInstanceMapping extends StatefulEntityMapping {

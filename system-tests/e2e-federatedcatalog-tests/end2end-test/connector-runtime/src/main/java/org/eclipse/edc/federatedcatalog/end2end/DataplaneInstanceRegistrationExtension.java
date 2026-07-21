@@ -15,11 +15,9 @@
 package org.eclipse.edc.federatedcatalog.end2end;
 
 
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
-import org.eclipse.edc.runtime.metamodel.annotation.Provider;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 
@@ -39,8 +37,4 @@ public class DataplaneInstanceRegistrationExtension implements ServiceExtension 
         dataPlaneInstanceStore.save(dpi);
     }
 
-    @Provider
-    public DataPlaneClientFactory createDataPlaneClientFactory() {
-        return dataPlaneInstance -> null;
-    }
 }

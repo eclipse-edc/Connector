@@ -34,6 +34,7 @@ dependencies {
 
     testImplementation(testFixtures(project(":spi:control-plane-spi")))
     testImplementation(testFixtures(project(":spi:dataspace-protocol-spi")))
+    testImplementation(libs.awaitility)
 }
 
 

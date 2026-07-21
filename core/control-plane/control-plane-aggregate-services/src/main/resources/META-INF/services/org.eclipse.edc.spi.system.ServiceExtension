@@ -13,3 +13,4 @@
 #
 
 org.eclipse.edc.connector.controlplane.services.ControlPlaneServicesExtension
+org.eclipse.edc.connector.controlplane.services.ControlPlaneDataPlaneServicesExtension

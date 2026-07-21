@@ -14,7 +14,7 @@
 
 package org.eclipse.edc.signaling.spi.authorization;
 
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.AuthorizationProfile;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.AuthorizationProfile;
 import org.eclipse.edc.spi.result.Result;
 
 import java.util.function.Function;

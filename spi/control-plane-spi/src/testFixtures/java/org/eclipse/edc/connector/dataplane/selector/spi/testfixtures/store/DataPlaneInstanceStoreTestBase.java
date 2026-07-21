@@ -14,9 +14,9 @@
 
 package org.eclipse.edc.connector.dataplane.selector.spi.testfixtures.store;
 
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.AuthorizationProfile;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
-import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.AuthorizationProfile;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.spi.entity.Entity;
 import org.eclipse.edc.spi.entity.StatefulEntity;
 import org.eclipse.edc.spi.result.StoreFailure;
@@ -30,8 +30,8 @@ import java.util.UUID;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.REGISTERED;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstanceStates.UNREGISTERED;
+import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstanceStates.REGISTERED;
+import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstanceStates.UNREGISTERED;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
 import static org.eclipse.edc.spi.persistence.StateEntityStore.hasState;

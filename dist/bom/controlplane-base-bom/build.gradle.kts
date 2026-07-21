@@ -30,7 +30,6 @@ dependencies {
     api(project(":core:control-plane:control-plane-core"))
     api(project(":core:control-plane:control-plane-contract-manager"))
     api(project(":core:control-plane:control-plane-transfer-manager"))
-    api(project(":core:data-plane-selector:data-plane-selector-core"))
     api(project(":core:policy-monitor:policy-monitor-core"))
     api(project(":core:catalog-crawler:catalog-crawler-core"))
 

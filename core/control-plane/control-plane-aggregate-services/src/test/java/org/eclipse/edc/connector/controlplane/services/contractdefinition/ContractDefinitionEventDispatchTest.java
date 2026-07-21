@@ -18,11 +18,10 @@ import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinit
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionDeleted;
 import org.eclipse.edc.connector.controlplane.contract.spi.event.contractdefinition.ContractDefinitionEvent;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.controlplane.services.spi.contractdefinition.ContractDefinitionService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
-import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
@@ -55,7 +54,6 @@ public class ContractDefinitionEventDispatchTest {
         extension.registerServiceMock(ProtocolWebhook.class, mock(ProtocolWebhook.class));
         extension.registerServiceMock(DataPlaneInstanceStore.class, mock(DataPlaneInstanceStore.class));
         extension.registerServiceMock(IdentityService.class, mock());
-        extension.registerServiceMock(DataPlaneClientFactory.class, mock());
         extension.registerServiceMock(DataFlowController.class, mock());
         extension.registerServiceMock(ProtocolRemoteMessageDispatcher.class, mock());
         extension.setConfiguration(Map.of(

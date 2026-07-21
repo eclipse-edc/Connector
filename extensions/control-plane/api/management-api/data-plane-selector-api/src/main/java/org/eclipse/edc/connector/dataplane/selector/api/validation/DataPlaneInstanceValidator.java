@@ -21,9 +21,9 @@ import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
 import org.eclipse.edc.validator.spi.Validator;
 
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
-import static org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance.URL;
+import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
+import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
+import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.URL;
 
 /**
  * Contains the DataPlaneInstance validator definition
