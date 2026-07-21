@@ -61,7 +61,8 @@ public class NatsTransferProcessTaskSubscriberExtension implements ServiceExtens
     @Inject(required = false)
     private Options authenticationOptions;
 
-    private NatsTransferProcessTaskSubscriber subscriber;
+    // visible for testing
+    NatsTransferProcessTaskSubscriber subscriber;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -74,7 +75,8 @@ public class NatsTransferProcessTaskSubscriberExtension implements ServiceExtens
                 .monitor(monitor)
                 .mapperSupplier(() -> typeManager.getMapper())
                 .taskExecutor(taskExecutor)
-                .autoCreate(subscriberConfig.autoCreate)
+                .autoCreateStream(subscriberConfig.autoCreate() || subscriberConfig.autoCreateStream())
+                .autoCreateConsumer(subscriberConfig.autoCreate() || subscriberConfig.autoCreateConsumer())
                 .executorInstrumentation(executorInstrumentation)
                 .batchSize(subscriberConfig.batchSize)
                 .maxWait(subscriberConfig.maxWait)
@@ -113,11 +115,15 @@ public class NatsTransferProcessTaskSubscriberExtension implements ServiceExtens
             String url,
             @Setting(key = "edc.nats.tp.subscriber.name", description = "The name of the consumer for transfer process events", defaultValue = "tp-subscriber")
             String name,
-            @Setting(key = "edc.nats.tp.subscriber.autocreate", description = "When true, it will automatically create the stream and the consumer if not present", defaultValue = "false")
+            @Setting(key = "edc.nats.tp.subscriber.autocreate", description = "Convenience flag: when true, it will automatically create both the stream and the consumer if not present", defaultValue = "false")
             Boolean autoCreate,
+            @Setting(key = "edc.nats.tp.subscriber.stream.autocreate", description = "When true, it will automatically create the stream if not present", defaultValue = "false")
+            Boolean autoCreateStream,
+            @Setting(key = "edc.nats.tp.subscriber.consumer.autocreate", description = "When true, it will automatically create the consumer if not present", defaultValue = "false")
+            Boolean autoCreateConsumer,
             @Setting(key = "edc.nats.tp.subscriber.stream", description = "The stream name where to attach the consumer", defaultValue = "tp-stream")
             String stream,
-            @Setting(key = "edc.nats.tp.subscriber.subject", description = "The subject of the consumer for contract negotiation events", defaultValue = "transfers.>")
+            @Setting(key = "edc.nats.tp.subscriber.subject", description = "The subject of the consumer for transfer process events", defaultValue = "transfers.>")
             String subject,
             @Setting(key = "edc.nats.tp.subscriber.batch-size", description = "The size of the batch when fetching messages", defaultValue = "100")
             Integer batchSize,
