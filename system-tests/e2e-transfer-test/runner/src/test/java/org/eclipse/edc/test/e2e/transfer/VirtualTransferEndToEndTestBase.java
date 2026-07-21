@@ -16,6 +16,7 @@ package org.eclipse.edc.test.e2e.transfer;
 
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.AuthorizationProfile;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participants;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.ManagementApiClientV5;
@@ -24,7 +25,6 @@ import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PermissionDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDefinitionDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDto;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.AuthorizationProfile;
 import org.eclipse.edc.junit.annotations.Runtime;
 import org.eclipse.edc.signaling.auth.Oauth2Extension;
 import org.eclipse.edc.signaling.client.DataPlaneSignalingTestClient;

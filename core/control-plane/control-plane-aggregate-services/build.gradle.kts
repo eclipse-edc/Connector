@@ -32,7 +32,6 @@ dependencies {
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":core:control-plane:control-plane-contract-manager"))
     testImplementation(project(":core:control-plane:control-plane-transfer-manager"))
-    testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
     testImplementation(project(":core:control-plane:control-plane-transfer"))
     testImplementation(project(":extensions:common:json-ld"))
     testImplementation(project(":core:common:junit"))

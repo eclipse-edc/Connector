@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.services.policydefinition;
 
+import org.eclipse.edc.connector.controlplane.dataplane.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionCreated;
 import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionDeleted;
@@ -22,8 +23,6 @@ import org.eclipse.edc.connector.controlplane.policy.spi.event.PolicyDefinitionU
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
 import org.eclipse.edc.connector.controlplane.services.spi.protocol.ProtocolRemoteMessageDispatcher;
 import org.eclipse.edc.connector.controlplane.transfer.spi.flow.DataFlowController;
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
-import org.eclipse.edc.connector.dataplane.selector.spi.store.DataPlaneInstanceStore;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
@@ -56,7 +55,6 @@ public class PolicyDefinitionEventDispatchTest {
         extension.registerServiceMock(ProtocolWebhook.class, mock());
         extension.registerServiceMock(DataPlaneInstanceStore.class, mock());
         extension.registerServiceMock(IdentityService.class, mock());
-        extension.registerServiceMock(DataPlaneClientFactory.class, mock());
         extension.registerServiceMock(DataFlowController.class, mock());
         extension.registerServiceMock(ProtocolRemoteMessageDispatcher.class, mock());
 

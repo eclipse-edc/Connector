@@ -29,7 +29,6 @@ dependencies {
 
     testImplementation(testFixtures(project(":core:common:lib:jsonld-lib")))
     testImplementation(project(":core:common:junit"))
-    testImplementation(project(":core:data-plane-selector:data-plane-selector-core"))
     testImplementation(testFixtures(project(":extensions:common:http:jersey-core")))
     testImplementation(libs.restAssured)
 }

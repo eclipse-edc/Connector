@@ -1,0 +1,83 @@
+/*
+ *  Copyright (c) 2026 Think-it GmbH
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Think-it GmbH - initial API and implementation
+ *
+ */
+
+package org.eclipse.edc.connector.controlplane.dataplane.spi;
+
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstanceStates;
+import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
+import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
+import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.ServiceResult;
+
+import java.util.List;
+
+/**
+ * Main interaction interface for an EDC runtime (=control plane) to communicate with the DPF selector.
+ */
+@ExtensionPoint
+public interface DataPlaneSelectorService {
+
+    /**
+     * Returns all {@link DataPlaneInstance}s known in the system
+     */
+    ServiceResult<List<DataPlaneInstance>> getAll();
+
+    /**
+     * Search for {@link DataPlaneInstance}s that satisfy the query specification.
+     *
+     * @param querySpec the query specification.
+     * @return the list of data plane instances, empty otherwise.
+     */
+    ServiceResult<List<DataPlaneInstance>> search(QuerySpec querySpec);
+
+    /**
+     * Select the {@link DataPlaneInstance} that to be used for the given {@link TransferProcess}.
+     *
+     * @param transferProcess the transfer process.
+     * @return success with the selected instance, failure otherwise.
+     */
+    ServiceResult<DataPlaneInstance> selectFor(TransferProcess transferProcess);
+
+    /**
+     * Register a data plane instance. The method follows upsert semantics: when a dataplane with the same id exists, it
+     * gets updated.
+     */
+    ServiceResult<Void> register(DataPlaneInstance instance);
+
+    /**
+     * Unregister a Data Plane instance. The state will transition to {@link DataPlaneInstanceStates#UNREGISTERED}.
+     *
+     * @param instanceId the instance id.
+     * @return successful result if operation completed, failure otherwise.
+     */
+    ServiceResult<Void> unregister(String instanceId);
+
+    /**
+     * Delete a Data Plane instance.
+     *
+     * @param instanceId the instance id.
+     * @return successful result if operation completed, failure otherwise.
+     */
+    ServiceResult<Void> delete(String instanceId);
+
+    /**
+     * Find a Data Plane instance by id.
+     *
+     * @param id the id.
+     * @return the {@link DataPlaneInstance} if operation is successful, failure otherwise.
+     */
+    ServiceResult<DataPlaneInstance> findById(String id);
+
+}

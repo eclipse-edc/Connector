@@ -36,7 +36,6 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.TerminateTransferCommand;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessAck;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferStartMessage;
-import org.eclipse.edc.connector.dataplane.selector.spi.client.DataPlaneClientFactory;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.RuntimeExtension;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
@@ -99,7 +98,6 @@ public class TransferProcessEventDispatchTest {
             .registerServiceMock(PolicyArchive.class, mock())
             .registerServiceMock(ContractNegotiationStore.class, mock())
             .registerServiceMock(ParticipantAgentService.class, mock())
-            .registerServiceMock(DataPlaneClientFactory.class, mock())
             .registerServiceMock(DataFlowController.class, mock())
             .registerServiceMock(DataAddressStore.class, mock())
             .registerServiceMock(ProtocolWebhookResolver.class, mock())

@@ -14,7 +14,8 @@
 
 package org.eclipse.edc.connector.dataplane.selector.spi.strategy;
 
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.strategy.RandomSelectionStrategy;
 import org.junit.jupiter.api.RepeatedTest;
 
 import java.util.List;

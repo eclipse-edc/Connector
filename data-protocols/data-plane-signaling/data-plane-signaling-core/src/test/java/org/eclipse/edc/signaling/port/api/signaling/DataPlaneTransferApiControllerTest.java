@@ -15,12 +15,12 @@
 package org.eclipse.edc.signaling.port.api.signaling;
 
 import io.restassured.http.ContentType;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.DataPlaneSelectorService;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.AuthorizationProfile;
+import org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataFlowResponse;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
-import org.eclipse.edc.connector.dataplane.selector.spi.DataPlaneSelectorService;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.AuthorizationProfile;
-import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstance;
 import org.eclipse.edc.signaling.domain.DataFlowStatusMessage;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorization;
 import org.eclipse.edc.signaling.spi.authorization.SignalingAuthorizationRegistry;
