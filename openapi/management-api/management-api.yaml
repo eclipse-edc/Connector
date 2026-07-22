@@ -5965,6 +5965,15 @@ components:
           namespace: namespace
           binding: binding
           version: version
+        trustedIssuers:
+        - '@id': '@id'
+          supportedTypes:
+          - supportedTypes
+          - supportedTypes
+        - '@id': '@id'
+          supportedTypes:
+          - supportedTypes
+          - supportedTypes
         '@type': '@type'
         jsonLdContextsUrl:
         - https://openapi-generator.tech
@@ -5999,6 +6008,10 @@ components:
           items:
             type: string
             format: uri
+        trustedIssuers:
+          type: array
+          items:
+            $ref: "#/components/schemas/DataspaceProfile_trustedIssuers_inner"
     JsonValue:
       type: object
       properties:
@@ -7773,3 +7786,21 @@ components:
         namespace: namespace
         binding: binding
         version: version
+    DataspaceProfile_trustedIssuers_inner:
+      required:
+      - '@id'
+      - supportedTypes
+      type: object
+      properties:
+        '@id':
+          type: string
+        supportedTypes:
+          minItems: 1
+          type: array
+          items:
+            type: string
+      example:
+        '@id': '@id'
+        supportedTypes:
+        - supportedTypes
+        - supportedTypes
