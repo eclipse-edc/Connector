@@ -22,5 +22,7 @@ dependencies {
     api(project(":spi:core-spi"))
 
     testImplementation(project(":core:common:junit"))
+    // exercises the VC helper functions through the real CEL engine
+    testImplementation(project(":core:common:cel-core"))
 }
 

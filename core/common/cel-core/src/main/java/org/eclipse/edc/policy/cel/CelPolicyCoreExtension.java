@@ -21,6 +21,8 @@ import org.eclipse.edc.connector.policy.monitor.spi.PolicyMonitorContext;
 import org.eclipse.edc.policy.cel.engine.CelExpressionEngine;
 import org.eclipse.edc.policy.cel.engine.CelExpressionEngineImpl;
 import org.eclipse.edc.policy.cel.function.CelExpressionFunction;
+import org.eclipse.edc.policy.cel.function.CelFunctionRegistry;
+import org.eclipse.edc.policy.cel.function.CelFunctionRegistryImpl;
 import org.eclipse.edc.policy.cel.function.context.AgreementContextMapper;
 import org.eclipse.edc.policy.cel.function.context.CelParticipantAgentClaimMapperRegistry;
 import org.eclipse.edc.policy.cel.function.context.CelParticipantAgentClaimMapperRegistryImpl;
@@ -77,6 +79,8 @@ public class CelPolicyCoreExtension implements ServiceExtension {
 
     private CelParticipantAgentClaimMapperRegistry claimMapperRegistry;
 
+    private CelFunctionRegistry celFunctionRegistry;
+
     @Inject
     private Monitor monitor;
 
@@ -107,7 +111,7 @@ public class CelPolicyCoreExtension implements ServiceExtension {
     @Provider
     public CelExpressionEngine policyExpressionEngine() {
         if (celExpressionEngine == null) {
-            celExpressionEngine = new CelExpressionEngineImpl(transactionContext, celExpressionStore, monitor);
+            celExpressionEngine = new CelExpressionEngineImpl(transactionContext, celExpressionStore, monitor, celFunctionRegistry());
         }
         return celExpressionEngine;
     }
@@ -127,6 +131,14 @@ public class CelPolicyCoreExtension implements ServiceExtension {
             claimMapperRegistry = new CelParticipantAgentClaimMapperRegistryImpl();
         }
         return claimMapperRegistry;
+    }
+
+    @Provider
+    public CelFunctionRegistry celFunctionRegistry() {
+        if (celFunctionRegistry == null) {
+            celFunctionRegistry = new CelFunctionRegistryImpl();
+        }
+        return celFunctionRegistry;
     }
 
 }

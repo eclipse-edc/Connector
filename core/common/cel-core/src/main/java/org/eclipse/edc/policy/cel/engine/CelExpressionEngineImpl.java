@@ -24,6 +24,8 @@ import dev.cel.parser.CelStandardMacro;
 import dev.cel.runtime.CelEvaluationException;
 import dev.cel.runtime.CelRuntime;
 import dev.cel.runtime.CelRuntimeFactory;
+import org.eclipse.edc.policy.cel.function.CelFunctionRegistry;
+import org.eclipse.edc.policy.cel.function.CelFunctionTranslator;
 import org.eclipse.edc.policy.cel.model.CelExpression;
 import org.eclipse.edc.policy.cel.store.CelExpressionStore;
 import org.eclipse.edc.policy.model.Operator;
@@ -46,22 +48,46 @@ public class CelExpressionEngineImpl implements CelExpressionEngine {
     private final TransactionContext ctx;
     private final CelExpressionStore store;
     private final Monitor monitor;
+    private final CelFunctionRegistry functionRegistry;
 
-    private final CelCompiler celCompiler = CelCompilerFactory.standardCelCompilerBuilder()
-            .addVar("this", SimpleType.DYN)
-            .addVar("ctx", SimpleType.DYN)
-            .addVar("now", SimpleType.TIMESTAMP)
-            .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
-            .setResultType(SimpleType.BOOL)
-            .build();
+    // built lazily on first use: extensions register their custom functions during initialization, which happens
+    // after this engine is constructed. Declarations and bindings are derived from a single snapshot of the registry,
+    // so the compiler can never type-check against a function the runtime cannot dispatch.
+    private volatile CelEnvironment environment;
 
-
-    private final CelRuntime celRuntime = CelRuntimeFactory.standardCelRuntimeBuilder().build();
-
-    public CelExpressionEngineImpl(TransactionContext ctx, CelExpressionStore store, Monitor monitor) {
+    public CelExpressionEngineImpl(TransactionContext ctx, CelExpressionStore store, Monitor monitor, CelFunctionRegistry functionRegistry) {
         this.ctx = ctx;
         this.store = store;
         this.monitor = monitor;
+        this.functionRegistry = functionRegistry;
+    }
+
+    private CelEnvironment environment() {
+        var current = environment;
+        if (current != null) {
+            return current;
+        }
+        synchronized (this) {
+            if (environment == null) {
+                var functions = functionRegistry.seal();
+                environment = new CelEnvironment(
+                        CelCompilerFactory.standardCelCompilerBuilder()
+                                .addVar("this", SimpleType.DYN)
+                                .addVar("ctx", SimpleType.DYN)
+                                .addVar("now", SimpleType.TIMESTAMP)
+                                .setStandardMacros(CelStandardMacro.STANDARD_MACROS)
+                                .setResultType(SimpleType.BOOL)
+                                .addFunctionDeclarations(CelFunctionTranslator.toDeclarations(functions))
+                                .build(),
+                        CelRuntimeFactory.standardCelRuntimeBuilder()
+                                .addFunctionBindings(CelFunctionTranslator.toBindings(functions))
+                                .build());
+            }
+            return environment;
+        }
+    }
+
+    private record CelEnvironment(CelCompiler compiler, CelRuntime runtime) {
     }
 
     @Override
@@ -121,7 +147,7 @@ public class CelExpressionEngineImpl implements CelExpressionEngine {
 
     private Result<Boolean> evaluateAst(CelAbstractSyntaxTree ast, Object leftOperand, Operator operator, Object rightOperand, Map<String, Object> params) {
         try {
-            var program = celRuntime.createProgram(ast);
+            var program = environment().runtime().createProgram(ast);
             Map<String, Object> newParams = new HashMap<>();
             newParams.put("now", ProtoTimeUtils.now());
             newParams.put("this", Map.of("leftOperand", leftOperand, "operator", operator.name(), "rightOperand", rightOperand));
@@ -158,9 +184,10 @@ public class CelExpressionEngineImpl implements CelExpressionEngine {
         CelAbstractSyntaxTree ast;
         try {
             // Parse the expression
-            ast = celCompiler.parse(expression).getAst();
+            var compiler = environment().compiler();
+            ast = compiler.parse(expression).getAst();
             // Type-check the expression for correctness
-            ast = celCompiler.check(ast).getAst();
+            ast = compiler.check(ast).getAst();
         } catch (CelValidationException e) {
             return Result.failure("Failed to validate expression. Reason: " + e.getMessage());
         }

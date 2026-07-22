@@ -14,11 +14,14 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.cel;
 
+import org.eclipse.edc.policy.cel.function.CelFunctionRegistry;
 import org.eclipse.edc.policy.cel.function.context.CelParticipantAgentClaimMapperRegistry;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
+
+import java.time.Clock;
 
 import static org.eclipse.edc.iam.decentralizedclaims.cel.DcpCelExtension.NAME;
 
@@ -33,9 +36,16 @@ public class DcpCelExtension implements ServiceExtension {
     @Inject
     private CelParticipantAgentClaimMapperRegistry claimMapperRegistry;
 
+    @Inject
+    private CelFunctionRegistry celFunctionRegistry;
+
+    @Inject
+    private Clock clock;
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         claimMapperRegistry.registerClaimMapper(new VcClaimMapper());
+        VcCelFunctions.functions(clock).forEach(celFunctionRegistry::registerFunction);
     }
 
 
