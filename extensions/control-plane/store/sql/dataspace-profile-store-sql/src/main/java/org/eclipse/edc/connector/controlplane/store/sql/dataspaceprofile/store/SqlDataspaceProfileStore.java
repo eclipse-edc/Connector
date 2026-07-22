@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.connector.controlplane.store.sql.dataspaceprofile.store.schema.DataspaceProfileStoreStatements;
 import org.eclipse.edc.protocol.spi.DataspaceProfile;
+import org.eclipse.edc.protocol.spi.TrustedIssuer;
 import org.eclipse.edc.protocol.spi.store.DataspaceProfileStore;
 import org.eclipse.edc.spi.persistence.EdcPersistenceException;
 import org.eclipse.edc.spi.query.Criterion;
@@ -89,7 +90,8 @@ public class SqlDataspaceProfileStore extends AbstractSqlStore implements Datasp
                         profile.getBinding(),
                         profile.getNamespace(),
                         toJson(profile.getJsonLdContextsUrl(), stringListType),
-                        profile.getCreatedAt());
+                        profile.getCreatedAt(),
+                        toJson(profile.getTrustedIssuers()));
                 return StoreResult.success(profile);
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
@@ -111,6 +113,7 @@ public class SqlDataspaceProfileStore extends AbstractSqlStore implements Datasp
                         profile.getBinding(),
                         profile.getNamespace(),
                         toJson(profile.getJsonLdContextsUrl(), stringListType),
+                        toJson(profile.getTrustedIssuers()),
                         profile.getName());
                 return StoreResult.success(profile);
             } catch (SQLException e) {
@@ -151,6 +154,7 @@ public class SqlDataspaceProfileStore extends AbstractSqlStore implements Datasp
                 .namespace(resultSet.getString(statements.getNamespaceColumn()))
                 .jsonLdContextsUrl(fromJson(resultSet.getString(statements.getJsonLdContextsUrlColumn()), stringListType))
                 .createdAt(resultSet.getLong(statements.getCreatedAtColumn()))
+                .trustedIssuers(fromJson(resultSet.getString(statements.getTrustedIssuersColumn()), listOf(TrustedIssuer.class)))
                 .build();
     }
 }

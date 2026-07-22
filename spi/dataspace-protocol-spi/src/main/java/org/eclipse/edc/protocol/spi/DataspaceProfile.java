@@ -42,6 +42,7 @@ public class DataspaceProfile {
     private String binding;
     private String namespace;
     private List<String> jsonLdContextsUrl = new ArrayList<>();
+    private final List<TrustedIssuer> trustedIssuers = new ArrayList<>();
     private long createdAt;
 
     private DataspaceProfile() {
@@ -104,6 +105,10 @@ public class DataspaceProfile {
                 .createdAt(createdAt);
     }
 
+    public List<TrustedIssuer> getTrustedIssuers() {
+        return trustedIssuers;
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
 
@@ -155,6 +160,13 @@ public class DataspaceProfile {
 
         public Builder clock(Clock clock) {
             this.clock = clock;
+            return this;
+        }
+
+        public Builder trustedIssuers(List<TrustedIssuer> trustedIssuers) {
+            if (trustedIssuers != null) {
+                entity.trustedIssuers.addAll(trustedIssuers);
+            }
             return this;
         }
 

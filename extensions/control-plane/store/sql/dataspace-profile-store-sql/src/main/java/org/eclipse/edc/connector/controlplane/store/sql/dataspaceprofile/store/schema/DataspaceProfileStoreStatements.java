@@ -65,5 +65,9 @@ public interface DataspaceProfileStoreStatements extends SqlStatements {
         return "created_at";
     }
 
+    default String getTrustedIssuersColumn() {
+        return "trusted_issuers";
+    }
+
     SqlQueryStatement createQuery(QuerySpec querySpec);
 }

@@ -34,6 +34,7 @@ import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PRO
 import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PROFILE_CONTEXT_PROTOCOL_NAMESPACE_IRI;
 import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PROFILE_CONTEXT_PROTOCOL_PATH_IRI;
 import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PROFILE_CONTEXT_PROTOCOL_VERSION_IRI;
+import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PROFILE_CONTEXT_TRUSTED_ISSUERS_IRI;
 import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PROFILE_CONTEXT_TYPE_IRI;
 
 public class JsonObjectFromDataspaceProfileTransformer extends AbstractJsonLdTransformer<DataspaceProfile, JsonObject> {
@@ -56,6 +57,12 @@ public class JsonObjectFromDataspaceProfileTransformer extends AbstractJsonLdTra
                 .ifPresent(urls -> builder.add(DATASPACE_PROFILE_CONTEXT_JSONLD_CONTEXTS_URL_IRI, urls.stream()
                         .map(Json::createValue)
                         .collect(toJsonArray())));
+
+        Optional.ofNullable(profile.getTrustedIssuers())
+                .ifPresent(trustedIssuers -> builder.add(DATASPACE_PROFILE_CONTEXT_TRUSTED_ISSUERS_IRI, trustedIssuers.stream()
+                        .map(t -> context.transform(t, JsonObject.class))
+                        .collect(toJsonArray())
+                ));
 
         return builder.build();
     }

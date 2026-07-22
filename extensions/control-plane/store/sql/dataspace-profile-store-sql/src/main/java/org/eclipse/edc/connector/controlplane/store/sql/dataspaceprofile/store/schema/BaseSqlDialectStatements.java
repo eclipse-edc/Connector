@@ -44,6 +44,7 @@ public class BaseSqlDialectStatements implements DataspaceProfileStoreStatements
                 .column(getNamespaceColumn())
                 .jsonColumn(getJsonLdContextsUrlColumn())
                 .column(getCreatedAtColumn())
+                .jsonColumn(getTrustedIssuersColumn())
                 .insertInto(getProfileTable());
     }
 
@@ -55,6 +56,7 @@ public class BaseSqlDialectStatements implements DataspaceProfileStoreStatements
                 .column(getBindingColumn())
                 .column(getNamespaceColumn())
                 .jsonColumn(getJsonLdContextsUrlColumn())
+                .jsonColumn(getTrustedIssuersColumn())
                 .update(getProfileTable(), getNameColumn());
     }
 

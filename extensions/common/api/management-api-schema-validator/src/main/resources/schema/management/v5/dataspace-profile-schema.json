@@ -50,6 +50,28 @@
             "type": "string",
             "format": "uri"
           }
+        },
+        "trustedIssuers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "@id": {
+                "type": "string"
+              },
+              "supportedTypes": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "@id",
+              "supportedTypes"
+            ]
+          }
         }
       },
       "required": [
