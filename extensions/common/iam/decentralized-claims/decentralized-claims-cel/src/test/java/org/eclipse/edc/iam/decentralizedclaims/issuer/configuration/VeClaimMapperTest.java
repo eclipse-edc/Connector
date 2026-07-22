@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.iam.decentralizedclaims.cel.VcClaimMapper.VC_CLAIM;
 
 public class VeClaimMapperTest {
@@ -48,9 +49,11 @@ public class VeClaimMapperTest {
                         "@context", List.of("https://www.w3.org/2018/credentials/v1", "https://www.w3.org/2018/credentials/examples/v1"),
                         "id", "http://example.edu/credentials/3732",
                         "type", List.of("VerifiableCredential", "AlumniCredential"),
-                        "issuer", "https://example.edu/issuers/14",
+                        "issuer", Map.of("id", "https://example.edu/issuers/14"),
                         "issuanceDate", credentials.get(0).getIssuanceDate().toString(),
+                        "expirationDate", credentials.get(0).getExpirationDate().toString(),
                         "credentialSubject", List.of(Map.of(
+                                "id", "did:web:subject",
                                 "alumniOf", "Example University",
                                 "degree", Map.of(
                                         "type", "BachelorDegree",
@@ -62,6 +65,45 @@ public class VeClaimMapperTest {
 
         assertThat(result.name()).isEqualTo(VC_CLAIM);
         assertThat(result.value()).isEqualTo(expectedList);
+    }
+
+    @Test
+    void mapClaim_omitsExpirationDateWhenAbsent() {
+        var vc = VerifiableCredential.Builder.newInstance()
+                .id("credential-1")
+                .types(List.of("VerifiableCredential"))
+                .issuer(new Issuer("https://example.edu/issuers/14", Map.of()))
+                .issuanceDate(Instant.now())
+                .credentialSubject(CredentialSubject.Builder.newInstance().claim("alumniOf", "Example University").build())
+                .build();
+        var agent = new ParticipantAgent("agent-id", Map.of("vc", List.of(vc)), Map.of());
+
+        var result = mapper.mapClaim(agent);
+
+        assertThat(result.value()).asInstanceOf(list(Map.class))
+                .singleElement()
+                .satisfies(credential -> assertThat(credential).doesNotContainKey("expirationDate"));
+    }
+
+    @Test
+    void mapClaim_retainsIssuerAdditionalProperties() {
+        var vc = VerifiableCredential.Builder.newInstance()
+                .id("credential-1")
+                .types(List.of("VerifiableCredential"))
+                .issuer(new Issuer("https://example.edu/issuers/14", Map.of("name", "Example University")))
+                .issuanceDate(Instant.now())
+                .credentialSubject(CredentialSubject.Builder.newInstance().claim("alumniOf", "Example University").build())
+                .build();
+        var agent = new ParticipantAgent("agent-id", Map.of("vc", List.of(vc)), Map.of());
+
+        var result = mapper.mapClaim(agent);
+
+        assertThat(result.value()).asInstanceOf(list(Map.class))
+                .singleElement()
+                .satisfies(credential -> {
+                    assertThat(credential).containsEntry("issuer",
+                            Map.of("id", "https://example.edu/issuers/14", "name", "Example University"));
+                });
     }
 
     @Test
@@ -81,7 +123,9 @@ public class VeClaimMapperTest {
                 .types(List.of("VerifiableCredential", "AlumniCredential"))
                 .issuer(new Issuer("https://example.edu/issuers/14", Map.of()))
                 .issuanceDate(Instant.now())
+                .expirationDate(Instant.now().plusSeconds(3600))
                 .credentialSubject(CredentialSubject.Builder.newInstance()
+                        .id("did:web:subject")
                         .claim("alumniOf", "Example University")
                         .claim("degree", Map.of(
                                 "type", "BachelorDegree",

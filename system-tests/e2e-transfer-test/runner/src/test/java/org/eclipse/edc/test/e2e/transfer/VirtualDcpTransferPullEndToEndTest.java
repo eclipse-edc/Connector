@@ -158,6 +158,58 @@ class VirtualDcpTransferPullEndToEndTest {
         }
 
         @Test
+        void httpPull_dataTransfer_withMembershipHelperFunctions(ManagementApiClientV5 connectorClient,
+                                                                 Participants participants) {
+
+            var leftOperand = "https://w3id.org/example/credentials/MembershipCredentialHelpers";
+            // short form equivalent of the filter/exists expression above, using the VC helper functions
+            var expression = "ctx.agent.claims.vc.valid().withType('MembershipCredential').hasClaim('status', 'active')";
+
+            var scopes = Set.of("catalog", "contract.negotiation", "transfer.process");
+            var expr = new CelExpressionDto(leftOperand, expression, scopes, "membership helper expression");
+            connectorClient.expressions().createExpression(expr);
+
+            var providerAddress = participants.provider().getProtocolEndpoint();
+
+            var constraint = new AtomicConstraintDto(leftOperand, "eq", "active");
+            var permission = new PermissionDto(constraint);
+            var policy = new PolicyDto(List.of(permission));
+
+            var assetId = setup(connectorClient, participants.provider(), policy);
+            var transferProcessId = connectorClient.startTransfer(participants.consumer().contextId(), participants.consumer().profile(), participants.provider().contextId(), providerAddress, participants.provider().id(), assetId, "NonFinite-PULL");
+
+            var consumerTransfer = connectorClient.transfers().getTransferProcess(participants.consumer().contextId(), transferProcessId);
+            var providerTransfer = connectorClient.transfers().getTransferProcess(participants.provider().contextId(), consumerTransfer.getCorrelationId());
+
+            assertThat(consumerTransfer.getState()).isEqualTo(providerTransfer.getState());
+        }
+
+        @Test
+        void negotiation_fails_withMissingCredentialHelperFunction(ManagementApiClientV5 connectorClient,
+                                                                   Participants participants) {
+
+            var leftOperand = "https://w3id.org/example/credentials/DataAccessCredentialHelpers";
+            var expression = "ctx.agent.claims.vc.hasCredential('DataAccessCredential')";
+
+            var expr = new CelExpressionDto(leftOperand, expression, Set.of("contract.negotiation"), "data credential helper expression");
+            connectorClient.expressions().createExpression(expr);
+
+            var providerAddress = participants.provider().getProtocolEndpoint();
+
+            var constraint = new AtomicConstraintDto(leftOperand, "eq", "active");
+            var permission = new PermissionDto(constraint);
+            var policy = new PolicyDto(List.of(permission));
+
+            var assetId = setup(connectorClient, participants.provider(), policy);
+            var negotiationId = connectorClient.initContractNegotiation(participants.consumer().contextId(), participants.consumer().profile(), assetId, providerAddress, participants.provider().id());
+
+            connectorClient.waitForContractNegotiationState(participants.consumer().contextId(), negotiationId, ContractNegotiationStates.TERMINATED.name());
+            var error = connectorClient.getNegotiationError(participants.consumer().contextId(), negotiationId);
+
+            assertThat(error).isNotNull().contains("Unauthorized");
+        }
+
+        @Test
         void negotiation_fails_withMissingCredential(ManagementApiClientV5 connectorClient,
                                                      Participants participants) {
 

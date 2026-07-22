@@ -14,9 +14,14 @@
 
 package org.eclipse.edc.policy.cel.engine;
 
+import org.eclipse.edc.policy.cel.function.CelFunction;
+import org.eclipse.edc.policy.cel.function.CelFunctionRegistry;
+import org.eclipse.edc.policy.cel.function.CelFunctionRegistryImpl;
+import org.eclipse.edc.policy.cel.function.CelValueType;
 import org.eclipse.edc.policy.cel.model.CelExpression;
 import org.eclipse.edc.policy.cel.store.CelExpressionStore;
 import org.eclipse.edc.policy.model.Operator;
+import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.transaction.spi.NoopTransactionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +38,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
@@ -42,7 +48,8 @@ import static org.mockito.Mockito.when;
 public class CelExpressionEngineImplTest {
     private final CelExpressionStore store = mock();
     private final TransactionContext transactionContext = new NoopTransactionContext();
-    private final CelExpressionEngineImpl registry = new CelExpressionEngineImpl(transactionContext, store, mock());
+    private final CelFunctionRegistry functionRegistry = new CelFunctionRegistryImpl();
+    private final CelExpressionEngineImpl registry = new CelExpressionEngineImpl(transactionContext, store, mock(), functionRegistry);
 
 
     @Test
@@ -149,6 +156,58 @@ public class CelExpressionEngineImplTest {
 
         assertThat(result).isSucceeded();
         assertThat(result.getContent()).isEqualTo(expectedEvaluation);
+    }
+
+    /**
+     * The CEL environment must be built lazily: extensions register their functions during initialization, which
+     * happens after the engine is constructed — as it is here, in the field initializer.
+     */
+    @Test
+    void evaluateExpression_withCustomFunctionRegisteredAfterConstruction() {
+        functionRegistry.registerFunction(new CelFunction("hasCredential", "test_has_credential", true,
+                CelValueType.BOOL, List.of(CelValueType.LIST, CelValueType.STRING),
+                args -> ((List<?>) args.get(0)).stream()
+                        .anyMatch(c -> ((List<?>) ((Map<?, ?>) c).get("type")).contains(args.get(1)))));
+
+        when(store.query(any())).thenReturn(List.of(expression("ctx.agent.claims.vc.hasCredential('MembershipCredential')")));
+
+        var result = registry.evaluateExpression("test", Operator.EQ, "null", createParams("agent-123"));
+
+        assertThat(result).isSucceeded();
+        assertThat(result.getContent()).isTrue();
+    }
+
+    /**
+     * Once the environment is built the registry is sealed, so a function registered too late fails loudly rather
+     * than being silently missing from expressions.
+     */
+    @Test
+    void registerFunction_afterEnvironmentBuilt_throws() {
+        registry.validate("ctx.agent.id == 'x'");
+
+        assertThatThrownBy(() -> functionRegistry.registerFunction(new CelFunction("tooLate", "test_too_late", true,
+                CelValueType.BOOL, List.of(CelValueType.LIST), args -> true)))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining("tooLate");
+    }
+
+    @Test
+    void validate_whenCustomFunctionNotRegistered_fails() {
+        var result = registry.validate("ctx.agent.claims.vc.notRegistered('x')");
+
+        assertThat(result).isFailed();
+    }
+
+    /**
+     * The compiler pins the result type to bool, so an expression returning the filtered list must not type-check.
+     */
+    @Test
+    void validate_whenCustomFunctionReturnsNonBoolean_fails() {
+        functionRegistry.registerFunction(new CelFunction("withType", "test_with_type", true,
+                CelValueType.LIST, List.of(CelValueType.LIST, CelValueType.STRING), args -> List.of()));
+
+        assertThat(registry.validate("ctx.agent.claims.vc.withType('X')")).isFailed();
+        assertThat(registry.validate("ctx.agent.claims.vc.withType('X').size() > 0")).isSucceeded();
     }
 
     @Test
