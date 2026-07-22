@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS edc_dataspace_profiles
     namespace           VARCHAR,
     jsonld_contexts_url JSON,
     created_at          BIGINT  NOT NULL,
+    trusted_issuers     JSON DEFAULT '[]',
     PRIMARY KEY (name)
 );
 

@@ -15,6 +15,7 @@
 package org.eclipse.edc.protocol.spi.store;
 
 import org.eclipse.edc.protocol.spi.DataspaceProfile;
+import org.eclipse.edc.protocol.spi.TrustedIssuer;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
@@ -35,7 +36,7 @@ public abstract class DataspaceProfileStoreTestBase {
 
     protected abstract DataspaceProfileStore getStore();
 
-    protected DataspaceProfile createProfile(String name) {
+    private DataspaceProfile createProfile(String name) {
         return DataspaceProfile.Builder.newInstance()
                 .name(name)
                 .protocolVersion("2025-1")
@@ -43,6 +44,10 @@ public abstract class DataspaceProfileStoreTestBase {
                 .binding("HTTPS")
                 .namespace("https://w3id.org/dspace/2025/1/")
                 .jsonLdContextsUrl(List.of("https://w3id.org/dspace/2025/1/context.jsonld"))
+                .trustedIssuers(List.of(TrustedIssuer.Builder.newInstance()
+                        .id("did:web:trusted.issuer")
+                        .supportedTypes(List.of("MembershipCredential"))
+                        .build()))
                 .build();
     }
 

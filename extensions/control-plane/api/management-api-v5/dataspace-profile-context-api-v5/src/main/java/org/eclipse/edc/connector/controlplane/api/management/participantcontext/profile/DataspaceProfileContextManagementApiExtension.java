@@ -21,8 +21,10 @@ import org.eclipse.edc.connector.controlplane.api.management.participantcontext.
 import org.eclipse.edc.connector.controlplane.api.management.participantcontext.profile.v5.DataspaceProfileContextApiV5Controller;
 import org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.from.JsonObjectFromDataspaceProfileContextTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.from.JsonObjectFromDataspaceProfileTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.from.JsonObjectFromTrustedIssuerTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.from.JsonObjectToAssociateDataspaceProfileContextTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.to.JsonObjectToDataspaceProfileTransformer;
+import org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.to.JsonObjectToTrustedIssuerTransformer;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.protocol.spi.ParticipantProfileService;
 import org.eclipse.edc.protocol.spi.service.DataspaceProfileService;
@@ -83,6 +85,8 @@ public class DataspaceProfileContextManagementApiExtension implements ServiceExt
         managementApiTransformerRegistry.register(new JsonObjectToAssociateDataspaceProfileContextTransformer());
         managementApiTransformerRegistry.register(new JsonObjectFromDataspaceProfileTransformer(factory));
         managementApiTransformerRegistry.register(new JsonObjectToDataspaceProfileTransformer());
+        managementApiTransformerRegistry.register(new JsonObjectToTrustedIssuerTransformer());
+        managementApiTransformerRegistry.register(new JsonObjectFromTrustedIssuerTransformer(factory));
 
         var jsonLdInterceptor = new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V5.version());
 

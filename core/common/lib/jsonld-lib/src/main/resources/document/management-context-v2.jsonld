@@ -552,6 +552,15 @@
         "error": "edc:error"
       }
     },
+    "TrustedIssuer": {
+      "@id": "edc:TrustedIssuer",
+      "@context": {
+        "supportedTypes": {
+          "@id": "edc:supportedTypes",
+          "@container": "@set"
+        }
+      }
+    },
     "DataspaceProfile": {
       "@id": "edc:DataspaceProfile",
       "@context": {
@@ -568,6 +577,16 @@
         "jsonLdContextsUrl": {
           "@id": "edc:jsonLdContextsUrl",
           "@container": "@set"
+        },
+        "trustedIssuers": {
+          "@id": "edc:trustedIssuers",
+          "@container": "@set",
+          "@context": {
+            "supportedTypes": {
+              "@id": "edc:supportedTypes",
+              "@container": "@set"
+            }
+          }
         }
       }
     },

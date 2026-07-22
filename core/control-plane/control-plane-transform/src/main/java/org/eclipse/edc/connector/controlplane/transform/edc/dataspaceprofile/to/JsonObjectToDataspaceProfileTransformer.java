@@ -17,6 +17,7 @@ package org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.to
 import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.spi.transformer.AbstractJsonLdTransformer;
 import org.eclipse.edc.protocol.spi.DataspaceProfile;
+import org.eclipse.edc.protocol.spi.TrustedIssuer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +31,7 @@ import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PRO
 import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PROFILE_CONTEXT_PROTOCOL_NAMESPACE_IRI;
 import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PROFILE_CONTEXT_PROTOCOL_PATH_IRI;
 import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PROFILE_CONTEXT_PROTOCOL_VERSION_IRI;
+import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PROFILE_CONTEXT_TRUSTED_ISSUERS_IRI;
 
 public class JsonObjectToDataspaceProfileTransformer extends AbstractJsonLdTransformer<JsonObject, DataspaceProfile> {
 
@@ -53,6 +55,9 @@ public class JsonObjectToDataspaceProfileTransformer extends AbstractJsonLdTrans
 
         Optional.ofNullable(request.getJsonArray(DATASPACE_PROFILE_CONTEXT_JSONLD_CONTEXTS_URL_IRI))
                 .ifPresent(urls -> builder.jsonLdContextsUrl(urls.stream().map(v -> transformString(v, context)).toList()));
+
+        Optional.ofNullable(request.getJsonArray(DATASPACE_PROFILE_CONTEXT_TRUSTED_ISSUERS_IRI))
+                .ifPresent(trustedIssuers -> builder.trustedIssuers(trustedIssuers.stream().map(v -> transformObject(v, TrustedIssuer.class, context)).toList()));
 
         return builder.build();
     }

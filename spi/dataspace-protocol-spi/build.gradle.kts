@@ -26,6 +26,10 @@ dependencies {
     testFixturesApi(project(":spi:core-spi"))
     testFixturesApi(libs.junit.jupiter.api)
     testFixturesApi(libs.assertj)
+
+    testImplementation(project(":core:common:lib:jsonld-lib"))
+    testImplementation(libs.junit.jupiter.api)
+    testImplementation(libs.assertj)
 }
 
 

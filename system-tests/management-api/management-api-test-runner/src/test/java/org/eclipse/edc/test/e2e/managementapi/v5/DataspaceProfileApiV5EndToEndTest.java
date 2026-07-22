@@ -80,7 +80,10 @@ public class DataspaceProfileApiV5EndToEndTest {
                     .body("protocol.binding", equalTo("HTTPS"))
                     .body("protocol.path", equalTo("/" + name))
                     .body("protocol.namespace", equalTo("https://w3id.org/dspace/2025/1/"))
-                    .body("jsonLdContextsUrl", equalTo(List.of("https://w3id.org/dspace/2025/1/context.jsonld")));
+                    .body("jsonLdContextsUrl", equalTo(List.of("https://w3id.org/dspace/2025/1/context.jsonld")))
+                    .body("trustedIssuers.size()", equalTo(1))
+                    .body("trustedIssuers[0].'@id'", equalTo("did:web:trusted.issuer"))
+                    .body("trustedIssuers[0].supportedTypes", equalTo(List.of("MembershipCredential")));
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
@@ -167,6 +170,11 @@ public class DataspaceProfileApiV5EndToEndTest {
                             .add("binding", "HTTPS")
                             .add("namespace", "https://w3id.org/dspace/2025/1/"))
                     .add("jsonLdContextsUrl", createArrayBuilder().add("https://w3id.org/dspace/2025/1/context.jsonld"))
+                    .add("trustedIssuers", createArrayBuilder().add(
+                            createObjectBuilder()
+                                    .add("@id", "did:web:trusted.issuer")
+                                    .add("supportedTypes", createArrayBuilder().add("MembershipCredential"))
+                    ))
                     .build();
         }
     }

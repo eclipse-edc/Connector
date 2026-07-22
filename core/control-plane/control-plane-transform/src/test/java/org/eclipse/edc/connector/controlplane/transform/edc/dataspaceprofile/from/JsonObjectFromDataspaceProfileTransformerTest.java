@@ -16,7 +16,9 @@ package org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.fr
 
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
+import jakarta.json.JsonObject;
 import org.eclipse.edc.protocol.spi.DataspaceProfile;
+import org.eclipse.edc.protocol.spi.TrustedIssuer;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,8 +35,12 @@ import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PRO
 import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PROFILE_CONTEXT_PROTOCOL_NAMESPACE_IRI;
 import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PROFILE_CONTEXT_PROTOCOL_PATH_IRI;
 import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PROFILE_CONTEXT_PROTOCOL_VERSION_IRI;
+import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PROFILE_CONTEXT_TRUSTED_ISSUERS_IRI;
 import static org.eclipse.edc.protocol.spi.DataspaceProfileContext.DATASPACE_PROFILE_CONTEXT_TYPE_IRI;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class JsonObjectFromDataspaceProfileTransformerTest {
 
@@ -74,5 +80,32 @@ class JsonObjectFromDataspaceProfileTransformerTest {
         assertThat(contexts).hasSize(2);
         assertThat(contexts.getString(0)).isEqualTo("https://example.com/ctx/v1");
         assertThat(contexts.getString(1)).isEqualTo("https://example.com/ctx/v2");
+    }
+
+    @Test
+    void transform_shouldIncludeTrustedIssuers() {
+        var issuerJson = jsonFactory.createObjectBuilder().add("@id", "did:web:trusted.issuer").build();
+        when(context.transform(any(TrustedIssuer.class), eq(JsonObject.class))).thenReturn(issuerJson);
+
+        var profile = DataspaceProfile.Builder.newInstance()
+                .name("profile-name")
+                .protocolVersion("2025-1")
+                .path("/profile-name")
+                .binding("HTTPS")
+                .namespace("https://example.com/ns/")
+                .trustedIssuers(List.of(
+                        TrustedIssuer.Builder.newInstance()
+                                .id("did:web:trusted.issuer")
+                                .supportedTypes(List.of("MembershipCredential"))
+                                .build()
+                ))
+                .build();
+
+        var result = transformer.transform(profile, context);
+
+        assertThat(result).isNotNull();
+        var issuers = result.getJsonArray(DATASPACE_PROFILE_CONTEXT_TRUSTED_ISSUERS_IRI);
+        assertThat(issuers).hasSize(1);
+        assertThat(issuers.getJsonObject(0).getString("@id")).isEqualTo("did:web:trusted.issuer");
     }
 }
