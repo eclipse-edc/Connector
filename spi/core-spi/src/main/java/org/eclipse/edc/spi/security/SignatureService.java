@@ -16,6 +16,7 @@ package org.eclipse.edc.spi.security;
 
 import org.eclipse.edc.runtime.metamodel.annotation.ExtensionPoint;
 import org.eclipse.edc.spi.result.Result;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
@@ -71,5 +72,59 @@ public interface SignatureService {
      * @throws IllegalArgumentException      if {@code keyProperties} contains illegal parameters, or required parameters are missing.
      */
     Result<Void> rotate(String keyId, Map<String, Object> keyProperties);
+
+    /**
+     * Signs the given payload within the given vault partition, using the key identified by the key parameter.
+     * <p>
+     * If partitioning is not set up, the implementation must fall back to the default partition.
+     *
+     * @param vaultPartition     The vault partition to use, for example, a participant context ID. This might be null, which
+     *                           indicates that the default partition should be used.
+     * @param key                The key that is used for signing. This key must be available and accessible by this {@link SignatureService}
+     * @param payload            A non-empty, non-null byte array to be signed.
+     * @param signatureAlgorithm A string identifying the signature algorithm
+     * @return A Result containing the signature bytes, or an error.
+     * @throws UnsupportedOperationException if this operation is not supported by this {@link SignatureService}.
+     * @throws IllegalArgumentException      if {@code signatureAlgorithm} is not recognized by this signing service
+     */
+    default Result<byte[]> sign(@Nullable String vaultPartition, String key, byte[] payload, String signatureAlgorithm) {
+        return sign(key, payload, signatureAlgorithm);
+    }
+
+    /**
+     * Verifies the given input data with the given signature within the given vault partition.
+     * <p>
+     * If partitioning is not set up, the implementation must fall back to the default partition.
+     *
+     * @param vaultPartition     The vault partition to use, for example, a participant context ID. This might be null, which
+     *                           indicates that the default partition should be used.
+     * @param key                The key that is used for verifying the signature. This key must exist in the Vault.
+     * @param signingInput       The content from which the signature was created.
+     * @param signature          The signature
+     * @param signatureAlgorithm A string identifying the signature algorithm
+     * @return A Result indicating whether the signature is valid or not.
+     * @throws UnsupportedOperationException if this operation is not supported by this {@link SignatureService}.
+     * @throws IllegalArgumentException      if {@code signatureAlgorithm} is not recognized by this signing service
+     */
+    default Result<Void> verify(@Nullable String vaultPartition, String key, byte[] signingInput, byte[] signature, String signatureAlgorithm) {
+        return verify(key, signingInput, signature, signatureAlgorithm);
+    }
+
+    /**
+     * Manually rotates the key within the given vault partition. See {@link #rotate(String, Map)} for the semantics.
+     * <p>
+     * If partitioning is not set up, the implementation must fall back to the default partition.
+     *
+     * @param vaultPartition The vault partition to use, for example, a participant context ID. This might be null, which
+     *                       indicates that the default partition should be used.
+     * @param keyId          The unique identifier for the key that should be rotated
+     * @param keyProperties  A set of parameters that are supported by the implementation.
+     * @return {@link Result#success()} if the rotation process was successfully started, {@link Result#failure(String)} otherwise.
+     * @throws UnsupportedOperationException if this operation is not supported by this {@link SignatureService}.
+     * @throws IllegalArgumentException      if {@code keyProperties} contains illegal parameters, or required parameters are missing.
+     */
+    default Result<Void> rotate(@Nullable String vaultPartition, String keyId, Map<String, Object> keyProperties) {
+        return rotate(keyId, keyProperties);
+    }
 
 }

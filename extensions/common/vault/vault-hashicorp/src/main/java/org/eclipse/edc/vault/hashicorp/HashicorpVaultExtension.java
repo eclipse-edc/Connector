@@ -77,7 +77,7 @@ public class HashicorpVaultExtension implements ServiceExtension {
 
     @Provider
     public SignatureService signatureService() {
-        return new HashicorpVaultSignatureService(monitor, defaultVaultConfig, httpClient, MAPPER, tokenProviderFactory.create(null));
+        return new HashicorpVaultSignatureService(monitor, participantContextConfig, defaultVaultConfig, httpClient, MAPPER, tokenProviderFactory);
     }
 
     @Override
