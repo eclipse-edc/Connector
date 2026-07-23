@@ -21,6 +21,7 @@ import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.jca.JCAContext;
 import com.nimbusds.jose.util.Base64URL;
 import org.eclipse.edc.spi.security.SignatureService;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -43,23 +44,26 @@ public class SignatureServiceJwsSigner implements JWSSigner {
     private static final String VAULT_SIGNATURE_PATTERN = "vault:v\\d+:.*";
 
     private final SignatureService signatureService;
+    private final String participantContextId;
     private final String keyName;
     private final JCAContext jcaContext = new JCAContext();
 
     /**
-     * Creates a signer bound to a single signing key.
+     * Creates a signer bound to a single signing key, scoped to a participant context (vault partition).
      *
-     * @param signatureService the signature service that performs the signing.
-     * @param keyName          the name/identifier of the key to sign with.
+     * @param signatureService     the signature service that performs the signing.
+     * @param participantContextId the participant context id used as the vault partition. May be null, indicating the default partition.
+     * @param keyName              the name/identifier of the key to sign with.
      */
-    public SignatureServiceJwsSigner(SignatureService signatureService, String keyName) {
+    public SignatureServiceJwsSigner(SignatureService signatureService, @Nullable String participantContextId, String keyName) {
         this.signatureService = signatureService;
+        this.participantContextId = participantContextId;
         this.keyName = keyName;
     }
 
     @Override
     public Base64URL sign(JWSHeader header, byte[] signingInput) throws JOSEException {
-        var result = signatureService.sign(keyName, signingInput, header.getAlgorithm().getName());
+        var result = signatureService.sign(participantContextId, keyName, signingInput, header.getAlgorithm().getName());
         if (result.failed()) {
             throw new JOSEException("Failed to sign with key '%s': %s".formatted(keyName, result.getFailureDetail()));
         }

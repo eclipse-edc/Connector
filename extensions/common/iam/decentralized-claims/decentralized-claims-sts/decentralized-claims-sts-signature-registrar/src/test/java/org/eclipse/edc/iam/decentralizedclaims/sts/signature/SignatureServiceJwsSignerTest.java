@@ -30,13 +30,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class SignatureServiceJwsSignerTest {
 
+    private static final String PARTICIPANT_CONTEXT_ID = "participant-1";
     private static final String KEY_NAME = "signing-key";
     private final SignatureService signatureService = mock();
-    private final SignatureServiceJwsSigner signer = new SignatureServiceJwsSigner(signatureService, KEY_NAME);
+    private final SignatureServiceJwsSigner signer = new SignatureServiceJwsSigner(signatureService, PARTICIPANT_CONTEXT_ID, KEY_NAME);
 
     private static byte[] sampleSignature() {
         var rawSignature = new byte[64];
@@ -55,7 +57,7 @@ class SignatureServiceJwsSignerTest {
     void sign_shouldStripVaultPrefix_whenPresent() throws JOSEException {
         var rawSignature = sampleSignature();
         var vaultResponse = ("vault:v1:" + Base64.getEncoder().encodeToString(rawSignature)).getBytes(StandardCharsets.UTF_8);
-        when(signatureService.sign(eq(KEY_NAME), any(), any())).thenReturn(Result.success(vaultResponse));
+        when(signatureService.sign(eq(PARTICIPANT_CONTEXT_ID), eq(KEY_NAME), any(), any())).thenReturn(Result.success(vaultResponse));
 
         var result = signer.sign(new JWSHeader(JWSAlgorithm.EdDSA), "signing-input".getBytes(StandardCharsets.UTF_8));
 
@@ -65,7 +67,7 @@ class SignatureServiceJwsSignerTest {
     @Test
     void sign_shouldUseRawBytes_whenNoVaultPrefix() throws JOSEException {
         var rawSignature = sampleSignature();
-        when(signatureService.sign(eq(KEY_NAME), any(), any())).thenReturn(Result.success(rawSignature));
+        when(signatureService.sign(eq(PARTICIPANT_CONTEXT_ID), eq(KEY_NAME), any(), any())).thenReturn(Result.success(rawSignature));
 
         var result = signer.sign(new JWSHeader(JWSAlgorithm.EdDSA), "signing-input".getBytes(StandardCharsets.UTF_8));
 
@@ -73,8 +75,19 @@ class SignatureServiceJwsSignerTest {
     }
 
     @Test
+    void sign_shouldForwardParticipantContextId() throws JOSEException {
+        var rawSignature = sampleSignature();
+        var signingInput = "signing-input".getBytes(StandardCharsets.UTF_8);
+        when(signatureService.sign(eq(PARTICIPANT_CONTEXT_ID), eq(KEY_NAME), any(), any())).thenReturn(Result.success(rawSignature));
+
+        signer.sign(new JWSHeader(JWSAlgorithm.EdDSA), signingInput);
+
+        verify(signatureService).sign(eq(PARTICIPANT_CONTEXT_ID), eq(KEY_NAME), any(), eq(JWSAlgorithm.EdDSA.getName()));
+    }
+
+    @Test
     void sign_shouldThrow_whenSignatureServiceFails() {
-        when(signatureService.sign(eq(KEY_NAME), any(), any())).thenReturn(Result.failure("signing service down"));
+        when(signatureService.sign(eq(PARTICIPANT_CONTEXT_ID), eq(KEY_NAME), any(), any())).thenReturn(Result.failure("signing service down"));
 
         assertThatThrownBy(() -> signer.sign(new JWSHeader(JWSAlgorithm.EdDSA), "signing-input".getBytes(StandardCharsets.UTF_8)))
                 .isInstanceOf(JOSEException.class)

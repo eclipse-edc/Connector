@@ -33,6 +33,6 @@ public class SignatureServiceJwsSignerProvider implements JwsSignerProvider {
 
     @Override
     public Result<JWSSigner> createJwsSigner(String participantContextId, String privateKeyId) {
-        return Result.success(new SignatureServiceJwsSigner(signatureService, privateKeyId));
+        return Result.success(new SignatureServiceJwsSigner(signatureService, participantContextId, privateKeyId));
     }
 }
