@@ -15,6 +15,7 @@
 package org.eclipse.edc.boot.system.injection;
 
 import org.eclipse.edc.junit.extensions.TestExtensionContext;
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Setting;
 import org.eclipse.edc.runtime.metamodel.annotation.Settings;
 import org.eclipse.edc.spi.system.configuration.ConfigFactory;
@@ -145,6 +146,123 @@ class ConfigurationObjectFactoryTest {
                                           @Setting(key = "duration", defaultValue = "PT1S") Duration duration) {
             public static final String DEFAULT_VALUE = "default-value";
         }
+    }
+
+    @Nested
+    class NestedConfiguration {
+
+        @Test
+        void shouldInstantiateRecordWithNestedConfigurationMap() {
+            context.setConfig(ConfigFactory.fromMap(Map.of(
+                    "required", "requiredValue",
+                    "nested.entry1.key", "value1",
+                    "nested.entry2.key", "value2"
+            )));
+
+            var object = factory.instantiate(context, null, RecordWithNestedMap.class);
+
+            assertThat(object).isInstanceOfSatisfying(RecordWithNestedMap.class, configuration -> {
+                assertThat(configuration.required()).isEqualTo("requiredValue");
+                assertThat(configuration.nested()).containsKeys("entry1", "entry2");
+                assertThat(configuration.nested().get("entry1").key()).isEqualTo("value1");
+                assertThat(configuration.nested().get("entry2").key()).isEqualTo("value2");
+            });
+        }
+
+        @Test
+        void shouldInstantiateRecordWithNestedConfigurationMapAndPrefix() {
+            context.setConfig(ConfigFactory.fromMap(Map.of(
+                    "prefix.required", "requiredValue",
+                    "prefix.nested.entry1.key", "value1",
+                    "prefix.nested.entry2.key", "value2"
+            )));
+
+            var object = factory.instantiate(context, "prefix", RecordWithNestedMap.class);
+
+            assertThat(object).isInstanceOfSatisfying(RecordWithNestedMap.class, configuration -> {
+                assertThat(configuration.required()).isEqualTo("requiredValue");
+                assertThat(configuration.nested()).containsKeys("entry1", "entry2");
+                assertThat(configuration.nested().get("entry1").key()).isEqualTo("value1");
+                assertThat(configuration.nested().get("entry2").key()).isEqualTo("value2");
+            });
+        }
+
+        @Test
+        void shouldInstantiateClassWithNestedConfigurationMap() {
+            context.setConfig(ConfigFactory.fromMap(Map.of(
+                    "required", "requiredValue",
+                    "nested.entry1.key", "value1"
+            )));
+
+            var object = factory.instantiate(context, null, ClassWithNestedMap.class);
+
+            assertThat(object).isInstanceOfSatisfying(ClassWithNestedMap.class, configuration -> {
+                assertThat(configuration.getRequired()).isEqualTo("requiredValue");
+                assertThat(configuration.getNested()).containsKey("entry1");
+                assertThat(configuration.getNested().get("entry1").key()).isEqualTo("value1");
+            });
+        }
+
+        @Test
+        void shouldThrowException_whenNestedConfigurationContextIsEmpty() {
+            context.setConfig(ConfigFactory.fromMap(Map.of("required", "requiredValue")));
+
+            assertThatThrownBy(() -> factory.instantiate(context, null, RecordWithEmptyContextConfig.class))
+                    .isInstanceOf(EdcInjectionException.class);
+        }
+
+        @Test
+        void shouldInstantiateRecordWithNestedConfigurationObject() {
+            context.setConfig(ConfigFactory.fromMap(Map.of(
+                    "required", "requiredValue",
+                    "sub.key", "nestedValue"
+            )));
+
+            var object = factory.instantiate(context, null, RecordWithNestedObject.class);
+
+            assertThat(object).isInstanceOfSatisfying(RecordWithNestedObject.class, configuration -> {
+                assertThat(configuration.required()).isEqualTo("requiredValue");
+                assertThat(configuration.sub().key()).isEqualTo("nestedValue");
+            });
+        }
+
+        @Settings
+        public record RecordWithNestedMap(
+                @Setting(key = "required") String required,
+                @Configuration(context = "nested") Map<String, NestedEntry> nested
+        ) {}
+
+        @Settings
+        public record RecordWithNestedObject(
+                @Setting(key = "required") String required,
+                @Configuration(context = "sub") NestedEntry sub
+        ) {}
+
+        @Settings
+        public static class ClassWithNestedMap {
+            @Setting(key = "required")
+            private String required;
+
+            @Configuration(context = "nested")
+            private Map<String, NestedEntry> nested;
+
+            public String getRequired() {
+                return required;
+            }
+
+            public Map<String, NestedEntry> getNested() {
+                return nested;
+            }
+        }
+
+        @Settings
+        public record RecordWithEmptyContextConfig(
+                @Setting(key = "required") String required,
+                @Configuration Map<String, NestedEntry> nested
+        ) {}
+
+        @Settings
+        public record NestedEntry(@Setting(key = "key") String key) {}
     }
 
 }

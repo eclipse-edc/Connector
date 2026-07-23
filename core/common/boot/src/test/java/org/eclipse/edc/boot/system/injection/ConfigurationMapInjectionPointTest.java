@@ -34,7 +34,6 @@ import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -98,8 +97,8 @@ class ConfigurationMapInjectionPointTest {
         @Test
         void resolve_singleEntry() {
             var key1 = new TestExtension.ConfigurationRecord("any");
-            when(configurationObjectFactory.instantiate(any(), any(), any())).thenReturn(key1);
-            context.setConfig(ConfigFactory.fromMap(Map.of("prefix.key1.required", "any")));
+            var expected = Map.of("key1", key1);
+            when(configurationObjectFactory.instantiateMap(any(), any(), any())).thenReturn((Map) expected);
 
             var result = injectionPoint.resolve(context, mock());
 
@@ -111,23 +110,23 @@ class ConfigurationMapInjectionPointTest {
                                     assertThat(entry).isSameAs(key1);
                                 });
                     });
+            verify(configurationObjectFactory).instantiateMap(context, "prefix", TestExtension.ConfigurationRecord.class);
         }
 
         @Test
         void resolve_multipleEntries() {
-            when(configurationObjectFactory.instantiate(any(), any(), any())).thenReturn(new TestExtension.ConfigurationRecord("any"));
-            context.setConfig(ConfigFactory.fromMap(Map.of(
-                    "prefix.key1.required", "value1",
-                    "prefix.key2.required", "value2"
-            )));
+            var expected = Map.of(
+                    "key1", new TestExtension.ConfigurationRecord("value1"),
+                    "key2", new TestExtension.ConfigurationRecord("value2")
+            );
+            when(configurationObjectFactory.instantiateMap(any(), any(), any())).thenReturn((Map) expected);
 
             var result = injectionPoint.resolve(context, mock());
 
             assertThat(result).isInstanceOf(Map.class)
                     .asInstanceOf(map(String.class, TestExtension.ConfigurationRecord.class))
                     .hasSize(2);
-            verify(configurationObjectFactory, times(1)).instantiate(context, "prefix.key1", TestExtension.ConfigurationRecord.class);
-            verify(configurationObjectFactory, times(1)).instantiate(context, "prefix.key2", TestExtension.ConfigurationRecord.class);
+            verify(configurationObjectFactory).instantiateMap(context, "prefix", TestExtension.ConfigurationRecord.class);
         }
     }
 

@@ -18,6 +18,7 @@ import org.eclipse.edc.protocol.dsp.http.spi.api.DspBaseWebhookAddress;
 import org.eclipse.edc.protocol.spi.DataspaceProfile;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction;
+import org.eclipse.edc.protocol.spi.TrustedIssuer;
 import org.eclipse.edc.protocol.spi.service.DataspaceProfileService;
 import org.eclipse.edc.protocol.spi.store.DataspaceProfileStore;
 import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
@@ -30,8 +31,10 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.transaction.spi.TransactionContext;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static org.eclipse.edc.spi.result.StoreFailure.Reason.ALREADY_EXISTS;
@@ -104,9 +107,13 @@ public class DataspaceProfileConfigurationExtension implements ServiceExtension 
     }
 
     private DataspaceProfile toDataspaceProfile(DataspaceProfileConfiguration config) {
-        var jsonLdContextsUrl = Arrays.stream(config.jsonLdContextsUrl().split(","))
-                .map(String::trim)
-                .filter(s -> !s.isBlank())
+        var jsonLdContextsUrl = splitToList(config.jsonLdContextsUrl());
+
+        var trustedIssuers = config.trustedIssuers().values().stream()
+                .map(issuerConfig -> TrustedIssuer.Builder.newInstance()
+                        .id(issuerConfig.id())
+                        .supportedTypes(splitToList(issuerConfig.supportedTypes()))
+                        .build())
                 .toList();
 
         return DataspaceProfile.Builder.newInstance()
@@ -116,7 +123,15 @@ public class DataspaceProfileConfigurationExtension implements ServiceExtension 
                 .binding(config.protocolBinding())
                 .namespace(config.protocolNamespace())
                 .jsonLdContextsUrl(jsonLdContextsUrl)
+                .trustedIssuers(trustedIssuers)
                 .build();
+    }
+
+    private @NotNull List<String> splitToList(String s1) {
+        return Arrays.stream(s1.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isBlank())
+                .toList();
     }
 
     @Settings
@@ -140,7 +155,19 @@ public class DataspaceProfileConfigurationExtension implements ServiceExtension 
             @Setting(
                     key = PROFILE_JSON_LD_CONTEXT,
                     description = "The JSON-LD context URLs of the dataspace profile.")
-            String jsonLdContextsUrl
+            String jsonLdContextsUrl,
+            @Configuration(context = "trustedissuers")
+            Map<String, TrustedIssuerConfiguration> trustedIssuers
+    ) {
+
+    }
+
+    @Settings
+    private record TrustedIssuerConfiguration(
+            @Setting(key = "id", description = "trusted issuer id.")
+            String id,
+            @Setting(key = "supportedtypes", description = "trusted issuer supported credential types")
+            String supportedTypes
     ) {
 
     }

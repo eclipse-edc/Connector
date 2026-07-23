@@ -71,7 +71,9 @@ class DataspaceProfileConfigurationExtensionTest {
                 "edc.dataspace.profiles.dsp2025_1.protocol.version", "2025-1",
                 "edc.dataspace.profiles.dsp2025_1.protocol.binding", "HTTPS",
                 "edc.dataspace.profiles.dsp2025_1.protocol.namespace", "https://w3id.org/dspace/v1",
-                "edc.dataspace.profiles.dsp2025_1.jsonld.context.urls", "https://w3id.org/dspace/v1/context.jsonld , https://example.org/extra.jsonld"
+                "edc.dataspace.profiles.dsp2025_1.jsonld.context.urls", "https://w3id.org/dspace/v1/context.jsonld , https://example.org/extra.jsonld",
+                "edc.dataspace.profiles.dsp2025_1.trustedissuers.alias.id", "did:web:trusted.issuer",
+                "edc.dataspace.profiles.dsp2025_1.trustedissuers.alias.supportedtypes", "MembershipCredential , AlternativeCredential"
         )));
         when(store.create(any())).thenAnswer(i -> StoreResult.success(i.getArgument(0)));
         var stored = DataspaceProfile.Builder.newInstance()
@@ -95,6 +97,10 @@ class DataspaceProfileConfigurationExtensionTest {
         assertThat(seeded.getNamespace()).isEqualTo("https://w3id.org/dspace/v1");
         assertThat(seeded.getJsonLdContextsUrl())
                 .containsExactly("https://w3id.org/dspace/v1/context.jsonld", "https://example.org/extra.jsonld");
+        assertThat(seeded.getTrustedIssuers()).hasSize(1).first().satisfies(trustedIssuer -> {
+            assertThat(trustedIssuer.getId()).isEqualTo("did:web:trusted.issuer");
+            assertThat(trustedIssuer.getSupportedTypes()).containsExactlyInAnyOrder("MembershipCredential", "AlternativeCredential");
+        });
 
         var contextCaptor = ArgumentCaptor.forClass(DataspaceProfileContext.class);
         verify(registry).register(contextCaptor.capture());

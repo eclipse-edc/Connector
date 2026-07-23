@@ -23,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -93,18 +92,7 @@ public class ConfigurationMapInjectionPoint<T> implements InjectionPoint<T> {
 
     @Override
     public Object resolve(ServiceExtensionContext context, DefaultServiceSupplier defaultServiceSupplier) {
-        var prefix = getPrefix();
-
-        var baseConfig = prefix != null ? context.getConfig(prefix) : context.getConfig();
-
-        var result = new HashMap<String, Object>();
-        baseConfig.partition().forEach(partitionConfig -> {
-            var partitionKey = partitionConfig.currentNode();
-            var partitionPrefix = prefix != null ? prefix + "." + partitionKey : partitionKey;
-            var value = configurationObjectFactory.instantiate(context, partitionPrefix, valueType);
-            result.put(partitionKey, value);
-        });
-        return result;
+        return configurationObjectFactory.instantiateMap(context, getPrefix(), valueType);
     }
 
     @Override
