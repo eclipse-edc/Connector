@@ -32,7 +32,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_ATTRIBUTE;
-import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_ACTION_TYPE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_INCLUDED_IN_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
 import static org.mockito.ArgumentMatchers.any;
@@ -55,20 +54,6 @@ class JsonObjectToActionTransformerTest {
     @BeforeEach
     void setUp() {
         transformer = new JsonObjectToActionTransformer();
-    }
-
-    @Test
-    void transform_onlyActionType_returnAction() {
-        var action = jsonFactory.createObjectBuilder().add(ODRL_ACTION_TYPE_ATTRIBUTE, "use").build();
-
-        var result = transformer.transform(TestJsonLd.expand(action), context);
-
-        assertThat(result).isNotNull();
-        assertThat(result.getType()).isEqualTo("use");
-        assertThat(result.getIncludedIn()).isNull();
-        assertThat(result.getConstraint()).isNull();
-
-        verifyNoInteractions(context);
     }
 
     @Test
@@ -102,32 +87,6 @@ class JsonObjectToActionTransformerTest {
         assertThat(result.getConstraint()).isNull();
 
         verifyNoInteractions(context);
-    }
-
-    @Test
-    void transform_allAttributesWithType_returnAction() {
-        var constraint = AtomicConstraint.Builder.newInstance()
-                .leftExpression(new LiteralExpression("left"))
-                .operator(Operator.EQ)
-                .rightExpression(new LiteralExpression("right"))
-                .build();
-        when(context.transform(any(JsonObject.class), eq(Constraint.class))).thenReturn(constraint);
-
-        var action = jsonFactory.createObjectBuilder()
-                .add(ODRL_ACTION_TYPE_ATTRIBUTE, "use")
-                .add(ODRL_INCLUDED_IN_ATTRIBUTE, "includedIn")
-                .add(ODRL_REFINEMENT_ATTRIBUTE, jsonFactory.createObjectBuilder().build())
-                .build();
-
-        var result = transformer.transform(TestJsonLd.expand(action), context);
-
-        assertThat(result).isNotNull();
-        assertThat(result.getType()).isEqualTo("use");
-        assertThat(result.getIncludedIn()).isEqualTo("includedIn");
-        assertThat(result.getConstraint()).isEqualTo(constraint);
-
-        verify(context, never()).reportProblem(anyString());
-        verify(context, times(1)).transform(any(JsonObject.class), eq(Constraint.class));
     }
 
     @Test

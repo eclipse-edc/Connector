@@ -15,18 +15,14 @@
 package org.eclipse.edc.connector.controlplane.api.management.transferprocess.validation;
 
 import jakarta.json.JsonObject;
-import org.eclipse.edc.api.validation.DataAddressValidator;
 import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
-import org.eclipse.edc.validator.jsonobject.validators.LogDeprecatedValue;
 import org.eclipse.edc.validator.jsonobject.validators.MandatoryValue;
 import org.eclipse.edc.validator.jsonobject.validators.OptionalIdNotBlank;
 import org.eclipse.edc.validator.spi.Validator;
 
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_ASSET_ID;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROTOCOL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TRANSFER_TYPE;
 
@@ -35,12 +31,10 @@ public class TransferRequestValidator {
     public static Validator<JsonObject> instance(Monitor monitor) {
         return JsonObjectValidator.newValidator()
                 .verifyId(OptionalIdNotBlank::new)
-                .verify(TRANSFER_REQUEST_ASSET_ID, path -> new LogDeprecatedValue(path, TRANSFER_REQUEST_ASSET_ID, "no attribute, as %s already provide such information".formatted(TRANSFER_REQUEST_CONTRACT_ID), monitor))
                 .verify(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS, MandatoryValue::new)
                 .verify(TRANSFER_REQUEST_CONTRACT_ID, MandatoryValue::new)
                 .verify(TRANSFER_REQUEST_PROTOCOL, MandatoryValue::new)
                 .verify(TRANSFER_REQUEST_TRANSFER_TYPE, MandatoryValue::new)
-                .verifyObject(TRANSFER_REQUEST_DATA_DESTINATION, DataAddressValidator::instance)
                 .build();
     }
 

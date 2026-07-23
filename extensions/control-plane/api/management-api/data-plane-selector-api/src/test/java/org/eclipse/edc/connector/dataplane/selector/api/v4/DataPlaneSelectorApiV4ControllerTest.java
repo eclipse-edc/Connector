@@ -32,7 +32,6 @@ import java.util.List;
 import static io.restassured.RestAssured.given;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.dataplane.selector.TestFunctions.createInstance;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -44,6 +43,13 @@ public class DataPlaneSelectorApiV4ControllerTest extends RestControllerTestBase
 
     private final DataPlaneSelectorService selectionService = mock();
     private final TypeTransformerRegistry transformerRegistry = mock();
+
+    public static DataPlaneInstance createInstance(String id) {
+        return DataPlaneInstance.Builder.newInstance()
+                .id(id)
+                .url("http://somewhere.com:1234/api/v1")
+                .build();
+    }
 
     @Test
     void getAll() {

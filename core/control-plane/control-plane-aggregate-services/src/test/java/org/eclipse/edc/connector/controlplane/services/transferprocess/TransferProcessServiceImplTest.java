@@ -165,8 +165,7 @@ class TransferProcessServiceImplTest {
     }
 
     private TransferRequest.@NonNull Builder transferRequestBuilder() {
-        return TransferRequest.Builder.newInstance()
-                .dataDestination(DataAddress.Builder.newInstance().type("type").build());
+        return TransferRequest.Builder.newInstance();
     }
 
     private ContractAgreement createContractAgreement(String agreementId, String assetId) {
@@ -221,7 +220,7 @@ class TransferProcessServiceImplTest {
 
         @Test
         void shouldInitiateTransfer_whenNoDataDestination() {
-            var transferRequest = transferRequestBuilder().dataDestination(null).build();
+            var transferRequest = transferRequestBuilder().build();
             var transferProcess = transferProcess();
             when(contractNegotiationStore.findContractAgreement(transferRequest.getContractId()))
                     .thenReturn(createContractAgreement(transferProcess.getContractId(), "assetId"));

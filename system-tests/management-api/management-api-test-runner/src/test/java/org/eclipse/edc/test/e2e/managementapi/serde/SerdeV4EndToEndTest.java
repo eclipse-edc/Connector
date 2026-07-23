@@ -481,7 +481,6 @@ public class SerdeV4EndToEndTest extends SerdeTestBase {
         assertThat(transferRequest).isNotNull();
         assertThat(transferRequest.getCounterPartyAddress()).isEqualTo(inputObject.getString("counterPartyAddress"));
         assertThat(transferRequest.getContractId()).isEqualTo(inputObject.getString("contractId"));
-        assertThat(transferRequest.getDataDestination()).extracting(DataAddress::getType).isEqualTo(inputObject.getJsonObject("dataDestination").getString("type"));
         assertThat(transferRequest.getPrivateProperties()).containsEntry(EDC_NAMESPACE + "fooPrivate", "bar");
         assertThat(transferRequest.getProtocol()).isEqualTo(inputObject.getString("protocol"));
         assertThat(transferRequest.getCallbackAddresses()).hasSize(inputObject.getJsonArray("callbackAddresses").size());
@@ -497,7 +496,6 @@ public class SerdeV4EndToEndTest extends SerdeTestBase {
         assertThat(transferRequest).isNotNull();
         assertThat(transferRequest.getCounterPartyAddress()).isEqualTo(inputObject.getString("counterPartyAddress"));
         assertThat(transferRequest.getContractId()).isEqualTo(inputObject.getString("contractId"));
-        assertThat(transferRequest.getDataDestination()).extracting(DataAddress::getType).isEqualTo(inputObject.getJsonObject("dataDestination").getString("type"));
         assertThat(transferRequest.getPrivateProperties()).containsEntry(EDC_NAMESPACE + "fooPrivate", "bar");
         assertThat(transferRequest.getProfile()).isEqualTo(inputObject.getString("profile"));
         assertThat(transferRequest.getCallbackAddresses()).hasSize(inputObject.getJsonArray("callbackAddresses").size());
