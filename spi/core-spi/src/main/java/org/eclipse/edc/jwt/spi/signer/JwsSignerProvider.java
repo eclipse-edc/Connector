@@ -23,14 +23,6 @@ import org.eclipse.edc.spi.result.Result;
  */
 @ExtensionPoint
 public interface JwsSignerProvider {
-    /**
-     * Creates a {@link JWSSigner} for the given private key ID.
-     *
-     * @param privateKeyId The ID of the private key, used for key lookup, e.g., in a secure vault
-     * @deprecated Please use {@link #createJwsSigner(String, String)} instead.
-     */
-    @Deprecated(since = "0.15.0")
-    Result<JWSSigner> createJwsSigner(String privateKeyId);
 
     /**
      * Creates a {@link JWSSigner} for the given private key ID.

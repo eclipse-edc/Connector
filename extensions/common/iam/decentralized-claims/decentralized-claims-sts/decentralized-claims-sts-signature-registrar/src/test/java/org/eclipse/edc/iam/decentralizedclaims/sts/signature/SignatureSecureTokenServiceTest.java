@@ -117,11 +117,6 @@ class SignatureSecureTokenServiceTest {
         private final List<String> privateKeyIds = new ArrayList<>();
 
         @Override
-        public Result<TokenRepresentation> generate(String privateKeyId, TokenDecorator... decorators) {
-            throw new UnsupportedOperationException("deprecated overload not used");
-        }
-
-        @Override
         public Result<TokenRepresentation> generate(String participantContextId, String privateKeyId, TokenDecorator... decorators) {
             var builder = TokenParameters.Builder.newInstance();
             for (var decorator : decorators) {
