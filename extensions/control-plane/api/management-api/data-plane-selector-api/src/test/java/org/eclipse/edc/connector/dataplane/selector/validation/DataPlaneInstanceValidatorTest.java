@@ -24,7 +24,6 @@ import org.junit.jupiter.api.Test;
 import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.ALLOWED_DEST_TYPES;
 import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.ALLOWED_SOURCE_TYPES;
 import static org.eclipse.edc.connector.controlplane.dataplane.spi.instance.DataPlaneInstance.URL;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
@@ -38,7 +37,6 @@ public class DataPlaneInstanceValidatorTest {
     void shouldSucceed_whenValidInput() {
         var input = createObjectBuilder()
                 .add(URL, value("http://myurl"))
-                .add(ALLOWED_DEST_TYPES, createArrayBuilder().add("test"))
                 .add(ALLOWED_SOURCE_TYPES, createArrayBuilder().add("test"))
                 .build();
 
@@ -52,7 +50,6 @@ public class DataPlaneInstanceValidatorTest {
         var input = createObjectBuilder()
                 .add(ID, " ")
                 .add(URL, value("http://myurl"))
-                .add(ALLOWED_DEST_TYPES, createArrayBuilder().add("test"))
                 .add(ALLOWED_SOURCE_TYPES, createArrayBuilder().add("test"))
                 .build();
 
@@ -65,7 +62,6 @@ public class DataPlaneInstanceValidatorTest {
     void shouldFail_whenUrlIsMissing() {
         var input = createObjectBuilder()
                 .add(ID, "my_id")
-                .add(ALLOWED_DEST_TYPES, createArrayBuilder().add("test"))
                 .add(ALLOWED_SOURCE_TYPES, createArrayBuilder().add("test"))
                 .build();
 
@@ -75,19 +71,18 @@ public class DataPlaneInstanceValidatorTest {
     }
 
     @Test
-    void shouldFail_whenAllowDestAndSourceAreEmpty() {
+    void shouldFail_whenAllowedSourceTypesAreEmpty() {
         var input = createObjectBuilder()
                 .add(ID, "my_id")
                 .add(URL, value("http://myurl"))
-                .add(ALLOWED_DEST_TYPES, createArrayBuilder())
                 .add(ALLOWED_SOURCE_TYPES, createArrayBuilder())
                 .build();
 
         var result = validator.validate(input);
 
-        assertThat(result).isFailed().satisfies(failure -> assertThat(failure.getViolations()).hasSize(2)
+        assertThat(result).isFailed().satisfies(failure -> assertThat(failure.getViolations()).hasSize(1)
                 .map(Violation::path)
-                .contains(ALLOWED_DEST_TYPES, ALLOWED_SOURCE_TYPES));
+                .contains(ALLOWED_SOURCE_TYPES));
     }
 
     private JsonArrayBuilder value(String value) {

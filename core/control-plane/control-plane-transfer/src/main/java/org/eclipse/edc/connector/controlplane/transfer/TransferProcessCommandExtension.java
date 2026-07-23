@@ -55,7 +55,7 @@ public class TransferProcessCommandExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        registry.register(new InitiateTransferCommandHandler(store, dataAddressStore, observable, clock, telemetry,
+        registry.register(new InitiateTransferCommandHandler(store, observable, clock, telemetry,
                 context.getMonitor(), contractNegotiationStore));
         registry.register(new TerminateTransferCommandHandler(store, observable));
         registry.register(new SuspendTransferCommandHandler(store, observable));

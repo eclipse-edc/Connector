@@ -409,7 +409,6 @@ public class CatalogApiV5EndToEndTest {
             createContractOffer(policyDefinitionStore, contractDefinitionStore, List.of());
 
             var dataPlaneInstance = DataPlaneInstance.Builder.newInstance().url("http://localhost/any")
-                    .allowedDestType("any").allowedSourceType("test-type")
                     .allowedTransferType("any-PULL").allowedTransferType("any-PULL-response")
                     .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .build();

@@ -56,8 +56,6 @@ public interface PropertyAndTypeNames {
     String ODRL_PROHIBITION_ATTRIBUTE = ODRL_SCHEMA + "prohibition";
     String ODRL_OBLIGATION_ATTRIBUTE = ODRL_SCHEMA + "obligation";
     String ODRL_ACTION_ATTRIBUTE = ODRL_SCHEMA + "action";
-    @Deprecated(since = "management-api:v3")
-    String ODRL_ACTION_TYPE_ATTRIBUTE = ODRL_SCHEMA + "type";
     String ODRL_CONSEQUENCE_ATTRIBUTE = ODRL_SCHEMA + "consequence";
     String ODRL_REMEDY_ATTRIBUTE = ODRL_SCHEMA + "remedy";
     String ODRL_INCLUDED_IN_ATTRIBUTE = ODRL_SCHEMA + "includedIn";

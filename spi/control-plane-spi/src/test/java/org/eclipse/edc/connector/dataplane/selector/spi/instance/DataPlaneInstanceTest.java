@@ -38,14 +38,11 @@ class DataPlaneInstanceTest {
     void verifySerialization() throws MalformedURLException, JsonProcessingException {
         var instance = DataPlaneInstance.Builder.newInstance()
                 .id("test-id")
-                .turnCount(7)
                 .lastActive(Instant.now().toEpochMilli())
                 .url(new URL("http://localhost:8234/some/path"))
                 .property("someprop", "someval")
                 .allowedSourceType("allowedSrc1")
                 .allowedSourceType("allowedSrc2")
-                .allowedDestType("allowedDest1")
-                .allowedDestType("allowedDest2")
                 .authorizationProfile(new AuthorizationProfile("test-type", emptyMap()))
                 .build();
 
@@ -53,7 +50,6 @@ class DataPlaneInstanceTest {
 
         assertThat(json).isNotNull()
                 .contains("url\":\"http://localhost:8234/some/path\"")
-                .contains("\"turnCount\":7")
                 .contains("\"someprop\":\"someval\"");
 
         var deserialized = mapper.readValue(json, DataPlaneInstance.class).copy();

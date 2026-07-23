@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.controlplane.transfer.command.handlers;
 import org.eclipse.edc.connector.controlplane.contract.spi.negotiation.store.ContractNegotiationStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.observe.TransferProcessObservable;
 import org.eclipse.edc.connector.controlplane.transfer.spi.store.TransferProcessStore;
-import org.eclipse.edc.connector.controlplane.transfer.spi.types.DataAddressStore;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.command.InitiateTransferCommand;
 import org.eclipse.edc.spi.command.CommandHandler;
@@ -27,7 +26,6 @@ import org.eclipse.edc.spi.result.StoreResult;
 import org.eclipse.edc.spi.telemetry.Telemetry;
 
 import java.time.Clock;
-import java.util.Optional;
 
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess.Type.CONSUMER;
 
@@ -37,7 +35,6 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 public class InitiateTransferCommandHandler implements CommandHandler<InitiateTransferCommand> {
 
     private final TransferProcessStore store;
-    private final DataAddressStore dataAddressStore;
     private final TransferProcessObservable observable;
     private final Clock clock;
     private final Telemetry telemetry;
@@ -45,10 +42,9 @@ public class InitiateTransferCommandHandler implements CommandHandler<InitiateTr
     private final ContractNegotiationStore contractNegotiationStore;
 
     public InitiateTransferCommandHandler(TransferProcessStore store,
-                                          DataAddressStore dataAddressStore, TransferProcessObservable observable,
+                                          TransferProcessObservable observable,
                                           Clock clock, Telemetry telemetry, Monitor monitor, ContractNegotiationStore contractNegotiationStore) {
         this.store = store;
-        this.dataAddressStore = dataAddressStore;
         this.observable = observable;
         this.clock = clock;
         this.telemetry = telemetry;
@@ -88,12 +84,7 @@ public class InitiateTransferCommandHandler implements CommandHandler<InitiateTr
                 .dataplaneMetadata(transferRequest.getDataplaneMetadata())
                 .build();
 
-        var dataAddressStorage = Optional.ofNullable(transferRequest.getDataDestination())
-                .map(it -> dataAddressStore.store(it, process))
-                .orElse(StoreResult.success());
-
-        return  dataAddressStorage
-                .compose(v -> update(process))
+        return update(process)
                 .onSuccess(v -> observable.invokeForEach(l -> l.initiated(process)))
                 .flatMap(r -> {
                     if (r.succeeded()) {

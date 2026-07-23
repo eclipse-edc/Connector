@@ -30,7 +30,6 @@ public class DataplaneInstanceRegistrationExtension implements ServiceExtension 
     public void initialize(ServiceExtensionContext context) {
         var dpi = DataPlaneInstance.Builder.newInstance()
                 .id("test-instance")
-                .allowedDestType("test-dest-type")
                 .allowedSourceType("test-src-type")
                 .url("http://test.local")
                 .build();

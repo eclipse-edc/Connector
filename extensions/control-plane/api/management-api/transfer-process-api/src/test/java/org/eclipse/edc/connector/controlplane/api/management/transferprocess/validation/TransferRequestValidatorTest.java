@@ -28,13 +28,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROTOCOL;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TRANSFER_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.spi.types.domain.DataAddress.EDC_DATA_ADDRESS_TYPE_PROPERTY;
 import static org.mockito.Mockito.mock;
 
 class TransferRequestValidatorTest {
@@ -48,9 +46,6 @@ class TransferRequestValidatorTest {
                 .add(TRANSFER_REQUEST_CONTRACT_ID, value("contract-id"))
                 .add(TRANSFER_REQUEST_PROTOCOL, value("protocol"))
                 .add(TRANSFER_REQUEST_TRANSFER_TYPE, value("transferType"))
-                .add(TRANSFER_REQUEST_DATA_DESTINATION, createArrayBuilder().add(createObjectBuilder()
-                        .add(EDC_DATA_ADDRESS_TYPE_PROPERTY, value("type"))
-                ))
                 .build();
 
         var result = validator.validate(input);

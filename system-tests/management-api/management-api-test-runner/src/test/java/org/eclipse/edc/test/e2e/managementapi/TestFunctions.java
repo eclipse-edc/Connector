@@ -391,22 +391,6 @@ public class TestFunctions {
                 .build();
     }
 
-    public static JsonObject transferRequestObject(String context) {
-        var dataDestination = createObjectBuilder()
-                .add(TYPE, "DataAddress")
-                .add("type", "type").build();
-
-        return transferRequestObject(context, dataDestination);
-    }
-
-    public static JsonObject transferRequestObjectWithProfile(String context) {
-        var dataDestination = createObjectBuilder()
-                .add(TYPE, "DataAddress")
-                .add("type", "type").build();
-
-        return transferRequestObjectWithProfile(context, dataDestination);
-    }
-
     public static JsonObject transferRequestObjectWithProfileAndProtocol(String context) {
         return createObjectBuilder()
                 .add(TYPE, "TransferRequest")
@@ -420,7 +404,7 @@ public class TestFunctions {
                 .build();
     }
 
-    public static JsonObject transferRequestObject(String context, JsonObject dataDestination) {
+    public static JsonObject transferRequestObject(String context) {
         var propertiesJson = Json.createObjectBuilder().add("foo", "bar").build();
         var privatePropertiesJson = Json.createObjectBuilder().add("fooPrivate", "bar").build();
 
@@ -429,7 +413,6 @@ public class TestFunctions {
                 .add(CONTEXT, createContextBuilder(context).build())
                 .add("counterPartyAddress", "address")
                 .add("contractId", "contractId")
-                .add("dataDestination", dataDestination)
                 .add("properties", propertiesJson)
                 .add("privateProperties", privatePropertiesJson)
                 .add("protocol", "protocol")
@@ -438,7 +421,7 @@ public class TestFunctions {
                 .build();
     }
 
-    public static JsonObject transferRequestObjectWithProfile(String context, JsonObject dataDestination) {
+    public static JsonObject transferRequestObjectWithProfile(String context) {
         var propertiesJson = Json.createObjectBuilder().add("foo", "bar").build();
         var privatePropertiesJson = Json.createObjectBuilder().add("fooPrivate", "bar").build();
 
@@ -447,7 +430,6 @@ public class TestFunctions {
                 .add(CONTEXT, createContextBuilder(context).build())
                 .add("counterPartyAddress", "address")
                 .add("contractId", "contractId")
-                .add("dataDestination", dataDestination)
                 .add("properties", propertiesJson)
                 .add("privateProperties", privatePropertiesJson)
                 .add("profile", "profile")

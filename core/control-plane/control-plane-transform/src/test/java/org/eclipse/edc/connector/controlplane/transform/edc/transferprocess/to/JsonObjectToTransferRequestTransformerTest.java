@@ -30,7 +30,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_CONTRACT_ID;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATAPLANE_METADATA;
-import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_DATA_DESTINATION;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PRIVATE_PROPERTIES;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROFILE;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_PROTOCOL;
@@ -58,7 +57,6 @@ class JsonObjectToTransferRequestTransformerTest {
 
     @Test
     void transform() {
-        var dataDestinationJson = createObjectBuilder().build();
         var privatePropertiesJson = createObjectBuilder().add("fooPrivate", "bar").build();
         var dataDestination = DataAddress.Builder.newInstance().type("type").build();
         var privateProperties = Map.of("fooPrivate", "bar");
@@ -70,7 +68,6 @@ class JsonObjectToTransferRequestTransformerTest {
                 .add(TYPE, TRANSFER_REQUEST_TYPE)
                 .add(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS, "address")
                 .add(TRANSFER_REQUEST_CONTRACT_ID, "contractId")
-                .add(TRANSFER_REQUEST_DATA_DESTINATION, dataDestinationJson)
                 .add(TRANSFER_REQUEST_PRIVATE_PROPERTIES, privatePropertiesJson)
                 .add(TRANSFER_REQUEST_TRANSFER_TYPE, "Http-Pull")
                 .add(TRANSFER_REQUEST_PROTOCOL, "protocol")
@@ -83,7 +80,6 @@ class JsonObjectToTransferRequestTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getCounterPartyAddress()).isEqualTo("address");
         assertThat(result.getContractId()).isEqualTo("contractId");
-        assertThat(result.getDataDestination()).isSameAs(dataDestination);
         assertThat(result.getPrivateProperties()).containsAllEntriesOf(privateProperties);
         assertThat(result.getProtocol()).isEqualTo("protocol");
         assertThat(result.getTransferType()).isEqualTo("Http-Pull");
@@ -92,7 +88,6 @@ class JsonObjectToTransferRequestTransformerTest {
 
     @Test
     void transform_withProfile() {
-        var dataDestinationJson = createObjectBuilder().build();
         var privatePropertiesJson = createObjectBuilder().add("fooPrivate", "bar").build();
         var dataDestination = DataAddress.Builder.newInstance().type("type").build();
         var privateProperties = Map.of("fooPrivate", "bar");
@@ -104,7 +99,6 @@ class JsonObjectToTransferRequestTransformerTest {
                 .add(TYPE, TRANSFER_REQUEST_TYPE)
                 .add(TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS, "address")
                 .add(TRANSFER_REQUEST_CONTRACT_ID, "contractId")
-                .add(TRANSFER_REQUEST_DATA_DESTINATION, dataDestinationJson)
                 .add(TRANSFER_REQUEST_PRIVATE_PROPERTIES, privatePropertiesJson)
                 .add(TRANSFER_REQUEST_TRANSFER_TYPE, "Http-Pull")
                 .add(TRANSFER_REQUEST_PROFILE, "profile")
@@ -117,7 +111,6 @@ class JsonObjectToTransferRequestTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getCounterPartyAddress()).isEqualTo("address");
         assertThat(result.getContractId()).isEqualTo("contractId");
-        assertThat(result.getDataDestination()).isSameAs(dataDestination);
         assertThat(result.getPrivateProperties()).containsAllEntriesOf(privateProperties);
         assertThat(result.getProfile()).isEqualTo("profile");
         assertThat(result.getTransferType()).isEqualTo("Http-Pull");

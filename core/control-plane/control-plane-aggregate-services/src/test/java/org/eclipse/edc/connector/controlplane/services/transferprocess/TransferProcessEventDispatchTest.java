@@ -244,7 +244,6 @@ public class TransferProcessEventDispatchTest {
 
     private TransferRequest createTransferRequest() {
         return TransferRequest.Builder.newInstance()
-                .dataDestination(DataAddress.Builder.newInstance().type("any").build())
                 .protocol("test")
                 .counterPartyAddress("http://an/address")
                 .contractId("contractId")

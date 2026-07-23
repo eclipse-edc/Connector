@@ -16,7 +16,6 @@
 package org.eclipse.edc.connector.controlplane.transfer.spi.types;
 
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.DataplaneMetadata;
-import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.spi.types.domain.callback.CallbackAddress;
 
 import java.util.ArrayList;
@@ -32,15 +31,11 @@ public class TransferRequest {
     public static final String TRANSFER_REQUEST_TYPE = EDC_NAMESPACE + TRANSFER_REQUEST_TYPE_TERM;
     public static final String TRANSFER_REQUEST_COUNTER_PARTY_ADDRESS = EDC_NAMESPACE + "counterPartyAddress";
     public static final String TRANSFER_REQUEST_CONTRACT_ID = EDC_NAMESPACE + "contractId";
-    @Deprecated(since = "management-api:v3")
-    public static final String TRANSFER_REQUEST_DATA_DESTINATION = EDC_NAMESPACE + "dataDestination";
     public static final String TRANSFER_REQUEST_TRANSFER_TYPE = EDC_NAMESPACE + "transferType";
     public static final String TRANSFER_REQUEST_PRIVATE_PROPERTIES = EDC_NAMESPACE + "privateProperties";
     @Deprecated(since = "management-api:v4")
     public static final String TRANSFER_REQUEST_PROTOCOL = EDC_NAMESPACE + "protocol";
     public static final String TRANSFER_REQUEST_PROFILE = EDC_NAMESPACE + "profile";
-    @Deprecated(since = "management-api:v3")
-    public static final String TRANSFER_REQUEST_ASSET_ID = EDC_NAMESPACE + "assetId";
     public static final String TRANSFER_REQUEST_CALLBACK_ADDRESSES = EDC_NAMESPACE + "callbackAddresses";
     public static final String TRANSFER_REQUEST_DATAPLANE_METADATA = EDC_NAMESPACE + "dataplaneMetadata";
 
@@ -49,7 +44,6 @@ public class TransferRequest {
     private String counterPartyAddress;
     private String contractId;
     private String transferType;
-    private DataAddress dataDestination;
     private Map<String, Object> privateProperties = new HashMap<>();
     private List<CallbackAddress> callbackAddresses = new ArrayList<>();
     private DataplaneMetadata dataplaneMetadata;
@@ -60,11 +54,6 @@ public class TransferRequest {
 
     public String getContractId() {
         return contractId;
-    }
-
-    @Deprecated(since = "management-api:v3")
-    public DataAddress getDataDestination() {
-        return dataDestination;
     }
 
     public Map<String, Object> getPrivateProperties() {
@@ -120,12 +109,6 @@ public class TransferRequest {
 
         public Builder transferType(String transferType) {
             request.transferType = transferType;
-            return this;
-        }
-
-        @Deprecated(since = "management-api:v3")
-        public Builder dataDestination(DataAddress dataDestination) {
-            request.dataDestination = dataDestination;
             return this;
         }
 
