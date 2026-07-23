@@ -45,18 +45,6 @@ public class JwtGenerationService implements TokenGenerationService {
     }
 
     @Override
-    @Deprecated(since = "0.15.0")
-    public Result<TokenRepresentation> generate(String privateKeyId, @NotNull TokenDecorator... decorators) {
-
-        var tokenSignerResult = jwsGeneratorFunction.createJwsSigner(privateKeyId);
-        if (tokenSignerResult.failed()) {
-            return Result.failure("JWSSigner cannot be generated for private key '%s': %s".formatted(privateKeyId, tokenSignerResult.getFailureDetail()));
-        }
-
-        return signTokenWithDecorators(decorators, tokenSignerResult.getContent());
-    }
-
-    @Override
     public Result<TokenRepresentation> generate(String participantContextId, String privateKeyId, TokenDecorator... decorators) {
         var tokenSignerResult = jwsGeneratorFunction.createJwsSigner(participantContextId, privateKeyId);
         if (tokenSignerResult.failed()) {

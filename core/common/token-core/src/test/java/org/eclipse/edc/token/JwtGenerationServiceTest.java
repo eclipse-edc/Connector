@@ -51,10 +51,6 @@ class JwtGenerationServiceTest {
     void setUp() throws JOSEException {
         keys = testKey();
         tokenGenerationService = new JwtGenerationService(new JwsSignerProvider() {
-            @Override
-            public Result<JWSSigner> createJwsSigner(String privateKeyId) {
-                throw new AssertionError("deprecated method: should not be used anymore");
-            }
 
             @Override
             public Result<JWSSigner> createJwsSigner(String participantContextId, String privateKeyId) {

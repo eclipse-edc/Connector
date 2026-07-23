@@ -40,11 +40,6 @@ public abstract class AbstractPrivateKeyResolver implements PrivateKeyResolver {
     }
 
     @Override
-    public Result<PrivateKey> resolvePrivateKey(String id) {
-        return resolvePrivateKey(null, id);
-    }
-
-    @Override
     public Result<PrivateKey> resolvePrivateKey(String participantContextId, String id) {
         var encodedKeyResult = resolveInternal(participantContextId, id);
 
