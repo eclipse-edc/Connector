@@ -103,8 +103,7 @@ public class ConfigurationInjectionPoint<T> implements InjectionPoint<T> {
 
     @Override
     public Object resolve(ServiceExtensionContext context, DefaultServiceSupplier defaultServiceSupplier) {
-        var keyPrefix = getPrefix();
-        return configurationObjectFactory.instantiate(context, keyPrefix, configurationField.getType());
+        return configurationObjectFactory.instantiate(context, getPrefix(), configurationField.getType());
     }
 
     @Override
