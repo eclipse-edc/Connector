@@ -15,13 +15,16 @@
 
 package org.eclipse.edc.connector.controlplane.services.protocol;
 
+import org.eclipse.edc.jsonld.spi.JsonLdNamespace;
 import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.context.request.spi.RequestPolicyContext;
 import org.eclipse.edc.policy.engine.spi.PolicyEngine;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.RequestContext;
@@ -30,8 +33,10 @@ import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.UNAUTHORIZED;
@@ -68,7 +73,7 @@ class ProtocolTokenValidatorImplTest {
         var policy = Policy.Builder.newInstance().build();
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
         when(identityService.verifyJwtToken(any(), any(), any())).thenReturn(Result.success(claimToken));
-        when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> participantId);
+        when(dataspaceProfileContextRegistry.getProfile(any())).thenReturn(createDataspaceProfileContext(participantId));
         when(agentService.createFor(any(), any())).thenReturn(participantAgent);
 
         var result = validator.verify(participantContext, tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
@@ -79,7 +84,7 @@ class ProtocolTokenValidatorImplTest {
             var reqContext = ctx.requestContext();
             return reqContext.getMessage().getClass().equals(TestMessage.class) && reqContext.getDirection().equals(RequestContext.Direction.Ingress);
         })));
-        verify(dataspaceProfileContextRegistry).getIdExtractionFunction(protocol);
+        verify(dataspaceProfileContextRegistry).getProfile(protocol);
         verify(identityService).verifyJwtToken(eq(participantContext.getParticipantContextId()), same(tokenRepresentation), any());
     }
 
@@ -93,13 +98,13 @@ class ProtocolTokenValidatorImplTest {
     }
 
     @Test
-    void shouldReturnUnauthorized_whenProtocolIsNotRegistered() {
+    void shouldReturnUnauthorized_whenProfileNotSupported() {
         var claimToken = ClaimToken.Builder.newInstance().build();
         var policy = Policy.Builder.newInstance().build();
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
 
         when(identityService.verifyJwtToken(any(), any(), any())).thenReturn(Result.success(claimToken));
-        when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(null);
+        when(dataspaceProfileContextRegistry.getProfile(any())).thenReturn(null);
 
         var result = validator.verify(participantContext, tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
 
@@ -112,14 +117,22 @@ class ProtocolTokenValidatorImplTest {
         var policy = Policy.Builder.newInstance().build();
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().build();
         when(identityService.verifyJwtToken(any(), any(), any())).thenReturn(Result.success(claimToken));
-        when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> null);
+        when(dataspaceProfileContextRegistry.getProfile(any())).thenReturn(createDataspaceProfileContext(null));
 
         var result = validator.verify(participantContext, tokenRepresentation, TestRequestPolicyContext::new, policy, new TestMessage());
 
         assertThat(result).isFailed().extracting(ServiceFailure::getReason).isEqualTo(UNAUTHORIZED);
     }
 
+    private @NonNull DataspaceProfileContext createDataspaceProfileContext(String participantId) {
+        return new DataspaceProfileContext(
+                "any", new ProtocolVersion("any", "any", "any"), mock(), i -> participantId,
+                new JsonLdNamespace("any"), emptyList(), emptyList()
+        );
+    }
+
     static class TestMessage extends RemoteMessage {
+
         @Override
         public String getProtocol() {
             return "protocol";

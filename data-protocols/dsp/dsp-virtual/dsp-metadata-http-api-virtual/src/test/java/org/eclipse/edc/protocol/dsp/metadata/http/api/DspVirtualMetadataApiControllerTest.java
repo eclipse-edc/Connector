@@ -57,7 +57,7 @@ class DspVirtualMetadataApiControllerTest extends RestControllerTestBase {
                         .participantContextId("participantcontextId").build()));
         var protocolVersion = new ProtocolVersion("version", "/1.0", "binding");
 
-        var profile = new DataspaceProfileContext("profileId", protocolVersion, mock(), mock(), new JsonLdNamespace("https://example.org/dspace/"), List.of("https://example.org/context.jsonld"));
+        var profile = new DataspaceProfileContext("profileId", protocolVersion, mock(), mock(), new JsonLdNamespace("https://example.org/dspace/"), List.of("https://example.org/context.jsonld"), List.of());
 
         when(profileResolver.resolveAll(participantContextId)).thenReturn(List.of(profile));
 

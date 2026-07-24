@@ -23,7 +23,6 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.VerifiableCredentialValidat
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentation;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
-import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenParameters;
@@ -40,6 +39,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.SelfIssuedTokenConstants.PRESENTATION_TOKEN_CLAIM;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.ISSUER;
@@ -152,7 +152,7 @@ public class DcpIdentityService implements IdentityService {
 
         // check all requested credentials are present
         var result = validateRequestedCredentials(presentations, requestedScopes)
-                .compose(unused -> verifiableCredentialValidationService.validate(presentations, myOwnDid, getAdditionalValidations()));
+                .compose(unused -> verifiableCredentialValidationService.validate(presentations, myOwnDid, emptyList()));
 
 
         return result
@@ -196,12 +196,6 @@ public class DcpIdentityService implements IdentityService {
             return Result.failure("Returned presentations contains invalid issuer. Expected %s found %s".formatted(expectedIssuer, issuers));
         }
     }
-
-
-    private Collection<? extends CredentialValidationRule> getAdditionalValidations() {
-        return Collections.emptyList();
-    }
-
 
     private Result<Void> validateScope(String scope) {
         if (StringUtils.isNullOrBlank(scope)) {

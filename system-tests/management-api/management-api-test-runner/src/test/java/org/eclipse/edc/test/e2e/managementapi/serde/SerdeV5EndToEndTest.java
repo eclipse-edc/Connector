@@ -146,7 +146,7 @@ class SerdeV5EndToEndTest extends SerdeTestBase {
 
         var protocol = new ProtocolVersion("test-protocol", "1.0", "https");
 
-        var dataspaceProfile = new DataspaceProfileContext("test-profile", protocol, mock(), mock(), new JsonLdNamespace("https://example.com/test-profile/"), List.of("https://example.com/test-profile/context.jsonld"));
+        var dataspaceProfile = new DataspaceProfileContext("test-profile", protocol, mock(), mock(), new JsonLdNamespace("https://example.com/test-profile/"), List.of("https://example.com/test-profile/context.jsonld"), List.of());
         var compactResult = serialize(typeTransformerRegistry, validatorRegistry, jsonLd, dataspaceProfile);
 
         assertThat(compactResult).isNotNull();

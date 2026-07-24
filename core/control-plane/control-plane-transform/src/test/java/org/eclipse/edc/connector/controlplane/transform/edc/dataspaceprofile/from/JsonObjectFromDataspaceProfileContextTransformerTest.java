@@ -58,7 +58,7 @@ class JsonObjectFromDataspaceProfileContextTransformerTest {
                 () -> "https://example.com/webhook",
                 mock(),
                 new JsonLdNamespace("https://example.com/ns/"),
-                List.of("https://example.com/ctx/v1", "https://example.com/ctx/v2"));
+                List.of("https://example.com/ctx/v1", "https://example.com/ctx/v2"), List.of());
 
         var result = transformer.transform(profile, context);
 
@@ -89,7 +89,7 @@ class JsonObjectFromDataspaceProfileContextTransformerTest {
                 () -> "https://example.com/webhook",
                 mock(),
                 new JsonLdNamespace("https://example.com/ns/"),
-                List.of());
+                List.of(), List.of());
 
         var result = transformer.transform(profile, context);
 

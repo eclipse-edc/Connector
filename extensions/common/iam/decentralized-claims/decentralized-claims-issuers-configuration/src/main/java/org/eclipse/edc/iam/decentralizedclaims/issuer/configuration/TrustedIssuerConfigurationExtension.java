@@ -35,17 +35,14 @@ import static org.eclipse.edc.iam.decentralizedclaims.issuer.configuration.Trust
 /**
  * This DCP extension makes it possible to configure a list of trusted issuers, that will be matched against the Verifiable Credential issuers.
  */
+// TODO: can this go away?
 @Extension(NAME)
 public class TrustedIssuerConfigurationExtension implements ServiceExtension {
 
-    public static final String DEPRECATED_CONFIG_PREFIX = "edc.iam.trusted-issuer";
     public static final String CONFIG_PREFIX = "edc.iam.trustedissuer";
 
     protected static final String NAME = "Trusted Issuers Configuration Extensions";
 
-    @Deprecated(since = "0.17.0")
-    @Configuration(context = DEPRECATED_CONFIG_PREFIX)
-    private Map<String, TrustedIssuerConfiguration> deprecatedTrustedIssuers;
     @Configuration(context = CONFIG_PREFIX)
     private Map<String, TrustedIssuerConfiguration> trustedIssuers;
 
@@ -58,16 +55,11 @@ public class TrustedIssuerConfigurationExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        if (!deprecatedTrustedIssuers.isEmpty()) {
-            monitor.warning("Using deprecated configuration prefix '%s'. Please switch to the new prefix '%s'".formatted(DEPRECATED_CONFIG_PREFIX, CONFIG_PREFIX));
-        }
-
         if (trustedIssuers.isEmpty()) {
             monitor.warning("No configured trusted issuer under '%s' setting group.".formatted(CONFIG_PREFIX));
         }
 
         trustedIssuers.forEach(this::addIssuer);
-        deprecatedTrustedIssuers.forEach(this::addIssuer);
     }
 
     private void addIssuer(String alias, TrustedIssuerConfiguration config) {

@@ -32,8 +32,6 @@ import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.ServiceResult;
 import org.eclipse.edc.spi.types.domain.message.RemoteMessage;
 
-import java.util.Optional;
-
 /**
  * Implementation of {@link ProtocolTokenValidator} which uses the {@link PolicyEngine} for extracting
  * the scope from the {@link Policy} within a scope
@@ -62,9 +60,17 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
         var requestContext = RequestContext.Builder.newInstance().message(message).direction(RequestContext.Direction.Ingress).build();
         var policyContext = policyContextProvider.instantiate(requestContext, requestScopeBuilder);
         policyEngine.evaluate(policy, policyContext);
+
+        var profileContext = dataspaceProfileContextRegistry.getProfile(message.getProtocol());
+        if (profileContext == null) {
+            monitor.debug(() -> "Dataspace Profile '%s' not supported".formatted(message.getProtocol()));
+            return ServiceResult.unauthorized("Unauthorized");
+        }
+
         var verificationContext = VerificationContext.Builder.newInstance()
                 .scopes(policyContext.requestScopeBuilder().build().getScopes())
                 .build();
+
         var tokenValidation = identityService.verifyJwtToken(participantContext.getParticipantContextId(), tokenRepresentation, verificationContext);
         if (tokenValidation.failed()) {
             monitor.debug(() -> "Unauthorized: %s".formatted(tokenValidation.getFailureDetail()));
@@ -73,13 +79,9 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
 
         var claimToken = tokenValidation.getContent();
 
-        var id = Optional.of(message.getProtocol())
-                .map(dataspaceProfileContextRegistry::getIdExtractionFunction)
-                .map(extractor -> extractor.apply(claimToken))
-                .orElse(null);
-
+        var id = profileContext.idExtractionFunction().apply(claimToken);
         if (id == null) {
-            monitor.debug(() -> "Unauthorized: Cannot extract id on protocol [%s] from claims: %s.".formatted(message.getProtocol(), claimToken.getClaims()));
+            monitor.debug(() -> "Unauthorized: Cannot extract id on profile [%s] from claims: %s.".formatted(message.getProtocol(), claimToken.getClaims()));
             return ServiceResult.unauthorized("Unauthorized");
         }
 

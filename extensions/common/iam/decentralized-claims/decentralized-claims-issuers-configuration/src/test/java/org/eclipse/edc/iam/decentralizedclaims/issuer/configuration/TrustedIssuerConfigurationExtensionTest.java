@@ -52,7 +52,7 @@ public class TrustedIssuerConfigurationExtensionTest {
         context.registerService(TypeManager.class, new JacksonTypeManager());
     }
 
-    @ValueSource(strings = {"edc.iam.trusted-issuer", "edc.iam.trustedissuer"})
+    @ValueSource(strings = {"edc.iam.trustedissuer"})
     @ParameterizedTest
     void initialize_issuerWithSupportedTypes(String prefix, TestExtensionContext context, ObjectFactory factory) {
         context.setConfig(ConfigFactory.fromMap(Map.of(
@@ -66,7 +66,7 @@ public class TrustedIssuerConfigurationExtensionTest {
         verify(trustedIssuerRegistry).register(argThat(issuer -> issuer.id().equals("issuer1")), eq("type1"));
     }
 
-    @ValueSource(strings = {"edc.iam.trusted-issuer", "edc.iam.trustedissuer"})
+    @ValueSource(strings = {"edc.iam.trustedissuer"})
     @ParameterizedTest
     void initialize_issuerWithoutSupportedType(String prefix, TestExtensionContext context, ObjectFactory factory) {
         context.setConfig(ConfigFactory.fromMap(Map.of(prefix + ".issuer1.id", "issuer1")));
@@ -88,7 +88,7 @@ public class TrustedIssuerConfigurationExtensionTest {
         verify(monitor).warning("No configured trusted issuer under 'edc.iam.trustedissuer' setting group.");
     }
 
-    @ValueSource(strings = {"edc.iam.trusted-issuer", "edc.iam.trustedissuer"})
+    @ValueSource(strings = {"edc.iam.trustedissuer"})
     @ParameterizedTest
     void initialize_withProperties(String prefix, TestExtensionContext context, ObjectFactory factory) {
         context.setConfig(ConfigFactory.fromMap(Map.of(
@@ -101,7 +101,7 @@ public class TrustedIssuerConfigurationExtensionTest {
         verify(trustedIssuerRegistry).register(argThat(issuer -> issuer.additionalProperties().get("custom").equals("test")), eq(TrustedIssuerRegistry.WILDCARD));
     }
 
-    @ValueSource(strings = {"edc.iam.trusted-issuer", "edc.iam.trustedissuer"})
+    @ValueSource(strings = {"edc.iam.trustedissuer"})
     @ParameterizedTest
     void initialize_withTwoIssuers(String prefix, TestExtensionContext context, ObjectFactory factory) {
         context.setConfig(ConfigFactory.fromMap(Map.of(

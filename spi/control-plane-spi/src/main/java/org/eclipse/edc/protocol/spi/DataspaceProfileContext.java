@@ -34,13 +34,15 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  * @param idExtractionFunction extracts a participant id from a verified ClaimToken.
  * @param protocolNamespace    the JSON-LD namespace of the dataspace.
  * @param jsonLdContextsUrl    URL of the JSON-LD context document used for compaction.
+ * @param trustedIssuers
  */
 public record DataspaceProfileContext(String name,
                                       ProtocolVersion protocolVersion,
                                       ProtocolWebhook webhook,
                                       ParticipantIdExtractionFunction idExtractionFunction,
                                       JsonLdNamespace protocolNamespace,
-                                      List<String> jsonLdContextsUrl) {
+                                      List<String> jsonLdContextsUrl,
+                                      List<TrustedIssuer> trustedIssuers) {
 
     public static final String DATASPACE_PROFILE_CONTEXT_TYPE_TERM = "DataspaceProfile";
     public static final String DATASPACE_PROFILE_CONTEXT_TYPE_IRI = EDC_NAMESPACE + DATASPACE_PROFILE_CONTEXT_TYPE_TERM;

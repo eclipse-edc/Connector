@@ -250,7 +250,7 @@ class DiscoveryServiceImplTest {
 
     private DataspaceProfileContext profile(String name, ProtocolVersion version) {
         return new DataspaceProfileContext(name, version, mock(), mock(),
-                new JsonLdNamespace("https://example.org/ns/"), List.of());
+                new JsonLdNamespace("https://example.org/ns/"), List.of(), List.of());
     }
 
     private void stubHttpVersions(String json) {

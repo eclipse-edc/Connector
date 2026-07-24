@@ -39,7 +39,7 @@ class DataspaceProfileContextRegistryImplTest {
         @Test
         void shouldReturnVersions_whenContextsRegisteredDefault() {
             var version = new ProtocolVersion("version name", "/path", "binding");
-            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL)));
+            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of()));
 
             var result = registry.getProtocolVersions().protocolVersions();
 
@@ -50,8 +50,8 @@ class DataspaceProfileContextRegistryImplTest {
         void shouldIgnoreDefaultContexts_whenStandardAreRegistered() {
             var defaultVersion = new ProtocolVersion("default", "/path", "binding");
             var standardVersion = new ProtocolVersion("default", "/path", "binding");
-            registry.registerDefault(new DataspaceProfileContext("default", defaultVersion, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL)));
-            registry.register(new DataspaceProfileContext("standard", standardVersion, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL)));
+            registry.registerDefault(new DataspaceProfileContext("default", defaultVersion, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of()));
+            registry.register(new DataspaceProfileContext("standard", standardVersion, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of()));
 
             var result = registry.getProtocolVersions().protocolVersions();
 
@@ -64,7 +64,7 @@ class DataspaceProfileContextRegistryImplTest {
         @Test
         void shouldReturnProfiles_whenContextsRegisteredDefault() {
             var version = new ProtocolVersion("version name", "/path", "binding");
-            var profile = new DataspaceProfileContext("profile", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL));
+            var profile = new DataspaceProfileContext("profile", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of());
             registry.registerDefault(profile);
 
             assertThat(registry.getProfiles()).hasSize(1).containsExactly(profile);
@@ -74,8 +74,8 @@ class DataspaceProfileContextRegistryImplTest {
         void shouldIgnoreDefaultContexts_whenStandardAreRegistered() {
             var defaultVersion = new ProtocolVersion("default", "/path", "binding");
             var standardVersion = new ProtocolVersion("default", "/path", "binding");
-            var defaultProfile = new DataspaceProfileContext("default", defaultVersion, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL));
-            var standardProfile = new DataspaceProfileContext("standard", standardVersion, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL));
+            var defaultProfile = new DataspaceProfileContext("default", defaultVersion, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of());
+            var standardProfile = new DataspaceProfileContext("standard", standardVersion, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of());
 
             registry.registerDefault(defaultProfile);
             registry.register(standardProfile);
@@ -97,7 +97,7 @@ class DataspaceProfileContextRegistryImplTest {
         @Test
         void shouldReturnVersionForName() {
             var version = new ProtocolVersion("version name", "/path", "binding");
-            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL)));
+            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of()));
 
             var result = registry.getProtocolVersion("profile");
 
@@ -110,7 +110,7 @@ class DataspaceProfileContextRegistryImplTest {
         @Test
         void resolvesByBareId() {
             var version = new ProtocolVersion("v", "/v", "https");
-            var profile = new DataspaceProfileContext("2025-1", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL));
+            var profile = new DataspaceProfileContext("2025-1", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of());
             registry.registerDefault(profile);
 
             assertThat(registry.getProfile("2025-1")).isEqualTo(profile);
@@ -119,7 +119,7 @@ class DataspaceProfileContextRegistryImplTest {
         @Test
         void resolvesByBindingPrefixedProtocol() {
             var version = new ProtocolVersion("v", "/v", "https");
-            var profile = new DataspaceProfileContext("2025-1", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL));
+            var profile = new DataspaceProfileContext("2025-1", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of());
             registry.registerDefault(profile);
 
             assertThat(registry.getProfile("2025-1")).isEqualTo(profile);
@@ -139,8 +139,8 @@ class DataspaceProfileContextRegistryImplTest {
             registry.addRegistrationCallback(p -> seen.add(p.name()));
             var version = new ProtocolVersion("v", "/v", "https");
 
-            registry.registerDefault(new DataspaceProfileContext("a", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL)));
-            registry.register(new DataspaceProfileContext("b", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL)));
+            registry.registerDefault(new DataspaceProfileContext("a", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of()));
+            registry.register(new DataspaceProfileContext("b", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of()));
 
             assertThat(seen).containsExactly("a", "b");
         }
@@ -148,8 +148,8 @@ class DataspaceProfileContextRegistryImplTest {
         @Test
         void replaysAlreadyRegisteredProfiles() {
             var version = new ProtocolVersion("v", "/v", "https");
-            registry.registerDefault(new DataspaceProfileContext("a", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL)));
-            registry.register(new DataspaceProfileContext("b", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL)));
+            registry.registerDefault(new DataspaceProfileContext("a", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of()));
+            registry.register(new DataspaceProfileContext("b", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of()));
 
             var seen = new ArrayList<String>();
             registry.addRegistrationCallback(p -> seen.add(p.name()));
@@ -165,7 +165,7 @@ class DataspaceProfileContextRegistryImplTest {
             registry.addRegistrationCallback(p -> seenByTwo.add(p.name()));
             var version = new ProtocolVersion("v", "/v", "https");
 
-            registry.registerDefault(new DataspaceProfileContext("a", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL)));
+            registry.registerDefault(new DataspaceProfileContext("a", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of()));
 
             assertThat(seenByOne).containsExactly("a");
             assertThat(seenByTwo).containsExactly("a");
@@ -187,7 +187,7 @@ class DataspaceProfileContextRegistryImplTest {
             var participantId = "participantId";
             var version = new ProtocolVersion("version name", "/path", "binding");
 
-            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", ct -> participantId, NAMESPACE, List.of(CONTEXT_URL)));
+            registry.registerDefault(new DataspaceProfileContext("profile", version, () -> "url", ct -> participantId, NAMESPACE, List.of(CONTEXT_URL), List.of()));
 
             var result = registry.getIdExtractionFunction("profile");
 

@@ -21,6 +21,8 @@ import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction;
 import org.eclipse.edc.protocol.spi.ProtocolVersion;
 
+import java.util.List;
+
 /**
  * Converts a persisted {@link DataspaceProfile} into a live {@link DataspaceProfileContext}, resolving the
  * webhook address and default participant-id extraction function that cannot be persisted.
@@ -48,6 +50,6 @@ class DataspaceProfileMapper {
                 () -> webhookAddress.get() + "/" + profile.getName(),
                 idExtractionFunction,
                 namespace,
-                profile.getJsonLdContextsUrl());
+                profile.getJsonLdContextsUrl(), List.of());
     }
 }
