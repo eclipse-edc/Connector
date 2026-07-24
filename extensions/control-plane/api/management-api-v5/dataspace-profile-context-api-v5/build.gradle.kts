@@ -21,9 +21,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:core-spi"))
     api(project(":spi:control-plane-spi"))
-    api(project(":spi:dataspace-protocol-spi"))
 
     implementation(project(":core:common:lib:core-lib"))
     implementation(project(":core:common:lib:jsonld-lib"))

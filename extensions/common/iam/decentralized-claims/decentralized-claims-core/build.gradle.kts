@@ -6,10 +6,6 @@ plugins {
 dependencies {
     api(project(":spi:decentralized-claims-spi"))
     api(project(":spi:control-plane-spi"))
-    api(project(":spi:core-spi"))
-    implementation(project(":spi:core-spi"))
-    implementation(project(":spi:control-plane-spi"))
-    implementation(project(":spi:dataspace-protocol-spi"))
 
     implementation(project(":core:common:lib:core-lib"))
     implementation(project(":core:control-plane:lib:control-plane-lib"))
@@ -25,9 +21,7 @@ dependencies {
     testImplementation(testFixtures(project(":spi:decentralized-claims-spi")))
     testImplementation(testFixtures(project(":spi:core-spi")))
     testImplementation(project(":core:common:lib:jsonld-lib"))
-    testImplementation(project(":core:common:lib:core-lib"))
     testImplementation(project(":extensions:common:json-ld"))
-    testImplementation(libs.nimbus.jwt)
     testImplementation(libs.awaitility)
 }
 

@@ -20,7 +20,6 @@ plugins {
 
 dependencies {
     api(project(":spi:core-spi"))
-    api(project(":spi:dataspace-protocol-spi"))
 
     testImplementation(project(":core:common:junit-base"))
     testImplementation(project(":core:common:lib:jsonld-lib"))

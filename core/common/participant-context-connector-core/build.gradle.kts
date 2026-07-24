@@ -18,8 +18,6 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:dataspace-protocol-spi"))
-    api(project(":spi:core-spi"))
     api(project(":spi:control-plane-spi"))
 
     testImplementation(project(":core:common:junit-base"))

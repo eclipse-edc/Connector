@@ -17,13 +17,11 @@ plugins {
 
 dependencies {
     api(project(":spi:control-plane-spi"))
-    api(project(":spi:dataspace-protocol-spi"))
 
     implementation(project(":core:control-plane:lib:control-plane-lib"))
     implementation(libs.opentelemetry.instrumentation.annotations)
 
     testImplementation(project(":core:common:lib:core-lib"))
-    testImplementation(project(":core:control-plane:lib:control-plane-lib"))
     testImplementation(project(":core:common:junit"))
     testImplementation(project(":core:control-plane:control-plane-core"))
     testImplementation(project(":core:control-plane:control-plane-transfer"))
