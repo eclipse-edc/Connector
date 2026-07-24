@@ -49,6 +49,7 @@ public class HashicorpTokenExchangeProvider implements HashicorpVaultTokenProvid
     public static final String JWT_LOGIN_PATH = "v1/auth/jwt/login";
     public static final String TOKEN_EXCHANGE_PATH = "token";
     public static final String GRANT_TYPE_TOKEN_EXCHANGE = "urn:ietf:params:oauth:grant-type:token-exchange";
+    public static final String SUBJECT_TOKEN_TYPE = "urn:ietf:params:oauth:token-type:jwt";
     private static final long REFRESH_BUFFER_SECONDS = 30;
 
     private String tokenExchangeUrl;
@@ -97,6 +98,7 @@ public class HashicorpTokenExchangeProvider implements HashicorpVaultTokenProvid
         var bodyBuilder = new FormBody.Builder()
                 .add("grant_type", GRANT_TYPE_TOKEN_EXCHANGE)
                 .add("subject_token", subjectToken)
+                .add("subject_token_type", SUBJECT_TOKEN_TYPE)
                 .add("scope", scope)
                 .add("audience", audience);
         if (resource != null) {

@@ -28,6 +28,9 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -76,7 +79,7 @@ class HashicorpTokenExchangeProviderTest {
     }
 
     @Test
-    void vaultToken_exchangesThenLogsIn() {
+    void vaultToken_exchangesThenLogsIn() throws UnsupportedEncodingException {
         stubExchange("exchanged-jwt");
         stubLogin("vault-token", 3600);
 
@@ -84,8 +87,9 @@ class HashicorpTokenExchangeProviderTest {
 
         assertThat(token).isEqualTo("vault-token");
         wireMock.verify(postRequestedFor(urlEqualTo("/token"))
-                .withRequestBody(containing("grant_type=urn"))
+                .withRequestBody(containing("grant_type=%s".formatted(URLEncoder.encode(HashicorpTokenExchangeProvider.GRANT_TYPE_TOKEN_EXCHANGE, StandardCharsets.UTF_8))))
                 .withRequestBody(containing("subject_token=the-subject-token"))
+                .withRequestBody(containing("subject_token_type=%s".formatted(URLEncoder.encode(HashicorpTokenExchangeProvider.SUBJECT_TOKEN_TYPE, StandardCharsets.UTF_8))))
                 .withRequestBody(containing("resource=participant-1"))
                 .withRequestBody(containing("scope=read"))
                 .withRequestBody(containing("audience=edcv")));
