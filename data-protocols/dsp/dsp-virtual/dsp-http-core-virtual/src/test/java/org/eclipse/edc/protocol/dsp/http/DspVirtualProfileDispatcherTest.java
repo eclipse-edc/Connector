@@ -110,7 +110,7 @@ class DspVirtualProfileDispatcherTest extends RestControllerTestBase {
                 new ProtocolVersion(PROTOCOL_VERSION, "/" + PROTOCOL_VERSION, "binding"),
                 mock(), mock(),
                 new JsonLdNamespace("https://example.org/dspace/"),
-                List.of("https://example.org/context.jsonld"));
+                List.of("https://example.org/context.jsonld"), List.of());
         when(profileResolver.resolve(PARTICIPANT_ID, PROFILE_ID)).thenReturn(profile);
     }
 

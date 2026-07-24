@@ -23,7 +23,6 @@ import org.eclipse.edc.iam.verifiablecredentials.spi.VerifiableCredentialValidat
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentation;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
-import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
 import org.eclipse.edc.spi.iam.ClaimToken;
 import org.eclipse.edc.spi.iam.IdentityService;
 import org.eclipse.edc.spi.iam.TokenParameters;
@@ -33,12 +32,10 @@ import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.util.string.StringUtils;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import static org.eclipse.edc.iam.decentralizedclaims.spi.SelfIssuedTokenConstants.PRESENTATION_TOKEN_CLAIM;
 import static org.eclipse.edc.jwt.spi.JwtRegisteredClaimNames.AUDIENCE;
@@ -150,18 +147,26 @@ public class DcpIdentityService implements IdentityService {
 
         var presentations = vpResponse.getContent();
 
-        // check all requested credentials are present
         var result = validateRequestedCredentials(presentations, requestedScopes)
-                .compose(unused -> verifiableCredentialValidationService.validate(presentations, myOwnDid, getAdditionalValidations()));
-
+                .compose(unused -> verifiableCredentialValidationService.validate(presentations, myOwnDid, context.getDataspaceProfileContext()));
 
         return result
                 .compose(u -> verifyPresentationIssuer(issuer, presentations))
-                .compose(u -> claimTokenCreatorFunction.apply(presentations.stream().map(p -> p.presentation().getCredentials().stream())
-                        .reduce(Stream.empty(), Stream::concat)
-                        .toList()));
+                .compose(u -> {
+                    var credentials = presentations.stream()
+                            .flatMap(p -> p.presentation().getCredentials().stream())
+                            .toList();
+                    return claimTokenCreatorFunction.apply(credentials);
+                });
     }
 
+    /**
+     * check all requested credentials are present
+     *
+     * @param presentations the presentations.
+     * @param requestedScopes the requested scopes.
+     * @return success if validation successful, failure otherwise
+     */
     private Result<Void> validateRequestedCredentials(List<VerifiablePresentationContainer> presentations, List<String> requestedScopes) {
         var allCreds = presentations.stream()
                 .flatMap(p -> p.presentation().getCredentials().stream())
@@ -196,12 +201,6 @@ public class DcpIdentityService implements IdentityService {
             return Result.failure("Returned presentations contains invalid issuer. Expected %s found %s".formatted(expectedIssuer, issuers));
         }
     }
-
-
-    private Collection<? extends CredentialValidationRule> getAdditionalValidations() {
-        return Collections.emptyList();
-    }
-
 
     private Result<Void> validateScope(String scope) {
         if (StringUtils.isNullOrBlank(scope)) {

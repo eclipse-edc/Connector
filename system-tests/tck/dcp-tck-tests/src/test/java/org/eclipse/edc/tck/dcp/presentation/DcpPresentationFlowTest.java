@@ -32,8 +32,6 @@ import org.eclipse.edc.iam.decentralizedclaims.spi.SecureTokenService;
 import org.eclipse.edc.iam.did.spi.document.DidDocument;
 import org.eclipse.edc.iam.did.spi.document.Service;
 import org.eclipse.edc.iam.did.spi.document.VerificationMethod;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
-import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.junit.extensions.EmbeddedRuntime;
 import org.eclipse.edc.junit.extensions.RuntimePerClassExtension;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
@@ -56,7 +54,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry.WILDCARD;
+import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.edc.spi.result.Result.success;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 import static org.mockito.ArgumentMatchers.any;
@@ -86,17 +84,19 @@ public class DcpPresentationFlowTest {
     static final RuntimePerClassExtension EDC_RUNTIME_EXTENSIONS = new RuntimePerClassExtension(
             new EmbeddedRuntime("Connector-under-test", ":dist:bom:controlplane-dcp-bom")
                     .registerServiceMock(SecureTokenService.class, STS_MOCK)
-                    .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
-                            "edc.iam.accesstoken.jti.validation", "true",
-                            "edc.iam.did.web.use.https", "false",
-                            "web.http.port", String.valueOf(getFreePort()),
+                    .configurationProvider(() -> ConfigFactory.fromMap(Map.ofEntries(
+                            entry("edc.iam.accesstoken.jti.validation", "true"),
+                            entry("edc.iam.did.web.use.https", "false"),
+                            entry("web.http.port", String.valueOf(getFreePort())),
                             // use DSP endpoints as trigger endpoint
-                            "web.http.protocol.path", PROTOCOL_API_PATH,
-                            "web.http.protocol.port", PROTOCOL_API_PORT,
-                            "edc.participant.did", VERIFIER_DID,
-                            "edc.iam.sts.oauth.token.url", "https://example.com/token",
-                            "edc.iam.sts.oauth.client.id", "test-client-id",
-                            "edc.iam.sts.oauth.client.secret.alias", "test-secret-alias"
+                            entry("web.http.protocol.path", PROTOCOL_API_PATH),
+                            entry("web.http.protocol.port", PROTOCOL_API_PORT),
+                            entry("edc.participant.did", VERIFIER_DID),
+                            entry("edc.iam.sts.oauth.token.url", "https://example.com/token"),
+                            entry("edc.iam.sts.oauth.client.id", "test-client-id"),
+                            entry("edc.iam.sts.oauth.client.secret.alias", "test-secret-alias"),
+                            entry("edc.iam.trustedissuer.issuer.id", "did:web:localhost%%3A%s:issuer".formatted(CALLBACK_PORT)),
+                            entry("edc.iam.trustedissuer.issuer.supportedtypes", "[\"*\"]")
                     )))
                     .configurationProvider(() -> ConfigFactory.fromMap(Map.of(
                             "edc.iam.dcp.scopes.membership.id", "membership-scope",
@@ -113,10 +113,8 @@ public class DcpPresentationFlowTest {
 
 
     @BeforeEach
-    void setup(TrustedIssuerRegistry trustedIssuerRegistry) throws JOSEException {
+    void setup() throws JOSEException {
         verifierKey = new ECKeyGenerator(Curve.P_256).keyID(VERIFIER_DID + "#verifier-key1").generate();
-
-        trustedIssuerRegistry.register(new Issuer("did:web:localhost%%3A%s:issuer".formatted(CALLBACK_PORT), Map.of()), WILDCARD);
 
         var didDocumentJson = createDidDocumentJson();
 

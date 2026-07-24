@@ -19,7 +19,6 @@ plugins {
 dependencies {
     api(project(":dist:bom:federatedcatalog-base-bom"))
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-core"))
-    api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-issuers-configuration"))
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-service"))
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:decentralized-claims-sts-remote-client"))
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-transform"))

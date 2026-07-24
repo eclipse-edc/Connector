@@ -149,7 +149,6 @@ include(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:de
 include(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:decentralized-claims-sts-registry")
 include(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:decentralized-claims-sts-remote-registrar")
 include(":extensions:common:iam:decentralized-claims:decentralized-claims-sts:decentralized-claims-sts-signature-registrar")
-include(":extensions:common:iam:decentralized-claims:decentralized-claims-issuers-configuration")
 include(":extensions:common:iam:decentralized-claims:decentralized-claims-cel")
 include(":extensions:common:iam:decentralized-claims:decentralized-claims-store-sql")
 

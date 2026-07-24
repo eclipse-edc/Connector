@@ -61,15 +61,6 @@ public interface DataspaceProfileContextRegistry {
     ProtocolVersion getProtocolVersion(String protocol);
 
     /**
-     * Get the function for participant id extraction for a given protocol.
-     *
-     * @param protocol The protocol name
-     * @return The id extraction function, or null if no function is registered for the protocol
-     */
-    @Nullable
-    ParticipantIdExtractionFunction getIdExtractionFunction(String protocol);
-
-    /**
      * Get all the registered profiles, if a standard profile is registered, only the standard ones are returned, otherwise all the default ones are returned.
      *
      * @return a list of profile contexts. Always not null.

@@ -14,9 +14,7 @@
 
 package org.eclipse.edc.iam.decentralizedclaims.core;
 
-import org.eclipse.edc.boot.system.injection.ObjectFactory;
 import org.eclipse.edc.controlplane.ProtocolRemoteMessage;
-import org.eclipse.edc.iam.decentralizedclaims.core.defaults.DefaultTrustedIssuerRegistry;
 import org.eclipse.edc.iam.decentralizedclaims.core.scope.DcpScopeExtractorRegistry;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.keys.spi.PrivateKeyResolver;
@@ -47,15 +45,6 @@ class DcpDefaultServicesExtensionTest {
         var config = ConfigFactory.fromMap(Map.of("edc.iam.sts.publickey.id", publicKeyId, "edc.iam.sts.privatekey.alias", privateKeyAlias));
         when(context.getConfig()).thenReturn(config);
         context.registerService(PrivateKeyResolver.class, privateKeyResolver);
-    }
-
-    @Test
-    void verify_defaultIssuerRegistry(ServiceExtensionContext context, ObjectFactory factory) {
-        Monitor mockedMonitor = mock();
-        context.registerService(Monitor.class, mockedMonitor);
-        var ext = factory.constructInstance(DcpDefaultServicesExtension.class);
-
-        assertThat(ext.createInMemoryIssuerRegistry()).isInstanceOf(DefaultTrustedIssuerRegistry.class);
     }
 
     @Test

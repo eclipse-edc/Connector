@@ -36,7 +36,7 @@ public class DspProtocolTypeTransformerRegistryImplTest {
     private static final DataspaceProfileContext PROFILE_MOCK = new DataspaceProfileContext(
             V_MOCK_VERSION, V_MOCK, () -> "url", ct -> "id",
             new JsonLdNamespace("https://example.org/dspace/"),
-            List.of("https://example.org/context.jsonld"));
+            List.of("https://example.org/context.jsonld"), List.of());
 
     private final TypeTransformerRegistry transformerRegistry = mock();
     private final DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();

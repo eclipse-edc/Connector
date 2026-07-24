@@ -53,7 +53,7 @@ class JsonLdRemoteMessageSerializerImplTest {
     private static final DataspaceProfileContext PROFILE_MOCK = new DataspaceProfileContext(
             V_MOCK_VERSION, V_MOCK, () -> "url", ct -> "id",
             new JsonLdNamespace("https://example.org/dspace/"),
-            List.of("https://example.org/context.jsonld"));
+            List.of("https://example.org/context.jsonld"), List.of());
 
     private final TypeTransformerRegistry registry = mock(TypeTransformerRegistry.class);
     private final DspProtocolTypeTransformerRegistry dspTransformerRegistry = mock();

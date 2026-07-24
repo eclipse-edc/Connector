@@ -28,8 +28,6 @@ import org.eclipse.edc.iam.decentralizedclaims.spi.credentialservice.CredentialS
 import org.eclipse.edc.iam.decentralizedclaims.spi.credentialservice.CredentialServiceEndToEndExtension;
 import org.eclipse.edc.iam.decentralizedclaims.spi.issuerservice.IssuerService;
 import org.eclipse.edc.iam.decentralizedclaims.spi.issuerservice.IssuerServiceEndToEndExtension;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.Issuer;
-import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
 import org.eclipse.edc.junit.annotations.Runtime;
 import org.eclipse.edc.junit.extensions.ComponentRuntimeContext;
@@ -59,6 +57,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.edc.test.e2e.TransferEndToEndTestBase.CONSUMER_DP;
 import static org.eclipse.edc.test.e2e.transfer.VirtualTransferEndToEndTestBase.CONSUMER_CONTEXT;
 import static org.eclipse.edc.test.e2e.transfer.VirtualTransferEndToEndTestBase.PROVIDER_CONTEXT;
@@ -103,11 +102,9 @@ class VirtualDcpTransferPullEndToEndTest {
                           CredentialService credentialService,
                           Participants participants,
                           @Runtime(Runtimes.ControlPlane.NAME) Vault vault,
-                          TrustedIssuerRegistry trustedIssuerRegistry,
                           VaultApi vaultApi) {
 
             vaultApi.enableTransitEngine();
-            trustedIssuerRegistry.register(new Issuer(issuer.getDid(), Map.of()), "*");
 
             var consumerContextId = participants.consumer().contextId();
             var providerContextId = participants.provider().contextId();
@@ -294,7 +291,11 @@ class VirtualDcpTransferPullEndToEndTest {
                 .modules(":extensions:common:vault:vault-hashicorp")
                 .endpoints(Runtimes.ControlPlane.ENDPOINTS.build())
                 .configurationProvider(PostgresDcp::runtimeConfiguration)
-                .configurationProvider(() -> ConfigFactory.fromMap(Map.of("edc.iam.did.web.use.https", "false")))
+                .configurationProvider(() -> ConfigFactory.fromMap(Map.ofEntries(
+                        entry("edc.iam.did.web.use.https", "false"),
+                        entry("edc.iam.trustedissuer.issuer.id", ISSUER_SERVICE.getIssuerService().getDid()),
+                        entry("edc.iam.trustedissuer.issuer.supportedtypes", "[\"*\"]")
+                )))
                 .configurationProvider(VirtualTransferEndToEndTest::config)
                 .configurationProvider(() -> POSTGRESQL_EXTENSION.configFor(Runtimes.ControlPlane.NAME.toLowerCase()))
                 .configurationProvider(NATS_EXTENSION::configFor)

@@ -48,6 +48,6 @@ class DataspaceProfileMapper {
                 () -> webhookAddress.get() + "/" + profile.getName(),
                 idExtractionFunction,
                 namespace,
-                profile.getJsonLdContextsUrl());
+                profile.getJsonLdContextsUrl(), profile.getTrustedIssuers());
     }
 }
