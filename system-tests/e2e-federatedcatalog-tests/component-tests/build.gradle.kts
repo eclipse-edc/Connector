@@ -20,7 +20,6 @@ dependencies {
     testImplementation(project(":core:catalog-crawler:catalog-crawler-core"))
     testImplementation(project(":extensions:federated-catalog:api:federated-catalog-api"))
 
-    testImplementation(project(":spi:core-spi"))
     testImplementation(project(":spi:control-plane-spi"))
     testImplementation(project(":data-protocols:dsp"))
     testImplementation(testFixtures(project(":core:common:lib:jsonld-lib")))
@@ -29,7 +28,6 @@ dependencies {
 
     testImplementation(project(":data-protocols:dsp:dsp-http-spi"))
     testImplementation(project(":data-protocols:dsp:dsp-2025:dsp-spi-2025"))
-    testImplementation(project(":spi:dataspace-protocol-spi"))
 
     testImplementation(libs.restAssured)
     testImplementation(libs.awaitility)

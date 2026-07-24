@@ -231,7 +231,6 @@ include(":extensions:policy-monitor:store:sql:policy-monitor-store-sql")
 include(":spi:core-spi")
 include(":spi:control-plane-spi")
 include(":spi:decentralized-claims-spi")
-include(":spi:dataspace-protocol-spi")
 include(":core:common:junit-base")
 
 
