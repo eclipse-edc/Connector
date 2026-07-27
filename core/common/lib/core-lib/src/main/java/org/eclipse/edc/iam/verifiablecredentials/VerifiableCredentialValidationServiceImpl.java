@@ -14,26 +14,19 @@
 
 package org.eclipse.edc.iam.verifiablecredentials;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.edc.iam.verifiablecredentials.rules.HasValidIssuer;
 import org.eclipse.edc.iam.verifiablecredentials.rules.HasValidSubjectIds;
-import org.eclipse.edc.iam.verifiablecredentials.rules.HasValidSubjectSchema;
-import org.eclipse.edc.iam.verifiablecredentials.rules.IsInValidityPeriod;
-import org.eclipse.edc.iam.verifiablecredentials.rules.IsNotRevoked;
 import org.eclipse.edc.iam.verifiablecredentials.spi.VerifiableCredentialValidationService;
-import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiablePresentationContainer;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier;
-import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Clock;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static org.eclipse.edc.spi.result.Result.failure;
@@ -41,53 +34,43 @@ import static org.eclipse.edc.spi.result.Result.success;
 
 public class VerifiableCredentialValidationServiceImpl implements VerifiableCredentialValidationService {
     private final PresentationVerifier presentationVerifier;
-    private final TrustedIssuerRegistry trustedIssuerRegistry;
-    private final RevocationServiceRegistry revocationServiceRegistry;
-    private final Clock clock;
-    private final ObjectMapper mapper;
+    private final List<CredentialValidationRule> baseRules;
 
-    public VerifiableCredentialValidationServiceImpl(PresentationVerifier presentationVerifier, TrustedIssuerRegistry trustedIssuerRegistry, RevocationServiceRegistry revocationServiceRegistry, Clock clock, ObjectMapper mapper) {
+    public VerifiableCredentialValidationServiceImpl(PresentationVerifier presentationVerifier, List<CredentialValidationRule> rules) {
         this.presentationVerifier = presentationVerifier;
-        this.trustedIssuerRegistry = trustedIssuerRegistry;
-        this.revocationServiceRegistry = revocationServiceRegistry;
-        this.clock = clock;
-        this.mapper = mapper;
+        this.baseRules = rules;
     }
 
     @Override
-    public Result<Void> validate(List<VerifiablePresentationContainer> presentations, String audience, Collection<? extends CredentialValidationRule> additionalRules) {
+    public Result<Void> validate(List<VerifiablePresentationContainer> presentations, String audience, DataspaceProfileContext dataspaceProfileContext) {
         if (presentations.isEmpty()) {
             return failure("No presentations to validate");
         }
-        return presentations.stream().map(verifiablePresentation -> {
-            var credentials = verifiablePresentation.presentation().getCredentials();
-            // verify, that the VP and all VPs are cryptographically OK
-            var presentationIssuer = verifiablePresentation.presentation().getHolder();
-            return presentationVerifier.verifyPresentation(verifiablePresentation, audience)
-                    .compose(u -> validateVerifiableCredentials(credentials, presentationIssuer, additionalRules));
-        }).reduce(success(), Result::merge);
+        return presentations.stream()
+                .map(verifiablePresentation -> validatePresentation(audience, verifiablePresentation, dataspaceProfileContext))
+                .reduce(success(), Result::merge);
+    }
+
+    private Result<Void> validatePresentation(String audience, VerifiablePresentationContainer verifiablePresentation, DataspaceProfileContext dataspaceProfileContext) {
+        var credentials = verifiablePresentation.presentation().getCredentials();
+        // verify, that the VP and all VPs are cryptographically OK
+        var presentationIssuer = verifiablePresentation.presentation().getHolder();
+        return presentationVerifier.verifyPresentation(verifiablePresentation, audience)
+                .compose(u -> validateVerifiableCredentials(credentials, presentationIssuer, dataspaceProfileContext));
     }
 
     @NotNull
-    private Result<Void> validateVerifiableCredentials(List<VerifiableCredential> credentials, @Nullable String presentationHolder, Collection<? extends CredentialValidationRule> additionalRules) {
-
-        // in addition, verify that all VCs are valid
-        var filters = new ArrayList<>(List.of(
-                new IsInValidityPeriod(clock),
-                new IsNotRevoked(revocationServiceRegistry),
-                new HasValidIssuer(trustedIssuerRegistry),
-                new HasValidSubjectSchema(mapper)));
+    private Result<Void> validateVerifiableCredentials(List<VerifiableCredential> credentials, @Nullable String presentationHolder, DataspaceProfileContext dataspaceProfileContext) {
+        var rules = new ArrayList<>(this.baseRules);
+        rules.add(new HasValidIssuer(dataspaceProfileContext));
 
         if (presentationHolder != null) {
-            filters.add(new HasValidSubjectIds(presentationHolder));
+            rules.add(new HasValidSubjectIds(presentationHolder));
         }
-
-        filters.addAll(additionalRules);
-
 
         return credentials
                 .stream()
-                .map(c -> filters.stream().reduce(t -> success(), CredentialValidationRule::and).apply(c))
+                .map(c -> rules.stream().reduce(t -> success(), CredentialValidationRule::and).apply(c))
                 .reduce(Result::merge)
                 .orElseGet(Result::success);
     }

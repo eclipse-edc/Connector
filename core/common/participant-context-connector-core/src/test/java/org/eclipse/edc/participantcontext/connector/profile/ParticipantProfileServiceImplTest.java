@@ -187,6 +187,6 @@ class ParticipantProfileServiceImplTest {
 
     private DataspaceProfileContext profile(String id) {
         return new DataspaceProfileContext(id, new ProtocolVersion("v", "/v", "https"),
-                () -> "url", ct -> "id", NAMESPACE, List.of());
+                () -> "url", ct -> "id", NAMESPACE, List.of(), List.of());
     }
 }

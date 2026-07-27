@@ -14,6 +14,8 @@
 
 package org.eclipse.edc.spi.iam;
 
+import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,6 +26,7 @@ import java.util.Set;
 public class VerificationContext {
 
     private Set<String> scopes = new HashSet<>();
+    private DataspaceProfileContext dataspaceProfileContext;
 
     private VerificationContext() {
 
@@ -36,6 +39,10 @@ public class VerificationContext {
      */
     public Set<String> getScopes() {
         return scopes;
+    }
+
+    public DataspaceProfileContext getDataspaceProfileContext() {
+        return dataspaceProfileContext;
     }
 
     public static class Builder {
@@ -51,6 +58,11 @@ public class VerificationContext {
 
         public Builder scopes(Collection<String> scopes) {
             context.scopes = new HashSet<>(scopes);
+            return this;
+        }
+
+        public Builder dataspaceProfileContext(DataspaceProfileContext dataspaceProfileContext) {
+            context.dataspaceProfileContext = dataspaceProfileContext;
             return this;
         }
 

@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Parameter Object for {@link IdentityService#obtainClientCredentials(String, TokenParameters)}.
+ * Represent the parameters contained in a token
  */
 public class TokenParameters {
     private final Map<String, Object> claims = new HashMap<>();

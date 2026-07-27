@@ -19,7 +19,6 @@ plugins {
 
 dependencies {
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-core"))
-    api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-issuers-configuration"))
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-service"))
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-sts"))
     api(project(":extensions:common:iam:decentralized-claims:decentralized-claims-transform"))

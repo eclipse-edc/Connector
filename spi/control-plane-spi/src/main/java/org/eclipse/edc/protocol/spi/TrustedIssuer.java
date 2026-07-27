@@ -26,6 +26,8 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  */
 public class TrustedIssuer {
 
+    public static final String WILDCARD_TYPE = "*";
+
     public static final String TRUSTED_ISSUER_TYPE_TERM = "TrustedIssuer";
     public static final String TRUSTED_ISSUER_TYPE_IRI = EDC_NAMESPACE + TRUSTED_ISSUER_TYPE_TERM;
 

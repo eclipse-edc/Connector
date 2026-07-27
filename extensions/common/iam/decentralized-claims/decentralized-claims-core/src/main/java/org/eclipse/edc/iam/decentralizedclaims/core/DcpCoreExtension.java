@@ -28,9 +28,11 @@ import org.eclipse.edc.iam.decentralizedclaims.spi.verification.SignatureSuiteRe
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.VerifiableCredentialValidationServiceImpl;
+import org.eclipse.edc.iam.verifiablecredentials.rules.HasValidSubjectSchema;
+import org.eclipse.edc.iam.verifiablecredentials.rules.IsInValidityPeriod;
+import org.eclipse.edc.iam.verifiablecredentials.rules.IsNotRevoked;
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.RevocationServiceRegistry;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.PresentationVerifier;
-import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
@@ -62,6 +64,7 @@ import org.eclipse.edc.verifiablecredentials.linkeddata.LdpVerifier;
 
 import java.net.URISyntaxException;
 import java.time.Clock;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -98,8 +101,6 @@ public class DcpCoreExtension implements ServiceExtension {
 
     @Inject
     private SecureTokenService secureTokenService;
-    @Inject
-    private TrustedIssuerRegistry trustedIssuerRegistry;
     @Inject
     private TypeManager typeManager;
     @Inject
@@ -193,8 +194,13 @@ public class DcpCoreExtension implements ServiceExtension {
         var didConfigProvider = new DidConfigProvider(participantContextConfig, context.getMonitor());
         var validationAction = new SelfIssueIdTokenValidationAction(tokenValidationService, rulesRegistry, didPublicKeyResolver, didConfigProvider);
 
-        var credentialValidationService = new VerifiableCredentialValidationServiceImpl(createPresentationVerifier(context),
-                trustedIssuerRegistry, revocationServiceRegistry, clock, typeManager.getMapper());
+        var rules = List.of(
+                new IsInValidityPeriod(clock),
+                new IsNotRevoked(revocationServiceRegistry),
+                new HasValidSubjectSchema(typeManager.getMapper())
+        );
+
+        var credentialValidationService = new VerifiableCredentialValidationServiceImpl(createPresentationVerifier(context), rules);
 
         return new DcpIdentityService(secureTokenService, didConfigProvider, validationAction,
                 presentationRequestService, claimTokenFunction, credentialValidationService);

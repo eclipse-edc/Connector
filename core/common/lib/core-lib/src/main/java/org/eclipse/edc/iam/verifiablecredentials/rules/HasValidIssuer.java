@@ -16,11 +16,14 @@ package org.eclipse.edc.iam.verifiablecredentials.rules;
 
 import org.eclipse.edc.iam.verifiablecredentials.spi.model.VerifiableCredential;
 import org.eclipse.edc.iam.verifiablecredentials.spi.validation.CredentialValidationRule;
-import org.eclipse.edc.iam.verifiablecredentials.spi.validation.TrustedIssuerRegistry;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
+import org.eclipse.edc.protocol.spi.TrustedIssuer;
 import org.eclipse.edc.spi.result.Result;
 
 import java.util.Collections;
 
+import static java.util.Collections.emptyList;
+import static org.eclipse.edc.protocol.spi.TrustedIssuer.WILDCARD_TYPE;
 import static org.eclipse.edc.spi.result.Result.failure;
 import static org.eclipse.edc.spi.result.Result.success;
 
@@ -29,21 +32,24 @@ import static org.eclipse.edc.spi.result.Result.success;
  * and if the credential type is supported for this issuer.
  */
 public class HasValidIssuer implements CredentialValidationRule {
-    private final TrustedIssuerRegistry trustedIssuerRegistry;
+    private final DataspaceProfileContext profile;
 
-    public HasValidIssuer(TrustedIssuerRegistry trustedIssuerRegistry) {
-        this.trustedIssuerRegistry = trustedIssuerRegistry;
+    public HasValidIssuer(DataspaceProfileContext profile) {
+        this.profile = profile;
     }
 
     @Override
     public Result<Void> apply(VerifiableCredential credential) {
         var issuer = credential.getIssuer();
         if (issuer.id() == null) {
-            return failure("Issuer did not contain an 'id' field.");
+            return failure("VC's Issuer did not contain an 'id' field.");
         }
 
-        var supportedTypes = trustedIssuerRegistry.getSupportedTypes(issuer);
-        return !supportedTypes.contains(TrustedIssuerRegistry.WILDCARD) && Collections.disjoint(credential.getType(), supportedTypes) ?
+        var supportedTypes = profile.trustedIssuers().stream()
+                .filter(i -> i.getId().equals(issuer.id())).findAny().map(TrustedIssuer::getSupportedTypes)
+                .orElse(emptyList());
+
+        return !supportedTypes.contains(WILDCARD_TYPE) && Collections.disjoint(credential.getType(), supportedTypes) ?
                 failure("Credential types '%s' are not supported for issuer '%s'".formatted(credential.getType(), issuer.id())) :
                 success();
     }

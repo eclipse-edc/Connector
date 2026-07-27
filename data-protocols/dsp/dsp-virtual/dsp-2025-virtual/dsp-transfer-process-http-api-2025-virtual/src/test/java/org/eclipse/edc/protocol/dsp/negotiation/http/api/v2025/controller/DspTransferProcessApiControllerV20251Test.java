@@ -40,7 +40,7 @@ class DspTransferProcessApiControllerV20251Test extends DspTransferProcessApiCon
     private static final String PROFILE_ID = V_2025_1_VERSION;
     private static final DataspaceProfileContext PROFILE = new DataspaceProfileContext(
             PROFILE_ID, V_2025_1, () -> "https://example.org/webhook", ct -> "id",
-            DSP_NAMESPACE_V_2025_1, List.of("https://example.org/context.jsonld"));
+            DSP_NAMESPACE_V_2025_1, List.of("https://example.org/context.jsonld"), List.of());
 
     private final ParticipantContextService participantContextService = mock();
     private final ParticipantProfileService profileResolver = mock();

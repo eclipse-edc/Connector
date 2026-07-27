@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.core.profile;
 
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
-import org.eclipse.edc.protocol.spi.ParticipantIdExtractionFunction;
 import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.eclipse.edc.protocol.spi.ProtocolVersions;
 import org.jetbrains.annotations.Nullable;
@@ -66,12 +65,6 @@ public class DataspaceProfileContextRegistryImpl implements DataspaceProfileCont
     public @Nullable ProtocolVersion getProtocolVersion(String protocol) {
         var profile = getProfile(protocol);
         return profile == null ? null : profile.protocolVersion();
-    }
-
-    @Override
-    public @Nullable ParticipantIdExtractionFunction getIdExtractionFunction(String protocol) {
-        var profile = getProfile(protocol);
-        return profile == null ? null : profile.idExtractionFunction();
     }
 
     @Override

@@ -71,7 +71,7 @@ public abstract class DataspaceProfileContextApiControllerTestBase extends RestC
     protected DataspaceProfileContext createProfile(String name) {
         var namespace = new JsonLdNamespace("http://test.com/");
         var protocol = new ProtocolVersion("test-protocol", "1.0", "https");
-        return new DataspaceProfileContext(name, protocol, mock(), mock(), namespace, List.of("http://test.com/context"));
+        return new DataspaceProfileContext(name, protocol, mock(), mock(), namespace, List.of("http://test.com/context"), List.of());
     }
 
     @Nested

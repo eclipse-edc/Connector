@@ -38,7 +38,9 @@ import org.eclipse.edc.junit.extensions.RuntimePerMethodExtension;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.spi.event.EventRouter;
 import org.eclipse.edc.spi.event.EventSubscriber;
@@ -104,7 +106,9 @@ class ContractNegotiationEventDispatchTest {
         extension.registerServiceMock(ProtocolRemoteMessageDispatcher.class, dspDispatcher);
 
         when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> "http://callback.address");
-        when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> CONSUMER);
+        when(dataspaceProfileContextRegistry.getProfile(any())).thenReturn(new DataspaceProfileContext(
+                "any", new ProtocolVersion("any", "any", "any"), mock(), ct -> CONSUMER, mock(), emptyList(), emptyList()
+        ));
         when(dspDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.success("any")));
     }
 

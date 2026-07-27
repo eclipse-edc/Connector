@@ -22,10 +22,12 @@ import org.eclipse.edc.connector.controlplane.transform.odrl.from.JsonObjectFrom
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.protocol.dsp.http.spi.api.DspBaseWebhookAddress;
+import org.eclipse.edc.protocol.dsp.spi.config.DefaultTrustedIssuersConfig;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
 import org.eclipse.edc.protocol.spi.DefaultParticipantIdExtractionFunction;
 import org.eclipse.edc.protocol.spi.ProtocolVersion;
+import org.eclipse.edc.runtime.metamodel.annotation.Configuration;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
 import org.eclipse.edc.spi.query.CriterionOperatorRegistry;
@@ -46,6 +48,7 @@ import java.util.Map;
 
 import static org.eclipse.edc.jsonld.spi.Namespaces.DSPACE_CONTEXT_2025_1;
 import static org.eclipse.edc.jsonld.spi.Namespaces.EDC_DSPACE_CONTEXT;
+import static org.eclipse.edc.protocol.dsp.spi.config.DefaultTrustedIssuersConfig.CONFIG_PREFIX;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DATASPACE_HTTP_PROFILE_2025_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_TRANSFORMER_CONTEXT_V_2025_1;
@@ -60,6 +63,9 @@ import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 public class DspVirtualApiConfigurationV2025Extension implements ServiceExtension {
 
     public static final String NAME = "Dataspace Protocol 2025/1 API Virtual Configuration Extension";
+
+    @Configuration(context = CONFIG_PREFIX)
+    private Map<String, DefaultTrustedIssuersConfig> trustedIssuers;
 
     @Inject
     private TypeManager typeManager;
@@ -95,7 +101,8 @@ public class DspVirtualApiConfigurationV2025Extension implements ServiceExtensio
                 () -> dspWebhookAddress.get() + "/" + DATASPACE_HTTP_PROFILE_2025_1,
                 participantIdExtractionFunction,
                 DSP_NAMESPACE_V_2025_1,
-                List.of(DSPACE_CONTEXT_2025_1, EDC_DSPACE_CONTEXT));
+                List.of(DSPACE_CONTEXT_2025_1, EDC_DSPACE_CONTEXT),
+                trustedIssuers.values().stream().map(it -> it.createTrustedIssuer(typeManager.getMapper())).toList());
 
         dataspaceProfileContextRegistry.registerDefault(profileContext);
 

@@ -43,7 +43,9 @@ import org.eclipse.edc.participant.spi.ParticipantAgent;
 import org.eclipse.edc.participant.spi.ParticipantAgentService;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.protocol.spi.DataspaceProfileContext;
 import org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry;
+import org.eclipse.edc.protocol.spi.ProtocolVersion;
 import org.eclipse.edc.protocol.spi.ProtocolWebhookResolver;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.event.EventEnvelope;
@@ -65,6 +67,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.UUID;
 
+import static java.util.Collections.emptyList;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -111,7 +114,9 @@ public class TransferProcessEventDispatchTest {
     @BeforeEach
     void setup(DataFlowController dataFlowController, DataAddressStore dataAddressStore, DataspaceProfileContextRegistry dataspaceProfileContextRegistry, ProtocolWebhookResolver protocolWebhookResolver) {
         when(protocolWebhookResolver.getWebhook(any(), any())).thenReturn(() -> "http://dummy");
-        when(dataspaceProfileContextRegistry.getIdExtractionFunction(any())).thenReturn(ct -> "id");
+        when(dataspaceProfileContextRegistry.getProfile(any())).thenReturn(new DataspaceProfileContext(
+                "any", new ProtocolVersion("any", "any", "any"), mock(), ct -> "id", mock(), emptyList(), emptyList()
+        ));
         when(dataFlowController.prepare(any(), any())).thenReturn(StatusResult.success(DataFlowResponse.Builder.newInstance().build()));
         when(dataFlowController.started(any())).thenReturn(StatusResult.success());
         when(dataAddressStore.resolve(any())).thenReturn(StoreResult.notFound("any"));
