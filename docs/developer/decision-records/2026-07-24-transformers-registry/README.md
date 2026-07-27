@@ -37,6 +37,26 @@ register its transformer for the same pair after the default transformer has bee
 	output types.
 2. Make `register` replace the entry for an already registered type pair.
 3. Update `transformerFor` to retain compatible-supertype matching and parent-context fallback.
+   Conceptually, lookup will follow this logic:
+
+   ```java
+   var candidates = registeredInputTypes.stream()
+	   .filter(inputType -> inputType.isInstance(input))
+	   .filter(inputType -> hasTransformer(inputType, outputType))
+	   .toList();
+
+   var mostSpecific = candidates.stream()
+	   .filter(candidate -> candidates.stream()
+		   .noneMatch(other -> !candidate.equals(other)
+			   && candidate.isAssignableFrom(other)))
+	   .toList();
+
+   if (mostSpecific.size() > 1) {
+       throw new EdcException("Ambiguous transformers");
+   }
+
+   return mostSpecific.isEmpty() ? parentTransformer() : transformerFor(mostSpecific.getFirst());
+   ```
 4. Add tests for same-registry replacement, context override, parent fallback, and supertype
    matching, including ambiguous compatible types.
 
@@ -44,9 +64,14 @@ The public `TypeTransformerRegistry` API remains unchanged.
 
 ### Consequences
 
-- A later registration for the same input/output pair intentionally replaces the earlier one.
-- Extensions can override defaults by registering in the applicable registry context.
-- The most specific compatible input type wins. Equally specific unrelated types fail explicitly.
+1. A later registration for the same input/output pair intentionally replaces the earlier one.
+2. Extensions can override defaults by registering in the applicable registry context.
+3. When several compatible input types match, the registry selects the subtype that is more specific
+	than the others. If several matching input types are unrelated and therefore equally specific,
+	the lookup fails with an `EdcException`.
+	For example, `List -> Output` is selected over `Collection -> Output` for an `ArrayList` input.
+	Conversely, an input implementing both `Serializable` and `Comparable` classes causes an `EdcException`
+	when transformers are registered for both types and the same output.
 
 
 ### Target modules and mapping
