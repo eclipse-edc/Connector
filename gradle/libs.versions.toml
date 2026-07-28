@@ -42,7 +42,7 @@ tink = "1.23.0"
 junit = "6.1.2"
 wiremock = "3.13.2"
 cel = "0.11.1"
-nats = "2.25.3"
+nats = "2.26.0"
 
 [libraries]
 iron-vc = { module = "com.apicatalog:iron-verifiable-credentials", version.ref = "apicatalog" }
@@ -109,7 +109,7 @@ cloudEvents = { module = "io.cloudevents:cloudevents-http-basic", version.ref = 
 cloudEvents-json = { module = "io.cloudevents:cloudevents-json-jackson", version.ref = "cloudEvents" }
 postgres = { module = "org.postgresql:postgresql", version.ref = "postgres" }
 jsonschema = { module = "com.networknt:json-schema-validator", version = "2.0.0" }
-nats = { module = "io.nats:jnats", version = "2.25.3" }
+nats = { module = "io.nats:jnats", version = "2.26.0" }
 
 dcp-tck = { module = "org.eclipse.dataspacetck.dcp:dcp-tck", version = "1.0.2" }
 dsp-tck = { module = "org.eclipse.dataspacetck.dsp:dsp-tck", version = "1.0.1" }
