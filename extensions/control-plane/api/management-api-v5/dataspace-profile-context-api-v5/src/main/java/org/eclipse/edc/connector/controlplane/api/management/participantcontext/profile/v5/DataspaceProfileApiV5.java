@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonArray;
@@ -32,6 +33,7 @@ public interface DataspaceProfileApiV5 {
 
     @Operation(description = "Creates a new dataspace profile. On success the profile is persisted and registered into " +
             "the running connector's dataspace profile context registry.",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.DATASPACE_PROFILE_CONTEXT))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "The dataspace profile was created successfully",
                             content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.DATASPACE_PROFILE_CONTEXT))),
@@ -42,6 +44,19 @@ public interface DataspaceProfileApiV5 {
             }
     )
     JsonObject createProfileV5(JsonObject request);
+
+    @Operation(description = "Updates an existing dataspace profile. On success the profile is persisted and re-registered " +
+            "into the running connector's dataspace profile context registry.",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.DATASPACE_PROFILE_CONTEXT))),
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "The dataspace profile was updated successfully"),
+                    @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
+                    @ApiResponse(responseCode = "404", description = "A dataspace profile with the given name does not exist",
+                            content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json"))
+            }
+    )
+    void updateProfileV5(JsonObject request);
 
     @Operation(description = "Queries the dataspace profiles.",
             responses = {
@@ -54,6 +69,7 @@ public interface DataspaceProfileApiV5 {
     JsonArray queryProfilesV5(JsonObject querySpecJson);
 
     @Operation(description = "Gets a dataspace profile by its name.",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V4.QUERY_SPEC))),
             responses = {
                     @ApiResponse(responseCode = "200", description = "The dataspace profile",
                             content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.DATASPACE_PROFILE_CONTEXT))),
@@ -63,8 +79,8 @@ public interface DataspaceProfileApiV5 {
     )
     JsonObject getProfileV5(String name);
 
-    @Operation(description = "Deletes a dataspace profile by its name. The profile is removed from the store; the change " +
-            "takes effect on the running registry after the next boot.",
+    @Operation(description = "Deletes a dataspace profile by its name. The profile is removed from the store and " +
+            "deregistered from the running connector's dataspace profile context registry.",
             responses = {
                     @ApiResponse(responseCode = "204", description = "The dataspace profile was deleted successfully"),
                     @ApiResponse(responseCode = "404", description = "A dataspace profile with the given name does not exist",

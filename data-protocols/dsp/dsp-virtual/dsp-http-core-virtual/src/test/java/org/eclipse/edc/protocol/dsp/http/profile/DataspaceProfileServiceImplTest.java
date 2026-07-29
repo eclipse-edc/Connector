@@ -83,7 +83,32 @@ class DataspaceProfileServiceImplTest {
     }
 
     @Test
-    void deleteById_touchesStoreOnly() {
+    void update_persistsAndReRegisters() {
+        when(webhookAddress.get()).thenReturn(BASE_WEBHOOK);
+        var profile = profile();
+        when(store.update(profile)).thenReturn(StoreResult.success(profile));
+
+        var result = service.update(profile);
+
+        assertThat(result).matches(r -> r.succeeded());
+        var captor = ArgumentCaptor.forClass(DataspaceProfileContext.class);
+        verify(registry).register(captor.capture());
+        assertThat(captor.getValue().name()).isEqualTo("dsp2025_1");
+    }
+
+    @Test
+    void update_doesNotRegister_whenStoreFails() {
+        var profile = profile();
+        when(store.update(profile)).thenReturn(StoreResult.notFound("not found"));
+
+        var result = service.update(profile);
+
+        assertThat(result).matches(r -> r.failed());
+        verify(registry, never()).register(any());
+    }
+
+    @Test
+    void deleteById_deregisters() {
         var profile = profile();
         when(store.delete("dsp2025_1")).thenReturn(StoreResult.success(profile));
 
@@ -91,6 +116,16 @@ class DataspaceProfileServiceImplTest {
 
         assertThat(result).matches(r -> r.succeeded());
         verify(store).delete("dsp2025_1");
-        verify(registry, never()).register(any());
+        verify(registry).deregister("dsp2025_1");
+    }
+
+    @Test
+    void deleteById_doesNotDeregister_whenStoreFails() {
+        when(store.delete("dsp2025_1")).thenReturn(StoreResult.notFound("not found"));
+
+        var result = service.deleteById("dsp2025_1");
+
+        assertThat(result).matches(r -> r.failed());
+        verify(registry, never()).deregister(any());
     }
 }

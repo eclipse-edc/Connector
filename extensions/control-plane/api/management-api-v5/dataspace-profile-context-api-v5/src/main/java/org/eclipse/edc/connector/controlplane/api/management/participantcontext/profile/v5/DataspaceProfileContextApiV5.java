@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.json.JsonArray;
@@ -46,9 +47,9 @@ public interface DataspaceProfileContextApiV5 {
     JsonArray getProfilesV5(String participantContextId, SecurityContext securityContext);
 
     @Operation(description = "Associate Dataspace Profile contexts to a participant context.",
+            requestBody = @RequestBody(content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.ASSOCIATE_DATASPACE_PROFILE_CONTEXT))),
             responses = {
-                    @ApiResponse(responseCode = "200", description = "The dataspace profile contexts was successfully associated to the participant context",
-                            content = @Content(schema = @Schema(ref = ManagementApiJsonSchema.V5.ASSOCIATE_DATASPACE_PROFILE_CONTEXT))),
+                    @ApiResponse(responseCode = "204", description = "The dataspace profile contexts was successfully associated to the participant context"),
                     @ApiResponse(responseCode = "400", description = "Request body was malformed, or the request could not be processed",
                             content = @Content(array = @ArraySchema(schema = @Schema(ref = ManagementApiJsonSchema.V4.API_ERROR)), mediaType = "application/json")),
                     @ApiResponse(responseCode = "401", description = "The request could not be completed, because either the authentication was missing or was not valid.",

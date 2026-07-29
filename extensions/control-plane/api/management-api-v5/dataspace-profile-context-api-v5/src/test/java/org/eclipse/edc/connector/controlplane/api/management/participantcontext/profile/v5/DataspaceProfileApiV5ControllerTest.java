@@ -101,6 +101,41 @@ class DataspaceProfileApiV5ControllerTest extends RestControllerTestBase {
     }
 
     @Test
+    void update() {
+        var profile = profile("dsp2025_1");
+        when(transformerRegistry.transform(isA(JsonObject.class), eq(DataspaceProfile.class))).thenReturn(Result.success(profile));
+        when(service.update(profile)).thenReturn(ServiceResult.success(profile));
+
+        baseRequest().contentType(JSON).body(body())
+                .put("/dataspaceprofiles")
+                .then().statusCode(204);
+
+        verify(service).update(profile);
+    }
+
+    @Test
+    void update_shouldReturnBadRequest_whenTransformationFails() {
+        when(transformerRegistry.transform(isA(JsonObject.class), eq(DataspaceProfile.class))).thenReturn(Result.failure("malformed"));
+
+        baseRequest().contentType(JSON).body(body())
+                .put("/dataspaceprofiles")
+                .then().statusCode(400);
+
+        verify(service, never()).update(any());
+    }
+
+    @Test
+    void update_shouldReturnNotFound_whenMissing() {
+        var profile = profile("dsp2025_1");
+        when(transformerRegistry.transform(isA(JsonObject.class), eq(DataspaceProfile.class))).thenReturn(Result.success(profile));
+        when(service.update(profile)).thenReturn(ServiceResult.notFound("not found"));
+
+        baseRequest().contentType(JSON).body(body())
+                .put("/dataspaceprofiles")
+                .then().statusCode(404);
+    }
+
+    @Test
     void query() {
         when(transformerRegistry.transform(isA(JsonObject.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.max()));
         when(service.search(any())).thenReturn(ServiceResult.success(List.of(profile("dsp2025_1"))));

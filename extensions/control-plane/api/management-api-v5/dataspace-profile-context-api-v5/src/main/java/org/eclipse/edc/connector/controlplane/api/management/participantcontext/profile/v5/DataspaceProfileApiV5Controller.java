@@ -20,6 +20,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -71,6 +72,19 @@ public class DataspaceProfileApiV5Controller implements DataspaceProfileApiV5 {
 
         return transformerRegistry.transform(created, JsonObject.class)
                 .orElseThrow(f -> new EdcException("Error creating response body: " + f.getFailureDetail()));
+    }
+
+    @PUT
+    @RequiredScope("management-api:profiles:write")
+    @Override
+    public void updateProfileV5(@SchemaType(DATASPACE_PROFILE_CONTEXT_TYPE_TERM) JsonObject request) {
+
+        var profile = transformerRegistry.transform(request, DataspaceProfile.class)
+                .orElseThrow(InvalidRequestException::new);
+
+        service.update(profile)
+                .onSuccess(p -> monitor.debug(format("Dataspace profile updated %s", p.getName())))
+                .orElseThrow(exceptionMapper(DataspaceProfile.class, profile.getName()));
     }
 
     @POST

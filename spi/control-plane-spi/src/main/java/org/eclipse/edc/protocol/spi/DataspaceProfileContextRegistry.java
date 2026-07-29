@@ -45,6 +45,14 @@ public interface DataspaceProfileContextRegistry {
     void register(DataspaceProfileContext context);
 
     /**
+     * Deregister a standard profile context by its id. Default profiles are not affected.
+     * Deregistering an unknown id is a no-op.
+     *
+     * @param profileId the profile id (name)
+     */
+    void deregister(String profileId);
+
+    /**
      * get all the protocol versions.
      *
      * @return the protocol versions.

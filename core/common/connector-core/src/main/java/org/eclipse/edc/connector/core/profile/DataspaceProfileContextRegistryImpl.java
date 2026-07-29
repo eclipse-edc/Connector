@@ -22,32 +22,43 @@ import org.eclipse.edc.protocol.spi.ProtocolVersions;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 public class DataspaceProfileContextRegistryImpl implements DataspaceProfileContextRegistry {
 
-    private final List<DataspaceProfileContext> defaultProfiles = new ArrayList<>();
-    private final List<DataspaceProfileContext> standardProfiles = new ArrayList<>();
+    private final Map<String, DataspaceProfileContext> defaultProfiles = new LinkedHashMap<>();
+    private final Map<String, DataspaceProfileContext> standardProfiles = new ConcurrentHashMap<>();
     private final List<Consumer<DataspaceProfileContext>> callbacks = new ArrayList<>();
 
     @Override
     public void registerDefault(DataspaceProfileContext profileContext) {
-        defaultProfiles.add(profileContext);
+        defaultProfiles.put(profileContext.name(), profileContext);
         notifyCallbacks(profileContext);
     }
 
     @Override
     public void register(DataspaceProfileContext context) {
-        standardProfiles.add(context);
-        notifyCallbacks(context);
+        var prev = standardProfiles.put(context.name(), context);
+        // notify callbacks only if the profile was not already registered
+        if (prev == null) {
+            notifyCallbacks(context);
+        }
+    }
+
+    @Override
+    public void deregister(String profileId) {
+        standardProfiles.remove(profileId);
     }
 
     @Override
     public void addRegistrationCallback(Consumer<DataspaceProfileContext> callback) {
         callbacks.add(callback);
-        Stream.concat(defaultProfiles.stream(), standardProfiles.stream()).forEach(callback);
+        Stream.concat(defaultProfiles.values().stream(), standardProfiles.values().stream()).forEach(callback);
     }
 
     private void notifyCallbacks(DataspaceProfileContext profile) {
@@ -69,15 +80,16 @@ public class DataspaceProfileContextRegistryImpl implements DataspaceProfileCont
 
     @Override
     public List<DataspaceProfileContext> getProfiles() {
-        return standardProfiles.isEmpty() ? defaultProfiles : standardProfiles;
+        return new ArrayList<>(activeProfiles().values());
     }
 
     @Override
     public @Nullable DataspaceProfileContext getProfile(String profileId) {
-        return getProfiles().stream()
-                .filter(it -> it.name().equals(profileId))
-                .findAny()
-                .orElse(null);
+        return activeProfiles().get(profileId);
+    }
+
+    private Map<String, DataspaceProfileContext> activeProfiles() {
+        return standardProfiles.isEmpty() ? defaultProfiles : standardProfiles;
     }
 
 }
