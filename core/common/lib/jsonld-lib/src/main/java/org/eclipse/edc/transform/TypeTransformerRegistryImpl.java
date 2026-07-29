@@ -20,9 +20,7 @@ import org.eclipse.edc.transform.spi.TypeTransformer;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -31,7 +29,7 @@ import static java.lang.String.format;
 
 public class TypeTransformerRegistryImpl implements TypeTransformerRegistry {
     private final Map<String, Class<?>> aliases = new HashMap<>();
-    private final List<TypeTransformer<?, ?>> transformers = new ArrayList<>();
+    private final Map<Class<?>, Map<Class<?>, TypeTransformer<?, ?>>> transformers = new HashMap<>();
     private final Map<String, TypeTransformerRegistry> contextRegistries = new HashMap<>();
     private TypeTransformerRegistry parent;
 
@@ -44,7 +42,8 @@ public class TypeTransformerRegistryImpl implements TypeTransformerRegistry {
 
     @Override
     public void register(TypeTransformer<?, ?> transformer) {
-        this.transformers.add(transformer);
+        transformers.computeIfAbsent(transformer.getInputType(), key -> new HashMap<>())
+                    .put(transformer.getOutputType(), transformer);
     }
 
     @Override
@@ -54,12 +53,31 @@ public class TypeTransformerRegistryImpl implements TypeTransformerRegistry {
 
     @Override
     public @NotNull <INPUT, OUTPUT> TypeTransformer<INPUT, OUTPUT> transformerFor(@NotNull INPUT input, @NotNull Class<OUTPUT> outputType) {
-        return transformers.stream()
-                .filter(t -> t.getInputType().isInstance(input) && t.getOutputType().equals(outputType))
-                .findAny()
+        return findTransformer(input, outputType)
                 .map(it -> (TypeTransformer<INPUT, OUTPUT>) it)
                 .or(() -> Optional.ofNullable(parent).map(p -> p.transformerFor(input, outputType)))
                 .orElseThrow(() -> new EdcException(format("No Transformer registered that can handle %s -> %s", input.getClass(), outputType)));
+    }
+
+    private Optional<TypeTransformer<?, ?>> findTransformer(Object input, Class<?> outputType) {
+        var inputTypes = transformers.entrySet().stream()
+                .filter(entry -> entry.getKey().isInstance(input))
+                .filter(entry -> entry.getValue().containsKey(outputType))
+                .map(Map.Entry::getKey)
+                .toList();
+
+        var mostSpecificInputTypes = inputTypes.stream()
+                .filter(candidate -> inputTypes.stream()
+                        .noneMatch(other -> !candidate.equals(other) && candidate.isAssignableFrom(other)))
+                .toList();
+
+        if (mostSpecificInputTypes.size() > 1) {
+            throw new EdcException(format("Ambiguous transformers registered for %s -> %s", input.getClass(), outputType));
+        }
+
+        return mostSpecificInputTypes.stream()
+                .findFirst()
+            .map(inputType -> transformers.get(inputType).get(outputType));
     }
 
     @Override
