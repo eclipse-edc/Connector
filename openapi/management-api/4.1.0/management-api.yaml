@@ -688,6 +688,37 @@ paths:
                 items:
                   $ref: "#/components/schemas/api-error-schema"
   /v5beta/dataspaceprofiles:
+    put:
+      tags:
+      - Dataspace Profile v5beta
+      description: Updates an existing dataspace profile. On success the profile is
+        persisted and re-registered into the running connector's dataspace profile
+        context registry.
+      operationId: updateProfileV5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/dataspace-profile-schema"
+      responses:
+        "204":
+          description: The dataspace profile was updated successfully
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A dataspace profile with the given name does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
     post:
       tags:
       - Dataspace Profile v5beta
@@ -698,7 +729,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/createProfileV5_request"
+              $ref: "#/components/schemas/dataspace-profile-schema"
       responses:
         "200":
           description: The dataspace profile was created successfully
@@ -1002,7 +1033,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/createProfileV5_request"
+              $ref: "#/components/schemas/queryProfilesV5_request"
       responses:
         "200":
           description: The dataspace profiles matching the query
@@ -1655,15 +1686,11 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/createProfileV5_request"
+              $ref: "#/components/schemas/associate-dataspace-profile-schema"
       responses:
-        "200":
+        "204":
           description: The dataspace profile contexts was successfully associated
             to the participant context
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/associate-dataspace-profile-schema"
         "400":
           description: "Request body was malformed, or the request could not be processed"
           content:
@@ -2305,6 +2332,11 @@ paths:
         explode: false
         schema:
           type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
       responses:
         "200":
           description: The dataspace profile
@@ -2324,8 +2356,8 @@ paths:
       tags:
       - Dataspace Profile v5beta
       description: Deletes a dataspace profile by its name. The profile is removed
-        from the store; the change takes effect on the running registry after the
-        next boot.
+        from the store and deregistered from the running connector's dataspace profile
+        context registry.
       operationId: deleteProfileV5
       parameters:
       - name: name
@@ -4020,7 +4052,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/createProfileV5_request"
+              $ref: "#/components/schemas/queryProfilesV5_request"
       responses:
         "204":
           description: The Cel Expression was updated successfully.
@@ -6012,19 +6044,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/DataspaceProfile_trustedIssuers_inner"
-    JsonValue:
-      type: object
-      properties:
-        valueType:
-          type: string
-          enum:
-          - ARRAY
-          - OBJECT
-          - STRING
-          - NUMBER
-          - "TRUE"
-          - "FALSE"
-          - "NULL"
     cached-document-schema:
       title: CachedDocumentSchema
       type: object
@@ -6184,6 +6203,19 @@ components:
           type: string
         value:
           type: string
+    JsonValue:
+      type: object
+      properties:
+        valueType:
+          type: string
+          enum:
+          - ARRAY
+          - OBJECT
+          - STRING
+          - NUMBER
+          - "TRUE"
+          - "FALSE"
+          - "NULL"
     contract-agreement-schema:
       title: ContractAgreementSchema
       type: object
@@ -6460,14 +6492,6 @@ components:
     associate-dataspace-profile-schema:
       title: AssociateDataspaceProfileSchema
       type: object
-      example:
-        '@type': '@type'
-        profiles:
-        - profiles
-        - profiles
-        '@context':
-        - '@context'
-        - '@context'
       allOf:
       - $ref: "#/components/schemas/AssociateDataspaceProfile"
     AssociateDataspaceProfile:
@@ -7728,7 +7752,7 @@ components:
         dataplaneMetadata:
           $ref: "#/components/schemas/dataplane-metadata-schema"
       nullable: true
-    createProfileV5_request:
+    queryProfilesV5_request:
       type: object
       properties:
         empty:
