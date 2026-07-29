@@ -131,6 +131,59 @@ class DataspaceProfileContextRegistryImplTest {
     }
 
     @Nested
+    class Deregister {
+        @Test
+        void shouldRemoveStandardProfile() {
+            var version = new ProtocolVersion("v", "/v", "https");
+            var first = new DataspaceProfileContext("first", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of());
+            var second = new DataspaceProfileContext("second", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of());
+            registry.register(first);
+            registry.register(second);
+
+            registry.deregister("first");
+
+            assertThat(registry.getProfiles()).containsExactly(second);
+            assertThat(registry.getProfile("first")).isNull();
+            assertThat(registry.getProfile("second")).isEqualTo(second);
+        }
+
+        @Test
+        void shouldBeNoOp_whenProfileUnknown() {
+            var version = new ProtocolVersion("v", "/v", "https");
+            var profile = new DataspaceProfileContext("standard", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of());
+            registry.register(profile);
+
+            registry.deregister("unknown");
+
+            assertThat(registry.getProfiles()).containsExactly(profile);
+        }
+
+        @Test
+        void shouldNotRemoveDefaultProfiles() {
+            var version = new ProtocolVersion("v", "/v", "https");
+            var profile = new DataspaceProfileContext("default", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of());
+            registry.registerDefault(profile);
+
+            registry.deregister("default");
+
+            assertThat(registry.getProfiles()).containsExactly(profile);
+            assertThat(registry.getProfile("default")).isEqualTo(profile);
+        }
+
+        @Test
+        void shouldAllowReRegister_afterDeregister() {
+            var version = new ProtocolVersion("v", "/v", "https");
+            var profile = new DataspaceProfileContext("standard", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of());
+            registry.register(profile);
+            registry.deregister("standard");
+
+            registry.register(profile);
+
+            assertThat(registry.getProfile("standard")).isEqualTo(profile);
+        }
+    }
+
+    @Nested
     class RegistrationCallback {
         @Test
         void firesOnSubsequentRegister() {
@@ -142,6 +195,19 @@ class DataspaceProfileContextRegistryImplTest {
             registry.register(new DataspaceProfileContext("b", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of()));
 
             assertThat(seen).containsExactly("a", "b");
+        }
+
+        @Test
+        void doesNotFireAgain_whenProfileAlreadyRegistered() {
+            var seen = new ArrayList<String>();
+            registry.addRegistrationCallback(p -> seen.add(p.name()));
+            var version = new ProtocolVersion("v", "/v", "https");
+            var profile = new DataspaceProfileContext("a", version, () -> "url", ct -> "id", NAMESPACE, List.of(CONTEXT_URL), List.of());
+
+            registry.register(profile);
+            registry.register(profile);
+
+            assertThat(seen).containsExactly("a");
         }
 
         @Test

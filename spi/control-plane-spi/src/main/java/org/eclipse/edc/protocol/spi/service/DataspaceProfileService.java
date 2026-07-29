@@ -23,13 +23,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 /**
- * Manages the lifecycle of {@link DataspaceProfile}s. Beyond persistence, a successful
- * {@link #create(DataspaceProfile)} also registers the profile into the
- * {@link org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry} so it takes effect on the
- * running connector.
- * <p>
- * Note: the registry is append-only, therefore {@link #deleteById(String)} only removes the profile
- * from the store; the running registry keeps the entry until the next boot.
+ * Manages the lifecycle of {@link DataspaceProfile}s. Beyond persistence, mutations are kept in sync
+ * with the {@link org.eclipse.edc.protocol.spi.DataspaceProfileContextRegistry} so they take effect on
+ * the running connector immediately: {@link #create(DataspaceProfile)} and {@link #update(DataspaceProfile)}
+ * (re-)register the profile, while {@link #deleteById(String)} deregisters it.
  */
 @ExtensionPoint
 public interface DataspaceProfileService {
@@ -60,8 +57,17 @@ public interface DataspaceProfileService {
     ServiceResult<DataspaceProfile> create(DataspaceProfile profile);
 
     /**
-     * Deletes a profile from the store. Does not affect the running registry (which is append-only);
-     * the change takes effect on the next boot.
+     * Updates an existing profile, persisting the change and re-registering it into the
+     * {@code DataspaceProfileContextRegistry} so it takes effect on the running connector.
+     *
+     * @param profile the profile to update.
+     * @return success with the updated profile, a failure (e.g. not found) otherwise.
+     */
+    @NotNull
+    ServiceResult<DataspaceProfile> update(DataspaceProfile profile);
+
+    /**
+     * Deletes a profile from the store and deregisters it from the {@code DataspaceProfileContextRegistry}.
      *
      * @param name the name of the profile to delete.
      * @return success with the deleted profile, a failure (e.g. not found) otherwise.

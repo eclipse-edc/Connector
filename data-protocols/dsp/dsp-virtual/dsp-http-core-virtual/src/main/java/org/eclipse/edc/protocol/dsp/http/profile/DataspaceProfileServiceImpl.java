@@ -64,7 +64,20 @@ public class DataspaceProfileServiceImpl implements DataspaceProfileService {
     }
 
     @Override
+    public @NotNull ServiceResult<DataspaceProfile> update(DataspaceProfile profile) {
+        return transactionContext.execute(() -> {
+            var result = store.update(profile);
+            result.onSuccess(p -> registry.register(mapper.toContext(p)));
+            return ServiceResult.from(result);
+        });
+    }
+
+    @Override
     public @NotNull ServiceResult<DataspaceProfile> deleteById(String name) {
-        return transactionContext.execute(() -> ServiceResult.from(store.delete(name)));
+        return transactionContext.execute(() -> {
+            var result = store.delete(name);
+            result.onSuccess(p -> registry.deregister(p.getName()));
+            return ServiceResult.from(result);
+        });
     }
 }

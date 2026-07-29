@@ -108,6 +108,61 @@ public class DataspaceProfileApiV5EndToEndTest {
         }
 
         @Test
+        void update(ManagementEndToEndV5TestContext context, OauthServer authServer) {
+            var token = authServer.createAdminToken();
+            var name = "custom-profile";
+
+            context.baseRequest(token)
+                    .contentType(ContentType.JSON)
+                    .body(profileJson(name))
+                    .post("/v5beta/dataspaceprofiles")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200);
+
+            var updated = createObjectBuilder()
+                    .add(CONTEXT, createArrayBuilder().add(EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2))
+                    .add(TYPE, "DataspaceProfile")
+                    .add("name", name)
+                    .add("protocol", createObjectBuilder()
+                            .add("version", "2025-1")
+                            .add("path", "/" + name)
+                            .add("binding", "HTTP")
+                            .add("namespace", "https://w3id.org/dspace/2025/1/"))
+                    .add("jsonLdContextsUrl", createArrayBuilder().add("https://w3id.org/dspace/2025/1/context.jsonld"))
+                    .build();
+
+            context.baseRequest(token)
+                    .contentType(ContentType.JSON)
+                    .body(updated)
+                    .put("/v5beta/dataspaceprofiles")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(204);
+
+            context.baseRequest(token)
+                    .contentType(ContentType.JSON)
+                    .get("/v5beta/dataspaceprofiles/" + name)
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .body("protocol.binding", equalTo("HTTP"));
+        }
+
+        @Test
+        void update_shouldReturnNotFound_whenMissing(ManagementEndToEndV5TestContext context, OauthServer authServer) {
+            var token = authServer.createAdminToken();
+
+            context.baseRequest(token)
+                    .contentType(ContentType.JSON)
+                    .body(profileJson("unknown-profile"))
+                    .put("/v5beta/dataspaceprofiles")
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(404);
+        }
+
+        @Test
         void create_shouldReturnConflict_whenProfileAlreadyExists(ManagementEndToEndV5TestContext context, OauthServer authServer) {
             var token = authServer.createAdminToken();
             var name = "duplicate-profile";
