@@ -100,3 +100,4 @@
 - [2026-06-10 Remove the DispatcherRegistry](2026-06-10-remove-dispatcher-registry)
 - [2026-06-18 Lib Module Consolidation](2026-06-18-lib-module-consolidation)
 - [2026-06-18 SPI Module Consolidation](2026-06-18-spi-module-consolidation)
+- [2026-07-24 Transformers Registry](2026-07-24-transformers-registry)
