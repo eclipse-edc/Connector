@@ -101,3 +101,4 @@
 - [2026-06-18 Lib Module Consolidation](2026-06-18-lib-module-consolidation)
 - [2026-06-18 SPI Module Consolidation](2026-06-18-spi-module-consolidation)
 - [2026-07-24 Transformers Registry](2026-07-24-transformers-registry)
+- [2026-07-29 JSON-LD single-pass deserialization](2026-07-29-jsonld-single-pass-deserialization)
