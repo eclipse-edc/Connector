@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.api.management.contractnegotiation;
 
 import jakarta.json.Json;
-import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v4.ContractNegotiationApiV4Controller;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.validation.ContractRequestValidator;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.validation.TerminateNegotiationValidator;
@@ -99,6 +98,6 @@ public class ContractNegotiationApiExtension implements ServiceExtension {
         validatorRegistry.register(V_4_PREFIX + TERMINATE_NEGOTIATION_TYPE, TerminateNegotiationValidator.instanceV4());
 
         webService.registerResource(ApiContext.MANAGEMENT, new ContractNegotiationApiV4Controller(service, managementApiTransformerRegistry, monitor, validatorRegistry, participantContextSupplier));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractNegotiationApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractNegotiationApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4));
     }
 }

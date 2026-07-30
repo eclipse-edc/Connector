@@ -45,12 +45,14 @@ import static jakarta.json.Json.createObjectBuilder;
 import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.edc.api.model.IdResponse.ID_RESPONSE_TYPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState.NEGOTIATION_STATE_TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -105,7 +107,7 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
 
         baseRequest()
                 .contentType(JSON)
-                .body(createObjectBuilder().build())
+                .body(createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build())
                 .post("/request")
                 .then()
                 .statusCode(400);
@@ -123,7 +125,7 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
         )));
         when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpec.class))).thenReturn(Result.failure("test-failure"));
 
-        var requestBody = createObjectBuilder().build();
+        var requestBody = createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build();
         baseRequest()
                 .contentType(JSON)
                 .body(requestBody)
@@ -191,7 +193,7 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
         when(transformerRegistry.transform(any(ContractNegotiation.class), eq(JsonObject.class)))
                 .thenReturn(Result.failure("test-failure"));
 
-        var requestBody = createObjectBuilder().build();
+        var requestBody = createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build();
         baseRequest()
                 .contentType(JSON)
                 .body(requestBody)
@@ -420,7 +422,7 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
 
             baseRequest()
                     .contentType(JSON)
-                    .body(createObjectBuilder().build())
+                    .body(createObjectBuilder().add(TYPE, CONTRACT_REQUEST_TYPE_TERM).build())
                     .post()
                     .then()
                     .statusCode(200)
@@ -454,7 +456,7 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
 
             baseRequest()
                     .contentType(JSON)
-                    .body(createObjectBuilder().build())
+                    .body(createObjectBuilder().add(TYPE, CONTRACT_REQUEST_TYPE_TERM).build())
                     .post()
                     .then()
                     .statusCode(500);
@@ -470,7 +472,7 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
 
             baseRequest()
                     .contentType(JSON)
-                    .body(createObjectBuilder().build())
+                    .body(createObjectBuilder().add(TYPE, CONTRACT_REQUEST_TYPE_TERM).build())
                     .post()
                     .then()
                     .statusCode(400);
@@ -486,7 +488,7 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
 
             baseRequest()
                     .contentType(JSON)
-                    .body(createObjectBuilder().build())
+                    .body(createObjectBuilder().add(TYPE, CONTRACT_REQUEST_TYPE_TERM).build())
                     .post()
                     .then()
                     .statusCode(400);

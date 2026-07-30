@@ -30,4 +30,9 @@ public @interface SchemaType {
      */
     String[] value();
 
+    /**
+     * The schema version to validate against. Must always be set explicitly.
+     */
+    String version();
+
 }

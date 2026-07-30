@@ -76,7 +76,7 @@ public class PolicyDefinitionApiV5Controller implements PolicyDefinitionApiV5 {
     @RequiredScope("management-api:policies:read")
     @Override
     public JsonArray queryPolicyDefinitionsV5(@PathParam("participantContextId") String participantContextId,
-                                              @SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson,
+                                              @SchemaType(value = EDC_QUERY_SPEC_TYPE_TERM, version = "v4") JsonObject querySpecJson,
                                               @Context SecurityContext securityContext) {
 
         authorizationService.authorize(securityContext, participantContextId, participantContextId, ParticipantContext.class)
@@ -126,7 +126,7 @@ public class PolicyDefinitionApiV5Controller implements PolicyDefinitionApiV5 {
     @RequiredScope("management-api:policies:write")
     @Override
     public JsonObject createPolicyDefinitionV5(@PathParam("participantContextId") String participantContextId,
-                                               @SchemaType(EDC_POLICY_DEFINITION_TYPE_TERM) JsonObject policyDefinition,
+                                               @SchemaType(value = EDC_POLICY_DEFINITION_TYPE_TERM, version = "v4") JsonObject policyDefinition,
                                                @Context SecurityContext securityContext) {
 
         authorizationService.authorize(securityContext, participantContextId, participantContextId, ParticipantContext.class)
@@ -173,7 +173,7 @@ public class PolicyDefinitionApiV5Controller implements PolicyDefinitionApiV5 {
     @Override
     public void updatePolicyDefinitionV5(@PathParam("participantContextId") String participantContextId,
                                          @PathParam("id") String id,
-                                         @SchemaType(EDC_POLICY_DEFINITION_TYPE_TERM) JsonObject input,
+                                         @SchemaType(value = EDC_POLICY_DEFINITION_TYPE_TERM, version = "v4") JsonObject input,
                                          @Context SecurityContext securityContext) {
 
         authorizationService.authorize(securityContext, participantContextId, id, PolicyDefinition.class)
@@ -223,7 +223,7 @@ public class PolicyDefinitionApiV5Controller implements PolicyDefinitionApiV5 {
     @Override
     public JsonObject createExecutionPlanV5(@PathParam("participantContextId") String participantContextId,
                                             @PathParam("id") String id,
-                                            @SchemaType("PolicyEvaluationPlanRequest") JsonObject input,
+                                            @SchemaType(value = "PolicyEvaluationPlanRequest", version = "v4") JsonObject input,
                                             @Context SecurityContext securityContext) {
 
         authorizationService.authorize(securityContext, participantContextId, id, PolicyDefinition.class)

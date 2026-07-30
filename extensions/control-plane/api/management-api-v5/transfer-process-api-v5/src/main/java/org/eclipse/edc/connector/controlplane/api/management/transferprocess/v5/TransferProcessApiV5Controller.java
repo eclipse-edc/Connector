@@ -91,7 +91,7 @@ public class TransferProcessApiV5Controller implements TransferProcessApiV5 {
     @RequiredScope("management-api:transfers:read")
     @Override
     public JsonArray queryTransferProcessesV5(@PathParam("participantContextId") String participantContextId,
-                                              @SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson,
+                                              @SchemaType(value = EDC_QUERY_SPEC_TYPE_TERM, version = "v4") JsonObject querySpecJson,
                                               @Context SecurityContext securityContext) {
 
         authorizationService.authorize(securityContext, participantContextId, participantContextId, ParticipantContext.class)
@@ -162,7 +162,7 @@ public class TransferProcessApiV5Controller implements TransferProcessApiV5 {
     @RequiredScope("management-api:transfers:write")
     @Override
     public JsonObject initiateTransferProcessV5(@PathParam("participantContextId") String participantContextId,
-                                                @SchemaType(TRANSFER_REQUEST_TYPE_TERM) JsonObject request,
+                                                @SchemaType(value = TRANSFER_REQUEST_TYPE_TERM, version = "v4") JsonObject request,
                                                 @Context SecurityContext securityContext) {
 
         authorizationService.authorize(securityContext, participantContextId, participantContextId, ParticipantContext.class)
@@ -195,7 +195,7 @@ public class TransferProcessApiV5Controller implements TransferProcessApiV5 {
     @Override
     public void terminateTransferProcessV5(@PathParam("participantContextId") String participantContextId,
                                            @PathParam("id") String id,
-                                           @SchemaType(TERMINATE_TRANSFER_TYPE_TERM) JsonObject requestBody,
+                                           @SchemaType(value = TERMINATE_TRANSFER_TYPE_TERM, version = "v4") JsonObject requestBody,
                                            @Context SecurityContext securityContext) {
 
 
@@ -216,7 +216,7 @@ public class TransferProcessApiV5Controller implements TransferProcessApiV5 {
     @Override
     public void suspendTransferProcessV5(@PathParam("participantContextId") String participantContextId,
                                          @PathParam("id") String id,
-                                         @SchemaType(SUSPEND_TRANSFER_TYPE_TERM) JsonObject requestBody,
+                                         @SchemaType(value = SUSPEND_TRANSFER_TYPE_TERM, version = "v4") JsonObject requestBody,
                                          @Context SecurityContext securityContext) {
 
         authorizationService.authorize(securityContext, participantContextId, id, TransferProcess.class)

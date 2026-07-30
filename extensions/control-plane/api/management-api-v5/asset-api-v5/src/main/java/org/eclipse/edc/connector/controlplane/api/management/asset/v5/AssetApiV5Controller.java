@@ -76,7 +76,7 @@ public class AssetApiV5Controller implements AssetApiV5 {
     @RequiredScope("management-api:assets:write")
     @Override
     public JsonObject createAssetV5(@PathParam("participantContextId") String participantContextId,
-                                    @SchemaType({EDC_ASSET_TYPE_TERM, EDC_CATALOG_ASSET_TYPE_TERM}) JsonObject assetJson,
+                                    @SchemaType(value = {EDC_ASSET_TYPE_TERM, EDC_CATALOG_ASSET_TYPE_TERM}, version = "v5") JsonObject assetJson,
                                     @Context SecurityContext securityContext) {
 
         authorizationService.authorize(securityContext, participantContextId, participantContextId, ParticipantContext.class)
@@ -107,7 +107,7 @@ public class AssetApiV5Controller implements AssetApiV5 {
     @Override
     @RequiredScope("management-api:assets:read")
     public JsonArray queryAssetsV5(@PathParam("participantContextId") String participantContextId,
-                                   @SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson,
+                                   @SchemaType(value = EDC_QUERY_SPEC_TYPE_TERM, version = "v4") JsonObject querySpecJson,
                                    @Context SecurityContext securityContext) {
         authorizationService.authorize(securityContext, participantContextId, participantContextId, ParticipantContext.class)
                 .orElseThrow(exceptionMapper(ParticipantContext.class, participantContextId));
@@ -168,7 +168,7 @@ public class AssetApiV5Controller implements AssetApiV5 {
     @RequiredScope("management-api:assets:write")
     @Override
     public void updateAssetV5(@PathParam("participantContextId") String participantContextId,
-                              @SchemaType({EDC_ASSET_TYPE_TERM, EDC_CATALOG_ASSET_TYPE_TERM}) JsonObject assetJson,
+                              @SchemaType(value = {EDC_ASSET_TYPE_TERM, EDC_CATALOG_ASSET_TYPE_TERM}, version = "v5") JsonObject assetJson,
                               @Context SecurityContext securityContext) {
 
         validator.validate(EDC_ASSET_TYPE, assetJson).orElseThrow(ValidationFailureException::new);

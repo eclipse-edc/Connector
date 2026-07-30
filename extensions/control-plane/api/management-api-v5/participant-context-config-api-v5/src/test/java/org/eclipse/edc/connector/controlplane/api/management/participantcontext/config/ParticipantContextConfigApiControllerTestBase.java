@@ -110,10 +110,7 @@ public abstract class ParticipantContextConfigApiControllerTestBase extends Rest
 
             when(service.save(any())).thenReturn(ServiceResult.success());
             var requestBody = Json.createObjectBuilder()
-                    .add("policy", Json.createObjectBuilder()
-                            .add(CONTEXT, "context")
-                            .add(TYPE, "Set")
-                            .build())
+                    .add(TYPE, "ParticipantContextConfig")
                     .build();
 
             baseRequest()
@@ -176,10 +173,7 @@ public abstract class ParticipantContextConfigApiControllerTestBase extends Rest
             when(transformerRegistry.transform(any(), eq(ParticipantContextConfiguration.class))).thenReturn(Result.success(contextConfig));
             when(service.merge(any())).thenReturn(ServiceResult.success());
             var requestBody = Json.createObjectBuilder()
-                    .add("policy", Json.createObjectBuilder()
-                            .add(CONTEXT, "context")
-                            .add(TYPE, "Set")
-                            .build())
+                    .add(TYPE, "ParticipantContextConfig")
                     .build();
 
             baseRequest()

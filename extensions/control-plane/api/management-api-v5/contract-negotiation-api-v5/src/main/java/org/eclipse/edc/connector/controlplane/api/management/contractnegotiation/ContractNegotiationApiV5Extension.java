@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.contractnegotiatio
 
 import jakarta.json.Json;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.api.management.contractnegotiation.v5.ContractNegotiationApiV5Controller;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation;
 import org.eclipse.edc.connector.controlplane.services.spi.contractnegotiation.ContractNegotiationService;
@@ -105,7 +104,7 @@ public class ContractNegotiationApiV5Extension implements ServiceExtension {
         authorizationService.addLookupFunction(ContractNegotiation.class, this::findContractNegotiation);
 
         webService.registerResource(ApiContext.MANAGEMENT, new ContractNegotiationApiV5Controller(service, participantContextService, authorizationService, managementApiTransformerRegistry, profileResolver, monitor));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractNegotiationApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractNegotiationApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4));
     }
 
     private ParticipantResource findContractNegotiation(String ownerId, String assetId) {

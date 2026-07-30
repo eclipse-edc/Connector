@@ -48,7 +48,7 @@ public class ContractDefinitionApiV4Controller extends BaseContractDefinitionApi
     @POST
     @Path("/request")
     @Override
-    public JsonArray queryContractDefinitionsV4(@SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson) {
+    public JsonArray queryContractDefinitionsV4(@SchemaType(value = EDC_QUERY_SPEC_TYPE_TERM, version = "v4") JsonObject querySpecJson) {
         return queryContractDefinitions(querySpecJson);
     }
 
@@ -61,7 +61,7 @@ public class ContractDefinitionApiV4Controller extends BaseContractDefinitionApi
 
     @POST
     @Override
-    public JsonObject createContractDefinitionV4(@SchemaType(CONTRACT_DEFINITION_TYPE_TERM) JsonObject createObject) {
+    public JsonObject createContractDefinitionV4(@SchemaType(value = CONTRACT_DEFINITION_TYPE_TERM, version = "v4") JsonObject createObject) {
         return createContractDefinition(createObject);
     }
 
@@ -74,7 +74,7 @@ public class ContractDefinitionApiV4Controller extends BaseContractDefinitionApi
 
     @PUT
     @Override
-    public void updateContractDefinitionV4(@SchemaType(CONTRACT_DEFINITION_TYPE_TERM) JsonObject updateObject) {
+    public void updateContractDefinitionV4(@SchemaType(value = CONTRACT_DEFINITION_TYPE_TERM, version = "v4") JsonObject updateObject) {
         updateContractDefinition(updateObject);
     }
 }

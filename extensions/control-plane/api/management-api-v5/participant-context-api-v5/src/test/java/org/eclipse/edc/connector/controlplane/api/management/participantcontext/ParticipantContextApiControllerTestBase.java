@@ -223,10 +223,7 @@ public abstract class ParticipantContextApiControllerTestBase extends RestContro
             when(service.getParticipantContext(any())).thenReturn(ServiceResult.success(participantContext));
             when(service.updateParticipantContext(any())).thenReturn(ServiceResult.success());
             var requestBody = Json.createObjectBuilder()
-                    .add("policy", Json.createObjectBuilder()
-                            .add(CONTEXT, "context")
-                            .add(TYPE, "Set")
-                            .build())
+                    .add(TYPE, "ParticipantContext")
                     .build();
 
             baseRequest()
@@ -264,6 +261,7 @@ public abstract class ParticipantContextApiControllerTestBase extends RestContro
             when(transformerRegistry.transform(any(), eq(ParticipantContext.class))).thenReturn(Result.success(participantContext));
             when(service.updateParticipantContext(participantContext)).thenReturn(ServiceResult.notFound("not found"));
             var requestBody = Json.createObjectBuilder()
+                    .add(TYPE, "ParticipantContext")
                     .build();
 
             baseRequest()
@@ -292,10 +290,7 @@ public abstract class ParticipantContextApiControllerTestBase extends RestContro
             when(transformerRegistry.transform(any(IdResponse.class), eq(JsonObject.class))).thenReturn(Result.success(response));
 
             var requestBody = Json.createObjectBuilder()
-                    .add("policy", Json.createObjectBuilder()
-                            .add(CONTEXT, "context")
-                            .add(TYPE, "Set")
-                            .build())
+                    .add(TYPE, "ParticipantContext")
                     .build();
 
             baseRequest()
@@ -338,6 +333,7 @@ public abstract class ParticipantContextApiControllerTestBase extends RestContro
             when(transformerRegistry.transform(any(), eq(ParticipantContext.class))).thenReturn(Result.success(participantContext));
             when(service.createParticipantContext(any())).thenReturn(ServiceResult.conflict("already exists"));
             var requestBody = Json.createObjectBuilder()
+                    .add(TYPE, "ParticipantContext")
                     .build();
 
             baseRequest()

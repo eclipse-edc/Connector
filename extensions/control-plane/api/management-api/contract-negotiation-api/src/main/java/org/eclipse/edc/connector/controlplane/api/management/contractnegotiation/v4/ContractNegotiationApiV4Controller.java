@@ -56,7 +56,7 @@ public class ContractNegotiationApiV4Controller extends BaseContractNegotiationA
     @POST
     @Path("/request")
     @Override
-    public JsonArray queryNegotiationsV4(@SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson) {
+    public JsonArray queryNegotiationsV4(@SchemaType(value = EDC_QUERY_SPEC_TYPE_TERM, version = "v4") JsonObject querySpecJson) {
         return queryNegotiations(querySpecJson);
     }
 
@@ -83,14 +83,14 @@ public class ContractNegotiationApiV4Controller extends BaseContractNegotiationA
 
     @POST
     @Override
-    public JsonObject initiateContractNegotiationV4(@SchemaType(CONTRACT_REQUEST_TYPE_TERM) JsonObject requestObject) {
+    public JsonObject initiateContractNegotiationV4(@SchemaType(value = CONTRACT_REQUEST_TYPE_TERM, version = "v4") JsonObject requestObject) {
         return initiateContractNegotiation(requestObject);
     }
 
     @POST
     @Path("/{id}/terminate")
     @Override
-    public void terminateNegotiationV4(@PathParam("id") String id, @SchemaType(TERMINATE_NEGOTIATION_TYPE_TERM) JsonObject terminateNegotiation) {
+    public void terminateNegotiationV4(@PathParam("id") String id, @SchemaType(value = TERMINATE_NEGOTIATION_TYPE_TERM, version = "v4") JsonObject terminateNegotiation) {
         terminateNegotiation(id, terminateNegotiation);
     }
 

@@ -14,7 +14,6 @@
 
 package org.eclipse.edc.connector.controlplane.api.management.catalog;
 
-import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.v4.CatalogApiV4Controller;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.validation.CatalogRequestValidator;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.validation.DatasetRequestValidator;
@@ -85,6 +84,6 @@ public class CatalogApiExtension implements ServiceExtension {
         validatorRegistry.register(DATASET_REQUEST_TYPE, DatasetRequestValidator.instance());
 
         webService.registerResource(ApiContext.MANAGEMENT, new CatalogApiV4Controller(service, managementApiTransformerRegistry, validatorRegistry, participantContextSupplier));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4));
     }
 }

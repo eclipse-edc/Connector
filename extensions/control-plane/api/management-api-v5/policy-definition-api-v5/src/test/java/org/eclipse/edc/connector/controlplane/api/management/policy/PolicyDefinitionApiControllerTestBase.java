@@ -43,9 +43,12 @@ import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.api.model.IdResponse.ID_RESPONSE_CREATED_AT;
 import static org.eclipse.edc.api.model.IdResponse.ID_RESPONSE_TYPE;
+import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE_TERM;
+import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyEvaluationPlanRequest.EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -106,7 +109,7 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
             var policyDefinition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
             var plan = PolicyEvaluationPlan.Builder.newInstance().build();
             var response = Json.createObjectBuilder().build();
-            var body = Json.createObjectBuilder().add("policyScope", policyScope).build();
+            var body = Json.createObjectBuilder().add(TYPE, EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE_TERM).add("policyScope", policyScope).build();
 
             when(service.findById(any())).thenReturn(policyDefinition);
             when(service.createEvaluationPlan(policyScope, policyDefinition.getPolicy())).thenReturn(ServiceResult.success(plan));
@@ -129,7 +132,7 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
         void createEvaluationPlan_fails_whenPolicyNotFound() {
 
             var policyScope = "scope";
-            var body = Json.createObjectBuilder().add("policyScope", policyScope).build();
+            var body = Json.createObjectBuilder().add(TYPE, EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE_TERM).add("policyScope", policyScope).build();
 
             when(service.findById(any())).thenReturn(null);
             when(transformerRegistry.transform(any(JsonObject.class), eq(PolicyEvaluationPlanRequest.class)))
@@ -149,7 +152,7 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
             when(authorizationService.authorize(any(), any(), any(), any()))
                     .thenReturn(ServiceResult.unauthorized("unauthorized"));
             var policyScope = "scope";
-            var body = Json.createObjectBuilder().add("policyScope", policyScope).build();
+            var body = Json.createObjectBuilder().add(TYPE, EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE_TERM).add("policyScope", policyScope).build();
 
             baseRequest(participantContextId)
                     .contentType(JSON)
@@ -306,7 +309,7 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
             when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
             when(service.search(any())).thenReturn(ServiceResult.success(List.of(policyDefinition)));
             when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expandedResponseBody));
-            var requestBody = Json.createObjectBuilder().build();
+            var requestBody = Json.createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build();
 
             baseRequest(participantContextId)
                     .body(requestBody)
@@ -330,6 +333,7 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
         @Test
         void search_shouldReturn400_whenInvalidQuery() {
             var requestBody = Json.createObjectBuilder()
+                    .add(TYPE, EDC_QUERY_SPEC_TYPE_TERM)
                     .add("offset", -1)
                     .build();
             when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpec.class))).thenReturn(Result.failure("failure"));
@@ -367,7 +371,7 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
             var querySpec = QuerySpec.none();
             when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
             when(service.search(any())).thenReturn(ServiceResult.badRequest("error"));
-            var requestBody = Json.createObjectBuilder().build();
+            var requestBody = Json.createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build();
 
             baseRequest(participantContextId)
                     .body(requestBody)
@@ -385,7 +389,7 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
             when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
             when(service.search(any())).thenReturn(ServiceResult.success(List.of(policyDefinition)));
             when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.failure("error"));
-            var requestBody = Json.createObjectBuilder().build();
+            var requestBody = Json.createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build();
 
             baseRequest(participantContextId)
                     .body(requestBody)
@@ -403,7 +407,7 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
                     .thenReturn(ServiceResult.unauthorized("unauthorized"));
 
             baseRequest(participantContextId)
-                    .body("{}")
+                    .body(createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build())
                     .contentType(JSON)
                     .post("/policydefinitions/request")
                     .then()
@@ -457,6 +461,7 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
             when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
             when(service.update(any())).thenReturn(ServiceResult.success(policyDefinition));
             var requestBody = Json.createObjectBuilder()
+                    .add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM)
                     .add("policy", Json.createObjectBuilder()
                             .add(CONTEXT, "context")
                             .add(TYPE, "Set")
@@ -477,6 +482,7 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
         void update_shouldReturnBadRequest_whenTransformationFails() {
             when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
             var requestBody = Json.createObjectBuilder()
+                    .add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM)
                     .add("policy", Json.createObjectBuilder()
                             .add(CONTEXT, "context")
                             .add(TYPE, "Set")
@@ -498,6 +504,7 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
             when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
             when(service.update(any())).thenReturn(ServiceResult.notFound("not found"));
             var requestBody = Json.createObjectBuilder()
+                    .add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM)
                     .add("policy", Json.createObjectBuilder()
                             .add(CONTEXT, "context")
                             .add(TYPE, "Set")
@@ -540,6 +547,7 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
             when(transformerRegistry.transform(any(IdResponse.class), eq(JsonObject.class))).thenReturn(Result.success(response));
 
             var requestBody = Json.createObjectBuilder()
+                    .add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM)
                     .add("policy", Json.createObjectBuilder()
                             .add(CONTEXT, "context")
                             .add(TYPE, "Set")
@@ -564,6 +572,7 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
         void create_shouldReturnBadRequest_whenTransformationFails() {
             when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
             var requestBody = Json.createObjectBuilder()
+                    .add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM)
                     .add("policy", Json.createObjectBuilder()
                             .add(CONTEXT, "context")
                             .add(TYPE, "Set")
@@ -586,6 +595,7 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
             when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
             when(service.create(any())).thenReturn(ServiceResult.conflict("already exists"));
             var requestBody = Json.createObjectBuilder()
+                    .add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM)
                     .add("policy", Json.createObjectBuilder()
                             .add(CONTEXT, "context")
                             .add(TYPE, "Set")
@@ -604,6 +614,7 @@ public abstract class PolicyDefinitionApiControllerTestBase extends RestControll
         @Test
         void create_authorizationFailed() {
             var requestBody = Json.createObjectBuilder()
+                    .add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM)
                     .add("policy", Json.createObjectBuilder()
                             .add(CONTEXT, "context")
                             .add(TYPE, "Set")

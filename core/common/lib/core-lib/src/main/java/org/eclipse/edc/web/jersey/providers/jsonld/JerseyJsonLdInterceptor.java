@@ -20,7 +20,6 @@ import jakarta.ws.rs.ext.Provider;
 import jakarta.ws.rs.ext.WriterInterceptorContext;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
 @Provider
 public class JerseyJsonLdInterceptor extends AbstractJerseyJsonLdInterceptor {
@@ -28,11 +27,7 @@ public class JerseyJsonLdInterceptor extends AbstractJerseyJsonLdInterceptor {
     private final String scope;
 
     public JerseyJsonLdInterceptor(JsonLd jsonLd, TypeManager typeManager, String typeContext, String scope) {
-        this(jsonLd, typeManager, typeContext, scope, null, null);
-    }
-
-    public JerseyJsonLdInterceptor(JsonLd jsonLd, TypeManager typeManager, String typeContext, String scope, JsonObjectValidatorRegistry validatorRegistry, String schemaVersion) {
-        super(jsonLd, typeManager, typeContext, validatorRegistry, schemaVersion);
+        super(jsonLd, typeManager, typeContext);
         this.scope = scope;
     }
 

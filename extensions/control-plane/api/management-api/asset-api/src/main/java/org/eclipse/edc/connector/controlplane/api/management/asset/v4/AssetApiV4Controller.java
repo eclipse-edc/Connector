@@ -49,14 +49,14 @@ public class AssetApiV4Controller extends BaseAssetApiController implements Asse
 
     @POST
     @Override
-    public JsonObject createAssetV4(@SchemaType({EDC_ASSET_TYPE_TERM, EDC_CATALOG_ASSET_TYPE_TERM}) JsonObject asset) {
+    public JsonObject createAssetV4(@SchemaType(value = {EDC_ASSET_TYPE_TERM, EDC_CATALOG_ASSET_TYPE_TERM}, version = "v4") JsonObject asset) {
         return createAsset(asset);
     }
 
     @POST
     @Path("/request")
     @Override
-    public JsonArray requestAssetsV4(@SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson) {
+    public JsonArray requestAssetsV4(@SchemaType(value = EDC_QUERY_SPEC_TYPE_TERM, version = "v4") JsonObject querySpecJson) {
         return requestAssets(querySpecJson);
     }
 
@@ -76,7 +76,7 @@ public class AssetApiV4Controller extends BaseAssetApiController implements Asse
 
     @PUT
     @Override
-    public void updateAssetV4(@SchemaType({EDC_ASSET_TYPE_TERM, EDC_CATALOG_ASSET_TYPE_TERM}) JsonObject asset) {
+    public void updateAssetV4(@SchemaType(value = {EDC_ASSET_TYPE_TERM, EDC_CATALOG_ASSET_TYPE_TERM}, version = "v4") JsonObject asset) {
         updateAsset(asset);
     }
 }

@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.api.management.contractagreement;
 
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.api.management.contractagreement.v5.ContractAgreementApiV5Controller;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.agreement.ContractAgreement;
 import org.eclipse.edc.connector.controlplane.services.spi.contractagreement.ContractAgreementService;
@@ -80,7 +79,7 @@ public class ContractAgreementApiV5Extension implements ServiceExtension {
         authorizationService.addLookupFunction(ContractAgreement.class, this::findContractAgreement);
 
         webService.registerResource(ApiContext.MANAGEMENT, new ContractAgreementApiV5Controller(service, authorizationService, managementApiTransformerRegistryV4, monitor, validatorRegistry));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractAgreementApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, ContractAgreementApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4));
 
     }
 

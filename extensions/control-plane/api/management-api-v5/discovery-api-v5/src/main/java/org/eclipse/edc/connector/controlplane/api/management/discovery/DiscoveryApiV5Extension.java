@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.discovery;
 
 import jakarta.json.Json;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.api.management.discovery.v5.DiscoveryApiV5Controller;
 import org.eclipse.edc.connector.controlplane.transform.edc.discovery.from.JsonObjectFromDiscoveryResponseTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.discovery.to.JsonObjectToDiscoveryRequestTransformer;
@@ -82,6 +81,6 @@ public class DiscoveryApiV5Extension implements ServiceExtension {
 
         webService.registerResource(ApiContext.MANAGEMENT, new DiscoveryApiV5Controller(authorizationService, discoveryService, managementApiTransformerRegistry, monitor));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, DiscoveryApiV5Controller.class,
-                new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V5.version()));
+                new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4));
     }
 }

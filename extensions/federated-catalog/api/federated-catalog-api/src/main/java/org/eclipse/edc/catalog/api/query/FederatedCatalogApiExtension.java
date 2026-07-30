@@ -15,7 +15,6 @@
 package org.eclipse.edc.catalog.api.query;
 
 import jakarta.json.Json;
-import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.catalog.api.query.v4.CatalogsApiV4Controller;
 import org.eclipse.edc.catalog.spi.QueryService;
 import org.eclipse.edc.jsonld.spi.JsonLd;
@@ -83,6 +82,6 @@ public class FederatedCatalogApiExtension implements ServiceExtension {
         jsonLd.registerContext(EDC_DSPACE_CONTEXT, FEDERATED_CATALOG_SCOPE_V4);
 
         webService.registerResource(ApiContext.MANAGEMENT, new CatalogsApiV4Controller(queryService, managementApiTransformerRegistry));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogsApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, FEDERATED_CATALOG_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogsApiV4Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, FEDERATED_CATALOG_SCOPE_V4));
     }
 }

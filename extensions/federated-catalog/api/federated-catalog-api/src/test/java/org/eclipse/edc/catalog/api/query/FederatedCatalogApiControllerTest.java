@@ -42,6 +42,7 @@ import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.catalog.api.query.TestUtil.buildCatalog;
 import static org.eclipse.edc.catalog.api.query.TestUtil.createCatalog;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.protocol.dsp.spi.type.Dsp2025Constants.DSP_NAMESPACE_V_2025_1;
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.hamcrest.CoreMatchers.is;
@@ -63,7 +64,7 @@ class FederatedCatalogApiControllerTest extends RestControllerTestBase {
 
         baseRequest()
                 .contentType(JSON)
-                .body("{}")
+                .body(Json.createObjectBuilder().add(TYPE, "QuerySpec").build())
                 .post(PATH)
                 .then()
                 .log().ifValidationFails()
@@ -79,7 +80,7 @@ class FederatedCatalogApiControllerTest extends RestControllerTestBase {
 
         baseRequest()
                 .contentType(JSON)
-                .body("{}")
+                .body(Json.createObjectBuilder().add(TYPE, "QuerySpec").build())
                 .post(PATH)
                 .then()
                 .log().ifValidationFails()
@@ -94,7 +95,7 @@ class FederatedCatalogApiControllerTest extends RestControllerTestBase {
 
         baseRequest()
                 .contentType(JSON)
-                .body("{}")
+                .body(Json.createObjectBuilder().add(TYPE, "QuerySpec").build())
                 .post(PATH)
                 .then()
                 .statusCode(500);
@@ -114,7 +115,7 @@ class FederatedCatalogApiControllerTest extends RestControllerTestBase {
 
         var response = baseRequest()
                 .contentType(JSON)
-                .body("{}")
+                .body(Json.createObjectBuilder().add(TYPE, "QuerySpec").build())
                 .post(PATH + "?flatten=true")
                 .then()
                 .log().ifValidationFails()

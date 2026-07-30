@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.transferprocess;
 
 import jakarta.json.Json;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.api.management.transferprocess.v5.TransferProcessApiV5Controller;
 import org.eclipse.edc.connector.controlplane.services.spi.transferprocess.TransferProcessService;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess;
@@ -99,7 +98,7 @@ public class TransferProcessApiV5Extension implements ServiceExtension {
         authorizationService.addLookupFunction(TransferProcess.class, this::findTransferProcess);
 
         webService.registerResource(ApiContext.MANAGEMENT, new TransferProcessApiV5Controller(context.getMonitor(), authorizationService, participantContextService, service, profileResolver, managementApiTransformerRegistry));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, TransferProcessApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, TransferProcessApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4));
     }
 
     private ParticipantResource findTransferProcess(String ownerId, String assetId) {

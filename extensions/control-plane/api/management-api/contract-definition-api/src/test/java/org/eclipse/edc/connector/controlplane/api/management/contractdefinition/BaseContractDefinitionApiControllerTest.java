@@ -35,8 +35,6 @@ import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
 import org.eclipse.edc.web.spi.ApiErrorDetail;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 
@@ -47,10 +45,11 @@ import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.Co
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_ASSETS_SELECTOR;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_CONTRACTPOLICY_ID;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_TYPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition.CONTRACT_DEFINITION_TYPE_TERM;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
-import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.mockito.ArgumentMatchers.any;
@@ -74,9 +73,8 @@ public abstract class BaseContractDefinitionApiControllerTest extends RestContro
             .build();
     protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(participantContext);
 
-    @ParameterizedTest
-    @ValueSource(strings = {"", "{}"})
-    void queryAllContractDefinitions(String body) {
+    @Test
+    void queryAllContractDefinitions() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(service.search(any())).thenReturn(ServiceResult.success(List.of(createContractDefinition().build())));
         when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.Builder.newInstance().build()));
@@ -84,16 +82,13 @@ public abstract class BaseContractDefinitionApiControllerTest extends RestContro
 
         baseRequest()
                 .contentType(JSON)
-                .body(body)
+                .body(Json.createObjectBuilder().add(TYPE, "QuerySpec").build())
                 .post("/request")
                 .then()
                 .statusCode(200)
                 .body("size()", greaterThan(0));
 
         verify(service).search(eq(QuerySpec.Builder.newInstance().build()));
-        if (!body.isEmpty()) {
-            verify(validatorRegistry).validate(eq(EDC_QUERY_SPEC_TYPE), any());
-        }
     }
 
     @Test
@@ -102,7 +97,7 @@ public abstract class BaseContractDefinitionApiControllerTest extends RestContro
 
         baseRequest()
                 .contentType(JSON)
-                .body(createObjectBuilder().build())
+                .body(createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build())
                 .post("/request")
                 .then()
                 .statusCode(400);
@@ -118,7 +113,7 @@ public abstract class BaseContractDefinitionApiControllerTest extends RestContro
 
         baseRequest()
                 .contentType(JSON)
-                .body("{}")
+                .body(createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build())
                 .post("/request")
                 .then()
                 .statusCode(400);
@@ -135,7 +130,7 @@ public abstract class BaseContractDefinitionApiControllerTest extends RestContro
 
         var error = baseRequest()
                 .contentType(JSON)
-                .body("{}")
+                .body(createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build())
                 .post("/request")
                 .then()
                 .statusCode(400)
@@ -203,7 +198,7 @@ public abstract class BaseContractDefinitionApiControllerTest extends RestContro
     @Test
     void create_shouldReturnBadRequest_whenValidationFails() {
         var requestJson = createObjectBuilder()
-                .add(TYPE, CONTRACT_DEFINITION_TYPE)
+                .add(TYPE, CONTRACT_DEFINITION_TYPE_TERM)
                 .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, "ap1")
                 .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, "cp1")
                 .add(CONTRACT_DEFINITION_ASSETS_SELECTOR, createCriterionBuilder().build())
@@ -241,7 +236,7 @@ public abstract class BaseContractDefinitionApiControllerTest extends RestContro
     @Test
     void create_transformationFails() {
         var requestJson = createObjectBuilder()
-                .add(TYPE, CONTRACT_DEFINITION_TYPE)
+                .add(TYPE, CONTRACT_DEFINITION_TYPE_TERM)
                 .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, "ap1")
                 .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, "cp1")
                 .add(CONTRACT_DEFINITION_ASSETS_SELECTOR, createCriterionBuilder().build())
@@ -381,7 +376,7 @@ public abstract class BaseContractDefinitionApiControllerTest extends RestContro
 
     private JsonObject createExpandedJsonObject() {
         return createObjectBuilder()
-                .add(TYPE, CONTRACT_DEFINITION_TYPE)
+                .add(TYPE, CONTRACT_DEFINITION_TYPE_TERM)
                 .add(ID, "test-id")
                 .add(CONTRACT_DEFINITION_ACCESSPOLICY_ID, "ap1")
                 .add(CONTRACT_DEFINITION_CONTRACTPOLICY_ID, "cp1")

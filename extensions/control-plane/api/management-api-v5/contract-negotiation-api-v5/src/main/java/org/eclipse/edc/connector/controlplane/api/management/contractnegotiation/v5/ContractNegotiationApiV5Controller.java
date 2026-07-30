@@ -86,7 +86,7 @@ public class ContractNegotiationApiV5Controller implements ContractNegotiationAp
     @RequiredScope("management-api:negotiations:read")
     @Override
     public JsonArray queryNegotiationsV5(@PathParam("participantContextId") String participantContextId,
-                                         @SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson,
+                                         @SchemaType(value = EDC_QUERY_SPEC_TYPE_TERM, version = "v4") JsonObject querySpecJson,
                                          @Context SecurityContext securityContext) {
 
         authorizationService.authorize(securityContext, participantContextId, participantContextId, ParticipantContext.class)
@@ -170,7 +170,7 @@ public class ContractNegotiationApiV5Controller implements ContractNegotiationAp
     @RequiredScope("management-api:negotiations:write")
     @Override
     public JsonObject initiateContractNegotiationV5(@PathParam("participantContextId") String participantContextId,
-                                                    @SchemaType(CONTRACT_REQUEST_TYPE_TERM) JsonObject requestObject,
+                                                    @SchemaType(value = CONTRACT_REQUEST_TYPE_TERM, version = "v4") JsonObject requestObject,
                                                     @Context SecurityContext securityContext) {
 
 
@@ -198,7 +198,7 @@ public class ContractNegotiationApiV5Controller implements ContractNegotiationAp
     @Override
     public void terminateNegotiationV5(@PathParam("participantContextId") String participantContextId,
                                        @PathParam("id") String id,
-                                       @SchemaType(TERMINATE_NEGOTIATION_TYPE_TERM) JsonObject terminateNegotiation,
+                                       @SchemaType(value = TERMINATE_NEGOTIATION_TYPE_TERM, version = "v4") JsonObject terminateNegotiation,
                                        @Context SecurityContext securityContext) {
 
         authorizationService.authorize(securityContext, participantContextId, id, ContractNegotiation.class)

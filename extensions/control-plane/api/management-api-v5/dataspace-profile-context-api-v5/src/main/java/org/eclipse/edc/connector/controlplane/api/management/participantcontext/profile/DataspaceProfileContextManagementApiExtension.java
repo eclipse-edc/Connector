@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.participantcontext
 
 import jakarta.json.Json;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.api.management.participantcontext.profile.v5.DataspaceProfileApiV5Controller;
 import org.eclipse.edc.connector.controlplane.api.management.participantcontext.profile.v5.DataspaceProfileContextApiV5Controller;
 import org.eclipse.edc.connector.controlplane.transform.edc.dataspaceprofile.from.JsonObjectFromDataspaceProfileContextTransformer;
@@ -88,7 +87,7 @@ public class DataspaceProfileContextManagementApiExtension implements ServiceExt
         managementApiTransformerRegistry.register(new JsonObjectToTrustedIssuerTransformer());
         managementApiTransformerRegistry.register(new JsonObjectFromTrustedIssuerTransformer(factory));
 
-        var jsonLdInterceptor = new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V5.version());
+        var jsonLdInterceptor = new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4);
 
         webService.registerResource(ApiContext.MANAGEMENT, new DataspaceProfileContextApiV5Controller(authorizationService, profileResolver, managementApiTransformerRegistry, monitor));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, DataspaceProfileContextApiV5Controller.class, jsonLdInterceptor);

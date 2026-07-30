@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.participantcontext
 
 import jakarta.json.Json;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.api.management.participantcontext.v5.ParticipantContextApiV5Controller;
 import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.from.JsonObjectFromParticipantContextTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.to.JsonObjectToParticipantContextTransformer;
@@ -80,7 +79,7 @@ public class ParticipantContextManagementApiExtension implements ServiceExtensio
         managementApiTransformerRegistry.register(new JsonObjectToParticipantContextTransformer());
 
         webService.registerResource(ApiContext.MANAGEMENT, new ParticipantContextApiV5Controller(participantContextService, authorizationService, managementApiTransformerRegistry, monitor));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, ParticipantContextApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V5.version()));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, ParticipantContextApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4));
 
         authorizationService.addLookupFunction(ParticipantContext.class, this::findParticipant);
     }

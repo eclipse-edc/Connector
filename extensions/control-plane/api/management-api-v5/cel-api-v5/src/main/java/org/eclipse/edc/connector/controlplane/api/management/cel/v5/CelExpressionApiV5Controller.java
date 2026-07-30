@@ -62,7 +62,7 @@ public class CelExpressionApiV5Controller implements CelExpressionApiV5 {
     @POST
     @RequiredScope("management-api:admin")
     @Override
-    public JsonObject createExpressionV5(@SchemaType(CEL_EXPRESSION_TYPE_TERM) JsonObject expression) {
+    public JsonObject createExpressionV5(@SchemaType(value = CEL_EXPRESSION_TYPE_TERM, version = "v5") JsonObject expression) {
 
         var expr = transformerRegistry.transform(expression, CelExpression.class)
                 .orElseThrow(InvalidRequestException::new);
@@ -83,7 +83,7 @@ public class CelExpressionApiV5Controller implements CelExpressionApiV5 {
     @Path("test")
     @RequiredScope("management-api:admin")
     @Override
-    public JsonObject testExpressionV5(@SchemaType(CEL_EXPRESSION_TEST_REQUEST_TYPE_TERM) JsonObject test) {
+    public JsonObject testExpressionV5(@SchemaType(value = CEL_EXPRESSION_TEST_REQUEST_TYPE_TERM, version = "v5") JsonObject test) {
 
         var expr = transformerRegistry.transform(test, CelExpressionTestRequest.class)
                 .orElseThrow(InvalidRequestException::new);
@@ -113,7 +113,7 @@ public class CelExpressionApiV5Controller implements CelExpressionApiV5 {
     @Path("{id}")
     @RequiredScope("management-api:admin")
     @Override
-    public void updateExpressionV5(@PathParam("id") String id, @SchemaType(CEL_EXPRESSION_TYPE_TERM) JsonObject expression) {
+    public void updateExpressionV5(@PathParam("id") String id, @SchemaType(value = CEL_EXPRESSION_TYPE_TERM, version = "v5") JsonObject expression) {
 
         var expr = transformerRegistry.transform(expression, CelExpression.class)
                 .orElseThrow(InvalidRequestException::new);
@@ -128,7 +128,7 @@ public class CelExpressionApiV5Controller implements CelExpressionApiV5 {
     @Path("request")
     @RequiredScope("management-api:admin")
     @Override
-    public JsonArray queryExpressionV5(@SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson) {
+    public JsonArray queryExpressionV5(@SchemaType(value = EDC_QUERY_SPEC_TYPE_TERM, version = "v4") JsonObject querySpecJson) {
         QuerySpec querySpec;
         if (querySpecJson == null) {
             querySpec = QuerySpec.Builder.newInstance().build();

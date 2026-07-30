@@ -35,7 +35,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Map;
 
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
@@ -43,12 +42,14 @@ import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.api.model.IdResponse.ID_RESPONSE_CREATED_AT;
 import static org.eclipse.edc.api.model.IdResponse.ID_RESPONSE_TYPE;
 import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_TYPE;
+import static org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset.EDC_ASSET_TYPE_TERM;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
@@ -98,7 +99,7 @@ public abstract class AssetApiControllerTest extends RestControllerTestBase {
     private JsonObjectBuilder createAssetJson() {
         return createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
-                .add(TYPE, EDC_ASSET_TYPE)
+                .add(TYPE, EDC_ASSET_TYPE_TERM)
                 .add(ID, TEST_ASSET_ID)
                 .add("properties", createPropertiesBuilder().build());
     }
@@ -434,7 +435,7 @@ public abstract class AssetApiControllerTest extends RestControllerTestBase {
 
             baseRequest(participantContextId)
                     .contentType(JSON)
-                    .body("{}")
+                    .body(createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build())
                     .post("/assets/request")
                     .then()
                     .log().ifError()
@@ -456,7 +457,7 @@ public abstract class AssetApiControllerTest extends RestControllerTestBase {
 
             baseRequest(participantContextId)
                     .contentType(JSON)
-                    .body("{}")
+                    .body(createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build())
                     .post("/assets/request")
                     .then()
                     .log().ifError()
@@ -491,7 +492,7 @@ public abstract class AssetApiControllerTest extends RestControllerTestBase {
             when(validator.validate(any(), any())).thenReturn(ValidationResult.success());
 
             baseRequest(participantContextId)
-                    .body(Map.of("offset", -1))
+                    .body(createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).add("offset", -1).build())
                     .contentType(JSON)
                     .post("/assets/request")
                     .then()
@@ -507,7 +508,7 @@ public abstract class AssetApiControllerTest extends RestControllerTestBase {
 
             baseRequest(participantContextId)
                     .contentType(JSON)
-                    .body("{}")
+                    .body(createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build())
                     .post("/assets/request")
                     .then()
                     .statusCode(400);
@@ -535,7 +536,7 @@ public abstract class AssetApiControllerTest extends RestControllerTestBase {
 
             baseRequest(participantContextId)
                     .contentType(JSON)
-                    .body("{}")
+                    .body(createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build())
                     .post("/assets/request")
                     .then()
                     .statusCode(400);

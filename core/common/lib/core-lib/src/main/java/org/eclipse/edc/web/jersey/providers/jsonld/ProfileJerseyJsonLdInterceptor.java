@@ -23,7 +23,6 @@ import jakarta.ws.rs.ext.WriterInterceptorContext;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.types.TypeManager;
-import org.eclipse.edc.validator.spi.JsonObjectValidatorRegistry;
 
 import java.util.function.Function;
 
@@ -34,11 +33,7 @@ public class ProfileJerseyJsonLdInterceptor extends AbstractJerseyJsonLdIntercep
     private final Function<UriInfo, String> profileProvider;
 
     public ProfileJerseyJsonLdInterceptor(JsonLd jsonLd, TypeManager typeManager, String typeContext, String scopePrefix, Function<UriInfo, String> profileProvider) {
-        this(jsonLd, typeManager, typeContext, scopePrefix, profileProvider, null, null);
-    }
-
-    public ProfileJerseyJsonLdInterceptor(JsonLd jsonLd, TypeManager typeManager, String typeContext, String scopePrefix, Function<UriInfo, String> profileProvider, JsonObjectValidatorRegistry validatorRegistry, String schemaVersion) {
-        super(jsonLd, typeManager, typeContext, validatorRegistry, schemaVersion);
+        super(jsonLd, typeManager, typeContext);
         this.profileProvider = profileProvider;
         this.scopePrefix = scopePrefix;
     }

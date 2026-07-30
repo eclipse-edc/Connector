@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.api.management.asset;
 
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.api.management.asset.v5.AssetApiV5Controller;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
@@ -78,7 +77,7 @@ public class AssetApiV5Extension implements ServiceExtension {
         webService.registerResource(MANAGEMENT, new AssetApiV5Controller(assetService, managementTypeTransformerRegistry,
                 validatorRegistry, monitor, authorizationService));
         webService.registerDynamicResource(MANAGEMENT, AssetApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd,
-                typeManager, JSON_LD, MANAGEMENT_SCOPE_V5, validatorRegistry, ManagementApiJsonSchema.V5.version()));
+                typeManager, JSON_LD, MANAGEMENT_SCOPE_V5));
 
     }
 

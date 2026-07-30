@@ -71,7 +71,7 @@ public class ContractDefinitionApiV5Controller implements ContractDefinitionApiV
     @Override
     @RequiredScope("management-api:contractdefinitions:read")
     public JsonArray queryContractDefinitionsV5(@PathParam("participantContextId") String participantContextId,
-                                                @SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson,
+                                                @SchemaType(value = EDC_QUERY_SPEC_TYPE_TERM, version = "v4") JsonObject querySpecJson,
                                                 @Context SecurityContext securityContext) {
 
         authorizationService.authorize(securityContext, participantContextId, participantContextId, ParticipantContext.class)
@@ -117,7 +117,7 @@ public class ContractDefinitionApiV5Controller implements ContractDefinitionApiV
     @RequiredScope("management-api:contractdefinitions:write")
     @Override
     public JsonObject createContractDefinitionV5(@PathParam("participantContextId") String participantContextId,
-                                                 @SchemaType(CONTRACT_DEFINITION_TYPE_TERM) JsonObject createObject,
+                                                 @SchemaType(value = CONTRACT_DEFINITION_TYPE_TERM, version = "v4") JsonObject createObject,
                                                  @Context SecurityContext securityContext) {
 
         authorizationService.authorize(securityContext, participantContextId, participantContextId, ParticipantContext.class)
@@ -158,7 +158,7 @@ public class ContractDefinitionApiV5Controller implements ContractDefinitionApiV
     @RequiredScope("management-api:contractdefinitions:write")
     @Override
     public void updateContractDefinitionV5(@PathParam("participantContextId") String participantContextId,
-                                           @SchemaType(CONTRACT_DEFINITION_TYPE_TERM) JsonObject updateObject,
+                                           @SchemaType(value = CONTRACT_DEFINITION_TYPE_TERM, version = "v4") JsonObject updateObject,
                                            @Context SecurityContext securityContext) {
 
         var updateObj = typeTransformerRegistry.transform(updateObject, ContractDefinition.class)

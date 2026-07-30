@@ -74,7 +74,7 @@ public class CatalogApiV5Controller implements CatalogApiV5 {
     @RequiredScope("management-api:catalog:read")
     @Override
     public void requestCatalogV5(@PathParam("participantContextId") String participantContextId,
-                                 @SchemaType(CATALOG_REQUEST_TYPE_TERM) JsonObject requestBody,
+                                 @SchemaType(value = CATALOG_REQUEST_TYPE_TERM, version = "v4") JsonObject requestBody,
                                  @Suspended AsyncResponse response,
                                  @Context SecurityContext securityContext) {
 
@@ -102,7 +102,7 @@ public class CatalogApiV5Controller implements CatalogApiV5 {
     @RequiredScope("management-api:catalog:read")
     @Override
     public void getDatasetV5(@PathParam("participantContextId") String participantContextId,
-                             @SchemaType(DATASET_REQUEST_TYPE_TERM) JsonObject requestBody,
+                             @SchemaType(value = DATASET_REQUEST_TYPE_TERM, version = "v4") JsonObject requestBody,
                              @Suspended AsyncResponse response,
                              @Context SecurityContext securityContext) {
 

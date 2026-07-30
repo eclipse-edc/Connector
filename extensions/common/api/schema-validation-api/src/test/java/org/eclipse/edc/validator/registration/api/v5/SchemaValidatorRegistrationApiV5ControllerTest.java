@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -56,10 +57,13 @@ class SchemaValidatorRegistrationApiV5ControllerTest extends RestControllerTestB
         when(service.create(any())).thenAnswer(i -> ServiceResult.success(i.getArgument(0)));
         when(transformerRegistry.transform(any(IdResponse.class), eq(JsonObject.class)))
                 .thenReturn(Result.success(Json.createObjectBuilder().add("@id", registration.getId()).build()));
+        var requestBody = Json.createObjectBuilder()
+                .add(TYPE, "SchemaValidatorRegistration")
+                .add("version", "v5").build();
 
         baseRequest()
                 .contentType("application/json")
-                .body("{ \"version\": \"v5\" }")
+                .body(requestBody)
                 .post("/v5beta/schemavalidators")
                 .then()
                 .statusCode(200)

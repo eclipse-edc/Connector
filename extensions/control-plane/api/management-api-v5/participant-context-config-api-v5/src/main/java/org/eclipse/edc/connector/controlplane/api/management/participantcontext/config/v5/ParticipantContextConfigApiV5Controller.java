@@ -55,7 +55,7 @@ public class ParticipantContextConfigApiV5Controller implements ParticipantConte
     @PUT
     @RequiredScope("management-api:admin")
     @Override
-    public void setConfigV5(@PathParam("participantContextId") String participantContextId, @SchemaType(PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM) JsonObject request) {
+    public void setConfigV5(@PathParam("participantContextId") String participantContextId, @SchemaType(value = PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM, version = "v5") JsonObject request) {
 
         var config = transformerRegistry.transform(request, ParticipantContextConfiguration.class)
                 .orElseThrow(InvalidRequestException::new)
@@ -71,7 +71,7 @@ public class ParticipantContextConfigApiV5Controller implements ParticipantConte
     @PATCH
     @RequiredScope("management-api:admin")
     @Override
-    public void patchConfigV5(@PathParam("participantContextId") String participantContextId, @SchemaType(PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM) JsonObject request) {
+    public void patchConfigV5(@PathParam("participantContextId") String participantContextId, @SchemaType(value = PARTICIPANT_CONTEXT_CONFIG_TYPE_TERM, version = "v5") JsonObject request) {
 
         var config = transformerRegistry.transform(request, ParticipantContextConfiguration.class)
                 .orElseThrow(InvalidRequestException::new)

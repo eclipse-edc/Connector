@@ -51,11 +51,14 @@ import static jakarta.json.Json.createObjectBuilder;
 import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.edc.api.model.IdResponse.ID_RESPONSE_TYPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractRequest.CONTRACT_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.NegotiationState.NEGOTIATION_STATE_TYPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
@@ -171,7 +174,7 @@ public abstract class ContractNegotiationApiControllerTestBase extends RestContr
             when(service.terminate(any())).thenReturn(ServiceResult.success());
 
             baseRequest(participantContextId)
-                    .body(Json.createObjectBuilder().build())
+                    .body(Json.createObjectBuilder().add(TYPE, TERMINATE_NEGOTIATION_TYPE_TERM).build())
                     .contentType(JSON)
                     .post("/contractnegotiations/cn1/terminate")
                     .then()
@@ -185,7 +188,7 @@ public abstract class ContractNegotiationApiControllerTestBase extends RestContr
             when(transformerRegistry.transform(any(JsonObject.class), eq(TerminateNegotiation.class))).thenReturn(Result.failure("error"));
 
             baseRequest(participantContextId)
-                    .body(Json.createObjectBuilder().build())
+                    .body(Json.createObjectBuilder().add(TYPE, TERMINATE_NEGOTIATION_TYPE_TERM).build())
                     .contentType(JSON)
                     .post("/contractnegotiations/cn1/terminate")
                     .then()
@@ -201,7 +204,7 @@ public abstract class ContractNegotiationApiControllerTestBase extends RestContr
             when(service.terminate(any())).thenReturn(ServiceResult.conflict("conflict"));
 
             baseRequest(participantContextId)
-                    .body(Json.createObjectBuilder().add(ID, "id").build())
+                    .body(Json.createObjectBuilder().add(TYPE, TERMINATE_NEGOTIATION_TYPE_TERM).add(ID, "id").build())
                     .contentType(JSON)
                     .post("/contractnegotiations/cn1/terminate")
                     .then()
@@ -238,7 +241,7 @@ public abstract class ContractNegotiationApiControllerTestBase extends RestContr
 
             baseRequest(participantContextId)
                     .contentType(JSON)
-                    .body(createObjectBuilder().build())
+                    .body(createObjectBuilder().add(TYPE, CONTRACT_REQUEST_TYPE_TERM).build())
                     .post("/contractnegotiations")
                     .then()
                     .statusCode(200)
@@ -256,7 +259,7 @@ public abstract class ContractNegotiationApiControllerTestBase extends RestContr
 
             baseRequest(participantContextId)
                     .contentType(JSON)
-                    .body(createObjectBuilder().build())
+                    .body(createObjectBuilder().add(TYPE, CONTRACT_REQUEST_TYPE_TERM).build())
                     .post("/contractnegotiations")
                     .then()
                     .statusCode(400);
@@ -429,7 +432,7 @@ public abstract class ContractNegotiationApiControllerTestBase extends RestContr
             )));
             when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpec.class))).thenReturn(Result.failure("test-failure"));
 
-            var requestBody = createObjectBuilder().build();
+            var requestBody = createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build();
             baseRequest(participantContextId)
                     .contentType(JSON)
                     .body(requestBody)
@@ -495,7 +498,7 @@ public abstract class ContractNegotiationApiControllerTestBase extends RestContr
             when(transformerRegistry.transform(any(ContractNegotiation.class), eq(JsonObject.class)))
                     .thenReturn(Result.failure("test-failure"));
 
-            var requestBody = createObjectBuilder().build();
+            var requestBody = createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build();
             baseRequest(participantContextId)
                     .contentType(JSON)
                     .body(requestBody)

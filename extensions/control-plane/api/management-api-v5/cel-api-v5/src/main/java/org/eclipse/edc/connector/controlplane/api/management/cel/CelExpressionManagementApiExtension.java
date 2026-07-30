@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.api.management.cel;
 
 import jakarta.json.Json;
-import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.api.management.cel.v5.CelExpressionApiV5Controller;
 import org.eclipse.edc.connector.controlplane.transform.edc.cel.from.JsonObjectFromCelExpressionTestResponseTransformer;
 import org.eclipse.edc.connector.controlplane.transform.edc.cel.from.JsonObjectFromCelExpressionTransformer;
@@ -75,7 +74,7 @@ public class CelExpressionManagementApiExtension implements ServiceExtension {
         managementApiTransformerRegistry.register(new JsonObjectToCelExpressionTestRequestTransformer());
 
         webService.registerResource(ApiContext.MANAGEMENT, new CelExpressionApiV5Controller(service, managementApiTransformerRegistry));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, CelExpressionApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V5.version()));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, CelExpressionApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4));
 
     }
 }

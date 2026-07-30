@@ -49,7 +49,7 @@ public class TransferProcessApiV4Controller extends BaseTransferProcessApiContro
     @POST
     @Path("request")
     @Override
-    public JsonArray queryTransferProcessesV4(@SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson) {
+    public JsonArray queryTransferProcessesV4(@SchemaType(value = EDC_QUERY_SPEC_TYPE_TERM, version = "v4") JsonObject querySpecJson) {
         return queryTransferProcesses(querySpecJson);
     }
 
@@ -69,21 +69,21 @@ public class TransferProcessApiV4Controller extends BaseTransferProcessApiContro
 
     @POST
     @Override
-    public JsonObject initiateTransferProcessV4(@SchemaType(TRANSFER_REQUEST_TYPE_TERM) JsonObject transferRequest) {
+    public JsonObject initiateTransferProcessV4(@SchemaType(value = TRANSFER_REQUEST_TYPE_TERM, version = "v4") JsonObject transferRequest) {
         return initiateTransferProcess(transferRequest);
     }
 
     @POST
     @Path("/{id}/terminate")
     @Override
-    public void terminateTransferProcessV4(@PathParam("id") String id, @SchemaType(TERMINATE_TRANSFER_TYPE_TERM) JsonObject terminateTransfer) {
+    public void terminateTransferProcessV4(@PathParam("id") String id, @SchemaType(value = TERMINATE_TRANSFER_TYPE_TERM, version = "v4") JsonObject terminateTransfer) {
         terminateTransferProcess(id, terminateTransfer);
     }
 
     @POST
     @Path("/{id}/suspend")
     @Override
-    public void suspendTransferProcessV4(@PathParam("id") String id, @SchemaType(SUSPEND_TRANSFER_TYPE_TERM) JsonObject suspendTransfer) {
+    public void suspendTransferProcessV4(@PathParam("id") String id, @SchemaType(value = SUSPEND_TRANSFER_TYPE_TERM, version = "v4") JsonObject suspendTransfer) {
         suspendTransferProcess(id, suspendTransfer);
     }
 

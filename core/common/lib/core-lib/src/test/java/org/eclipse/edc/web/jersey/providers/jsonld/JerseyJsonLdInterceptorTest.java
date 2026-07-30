@@ -20,7 +20,6 @@ import jakarta.json.JsonObject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
-import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.junit.annotations.ApiTest;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.web.jersey.testfixtures.RestControllerTestBase;
@@ -34,7 +33,6 @@ import static io.restassured.http.ContentType.JSON;
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -43,7 +41,6 @@ import static org.mockito.Mockito.when;
 class JerseyJsonLdInterceptorTest extends RestControllerTestBase {
 
     private static final String SCOPE = "scope";
-    private final JsonLd jsonLd = mock();
     private final JerseyJsonLdInterceptor interceptor = new JerseyJsonLdInterceptor(jsonLd, typeManager, "test", SCOPE);
 
     @Test

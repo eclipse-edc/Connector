@@ -59,7 +59,7 @@ public class DcpScopeApiV5Controller implements DcpScopeApiV5 {
     @POST
     @RequiredScope("management-api:admin")
     @Override
-    public JsonObject createDcpScopeV5(@SchemaType(DCP_SCOPE_TYPE_TERM) JsonObject request) {
+    public JsonObject createDcpScopeV5(@SchemaType(value = DCP_SCOPE_TYPE_TERM, version = "v5") JsonObject request) {
         var scope = transformerRegistry.transform(request, DcpScope.class)
                 .orElseThrow(InvalidRequestException::new);
 
@@ -78,7 +78,7 @@ public class DcpScopeApiV5Controller implements DcpScopeApiV5 {
     @Path("{id}")
     @RequiredScope("management-api:admin")
     @Override
-    public void updateDcpScopeV5(@PathParam("id") String id, @SchemaType(DCP_SCOPE_TYPE_TERM) JsonObject request) {
+    public void updateDcpScopeV5(@PathParam("id") String id, @SchemaType(value = DCP_SCOPE_TYPE_TERM, version = "v5") JsonObject request) {
         var scope = transformerRegistry.transform(request, DcpScope.class)
                 .orElseThrow(InvalidRequestException::new);
 
@@ -99,7 +99,7 @@ public class DcpScopeApiV5Controller implements DcpScopeApiV5 {
     @Path("/request")
     @RequiredScope("management-api:admin")
     @Override
-    public JsonArray queryDcpScopesV5(@SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson) {
+    public JsonArray queryDcpScopesV5(@SchemaType(value = EDC_QUERY_SPEC_TYPE_TERM, version = "v4") JsonObject querySpecJson) {
         QuerySpec querySpec;
         if (querySpecJson == null) {
             querySpec = QuerySpec.Builder.newInstance().build();
