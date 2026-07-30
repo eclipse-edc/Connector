@@ -252,13 +252,18 @@ public abstract class VirtualTransferEndToEndTestBase {
 
     }
 
-    private String setup(ManagementApiClientV5 connectorClient, Participants.Participant provider) {
-        var asset = new AssetDto();
-
+    protected String setup(ManagementApiClientV5 connectorClient, Participants.Participant provider) {
         var permissions = List.of(new PermissionDto());
-        var policyDef = new PolicyDefinitionDto(new PolicyDto(permissions));
+        var policy = new PolicyDto(permissions);
+
+        return setup(connectorClient, provider, policy);
+
+    }
+
+    protected String setup(ManagementApiClientV5 connectorClient, Participants.Participant provider, PolicyDto policy) {
+        var asset = new AssetDto();
+        var policyDef = new PolicyDefinitionDto(policy);
 
         return connectorClient.setupResources(provider.contextId(), asset, policyDef, policyDef);
-
     }
 }

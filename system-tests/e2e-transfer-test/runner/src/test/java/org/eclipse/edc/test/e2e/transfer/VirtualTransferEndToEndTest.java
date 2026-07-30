@@ -15,6 +15,7 @@
 package org.eclipse.edc.test.e2e.transfer;
 
 import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
+import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participants;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.ManagementApiClientV5;
 import org.eclipse.edc.junit.annotations.PostgresqlIntegrationTest;
@@ -30,6 +31,7 @@ import org.eclipse.edc.sql.testfixtures.PostgresqlEndToEndExtension;
 import org.eclipse.edc.test.e2e.Runtimes;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -126,6 +128,21 @@ class VirtualTransferEndToEndTest {
                 .configurationProvider(Runtimes.SignalingDataPlane::config)
                 .paramProvider(DataPlaneSignalingTestClient.class, DataPlaneSignalingTestClient::new)
                 .build();
+
+
+        @Test
+        void contractNegotiation_policyMismatch_failure(ManagementApiClientV5 connectorClient, Participants participants) {
+            var providerAddress = participants.provider().getProtocolEndpoint();
+            var assetId = setup(connectorClient, participants.provider());
+            var dataset = connectorClient.fetchDataset(participants.consumer().contextId(), participants.consumer().profile(), assetId, providerAddress, participants.provider().id());
+            var offer = dataset.offers().stream().findFirst().get();
+            var permission = offer.getPermissions().stream().findFirst().get();
+            offer.getPermissions().add(permission);
+            var negotiationId = connectorClient.initContractNegotiation(participants.consumer().contextId(), participants.consumer().profile(), assetId, offer, providerAddress, participants.provider().id());
+
+            connectorClient.waitForContractNegotiationState(participants.consumer().contextId(), negotiationId, ContractNegotiationStates.TERMINATED.name());
+
+        }
 
     }
 
