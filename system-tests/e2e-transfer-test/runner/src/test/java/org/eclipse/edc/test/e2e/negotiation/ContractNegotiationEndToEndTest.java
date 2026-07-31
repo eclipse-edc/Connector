@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import static jakarta.json.Json.createArrayBuilder;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -190,6 +191,30 @@ class ContractNegotiationEndToEndTest {
 
             var contractNegotiationId = consumer.initContractNegotiation(provider.asCounterParty(), assetId);
 
+
+            await().untilAsserted(() -> {
+                var state = consumer.getContractNegotiationState(contractNegotiationId);
+                assertThat(state).isEqualTo(TERMINATED.name());
+            });
+        }
+
+        @Test
+        void contractNegotiation_policyMismatch_failure(@Runtime(PROVIDER_NAME) ManagementApiClientV4 provider,
+                                                        @Runtime(CONSUMER_NAME) ManagementApiClientV4 consumer,
+                                                        @Runtime(PROVIDER_NAME) CelPolicyExpressionService expressionService) {
+            var assetId = UUID.randomUUID().toString();
+            createResourcesOnProvider(provider, assetId, httpSourceDataAddress());
+
+            var dataset = consumer.getDatasetForAsset(provider.asCounterParty(), assetId);
+            var policy = dataset.getJsonArray("hasPolicy").get(0).asJsonObject();
+
+            var faultyPolicy = createObjectBuilder(policy)
+                    .add("action", "access")
+                    .add("permission", createArrayBuilder())
+                    .add("assigner", provider.getParticipantId())
+                    .add("target", assetId)
+                    .build();
+            var contractNegotiationId = consumer.initContractNegotiation(provider.asCounterParty(), faultyPolicy);
 
             await().untilAsserted(() -> {
                 var state = consumer.getContractNegotiationState(contractNegotiationId);

@@ -32,4 +32,8 @@ public class ResponseFailure extends Failure {
     public ResponseStatus status() {
         return status;
     }
+
+    public boolean isFatal() {
+        return status == ResponseStatus.FATAL_ERROR;
+    }
 }

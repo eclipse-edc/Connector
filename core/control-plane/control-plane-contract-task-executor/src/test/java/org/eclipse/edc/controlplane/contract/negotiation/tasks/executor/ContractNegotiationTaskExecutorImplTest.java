@@ -29,12 +29,16 @@ import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.AgreeNegotiat
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.ContractNegotiationTaskPayload;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.FinalizeNegotiation;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.RequestNegotiation;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendAccept;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendAgreement;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendFinalizeNegotiation;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendOffer;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendRequestNegotiation;
+import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendTerminateNegotiation;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.SendVerificationNegotiation;
 import org.eclipse.edc.controlplane.contract.spi.negotiation.tasks.VerifyNegotiation;
 import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
+import org.eclipse.edc.controlplane.tasks.Task;
 import org.eclipse.edc.controlplane.tasks.TaskService;
 import org.eclipse.edc.participantcontext.spi.identity.ParticipantIdentityResolver;
 import org.eclipse.edc.policy.model.Policy;
@@ -62,15 +66,18 @@ import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.CONSUMER;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.ACCEPTING;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.AGREED;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.AGREEING;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZED;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.FINALIZING;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.INITIAL;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.OFFERING;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTED;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.REQUESTING;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.VERIFIED;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.VERIFYING;
+import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -223,6 +230,51 @@ class ContractNegotiationTaskExecutorImplTest {
         assertThat(result.succeeded()).isTrue();
     }
 
+    @ParameterizedTest
+    @ArgumentsSource(FatalTerminationProvider.class)
+    void handle_shouldStoreTerminationTask_whenSendProcessorFailsFatally(ContractNegotiationTaskPayload payload) {
+        var negotiation = createContractNegotiation(payload.getProcessId(),
+                ContractNegotiationStates.from(payload.getProcessState()),
+                ContractNegotiation.Type.valueOf(payload.getProcessType()));
+
+        when(negotiationStore.findById(payload.getProcessId())).thenReturn(negotiation);
+        // a fatal dispatch failure makes the processor return a fatal error
+        when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.fatalError("boom")));
+
+        var result = executor.handle(payload);
+
+        assertThat(result.failed()).isTrue();
+
+        var captor = ArgumentCaptor.forClass(Task.class);
+        verify(taskService).create(captor.capture());
+        assertThat(captor.getValue().getPayload())
+                .isInstanceOfSatisfying(SendTerminateNegotiation.class, p -> {
+                    assertThat(p.getProcessId()).isEqualTo(payload.getProcessId());
+                    assertThat(p.getProcessType()).isEqualTo(payload.getProcessType());
+                });
+    }
+
+    @Test
+    void handleSendAgreement_shouldNotStoreTerminationTask_whenProcessorFailsWithNonFatalError() {
+        var negotiation = createContractNegotiation("negotiation-123", AGREEING, PROVIDER);
+
+        var task = SendAgreement.Builder.newInstance()
+                .processId("negotiation-123")
+                .processState(AGREEING.code())
+                .processType(PROVIDER.name())
+                .build();
+
+        when(negotiationStore.findById("negotiation-123")).thenReturn(negotiation);
+        // a retryable dispatch failure yields a non-fatal error
+        when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.failure(ERROR_RETRY, "temporary failure")));
+
+        var result = executor.handle(task);
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.fatalError()).isFalse();
+        verify(taskService, never()).create(any());
+    }
+
     @Test
     void handle_shouldTransitionToTerminatedOnFatalError() {
         var negotiation = createContractNegotiation("negotiation-123", REQUESTING);
@@ -241,7 +293,7 @@ class ContractNegotiationTaskExecutorImplTest {
         assertThat(result.succeeded()).isTrue();
         verify(negotiationStore).save(any());
     }
-
+    
     private ContractNegotiation createContractNegotiation(String id, ContractNegotiationStates state) {
         return createContractNegotiation(id, state, CONSUMER);
     }
@@ -290,6 +342,27 @@ class ContractNegotiationTaskExecutorImplTest {
                     arguments(baseBuilder(SendAgreement.Builder.newInstance(), "id", AGREEING, PROVIDER).build(), AGREED),
                     arguments(baseBuilder(FinalizeNegotiation.Builder.newInstance(), "id", VERIFIED, PROVIDER).build(), FINALIZING),
                     arguments(baseBuilder(SendFinalizeNegotiation.Builder.newInstance(), "id", FINALIZING, PROVIDER).build(), FINALIZED)
+            );
+        }
+    }
+
+    public static class FatalTerminationProvider implements ArgumentsProvider {
+
+        protected <T extends ProcessTaskPayload, B extends ProcessTaskPayload.Builder<T, B>> B baseBuilder(B builder, String id, ContractNegotiationStates state, ContractNegotiation.Type type) {
+            return builder.processId(id)
+                    .processState(state.code())
+                    .processType(type.name());
+        }
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+
+            return Stream.of(
+                    arguments(baseBuilder(SendAgreement.Builder.newInstance(), "id", AGREEING, PROVIDER).build()),
+                    arguments(baseBuilder(SendAccept.Builder.newInstance(), "id", ACCEPTING, CONSUMER).build()),
+                    arguments(baseBuilder(SendOffer.Builder.newInstance(), "id", OFFERING, PROVIDER).build()),
+                    arguments(baseBuilder(SendVerificationNegotiation.Builder.newInstance(), "id", VERIFYING, CONSUMER).build()),
+                    arguments(baseBuilder(SendFinalizeNegotiation.Builder.newInstance(), "id", FINALIZING, PROVIDER).build())
             );
         }
     }

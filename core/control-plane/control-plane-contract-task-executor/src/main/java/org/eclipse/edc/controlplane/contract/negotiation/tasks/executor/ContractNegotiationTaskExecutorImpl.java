@@ -132,11 +132,11 @@ public class ContractNegotiationTaskExecutorImpl implements ContractNegotiationT
     }
 
     protected StatusResult<Void> handleSendAccept(ContractNegotiation negotiation) {
-        return invokeProcessor(negotiation, negotiationProcessors::processAccepting);
+        return invokeProcessorTerminatingOnFatalError(negotiation, negotiationProcessors::processAccepting);
     }
 
     private StatusResult<Void> handleSendOffer(ContractNegotiation negotiation) {
-        return invokeProcessor(negotiation, negotiationProcessors::processOffering);
+        return invokeProcessorTerminatingOnFatalError(negotiation, negotiationProcessors::processOffering);
     }
 
     protected StatusResult<Void> handleSendTermination(ContractNegotiation negotiation) {
@@ -156,7 +156,7 @@ public class ContractNegotiationTaskExecutorImpl implements ContractNegotiationT
     }
 
     protected StatusResult<Void> handleSendVerification(ContractNegotiation negotiation) {
-        return invokeProcessor(negotiation, negotiationProcessors::processVerifying);
+        return invokeProcessorTerminatingOnFatalError(negotiation, negotiationProcessors::processVerifying);
     }
 
     private StatusResult<Void> handleAgree(ContractNegotiation negotiation) {
@@ -168,7 +168,7 @@ public class ContractNegotiationTaskExecutorImpl implements ContractNegotiationT
     }
 
     protected StatusResult<Void> handleSendAgreement(ContractNegotiation negotiation) {
-        return invokeProcessor(negotiation, negotiationProcessors::processAgreeing);
+        return invokeProcessorTerminatingOnFatalError(negotiation, negotiationProcessors::processAgreeing);
     }
 
     private StatusResult<Void> handleVerify(ContractNegotiation negotiation) {
@@ -188,7 +188,17 @@ public class ContractNegotiationTaskExecutorImpl implements ContractNegotiationT
     }
 
     private StatusResult<Void> handleSendFinalize(ContractNegotiation negotiation) {
-        return invokeProcessor(negotiation, negotiationProcessors::processFinalizing);
+        return invokeProcessorTerminatingOnFatalError(negotiation, negotiationProcessors::processFinalizing);
+    }
+
+    private StatusResult<Void> invokeProcessorTerminatingOnFatalError(ContractNegotiation negotiation, Function<ContractNegotiation, CompletableFuture<StatusResult<Void>>> processor) {
+        return invokeProcessor(negotiation, processor).onFailure(f -> {
+            if (f.isFatal()) {
+                var task = baseBuilder(SendTerminateNegotiation.Builder.newInstance(), negotiation)
+                        .build();
+                storeTask(task);
+            }
+        });
     }
 
     private StatusResult<Void> invokeProcessor(ContractNegotiation negotiation, Function<ContractNegotiation, CompletableFuture<StatusResult<Void>>> processor) {

@@ -169,7 +169,7 @@ public class ManagementApiClientV5 {
         }
     }
 
-    private DatasetDto fetchDataset(String participantContext, String profile, String assetId, String providerAddress, String providerId) {
+    public DatasetDto fetchDataset(String participantContext, String profile, String assetId, String providerAddress, String providerId) {
         return catalogs.getDataset(participantContext, new DatasetRequestDto(assetId, profile, providerAddress, providerId));
     }
 

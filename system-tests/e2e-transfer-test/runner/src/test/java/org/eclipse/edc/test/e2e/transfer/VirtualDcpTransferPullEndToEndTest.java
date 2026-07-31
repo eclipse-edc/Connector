@@ -18,11 +18,9 @@ import org.eclipse.edc.api.authentication.OauthServerEndToEndExtension;
 import org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates;
 import org.eclipse.edc.connector.controlplane.test.system.utils.Participants;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.ManagementApiClientV5;
-import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.AssetDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.AtomicConstraintDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.CelExpressionDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PermissionDto;
-import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDefinitionDto;
 import org.eclipse.edc.connector.controlplane.test.system.utils.client.api.model.PolicyDto;
 import org.eclipse.edc.iam.decentralizedclaims.spi.credentialservice.CredentialService;
 import org.eclipse.edc.iam.decentralizedclaims.spi.credentialservice.CredentialServiceEndToEndExtension;
@@ -235,12 +233,7 @@ class VirtualDcpTransferPullEndToEndTest {
 
         }
 
-        private String setup(ManagementApiClientV5 connectorClient, Participants.Participant provider, PolicyDto policy) {
-            var asset = new AssetDto();
-            var policyDef = new PolicyDefinitionDto(policy);
 
-            return connectorClient.setupResources(provider.contextId(), asset, policyDef, policyDef);
-        }
     }
 
     @Nested
