@@ -29,6 +29,7 @@ import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcess
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates;
 import org.eclipse.edc.connector.controlplane.transfer.spi.types.protocol.TransferProcessAck;
 import org.eclipse.edc.controlplane.tasks.ProcessTaskPayload;
+import org.eclipse.edc.controlplane.tasks.Task;
 import org.eclipse.edc.controlplane.tasks.TaskService;
 import org.eclipse.edc.controlplane.transfer.spi.TransferProcessTaskExecutor;
 import org.eclipse.edc.controlplane.transfer.spi.tasks.CompleteDataFlow;
@@ -83,15 +84,17 @@ import static org.eclipse.edc.connector.controlplane.transfer.spi.types.Transfer
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATED;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferProcessStates.TERMINATING;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class TransferProcessTaskExecutorImplTest {
-
+    
     private final TransferProcessObservable observable = mock();
     private final DataFlowController dataFlowController = mock();
     private final TransferProcessStore transferStore = mock();
@@ -262,6 +265,61 @@ class TransferProcessTaskExecutorImplTest {
         assertThat(result.failed()).isTrue();
     }
 
+    @ParameterizedTest
+    @ArgumentsSource(FatalTerminationProvider.class)
+    void handle_shouldStoreTerminateDataFlowTask_whenProcessorFailsFatally(TransferProcessTaskPayload payload) {
+        when(policyArchive.findPolicyForContract(any())).thenReturn(Policy.Builder.newInstance().build());
+        when(messageDispatcher.dispatch(any(), any(), any())).thenReturn(completedFuture(StatusResult.fatalError("boom")));
+        when(dataFlowController.start(any(), any())).thenReturn(StatusResult.fatalError("boom"));
+        when(dataFlowController.started(any())).thenReturn(StatusResult.fatalError("boom"));
+        when(dataFlowController.resume(any())).thenReturn(StatusResult.fatalError("boom"));
+        when(dataFlowController.suspend(any())).thenReturn(StatusResult.fatalError("boom"));
+        when(dataFlowController.completed(any())).thenReturn(StatusResult.fatalError("boom"));
+
+        var process = TransferProcess.Builder.newInstance()
+                .id(payload.getProcessId())
+                .type(TransferProcess.Type.valueOf(payload.getProcessType()))
+                .state(TransferProcessStates.from(payload.getProcessState()).code())
+                .contractId("contractId")
+                .build();
+        when(transferStore.findById(payload.getProcessId())).thenReturn(process);
+
+        var result = executor.handle(payload);
+
+        assertThat(result.failed()).isTrue();
+
+        var captor = ArgumentCaptor.forClass(Task.class);
+        verify(taskService).create(captor.capture());
+        assertThat(captor.getValue().getPayload())
+                .isInstanceOfSatisfying(TerminateDataFlow.class,
+                        p -> assertThat(p.getProcessId()).isEqualTo(payload.getProcessId()));
+    }
+
+    @Test
+    void handle_shouldNotStoreTerminateDataFlowTask_whenProcessorFailsNonFatally() {
+        var task = SignalDataflowStarted.Builder.newInstance()
+                .processId("transfer-123")
+                .processState(REQUESTED.code())
+                .processType(CONSUMER.name())
+                .build();
+
+        var process = TransferProcess.Builder.newInstance()
+                .id("transfer-123")
+                .type(CONSUMER)
+                .state(REQUESTED.code())
+                .contractId("contractId")
+                .build();
+        when(transferStore.findById("transfer-123")).thenReturn(process);
+        // a retryable failure yields a non-fatal error
+        when(dataFlowController.started(any())).thenReturn(StatusResult.failure(ERROR_RETRY, "temporary"));
+
+        var result = executor.handle(task);
+
+        assertThat(result.failed()).isTrue();
+        assertThat(result.fatalError()).isFalse();
+        verify(taskService, never()).create(any());
+    }
+
     @Test
     void handle_shouldTransitionWhenHandlerSucceeds() {
         var transferProcess = createTransferProcess("transfer-123", INITIAL);
@@ -333,6 +391,29 @@ class TransferProcessTaskExecutorImplTest {
                     arguments(baseBuilder(CompleteDataFlow.Builder.newInstance(), id, COMPLETING, PROVIDER).build(), COMPLETED)
             );
 
+        }
+    }
+
+    public static class FatalTerminationProvider implements ArgumentsProvider {
+
+        protected <T extends ProcessTaskPayload, B extends ProcessTaskPayload.Builder<T, B>> B baseBuilder(B builder, String id, TransferProcessStates state, TransferProcess.Type type) {
+            return builder.processId(id)
+                    .processState(state.code())
+                    .processType(type.name());
+        }
+
+        @Override
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+
+            var id = UUID.randomUUID().toString();
+            return Stream.of(
+                    arguments(baseBuilder(PrepareTransfer.Builder.newInstance(), id, INITIAL, PROVIDER).build()),
+                    arguments(baseBuilder(SendTransferStart.Builder.newInstance(), id, STARTING, PROVIDER).build()),
+                    arguments(baseBuilder(SignalDataflowStarted.Builder.newInstance(), id, REQUESTED, CONSUMER).build()),
+                    arguments(baseBuilder(SuspendDataFlow.Builder.newInstance(), id, SUSPENDING, CONSUMER).build()),
+                    arguments(baseBuilder(ResumeDataFlow.Builder.newInstance(), id, RESUMING, CONSUMER).build()),
+                    arguments(baseBuilder(CompleteDataFlow.Builder.newInstance(), id, COMPLETING, CONSUMER).build())
+            );
         }
     }
 }

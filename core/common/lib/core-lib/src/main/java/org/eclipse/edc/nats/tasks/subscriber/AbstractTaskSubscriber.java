@@ -50,7 +50,7 @@ public abstract class AbstractTaskSubscriber<P extends ProcessTaskPayload> exten
         try {
             var task = mapperSupplier.get().readValue(message.getData(), Task.class);
             if (target.isAssignableFrom(task.getPayload().getClass())) {
-                return transactionContext.execute(() -> handleTask(task));
+                return transactionContext.execute(() -> handleTask(message, task));
             } else {
                 return StatusResult.failure(ResponseStatus.FATAL_ERROR, "Invalid task payload type");
             }
@@ -60,23 +60,27 @@ public abstract class AbstractTaskSubscriber<P extends ProcessTaskPayload> exten
     }
 
     @SuppressWarnings("unchecked")
-    private @NotNull StatusResult<Void> handleTask(Task task) {
+    private @NotNull StatusResult<Void> handleTask(Message message, Task task) {
         var persistedTask = taskService.findById(task.getId());
         if (persistedTask == null) {
+            // The task is published within the producer's transaction, before it commits, so a fast delivery can
+            // arrive before the task is visible in the store. Retry until it becomes visible, bounded by the NATS
+            // delivery count (which exists even though the task does not) so a task that never commits cannot be
+            // redelivered forever.
+            if (message.metaData().deliveredCount() >= maxRetries) {
+                monitor.severe("Task " + task.getId() + " not found after " + maxRetries + " deliveries. Dropping message.");
+                return StatusResult.success();
+            }
             return StatusResult.failure(ResponseStatus.ERROR_RETRY, "Task not found: " + task.getId());
         }
+
         var result = handlePayload((P) task.getPayload());
         if (result.succeeded() || result.fatalError()) {
             taskService.delete(task.getId());
-        } else {
-            if (persistedTask.getRetryCount() >= maxRetries) {
-                monitor.severe("Task " + persistedTask.getId() + " reached max retry count of " + maxRetries + ". Dropping task. Last error: " + result.getFailureDetail());
-                taskService.delete(persistedTask.getId());
-                return StatusResult.success();
-            }
-            //increment retry count
-            taskService.update(task.toBuilder().retryCount(task.getRetryCount() + 1).at(clock.millis()).build());
         }
+        // On a retryable (ERROR_RETRY) failure the message is nak'd and redelivered. The retry/give-up decision is
+        // owned by the processor (bounded by edc.<entity>.send.retry.limit), which terminates the entity on
+        // exhaustion; the subscriber deliberately does not cap business retries here.
         return result;
     }
 

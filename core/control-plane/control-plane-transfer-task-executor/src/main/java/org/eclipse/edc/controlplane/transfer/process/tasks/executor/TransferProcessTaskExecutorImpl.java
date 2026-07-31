@@ -145,29 +145,29 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
                 }
             });
         } else {
-            return invokeProcessor(process, transferProcessors::processProviderInitial).onSuccess(v -> {
+            return terminateOnFatalError(process, invokeProcessor(process, transferProcessors::processProviderInitial).onSuccess(v -> {
                 if (process.getState() == STARTING.code()) {
                     var task = baseBuilder(SendTransferStart.Builder.newInstance(), process).build();
                     storeTask(task);
                 }
-            });
+            }));
         }
     }
 
     private StatusResult<Void> handleSendStartMessage(TransferProcess process) {
-        return invokeProcessor(process, transferProcessors::processStarting);
+        return invokeProcessorTerminatingOnFatalError(process, transferProcessors::processStarting);
     }
 
     private StatusResult<Void> handleSignalStartedDataflow(TransferProcess process) {
-        return invokeProcessor(process, transferProcessors::processStartupRequested);
+        return invokeProcessorTerminatingOnFatalError(process, transferProcessors::processStartupRequested);
     }
 
     private StatusResult<Void> handleSuspendDataflow(TransferProcess process) {
-        return invokeProcessor(process, transferProcessors::processSuspending);
+        return invokeProcessorTerminatingOnFatalError(process, transferProcessors::processSuspending);
     }
 
     private StatusResult<Void> handleResumeDataflow(TransferProcess process) {
-        return invokeProcessor(process, transferProcessors::processResuming);
+        return invokeProcessorTerminatingOnFatalError(process, transferProcessors::processResuming);
     }
 
     private StatusResult<Void> handleTerminateDataflow(TransferProcess process) {
@@ -175,7 +175,7 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
     }
 
     private StatusResult<Void> handleCompleteDataflow(TransferProcess process) {
-        return invokeProcessor(process, transferProcessors::processCompleting);
+        return invokeProcessorTerminatingOnFatalError(process, transferProcessors::processCompleting);
     }
 
     private StatusResult<Void> handleSendRequest(TransferProcess process) {
@@ -196,6 +196,19 @@ public class TransferProcessTaskExecutorImpl implements TransferProcessTaskExecu
         } catch (Exception e) {
             return StatusResult.failure(FATAL_ERROR, "Failed to invoke processor: %s".formatted(e.getMessage()));
         }
+    }
+
+    private StatusResult<Void> invokeProcessorTerminatingOnFatalError(TransferProcess process, Function<TransferProcess, CompletableFuture<StatusResult<Void>>> processor) {
+        return terminateOnFatalError(process, invokeProcessor(process, processor));
+    }
+
+    private StatusResult<Void> terminateOnFatalError(TransferProcess process, StatusResult<Void> result) {
+        return result.onFailure(f -> {
+            if (f.isFatal()) {
+                var task = baseBuilder(TerminateDataFlow.Builder.newInstance(), process).build();
+                storeTask(task);
+            }
+        });
     }
 
     protected <T extends ProcessTaskPayload, B extends ProcessTaskPayload.Builder<T, B>> B baseBuilder(B builder, TransferProcess transferProcess) {

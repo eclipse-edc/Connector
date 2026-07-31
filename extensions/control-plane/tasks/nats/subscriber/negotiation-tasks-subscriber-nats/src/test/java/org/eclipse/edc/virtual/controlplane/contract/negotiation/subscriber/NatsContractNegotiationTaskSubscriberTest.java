@@ -68,7 +68,9 @@ import static org.eclipse.edc.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -141,25 +143,42 @@ public class NatsContractNegotiationTaskSubscriberTest {
     }
 
     @Test
-    void handleRetryMessage_withLimit() throws JsonProcessingException {
+    void handleRetryMessage_businessRetryIsNotCappedBySubscriber() throws JsonProcessingException {
         var payload = baseBuilder(RequestNegotiation.Builder.newInstance(), UUID.randomUUID().toString(), INITIAL, CONSUMER).build();
         var task = Task.Builder.newInstance().at(System.currentTimeMillis())
                 .payload(payload)
                 .build();
 
-        when(taskService.findById(any())).thenReturn(task)
-                .thenReturn(task.toBuilder().retryCount(task.getRetryCount() + 1).build())
-                .thenReturn(task.toBuilder().retryCount(task.getRetryCount() + 2).build());
-
+        when(taskService.findById(any())).thenReturn(task);
         when(taskManager.handle(any())).thenReturn(StatusResult.failure(ERROR_RETRY));
         subscriber.start();
 
         NATS_EXTENSION.publish("negotiations.provider." + payload.name(), MAPPER.writeValueAsBytes(task));
 
+        // a retryable failure is redelivered without a subscriber-side cap: the processor owns the give-up decision
+        await().atMost(Duration.ofSeconds(2)).untilAsserted(() ->
+                verify(taskManager, atLeast(3)).handle(refEq(payload)));
+        verify(taskService, never()).delete(any());
+        verify(taskService, never()).update(any());
+    }
+
+    @Test
+    void handleMissingTask_isRetried_thenDroppedAfterMaxDeliveries() throws JsonProcessingException {
+        var payload = baseBuilder(RequestNegotiation.Builder.newInstance(), UUID.randomUUID().toString(), INITIAL, CONSUMER).build();
+        var task = Task.Builder.newInstance().at(System.currentTimeMillis())
+                .payload(payload)
+                .build();
+
+        // task not yet visible (published before its transaction committed): retry, bounded by delivery count
+        when(taskService.findById(any())).thenReturn(null);
+        subscriber.start();
+
+        NATS_EXTENSION.publish("negotiations.provider." + payload.name(), MAPPER.writeValueAsBytes(task));
+
+        // maxRetries == 2: delivered twice (nak, then dropped); the executor is never invoked while the task is missing
         await().atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
-            verify(taskManager, times(3)).handle(refEq(payload));
-            verify(taskService).delete(task.getId());
-            verify(taskService, times(2)).update(any());
+            verify(taskService, times(2)).findById(any());
+            verify(taskManager, never()).handle(any());
         });
     }
 
