@@ -49,7 +49,7 @@ public class ContractAgreementApiV5Controller extends BaseContractAgreementApiV5
     @RequiredScope("management-api:agreements:read")
     @Override
     public JsonArray queryAgreementsV5(@PathParam("participantContextId") String participantContextId,
-                                       @SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson,
+                                       @SchemaType(value = EDC_QUERY_SPEC_TYPE_TERM, version = "v4") JsonObject querySpecJson,
                                        @Context SecurityContext securityContext) {
         return queryAgreements(participantContextId, querySpecJson, securityContext);
     }

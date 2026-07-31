@@ -42,7 +42,7 @@ public class CatalogsApiV4Controller extends BaseCatalogsApiController implement
     @Override
     @POST
     @Path("/request")
-    public JsonArray requestCatalogsV4(@SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson, @DefaultValue("false") @QueryParam("flatten") boolean flatten) {
+    public JsonArray requestCatalogsV4(@SchemaType(value = EDC_QUERY_SPEC_TYPE_TERM, version = "v4") JsonObject querySpecJson, @DefaultValue("false") @QueryParam("flatten") boolean flatten) {
         return requestCatalogs(querySpecJson, flatten);
     }
 }

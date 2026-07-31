@@ -61,7 +61,7 @@ public class DataspaceProfileApiV5Controller implements DataspaceProfileApiV5 {
     @POST
     @RequiredScope("management-api:profiles:write")
     @Override
-    public JsonObject createProfileV5(@SchemaType(DATASPACE_PROFILE_CONTEXT_TYPE_TERM) JsonObject request) {
+    public JsonObject createProfileV5(@SchemaType(value = DATASPACE_PROFILE_CONTEXT_TYPE_TERM, version = "v5") JsonObject request) {
 
         var profile = transformerRegistry.transform(request, DataspaceProfile.class)
                 .orElseThrow(InvalidRequestException::new);
@@ -77,7 +77,7 @@ public class DataspaceProfileApiV5Controller implements DataspaceProfileApiV5 {
     @PUT
     @RequiredScope("management-api:profiles:write")
     @Override
-    public void updateProfileV5(@SchemaType(DATASPACE_PROFILE_CONTEXT_TYPE_TERM) JsonObject request) {
+    public void updateProfileV5(@SchemaType(value = DATASPACE_PROFILE_CONTEXT_TYPE_TERM, version = "v5") JsonObject request) {
 
         var profile = transformerRegistry.transform(request, DataspaceProfile.class)
                 .orElseThrow(InvalidRequestException::new);
@@ -91,7 +91,7 @@ public class DataspaceProfileApiV5Controller implements DataspaceProfileApiV5 {
     @Path("request")
     @RequiredScope("management-api:profiles:read")
     @Override
-    public JsonArray queryProfilesV5(@SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson) {
+    public JsonArray queryProfilesV5(@SchemaType(value = EDC_QUERY_SPEC_TYPE_TERM, version = "v4") JsonObject querySpecJson) {
 
         QuerySpec querySpec;
         if (querySpecJson == null) {

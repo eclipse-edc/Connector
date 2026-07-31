@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.api.management.dcpscope;
 
 import jakarta.json.Json;
-import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.api.management.dcpscope.transform.JsonObjectFromDcpScopeTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.dcpscope.transform.JsonObjectToDcpScopeTransformer;
 import org.eclipse.edc.connector.controlplane.api.management.dcpscope.v5.DcpScopeApiV5Controller;
@@ -76,6 +75,6 @@ public class DcpScopeApiV5Extension implements ServiceExtension {
 
         webService.registerResource(ApiContext.MANAGEMENT, new DcpScopeApiV5Controller(scopeRegistry, managementApiTransformerRegistry, monitor));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, DcpScopeApiV5Controller.class,
-                new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V5.version()));
+                new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4));
     }
 }

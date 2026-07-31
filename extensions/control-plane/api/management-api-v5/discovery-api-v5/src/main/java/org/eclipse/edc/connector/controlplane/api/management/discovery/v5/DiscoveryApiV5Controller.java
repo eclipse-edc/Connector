@@ -64,7 +64,7 @@ public class DiscoveryApiV5Controller implements DiscoveryApiV5 {
     @RequiredScope("management-api:discovery:read")
     @Override
     public JsonArray discoverV5(@PathParam("participantContextId") String participantContextId,
-                                @SchemaType(DISCOVERY_REQUEST_TYPE_TERM) JsonObject request,
+                                @SchemaType(value = DISCOVERY_REQUEST_TYPE_TERM, version = "v5") JsonObject request,
                                 @Context SecurityContext securityContext) {
 
         authorizationService.authorize(securityContext, participantContextId, participantContextId, ParticipantContext.class)

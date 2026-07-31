@@ -42,8 +42,11 @@ import static io.restassured.http.ContentType.JSON;
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.edc.connector.controlplane.catalog.spi.CatalogRequest.CATALOG_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_PROTOCOL;
 import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE;
+import static org.eclipse.edc.connector.controlplane.catalog.spi.DatasetRequest.DATASET_REQUEST_TYPE_TERM;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -72,7 +75,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
         when(service.requestCatalog(any(), any(), any(), any(), any())).thenReturn(completedFuture(StatusResult.success("{}".getBytes())));
-        var requestBody = Json.createObjectBuilder().add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
+        var requestBody = Json.createObjectBuilder().add(TYPE, CATALOG_REQUEST_TYPE_TERM).add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
 
         given()
                 .port(port)
@@ -88,7 +91,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
     @Test
     void requestCatalog_shouldReturnBadRequest_whenValidationFails() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(Violation.violation("error", "path")));
-        var requestBody = Json.createObjectBuilder().add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
+        var requestBody = Json.createObjectBuilder().add(TYPE, CATALOG_REQUEST_TYPE_TERM).add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
 
         given()
                 .port(port)
@@ -105,7 +108,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
     void requestCatalog_shouldReturnBadRequest_whenTransformFails() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.failure("error"));
-        var requestBody = Json.createObjectBuilder().add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
+        var requestBody = Json.createObjectBuilder().add(TYPE, CATALOG_REQUEST_TYPE_TERM).add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
 
         given()
                 .port(port)
@@ -124,7 +127,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
         when(service.requestCatalog(any(), any(), any(), any(), any())).thenReturn(completedFuture(StatusResult.failure(FATAL_ERROR, "error")));
 
-        var requestBody = Json.createObjectBuilder().add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
+        var requestBody = Json.createObjectBuilder().add(TYPE, CATALOG_REQUEST_TYPE_TERM).add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
 
         given()
                 .port(port)
@@ -141,7 +144,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(CatalogRequest.class))).thenReturn(Result.success(request));
         when(service.requestCatalog(any(), any(), any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
-        var requestBody = Json.createObjectBuilder().add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
+        var requestBody = Json.createObjectBuilder().add(TYPE, CATALOG_REQUEST_TYPE_TERM).add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any").build();
 
         given()
                 .port(port)
@@ -163,7 +166,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), any())).thenReturn(Result.success(request));
         when(service.requestDataset(any(), any(), any(), any(), any())).thenReturn(CompletableFuture.completedFuture(StatusResult.success("{}".getBytes())));
-        var requestBody = Json.createObjectBuilder().add(DATASET_REQUEST_PROTOCOL, "any").build();
+        var requestBody = Json.createObjectBuilder().add(TYPE, DATASET_REQUEST_TYPE_TERM).add(DATASET_REQUEST_PROTOCOL, "any").build();
 
         given()
                 .port(port)
@@ -181,7 +184,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
     @Test
     void requestDataset_shouldReturnBadRequest_whenValidationFails() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(Violation.violation("error", "path")));
-        var requestBody = Json.createObjectBuilder().add(DATASET_REQUEST_PROTOCOL, "any").build();
+        var requestBody = Json.createObjectBuilder().add(TYPE, DATASET_REQUEST_TYPE_TERM).add(DATASET_REQUEST_PROTOCOL, "any").build();
 
         given()
                 .port(port)
@@ -198,7 +201,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
     void requestDataset_shouldReturnBadRequest_whenTransformFails() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(DatasetRequest.class))).thenReturn(Result.failure("error"));
-        var requestBody = Json.createObjectBuilder().add(DATASET_REQUEST_PROTOCOL, "any").build();
+        var requestBody = Json.createObjectBuilder().add(TYPE, DATASET_REQUEST_TYPE_TERM).add(DATASET_REQUEST_PROTOCOL, "any").build();
 
         given()
                 .port(port)
@@ -217,7 +220,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
         when(transformerRegistry.transform(any(), eq(DatasetRequest.class))).thenReturn(Result.success(request));
         when(service.requestDataset(any(), any(), any(), any(), any())).thenReturn(completedFuture(StatusResult.failure(FATAL_ERROR, "error")));
 
-        var requestBody = Json.createObjectBuilder().add(DATASET_REQUEST_PROTOCOL, "any").build();
+        var requestBody = Json.createObjectBuilder().add(TYPE, DATASET_REQUEST_TYPE_TERM).add(DATASET_REQUEST_PROTOCOL, "any").build();
 
         given()
                 .port(port)
@@ -234,7 +237,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(DatasetRequest.class))).thenReturn(Result.success(request));
         when(service.requestDataset(any(), any(), any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
-        var requestBody = Json.createObjectBuilder().add(DATASET_REQUEST_PROTOCOL, "any").build();
+        var requestBody = Json.createObjectBuilder().add(TYPE, DATASET_REQUEST_TYPE_TERM).add(DATASET_REQUEST_PROTOCOL, "any").build();
 
         given()
                 .port(port)
@@ -252,6 +255,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
         when(transformerRegistry.transform(argThat(o -> o instanceof JsonObject jo && jo.containsKey(CatalogRequest.CATALOG_REQUEST_ADDITIONAL_SCOPES)), eq(CatalogRequest.class))).thenReturn(Result.success(request));
         when(service.requestCatalog(any(), any(), any(), any(), any())).thenReturn(completedFuture(StatusResult.success("{}".getBytes())));
         var requestBody = Json.createObjectBuilder()
+                .add(TYPE, CATALOG_REQUEST_TYPE_TERM)
                 .add(CatalogRequest.CATALOG_REQUEST_PROTOCOL, "any")
                 .add(CatalogRequest.CATALOG_REQUEST_ADDITIONAL_SCOPES, Json.createArrayBuilder(List.of("scope1", "scope2")).build())
                 .build();

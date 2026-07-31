@@ -15,7 +15,6 @@
 package org.eclipse.edc.validator.registration.api;
 
 import jakarta.json.Json;
-import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.runtime.metamodel.annotation.Extension;
 import org.eclipse.edc.runtime.metamodel.annotation.Inject;
@@ -71,6 +70,6 @@ public class SchemaValidationApiExtension implements ServiceExtension {
         webService.registerResource(ApiContext.MANAGEMENT,
                 new SchemaValidatorRegistrationApiV5Controller(service, managementApiTransformerRegistry));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, SchemaValidatorRegistrationApiV5Controller.class,
-                new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V5.version()));
+                new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4));
     }
 }

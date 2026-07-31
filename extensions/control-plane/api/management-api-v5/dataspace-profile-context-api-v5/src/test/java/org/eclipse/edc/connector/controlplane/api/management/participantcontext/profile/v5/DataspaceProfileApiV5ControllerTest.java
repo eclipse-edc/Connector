@@ -32,6 +32,7 @@ import java.util.List;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createObjectBuilder;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -140,7 +141,7 @@ class DataspaceProfileApiV5ControllerTest extends RestControllerTestBase {
         when(transformerRegistry.transform(isA(JsonObject.class), eq(QuerySpec.class))).thenReturn(Result.success(QuerySpec.max()));
         when(service.search(any())).thenReturn(ServiceResult.success(List.of(profile("dsp2025_1"))));
 
-        baseRequest().contentType(JSON).body("{}")
+        baseRequest().contentType(JSON).body(Json.createObjectBuilder().add(TYPE, "QuerySpec").build())
                 .post("/dataspaceprofiles/request")
                 .then().statusCode(200).contentType(JSON).body("size()", is(1));
     }

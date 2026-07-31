@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -60,10 +61,14 @@ class CachedDocumentApiV5ControllerTest extends RestControllerTestBase {
         when(service.create(any())).thenAnswer(i -> ServiceResult.success(i.getArgument(0)));
         when(transformerRegistry.transform(any(IdResponse.class), eq(JsonObject.class)))
                 .thenReturn(Result.success(Json.createObjectBuilder().add("@id", context.getId()).build()));
+        var requestBody = Json.createObjectBuilder()
+                .add(TYPE, "CachedDocument")
+                .add("url", "https://example.com/context.jsonld")
+                .build();
 
         baseRequest()
                 .contentType("application/json")
-                .body("{ \"url\": \"https://example.com/context.jsonld\" }")
+                .body(requestBody)
                 .post("/v5beta/cacheddocuments")
                 .then()
                 .statusCode(200)
@@ -143,10 +148,14 @@ class CachedDocumentApiV5ControllerTest extends RestControllerTestBase {
         when(service.update(any())).thenAnswer(i -> ServiceResult.success(i.getArgument(0)));
         when(transformerRegistry.transform(any(CachedDocument.class), eq(JsonObject.class)))
                 .thenReturn(Result.success(Json.createObjectBuilder().add("@id", "id1").build()));
+        var requestBody = Json.createObjectBuilder()
+                .add(TYPE, "CachedDocument")
+                .add("url", "https://example.com/context.jsonld")
+                .build();
 
         baseRequest()
                 .contentType("application/json")
-                .body("{ \"url\": \"https://example.com/context.jsonld\" }")
+                .body(requestBody)
                 .put("/v5beta/cacheddocuments/id1")
                 .then()
                 .statusCode(204);

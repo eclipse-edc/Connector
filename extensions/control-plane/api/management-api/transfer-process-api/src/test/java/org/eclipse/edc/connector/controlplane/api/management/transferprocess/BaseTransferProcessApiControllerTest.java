@@ -46,10 +46,15 @@ import java.util.UUID;
 import static io.restassured.http.ContentType.JSON;
 import static java.util.Collections.emptyList;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.SuspendTransfer.SUSPEND_TRANSFER_TYPE;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.SuspendTransfer.SUSPEND_TRANSFER_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TerminateTransfer.TERMINATE_TRANSFER_TYPE;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TerminateTransfer.TERMINATE_TRANSFER_TYPE_TERM;
 import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE;
+import static org.eclipse.edc.connector.controlplane.transfer.spi.types.TransferRequest.TRANSFER_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -160,14 +165,13 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
         @Test
         void shouldReturnQueriedTransferProcesses() {
             var querySpec = QuerySpec.none();
-            var expandedRequestBody = Json.createObjectBuilder().build();
             var transferProcess = createTransferProcess().id("id").build();
             var expandedResponseBody = Json.createObjectBuilder().add("id", "id").add("createdAt", 1234).build();
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
             when(service.search(any())).thenReturn(ServiceResult.success(List.of(transferProcess)));
             when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expandedResponseBody));
-            var requestBody = Json.createObjectBuilder().build();
+            var requestBody = Json.createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build();
 
             baseRequest()
                     .body(requestBody)
@@ -179,7 +183,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
                     .body("size()", is(1))
                     .body("[0].id", is("id"))
                     .body("[0].createdAt", is(1234));
-            verify(transformerRegistry).transform(expandedRequestBody, QuerySpec.class);
+            verify(transformerRegistry).transform(requestBody, QuerySpec.class);
             verify(service).search(querySpec);
             verify(transformerRegistry).transform(transferProcess, JsonObject.class);
         }
@@ -204,7 +208,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
         @Test
         void shouldReturnBadRequest_whenValidationFails() {
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("error", "path")));
-            var requestBody = Json.createObjectBuilder().build();
+            var requestBody = Json.createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build();
 
             baseRequest()
                     .body(requestBody)
@@ -221,7 +225,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
         void shouldReturn400_whenQuerySpecTransformFails() {
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.failure("error"));
-            var requestBody = Json.createObjectBuilder().build();
+            var requestBody = Json.createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build();
 
             baseRequest()
                     .body(requestBody)
@@ -238,7 +242,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
             when(service.search(any())).thenReturn(ServiceResult.badRequest("error"));
-            var requestBody = Json.createObjectBuilder().build();
+            var requestBody = Json.createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build();
 
             baseRequest()
                     .body(requestBody)
@@ -257,7 +261,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
             when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
             when(service.search(any())).thenReturn(ServiceResult.success(List.of(transferProcess)));
             when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.failure("error"));
-            var requestBody = Json.createObjectBuilder().build();
+            var requestBody = Json.createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build();
 
             baseRequest()
                     .body(requestBody)
@@ -282,7 +286,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
             when(transformerRegistry.transform(any(), eq(TransferRequest.class))).thenReturn(Result.success(transferRequest));
             when(service.initiateTransfer(any(), any())).thenReturn(ServiceResult.success(transferProcess));
             when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
-            var requestBody = Json.createObjectBuilder().build();
+            var requestBody = Json.createObjectBuilder().add(TYPE, TRANSFER_REQUEST_TYPE_TERM).build();
 
             baseRequest()
                     .body(requestBody)
@@ -300,7 +304,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
         @Test
         void shouldReturnBadRequest_whenValidationFails() {
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("error", "path")));
-            var requestBody = Json.createObjectBuilder().build();
+            var requestBody = Json.createObjectBuilder().add(TYPE, TRANSFER_REQUEST_TYPE_TERM).build();
 
             baseRequest()
                     .body(requestBody)
@@ -318,7 +322,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
         void shouldReturnBadRequest_whenTransformationFails() {
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
-            var requestBody = Json.createObjectBuilder().build();
+            var requestBody = Json.createObjectBuilder().add(TYPE, TRANSFER_REQUEST_TYPE_TERM).build();
 
             baseRequest()
                     .body(requestBody)
@@ -336,7 +340,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), eq(TransferRequest.class))).thenReturn(Result.success(transferRequest));
             when(service.initiateTransfer(any(), any())).thenReturn(ServiceResult.conflict("already exists"));
-            var requestBody = Json.createObjectBuilder().build();
+            var requestBody = Json.createObjectBuilder().add(TYPE, TRANSFER_REQUEST_TYPE_TERM).build();
 
             baseRequest()
                     .body(requestBody)
@@ -353,7 +357,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
 
         @Test
         void shouldTerminate() {
-            var expanded = Json.createObjectBuilder().build();
+            var requestBody = Json.createObjectBuilder().add(TYPE, TERMINATE_TRANSFER_TYPE_TERM).build();
             var terminateTransfer = new TerminateTransfer("anyReason");
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), eq(TerminateTransfer.class))).thenReturn(Result.success(terminateTransfer));
@@ -361,11 +365,11 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
 
             baseRequest()
                     .contentType(JSON)
-                    .body(Json.createObjectBuilder().build())
+                    .body(requestBody)
                     .post("/id/terminate")
                     .then()
                     .statusCode(204);
-            verify(transformerRegistry).transform(expanded, TerminateTransfer.class);
+            verify(transformerRegistry).transform(requestBody, TerminateTransfer.class);
             verify(service).terminate(isA(TerminateTransferCommand.class));
         }
 
@@ -375,7 +379,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
 
             baseRequest()
                     .contentType(JSON)
-                    .body(Json.createObjectBuilder().build())
+                    .body(Json.createObjectBuilder().add(TYPE, TERMINATE_TRANSFER_TYPE_TERM).build())
                     .post("/id/terminate")
                     .then()
                     .statusCode(400);
@@ -391,7 +395,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
 
             baseRequest()
                     .contentType(JSON)
-                    .body(Json.createObjectBuilder().build())
+                    .body(Json.createObjectBuilder().add(TYPE, TERMINATE_TRANSFER_TYPE_TERM).build())
                     .post("/id/terminate")
                     .then()
                     .statusCode(400);
@@ -419,7 +423,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
 
         @Test
         void shouldSuspend() {
-            var expanded = Json.createObjectBuilder().build();
+            var requestBody = Json.createObjectBuilder().add(TYPE, SUSPEND_TRANSFER_TYPE_TERM).build();
             var suspendTransfer = new SuspendTransfer("anyReason");
             when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
             when(transformerRegistry.transform(any(), eq(SuspendTransfer.class))).thenReturn(Result.success(suspendTransfer));
@@ -427,11 +431,11 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
 
             baseRequest()
                     .contentType(JSON)
-                    .body(Json.createObjectBuilder().build())
+                    .body(requestBody)
                     .post("/id/suspend")
                     .then()
                     .statusCode(204);
-            verify(transformerRegistry).transform(expanded, SuspendTransfer.class);
+            verify(transformerRegistry).transform(requestBody, SuspendTransfer.class);
             verify(service).suspend(isA(SuspendTransferCommand.class));
         }
 
@@ -441,7 +445,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
 
             baseRequest()
                     .contentType(JSON)
-                    .body(Json.createObjectBuilder().build())
+                    .body(Json.createObjectBuilder().add(TYPE, SUSPEND_TRANSFER_TYPE_TERM).build())
                     .post("/id/suspend")
                     .then()
                     .statusCode(400);
@@ -457,7 +461,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
 
             baseRequest()
                     .contentType(JSON)
-                    .body(Json.createObjectBuilder().build())
+                    .body(Json.createObjectBuilder().add(TYPE, SUSPEND_TRANSFER_TYPE_TERM).build())
                     .post("/id/suspend")
                     .then()
                     .statusCode(400);

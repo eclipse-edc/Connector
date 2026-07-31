@@ -81,7 +81,7 @@ public class DataspaceProfileContextApiV5Controller implements DataspaceProfileC
     @PUT
     @RequiredScope("management-api:admin")
     @Override
-    public void associateProfiles(@PathParam("participantContextId") String participantContextId, @SchemaType(ASSOCIATE_DATASPACE_PROFILE_CONTEXT_TYPE_TERM) JsonObject request) {
+    public void associateProfiles(@PathParam("participantContextId") String participantContextId, @SchemaType(value = ASSOCIATE_DATASPACE_PROFILE_CONTEXT_TYPE_TERM, version = "v5") JsonObject request) {
 
         var context = transformerRegistry.transform(request, AssociateDataspaceProfileContext.class)
                 .orElseThrow(InvalidRequestException::new);

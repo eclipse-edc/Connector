@@ -69,7 +69,7 @@ public class ParticipantContextApiV5Controller implements ParticipantContextApiV
     @POST
     @RequiredScope("management-api:admin")
     @Override
-    public JsonObject createParticipantV5(@SchemaType(PARTICIPANT_CONTEXT_TYPE_TERM) JsonObject request) {
+    public JsonObject createParticipantV5(@SchemaType(value = PARTICIPANT_CONTEXT_TYPE_TERM, version = "v5") JsonObject request) {
 
         var participantContext = transformerRegistry.transform(request, ParticipantContext.class)
                 .orElseThrow(InvalidRequestException::new);
@@ -103,7 +103,7 @@ public class ParticipantContextApiV5Controller implements ParticipantContextApiV
     @Path("{id}")
     @RequiredScope("management-api:admin")
     @Override
-    public void updateParticipantV5(@PathParam("id") String id, @SchemaType(PARTICIPANT_CONTEXT_TYPE_TERM) JsonObject request) {
+    public void updateParticipantV5(@PathParam("id") String id, @SchemaType(value = PARTICIPANT_CONTEXT_TYPE_TERM, version = "v5") JsonObject request) {
         var participantContext = transformerRegistry.transform(request, ParticipantContext.class)
                 .orElseThrow(InvalidRequestException::new);
 

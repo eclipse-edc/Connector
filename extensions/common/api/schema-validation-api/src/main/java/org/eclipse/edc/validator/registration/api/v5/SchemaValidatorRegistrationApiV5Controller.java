@@ -82,7 +82,7 @@ public class SchemaValidatorRegistrationApiV5Controller implements SchemaValidat
     @POST
     @RequiredScope("management-api:admin")
     @Override
-    public JsonObject create(@SchemaType(SCHEMA_VALIDATOR_REGISTRATION_TYPE_TERM) JsonObject request) {
+    public JsonObject create(@SchemaType(value = SCHEMA_VALIDATOR_REGISTRATION_TYPE_TERM, version = "v5") JsonObject request) {
         var registration = fromJson(request);
         var created = service.create(registration)
                 .orElseThrow(exceptionMapper(SchemaValidatorRegistration.class, registration.getId()));
@@ -99,7 +99,7 @@ public class SchemaValidatorRegistrationApiV5Controller implements SchemaValidat
     @Path("{id}")
     @RequiredScope("management-api:admin")
     @Override
-    public void update(@PathParam("id") String id, @SchemaType(SCHEMA_VALIDATOR_REGISTRATION_TYPE_TERM) JsonObject request) {
+    public void update(@PathParam("id") String id, @SchemaType(value = SCHEMA_VALIDATOR_REGISTRATION_TYPE_TERM, version = "v5") JsonObject request) {
         var registration = fromJson(request).toBuilder().id(id).build();
         service.update(registration)
                 .orElseThrow(exceptionMapper(SchemaValidatorRegistration.class, id));

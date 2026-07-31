@@ -15,7 +15,6 @@
 package org.eclipse.edc.document.cache.api;
 
 import jakarta.json.Json;
-import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.document.cache.api.v5.CachedDocumentApiV5Controller;
 import org.eclipse.edc.document.cache.api.v5.transform.JsonObjectFromCachedDocumentTransformer;
 import org.eclipse.edc.document.cache.api.v5.transform.JsonObjectToCachedDocumentTransformer;
@@ -71,6 +70,6 @@ public class CachedDocumentApiExtension implements ServiceExtension {
         webService.registerResource(ApiContext.MANAGEMENT,
                 new CachedDocumentApiV5Controller(service, managementApiTransformerRegistry));
         webService.registerDynamicResource(ApiContext.MANAGEMENT, CachedDocumentApiV5Controller.class,
-                new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V5.version()));
+                new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4));
     }
 }

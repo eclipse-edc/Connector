@@ -43,7 +43,7 @@ public class ContractAgreementApiV4Controller extends BaseContractAgreementApiCo
     @POST
     @Path("/request")
     @Override
-    public JsonArray queryAgreementsV4(@SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson) {
+    public JsonArray queryAgreementsV4(@SchemaType(value = EDC_QUERY_SPEC_TYPE_TERM, version = "v4") JsonObject querySpecJson) {
         return queryAgreements(querySpecJson);
     }
 

@@ -82,7 +82,7 @@ public class CachedDocumentApiV5Controller implements CachedDocumentApiV5 {
     @POST
     @RequiredScope("management-api:admin")
     @Override
-    public JsonObject create(@SchemaType(CACHED_DOCUMENT_TYPE_TERM) JsonObject request) {
+    public JsonObject create(@SchemaType(value = CACHED_DOCUMENT_TYPE_TERM, version = "v5") JsonObject request) {
         var context = fromJson(request);
         var created = service.create(context)
                 .orElseThrow(exceptionMapper(CachedDocument.class, context.getUrl()));
@@ -99,7 +99,7 @@ public class CachedDocumentApiV5Controller implements CachedDocumentApiV5 {
     @Path("{id}")
     @RequiredScope("management-api:admin")
     @Override
-    public void update(@PathParam("id") String id, @SchemaType(CACHED_DOCUMENT_TYPE_TERM) JsonObject request) {
+    public void update(@PathParam("id") String id, @SchemaType(value = CACHED_DOCUMENT_TYPE_TERM, version = "v5") JsonObject request) {
         var context = fromJson(request).toBuilder().id(id).build();
         service.update(context)
                 .orElseThrow(exceptionMapper(CachedDocument.class, id));

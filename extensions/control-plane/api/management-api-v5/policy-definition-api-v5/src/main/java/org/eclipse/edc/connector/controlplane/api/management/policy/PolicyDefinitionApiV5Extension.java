@@ -16,7 +16,6 @@ package org.eclipse.edc.connector.controlplane.api.management.policy;
 
 import jakarta.json.Json;
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.api.management.policy.v5.PolicyDefinitionApiV5Controller;
 import org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition;
 import org.eclipse.edc.connector.controlplane.services.spi.policydefinition.PolicyDefinitionService;
@@ -89,7 +88,7 @@ public class PolicyDefinitionApiV5Extension implements ServiceExtension {
 
         authorizationService.addLookupFunction(PolicyDefinition.class, this::findPolicyDefinition);
         webService.registerResource(ApiContext.MANAGEMENT, new PolicyDefinitionApiV5Controller(policyDefinitionService, managementApiTransformerRegistry, monitor, authorizationService));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, PolicyDefinitionApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, PolicyDefinitionApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4));
 
     }
 

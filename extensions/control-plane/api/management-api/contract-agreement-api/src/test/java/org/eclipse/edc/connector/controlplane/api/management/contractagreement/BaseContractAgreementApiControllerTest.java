@@ -37,9 +37,12 @@ import java.util.List;
 import java.util.UUID;
 
 import static io.restassured.http.ContentType.JSON;
+import static jakarta.json.Json.createObjectBuilder;
 import static java.util.Collections.emptyList;
 import static java.util.UUID.randomUUID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.any;
@@ -70,7 +73,7 @@ public abstract class BaseContractAgreementApiControllerTest extends RestControl
 
         baseRequest()
                 .contentType(JSON)
-                .body("{}")
+                .body(createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build())
                 .post("/request")
                 .then()
                 .statusCode(200)
@@ -91,7 +94,7 @@ public abstract class BaseContractAgreementApiControllerTest extends RestControl
 
         baseRequest()
                 .contentType(JSON)
-                .body("{}")
+                .body(createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build())
                 .post("/request")
                 .then()
                 .statusCode(200)
@@ -109,7 +112,7 @@ public abstract class BaseContractAgreementApiControllerTest extends RestControl
 
         baseRequest()
                 .contentType(JSON)
-                .body("{}")
+                .body(createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build())
                 .post("/request")
                 .then()
                 .statusCode(400);
@@ -126,7 +129,7 @@ public abstract class BaseContractAgreementApiControllerTest extends RestControl
 
         baseRequest()
                 .contentType(JSON)
-                .body("{}")
+                .body(createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build())
                 .post("/request")
                 .then()
                 .statusCode(200)

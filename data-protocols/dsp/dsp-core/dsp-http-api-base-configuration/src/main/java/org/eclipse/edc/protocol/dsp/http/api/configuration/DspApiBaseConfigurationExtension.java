@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.protocol.dsp.http.api.configuration;
 
+import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.policy.model.AtomicConstraint;
 import org.eclipse.edc.policy.model.LiteralExpression;
 import org.eclipse.edc.protocol.dsp.http.spi.api.DspBaseWebhookAddress;
@@ -27,6 +28,7 @@ import org.eclipse.edc.spi.system.Hostname;
 import org.eclipse.edc.spi.system.ServiceExtension;
 import org.eclipse.edc.spi.system.ServiceExtensionContext;
 import org.eclipse.edc.spi.types.TypeManager;
+import org.eclipse.edc.web.jersey.providers.jsonld.JsonObjectMessageBodyReader;
 import org.eclipse.edc.web.jersey.providers.jsonld.ObjectMapperProvider;
 import org.eclipse.edc.web.spi.WebService;
 import org.eclipse.edc.web.spi.configuration.ApiContext;
@@ -60,6 +62,8 @@ public class DspApiBaseConfigurationExtension implements ServiceExtension {
     private WebService webService;
     @Inject
     private TypeManager typeManager;
+    @Inject
+    private JsonLd jsonLd;
 
     @Override
     public String name() {
@@ -72,6 +76,7 @@ public class DspApiBaseConfigurationExtension implements ServiceExtension {
         portMappingRegistry.register(portMapping);
 
         webService.registerResource(ApiContext.PROTOCOL, new ObjectMapperProvider(typeManager, JSON_LD));
+        webService.registerResource(ApiContext.PROTOCOL, new JsonObjectMessageBodyReader(jsonLd, typeManager, JSON_LD, null));
     }
 
     @Override

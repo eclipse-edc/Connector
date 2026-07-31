@@ -43,7 +43,7 @@ public class SecretsApiV4Controller extends BaseSecretsApiController implements 
 
     @POST
     @Override
-    public JsonObject createSecretV4(@SchemaType(EDC_SECRET_TYPE_TERM) JsonObject secretJson) {
+    public JsonObject createSecretV4(@SchemaType(value = EDC_SECRET_TYPE_TERM, version = "v4") JsonObject secretJson) {
         return createSecret(secretJson);
     }
 
@@ -63,7 +63,7 @@ public class SecretsApiV4Controller extends BaseSecretsApiController implements 
 
     @PUT
     @Override
-    public void updateSecretV4(@SchemaType(EDC_SECRET_TYPE_TERM) JsonObject secretJson) {
+    public void updateSecretV4(@SchemaType(value = EDC_SECRET_TYPE_TERM, version = "v4") JsonObject secretJson) {
         updateSecret(secretJson);
     }
 }

@@ -29,7 +29,9 @@ import org.junit.jupiter.api.Test;
 import static io.restassured.RestAssured.given;
 import static io.restassured.http.ContentType.JSON;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_TYPE;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.TerminateNegotiation.TERMINATE_NEGOTIATION_TYPE_TERM;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
+import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -54,7 +56,7 @@ class ContractNegotiationApiV4ControllerTest extends BaseContractNegotiationApiC
         when(service.terminate(any())).thenReturn(ServiceResult.success());
 
         baseRequest()
-                .body(Json.createObjectBuilder().add(ID, "id").build())
+                .body(Json.createObjectBuilder().add(TYPE, TERMINATE_NEGOTIATION_TYPE_TERM).add(ID, "id").build())
                 .contentType(JSON)
                 .post("/cn1/terminate")
                 .then()
@@ -69,7 +71,7 @@ class ContractNegotiationApiV4ControllerTest extends BaseContractNegotiationApiC
         when(transformerRegistry.transform(any(JsonObject.class), eq(TerminateNegotiation.class))).thenReturn(Result.failure("error"));
 
         baseRequest()
-                .body(Json.createObjectBuilder().add(ID, "id").build())
+                .body(Json.createObjectBuilder().add(TYPE, TERMINATE_NEGOTIATION_TYPE_TERM).add(ID, "id").build())
                 .contentType(JSON)
                 .post("/cn1/terminate")
                 .then()
@@ -86,7 +88,7 @@ class ContractNegotiationApiV4ControllerTest extends BaseContractNegotiationApiC
         when(service.terminate(any())).thenReturn(ServiceResult.conflict("conflict"));
 
         baseRequest()
-                .body(Json.createObjectBuilder().build())
+                .body(Json.createObjectBuilder().add(TYPE, TERMINATE_NEGOTIATION_TYPE_TERM).build())
                 .contentType(JSON)
                 .post("/cn1/terminate")
                 .then()
@@ -98,7 +100,7 @@ class ContractNegotiationApiV4ControllerTest extends BaseContractNegotiationApiC
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("error", "path")));
 
         baseRequest()
-                .body(Json.createObjectBuilder().add(ID, "id").build())
+                .body(Json.createObjectBuilder().add(TYPE, TERMINATE_NEGOTIATION_TYPE_TERM).add(ID, "id").build())
                 .contentType(JSON)
                 .post("/cn1/terminate")
                 .then()

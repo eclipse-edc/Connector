@@ -50,7 +50,7 @@ public class PolicyDefinitionApiV4Controller extends BasePolicyDefinitionApiCont
     @POST
     @Path("request")
     @Override
-    public JsonArray queryPolicyDefinitionsV4(@SchemaType(EDC_QUERY_SPEC_TYPE_TERM) JsonObject querySpecJson) {
+    public JsonArray queryPolicyDefinitionsV4(@SchemaType(value = EDC_QUERY_SPEC_TYPE_TERM, version = "v4") JsonObject querySpecJson) {
         return queryPolicyDefinitions(querySpecJson);
     }
 
@@ -63,7 +63,7 @@ public class PolicyDefinitionApiV4Controller extends BasePolicyDefinitionApiCont
 
     @POST
     @Override
-    public JsonObject createPolicyDefinitionV4(@SchemaType(EDC_POLICY_DEFINITION_TYPE_TERM) JsonObject request) {
+    public JsonObject createPolicyDefinitionV4(@SchemaType(value = EDC_POLICY_DEFINITION_TYPE_TERM, version = "v4") JsonObject request) {
         return createPolicyDefinition(request);
     }
 
@@ -77,7 +77,7 @@ public class PolicyDefinitionApiV4Controller extends BasePolicyDefinitionApiCont
     @PUT
     @Path("{id}")
     @Override
-    public void updatePolicyDefinitionV4(@PathParam("id") String id, @SchemaType(EDC_POLICY_DEFINITION_TYPE_TERM) JsonObject input) {
+    public void updatePolicyDefinitionV4(@PathParam("id") String id, @SchemaType(value = EDC_POLICY_DEFINITION_TYPE_TERM, version = "v4") JsonObject input) {
         updatePolicyDefinition(id, input);
     }
 
@@ -91,7 +91,7 @@ public class PolicyDefinitionApiV4Controller extends BasePolicyDefinitionApiCont
     @POST
     @Path("{id}/evaluationplan")
     @Override
-    public JsonObject createExecutionPlanV4(@PathParam("id") String id, @SchemaType(EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE_TERM) JsonObject request) {
+    public JsonObject createExecutionPlanV4(@PathParam("id") String id, @SchemaType(value = EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE_TERM, version = "v4") JsonObject request) {
         return createExecutionPlan(id, request);
     }
 }

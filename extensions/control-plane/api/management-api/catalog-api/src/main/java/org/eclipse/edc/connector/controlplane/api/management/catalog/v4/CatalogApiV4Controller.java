@@ -44,14 +44,14 @@ public class CatalogApiV4Controller extends BaseCatalogApiController implements 
     @POST
     @Path("/request")
     @Override
-    public void requestCatalogV4(@SchemaType(CATALOG_REQUEST_TYPE_TERM) JsonObject request, @Suspended AsyncResponse response) {
+    public void requestCatalogV4(@SchemaType(value = CATALOG_REQUEST_TYPE_TERM, version = "v4") JsonObject request, @Suspended AsyncResponse response) {
         requestCatalog(request, response);
     }
 
     @POST
     @Path("dataset/request")
     @Override
-    public void getDatasetV4(@SchemaType(DATASET_REQUEST_TYPE_TERM) JsonObject request, @Suspended AsyncResponse response) {
+    public void getDatasetV4(@SchemaType(value = DATASET_REQUEST_TYPE_TERM, version = "v4") JsonObject request, @Suspended AsyncResponse response) {
         getDataset(request, response);
     }
 }

@@ -41,6 +41,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VOCAB;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_PREFIX;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE;
+import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_TYPE_TERM;
 import static org.eclipse.edc.spi.types.domain.secret.Secret.EDC_SECRET_VALUE;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.hamcrest.Matchers.greaterThan;
@@ -270,7 +271,7 @@ public abstract class BaseSecretsApiControllerTest extends RestControllerTestBas
     private JsonObjectBuilder createSecretJson() {
         return createObjectBuilder()
                 .add(CONTEXT, createContextBuilder().build())
-                .add(TYPE, EDC_SECRET_TYPE)
+                .add(TYPE, EDC_SECRET_TYPE_TERM)
                 .add(ID, TEST_SECRET_ID)
                 .add(EDC_SECRET_VALUE, TEST_SECRET_VALUE);
     }

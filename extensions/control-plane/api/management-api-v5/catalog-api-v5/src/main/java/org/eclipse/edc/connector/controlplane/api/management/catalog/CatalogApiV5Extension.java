@@ -15,7 +15,6 @@
 package org.eclipse.edc.connector.controlplane.api.management.catalog;
 
 import org.eclipse.edc.api.auth.spi.AuthorizationService;
-import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 import org.eclipse.edc.connector.controlplane.api.management.catalog.v5.CatalogApiV5Controller;
 import org.eclipse.edc.connector.controlplane.services.spi.catalog.CatalogService;
 import org.eclipse.edc.connector.controlplane.transform.edc.catalog.to.JsonObjectToCatalogRequestTransformer;
@@ -81,6 +80,6 @@ public class CatalogApiV5Extension implements ServiceExtension {
         // authorization service does need an additional lookup function - catalogs are not a persisted entity
 
         webService.registerResource(ApiContext.MANAGEMENT, new CatalogApiV5Controller(service, managementApiTransformerRegistry, authorizationService, participantContextService, profileResolver));
-        webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4, validatorRegistry, ManagementApiJsonSchema.V4.version()));
+        webService.registerDynamicResource(ApiContext.MANAGEMENT, CatalogApiV5Controller.class, new JerseyJsonLdInterceptor(jsonLd, typeManager, JSON_LD, MANAGEMENT_SCOPE_V4));
     }
 }

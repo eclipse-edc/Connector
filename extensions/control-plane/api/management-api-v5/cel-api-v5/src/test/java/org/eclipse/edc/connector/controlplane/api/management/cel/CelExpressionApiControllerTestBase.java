@@ -18,7 +18,6 @@ import io.restassured.specification.RequestSpecification;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.model.IdResponse;
-import org.eclipse.edc.participantcontext.spi.config.model.ParticipantContextConfiguration;
 import org.eclipse.edc.policy.cel.model.CelExpression;
 import org.eclipse.edc.policy.cel.model.CelExpressionTestRequest;
 import org.eclipse.edc.policy.cel.model.CelExpressionTestResponse;
@@ -40,7 +39,6 @@ import static io.restassured.http.ContentType.JSON;
 import static jakarta.json.Json.createObjectBuilder;
 import static org.eclipse.edc.api.model.IdResponse.ID_RESPONSE_CREATED_AT;
 import static org.eclipse.edc.api.model.IdResponse.ID_RESPONSE_TYPE;
-import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.hamcrest.Matchers.is;
@@ -74,19 +72,6 @@ public abstract class CelExpressionApiControllerTestBase extends RestControllerT
                 .build();
     }
 
-    private CelExpression celExpressionTestRequest() {
-        return CelExpression.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .leftOperand("leftOperand")
-                .expression("expr")
-                .description("description")
-                .build();
-    }
-
-    private ParticipantContextConfiguration.Builder createParticipantContextBuilder() {
-        return ParticipantContextConfiguration.Builder.newInstance();
-    }
-
     @BeforeEach
     void setup() {
         when(transformerRegistry.transform(isA(IdResponse.class), eq(JsonObject.class))).thenAnswer(a -> {
@@ -106,20 +91,14 @@ public abstract class CelExpressionApiControllerTestBase extends RestControllerT
         void create() {
             var expr = celExpression();
             when(transformerRegistry.transform(any(), eq(CelExpression.class))).thenReturn(Result.success(expr));
-
             when(service.create(any())).thenReturn(ServiceResult.success());
-            var requestBody = Json.createObjectBuilder()
-                    .add("policy", Json.createObjectBuilder()
-                            .add(CONTEXT, "context")
-                            .add(TYPE, "Set")
-                            .build())
-                    .build();
 
             baseRequest()
-                    .body(requestBody)
+                    .body(requestBody("CelExpression"))
                     .contentType(JSON)
                     .post("/celexpressions")
                     .then()
+                    .log().ifValidationFails()
                     .statusCode(200);
             verify(transformerRegistry).transform(isA(JsonObject.class), eq(CelExpression.class));
             verify(service).create(expr);
@@ -128,15 +107,9 @@ public abstract class CelExpressionApiControllerTestBase extends RestControllerT
         @Test
         void create_shouldReturnBadRequest_whenTransformationFails() {
             when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
-            var requestBody = Json.createObjectBuilder()
-                    .add("policy", Json.createObjectBuilder()
-                            .add(CONTEXT, "context")
-                            .add(TYPE, "Set")
-                            .build())
-                    .build();
 
             baseRequest()
-                    .body(requestBody)
+                    .body(requestBody("CelExpression"))
                     .contentType(JSON)
                     .post("/celexpressions")
                     .then()
@@ -186,11 +159,10 @@ public abstract class CelExpressionApiControllerTestBase extends RestControllerT
         void update() {
             var expr = celExpression();
             when(transformerRegistry.transform(any(), eq(CelExpression.class))).thenReturn(Result.success(expr));
-
             when(service.update(any())).thenReturn(ServiceResult.success());
 
             baseRequest()
-                    .body("{}")
+                    .body(requestBody("CelExpression"))
                     .contentType(JSON)
                     .put("/celexpressions/" + expr.getId())
                     .then()
@@ -202,15 +174,9 @@ public abstract class CelExpressionApiControllerTestBase extends RestControllerT
         @Test
         void update_shouldReturnBadRequest_whenTransformationFails() {
             when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
-            var requestBody = Json.createObjectBuilder()
-                    .add("policy", Json.createObjectBuilder()
-                            .add(CONTEXT, "context")
-                            .add(TYPE, "Set")
-                            .build())
-                    .build();
 
             baseRequest()
-                    .body(requestBody)
+                    .body(requestBody("CelExpression"))
                     .contentType(JSON)
                     .put("/celexpressions/1")
                     .then()
@@ -232,7 +198,7 @@ public abstract class CelExpressionApiControllerTestBase extends RestControllerT
 
             baseRequest()
                     .contentType(JSON)
-                    .body("{}")
+                    .body(requestBody("QuerySpec"))
                     .post("/celexpressions/request")
                     .then()
                     .statusCode(200)
@@ -251,7 +217,7 @@ public abstract class CelExpressionApiControllerTestBase extends RestControllerT
             when(transformerRegistry.transform(any(JsonObject.class), eq(QuerySpec.class))).thenReturn(Result.failure("failure"));
 
             baseRequest()
-                    .body("{}")
+                    .body(requestBody("CelExpression"))
                     .contentType(JSON)
                     .post("/celexpressions/request")
                     .then()
@@ -313,7 +279,7 @@ public abstract class CelExpressionApiControllerTestBase extends RestControllerT
             when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expandedBody));
 
             baseRequest()
-                    .body("{}")
+                    .body(requestBody("CelExpressionTestRequest"))
                     .contentType(JSON)
                     .post("/celexpressions/test")
                     .then()
@@ -323,8 +289,12 @@ public abstract class CelExpressionApiControllerTestBase extends RestControllerT
 
         }
 
-
     }
 
+    private JsonObject requestBody(String type) {
+        return Json.createObjectBuilder()
+                .add(TYPE, type)
+                .build();
+    }
 
 }

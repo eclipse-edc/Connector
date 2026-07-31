@@ -41,9 +41,12 @@ import java.util.List;
 
 import static io.restassured.http.ContentType.JSON;
 import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE;
+import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyDefinition.EDC_POLICY_DEFINITION_TYPE_TERM;
+import static org.eclipse.edc.connector.controlplane.policy.spi.PolicyEvaluationPlanRequest.EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE_TERM;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE;
+import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 import static org.eclipse.edc.validator.spi.Violation.violation;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
@@ -81,6 +84,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
         when(transformerRegistry.transform(any(IdResponse.class), eq(JsonObject.class))).thenReturn(Result.success(response));
 
         var requestBody = Json.createObjectBuilder()
+                .add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM)
                 .add("policy", Json.createObjectBuilder()
                         .add(CONTEXT, "context")
                         .add(TYPE, "Set")
@@ -106,6 +110,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
     void create_shouldReturnBadRequest_whenValidationFails() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("failure", "failure path")));
         var requestBody = Json.createObjectBuilder()
+                .add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM)
                 .add("policy", Json.createObjectBuilder()
                         .add(CONTEXT, "context")
                         .add(TYPE, "Set")
@@ -128,6 +133,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
         var requestBody = Json.createObjectBuilder()
+                .add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM)
                 .add("policy", Json.createObjectBuilder()
                         .add(CONTEXT, "context")
                         .add(TYPE, "Set")
@@ -151,6 +157,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
         when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
         when(service.create(any())).thenReturn(ServiceResult.conflict("already exists"));
         var requestBody = Json.createObjectBuilder()
+                .add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM)
                 .add("policy", Json.createObjectBuilder()
                         .add(CONTEXT, "context")
                         .add(TYPE, "Set")
@@ -196,6 +203,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
         when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
         when(service.update(any())).thenReturn(ServiceResult.success(policyDefinition));
         var requestBody = Json.createObjectBuilder()
+                .add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM)
                 .add("policy", Json.createObjectBuilder()
                         .add(CONTEXT, "context")
                         .add(TYPE, "Set")
@@ -217,6 +225,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
     void update_shouldReturnBadRequest_whenValidationFails() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("failure", "failure path")));
         var requestBody = Json.createObjectBuilder()
+                .add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM)
                 .add("policy", Json.createObjectBuilder()
                         .add(CONTEXT, "context")
                         .add(TYPE, "Set")
@@ -237,6 +246,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), any())).thenReturn(Result.failure("error"));
         var requestBody = Json.createObjectBuilder()
+                .add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM)
                 .add("policy", Json.createObjectBuilder()
                         .add(CONTEXT, "context")
                         .add(TYPE, "Set")
@@ -259,6 +269,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
         when(transformerRegistry.transform(any(), eq(PolicyDefinition.class))).thenReturn(Result.success(policyDefinition));
         when(service.update(any())).thenReturn(ServiceResult.notFound("not found"));
         var requestBody = Json.createObjectBuilder()
+                .add(TYPE, EDC_POLICY_DEFINITION_TYPE_TERM)
                 .add("policy", Json.createObjectBuilder()
                         .add(CONTEXT, "context")
                         .add(TYPE, "Set")
@@ -324,7 +335,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
         when(service.search(any())).thenReturn(ServiceResult.success(List.of(policyDefinition)));
         when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expandedResponseBody));
-        var requestBody = Json.createObjectBuilder().build();
+        var requestBody = Json.createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build();
 
         baseRequest()
                 .body(requestBody)
@@ -346,7 +357,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
     @Test
     void search_shouldBadRequest_whenValidationFails() {
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("failure", "failure path")));
-        var requestBody = Json.createObjectBuilder().build();
+        var requestBody = Json.createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build();
 
         baseRequest()
                 .body(requestBody)
@@ -362,6 +373,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
     @Test
     void search_shouldReturn400_whenInvalidQuery() {
         var requestBody = Json.createObjectBuilder()
+                .add(TYPE, EDC_QUERY_SPEC_TYPE_TERM)
                 .add("offset", -1)
                 .build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
@@ -382,7 +394,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
 
     @Test
     void search_shouldReturnBadRequest_whenQuerySpecTransformFails() {
-        var requestBody = Json.createObjectBuilder().build();
+        var requestBody = Json.createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build();
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.failure("error"));
 
@@ -402,7 +414,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
         when(service.search(any())).thenReturn(ServiceResult.badRequest("error"));
-        var requestBody = Json.createObjectBuilder().build();
+        var requestBody = Json.createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build();
 
         baseRequest()
                 .body(requestBody)
@@ -421,7 +433,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
         when(transformerRegistry.transform(any(), eq(QuerySpec.class))).thenReturn(Result.success(querySpec));
         when(service.search(any())).thenReturn(ServiceResult.success(List.of(policyDefinition)));
         when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.failure("error"));
-        var requestBody = Json.createObjectBuilder().build();
+        var requestBody = Json.createObjectBuilder().add(TYPE, EDC_QUERY_SPEC_TYPE_TERM).build();
 
         baseRequest()
                 .body(requestBody)
@@ -505,7 +517,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
         var policyDefinition = PolicyDefinition.Builder.newInstance().policy(Policy.Builder.newInstance().build()).build();
         var plan = PolicyEvaluationPlan.Builder.newInstance().build();
         var response = Json.createObjectBuilder().build();
-        var body = Json.createObjectBuilder().add("policyScope", policyScope).build();
+        var body = Json.createObjectBuilder().add(TYPE, EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE_TERM).add("policyScope", policyScope).build();
 
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(service.findById(any())).thenReturn(policyDefinition);
@@ -529,7 +541,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
     void createEvaluationPlan_fails_whenPolicyNotFound() {
 
         var policyScope = "scope";
-        var body = Json.createObjectBuilder().add("policyScope", policyScope).build();
+        var body = Json.createObjectBuilder().add(TYPE, EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE_TERM).add("policyScope", policyScope).build();
 
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.success());
         when(service.findById(any())).thenReturn(null);
@@ -548,7 +560,7 @@ public abstract class BasePolicyDefinitionApiControllerTest extends RestControll
     void createEvaluationPlan_fails_whenRequestValidation() {
 
         var policyScope = "scope";
-        var body = Json.createObjectBuilder().add("policyScope", policyScope).build();
+        var body = Json.createObjectBuilder().add(TYPE, EDC_POLICY_EVALUATION_PLAN_REQUEST_TYPE_TERM).add("policyScope", policyScope).build();
 
         when(validatorRegistry.validate(any(), any())).thenReturn(ValidationResult.failure(violation("failure", "failure path")));
         when(service.findById(any())).thenReturn(null);
