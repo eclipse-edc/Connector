@@ -129,7 +129,11 @@ public class NatsContractNegotiationSubscriberExtension implements ServiceExtens
             Integer batchSize,
             @Setting(key = "edc.nats.cn.subscriber.max-wait", description = "The max waiting time for messages (ms)", defaultValue = "100")
             Integer maxWait,
-            @Setting(key = "edc.nats.cn.subscriber.max-retries", description = "Max retries for task execution failure on transient errors", defaultValue = "3")
+            @Setting(key = "edc.nats.cn.subscriber.max-retries",
+                    description = "Max number of message deliveries while the referenced task is not yet visible in the store " +
+                            "(e.g. published before its transaction committed), after which the message is dropped. It does not cap " +
+                            "processor/business retries, which are bounded by edc.negotiation.send.retry.limit.",
+                    defaultValue = "3")
             Integer maxRetries
     ) {
     }
