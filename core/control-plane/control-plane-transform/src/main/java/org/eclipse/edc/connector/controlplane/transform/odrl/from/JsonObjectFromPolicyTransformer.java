@@ -41,6 +41,7 @@ import org.eclipse.edc.transform.spi.TransformerContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Optional;
 
 import static jakarta.json.stream.JsonCollectors.toJsonArray;
@@ -99,10 +100,10 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
     /**
      * Walks the policy object model, transforming it to a JsonObject.
      */
-    private static class Visitor implements Policy.Visitor<JsonObject>, Rule.Visitor<JsonObject>, Constraint.Visitor<JsonObject>, Expression.Visitor<JsonObject> {
+    private static class Visitor implements Policy.Visitor<JsonObject>, Rule.Visitor<JsonObject>, Constraint.Visitor<JsonObject>, Expression.Visitor<JsonArray> {
         private final JsonBuilderFactory jsonFactory;
         private final ParticipantIdMapper participantIdMapper;
-        private TransformerConfig config;
+        private final TransformerConfig config;
 
 
         Visitor(JsonBuilderFactory jsonFactory, ParticipantIdMapper participantIdMapper, TransformerConfig config) {
@@ -140,10 +141,25 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
         }
 
         @Override
-        public JsonObject visitLiteralExpression(LiteralExpression expression) {
-            return jsonFactory.createObjectBuilder()
-                    .add(VALUE, Json.createValue(expression.getValue().toString()))
+        public JsonArray visitLiteralExpression(LiteralExpression expression) {
+            if (expression.getValue() instanceof Collection<?> collection) {
+                return collection.stream()
+                        .map(this::toJsonValue)
+                        .map(value -> jsonFactory.createObjectBuilder().add(VALUE, value).build())
+                        .collect(toJsonArray());
+            }
+
+            return jsonFactory.createArrayBuilder()
+                    .add(jsonFactory.createObjectBuilder().add(VALUE, toJsonValue(expression.getValue())))
                     .build();
+        }
+
+        private JsonValue toJsonValue(Object value) {
+            if (value instanceof Number number) {
+                return Json.createValue(number);
+            }
+
+            return Json.createValue(value.toString());
         }
 
         @Override
