@@ -40,7 +40,7 @@ tasks.withType<Test> {
     afterEvaluate {
         val download = { url: String, destFile: File -> ant.invokeMethod("get", mapOf("src" to url, "dest" to destFile)) }
 
-        val agentFile = rootDir.resolve("opentelemetry-javaagent.jar")
+        val agentFile = rootDir.resolve("opentelemetry-javaagent-$opentelemetryVersion.jar")
 
         if (!agentFile.exists()) {
             logger.lifecycle("Downloading OpenTelemetry Agent")
@@ -53,7 +53,9 @@ tasks.withType<Test> {
             "-javaagent:${agentFile.absolutePath}",
             "-Dotel.exporter.otlp.protocol=http/protobuf",
             // Exposes metrics at http://localhost:9464/metrics
-            "-Dotel.metrics.exporter=prometheus"
+            "-Dotel.metrics.exporter=prometheus",
+            // Micrometer bridge is opt-in since OTel Java Instrumentation 2.x
+            "-Dotel.instrumentation.micrometer.enabled=true"
         )
     }
 }

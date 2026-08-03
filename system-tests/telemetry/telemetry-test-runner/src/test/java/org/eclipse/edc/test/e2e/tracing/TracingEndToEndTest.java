@@ -110,7 +110,9 @@ public class TracingEndToEndTest extends BaseTelemetryEndToEndTest {
      * @return spans extracted from the request body
      */
     private List<Span> extractSpansFromRequests(List<ServeEvent> requests) {
-        return requests.stream().map(r -> r.getRequest().getBody())
+        return requests.stream()
+                .filter(r -> "/v1/traces".equals(r.getRequest().getUrl()))
+                .map(r -> r.getRequest().getBody())
                 .map(body -> {
                     try {
                         return ExportTraceServiceRequest.parseFrom(body);

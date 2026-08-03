@@ -18,7 +18,6 @@ import jakarta.json.Json;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
@@ -75,7 +74,7 @@ public class MicrometerEndToEndTest extends BaseTelemetryEndToEndTest {
                 .forEach(metricPrefix -> {
                     assertThat(metrics)
                             .overridingErrorMessage(() -> "expecting at least one metric starting with '%s', but got %s"
-                                    .formatted(metricPrefix, Arrays.toString(metrics)))
+                                    .formatted(metricPrefix, metricsResponseBody))
                             .anyMatch(it -> it.startsWith(metricPrefix));
                 });
     }
