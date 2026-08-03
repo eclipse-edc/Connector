@@ -15,6 +15,7 @@
 package org.eclipse.edc.transform;
 
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.transform.spi.TypeTransformer;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
@@ -28,22 +29,34 @@ import java.util.Optional;
 import static java.lang.String.format;
 
 public class TypeTransformerRegistryImpl implements TypeTransformerRegistry {
-    private final Map<String, Class<?>> aliases = new HashMap<>();
+    private static final Monitor NOOP_MONITOR = new Monitor() {
+    };
+
     private final Map<Class<?>, Map<Class<?>, TypeTransformer<?, ?>>> transformers = new HashMap<>();
     private final Map<String, TypeTransformerRegistry> contextRegistries = new HashMap<>();
+    private final Monitor monitor;
     private TypeTransformerRegistry parent;
 
     public TypeTransformerRegistryImpl() {
+        this(NOOP_MONITOR);
     }
 
-    private TypeTransformerRegistryImpl(TypeTransformerRegistry parent) {
+    public TypeTransformerRegistryImpl(Monitor monitor) {
+        this.monitor = monitor;
+    }
+
+    private TypeTransformerRegistryImpl(TypeTransformerRegistryImpl parent) {
         this.parent = parent;
+        monitor = parent.monitor;
     }
 
     @Override
     public void register(TypeTransformer<?, ?> transformer) {
-        transformers.computeIfAbsent(transformer.getInputType(), key -> new HashMap<>())
-                    .put(transformer.getOutputType(), transformer);
+        var registeredTransformer = transformers.computeIfAbsent(transformer.getInputType(), key -> new HashMap<>())
+                .put(transformer.getOutputType(), transformer);
+        if (registeredTransformer != null) {
+            monitor.warning(format("Overriding transformer registered for %s -> %s", transformer.getInputType(), transformer.getOutputType()));
+        }
     }
 
     @Override
@@ -60,24 +73,31 @@ public class TypeTransformerRegistryImpl implements TypeTransformerRegistry {
     }
 
     private Optional<TypeTransformer<?, ?>> findTransformer(Object input, Class<?> outputType) {
-        var inputTypes = transformers.entrySet().stream()
+        return findMostSpecificInputType(input, outputType)
+                .map(transformers::get)
+                .map(transformersByOutputType -> transformersByOutputType.get(outputType));
+    }
+
+    private Optional<Class<?>> findMostSpecificInputType(Object input, Class<?> outputType) {
+        return transformers.entrySet().stream()
                 .filter(entry -> entry.getKey().isInstance(input))
                 .filter(entry -> entry.getValue().containsKey(outputType))
-                .map(Map.Entry::getKey)
-                .toList();
+                .<Class<?>>map(Map.Entry::getKey)
+                .map(inputType -> Optional.<Class<?>>of(inputType))
+                .reduce(Optional.<Class<?>>empty(), (current, candidate) -> {
+                    if (current.isEmpty()) {
+                        return candidate;
+                    }
 
-        var mostSpecificInputTypes = inputTypes.stream()
-                .filter(candidate -> inputTypes.stream()
-                        .noneMatch(other -> !candidate.equals(other) && candidate.isAssignableFrom(other)))
-                .toList();
+                    if (candidate.get().isAssignableFrom(current.get())) {
+                        return current;
+                    }
 
-        if (mostSpecificInputTypes.size() > 1) {
-            throw new EdcException(format("Ambiguous transformers registered for %s -> %s", input.getClass(), outputType));
-        }
-
-        return mostSpecificInputTypes.stream()
-                .findFirst()
-            .map(inputType -> transformers.get(inputType).get(outputType));
+                    if (current.get().isAssignableFrom(candidate.get())) {
+                        return candidate;
+                    }
+                    throw new EdcException(format("Ambiguous transformers registered for %s -> %s", input.getClass(), outputType));
+                });
     }
 
     @Override
