@@ -57,6 +57,7 @@ import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.jsonLdConte
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.participantContext;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesRegex;
@@ -160,7 +161,9 @@ public class PolicyDefinitionApiV5EndToEndTest {
                     .contentType(JSON)
                     .body(ID, is(id))
                     .body(CONTEXT, contains(jsonLdContextArray()))
-                    .body("policy.permission[0].constraint[0].rightOperand", hasSize(2));
+                    .body("policy.permission[0].constraint[0].rightOperand", hasSize(2))
+                    .body("policy.permission[0].constraint[0].rightOperand", hasItem("value"))
+                    .body("policy.permission[0].constraint[0].rightOperand", hasItem("another"));
         }
 
         @Test

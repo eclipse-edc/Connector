@@ -37,6 +37,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -95,6 +96,22 @@ class JsonObjectToConstraintTransformerTest {
             assertThat(((LiteralExpression) atomicConstraint.getRightExpression()).getValue()).isEqualTo(right);
         });
         verify(context).transform(id("gteq").build(), Operator.class);
+    }
+
+    @Test
+    void atomicConstraint_rightOperandAsArray() {
+        when(context.transform(any(), eq(Operator.class))).thenReturn(Operator.GEQ);
+        var constraint = jsonFactory.createObjectBuilder()
+                .add(ODRL_LEFT_OPERAND_ATTRIBUTE, jsonFactory.createArrayBuilder().add(id("leftOperand")))
+                .add(ODRL_OPERATOR_ATTRIBUTE, jsonFactory.createArrayBuilder().add(id("gteq")))
+                .add(ODRL_RIGHT_OPERAND_ATTRIBUTE, jsonFactory.createArrayBuilder().add(value("right1")).add(value("right2")))
+                .build();
+
+        var result = transformer.transform(TestJsonLd.expand(constraint), context);
+
+        assertThat(result).isNotNull().asInstanceOf(type(AtomicConstraint.class)).satisfies(atomicConstraint -> {
+            assertThat(((LiteralExpression) atomicConstraint.getRightExpression()).getValue()).isEqualTo(List.of("right1", "right2"));
+        });
     }
 
     @Test
