@@ -47,6 +47,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.LIST;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.ID;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
@@ -191,7 +192,7 @@ class JsonObjectFromPolicyTransformerTest {
                 .isEqualTo(((LiteralExpression) constraint.getLeftExpression()).getValue());
         assertThat(constraintJson.getJsonArray(ODRL_OPERATOR_ATTRIBUTE).getJsonObject(0).getString(ID))
                 .isEqualTo(constraint.getOperator().getOdrlRepresentation());
-        assertThat(constraintJson.getJsonObject(ODRL_RIGHT_OPERAND_ATTRIBUTE).getJsonString(VALUE).getString())
+        assertThat(constraintJson.getJsonArray(ODRL_RIGHT_OPERAND_ATTRIBUTE).getJsonObject(0).getJsonString(VALUE).getString())
                 .isEqualTo(((LiteralExpression) constraint.getRightExpression()).getValue());
 
         verify(context, never()).reportProblem(anyString());
@@ -231,7 +232,7 @@ class JsonObjectFromPolicyTransformerTest {
                 .isEqualTo(((LiteralExpression) constraint.getLeftExpression()).getValue());
         assertThat(constraintJson.getJsonArray(ODRL_OPERATOR_ATTRIBUTE).getJsonObject(0).getString(ID))
                 .isEqualTo(constraint.getOperator().getOdrlRepresentation());
-        assertThat(constraintJson.getJsonObject(ODRL_RIGHT_OPERAND_ATTRIBUTE).getJsonString(VALUE).getString())
+        assertThat(constraintJson.getJsonArray(ODRL_RIGHT_OPERAND_ATTRIBUTE).getJsonObject(0).getJsonString(VALUE).getString())
                 .isEqualTo(((LiteralExpression) constraint.getRightExpression()).getValue());
 
         var dutyJson = permissionJson.getJsonArray(ODRL_DUTY_ATTRIBUTE).get(0).asJsonObject();
@@ -263,7 +264,7 @@ class JsonObjectFromPolicyTransformerTest {
                 .isEqualTo(((LiteralExpression) constraint.getLeftExpression()).getValue());
         assertThat(constraintJson.getJsonArray(ODRL_OPERATOR_ATTRIBUTE).getJsonObject(0).getString(ID))
                 .isEqualTo(constraint.getOperator().getOdrlRepresentation());
-        assertThat(constraintJson.getJsonObject(ODRL_RIGHT_OPERAND_ATTRIBUTE).getJsonString(VALUE).getString())
+        assertThat(constraintJson.getJsonArray(ODRL_RIGHT_OPERAND_ATTRIBUTE).getJsonObject(0).getJsonString(VALUE).getString())
                 .isEqualTo(((LiteralExpression) constraint.getRightExpression()).getValue());
 
         assertThat(prohibitionJson.getJsonArray(ODRL_REMEDY_ATTRIBUTE)).hasSize(1).first()
@@ -299,7 +300,7 @@ class JsonObjectFromPolicyTransformerTest {
                 .isEqualTo(((LiteralExpression) constraint.getLeftExpression()).getValue());
         assertThat(constraintJson.getJsonArray(ODRL_OPERATOR_ATTRIBUTE).getJsonObject(0).getString(ID))
                 .isEqualTo(constraint.getOperator().getOdrlRepresentation());
-        assertThat(constraintJson.getJsonObject(ODRL_RIGHT_OPERAND_ATTRIBUTE).getJsonString(VALUE).getString())
+        assertThat(constraintJson.getJsonArray(ODRL_RIGHT_OPERAND_ATTRIBUTE).getJsonObject(0).getJsonString(VALUE).getString())
                 .isEqualTo(((LiteralExpression) constraint.getRightExpression()).getValue());
 
         var consequencesJson = dutyJson.getJsonArray(ODRL_CONSEQUENCE_ATTRIBUTE);
@@ -425,6 +426,68 @@ class JsonObjectFromPolicyTransformerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getString(TYPE)).isEqualTo(expectedType);
+    }
+
+    @Test
+    void shouldTransformRightOperandCollectionStrings() {
+        var constraint = AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression("left"))
+                .operator(Operator.EQ)
+                .rightExpression(new LiteralExpression(List.of("right1", "right2")))
+                .build();
+        var policy = Policy.Builder.newInstance()
+                .permission(Permission.Builder.newInstance()
+                        .action(Action.Builder.newInstance().type("use").constraint(constraint).build())
+                        .build())
+                .build();
+
+        var result = transformer.transform(policy, context);
+
+        assertThat(result)
+                .extracting(it -> it.get(ODRL_PERMISSION_ATTRIBUTE))
+                .extracting(it -> it.asJsonArray())
+                .asInstanceOf(list(JsonObject.class))
+                .first()
+                .extracting(it -> it.getJsonObject(ODRL_ACTION_ATTRIBUTE))
+                .extracting(it -> it.getJsonObject(ODRL_REFINEMENT_ATTRIBUTE))
+                .extracting(it -> it.getJsonArray(ODRL_RIGHT_OPERAND_ATTRIBUTE))
+                .asInstanceOf(list(JsonObject.class))
+                .hasSize(2)
+                .extracting(it -> it.getString(VALUE))
+                .containsExactly("right1", "right2");
+
+        verify(context, never()).reportProblem(anyString());
+    }
+
+    @Test
+    void shouldTransformRightOperandCollectionInts() {
+        var constraint = AtomicConstraint.Builder.newInstance()
+                .leftExpression(new LiteralExpression("left"))
+                .operator(Operator.EQ)
+                .rightExpression(new LiteralExpression(List.of(3, 5)))
+                .build();
+        var policy = Policy.Builder.newInstance()
+                .permission(Permission.Builder.newInstance()
+                        .action(Action.Builder.newInstance().type("use").constraint(constraint).build())
+                        .build())
+                .build();
+
+        var result = transformer.transform(policy, context);
+
+        assertThat(result)
+                .extracting(it -> it.get(ODRL_PERMISSION_ATTRIBUTE))
+                .extracting(JsonValue::asJsonArray)
+                .asInstanceOf(list(JsonObject.class))
+                .first()
+                .extracting(it -> it.getJsonObject(ODRL_ACTION_ATTRIBUTE))
+                .extracting(it -> it.getJsonObject(ODRL_REFINEMENT_ATTRIBUTE))
+                .extracting(it -> it.getJsonArray(ODRL_RIGHT_OPERAND_ATTRIBUTE))
+                .asInstanceOf(list(JsonObject.class))
+                .hasSize(2)
+                .extracting(it -> it.getInt(VALUE))
+                .containsExactly(3, 5);
+
+        verify(context, never()).reportProblem(anyString());
     }
 
     private Action getAction() {

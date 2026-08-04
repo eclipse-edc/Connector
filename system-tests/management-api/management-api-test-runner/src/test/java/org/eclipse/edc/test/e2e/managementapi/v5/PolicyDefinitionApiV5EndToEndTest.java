@@ -57,6 +57,7 @@ import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.jsonLdConte
 import static org.eclipse.edc.test.e2e.managementapi.v5.TestFunction.participantContext;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesRegex;
 import static org.hamcrest.Matchers.notNullValue;
@@ -118,6 +119,48 @@ public class PolicyDefinitionApiV5EndToEndTest {
                     .body("policy.permission[0].constraint[0].rightOperand", is("contractAgreement+0s"))
                     .body("policy.prohibition[0].action", is("use"))
                     .body("policy.obligation[0].action", is("use"));
+        }
+
+        @Test
+        void create_rightOperandAsList(ManagementEndToEndV5TestContext context) {
+            var policy = createObjectBuilder()
+                    .add(TYPE, "Set")
+                    .add("permission", createArrayBuilder()
+                            .add(createObjectBuilder()
+                                    .add("action", "use")
+                                    .add("constraint", createArrayBuilder().add(createObjectBuilder()
+                                                    .add("leftOperand", "inForceDate")
+                                                    .add("operator", "isPartOf")
+                                                    .add("rightOperand", createArrayBuilder().add("value").add("another")))
+                                            .build()))
+                            .build())
+                    .build();
+
+            var requestBody = createObjectBuilder()
+                    .add(CONTEXT, jsonLdContext())
+                    .add(TYPE, "PolicyDefinition")
+                    .add("policy", policy)
+                    .build();
+
+            var id = context.baseRequest(participantTokenJwt)
+                    .body(requestBody.toString())
+                    .contentType(JSON)
+                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .then()
+                    .log().ifValidationFails()
+                    .contentType(JSON)
+                    .statusCode(200)
+                    .extract().jsonPath().getString(ID);
+
+            context.baseRequest(participantTokenJwt)
+                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
+                    .then()
+                    .log().ifValidationFails()
+                    .statusCode(200)
+                    .contentType(JSON)
+                    .body(ID, is(id))
+                    .body(CONTEXT, contains(jsonLdContextArray()))
+                    .body("policy.permission[0].constraint[0].rightOperand", hasSize(2));
         }
 
         @Test
