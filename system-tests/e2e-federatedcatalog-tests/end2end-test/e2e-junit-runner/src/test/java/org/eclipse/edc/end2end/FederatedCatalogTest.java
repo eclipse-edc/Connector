@@ -75,6 +75,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEME
 import static org.eclipse.edc.spi.constants.CoreConstants.JSON_LD;
 import static org.eclipse.edc.spi.query.QuerySpec.EDC_QUERY_SPEC_TYPE_TERM;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
+import static org.mockito.Mockito.mock;
 
 @EndToEndTest
 class FederatedCatalogTest {
@@ -128,7 +129,7 @@ class FederatedCatalogTest {
                     )))
     );
 
-    private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl();
+    private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl(mock());
     private final TypeManager mapper = new JacksonTypeManager();
     private final CatalogApiClient apiClient = new CatalogApiClient(CATALOG_MANAGEMENT, CONNECTOR_MANAGEMENT,
             JacksonJsonLd.createObjectMapper(), () -> catalog.getService(JsonLd.class), typeTransformerRegistry);

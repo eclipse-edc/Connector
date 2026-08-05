@@ -150,7 +150,7 @@ class FederatedCatalogApiControllerTest extends RestControllerTestBase {
 
     @Override
     protected Object controller() {
-        var typeTransformerRegistry = new TypeTransformerRegistryImpl();
+        var typeTransformerRegistry = new TypeTransformerRegistryImpl(mock());
         var factory = Json.createBuilderFactory(Map.of());
         var mapper = new JacksonTypeManager();
         var participantIdMapper = new TestUtil.NoOpParticipantIdMapper();

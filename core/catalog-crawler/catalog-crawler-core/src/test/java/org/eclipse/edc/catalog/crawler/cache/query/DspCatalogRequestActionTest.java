@@ -47,7 +47,7 @@ import static org.mockito.Mockito.when;
 class DspCatalogRequestActionTest {
 
     private final ProtocolRemoteMessageDispatcher messageDispatcher = mock();
-    private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl();
+    private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl(mock());
     private final ObjectMapper objectMapper = createObjectMapper();
     private final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(
             ParticipantContext.Builder.newInstance().participantContextId("participantContext").identity("identity").build());

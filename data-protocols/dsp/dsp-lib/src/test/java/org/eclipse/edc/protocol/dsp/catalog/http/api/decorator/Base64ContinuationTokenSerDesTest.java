@@ -50,7 +50,7 @@ import static org.mockito.Mockito.when;
 class Base64ContinuationTokenSerDesTest {
 
     private final TypeManager typeManager = mock();
-    private final TypeTransformerRegistryImpl typeTransformerRegistry = new TypeTransformerRegistryImpl();
+    private final TypeTransformerRegistryImpl typeTransformerRegistry = new TypeTransformerRegistryImpl(mock());
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final Base64continuationTokenSerDes serDes = new Base64continuationTokenSerDes(typeTransformerRegistry, new TitaniumJsonLd(mock()));
 

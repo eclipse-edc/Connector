@@ -39,7 +39,7 @@ public class PresentationResponseMessageSerdeTest {
 
     private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper();
     private final TypeManager typeManager = mock();
-    private final TypeTransformerRegistry trr = new TypeTransformerRegistryImpl();
+    private final TypeTransformerRegistry trr = new TypeTransformerRegistryImpl(mock());
     private final TransformerContext context = new TransformerContextImpl(trr);
 
 

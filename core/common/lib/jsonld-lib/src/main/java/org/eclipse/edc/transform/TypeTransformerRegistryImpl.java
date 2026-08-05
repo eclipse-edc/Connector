@@ -25,21 +25,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BinaryOperator;
 
 import static java.lang.String.format;
 
 public class TypeTransformerRegistryImpl implements TypeTransformerRegistry {
-    private static final Monitor NOOP_MONITOR = new Monitor() {
-    };
 
     private final Map<Class<?>, Map<Class<?>, TypeTransformer<?, ?>>> transformers = new HashMap<>();
     private final Map<String, TypeTransformerRegistry> contextRegistries = new HashMap<>();
     private final Monitor monitor;
     private TypeTransformerRegistry parent;
-
-    public TypeTransformerRegistryImpl() {
-        this(NOOP_MONITOR);
-    }
 
     public TypeTransformerRegistryImpl(Monitor monitor) {
         this.monitor = monitor;
@@ -47,14 +42,14 @@ public class TypeTransformerRegistryImpl implements TypeTransformerRegistry {
 
     private TypeTransformerRegistryImpl(TypeTransformerRegistryImpl parent) {
         this.parent = parent;
-        monitor = parent.monitor;
+        this.monitor = parent.monitor;
     }
 
     @Override
     public void register(TypeTransformer<?, ?> transformer) {
-        var registeredTransformer = transformers.computeIfAbsent(transformer.getInputType(), key -> new HashMap<>())
+        var overriddenTransformer = transformers.computeIfAbsent(transformer.getInputType(), key -> new HashMap<>())
                 .put(transformer.getOutputType(), transformer);
-        if (registeredTransformer != null) {
+        if (overriddenTransformer != null) {
             monitor.warning(format("Overriding transformer registered for %s -> %s", transformer.getInputType(), transformer.getOutputType()));
         }
     }
@@ -64,40 +59,32 @@ public class TypeTransformerRegistryImpl implements TypeTransformerRegistry {
         return contextRegistries.computeIfAbsent(context, k -> new TypeTransformerRegistryImpl(this));
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public @NotNull <INPUT, OUTPUT> TypeTransformer<INPUT, OUTPUT> transformerFor(@NotNull INPUT input, @NotNull Class<OUTPUT> outputType) {
-        return findTransformer(input, outputType)
-                .map(it -> (TypeTransformer<INPUT, OUTPUT>) it)
-                .or(() -> Optional.ofNullable(parent).map(p -> p.transformerFor(input, outputType)))
-                .orElseThrow(() -> new EdcException(format("No Transformer registered that can handle %s -> %s", input.getClass(), outputType)));
-    }
-
-    private Optional<TypeTransformer<?, ?>> findTransformer(Object input, Class<?> outputType) {
-        return findMostSpecificInputType(input, outputType)
-                .map(transformers::get)
-                .map(transformersByOutputType -> transformersByOutputType.get(outputType));
-    }
-
-    private Optional<Class<?>> findMostSpecificInputType(Object input, Class<?> outputType) {
         return transformers.entrySet().stream()
                 .filter(entry -> entry.getKey().isInstance(input))
                 .filter(entry -> entry.getValue().containsKey(outputType))
                 .<Class<?>>map(Map.Entry::getKey)
-                .map(inputType -> Optional.<Class<?>>of(inputType))
-                .reduce(Optional.<Class<?>>empty(), (current, candidate) -> {
-                    if (current.isEmpty()) {
-                        return candidate;
-                    }
+                .reduce(selectMostSpecificType(input.getClass(), outputType))
+                .map(transformers::get)
+                .map(it -> (TypeTransformer<INPUT, OUTPUT>) it.get(outputType))
+                .or(() -> Optional.ofNullable(parent).map(p -> p.transformerFor(input, outputType)))
+                .orElseThrow(() -> new EdcException(format("No Transformer registered that can handle %s -> %s", input.getClass(), outputType)));
+    }
 
-                    if (candidate.get().isAssignableFrom(current.get())) {
-                        return current;
-                    }
+    private BinaryOperator<Class<?>> selectMostSpecificType(Class<?> inputType, Class<?> outputType) {
+        return (current, candidate) -> {
+            if (candidate.isAssignableFrom(current)) {
+                return current;
+            }
 
-                    if (current.get().isAssignableFrom(candidate.get())) {
-                        return candidate;
-                    }
-                    throw new EdcException(format("Ambiguous transformers registered for %s -> %s", input.getClass(), outputType));
-                });
+            if (current.isAssignableFrom(candidate)) {
+                return candidate;
+            }
+
+            throw new EdcException(format("Ambiguous transformers registered for %s -> %s", inputType, outputType));
+        };
     }
 
     @Override
