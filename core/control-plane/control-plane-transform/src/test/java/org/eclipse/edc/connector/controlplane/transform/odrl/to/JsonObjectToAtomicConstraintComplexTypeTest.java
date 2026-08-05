@@ -31,6 +31,7 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.CONTEXT;
 import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.VALUE;
@@ -74,11 +75,9 @@ class JsonObjectToAtomicConstraintComplexTypeTest {
                 .extracting(AtomicConstraint::getRightExpression)
                 .asInstanceOf(type(LiteralExpression.class))
                 .extracting(LiteralExpression::getValue)
-                .asInstanceOf(type(JsonArray.class))
+                .asInstanceOf(list(String.class))
                 .satisfies(array -> {
-                    assertThat(array.size()).isEqualTo(2);
-                    assertThat(array.get(0)).asInstanceOf(type(JsonObject.class)).extracting(v -> v.getJsonString(VALUE).getString()).isEqualTo("value1");
-                    assertThat(array.get(1)).asInstanceOf(type(JsonObject.class)).extracting(v -> v.getJsonString(VALUE).getString()).isEqualTo("value2");
+                    assertThat(array).hasSize(2).extracting(String::new).containsExactly("value1", "value2");
                 });
     }
 

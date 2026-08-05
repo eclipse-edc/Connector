@@ -14,6 +14,7 @@
 
 package org.eclipse.edc.connector.controlplane.transform.odrl.to;
 
+import jakarta.json.JsonArray;
 import jakarta.json.JsonNumber;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonString;
@@ -130,27 +131,11 @@ public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer
      * @return the extracted value
      */
     private Object extractComplexValue(JsonValue root) {
-        switch (root.getValueType()) {
-            case ARRAY -> {
-                var array = root.asJsonArray();
-                if (array.size() != 1) {
-                    // not a single element array, return as-is
-                    return array;
-                }
-                // single element array, extract and return it
+        if (root instanceof JsonArray array) {
+            if (array.size() == 1) {
                 return extractComplexValue(array.get(0));
             }
-            case OBJECT -> {
-                var valueProp = root.asJsonObject().get(VALUE);
-                if (valueProp != null) {
-                    // object has a value type, extract and return it
-                    return extractValue(valueProp);
-                }
-            }
-            default -> {
-                // extract the value directly
-                return extractValue(root);
-            }
+            return array.stream().map(this::extractComplexValue).toList();
         }
 
         return extractValue(root);
@@ -161,6 +146,12 @@ public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer
      */
     private Object extractValue(JsonValue value) {
         switch (value.getValueType()) {
+            case OBJECT -> {
+                var nestedValue = value.asJsonObject().get(VALUE);
+                if (nestedValue != null) {
+                    return extractValue(nestedValue);
+                }
+            }
             case STRING -> {
                 return ((JsonString) value).getString();
             }
@@ -177,6 +168,7 @@ public class JsonObjectToConstraintTransformer extends AbstractJsonLdTransformer
                 return value;
             }
         }
+        return value;
     }
 
 }
