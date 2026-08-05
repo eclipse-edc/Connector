@@ -15,6 +15,7 @@
 package org.eclipse.edc.transform;
 
 import org.eclipse.edc.spi.EdcException;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformer;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,12 +25,16 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 public class TypeTransformerRegistryImplTest {
 
-    private final TypeTransformerRegistry registry = new TypeTransformerRegistryImpl();
+    private final Monitor monitor = mock();
+    private final TypeTransformerRegistry registry = new TypeTransformerRegistryImpl(monitor);
 
     @BeforeEach
     void setUp() {
@@ -44,6 +49,35 @@ public class TypeTransformerRegistryImplTest {
             var transformer = registry.transformerFor("a string", Integer.class);
 
             assertThat(transformer).isInstanceOf(StringIntegerTypeTransformer.class);
+        }
+
+        @Test
+        void shouldReplaceTransformerForTheSameInputAndOutputTypes() {
+            var replacement = new TestTypeTransformer<>(String.class, Integer.class);
+            registry.register(replacement);
+
+            assertThat(registry.transformerFor("a string", Integer.class)).isSameAs(replacement);
+            verify(monitor).warning(contains("Overriding transformer registered"));
+        }
+
+        @Test
+        void shouldReturnMostSpecificCompatibleTransformer() {
+            var objectTransformer = new TestTypeTransformer<>(Object.class, Long.class);
+            var charSequenceTransformer = new TestTypeTransformer<>(CharSequence.class, Long.class);
+            registry.register(objectTransformer);
+            registry.register(charSequenceTransformer);
+
+            assertThat(registry.transformerFor("a string", Long.class)).isSameAs(charSequenceTransformer);
+        }
+
+        @Test
+        void shouldThrowExceptionWhenCompatibleTransformersAreAmbiguous() {
+            registry.register(new TestTypeTransformer<>(CharSequence.class, Long.class));
+            registry.register(new TestTypeTransformer<>(Comparable.class, Long.class));
+
+            assertThatThrownBy(() -> registry.transformerFor("a string", Long.class))
+                    .isInstanceOf(EdcException.class)
+                    .hasMessageContaining("Ambiguous transformers");
         }
 
         @Test
@@ -96,11 +130,21 @@ public class TypeTransformerRegistryImplTest {
             TypeTransformer<Integer, String> typeTransformer = mock();
             contextRegistry.register(typeTransformer);
             registry.register(typeTransformer);
+            clearInvocations((Object) typeTransformer);
 
             assertThat(nestedContextRegistry.transform(5, String.class))
                     .isSucceeded().isEqualTo("5");
 
             verifyNoInteractions(typeTransformer);
+        }
+
+        @Test
+        void shouldOverrideParentTransformer() {
+            var replacement = new TestTypeTransformer<>(String.class, Integer.class);
+            contextRegistry.register(replacement);
+
+            assertThat(contextRegistry.transformerFor("a string", Integer.class)).isSameAs(replacement);
+            assertThat(registry.transformerFor("a string", Integer.class)).isInstanceOf(StringIntegerTypeTransformer.class);
         }
 
     }

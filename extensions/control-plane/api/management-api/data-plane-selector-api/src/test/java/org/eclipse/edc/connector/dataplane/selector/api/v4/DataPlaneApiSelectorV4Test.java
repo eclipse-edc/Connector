@@ -38,7 +38,7 @@ public class DataPlaneApiSelectorV4Test {
 
     private final TypeManager typeManager = mock();
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
-    private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
+    private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl(mock());
 
     @BeforeEach
     void setUp() {

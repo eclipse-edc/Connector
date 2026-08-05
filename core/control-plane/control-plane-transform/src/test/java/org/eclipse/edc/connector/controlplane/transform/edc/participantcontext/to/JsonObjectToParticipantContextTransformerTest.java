@@ -43,7 +43,7 @@ class JsonObjectToParticipantContextTransformerTest {
     @BeforeEach
     void setUp() {
         var transformer = new JsonObjectToParticipantContextTransformer();
-        typeTransformerRegistry = new TypeTransformerRegistryImpl();
+        typeTransformerRegistry = new TypeTransformerRegistryImpl(mock());
         typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
         typeTransformerRegistry.register(transformer);
         typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());

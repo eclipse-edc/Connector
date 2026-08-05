@@ -58,7 +58,7 @@ class ManagementApiSchemaTest {
 
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final TypeManager typeManager = mock();
-    private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
+    private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl(mock());
 
     @BeforeEach
     void setUp() {

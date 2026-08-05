@@ -28,6 +28,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.mockito.Mockito.mock;
 
 class JsonObjectFromSchemaValidatorRegistrationTransformerTest {
 
@@ -36,7 +37,7 @@ class JsonObjectFromSchemaValidatorRegistrationTransformerTest {
 
     @BeforeEach
     void setUp() {
-        registry = new TypeTransformerRegistryImpl();
+        registry = new TypeTransformerRegistryImpl(mock());
         registry.register(new JsonObjectFromSchemaValidatorRegistrationTransformer(jsonFactory));
         registry.register(new JsonObjectToSchemaValidatorRegistrationTransformer());
     }

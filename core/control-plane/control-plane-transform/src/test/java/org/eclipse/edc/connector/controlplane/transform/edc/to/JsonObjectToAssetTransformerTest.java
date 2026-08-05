@@ -68,7 +68,7 @@ class JsonObjectToAssetTransformerTest {
     @BeforeEach
     void setUp() {
         var transformer = new JsonObjectToAssetTransformer();
-        typeTransformerRegistry = new TypeTransformerRegistryImpl();
+        typeTransformerRegistry = new TypeTransformerRegistryImpl(mock());
         typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
         typeTransformerRegistry.register(transformer);
         typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());

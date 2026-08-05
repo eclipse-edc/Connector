@@ -50,7 +50,7 @@ class JsonObjectToVerifiablePresentationTransformerTest {
     @BeforeEach
     void setup() {
         transformer = new JsonObjectToVerifiablePresentationTransformer();
-        var registry = new TypeTransformerRegistryImpl();
+        var registry = new TypeTransformerRegistryImpl(mock());
         registry.register(new JsonObjectToCredentialSubjectTransformer());
         registry.register(new JsonObjectToCredentialStatusTransformer());
         registry.register(new JsonObjectToVerifiableCredentialTransformer());

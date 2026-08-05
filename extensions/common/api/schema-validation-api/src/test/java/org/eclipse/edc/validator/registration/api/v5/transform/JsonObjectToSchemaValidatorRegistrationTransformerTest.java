@@ -32,6 +32,7 @@ import static org.eclipse.edc.jsonld.spi.JsonLdKeywords.TYPE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.constants.CoreConstants.EDC_CONNECTOR_MANAGEMENT_CONTEXT_V2;
 import static org.eclipse.edc.validator.registration.spi.SchemaValidatorRegistration.SCHEMA_VALIDATOR_REGISTRATION_TYPE_TERM;
+import static org.mockito.Mockito.mock;
 
 class JsonObjectToSchemaValidatorRegistrationTransformerTest {
 
@@ -40,7 +41,7 @@ class JsonObjectToSchemaValidatorRegistrationTransformerTest {
 
     @BeforeEach
     void setUp() {
-        registry = new TypeTransformerRegistryImpl();
+        registry = new TypeTransformerRegistryImpl(mock());
         registry.register(new JsonObjectToSchemaValidatorRegistrationTransformer());
     }
 
