@@ -88,7 +88,7 @@ class DataPlaneSignalingClientTest {
     private static final int DATA_PLANE_API_PORT = getFreePort();
     private static final String DATA_PLANE_PATH = "/v1/dataflows";
     private static final String DATA_PLANE_API_URI = "http://localhost:" + DATA_PLANE_API_PORT + DATA_PLANE_PATH;
-    private static final TypeTransformerRegistry TRANSFORMER_REGISTRY = new TypeTransformerRegistryImpl();
+    private static final TypeTransformerRegistry TRANSFORMER_REGISTRY = new TypeTransformerRegistryImpl(mock(Monitor.class));
     private static final TitaniumJsonLd JSON_LD = new TitaniumJsonLd(mock(Monitor.class));
     private static final TypeManager TYPE_MANAGER = mock();
 

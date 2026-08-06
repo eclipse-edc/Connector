@@ -38,6 +38,7 @@ import org.eclipse.edc.spi.types.domain.transfer.DataFlowTerminateMessage;
 import org.eclipse.edc.spi.types.domain.transfer.FlowType;
 import org.eclipse.edc.spi.types.domain.transfer.TransferType;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.dspace.from.JsonObjectFromDataAddressDspaceTransformer;
 import org.eclipse.edc.transform.transformer.dspace.to.JsonObjectToDataAddressDspaceTransformer;
@@ -68,7 +69,7 @@ import static org.mockito.Mockito.when;
 public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
 
     private static final String DATAPLANE_PUBLIC_ENDPOINT_URL = "http://public/endpoint";
-    private final TypeTransformerRegistry registry = new TypeTransformerRegistryImpl();
+    private final TypeTransformerRegistry registry = new TypeTransformerRegistryImpl(mock(Monitor.class));
     private final TypeManager typeManager = mock();
     private ObjectMapper mapper;
 

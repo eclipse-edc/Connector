@@ -24,6 +24,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.query.SortOrder;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromCriterionTransformer;
 import org.eclipse.edc.transform.transformer.edc.from.JsonObjectFromQuerySpecTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToCriterionTransformer;
@@ -49,7 +50,7 @@ import static org.mockito.Mockito.when;
 class Base64ContinuationTokenSerDesTest {
 
     private final TypeManager typeManager = mock();
-    private final TypeTransformerRegistryImpl typeTransformerRegistry = new TypeTransformerRegistryImpl();
+    private final TypeTransformerRegistryImpl typeTransformerRegistry = new TypeTransformerRegistryImpl(mock(Monitor.class));
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final Base64continuationTokenSerDes serDes = new Base64continuationTokenSerDes(typeTransformerRegistry, new TitaniumJsonLd(mock()));
 

@@ -24,6 +24,7 @@ import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TransformerContextImpl;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,7 +54,7 @@ class JsonObjectToVerifiableCredentialTransformerTest {
     @BeforeEach
     void setUp() throws URISyntaxException {
         transformer = new JsonObjectToVerifiableCredentialTransformer();
-        var registry = new TypeTransformerRegistryImpl();
+        var registry = new TypeTransformerRegistryImpl(mock(Monitor.class));
         registry.register(new JsonObjectToCredentialSubjectTransformer());
         registry.register(new JsonObjectToCredentialStatusTransformer());
         registry.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
