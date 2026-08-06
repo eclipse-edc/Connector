@@ -26,6 +26,7 @@ import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToCriterionTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
@@ -52,7 +53,7 @@ class ApiCoreSchemaTest {
 
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final TypeManager typeManager = mock();
-    private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
+    private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl(mock(Monitor.class));
     private final CriterionOperatorRegistry criterionOperatorRegistry = CriterionOperatorRegistryImpl.ofDefaults();
 
     @BeforeEach

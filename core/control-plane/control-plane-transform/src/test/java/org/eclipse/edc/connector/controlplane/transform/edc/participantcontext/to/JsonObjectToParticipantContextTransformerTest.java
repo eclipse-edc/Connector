@@ -19,6 +19,7 @@ import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
@@ -43,7 +44,7 @@ class JsonObjectToParticipantContextTransformerTest {
     @BeforeEach
     void setUp() {
         var transformer = new JsonObjectToParticipantContextTransformer();
-        typeTransformerRegistry = new TypeTransformerRegistryImpl();
+        typeTransformerRegistry = new TypeTransformerRegistryImpl(mock(Monitor.class));
         typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
         typeTransformerRegistry.register(transformer);
         typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());

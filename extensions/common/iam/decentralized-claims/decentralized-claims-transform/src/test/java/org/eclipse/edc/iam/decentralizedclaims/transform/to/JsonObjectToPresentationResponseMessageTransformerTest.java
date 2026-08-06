@@ -22,6 +22,7 @@ import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TransformerContextImpl;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TransformerContext;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
@@ -38,7 +39,7 @@ import static org.mockito.Mockito.when;
 class JsonObjectToPresentationResponseMessageTransformerTest {
     private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper();
     private final TypeManager typeManager = mock();
-    private final TypeTransformerRegistry trr = new TypeTransformerRegistryImpl();
+    private final TypeTransformerRegistry trr = new TypeTransformerRegistryImpl(mock(Monitor.class));
     private final TransformerContext context = new TransformerContextImpl(trr);
 
     @BeforeEach

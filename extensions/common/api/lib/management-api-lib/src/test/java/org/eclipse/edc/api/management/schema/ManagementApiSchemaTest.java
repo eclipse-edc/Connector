@@ -20,6 +20,7 @@ import jakarta.json.JsonObject;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
@@ -58,7 +59,7 @@ class ManagementApiSchemaTest {
 
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final TypeManager typeManager = mock();
-    private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
+    private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl(mock(Monitor.class));
 
     @BeforeEach
     void setUp() {

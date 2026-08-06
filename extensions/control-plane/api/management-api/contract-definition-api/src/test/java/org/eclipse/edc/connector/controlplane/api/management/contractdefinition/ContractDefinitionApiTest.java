@@ -22,6 +22,7 @@ import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractD
 import org.eclipse.edc.connector.controlplane.transform.edc.contractdefinition.to.JsonObjectToContractDefinitionTransformer;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,7 +42,7 @@ import static org.mockito.Mockito.mock;
 class ContractDefinitionApiTest {
 
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
-    private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
+    private final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl(mock(Monitor.class));
 
     @BeforeEach
     void setUp() {
