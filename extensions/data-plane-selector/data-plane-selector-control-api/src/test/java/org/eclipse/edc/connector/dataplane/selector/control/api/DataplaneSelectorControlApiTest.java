@@ -21,10 +21,8 @@ import org.eclipse.edc.connector.dataplane.selector.spi.instance.DataPlaneInstan
 import org.eclipse.edc.jsonld.JsonLdExtension;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.spi.monitor.Monitor;
-
-import static org.mockito.Mockito.mock;
+import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataPlaneInstanceTransformer;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.connector.dataplane.selector.control.api.DataplaneSelectorControlApi.DataPlaneInstanceSchema.DATAPLANE_INSTANCE_EXAMPLE;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.junit.extensions.TestServiceExtensionContext.testServiceExtensionContext;
+import static org.mockito.Mockito.mock;
 
 class DataplaneSelectorControlApiTest {
 

@@ -21,8 +21,8 @@ import org.eclipse.edc.connector.controlplane.api.management.contractdefinition.
 import org.eclipse.edc.connector.controlplane.contract.spi.types.offer.ContractDefinition;
 import org.eclipse.edc.connector.controlplane.transform.edc.contractdefinition.to.JsonObjectToContractDefinitionTransformer;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
