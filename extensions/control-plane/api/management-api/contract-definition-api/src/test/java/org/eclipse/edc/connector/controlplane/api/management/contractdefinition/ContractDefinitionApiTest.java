@@ -23,8 +23,8 @@ import org.eclipse.edc.connector.controlplane.transform.edc.contractdefinition.t
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
-import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

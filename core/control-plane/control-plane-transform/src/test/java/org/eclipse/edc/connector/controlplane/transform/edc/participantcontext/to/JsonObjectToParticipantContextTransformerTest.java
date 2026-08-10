@@ -17,9 +17,9 @@ package org.eclipse.edc.connector.controlplane.transform.edc.participantcontext.
 import org.eclipse.edc.connector.controlplane.transform.edc.to.JsonObjectToDataplaneMetadataTransformer;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.to.JsonObjectToDataAddressTransformer;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;

@@ -22,10 +22,10 @@ import org.eclipse.edc.connector.api.management.secret.validation.SecretsValidat
 import org.eclipse.edc.jsonld.TitaniumJsonLd;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.secret.Secret;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
-import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.transform.transformer.edc.to.JsonValueToGenericTypeTransformer;
 import org.junit.jupiter.api.BeforeEach;
