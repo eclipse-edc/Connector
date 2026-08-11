@@ -29,6 +29,7 @@ import org.eclipse.edc.connector.dataplane.spi.store.DataPlaneStore;
 import org.eclipse.edc.jsonld.spi.JsonLd;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.annotations.EndToEndTest;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.result.Failure;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
@@ -68,7 +69,7 @@ import static org.mockito.Mockito.when;
 public class DataPlaneSignalingApiEndToEndTest extends AbstractDataPlaneTest {
 
     private static final String DATAPLANE_PUBLIC_ENDPOINT_URL = "http://public/endpoint";
-    private final TypeTransformerRegistry registry = new TypeTransformerRegistryImpl();
+    private final TypeTransformerRegistry registry = new TypeTransformerRegistryImpl(mock(Monitor.class));
     private final TypeManager typeManager = mock();
     private ObjectMapper mapper;
 

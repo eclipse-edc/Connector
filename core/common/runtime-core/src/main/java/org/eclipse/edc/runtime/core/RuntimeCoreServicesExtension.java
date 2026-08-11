@@ -107,8 +107,8 @@ public class RuntimeCoreServicesExtension implements ServiceExtension {
     }
 
     @Provider
-    public TypeTransformerRegistry typeTransformerRegistry() {
-        return new TypeTransformerRegistryImpl();
+    public TypeTransformerRegistry typeTransformerRegistry(ServiceExtensionContext context) {
+        return new TypeTransformerRegistryImpl(context.getMonitor());
     }
 
     @Provider

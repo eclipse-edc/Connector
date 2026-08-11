@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static java.util.Collections.emptyMap;
 import static org.eclipse.edc.util.io.Ports.getFreePort;
 
 public interface Runtimes {
@@ -33,11 +32,6 @@ public interface Runtimes {
         String[] MODULES = new String[]{
                 ":system-tests:e2e-transfer-test:control-plane",
                 ":extensions:control-plane:transfer:transfer-data-plane-signaling"
-        };
-
-        String[] SIGNALING_MODULES = new String[]{
-                ":system-tests:e2e-transfer-test:control-plane",
-                ":data-protocols:data-plane-signaling"
         };
 
         String[] EMBEDDED_DP_MODULES = new String[]{
@@ -80,13 +74,6 @@ public interface Runtimes {
                     "edc.dpf.selector.url", controlEndpoint.get() + "/v1/dataplanes"
             ));
         }
-
-        static Config controlPlaneEndpointOf(Endpoints endpoints) {
-            var controlEndpoint = Objects.requireNonNull(endpoints.getEndpoint("control"));
-            return ConfigFactory.fromMap(Map.of(
-                    "signaling.dataplane.controlplane.endpoint", controlEndpoint.get().toString()
-            ));
-        }
     }
 
     interface DataPlane {
@@ -117,18 +104,5 @@ public interface Runtimes {
             });
         }
 
-    }
-
-    interface SignalingDataPlane {
-        String[] MODULES = new String[] {
-                ":system-tests:e2e-transfer-test:signaling-data-plane"
-        };
-
-        Endpoints.Builder ENDPOINTS = Endpoints.Builder.newInstance()
-                .endpoint("default", () -> URI.create("http://localhost:" + getFreePort() + "/api"));
-
-        static Config config() {
-            return ConfigFactory.fromMap(emptyMap());
-        }
     }
 }

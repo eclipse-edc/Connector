@@ -33,6 +33,7 @@ import org.eclipse.edc.jsonld.util.JacksonJsonLd;
 import org.eclipse.edc.junit.assertions.AbstractResultAssert;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.policy.model.Policy;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
 import org.eclipse.edc.transform.spi.TypeTransformerRegistry;
 import org.eclipse.edc.validator.jsonobject.JsonObjectValidator;
@@ -48,7 +49,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public abstract class BaseContractNegotiationApiTest {
-    protected final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl();
+    protected final TypeTransformerRegistry transformer = new TypeTransformerRegistryImpl(mock(Monitor.class));
     private final ObjectMapper objectMapper = JacksonJsonLd.createObjectMapper();
     private final JsonLd jsonLd = new JsonLdExtension().createJsonLdService(testServiceExtensionContext());
 

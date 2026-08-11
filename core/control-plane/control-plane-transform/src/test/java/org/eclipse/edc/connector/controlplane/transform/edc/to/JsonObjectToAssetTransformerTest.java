@@ -20,6 +20,7 @@ import jakarta.json.JsonObjectBuilder;
 import org.eclipse.edc.connector.controlplane.asset.spi.domain.Asset;
 import org.eclipse.edc.connector.controlplane.transform.TestInput;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.spi.types.domain.DataAddress;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
@@ -68,7 +69,7 @@ class JsonObjectToAssetTransformerTest {
     @BeforeEach
     void setUp() {
         var transformer = new JsonObjectToAssetTransformer();
-        typeTransformerRegistry = new TypeTransformerRegistryImpl();
+        typeTransformerRegistry = new TypeTransformerRegistryImpl(mock(Monitor.class));
         typeTransformerRegistry.register(new JsonValueToGenericTypeTransformer(typeManager, "test"));
         typeTransformerRegistry.register(transformer);
         typeTransformerRegistry.register(new JsonObjectToDataAddressTransformer());

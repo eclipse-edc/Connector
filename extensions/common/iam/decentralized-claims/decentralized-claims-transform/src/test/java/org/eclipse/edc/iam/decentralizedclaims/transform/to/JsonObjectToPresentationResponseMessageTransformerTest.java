@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.iam.decentralizedclaims.transform.TestContextProvider;
 import org.eclipse.edc.jsonld.util.JacksonJsonLd;
+import org.eclipse.edc.spi.monitor.Monitor;
 import org.eclipse.edc.spi.types.TypeManager;
 import org.eclipse.edc.transform.TransformerContextImpl;
 import org.eclipse.edc.transform.TypeTransformerRegistryImpl;
@@ -38,7 +39,7 @@ import static org.mockito.Mockito.when;
 class JsonObjectToPresentationResponseMessageTransformerTest {
     private final ObjectMapper mapper = JacksonJsonLd.createObjectMapper();
     private final TypeManager typeManager = mock();
-    private final TypeTransformerRegistry trr = new TypeTransformerRegistryImpl();
+    private final TypeTransformerRegistry trr = new TypeTransformerRegistryImpl(mock(Monitor.class));
     private final TransformerContext context = new TransformerContextImpl(trr);
 
     @BeforeEach
