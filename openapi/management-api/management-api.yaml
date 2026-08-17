@@ -90,41 +90,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v5beta/celexpressions/test:
-    post:
-      tags:
-      - Cel Expressions v5beta
-      description: Test a Cel Expression.
-      operationId: testExpressionV5
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/cel-expression-test-request-schema"
-      responses:
-        "200":
-          description: The Cel Expression was tested successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/cel-expression-test-response-schema"
-        "400":
-          description: "Request body was malformed, or the request could not be processed"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "401":
-          description: "The request could not be completed, because either the authentication\
-            \ was missing or was not valid."
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v5beta/participants/{participantContextId}/policydefinitions:
     post:
       tags:
@@ -163,6 +128,41 @@ paths:
         "409":
           description: "Could not create policy definition, because a contract definition\
             \ with that ID already exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5beta/celexpressions/test:
+    post:
+      tags:
+      - Cel Expressions v5beta
+      description: Test a Cel Expression.
+      operationId: testExpressionV5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/cel-expression-test-request-schema"
+      responses:
+        "200":
+          description: The Cel Expression was tested successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/cel-expression-test-response-schema"
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
           content:
             application/json:
               schema:
@@ -335,6 +335,50 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/catalog-schema"
+  /v5beta/participants/{participantContextId}/assets/{id}:
+    get:
+      tags:
+      - Asset v5beta
+      description: Gets an asset with the given ID
+      operationId: getAssetV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The asset
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/asset-schema"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+        "404":
+          description: An asset with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
   /v5beta/participants/{participantContextId}/contractnegotiations/{id}:
     get:
       tags:
@@ -492,50 +536,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v5beta/participants/{participantContextId}/assets/{id}:
-    get:
-      tags:
-      - Asset v5beta
-      description: Gets an asset with the given ID
-      operationId: getAssetV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: The asset
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/asset-schema"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
-        "404":
-          description: An asset with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v4/contractnegotiations/{id}/state:
     get:
       tags:
@@ -889,42 +889,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v5beta/participants/{participantContextId}/contractnegotiations/request:
-    post:
-      tags:
-      - Contract Negotiation v5beta
-      description: Returns all contract negotiations according to a query
-      operationId: queryNegotiationsV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The contract negotiations that match the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/contract-negotiation-schema"
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v5beta/participants/{participantContextId}/dataplanes:
     put:
       tags:
@@ -963,6 +927,42 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v5beta/participants/{participantContextId}/contractnegotiations/request:
+    post:
+      tags:
+      - Contract Negotiation v5beta
+      description: Returns all contract negotiations according to a query
+      operationId: queryNegotiationsV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The contract negotiations that match the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/contract-negotiation-schema"
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v4/secrets:
     put:
       tags:
@@ -1023,34 +1023,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v5beta/dataspaceprofiles/request:
-    post:
-      tags:
-      - Dataspace Profile v5beta
-      description: Queries the dataspace profiles.
-      operationId: queryProfilesV5
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/queryProfilesV5_request"
-      responses:
-        "200":
-          description: The dataspace profiles matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/dataspace-profile-schema"
-        "400":
-          description: "Request body was malformed, or the request could not be processed"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v5beta/participants/{participantContextId}/assets/request:
     post:
       tags:
@@ -1087,6 +1059,34 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
+  /v5beta/dataspaceprofiles/request:
+    post:
+      tags:
+      - Dataspace Profile v5beta
+      description: Queries the dataspace profiles.
+      operationId: queryProfilesV5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/queryProfilesV5_request"
+      responses:
+        "200":
+          description: The dataspace profiles matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/dataspace-profile-schema"
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v5beta/participants/{participantContextId}/policydefinitions/{id}:
     get:
       tags:
@@ -1342,43 +1342,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /v5beta/dcpscopes/request:
-    post:
-      tags:
-      - DcpScope v5beta
-      description: Returns all DcpScope objects according to a query.
-      operationId: queryDcpScopesV5
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The list of DcpScopes.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/dcp-scope-schema"
-        "400":
-          description: The query was malformed or was not understood by the server.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "401":
-          description: "The request could not be completed, because either the authentication\
-            \ was missing or was not valid."
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v4/policydefinitions/{id}:
     get:
       tags:
@@ -1492,6 +1455,43 @@ paths:
         "409":
           description: "The policy definition cannot be deleted, because it is referenced\
             \ by a contract definition"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5beta/dcpscopes/request:
+    post:
+      tags:
+      - DcpScope v5beta
+      description: Returns all DcpScope objects according to a query.
+      operationId: queryDcpScopesV5
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The list of DcpScopes.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/dcp-scope-schema"
+        "400":
+          description: The query was malformed or was not understood by the server.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
           content:
             application/json:
               schema:
@@ -1810,31 +1810,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/api-error-schema"
-  /v5beta/participants/{participantContextId}/catalog/dataset/request:
-    post:
-      tags:
-      - Catalog v5beta
-      operationId: getDatasetV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/catalog-request-schema"
-      responses:
-        default:
-          description: Gets single dataset from a connector
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/dataset-schema"
   /v4/transferprocesses/{id}/resume:
     post:
       tags:
@@ -1874,41 +1849,31 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v4/contractnegotiations:
+  /v5beta/participants/{participantContextId}/catalog/dataset/request:
     post:
       tags:
-      - Contract Negotiation v4
-      description: "Initiates a contract negotiation for a given offer and with the\
-        \ given counter part. Please note that successfully invoking this endpoint\
-        \ only means that the negotiation was initiated. Clients must poll the /{id}/state\
-        \ endpoint to track the state"
-      operationId: initiateContractNegotiationV4
+      - Catalog v5beta
+      operationId: getDatasetV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/contract-request-schema"
+              $ref: "#/components/schemas/catalog-request-schema"
       responses:
-        "200":
-          description: The negotiation was successfully initiated. Returns the contract
-            negotiation ID and created timestamp
+        default:
+          description: Gets single dataset from a connector
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/id-response-schema"
-          links:
-            poll-state:
-              operationId: getNegotiationStateV3
-              parameters:
-                id: $response.body#/id
-        "400":
-          description: Request body was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
+                $ref: "#/components/schemas/dataset-schema"
   /v4/secrets/{id}:
     get:
       tags:
@@ -1972,6 +1937,41 @@ paths:
                   $ref: "#/components/schemas/api-error-schema"
         "404":
           description: A secret with the given ID does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v4/contractnegotiations:
+    post:
+      tags:
+      - Contract Negotiation v4
+      description: "Initiates a contract negotiation for a given offer and with the\
+        \ given counter part. Please note that successfully invoking this endpoint\
+        \ only means that the negotiation was initiated. Clients must poll the /{id}/state\
+        \ endpoint to track the state"
+      operationId: initiateContractNegotiationV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/contract-request-schema"
+      responses:
+        "200":
+          description: The negotiation was successfully initiated. Returns the contract
+            negotiation ID and created timestamp
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/id-response-schema"
+          links:
+            poll-state:
+              operationId: getNegotiationStateV3
+              parameters:
+                id: $response.body#/id
+        "400":
+          description: Request body was malformed
           content:
             application/json:
               schema:
@@ -2648,52 +2648,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ApiErrorDetail"
-  /v5beta/participants/{participantContextId}/contractnegotiations/{id}/agreement:
-    get:
-      tags:
-      - Contract Negotiation v5beta
-      description: Gets a contract agreement for a contract negotiation with the given
-        ID
-      operationId: getAgreementForNegotiationV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: "The contract agreement that is attached to the negotiation,\
-            \ or null"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/contract-agreement-schema"
-        "400":
-          description: "Request was malformed, e.g. id was null"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: An contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v5beta/participants/{participantContextId}/transferprocesses/{id}/suspend:
     post:
       tags:
@@ -2748,6 +2702,52 @@ paths:
         "409":
           description: "Could not suspend the transfer process, because it is already\
             \ completed or terminated."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5beta/participants/{participantContextId}/contractnegotiations/{id}/agreement:
+    get:
+      tags:
+      - Contract Negotiation v5beta
+      description: Gets a contract agreement for a contract negotiation with the given
+        ID
+      operationId: getAgreementForNegotiationV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: "The contract agreement that is attached to the negotiation,\
+            \ or null"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/contract-agreement-schema"
+        "400":
+          description: "Request was malformed, e.g. id was null"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: An contract negotiation with the given ID does not exist
           content:
             application/json:
               schema:
@@ -2888,23 +2888,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v4/catalog/dataset/request:
-    post:
-      tags:
-      - Catalog v4
-      operationId: getDatasetV4
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/catalog-request-schema"
-      responses:
-        default:
-          description: Gets single dataset from a connector
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/dataset-schema"
   /v4/transferprocesses/{id}/terminate:
     post:
       tags:
@@ -2959,6 +2942,23 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v4/catalog/dataset/request:
+    post:
+      tags:
+      - Catalog v4
+      operationId: getDatasetV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/catalog-request-schema"
+      responses:
+        default:
+          description: Gets single dataset from a connector
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/dataset-schema"
   /v4/transferprocesses/{id}/state:
     get:
       tags:
@@ -3557,6 +3557,78 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
+  /v4/dataplanes/{dataplaneId}:
+    delete:
+      tags:
+      - Dataplane Signaling Registration v4
+      description: Delete a Dataplane instance
+      operationId: delete
+      parameters:
+      - name: dataplaneId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Dataplane instance correctly deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiErrorDetail"
+  /v5beta/cacheddocuments/{id}/refresh:
+    post:
+      tags:
+      - Document Cache v5beta
+      description: Forces a refresh of a cached document by re-fetching it from its
+        url (no-op for pull strategy 'NEVER').
+      operationId: refresh
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: The refreshed context
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/cached-document-schema"
+        "400":
+          description: "Request body was malformed, or the request could not be processed"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "401":
+          description: "The request could not be completed, because either the authentication\
+            \ was missing or was not valid."
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: The cached context does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
   /v5beta/participants/{participantContextId}/contractdefinitions:
     put:
       tags:
@@ -3639,78 +3711,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v5beta/cacheddocuments/{id}/refresh:
-    post:
-      tags:
-      - Document Cache v5beta
-      description: Forces a refresh of a cached document by re-fetching it from its
-        url (no-op for pull strategy 'NEVER').
-      operationId: refresh
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: The refreshed context
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/cached-document-schema"
-        "400":
-          description: "Request body was malformed, or the request could not be processed"
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "401":
-          description: "The request could not be completed, because either the authentication\
-            \ was missing or was not valid."
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: The cached context does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-  /v4/dataplanes/{dataplaneId}:
-    delete:
-      tags:
-      - Dataplane Signaling Registration v4
-      description: Delete a Dataplane instance
-      operationId: delete
-      parameters:
-      - name: dataplaneId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Dataplane instance correctly deleted
-        "404":
-          description: Not found
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ApiErrorDetail"
   /v5beta/participants/{participantContextId}/contractnegotiations/{id}/terminate:
     post:
       tags:
@@ -3792,42 +3792,6 @@ paths:
                   $ref: "#/components/schemas/api-error-schema"
         "404":
           description: An contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-  /v5beta/participants/{participantContextId}/contractdefinitions/request:
-    post:
-      tags:
-      - Contract Definition v5beta
-      description: Returns all contract definitions according to a query
-      operationId: queryContractDefinitionsV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The contract definitions matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/contract-definition-schema"
-        "400":
-          description: Request was malformed
           content:
             application/json:
               schema:
@@ -3949,6 +3913,42 @@ paths:
                   $ref: "#/components/schemas/api-error-schema"
         "404":
           description: The cached context does not exist
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5beta/participants/{participantContextId}/contractdefinitions/request:
+    post:
+      tags:
+      - Contract Definition v5beta
+      description: Returns all contract definitions according to a query
+      operationId: queryContractDefinitionsV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The contract definitions matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/contract-definition-schema"
+        "400":
+          description: Request was malformed
           content:
             application/json:
               schema:
@@ -4174,31 +4174,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v5beta/participants/{participantContextId}/catalog/request:
-    post:
-      tags:
-      - Catalog v5beta
-      operationId: requestCatalogV5
-      parameters:
-      - name: participantContextId
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/catalog-request-schema"
-      responses:
-        default:
-          description: Gets contract offers (=catalog) of a single connector
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/catalog-schema"
   /v5beta/participants/{participantContextId}/transferprocesses:
     post:
       tags:
@@ -4236,6 +4211,59 @@ paths:
                 id: $response.body#/id
         "400":
           description: Request body was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v5beta/participants/{participantContextId}/catalog/request:
+    post:
+      tags:
+      - Catalog v5beta
+      operationId: requestCatalogV5
+      parameters:
+      - name: participantContextId
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/catalog-request-schema"
+      responses:
+        default:
+          description: Gets contract offers (=catalog) of a single connector
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/catalog-schema"
+  /v4/transferprocesses/request:
+    post:
+      tags:
+      - Transfer Process v4
+      description: Returns all transfer process according to a query
+      operationId: queryTransferProcessesV4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/query-spec-schema"
+      responses:
+        "200":
+          description: The transfer processes matching the query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/transfer-process-schema"
+        "400":
+          description: Request was malformed
           content:
             application/json:
               schema:
@@ -4358,34 +4386,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v4/transferprocesses/request:
-    post:
-      tags:
-      - Transfer Process v4
-      description: Returns all transfer process according to a query
-      operationId: queryTransferProcessesV4
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/query-spec-schema"
-      responses:
-        "200":
-          description: The transfer processes matching the query
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/transfer-process-schema"
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v4/transferprocesses:
     post:
       tags:
@@ -4479,47 +4479,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/api-error-schema"
-  /v4/contractnegotiations/{id}/terminate:
-    post:
-      tags:
-      - Contract Negotiation v4
-      description: Terminates the contract negotiation.
-      operationId: terminateNegotiationV4
-      parameters:
-      - name: id
-        in: path
-        required: true
-        style: simple
-        explode: false
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/contract-terminate-schema"
-      responses:
-        "200":
-          description: ContractNegotiation is terminating
-          links:
-            poll-state:
-              operationId: getNegotiationStateV3
-        "400":
-          description: Request was malformed
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
-        "404":
-          description: A contract negotiation with the given ID does not exist
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/api-error-schema"
   /v4/assets:
     put:
       tags:
@@ -4576,6 +4535,47 @@ paths:
         "409":
           description: "Could not create asset, because an asset with that ID already\
             \ exists"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+  /v4/contractnegotiations/{id}/terminate:
+    post:
+      tags:
+      - Contract Negotiation v4
+      description: Terminates the contract negotiation.
+      operationId: terminateNegotiationV4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/contract-terminate-schema"
+      responses:
+        "200":
+          description: ContractNegotiation is terminating
+          links:
+            poll-state:
+              operationId: getNegotiationStateV3
+        "400":
+          description: Request was malformed
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/api-error-schema"
+        "404":
+          description: A contract negotiation with the given ID does not exist
           content:
             application/json:
               schema:
@@ -4779,67 +4779,6 @@ components:
           type: string
         invalidValue:
           type: string
-    cel-expression-test-response-schema:
-      title: CelExpressionTestRequestSchema
-      type: object
-      example:
-        '@type': '@type'
-        evaluationResult: true
-        error: error
-        '@context':
-        - '@context'
-        - '@context'
-      allOf:
-      - $ref: "#/components/schemas/CelExpressionTestResponse"
-    CelExpressionTestResponse:
-      required:
-      - '@context'
-      - '@type'
-      type: object
-      properties:
-        '@context':
-          title: ContextSchema
-          type: array
-          items:
-            type: string
-        '@type':
-          type: string
-        evaluationResult:
-          type: boolean
-        error:
-          type: string
-    cel-expression-test-request-schema:
-      title: CelExpressionTestRequestSchema
-      type: object
-      allOf:
-      - $ref: "#/components/schemas/CelExpressionTestRequest"
-    CelExpressionTestRequest:
-      required:
-      - '@context'
-      - '@type'
-      - expression
-      - leftOperand
-      - operator
-      - rightOperand
-      type: object
-      properties:
-        '@context':
-          title: ContextSchema
-          type: array
-          items:
-            type: string
-        '@type':
-          type: string
-        expression:
-          type: string
-        leftOperand:
-          type: string
-        operator:
-          type: string
-        rightOperand:
-          $ref: "#/components/schemas/CelExpressionTestRequest_rightOperand"
-        params:
-          type: object
     id-response-schema:
       title: IdResponseSchema
       type: object
@@ -5229,6 +5168,67 @@ components:
             type: array
             items:
               $ref: "#/components/schemas/Constraint"
+    cel-expression-test-response-schema:
+      title: CelExpressionTestRequestSchema
+      type: object
+      example:
+        '@type': '@type'
+        evaluationResult: true
+        error: error
+        '@context':
+        - '@context'
+        - '@context'
+      allOf:
+      - $ref: "#/components/schemas/CelExpressionTestResponse"
+    CelExpressionTestResponse:
+      required:
+      - '@context'
+      - '@type'
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        evaluationResult:
+          type: boolean
+        error:
+          type: string
+    cel-expression-test-request-schema:
+      title: CelExpressionTestRequestSchema
+      type: object
+      allOf:
+      - $ref: "#/components/schemas/CelExpressionTestRequest"
+    CelExpressionTestRequest:
+      required:
+      - '@context'
+      - '@type'
+      - expression
+      - leftOperand
+      - operator
+      - rightOperand
+      type: object
+      properties:
+        '@context':
+          title: ContextSchema
+          type: array
+          items:
+            type: string
+        '@type':
+          type: string
+        expression:
+          type: string
+        leftOperand:
+          type: string
+        operator:
+          type: string
+        rightOperand:
+          $ref: "#/components/schemas/CelExpressionTestRequest_rightOperand"
+        params:
+          type: object
     asset-schema:
       title: AssetSchema
       type: object
@@ -5764,6 +5764,22 @@ components:
         querySpec:
           $ref: "#/components/schemas/QuerySpec"
       nullable: true
+    ApiErrorDetail:
+      type: object
+      properties:
+        invalidValue:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        type:
+          type: string
+      example:
+        message: error message
+        type: ErrorType
+        path: object.error.path
+        invalidValue: this value is not valid
     contract-negotiation-schema:
       title: ContractNegotiationSchema
       type: object
@@ -5903,22 +5919,6 @@ components:
           type: array
           items:
             type: string
-    ApiErrorDetail:
-      type: object
-      properties:
-        invalidValue:
-          type: string
-        message:
-          type: string
-        path:
-          type: string
-        type:
-          type: string
-      example:
-        message: error message
-        type: ErrorType
-        path: object.error.path
-        invalidValue: this value is not valid
     NegotiationState:
       required:
       - '@context'
@@ -7769,16 +7769,16 @@ components:
           - "NULL"
       additionalProperties:
         $ref: "#/components/schemas/JsonValue"
-    CelExpressionTestRequest_rightOperand:
-      oneOf:
-      - type: string
-      - type: object
     PolicyClass_profile:
       oneOf:
       - type: array
         items:
           type: string
       - type: string
+    CelExpressionTestRequest_rightOperand:
+      oneOf:
+      - type: string
+      - type: object
     Asset_properties:
       type: object
       properties:
