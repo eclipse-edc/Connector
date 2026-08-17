@@ -57,6 +57,13 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     @Setting(key = "dataplane.id")
     private String dataplaneId;
+    /**
+     * Selects the single signaling authorization profile this runtime supports. Exactly one is registered because
+     * {@code Dataplane.extractControlplaneId} picks the first authorization that can parse the incoming header, which
+     * is ambiguous when several JWT-based profiles are registered at once.
+     */
+    @Setting(key = "dataplane.authorization", defaultValue = "oauth2_client_credentials")
+    private String authorizationType;
     @Configuration
     private ApiConfiguration apiConfiguration;
     @Inject
@@ -69,7 +76,9 @@ public class SignalingDataPlaneRuntimeExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var builder = Dataplane.newInstance()
                 .id(dataplaneId)
-                .registerAuthorization(new Oauth2ClientCredentialsAuthorization())
+                .registerAuthorization("oauth2_token_exchange".equals(authorizationType)
+                        ? new Oauth2TokenExchangeAuthorization()
+                        : new Oauth2ClientCredentialsAuthorization())
                 .endpoint(apiConfiguration.dataFlowEndpoint())
                 .profile("Finite-PUSH")
                 .profile("Finite-PULL")

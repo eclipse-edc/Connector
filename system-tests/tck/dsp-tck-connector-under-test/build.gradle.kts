@@ -21,6 +21,7 @@ dependencies {
     api(project(":dist:bom:controlplane-base-bom")) {
         exclude("org.eclipse.edc", "data-plane-signaling")
         exclude("org.eclipse.edc", "data-plane-signaling-oauth2")
+        exclude("org.eclipse.edc", "data-plane-signaling-oauth2-token-exchange")
     }
     api(project(":system-tests:tck:tck-extension"))
     runtimeOnly(libs.parsson)
