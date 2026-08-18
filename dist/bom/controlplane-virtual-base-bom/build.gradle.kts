@@ -38,6 +38,7 @@ dependencies {
     api(project(":data-protocols:dsp:dsp-virtual"))
     api(project(":data-protocols:data-plane-signaling"))
     api(project(":data-protocols:data-plane-signaling:data-plane-signaling-oauth2"))
+    api(project(":data-protocols:data-plane-signaling:data-plane-signaling-oauth2-token-exchange"))
 
     api(project(":extensions:common:console-monitor"))
     api(project(":extensions:common:configuration:configuration-filesystem"))

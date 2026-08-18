@@ -68,6 +68,7 @@ include(":core:policy-monitor:policy-monitor-core")
 include(":data-protocols:data-plane-signaling")
 include(":data-protocols:data-plane-signaling:data-plane-signaling-core")
 include(":data-protocols:data-plane-signaling:data-plane-signaling-oauth2")
+include(":data-protocols:data-plane-signaling:data-plane-signaling-oauth2-token-exchange")
 include(":data-protocols:data-plane-signaling:data-plane-signaling-spi")
 
 // modules that provide implementations for data ingress/egress ------------------------------------
