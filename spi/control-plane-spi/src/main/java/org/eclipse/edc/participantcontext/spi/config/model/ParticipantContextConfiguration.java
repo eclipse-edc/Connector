@@ -16,6 +16,7 @@ package org.eclipse.edc.participantcontext.spi.config.model;
 
 import org.eclipse.edc.participantcontext.spi.types.ParticipantResource;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Clock;
 import java.util.HashMap;
@@ -60,6 +61,40 @@ public class ParticipantContextConfiguration implements ParticipantResource {
 
     public long getLastModified() {
         return lastModified;
+    }
+
+    /**
+     * Applies this configuration as a JSON Merge Patch (RFC 7396) on top of {@code base}, returning a new instance.
+     * A {@code null} entry value removes the key, any other value adds or overwrites it.
+     * <p>
+     * The result keeps {@code base}'s creation timestamp when {@code base} is non-null, and always takes this
+     * instance's {@code lastModified}. The returned instance owns fresh entry maps, so it never aliases the maps
+     * of either input.
+     *
+     * @param base the configuration to patch, or null if none exists yet
+     * @return the merged configuration
+     */
+    public ParticipantContextConfiguration mergeOnto(@Nullable ParticipantContextConfiguration base) {
+        return Builder.newInstance()
+                .participantContextId(participantContextId)
+                .clock(clock)
+                .createdAt(base != null ? base.getCreatedAt() : createdAt)
+                .lastModified(lastModified)
+                .entries(mergePatch(base != null ? base.getEntries() : Map.of(), entries))
+                .privateEntries(mergePatch(base != null ? base.getPrivateEntries() : Map.of(), privateEntries))
+                .build();
+    }
+
+    private static Map<String, String> mergePatch(Map<String, String> base, Map<String, String> patch) {
+        var merged = new HashMap<>(base);
+        patch.forEach((key, value) -> {
+            if (value == null) {
+                merged.remove(key);
+            } else {
+                merged.put(key, value);
+            }
+        });
+        return merged;
     }
 
     public Builder toBuilder() {

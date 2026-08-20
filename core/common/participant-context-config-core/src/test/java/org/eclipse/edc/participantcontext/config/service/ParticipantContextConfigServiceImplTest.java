@@ -70,17 +70,8 @@ public class ParticipantContextConfigServiceImplTest {
     }
 
     @Test
-    void merge() {
+    void merge_shouldDelegateEncryptedPatchToStore() {
         when(registry.encrypt(anyString(), anyString())).then(a -> Result.success("enc(" + a.getArgument(1) + ")"));
-
-        var existing = ParticipantContextConfiguration.Builder.newInstance()
-                .participantContextId("participantContext")
-                .createdAt(1000)
-                .lastModified(1000)
-                .entries(new HashMap<>(Map.of("key", "value", "keep", "kept")))
-                .privateEntries(new HashMap<>(Map.of("secret", "enc(existing)")))
-                .build();
-        when(store.get("participantContext")).thenReturn(existing);
 
         var patch = ParticipantContextConfiguration.Builder.newInstance()
                 .participantContextId("participantContext")
@@ -91,51 +82,35 @@ public class ParticipantContextConfigServiceImplTest {
         var result = service.merge(patch);
         assertThat(result).isSucceeded();
 
-        verify(store).save(argThat(saved ->
-                saved.getParticipantContextId().equals("participantContext") &&
-                        saved.getCreatedAt() == 1000 &&
-                        saved.getLastModified() == 5000 &&
-                        saved.getEntries().equals(Map.of("key", "updated", "keep", "kept", "new", "added")) &&
-                        saved.getPrivateEntries().equals(Map.of("secret", "enc(existing)", "newSecret", "enc(plain)"))));
-        // only the patch's private entry is encrypted, existing ones are left untouched
+        // the patch must reach the store unmerged: applying it is the store's job, so that it can do so atomically
+        verify(store).merge(argThat(applied ->
+                applied.getParticipantContextId().equals("participantContext") &&
+                        applied.getCreatedAt() == 5000 &&
+                        applied.getLastModified() == 5000 &&
+                        applied.getEntries().equals(Map.of("key", "updated", "new", "added")) &&
+                        applied.getPrivateEntries().equals(Map.of("newSecret", "enc(plain)"))));
         verify(registry).encrypt(anyString(), anyString());
     }
 
     @Test
-    void merge_whenNotFound_shouldCreate() {
+    void merge_shouldNotReadTheStore() {
         when(registry.encrypt(anyString(), anyString())).then(a -> Result.success("enc(" + a.getArgument(1) + ")"));
-        when(store.get("participantContext")).thenReturn(null);
 
         var patch = ParticipantContextConfiguration.Builder.newInstance()
                 .participantContextId("participantContext")
                 .entries(Map.of("key", "value"))
-                .privateEntries(Map.of("secret", "plain"))
                 .build();
 
-        var result = service.merge(patch);
-        assertThat(result).isSucceeded();
+        assertThat(service.merge(patch)).isSucceeded();
 
-        verify(store).save(argThat(saved ->
-                saved.getParticipantContextId().equals("participantContext") &&
-                        saved.getCreatedAt() == 5000 &&
-                        saved.getLastModified() == 5000 &&
-                        saved.getEntries().equals(Map.of("key", "value")) &&
-                        saved.getPrivateEntries().equals(Map.of("secret", "enc(plain)"))));
-        verify(registry).encrypt(anyString(), anyString());
+        // a read-modify-write here would race with concurrent merges and lose entries
+        verify(store, never()).get(any());
+        verify(store, never()).save(any());
     }
 
     @Test
-    void merge_shouldRemoveEntry_whenValueIsNull() {
+    void merge_shouldNotEncryptNullValues() {
         when(registry.encrypt(anyString(), anyString())).then(a -> Result.success("enc(" + a.getArgument(1) + ")"));
-
-        var existing = ParticipantContextConfiguration.Builder.newInstance()
-                .participantContextId("participantContext")
-                .createdAt(1000)
-                .lastModified(1000)
-                .entries(new HashMap<>(Map.of("key", "value", "keep", "kept")))
-                .privateEntries(new HashMap<>(Map.of("secret", "enc(existing)", "keepSecret", "enc(kept)")))
-                .build();
-        when(store.get("participantContext")).thenReturn(existing);
 
         var entries = new HashMap<String, String>();
         entries.put("key", null);
@@ -150,34 +125,24 @@ public class ParticipantContextConfigServiceImplTest {
         var result = service.merge(patch);
         assertThat(result).isSucceeded();
 
-        verify(store).save(argThat(saved ->
-                saved.getEntries().equals(Map.of("keep", "kept")) &&
-                        saved.getPrivateEntries().equals(Map.of("keepSecret", "enc(kept)"))));
-        // null values are removal signals and must never be encrypted
+        // null values are removal signals and must reach the store verbatim, never encrypted
+        verify(store).merge(argThat(applied ->
+                applied.getEntries().containsKey("key") && applied.getEntries().get("key") == null &&
+                        applied.getPrivateEntries().containsKey("secret") && applied.getPrivateEntries().get("secret") == null));
         verify(registry, never()).encrypt(anyString(), any());
     }
 
     @Test
-    void merge_whenKeyAbsent_nullIsNoop() {
-        when(registry.encrypt(anyString(), anyString())).then(a -> Result.success("enc(" + a.getArgument(1) + ")"));
+    void merge_shouldFail_whenEncryptionFails() {
+        when(registry.encrypt(anyString(), anyString())).thenReturn(Result.failure("boom"));
 
-        var existing = ParticipantContextConfiguration.Builder.newInstance()
-                .participantContextId("participantContext")
-                .entries(new HashMap<>(Map.of("keep", "kept")))
-                .build();
-        when(store.get("participantContext")).thenReturn(existing);
-
-        var entries = new HashMap<String, String>();
-        entries.put("missing", null);
         var patch = ParticipantContextConfiguration.Builder.newInstance()
                 .participantContextId("participantContext")
-                .entries(entries)
+                .privateEntries(Map.of("secret", "plain"))
                 .build();
 
-        var result = service.merge(patch);
-        assertThat(result).isSucceeded();
-
-        verify(store).save(argThat(saved -> saved.getEntries().equals(Map.of("keep", "kept"))));
+        assertThat(service.merge(patch)).isFailed().detail().contains("Failed to encrypt entries");
+        verify(store, never()).merge(any());
     }
 
     @Test

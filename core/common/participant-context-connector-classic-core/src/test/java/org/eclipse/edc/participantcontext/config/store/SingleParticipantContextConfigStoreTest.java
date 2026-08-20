@@ -55,6 +55,55 @@ public class SingleParticipantContextConfigStoreTest extends ParticipantContextC
         super.update();
     }
 
+    // SingleParticipantContextConfigStore is read-only
+    @Override
+    @Disabled
+    protected void merge_whenNotExisting_shouldCreate() {
+        super.merge_whenNotExisting_shouldCreate();
+    }
+
+    // SingleParticipantContextConfigStore is read-only
+    @Override
+    @Disabled
+    protected void merge_shouldAddAndOverwriteEntries() {
+        super.merge_shouldAddAndOverwriteEntries();
+    }
+
+    // SingleParticipantContextConfigStore is read-only
+    @Override
+    @Disabled
+    protected void merge_shouldRemoveEntry_whenValueIsNull() {
+        super.merge_shouldRemoveEntry_whenValueIsNull();
+    }
+
+    // SingleParticipantContextConfigStore is read-only
+    @Override
+    @Disabled
+    protected void merge_whenKeyAbsent_nullIsNoop() {
+        super.merge_whenKeyAbsent_nullIsNoop();
+    }
+
+    // SingleParticipantContextConfigStore is read-only
+    @Override
+    @Disabled
+    protected void merge_shouldNotTouchPrivateEntries_whenPatchingEntriesOnly() {
+        super.merge_shouldNotTouchPrivateEntries_whenPatchingEntriesOnly();
+    }
+
+    // SingleParticipantContextConfigStore is read-only
+    @Override
+    @Disabled
+    protected void merge_shouldPreserveCreatedAt_andUpdateLastModified() {
+        super.merge_shouldPreserveCreatedAt_andUpdateLastModified();
+    }
+
+    // SingleParticipantContextConfigStore is read-only
+    @Override
+    @Disabled
+    protected void merge_shouldReturnMergedConfiguration() {
+        super.merge_shouldReturnMergedConfiguration();
+    }
+
     @Test
     void get() {
         assertThat(getStore().get(PARTICIPANT_CONTEXT_ID))
@@ -68,6 +117,13 @@ public class SingleParticipantContextConfigStoreTest extends ParticipantContextC
     void save_unsupported() {
 
         assertThatThrownBy(() -> getStore().save(config))
+                .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void merge_unsupported() {
+
+        assertThatThrownBy(() -> getStore().merge(config))
                 .isInstanceOf(UnsupportedOperationException.class);
     }
 

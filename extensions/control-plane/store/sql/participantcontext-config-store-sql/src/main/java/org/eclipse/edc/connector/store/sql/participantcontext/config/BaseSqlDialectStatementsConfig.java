@@ -37,4 +37,29 @@ public class BaseSqlDialectStatementsConfig implements ParticipantContextConfigS
 
     }
 
+    @Override
+    public String getInsertIfAbsentTemplate() {
+        return executeStatement()
+                .column(getIdColumn())
+                .column(getCreateTimestampColumn())
+                .column(getLastModifiedTimestampColumn())
+                .jsonColumn(getEntriesColumn())
+                .jsonColumn(getPrivateEntriesColumn())
+                .insertIntoIgnoreConflict(getParticipantContextConfigTable(), getIdColumn());
+    }
+
+    @Override
+    public String getFindByIdForUpdateTemplate() {
+        return format("SELECT * FROM %s WHERE %s = ? FOR UPDATE", getParticipantContextConfigTable(), getIdColumn());
+    }
+
+    @Override
+    public String getUpdateEntriesTemplate() {
+        return executeStatement()
+                .column(getLastModifiedTimestampColumn())
+                .jsonColumn(getEntriesColumn())
+                .jsonColumn(getPrivateEntriesColumn())
+                .update(getParticipantContextConfigTable(), getIdColumn());
+    }
+
 }

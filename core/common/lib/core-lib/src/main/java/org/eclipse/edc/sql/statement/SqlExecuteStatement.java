@@ -105,6 +105,22 @@ public class SqlExecuteStatement {
     }
 
     /**
+     * Gives a SQL insert statement that does nothing if a row with the same id already exists, based on the
+     * "ON CONFLICT" semantic.
+     *
+     * @param tableName the table name.
+     * @param idColumn  the id column.
+     * @return sql insert statement.
+     */
+    public String insertIntoIgnoreConflict(String tableName, String idColumn) {
+        if (columnEntries.isEmpty()) {
+            throw new IllegalArgumentException(format("Cannot create INSERT statement on %s because no columns are registered", tableName));
+        }
+
+        return insertStatement(tableName) + " ON CONFLICT (" + idColumn + ") DO NOTHING;";
+    }
+
+    /**
      * Gives a SQL update statement.
      *
      * @param tableName   the table name.
