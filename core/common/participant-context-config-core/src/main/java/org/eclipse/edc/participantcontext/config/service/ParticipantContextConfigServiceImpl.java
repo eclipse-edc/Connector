@@ -58,44 +58,21 @@ public class ParticipantContextConfigServiceImpl implements ParticipantContextCo
     @Override
     public ServiceResult<Void> merge(ParticipantContextConfiguration config) {
         return transactionContext.execute(() -> {
-            var existing = configStore.get(config.getParticipantContextId());
+            var now = clock.millis();
+            // the patch is handed to the store as-is: applying it has to happen atomically inside the store, otherwise
+            // concurrent merges would read the same base and clobber each other's entries
             return ServiceResult.from(encryptEntries(config))
-                    .map(encryptedPatch -> {
-                        var base = existing != null
-                                ? existing
-                                : ParticipantContextConfiguration.Builder.newInstance()
-                                    .participantContextId(config.getParticipantContextId())
-                                    .createdAt(clock.millis())
-                                    .build();
-                        return base.toBuilder()
-                                .entries(mergePatch(base.getEntries(), encryptedPatch.getEntries()))
-                                .privateEntries(mergePatch(base.getPrivateEntries(), encryptedPatch.getPrivateEntries()))
-                                .lastModified(clock.millis())
-                                .build();
-                    })
-                    .onSuccess(configStore::save)
+                    .map(encryptedPatch -> encryptedPatch.toBuilder()
+                            .createdAt(now) // only takes effect if no configuration exists yet
+                            .lastModified(now)
+                            .build())
+                    .onSuccess(configStore::merge)
                     .mapEmpty();
         });
     }
 
     private static boolean hasNullValue(Map<String, String> map) {
         return map.values().stream().anyMatch(value -> value == null);
-    }
-
-    /**
-     * Applies a JSON Merge Patch (RFC 7396) of {@code patch} onto {@code base}: a null value removes the key, any
-     * other value adds or overwrites it.
-     */
-    private static Map<String, String> mergePatch(Map<String, String> base, Map<String, String> patch) {
-        var merged = new HashMap<>(base);
-        patch.forEach((key, value) -> {
-            if (value == null) {
-                merged.remove(key);
-            } else {
-                merged.put(key, value);
-            }
-        });
-        return merged;
     }
 
     private Result<ParticipantContextConfiguration> encryptEntries(ParticipantContextConfiguration config) {

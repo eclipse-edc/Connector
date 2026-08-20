@@ -50,4 +50,21 @@ public interface ParticipantContextConfigStoreStatements extends SqlStatements {
 
     String getFindByIdTemplate();
 
+    /**
+     * Creates an empty configuration row if none exists yet, so that it can subsequently be locked for update.
+     */
+    String getInsertIfAbsentTemplate();
+
+    /**
+     * Selects a configuration by id, taking an exclusive row lock that is held until the enclosing transaction
+     * completes. Must be executed within a transaction.
+     */
+    String getFindByIdForUpdateTemplate();
+
+    /**
+     * Updates the entries and the last-modified timestamp of an existing configuration. Leaves the creation
+     * timestamp untouched.
+     */
+    String getUpdateEntriesTemplate();
+
 }

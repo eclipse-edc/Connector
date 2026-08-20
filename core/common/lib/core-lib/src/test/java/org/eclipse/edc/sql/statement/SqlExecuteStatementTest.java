@@ -106,6 +106,28 @@ class SqlExecuteStatementTest {
     }
 
     @Nested
+    class InsertIgnoreConflict {
+
+        @Test
+        void shouldThrowException_whenNoColumnSpecified() {
+            assertThatThrownBy(() -> SqlExecuteStatement.newInstance("::json").insertIntoIgnoreConflict("table_name", "id"))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void shouldReturnStatement() {
+            var statement = SqlExecuteStatement.newInstance("::json")
+                    .column("id")
+                    .column("column_name")
+                    .jsonColumn("json_column_name")
+                    .insertIntoIgnoreConflict("table_name", "id");
+
+            assertThat(statement).isEqualToIgnoringCase("insert into table_name (id, column_name, json_column_name)" +
+                    " values (?, ?, ?::json) on conflict (id) do nothing;");
+        }
+    }
+
+    @Nested
     class Upsert {
 
         @Test

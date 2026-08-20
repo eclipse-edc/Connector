@@ -30,9 +30,16 @@ import java.util.Map;
 
 
 /**
- * SQL-based {@link Config} store intended for use with PostgreSQL
+ * SQL-based {@link Config} store intended for use with PostgreSQL.
+ * <p>
+ * Note that {@link #merge(ParticipantContextConfiguration)} guards the read-modify-write with a {@code SELECT ... FOR
+ * UPDATE} row lock, which is only held for the duration of the enclosing transaction. It therefore requires a real
+ * {@link TransactionContext}: under a {@code NoopTransactionContext} with a non-enlisted {@code DataSource} every
+ * statement auto-commits, the lock is released immediately, and concurrent merges can lose entries.
  */
 public class SqlParticipantContextConfigStore extends AbstractSqlStore implements ParticipantContextConfigStore {
+
+    private static final String EMPTY_JSON_OBJECT = "{}";
 
     private final ParticipantContextConfigStoreStatements statements;
 
@@ -60,6 +67,46 @@ public class SqlParticipantContextConfigStore extends AbstractSqlStore implement
                         toJson(config.getPrivateEntries())
                 );
 
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
+    @Override
+    public ParticipantContextConfiguration merge(ParticipantContextConfiguration patch) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                // materialize an empty row if none exists yet, so that the subsequent lock always has a row to take
+                queryExecutor.execute(connection, statements.getInsertIfAbsentTemplate(),
+                        patch.getParticipantContextId(),
+                        patch.getCreatedAt(),
+                        patch.getLastModified(),
+                        EMPTY_JSON_OBJECT,
+                        EMPTY_JSON_OBJECT
+                );
+
+                // take an exclusive row lock, held until the enclosing transaction completes. Under READ COMMITTED a
+                // blocked reader re-reads the latest committed row once the lock is granted, which is what makes the
+                // read-modify-write below safe against concurrent merges.
+                var existing = queryExecutor.single(connection, false, this::mapResultSet,
+                        statements.getFindByIdForUpdateTemplate(), patch.getParticipantContextId());
+
+                if (existing == null) {
+                    throw new EdcPersistenceException("Configuration for participant context '%s' vanished while merging"
+                            .formatted(patch.getParticipantContextId()));
+                }
+
+                var merged = patch.mergeOnto(existing);
+
+                queryExecutor.execute(connection, statements.getUpdateEntriesTemplate(),
+                        merged.getLastModified(),
+                        toJson(merged.getEntries()),
+                        toJson(merged.getPrivateEntries()),
+                        merged.getParticipantContextId()
+                );
+
+                return merged;
             } catch (SQLException e) {
                 throw new EdcPersistenceException(e);
             }

@@ -32,6 +32,11 @@ public class SingleParticipantContextConfigStore implements ParticipantContextCo
     }
 
     @Override
+    public ParticipantContextConfiguration merge(ParticipantContextConfiguration patch) {
+        throw new UnsupportedOperationException("SingleParticipantContextConfigStore is read-only");
+    }
+
+    @Override
     public @Nullable ParticipantContextConfiguration get(String participantContextId) {
         if (this.config.getParticipantContextId().equals(participantContextId)) {
             return config;
