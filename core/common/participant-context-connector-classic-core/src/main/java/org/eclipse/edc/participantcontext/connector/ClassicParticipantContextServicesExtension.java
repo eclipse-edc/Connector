@@ -54,7 +54,7 @@ public class ClassicParticipantContextServicesExtension implements ServiceExtens
 
     private void initializeParticipantContext() {
         var contextId = participantContextId != null ? participantContextId : participantId;
-        var participantContext = ParticipantContext.Builder.newInstance().participantContextId(contextId)
+        var participantContext = ParticipantContext.Builder.newInstance().id(contextId)
                 .identity(participantId).build();
 
         if (participantContextStore.findById(contextId).failed()) {

@@ -82,6 +82,6 @@ class TransferProcessProviderFactoryTest {
     }
 
     private ParticipantContext createParticipantContext(String participantContextId) {
-        return ParticipantContext.Builder.newInstance().participantContextId(participantContextId).identity("any").build();
+        return ParticipantContext.Builder.newInstance().id(participantContextId).identity("any").build();
     }
 }

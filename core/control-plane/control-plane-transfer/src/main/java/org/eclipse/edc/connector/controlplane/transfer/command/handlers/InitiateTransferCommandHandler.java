@@ -80,7 +80,7 @@ public class InitiateTransferCommandHandler implements CommandHandler<InitiateTr
                 .privateProperties(transferRequest.getPrivateProperties())
                 .callbackAddresses(transferRequest.getCallbackAddresses())
                 .traceContext(telemetry.getCurrentTraceContext())
-                .participantContextId(participantContext.getParticipantContextId())
+                .participantContextId(participantContext.getId())
                 .dataplaneMetadata(transferRequest.getDataplaneMetadata())
                 .build();
 

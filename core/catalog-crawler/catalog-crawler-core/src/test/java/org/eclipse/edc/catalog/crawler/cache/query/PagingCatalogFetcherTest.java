@@ -54,7 +54,7 @@ class PagingCatalogFetcherTest {
     private final ProtocolRemoteMessageDispatcher messageDispatcherMock = mock();
     private final ObjectMapper objectMapper = createObjectMapper();
     private final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(
-            ParticipantContext.Builder.newInstance().participantContextId("participantContext").identity("identity").build());
+            ParticipantContext.Builder.newInstance().id("participantContext").identity("identity").build());
     private final TypeTransformerRegistry typeTransformerRegistry = new TypeTransformerRegistryImpl(mock());
     private PagingCatalogFetcher fetcher;
 

@@ -68,7 +68,7 @@ class DspRequestHandlerImplTest {
     private final DspRequestHandlerImpl handler = new DspRequestHandlerImpl(mock(), validatorRegistry, dspTransformerRegistry);
     private final String protocol = DATASPACE_PROTOCOL_HTTP;
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
-            .participantContextId("participantContextId")
+            .id("participantContextId")
             .identity("participantId")
             .build();
     private final ParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(participantContext);

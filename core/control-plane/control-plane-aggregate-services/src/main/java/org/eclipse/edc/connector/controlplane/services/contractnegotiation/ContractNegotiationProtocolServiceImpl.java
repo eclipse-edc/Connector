@@ -204,7 +204,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
         }
 
         var negotiation = leaseNegotiation.getContent();
-        if (!negotiation.getParticipantContextId().equals(participantContext.getParticipantContextId())) {
+        if (!negotiation.getParticipantContextId().equals(participantContext.getId())) {
             store.breakLease(negotiation);
             return ServiceResult.notFound("No negotiation with id %s found".formatted(negotiation.getId()));
         }
@@ -234,7 +234,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
                 .protocol(message.getProtocol())
                 .traceContext(telemetry.getCurrentTraceContext())
                 .type(type)
-                .participantContextId(participantContext.getParticipantContextId())
+                .participantContextId(participantContext.getId())
                 .build();
     }
 
@@ -244,14 +244,14 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
 
         var result = consumerOfferResolver.resolveOffer(offerId);
 
-        if (result.succeeded() && participantContext.getParticipantContextId().equals(result.getContent().getContractDefinition().getParticipantContextId())) {
+        if (result.succeeded() && participantContext.getId().equals(result.getContent().getContractDefinition().getParticipantContextId())) {
             return result;
         }
 
         if (result.failed()) {
             monitor.debug(() -> "Failed to resolve offer: %s".formatted(result.getFailureDetail()));
         } else {
-            monitor.debug(() -> "Offer %s does not belong to participantContext %s".formatted(offerId, participantContext.getParticipantContextId()));
+            monitor.debug(() -> "Offer %s does not belong to participantContext %s".formatted(offerId, participantContext.getId()));
         }
 
         return ServiceResult.notFound("Not found");
@@ -372,7 +372,7 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
 
     private ServiceResult<ContractNegotiation> getNegotiation(ParticipantContext participantContext, String negotiationId) {
         return Optional.ofNullable(store.findById(negotiationId))
-                .filter(cn -> participantContext.getParticipantContextId().equals(cn.getParticipantContextId()))
+                .filter(cn -> participantContext.getId().equals(cn.getParticipantContextId()))
                 .map(ServiceResult::success)
                 .orElseGet(() -> ServiceResult.notFound("No negotiation with id %s found".formatted(negotiationId)));
     }

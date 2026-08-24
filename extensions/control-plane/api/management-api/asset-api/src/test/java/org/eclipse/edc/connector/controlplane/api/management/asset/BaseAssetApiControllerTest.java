@@ -75,7 +75,7 @@ public abstract class BaseAssetApiControllerTest extends RestControllerTestBase 
     protected final TypeTransformerRegistry transformerRegistry = mock(TypeTransformerRegistry.class);
     protected final JsonObjectValidatorRegistry validator = mock(JsonObjectValidatorRegistry.class);
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
-            .participantContextId("participantContextId")
+            .id("participantContextId")
             .identity("participantId")
             .build();
     protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(participantContext);
@@ -353,7 +353,7 @@ public abstract class BaseAssetApiControllerTest extends RestControllerTestBase 
     @Test
     void updateAsset_whenExists() {
         var asset = Asset.Builder.newInstance().property("key1", "value1")
-                .participantContextId(participantContext.getParticipantContextId())
+                .participantContextId(participantContext.getId())
                 .build();
         when(transformerRegistry.transform(isA(JsonObject.class), eq(Asset.class))).thenReturn(Result.success(asset));
         when(service.update(any(Asset.class))).thenReturn(ServiceResult.success());

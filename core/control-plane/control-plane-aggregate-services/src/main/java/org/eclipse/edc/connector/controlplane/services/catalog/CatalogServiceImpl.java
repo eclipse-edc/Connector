@@ -43,7 +43,7 @@ public class CatalogServiceImpl implements CatalogService {
                 .additionalScopes(additionalScopes)
                 .build();
 
-        return dispatcher.dispatch(participantContext.getParticipantContextId(), byte[].class, request);
+        return dispatcher.dispatch(participantContext.getId(), byte[].class, request);
     }
 
     @Override
@@ -55,6 +55,6 @@ public class CatalogServiceImpl implements CatalogService {
                 .counterPartyAddress(counterPartyAddress)
                 .build();
 
-        return dispatcher.dispatch(participantContext.getParticipantContextId(), byte[].class, request);
+        return dispatcher.dispatch(participantContext.getId(), byte[].class, request);
     }
 }

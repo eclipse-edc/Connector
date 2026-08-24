@@ -82,7 +82,7 @@ public abstract class ParticipantContextApiControllerTestBase extends RestContro
 
     private ParticipantContext createParticipantContext() {
         return createParticipantContextBuilder()
-                .participantContextId(UUID.randomUUID().toString())
+                .id(UUID.randomUUID().toString())
                 .identity(UUID.randomUUID().toString())
                 .properties(Map.of())
                 .build();
@@ -102,13 +102,13 @@ public abstract class ParticipantContextApiControllerTestBase extends RestContro
             when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(expandedBody));
 
             baseRequest()
-                    .get("/participants/" + participantContext.getParticipantContextId())
+                    .get("/participants/" + participantContext.getId())
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
                     .body("id", is("id"))
                     .body("createdAt", is(1234));
-            verify(service).getParticipantContext(participantContext.getParticipantContextId());
+            verify(service).getParticipantContext(participantContext.getId());
             verify(transformerRegistry).transform(participantContext, JsonObject.class);
         }
 
@@ -194,11 +194,11 @@ public abstract class ParticipantContextApiControllerTestBase extends RestContro
             when(service.deleteParticipantContext(any())).thenReturn(ServiceResult.success());
 
             baseRequest()
-                    .delete("/participants/" + participantContext.getParticipantContextId())
+                    .delete("/participants/" + participantContext.getId())
                     .then()
                     .statusCode(204);
 
-            verify(service).deleteParticipantContext(participantContext.getParticipantContextId());
+            verify(service).deleteParticipantContext(participantContext.getId());
         }
 
         @Test
@@ -229,7 +229,7 @@ public abstract class ParticipantContextApiControllerTestBase extends RestContro
             baseRequest()
                     .body(requestBody)
                     .contentType(JSON)
-                    .put("/participants/" + participantContext.getParticipantContextId())
+                    .put("/participants/" + participantContext.getId())
                     .then()
                     .statusCode(204);
             verify(transformerRegistry).transform(isA(JsonObject.class), eq(ParticipantContext.class));
@@ -280,7 +280,7 @@ public abstract class ParticipantContextApiControllerTestBase extends RestContro
         void create() {
             var participantContext = createParticipantContext();
             var response = Json.createObjectBuilder()
-                    .add("id", participantContext.getParticipantContextId())
+                    .add("id", participantContext.getId())
                     .add("createdAt", participantContext.getCreatedAt())
                     .build();
 
@@ -300,7 +300,7 @@ public abstract class ParticipantContextApiControllerTestBase extends RestContro
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
-                    .body("id", is(participantContext.getParticipantContextId()))
+                    .body("id", is(participantContext.getId()))
                     .body("createdAt", is(participantContext.getCreatedAt()));
 
             verify(transformerRegistry).transform(isA(JsonObject.class), eq(ParticipantContext.class));

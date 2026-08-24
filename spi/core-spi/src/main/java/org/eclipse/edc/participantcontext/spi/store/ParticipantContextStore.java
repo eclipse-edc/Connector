@@ -20,8 +20,6 @@ import org.eclipse.edc.spi.result.StoreResult;
 
 import java.util.Collection;
 
-import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
-
 public interface ParticipantContextStore {
 
     /**
@@ -62,15 +60,7 @@ public interface ParticipantContextStore {
      * @param participantContextId The unique identifier of the ParticipantContext.
      * @return The {@link ParticipantContext} if found, otherwise null.
      */
-    default StoreResult<ParticipantContext> findById(String participantContextId) {
-        var res = query(queryByParticipantContextId(participantContextId).build());
-        if (res.succeeded()) {
-            return res.getContent().stream().findFirst()
-                           .map(StoreResult::success)
-                           .orElse(StoreResult.notFound("ParticipantContext with ID '%s' does not exist.".formatted(participantContextId)));
-        }
-        return StoreResult.generalError(res.getFailureDetail());
-    }
+    StoreResult<ParticipantContext> findById(String participantContextId);
 
     default String alreadyExistsErrorMessage(String id) {
         return "A ParticipantContext with ID '%s' already exists.".formatted(id);

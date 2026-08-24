@@ -78,7 +78,7 @@ public class DatasetResolverImpl implements DatasetResolver {
 
         var assetsQuery = QuerySpec.Builder.newInstance()
                 .offset(0).limit(MAX_VALUE).filter(querySpec.getFilterExpression())
-                .filter(filterByParticipantContextId(participantContext.getParticipantContextId()))
+                .filter(filterByParticipantContextId(participantContext.getId()))
                 .build();
 
         return assetIndex.queryAssets(assetsQuery)

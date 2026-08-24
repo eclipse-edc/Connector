@@ -83,7 +83,7 @@ public class PagingCatalogFetcher {
                 .querySpec(QuerySpec.Builder.newInstance().range(range).build())
                 .build();
 
-        var participantResult  = participantContextSupplier.get().map(ParticipantContext::getParticipantContextId);
+        var participantResult  = participantContextSupplier.get().map(ParticipantContext::getId);
         if (participantResult.failed()) {
             return failedFuture(new EdcException(participantResult.getFailureDetail()));
         }

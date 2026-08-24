@@ -90,7 +90,7 @@ public abstract class BaseContractDefinitionApiController {
         var transform = transformerRegistry.transform(createObject, ContractDefinition.class)
                 .orElseThrow(InvalidRequestException::new)
                 .toBuilder()
-                .participantContextId(participantContext.getParticipantContextId())
+                .participantContextId(participantContext.getId())
                 .build();
 
         var responseDto = service.create(transform)
@@ -118,7 +118,7 @@ public abstract class BaseContractDefinitionApiController {
         var contractDefinition = transformerRegistry.transform(updateObject, ContractDefinition.class)
                 .orElseThrow(InvalidRequestException::new)
                 .toBuilder()
-                .participantContextId(participantContext.getParticipantContextId())
+                .participantContextId(participantContext.getId())
                 .build();
 
         service.update(contractDefinition).orElseThrow(exceptionMapper(ContractDefinition.class));

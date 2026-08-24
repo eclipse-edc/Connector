@@ -96,7 +96,7 @@ public class CatalogApiV5EndToEndTest {
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
             for (var p : list) {
-                participantContextService.deleteParticipantContext(p.getParticipantContextId()).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+                participantContextService.deleteParticipantContext(p.getId()).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
             }
 
             dataPlaneInstanceStore.getAll().toList().forEach(dp -> dataPlaneInstanceStore.deleteById(dp.getId()));
@@ -660,7 +660,7 @@ public class CatalogApiV5EndToEndTest {
         private void createParticipant(ParticipantContextService participantContextService,
                                        ParticipantContextConfigStore configStore, String participantContextId) {
             var pc = ParticipantContext.Builder.newInstance()
-                    .participantContextId(participantContextId)
+                    .id(participantContextId)
                     .state(ParticipantContextState.ACTIVATED)
                     .identity(participantContextId)
                     .build();

@@ -66,7 +66,7 @@ class JsonObjectToParticipantContextTransformerTest {
 
         assertThat(result).isSucceeded()
                 .satisfies(participantContext -> {
-                    assertThat(participantContext.getParticipantContextId()).isEqualTo("participant-1");
+                    assertThat(participantContext.getId()).isEqualTo("participant-1");
                     assertThat(participantContext.getIdentity()).isEqualTo("did:example:123");
                     assertThat(participantContext.getProperties()).containsEntry("key1", "value1")
                             .containsEntry("key2", "value2");
@@ -84,7 +84,7 @@ class JsonObjectToParticipantContextTransformerTest {
         var result = typeTransformerRegistry.transform(jsonObject, ParticipantContext.class);
 
         assertThat(result).isSucceeded().satisfies(participantContext -> {
-            assertThat(participantContext.getParticipantContextId()).isNotNull().isNotEmpty();
+            assertThat(participantContext.getId()).isNotNull().isNotEmpty();
             assertThat(participantContext.getProperties()).containsEntry("key1", "value1");
         });
     }
@@ -100,7 +100,7 @@ class JsonObjectToParticipantContextTransformerTest {
         var result = typeTransformerRegistry.transform(jsonObject, ParticipantContext.class);
 
         assertThat(result).isSucceeded().satisfies(participantContext -> {
-            assertThat(participantContext.getParticipantContextId()).isNotNull().isNotEmpty();
+            assertThat(participantContext.getId()).isNotNull().isNotEmpty();
             assertThat(participantContext.getProperties()).isEmpty();
         });
     }
@@ -115,7 +115,7 @@ class JsonObjectToParticipantContextTransformerTest {
         var result = typeTransformerRegistry.transform(jsonObject, ParticipantContext.class);
 
         assertThat(result).isSucceeded().satisfies(participantContext -> {
-            assertThat(participantContext.getParticipantContextId()).isEqualTo("participant-3");
+            assertThat(participantContext.getId()).isEqualTo("participant-3");
             assertThat(participantContext.getProperties()).isEmpty();
         });
 
@@ -149,7 +149,7 @@ class JsonObjectToParticipantContextTransformerTest {
         var result = typeTransformerRegistry.transform(jsonObject, ParticipantContext.class);
 
         assertThat(result).isSucceeded().satisfies(participantContext -> {
-            assertThat(participantContext.getParticipantContextId()).isEqualTo("participant-5");
+            assertThat(participantContext.getId()).isEqualTo("participant-5");
             assertThat(participantContext.getProperties()).containsEntry("simpleKey", "simpleValue")
                     .containsEntry("booleanKey", true);
         });

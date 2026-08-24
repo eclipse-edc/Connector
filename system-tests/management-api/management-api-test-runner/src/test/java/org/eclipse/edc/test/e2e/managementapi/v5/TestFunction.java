@@ -50,7 +50,7 @@ public class TestFunction {
 
     public static ParticipantContext participantContext(String participantContextId, String identity, Map<String, Object> properties) {
         return ParticipantContext.Builder.newInstance()
-                .participantContextId(participantContextId)
+                .id(participantContextId)
                 .properties(properties)
                 .identity(identity)
                 .state(ParticipantContextState.ACTIVATED)

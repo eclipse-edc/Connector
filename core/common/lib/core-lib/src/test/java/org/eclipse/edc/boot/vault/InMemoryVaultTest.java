@@ -87,7 +87,7 @@ class InMemoryVaultTest {
     @Nested
     class WithParticipantContextSupplier {
         private final ParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(
-                ParticipantContext.Builder.newInstance().participantContextId("participantContextId").identity("identity").build()
+                ParticipantContext.Builder.newInstance().id("participantContextId").identity("identity").build()
         );
         private final InMemoryVault vault = new InMemoryVault(mock(Monitor.class), participantContextSupplier);
 

@@ -278,7 +278,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
             var transferProcess = createTransferProcess().id("id").build();
             var responseBody = Json.createObjectBuilder().add(ID, "transferProcessId").build();
             when(participantContextService.getParticipantContext(any()))
-                    .thenReturn(ServiceResult.success(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).identity(participantContextId).build()));
+                    .thenReturn(ServiceResult.success(ParticipantContext.Builder.newInstance().id(participantContextId).identity(participantContextId).build()));
             when(transformerRegistry.transform(any(), eq(TransferRequest.class))).thenReturn(Result.success(transferRequest));
             when(service.initiateTransfer(isA(ParticipantContext.class), any())).thenReturn(ServiceResult.success(transferProcess));
             when(transformerRegistry.transform(any(), eq(JsonObject.class))).thenReturn(Result.success(responseBody));
@@ -316,7 +316,7 @@ public abstract class BaseTransferProcessApiControllerTest extends RestControlle
         void shouldReturnConflict_whenItAlreadyExists() {
             var transferRequest = TransferRequest.Builder.newInstance().build();
             when(participantContextService.getParticipantContext(any()))
-                    .thenReturn(ServiceResult.success(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).identity(participantContextId).build()));
+                    .thenReturn(ServiceResult.success(ParticipantContext.Builder.newInstance().id(participantContextId).identity(participantContextId).build()));
             when(transformerRegistry.transform(any(), eq(TransferRequest.class))).thenReturn(Result.success(transferRequest));
             when(service.initiateTransfer(any(), any())).thenReturn(ServiceResult.conflict("already exists"));
             var requestBody = Json.createObjectBuilder().add(TYPE, TRANSFER_REQUEST_TYPE_TERM).build();

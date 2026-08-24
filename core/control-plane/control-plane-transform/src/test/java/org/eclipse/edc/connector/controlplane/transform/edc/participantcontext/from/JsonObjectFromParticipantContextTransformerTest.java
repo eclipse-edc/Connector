@@ -49,7 +49,7 @@ class JsonObjectFromParticipantContextTransformerTest {
     @Test
     void transform_shouldConvertParticipantContextToJsonObject() {
         var participantContext = ParticipantContext.Builder.newInstance()
-                .participantContextId("participant-1")
+                .id("participant-1")
                 .state(ParticipantContextState.ACTIVATED)
                 .identity("did:example:123")
                 .properties(Map.of("key1", "value1", "key2", "value2"))
@@ -72,7 +72,7 @@ class JsonObjectFromParticipantContextTransformerTest {
     @Test
     void transform_withEmptyProperties_shouldReturnJsonObjectWithEmptyProperties() {
         var participantContext = ParticipantContext.Builder.newInstance()
-                .participantContextId("participant-2")
+                .id("participant-2")
                 .state(ParticipantContextState.ACTIVATED)
                 .identity("did:example:123")
                 .properties(Map.of())
@@ -89,7 +89,7 @@ class JsonObjectFromParticipantContextTransformerTest {
     @Test
     void transform_shouldIncludeCorrectState() {
         var participantContext = ParticipantContext.Builder.newInstance()
-                .participantContextId("participant-3")
+                .id("participant-3")
                 .state(ParticipantContextState.DEACTIVATED)
                 .identity("did:example:123")
                 .build();

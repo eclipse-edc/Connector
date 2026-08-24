@@ -54,7 +54,7 @@ class ContractDefinitionResolverImplTest {
     private final ContractDefinitionStore definitionStore = mock();
 
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
-            .participantContextId("participantContextId")
+            .id("participantContextId")
             .identity("participantId")
             .build();
 
@@ -77,7 +77,7 @@ class ContractDefinitionResolverImplTest {
                 eq(def.getPolicy()),
                 and(isA(CatalogPolicyContext.class), argThat(c -> c.participantAgent().equals(agent)))
         );
-        var query = queryByParticipantContextId(participantContext.getParticipantContextId()).limit(Integer.MAX_VALUE).build();
+        var query = queryByParticipantContextId(participantContext.getId()).limit(Integer.MAX_VALUE).build();
 
         verify(definitionStore).findAll(query);
     }

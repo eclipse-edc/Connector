@@ -56,7 +56,7 @@ class InitiateNegotiationCommandHandlerTest {
     void shouldSaveNewNegotiationInInitialState() {
         when(store.save(any())).thenReturn(StoreResult.success());
         var participantContext = ParticipantContext.Builder.newInstance()
-                .participantContextId("participantContextId")
+                .id("participantContextId")
                 .identity("participantId")
                 .build();
         var request = ContractRequest.Builder.newInstance()
@@ -90,7 +90,7 @@ class InitiateNegotiationCommandHandlerTest {
     void shouldFail_whenStorageFails() {
         when(store.save(any())).thenReturn(StoreResult.generalError("error"));
         var participantContext = ParticipantContext.Builder.newInstance()
-                .participantContextId("participantContextId")
+                .id("participantContextId")
                 .identity("participantId")
                 .build();
         var request = ContractRequest.Builder.newInstance()

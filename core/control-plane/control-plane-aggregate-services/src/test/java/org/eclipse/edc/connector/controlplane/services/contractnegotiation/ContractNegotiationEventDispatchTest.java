@@ -80,7 +80,7 @@ class ContractNegotiationEventDispatchTest {
     private final ClaimToken token = ClaimToken.Builder.newInstance().claim("client_id", CONSUMER).build();
     private final TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance().token(UUID.randomUUID().toString()).build();
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
-            .participantContextId("participantContextId")
+            .id("participantContextId")
             .identity("participantId")
             .build();
     protected DataspaceProfileContextRegistry dataspaceProfileContextRegistry = mock();

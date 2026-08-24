@@ -110,7 +110,7 @@ class TransferProcessProtocolServiceImplTest {
     private final DataFlowController dataFlowController = mock();
     private final TransferProcessProviderFactory transferProcessProviderFactory = mock();
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
-            .participantContextId("participantContextId")
+            .id("participantContextId")
             .identity("participantId")
             .build();
     private TransferProcessProtocolService service;
@@ -232,7 +232,7 @@ class TransferProcessProtocolServiceImplTest {
         return TransferProcess.Builder.newInstance()
                 .contractId("contractId")
                 .dataDestination(DataAddress.Builder.newInstance().type("type").build())
-                .participantContextId(participantContext.getParticipantContextId());
+                .participantContextId(participantContext.getId());
     }
 
     private ParticipantAgent participantAgent() {
@@ -256,7 +256,7 @@ class TransferProcessProtocolServiceImplTest {
                 .consumerId("consumer")
                 .assetId("assetId")
                 .policy(Policy.Builder.newInstance().build())
-                .participantContextId(participantContext.getParticipantContextId());
+                .participantContextId(participantContext.getId());
     }
 
     @FunctionalInterface
@@ -1197,7 +1197,7 @@ class TransferProcessProtocolServiceImplTest {
 
 
             var wrongParticipantContext = ParticipantContext.Builder.newInstance()
-                    .participantContextId("wrongParticipantContext")
+                    .id("wrongParticipantContext")
                     .identity("wrongParticipantId")
                     .build();
 

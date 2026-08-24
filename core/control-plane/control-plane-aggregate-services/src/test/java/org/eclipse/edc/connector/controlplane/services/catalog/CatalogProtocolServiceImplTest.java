@@ -61,7 +61,7 @@ class CatalogProtocolServiceImplTest {
     private final ParticipantIdentityResolver identityResolver = mock();
     private final TransactionContext transactionContext = spy(new NoopTransactionContext());
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
-            .participantContextId("participantContextId")
+            .id("participantContextId")
             .identity("participantId")
             .build();
 

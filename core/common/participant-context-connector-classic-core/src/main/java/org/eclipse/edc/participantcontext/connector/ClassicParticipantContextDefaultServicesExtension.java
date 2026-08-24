@@ -52,7 +52,7 @@ public class ClassicParticipantContextDefaultServicesExtension implements Servic
     @Provider(isDefault = true)
     public SingleParticipantContextSupplier participantContextSupplier() {
         var contextId = participantContextId != null ? participantContextId : participantId;
-        var participantContext = ParticipantContext.Builder.newInstance().participantContextId(contextId)
+        var participantContext = ParticipantContext.Builder.newInstance().id(contextId)
                 .identity(participantId).build();
         return () -> ServiceResult.success(participantContext);
     }

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.edc.spi.entity.Entity;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -32,7 +33,7 @@ import static org.eclipse.edc.spi.constants.CoreConstants.EDC_NAMESPACE;
  * Representation of a participant in Identity Hub.
  */
 @JsonDeserialize(builder = ParticipantContext.Builder.class)
-public class ParticipantContext extends AbstractParticipantResource {
+public class ParticipantContext extends Entity implements ParticipantResource {
     public static final String PARTICIPANT_CONTEXT_TYPE_TERM = "ParticipantContext";
     public static final String PARTICIPANT_CONTEXT_TYPE_IRI = EDC_NAMESPACE + PARTICIPANT_CONTEXT_TYPE_TERM;
     public static final String PARTICIPANT_CONTEXT_IDENTITY_TERM = "identity";
@@ -76,25 +77,9 @@ public class ParticipantContext extends AbstractParticipantResource {
         return ParticipantContextState.from(state);
     }
 
-    /**
-     * Updates the last-modified field.
-     */
-    public void updateLastModified() {
-        this.lastModified = Instant.now().toEpochMilli();
-    }
-
-    /**
-     * Transitions this participant context to the {@link ParticipantContextState#ACTIVATED} state.
-     */
-    public void activate() {
-        this.state = ParticipantContextState.ACTIVATED.code();
-    }
-
-    /**
-     * Transitions this participant context to the {@link ParticipantContextState#DEACTIVATED} state.
-     */
-    public void deactivate() {
-        this.state = ParticipantContextState.DEACTIVATED.code();
+    @Override
+    public String getParticipantContextId() {
+        return getId();
     }
 
     public Map<String, Object> getProperties() {
@@ -104,7 +89,6 @@ public class ParticipantContext extends AbstractParticipantResource {
     public ParticipantContext.Builder toBuilder() {
         return Builder.newInstance()
                 .id(getId())
-                .participantContextId(participantContextId)
                 .createdAt(createdAt)
                 .lastModified(lastModified)
                 .state(getStateAsEnum())
@@ -112,7 +96,7 @@ public class ParticipantContext extends AbstractParticipantResource {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder extends AbstractParticipantResource.Builder<ParticipantContext, Builder> {
+    public static final class Builder extends Entity.Builder<ParticipantContext, Builder> {
 
         private Builder() {
             super(new ParticipantContext());
@@ -136,7 +120,7 @@ public class ParticipantContext extends AbstractParticipantResource {
 
         @Override
         public ParticipantContext build() {
-            Objects.requireNonNull(entity.participantContextId, "Participant Context ID cannot be null");
+            Objects.requireNonNull(entity.id, "Participant Context ID cannot be null");
             Objects.requireNonNull(entity.identity, "identity cannot be null");
 
             if (entity.state == 0) {
@@ -168,5 +152,9 @@ public class ParticipantContext extends AbstractParticipantResource {
             return this;
         }
 
+        @Deprecated(since = "0.18.0")
+        public Builder participantContextId(String participantContextId) {
+            return id(participantContextId);
+        }
     }
 }

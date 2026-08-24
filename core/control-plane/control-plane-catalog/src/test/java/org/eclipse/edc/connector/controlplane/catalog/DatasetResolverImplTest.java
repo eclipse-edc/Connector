@@ -97,7 +97,7 @@ class DatasetResolverImplTest {
     }
 
     private ParticipantContext createParticipantContext() {
-        return ParticipantContext.Builder.newInstance().participantContextId("participantContextId")
+        return ParticipantContext.Builder.newInstance().id("participantContextId")
                 .identity("id").build();
     }
 
@@ -347,7 +347,7 @@ class DatasetResolverImplTest {
                         assertThat(policy.getInheritsFrom()).isEqualTo("inherits2");
                     });
             verify(assetIndex).findById("datasetId");
-            verify(definitionResolver).resolveFor(argThat(argument -> argument.getParticipantContextId().equals("participantContextId")), eq(participantAgent));
+            verify(definitionResolver).resolveFor(argThat(argument -> argument.getId().equals("participantContextId")), eq(participantAgent));
         }
 
         @Test

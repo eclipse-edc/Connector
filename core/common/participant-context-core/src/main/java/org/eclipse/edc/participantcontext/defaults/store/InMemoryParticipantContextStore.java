@@ -44,20 +44,20 @@ public class InMemoryParticipantContextStore implements ParticipantContextStore 
 
     @Override
     public StoreResult<Void> create(ParticipantContext participantContext) {
-        var prev = participants.putIfAbsent(participantContext.getParticipantContextId(), participantContext);
+        var prev = participants.putIfAbsent(participantContext.getId(), participantContext);
         if (prev != null) {
-            return StoreResult.alreadyExists(alreadyExistsErrorMessage(participantContext.getParticipantContextId()));
+            return StoreResult.alreadyExists(alreadyExistsErrorMessage(participantContext.getId()));
         }
         return StoreResult.success();
     }
 
     @Override
     public StoreResult<Void> update(ParticipantContext participantContext) {
-        var prev = participants.replace(participantContext.getParticipantContextId(), participantContext);
+        var prev = participants.replace(participantContext.getId(), participantContext);
         if (prev != null) {
             return StoreResult.success();
         } else {
-            return StoreResult.notFound(notFoundErrorMessage(participantContext.getParticipantContextId()));
+            return StoreResult.notFound(notFoundErrorMessage(participantContext.getId()));
         }
     }
 
@@ -69,5 +69,15 @@ public class InMemoryParticipantContextStore implements ParticipantContextStore 
         } else {
             return StoreResult.notFound(notFoundErrorMessage(id));
         }
+    }
+
+    @Override
+    public StoreResult<ParticipantContext> findById(String participantContextId) {
+        var participantContext = participants.get(participantContextId);
+        if (participantContext != null) {
+            return StoreResult.success(participantContext);
+        }
+
+        return  StoreResult.notFound(notFoundErrorMessage(participantContextId));
     }
 }

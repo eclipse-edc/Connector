@@ -72,7 +72,7 @@ public class ProtocolTokenValidatorImpl implements ProtocolTokenValidator {
                 .dataspaceProfileContext(profileContext)
                 .build();
 
-        var tokenValidation = identityService.verifyJwtToken(participantContext.getParticipantContextId(), tokenRepresentation, verificationContext);
+        var tokenValidation = identityService.verifyJwtToken(participantContext.getId(), tokenRepresentation, verificationContext);
         if (tokenValidation.failed()) {
             monitor.debug(() -> "Unauthorized: %s".formatted(tokenValidation.getFailureDetail()));
             return ServiceResult.unauthorized("Unauthorized");

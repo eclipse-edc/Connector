@@ -60,7 +60,7 @@ public abstract class BaseAssetApiController {
         var asset = transformerRegistry.transform(assetJson, Asset.class)
                 .orElseThrow(InvalidRequestException::new)
                 .toBuilder()
-                .participantContextId(participantContext.getParticipantContextId())
+                .participantContextId(participantContext.getId())
                 .build();
 
         var idResponse = service.create(asset)
@@ -115,7 +115,7 @@ public abstract class BaseAssetApiController {
         var assetResult = transformerRegistry.transform(assetJson, Asset.class)
                 .orElseThrow(InvalidRequestException::new)
                 .toBuilder()
-                .participantContextId(participantContext.getParticipantContextId())
+                .participantContextId(participantContext.getId())
                 .build();
 
         service.update(assetResult)

@@ -74,7 +74,7 @@ class TransferProcessServiceImplTest {
             commandHandlerRegistry, contractNegotiationStore, queryValidator);
 
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
-            .participantContextId("participantContextId")
+            .id("participantContextId")
             .identity("participantId")
             .build();
 

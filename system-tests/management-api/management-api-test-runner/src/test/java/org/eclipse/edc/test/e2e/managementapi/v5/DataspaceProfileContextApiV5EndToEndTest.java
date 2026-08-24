@@ -53,7 +53,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
         @AfterEach
         void tearDown(ParticipantContextService pcService) {
             pcService.search(QuerySpec.max()).getContent()
-                    .forEach(pc -> pcService.deleteParticipantContext(pc.getParticipantContextId()).getContent());
+                    .forEach(pc -> pcService.deleteParticipantContext(pc.getId()).getContent());
 
         }
 
@@ -61,7 +61,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
         void getProfiles(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextService service) {
             var participantContextId = "test-user";
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).identity(participantContextId).build());
+            service.createParticipantContext(ParticipantContext.Builder.newInstance().id(participantContextId).identity(participantContextId).build());
 
             var token = authServer.createToken(participantContextId);
 
@@ -86,7 +86,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
         void getProfiles_withProvisioner(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextService service) {
             var participantContextId = "test-user";
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).identity(participantContextId).build());
+            service.createParticipantContext(ParticipantContext.Builder.newInstance().id(participantContextId).identity(participantContextId).build());
 
             var token = authServer.createAdminToken();
 
@@ -103,7 +103,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
         void getProfiles_withAdmin(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextService service) {
             var participantContextId = "test-user";
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).identity(participantContextId).build());
+            service.createParticipantContext(ParticipantContext.Builder.newInstance().id(participantContextId).identity(participantContextId).build());
 
             var token = authServer.createAdminToken();
 
@@ -123,7 +123,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
 
             var participantContextId = "test-user";
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).identity(participantContextId).build());
+            service.createParticipantContext(ParticipantContext.Builder.newInstance().id(participantContextId).identity(participantContextId).build());
 
             var otherParticipantId = UUID.randomUUID().toString();
 
@@ -142,7 +142,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
         void associateProfiles(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextService service) {
             var participantContextId = "test-user";
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).identity(participantContextId).build());
+            service.createParticipantContext(ParticipantContext.Builder.newInstance().id(participantContextId).identity(participantContextId).build());
 
             var token = authServer.createAdminToken();
 
@@ -161,7 +161,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
         void associateProfiles_validationFails(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextService service) {
             var participantContextId = "test-user";
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).identity(participantContextId).build());
+            service.createParticipantContext(ParticipantContext.Builder.newInstance().id(participantContextId).identity(participantContextId).build());
 
             var token = authServer.createAdminToken();
 
@@ -184,7 +184,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
         void associateProfiles_profileNotValid(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextService service) {
             var participantContextId = "test-user";
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).identity(participantContextId).build());
+            service.createParticipantContext(ParticipantContext.Builder.newInstance().id(participantContextId).identity(participantContextId).build());
 
             var token = authServer.createAdminToken();
 
@@ -204,7 +204,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
         void associateProfiles_tokenBearerWrong(ManagementEndToEndV5TestContext context, OauthServer authServer, ParticipantContextService service) {
             var participantContextId = "test-user";
 
-            service.createParticipantContext(ParticipantContext.Builder.newInstance().participantContextId(participantContextId).identity(participantContextId).build());
+            service.createParticipantContext(ParticipantContext.Builder.newInstance().id(participantContextId).identity(participantContextId).build());
 
             var token = authServer.createToken(participantContextId);
 

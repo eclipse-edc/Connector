@@ -52,7 +52,7 @@ public class ContractDefinitionResolverImpl implements ContractDefinitionResolve
     @Override
     public ResolvedContractDefinitions resolveFor(ParticipantContext participantContext, ParticipantAgent agent) {
         var policies = new HashMap<String, Policy>();
-        var query = queryByParticipantContextId(participantContext.getParticipantContextId()).limit(Integer.MAX_VALUE).build();
+        var query = queryByParticipantContextId(participantContext.getId()).limit(Integer.MAX_VALUE).build();
         var definitions = definitionStore.findAll(query)
                 .filter(definition -> {
                     var accessResult = Optional.of(definition.getAccessPolicyId())

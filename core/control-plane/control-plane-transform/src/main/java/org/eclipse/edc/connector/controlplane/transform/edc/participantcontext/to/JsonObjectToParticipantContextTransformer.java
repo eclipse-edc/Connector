@@ -36,7 +36,6 @@ public class JsonObjectToParticipantContextTransformer extends AbstractJsonLdTra
         var participantContext = ParticipantContext.Builder.newInstance();
         var nodeId = nodeId(jsonObject);
         var id = nodeId != null ? nodeId : UUID.randomUUID().toString();
-        participantContext.participantContextId(id);
         participantContext.id(id);
 
         transformString(jsonObject.get(PARTICIPANT_CONTEXT_IDENTITY_IRI), participantContext::identity, context);
