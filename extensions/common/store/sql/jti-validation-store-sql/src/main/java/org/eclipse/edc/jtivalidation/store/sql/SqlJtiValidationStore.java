@@ -113,7 +113,8 @@ public class SqlJtiValidationStore extends AbstractSqlStore implements JtiValida
 
     private JtiValidationEntry mapResultSet(ResultSet resultSet) throws Exception {
         var expiresAt = resultSet.getLong(statements.getExpirationTimeColumn());
-
-        return new JtiValidationEntry(resultSet.getString(statements.getTokenIdColumn()), expiresAt);
+        var wasNull = resultSet.wasNull();
+        return new JtiValidationEntry(resultSet.getString(statements.getTokenIdColumn()),
+                wasNull ? null : expiresAt);
     }
 }

@@ -58,6 +58,20 @@ public abstract class JtiValidationStoreTestBase {
     }
 
     @Test
+    void findById_noExpiresAt() {
+        var entry = new JtiValidationEntry("test-id", null);
+        var store = getStore();
+        store.storeEntry(entry);
+
+        var found = store.findById("test-id", false);
+        assertThat(found).isNotNull();
+        assertThat(found.expirationTimestamp()).isNull();
+        assertThat(found.expirationTimestampAsInstant()).isNull();
+        assertThat(found.isExpired()).isFalse();
+
+    }
+
+    @Test
     void findById_notFound() {
         assertThat(getStore().findById("test-id")).isNull();
     }
