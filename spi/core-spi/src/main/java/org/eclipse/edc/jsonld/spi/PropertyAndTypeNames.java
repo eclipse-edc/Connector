@@ -72,6 +72,7 @@ public interface PropertyAndTypeNames {
     String ODRL_XONE_CONSTRAINT_ATTRIBUTE = ODRL_SCHEMA + "xone";
     String ODRL_USE_ACTION_ATTRIBUTE = ODRL_SCHEMA + "use";
     String ODRL_PROFILE_ATTRIBUTE = ODRL_SCHEMA + "profile";
+    String ODRL_EXTENSIBLE_PROPERTIES_ATTRIBUTE = ODRL_SCHEMA + "extensibleProperties";
     String DSPACE_PROPERTY_PARTICIPANT_ID_TERM = "participantId";
     // ref: https://www.w3.org/ns/odrl.jsonld
     String ODRL_PREFIX = "odrl";

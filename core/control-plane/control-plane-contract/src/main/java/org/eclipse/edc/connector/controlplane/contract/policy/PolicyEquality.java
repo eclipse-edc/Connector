@@ -24,7 +24,7 @@ import java.util.function.BiPredicate;
 
 public class PolicyEquality implements BiPredicate<Policy, Policy> {
 
-    private static final List<String> EXCLUDED_PROPERTIES = List.of("@type", "assignee", "target");
+    private static final List<String> EXCLUDED_PROPERTIES = List.of("@type", "assignee", "target", "extensibleProperties", "profiles");
     private final ObjectMapper mapper;
 
     public PolicyEquality(TypeManager typeManager) {

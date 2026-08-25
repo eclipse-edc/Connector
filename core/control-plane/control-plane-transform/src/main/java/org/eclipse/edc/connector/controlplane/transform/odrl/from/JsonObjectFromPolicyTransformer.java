@@ -65,6 +65,7 @@ import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PERMISSION_AT
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_AGREEMENT;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_OFFER;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_POLICY_TYPE_SET;
+import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_EXTENSIBLE_PROPERTIES_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROFILE_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_PROHIBITION_ATTRIBUTE;
 import static org.eclipse.edc.jsonld.spi.PropertyAndTypeNames.ODRL_REFINEMENT_ATTRIBUTE;
@@ -194,6 +195,14 @@ public class JsonObjectFromPolicyTransformer extends AbstractJsonLdTransformer<P
                             ODRL_TARGET_ATTRIBUTE,
                             jsonFactory.createArrayBuilder().add(jsonFactory.createObjectBuilder().add(ID, target)))
                     );
+
+            Optional.ofNullable(policy.getExtensibleProperties()).ifPresent(properties -> {
+                JsonObjectBuilder extensibleProperties = jsonFactory.createObjectBuilder();
+
+                properties.forEach((key, value) -> extensibleProperties.add(key, toJsonValue(value)));
+
+                builder.add(ODRL_EXTENSIBLE_PROPERTIES_ATTRIBUTE, extensibleProperties);
+            });
 
             if (!policy.getProfiles().isEmpty()) {
                 var profiles = jsonFactory.createArrayBuilder();

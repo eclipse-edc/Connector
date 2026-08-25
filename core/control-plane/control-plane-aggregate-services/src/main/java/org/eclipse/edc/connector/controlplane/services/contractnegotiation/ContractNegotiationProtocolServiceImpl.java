@@ -245,7 +245,19 @@ public class ContractNegotiationProtocolServiceImpl implements ContractNegotiati
         var result = consumerOfferResolver.resolveOffer(offerId);
 
         if (result.succeeded() && participantContext.getId().equals(result.getContent().getContractDefinition().getParticipantContextId())) {
-            return result;
+            ValidatableConsumerOffer.Builder offer_builder = ValidatableConsumerOffer.Builder.newInstance();
+
+            Policy contractPolicy = result.getContent().getContractPolicy().toBuilder()
+                    .extensibleProperties(message.getPolicy().getExtensibleProperties())
+                    .profiles(message.getPolicy().getProfiles())
+                    .build();
+
+            offer_builder.offerId(result.getContent().getOfferId());
+            offer_builder.contractDefinition(result.getContent().getContractDefinition());
+            offer_builder.contractPolicy(contractPolicy);
+            offer_builder.accessPolicy(result.getContent().getAccessPolicy());
+
+            return ServiceResult.success(offer_builder.build());
         }
 
         if (result.failed()) {
