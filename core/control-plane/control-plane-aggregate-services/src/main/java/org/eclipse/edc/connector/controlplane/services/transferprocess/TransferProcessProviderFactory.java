@@ -73,7 +73,7 @@ public class TransferProcessProviderFactory {
                 .type(PROVIDER)
                 .clock(clock)
                 .traceContext(telemetry.getCurrentTraceContext())
-                .participantContextId(participantContext.getParticipantContextId())
+                .participantContextId(participantContext.getId())
                 .dataplaneMetadata(asset.getDataplaneMetadata())
                 .claims(participantAgent.getClaims())
                 .build();

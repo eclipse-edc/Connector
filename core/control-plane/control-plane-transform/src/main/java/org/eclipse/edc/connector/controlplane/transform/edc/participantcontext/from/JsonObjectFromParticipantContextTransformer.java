@@ -45,7 +45,7 @@ public class JsonObjectFromParticipantContextTransformer extends AbstractJsonLdT
     public @Nullable JsonObject transform(@NotNull ParticipantContext participantContext, @NotNull TransformerContext context) {
         return jsonFactory.createObjectBuilder()
                 .add(TYPE, PARTICIPANT_CONTEXT_TYPE_IRI)
-                .add(ID, participantContext.getParticipantContextId())
+                .add(ID, participantContext.getId())
                 .add(PARTICIPANT_CONTEXT_IDENTITY_IRI, participantContext.getIdentity())
                 .add(PARTICIPANT_CONTEXT_PROPERTIES_IRI, createProperties(participantContext))
                 .add(PARTICIPANT_CONTEXT_STATE_IRI, createId(jsonFactory, ParticipantContextState.from(participantContext.getState()).name()))

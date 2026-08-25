@@ -106,7 +106,7 @@ public class TransferProcessEventDispatchTest {
             .registerServiceMock(ProtocolWebhookResolver.class, mock())
             .registerServiceMock(ProtocolRemoteMessageDispatcher.class, DSP_DISPATCHER);
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
-            .participantContextId("participantContextId")
+            .id("participantContextId")
             .identity("participantId")
             .build();
     private final EventSubscriber eventSubscriber = mock();

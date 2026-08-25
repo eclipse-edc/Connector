@@ -47,21 +47,21 @@ class DspNegotiationApiControllerV20251Test extends DspNegotiationApiControllerT
     private final ParticipantContextService participantContextService = mock();
     private final ParticipantProfileService profileResolver = mock();
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
-            .participantContextId("participantContextId")
+            .id("participantContextId")
             .identity("identity")
             .build();
 
     @BeforeEach
     void setUp() {
-        when(participantContextService.getParticipantContext(participantContext.getParticipantContextId()))
+        when(participantContextService.getParticipantContext(participantContext.getId()))
                 .thenReturn(ServiceResult.success(participantContext));
-        when(profileResolver.resolve(participantContext.getParticipantContextId(), PROFILE_ID))
+        when(profileResolver.resolve(participantContext.getId(), PROFILE_ID))
                 .thenReturn(PROFILE);
     }
 
     @Override
     protected String basePath() {
-        return "/%s/%s".formatted(participantContext.getParticipantContextId(), PROFILE_ID) + BASE_PATH;
+        return "/%s/%s".formatted(participantContext.getId(), PROFILE_ID) + BASE_PATH;
     }
 
     @Override

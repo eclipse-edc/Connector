@@ -54,7 +54,7 @@ public class ParticipantContextApiV5EndToEndTest {
         @AfterEach
         void tearDown(ParticipantContextService pcService) {
             pcService.search(QuerySpec.max()).getContent()
-                    .forEach(pc -> pcService.deleteParticipantContext(pc.getParticipantContextId()).getContent());
+                    .forEach(pc -> pcService.deleteParticipantContext(pc.getId()).getContent());
 
         }
 

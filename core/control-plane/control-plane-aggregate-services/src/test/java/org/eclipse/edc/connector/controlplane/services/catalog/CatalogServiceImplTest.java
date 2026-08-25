@@ -39,7 +39,7 @@ class CatalogServiceImplTest {
     private final ProtocolRemoteMessageDispatcher dispatcher = mock(ProtocolRemoteMessageDispatcher.class);
     private final CatalogService service = new CatalogServiceImpl(dispatcher);
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
-            .participantContextId("participantContextId")
+            .id("participantContextId")
             .identity("participantId")
             .build();
 
@@ -52,7 +52,7 @@ class CatalogServiceImplTest {
         assertThat(result).succeedsWithin(5, SECONDS).satisfies(statusResult -> {
             assertThat(statusResult).isSucceeded().isEqualTo("content".getBytes());
         });
-        verify(dispatcher).dispatch(eq(participantContext.getParticipantContextId()), eq(byte[].class), isA(CatalogRequestMessage.class));
+        verify(dispatcher).dispatch(eq(participantContext.getId()), eq(byte[].class), isA(CatalogRequestMessage.class));
     }
 
     @Test
@@ -64,6 +64,6 @@ class CatalogServiceImplTest {
         assertThat(result).succeedsWithin(5, SECONDS).satisfies(statusResult -> {
             assertThat(statusResult).isSucceeded().isEqualTo("content".getBytes());
         });
-        verify(dispatcher).dispatch(eq(participantContext.getParticipantContextId()), eq(byte[].class), isA(DatasetRequestMessage.class));
+        verify(dispatcher).dispatch(eq(participantContext.getId()), eq(byte[].class), isA(DatasetRequestMessage.class));
     }
 }

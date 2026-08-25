@@ -68,7 +68,7 @@ public abstract class DspCatalogApiControllerTestBase extends RestControllerTest
     protected final DspRequestHandler dspRequestHandler = mock();
     protected final ContinuationTokenManager continuationTokenManager = mock();
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
-            .participantContextId("participantContextId")
+            .id("participantContextId")
             .identity("participantId")
             .build();
     protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(participantContext);

@@ -39,7 +39,7 @@ class DataPlaneRegistrationApiV4ControllerTest extends RestControllerTestBase {
     private final DataPlaneSelectorService dataPlaneSelectorService = mock();
 
     private final SingleParticipantContextSupplier participantContextSupplier = () ->
-            ServiceResult.success(ParticipantContext.Builder.newInstance().participantContextId("participant-context-id").identity("identity").build());
+            ServiceResult.success(ParticipantContext.Builder.newInstance().id("participant-context-id").identity("identity").build());
 
     @Override
     protected Object controller() {

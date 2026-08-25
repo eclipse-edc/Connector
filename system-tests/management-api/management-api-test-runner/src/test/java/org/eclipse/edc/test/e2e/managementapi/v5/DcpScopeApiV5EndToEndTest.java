@@ -74,7 +74,7 @@ public class DcpScopeApiV5EndToEndTest {
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
             for (var p : list) {
-                participantContextService.deleteParticipantContext(p.getParticipantContextId()).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+                participantContextService.deleteParticipantContext(p.getId()).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
             }
             registry.query(QuerySpec.max()).getContent()
                     .forEach(scope -> registry.remove(scope.getId()).getContent());

@@ -55,7 +55,7 @@ public class DataPlaneRegistrationApiV4Controller implements DataPlaneRegistrati
                         .url(registration.endpoint())
                         .allowedTransferType(registration.transferTypes())
                         .authorizationProfile(toAuthorizationProfile(registration.authorization()))
-                        .participantContextId(participantContext.getParticipantContextId())
+                        .participantContextId(participantContext.getId())
                         .labels(registration.labels())
                         .build())
                 .compose(dataPlaneSelectorService::register)

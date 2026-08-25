@@ -71,7 +71,7 @@ public abstract class BaseCatalogApiControllerTest extends RestControllerTestBas
     @BeforeEach
     void setup() {
         when(participantContextService.getParticipantContext(eq(participantContextId)))
-                .thenReturn(ServiceResult.success(ParticipantContext.Builder.newInstance().participantContextId(participantContextId)
+                .thenReturn(ServiceResult.success(ParticipantContext.Builder.newInstance().id(participantContextId)
                         .identity(participantContextId).build()));
 
         when(authorizationService.authorize(any(), any(), any(), any())).thenReturn(ServiceResult.success());

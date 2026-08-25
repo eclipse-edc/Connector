@@ -39,7 +39,7 @@ public class ClassicParticipantContextDefaultServicesExtensionTest {
         var extension = factory.constructInstance(ClassicParticipantContextDefaultServicesExtension.class);
 
         var supplier = extension.participantContextSupplier();
-        assertThat(supplier.get().getContent()).extracting(ParticipantContext::getParticipantContextId).isEqualTo("participantId");
+        assertThat(supplier.get().getContent()).extracting(ParticipantContext::getId).isEqualTo("participantId");
     }
 
     @Test
@@ -52,6 +52,6 @@ public class ClassicParticipantContextDefaultServicesExtensionTest {
         var extension = factory.constructInstance(ClassicParticipantContextDefaultServicesExtension.class);
 
         var supplier = extension.participantContextSupplier();
-        assertThat(supplier.get().getContent()).extracting(ParticipantContext::getParticipantContextId).isEqualTo("participantContextId");
+        assertThat(supplier.get().getContent()).extracting(ParticipantContext::getId).isEqualTo("participantContextId");
     }
 }

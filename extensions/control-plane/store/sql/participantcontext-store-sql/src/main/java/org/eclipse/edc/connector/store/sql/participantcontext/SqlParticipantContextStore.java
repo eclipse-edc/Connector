@@ -56,16 +56,16 @@ public class SqlParticipantContextStore extends AbstractSqlStore implements Part
 
     @Override
     public StoreResult<Void> create(ParticipantContext participantContext) {
-        var id = participantContext.getParticipantContextId();
         return transactionContext.execute(() -> {
             try (var connection = getConnection()) {
+                var id = participantContext.getId();
                 if (findByIdInternal(connection, id) != null) {
                     return alreadyExists(alreadyExistsErrorMessage(id));
                 }
 
                 var stmt = statements.getInsertTemplate();
                 queryExecutor.execute(connection, stmt,
-                        participantContext.getParticipantContextId(),
+                        participantContext.getId(),
                         participantContext.getIdentity(),
                         participantContext.getCreatedAt(),
                         participantContext.getLastModified(),
@@ -94,7 +94,7 @@ public class SqlParticipantContextStore extends AbstractSqlStore implements Part
 
     @Override
     public StoreResult<Void> update(ParticipantContext participantContext) {
-        var id = participantContext.getParticipantContextId();
+        var id = participantContext.getId();
 
         Objects.requireNonNull(participantContext);
         Objects.requireNonNull(id);
@@ -136,6 +136,22 @@ public class SqlParticipantContextStore extends AbstractSqlStore implements Part
         });
     }
 
+    @Override
+    public StoreResult<ParticipantContext> findById(String participantContextId) {
+        return transactionContext.execute(() -> {
+            try (var connection = getConnection()) {
+                var entity = findByIdInternal(connection, participantContextId);
+                if (entity != null) {
+                    return StoreResult.success(entity);
+                }
+
+                return StoreResult.notFound(notFoundErrorMessage(participantContextId));
+            } catch (SQLException e) {
+                throw new EdcPersistenceException(e);
+            }
+        });
+    }
+
     private ParticipantContext findByIdInternal(Connection connection, String id) {
         return transactionContext.execute(() -> {
             var stmt = statements.getFindByIdTemplate();
@@ -148,15 +164,15 @@ public class SqlParticipantContextStore extends AbstractSqlStore implements Part
         var participantContextId = resultSet.getString(statements.getIdColumn());
         var identity = resultSet.getString(statements.getIdentityColumn());
         var created = resultSet.getLong(statements.getCreateTimestampColumn());
-        var lastmodified = resultSet.getLong(statements.getLastModifiedTimestampColumn());
+        var lastModified = resultSet.getLong(statements.getLastModifiedTimestampColumn());
         var state = resultSet.getInt(statements.getStateColumn());
         Map<String, Object> props = fromJson(resultSet.getString(statements.getPropertiesColumn()), getTypeRef());
 
         return ParticipantContext.Builder.newInstance()
-                .participantContextId(participantContextId)
+                .id(participantContextId)
                 .identity(identity)
                 .createdAt(created)
-                .lastModified(lastmodified)
+                .lastModified(lastModified)
                 .state(ParticipantContextState.from(state))
                 .properties(props)
                 .build();

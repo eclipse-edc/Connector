@@ -82,7 +82,7 @@ class InitiateTransferCommandHandlerTest {
                 .callbackAddresses(List.of(callback))
                 .dataplaneMetadata(dataplaneMetadata)
                 .build();
-        var participantContext = ParticipantContext.Builder.newInstance().participantContextId("id")
+        var participantContext = ParticipantContext.Builder.newInstance().id("id")
                 .identity("identity")
                 .build();
         var command = new InitiateTransferCommand(participantContext, transferRequest);
@@ -119,7 +119,7 @@ class InitiateTransferCommandHandlerTest {
                 .callbackAddresses(List.of(callback))
                 .dataplaneMetadata(dataplaneMetadata)
                 .build();
-        var participantContext = ParticipantContext.Builder.newInstance().participantContextId("id")
+        var participantContext = ParticipantContext.Builder.newInstance().id("id")
                 .identity("identity")
                 .build();
 
@@ -137,7 +137,7 @@ class InitiateTransferCommandHandlerTest {
                 .build();
 
         var participantContext = ParticipantContext.Builder.newInstance()
-                .participantContextId("participantContextId").identity("id").build();
+                .id("participantContextId").identity("id").build();
         var result = handler.handle(new InitiateTransferCommand(participantContext, transferRequest));
 
         assertThat(result).isFailed();

@@ -93,6 +93,6 @@ public class InMemoryVault implements Vault {
     private @NotNull String getPartition() {
         return Optional.ofNullable(participantContextSupplier)
                 .map(Supplier::get).filter(ServiceResult::succeeded).map(ServiceResult::getContent)
-                .map(ParticipantContext::getParticipantContextId).orElse(DEFAULT_PARTITION);
+                .map(ParticipantContext::getId).orElse(DEFAULT_PARTITION);
     }
 }

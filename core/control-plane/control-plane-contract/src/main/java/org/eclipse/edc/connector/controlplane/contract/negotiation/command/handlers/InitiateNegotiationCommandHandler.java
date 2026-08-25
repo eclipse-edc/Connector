@@ -70,7 +70,7 @@ public class InitiateNegotiationCommandHandler implements CommandHandler<Initiat
                 .counterPartyAddress(request.getCounterPartyAddress())
                 .callbackAddresses(request.getCallbackAddresses())
                 .traceContext(telemetry.getCurrentTraceContext())
-                .participantContextId(participantContext.getParticipantContextId())
+                .participantContextId(participantContext.getId())
                 .type(CONSUMER)
                 .build();
 

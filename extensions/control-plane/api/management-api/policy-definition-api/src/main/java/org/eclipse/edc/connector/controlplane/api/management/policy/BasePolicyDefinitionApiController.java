@@ -96,7 +96,7 @@ public abstract class BasePolicyDefinitionApiController {
         var definition = transformerRegistry.transform(request, PolicyDefinition.class)
                 .orElseThrow(InvalidRequestException::new)
                 .toBuilder()
-                .participantContextId(participantContext.getParticipantContextId())
+                .participantContextId(participantContext.getId())
                 .build();
 
         var createdDefinition = service.create(definition)
@@ -127,7 +127,7 @@ public abstract class BasePolicyDefinitionApiController {
         var policyDefinition = transformerRegistry.transform(input, PolicyDefinition.class)
                 .orElseThrow(InvalidRequestException::new)
                 .toBuilder()
-                .participantContextId(participantContext.getParticipantContextId())
+                .participantContextId(participantContext.getId())
                 .build();
 
         service.update(policyDefinition)

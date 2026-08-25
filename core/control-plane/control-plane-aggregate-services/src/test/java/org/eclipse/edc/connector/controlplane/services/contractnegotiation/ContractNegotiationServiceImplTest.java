@@ -70,7 +70,7 @@ class ContractNegotiationServiceImplTest {
 
     private final ContractNegotiationService service = new ContractNegotiationServiceImpl(store, transactionContext, commandHandlerRegistry, queryValidator);
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
-            .participantContextId("participantContextId")
+            .id("participantContextId")
             .identity("participantId")
             .build();
 

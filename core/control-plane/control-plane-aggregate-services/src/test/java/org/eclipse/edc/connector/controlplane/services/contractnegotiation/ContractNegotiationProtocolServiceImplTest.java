@@ -103,7 +103,7 @@ import static org.mockito.Mockito.when;
 class ContractNegotiationProtocolServiceImplTest {
 
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
-            .participantContextId("participantContextId")
+            .id("participantContextId")
             .identity("participantId")
             .build();
     private final ContractNegotiationStore store = mock();
@@ -670,7 +670,7 @@ class ContractNegotiationProtocolServiceImplTest {
         when(store.findById(any())).thenReturn(cn);
         when(store.findByIdAndLease(any())).thenReturn(StoreResult.success(cn));
         var wrongParticipantContext = ParticipantContext.Builder.newInstance()
-                .participantContextId("wrongParticipantContext")
+                .id("wrongParticipantContext")
                 .identity("wrongParticipantId")
                 .build();
         when(protocolTokenValidator.verify(eq(wrongParticipantContext), eq(tokenRepresentation), any(), any(), eq(message)))
@@ -706,7 +706,7 @@ class ContractNegotiationProtocolServiceImplTest {
                 .counterPartyId("connectorId")
                 .counterPartyAddress("counterPartyAddress")
                 .protocol("protocol")
-                .participantContextId(participantContext.getParticipantContextId())
+                .participantContextId(participantContext.getId())
                 .stateTimestamp(Instant.now().toEpochMilli());
     }
 

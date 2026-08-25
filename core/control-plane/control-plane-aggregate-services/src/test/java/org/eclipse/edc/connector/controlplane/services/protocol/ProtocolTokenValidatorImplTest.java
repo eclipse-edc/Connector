@@ -60,7 +60,7 @@ class ProtocolTokenValidatorImplTest {
             policyEngine, mock(), agentService, dataspaceProfileContextRegistry);
 
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
-            .participantContextId("participantContextId")
+            .id("participantContextId")
             .identity("participantId")
             .build();
 
@@ -87,7 +87,7 @@ class ProtocolTokenValidatorImplTest {
         })));
         verify(dataspaceProfileContextRegistry).getProfile(protocol);
         verify(identityService).verifyJwtToken(
-                eq(participantContext.getParticipantContextId()),
+                eq(participantContext.getId()),
                 same(tokenRepresentation),
                 argThat(verificationContext -> verificationContext.getDataspaceProfileContext().equals(dataspaceProfileContext))
         );

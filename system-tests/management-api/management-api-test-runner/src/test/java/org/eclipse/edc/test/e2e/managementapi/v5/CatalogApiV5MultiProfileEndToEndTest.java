@@ -94,7 +94,7 @@ public class CatalogApiV5MultiProfileEndToEndTest {
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
             for (var p : list) {
-                participantContextService.deleteParticipantContext(p.getParticipantContextId()).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
+                participantContextService.deleteParticipantContext(p.getId()).orElseThrow(f -> new AssertionError(f.getFailureDetail()));
             }
         }
 
@@ -193,7 +193,7 @@ public class CatalogApiV5MultiProfileEndToEndTest {
         private void createParticipant(ParticipantContextService participantContextService,
                                        ParticipantContextConfigStore configStore, String participantContextId, List<String> profiles) {
             var pc = ParticipantContext.Builder.newInstance()
-                    .participantContextId(participantContextId)
+                    .id(participantContextId)
                     .state(ParticipantContextState.ACTIVATED)
                     .identity(participantContextId)
                     .build();

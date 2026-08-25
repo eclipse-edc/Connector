@@ -176,7 +176,7 @@ class DatasetResolverImplIntegrationTest {
 
     private ParticipantContext createParticipantContext() {
         return ParticipantContext.Builder.newInstance()
-                .participantContextId("participantContextId")
+                .id("participantContextId")
                 .identity("participantId")
                 .build();
     }

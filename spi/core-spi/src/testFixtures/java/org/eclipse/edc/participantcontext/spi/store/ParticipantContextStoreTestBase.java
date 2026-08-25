@@ -17,6 +17,7 @@ package org.eclipse.edc.participantcontext.spi.store;
 import org.eclipse.edc.participantcontext.spi.types.ParticipantContext;
 import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
+import org.eclipse.edc.spi.result.StoreFailure;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -24,7 +25,7 @@ import java.util.Map;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
-import static org.eclipse.edc.participantcontext.spi.types.ParticipantResource.queryByParticipantContextId;
+import static org.eclipse.edc.spi.result.StoreFailure.Reason.NOT_FOUND;
 
 public abstract class ParticipantContextStoreTestBase {
 
@@ -57,11 +58,10 @@ public abstract class ParticipantContextStoreTestBase {
                 .mapToObj(i -> createParticipantContext("id" + i))
                 .forEach(getStore()::create);
 
-        var query = queryByParticipantContextId("id2")
-                .build();
+        var result = getStore().findById("id2");
 
-        assertThat(getStore().query(query)).isSucceeded()
-                .satisfies(str -> assertThat(str).hasSize(1));
+        assertThat(result).isSucceeded()
+                .satisfies(str -> assertThat(str.getId()).isEqualTo("id2"));
     }
 
     @Test
@@ -105,11 +105,9 @@ public abstract class ParticipantContextStoreTestBase {
 
         resources.forEach(getStore()::create);
 
-        var query = queryByParticipantContextId("id7")
-                .build();
-        var res = getStore().query(query);
-        assertThat(res).isSucceeded();
-        assertThat(res.getContent()).isEmpty();
+        var res = getStore().findById("id7");
+
+        assertThat(res).isFailed().extracting(StoreFailure::getReason).isEqualTo(NOT_FOUND);
     }
 
     @Test
@@ -135,13 +133,13 @@ public abstract class ParticipantContextStoreTestBase {
         var result = getStore().create(participantContext);
         assertThat(result).isSucceeded();
 
-        var toUpdate = createParticipantContextBuilder(participantContext.getParticipantContextId(), participantContext.getIdentity())
+        var toUpdate = createParticipantContextBuilder(participantContext.getId(), participantContext.getIdentity())
                 .properties(Map.of("new-key", "new-value"))
                 .build();
         var updateRes = getStore().update(toUpdate);
         assertThat(updateRes).isSucceeded();
 
-        var storeResult = getStore().findById(participantContext.getParticipantContextId());
+        var storeResult = getStore().findById(participantContext.getId());
         assertThat(storeResult).isSucceeded();
 
         assertThat(storeResult.getContent().getProperties()).containsEntry("new-key", "new-value");
@@ -160,7 +158,7 @@ public abstract class ParticipantContextStoreTestBase {
         var context = createParticipantContext();
         getStore().create(context);
 
-        var deleteRes = getStore().deleteById(context.getParticipantContextId());
+        var deleteRes = getStore().deleteById(context.getId());
         assertThat(deleteRes).isSucceeded();
     }
 
@@ -183,7 +181,7 @@ public abstract class ParticipantContextStoreTestBase {
     }
 
     private ParticipantContext.Builder createParticipantContextBuilder(String id, String identifier) {
-        return ParticipantContext.Builder.newInstance().participantContextId(id).identity(identifier);
+        return ParticipantContext.Builder.newInstance().id(id).identity(identifier);
 
     }
 

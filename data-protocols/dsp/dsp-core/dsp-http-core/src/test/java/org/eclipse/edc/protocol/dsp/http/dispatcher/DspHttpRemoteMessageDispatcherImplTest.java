@@ -80,7 +80,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
     private final Duration timeout = Duration.of(5, SECONDS);
 
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
-            .participantContextId("participantContextId")
+            .id("participantContextId")
             .identity("participantId")
             .build();
 
@@ -126,7 +126,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         dispatcher.registerMessage(TestMessage.class, requestFactory, mock());
 
         var message = new TestMessage();
-        var result = dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, message);
+        var result = dispatcher.dispatch(participantContext.getId(), String.class, message);
 
         assertThat(result).succeedsWithin(timeout);
 
@@ -165,7 +165,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         dispatcher.registerMessage(TestMessage.class, requestFactory, mock());
 
         var message = new TestMessage();
-        var result = dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, message);
+        var result = dispatcher.dispatch(participantContext.getId(), String.class, message);
 
         assertThat(result).succeedsWithin(timeout);
 
@@ -204,7 +204,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         dispatcher.registerMessage(TestMessage.class, requestFactory, mock());
 
         var message = new TestMessage();
-        var result = dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, message);
+        var result = dispatcher.dispatch(participantContext.getId(), String.class, message);
 
         assertThat(result).succeedsWithin(timeout);
 
@@ -226,7 +226,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
 
     @Test
     void dispatch_messageNotRegistered_throwException() {
-        assertThat(dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, new TestMessage())).failsWithin(timeout)
+        assertThat(dispatcher.dispatch(participantContext.getId(), String.class, new TestMessage())).failsWithin(timeout)
                 .withThrowableThat().withCauseInstanceOf(EdcException.class).withMessageContaining("found");
 
         verifyNoInteractions(httpClient);
@@ -239,7 +239,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
         when(identityService.obtainClientCredentials(any(), any())).thenReturn(Result.failure("error"));
 
-        assertThat(dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, new TestMessage())).failsWithin(timeout)
+        assertThat(dispatcher.dispatch(participantContext.getId(), String.class, new TestMessage())).failsWithin(timeout)
                 .withThrowableThat().withCauseInstanceOf(EdcException.class).withMessageContaining("credentials");
 
         verifyNoInteractions(httpClient);
@@ -251,7 +251,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         when(audienceResolver.resolve(any())).thenReturn(Result.failure("audience fetch failure"));
         when(requestFactory.createRequest(any())).thenReturn(new Request.Builder().url("http://url").build());
 
-        assertThat(dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, new TestMessage())).failsWithin(timeout)
+        assertThat(dispatcher.dispatch(participantContext.getId(), String.class, new TestMessage())).failsWithin(timeout)
                 .withThrowableThat().withCauseInstanceOf(EdcException.class).withMessageContaining("audience fetch failure");
 
         verifyNoInteractions(httpClient);
@@ -266,7 +266,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
                 .thenReturn(Result.success(TokenRepresentation.Builder.newInstance().token("any").build()));
         dispatcher.registerMessage(TestMessage.class, requestFactory, mock());
 
-        var result = dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, new TestMessage());
+        var result = dispatcher.dispatch(participantContext.getId(), String.class, new TestMessage());
 
         assertThat(result).succeedsWithin(timeout);
         verifyNoInteractions(policyEngine);
@@ -296,7 +296,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         dispatcher.registerMessage(CatalogRequestMessage.class, rqFactory, mock());
 
         var message = CatalogRequestMessage.Builder.newInstance().additionalScopes("scope1", "scope2").build();
-        var result = dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, message);
+        var result = dispatcher.dispatch(participantContext.getId(), String.class, message);
 
         assertThat(result).succeedsWithin(timeout);
 
@@ -331,7 +331,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         dispatcher.registerMessage(TestMessage.class, requestFactory, mock());
         dispatcher.registerPolicyScope(TestMessage.class, m -> policy, TestPolicyContext::new);
 
-        var result = dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, new TestMessage());
+        var result = dispatcher.dispatch(participantContext.getId(), String.class, new TestMessage());
 
         var captor = ArgumentCaptor.forClass(TokenParameters.class);
         verify(identityService).obtainClientCredentials(any(), captor.capture());
@@ -374,7 +374,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
             respondWith(dummyResponse(200), bodyExtractor);
             when(bodyExtractor.extractBody(any(), any())).thenReturn("response");
 
-            var future = dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, new TestMessage());
+            var future = dispatcher.dispatch(participantContext.getId(), String.class, new TestMessage());
 
             assertThat(future).succeedsWithin(timeout).satisfies(result -> {
                 assertThat(result).isSucceeded().isEqualTo("response");
@@ -386,7 +386,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
             var responseBody = ResponseBody.create("expectedValue", MediaType.get("application/json"));
             respondWith(dummyResponseBuilder(400).body(responseBody).build(), bodyExtractor);
 
-            var future = dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, new TestMessage());
+            var future = dispatcher.dispatch(participantContext.getId(), String.class, new TestMessage());
 
             assertThat(future).succeedsWithin(timeout).satisfies(result -> {
                 assertThat(result).isFailed().satisfies(failure -> {
@@ -401,7 +401,7 @@ class DspHttpRemoteMessageDispatcherImplTest {
         void shouldReturnRetryError_whenResponseIsServerError() {
             respondWith(dummyResponse(500), bodyExtractor);
 
-            var future = dispatcher.dispatch(participantContext.getParticipantContextId(), String.class, new TestMessage());
+            var future = dispatcher.dispatch(participantContext.getId(), String.class, new TestMessage());
 
             assertThat(future).succeedsWithin(timeout).satisfies(result -> {
                 assertThat(result).isFailed().satisfies(failure -> {

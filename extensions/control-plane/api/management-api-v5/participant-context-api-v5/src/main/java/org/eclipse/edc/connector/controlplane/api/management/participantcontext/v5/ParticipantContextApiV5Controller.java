@@ -75,10 +75,10 @@ public class ParticipantContextApiV5Controller implements ParticipantContextApiV
                 .orElseThrow(InvalidRequestException::new);
 
         var created = participantContextService.createParticipantContext(participantContext)
-                .orElseThrow(exceptionMapper(ParticipantContext.class, participantContext.getParticipantContextId()));
+                .orElseThrow(exceptionMapper(ParticipantContext.class, participantContext.getId()));
 
         var responseDto = IdResponse.Builder.newInstance()
-                .id(created.getParticipantContextId())
+                .id(created.getId())
                 .createdAt(created.getCreatedAt())
                 .build();
 

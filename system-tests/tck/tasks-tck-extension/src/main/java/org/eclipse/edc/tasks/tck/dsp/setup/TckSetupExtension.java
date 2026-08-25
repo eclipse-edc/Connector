@@ -80,7 +80,7 @@ public class TckSetupExtension implements ServiceExtension {
         createContractNegotiations(participantContextId).forEach(negotiation -> contractNegotiationStore.save(negotiation));
 
         participantContextService.createParticipantContext(ParticipantContext.Builder.newInstance()
-                        .participantContextId(participantContextId)
+                        .id(participantContextId)
                         .identity(participantContextId)
                         .build())
                 .onFailure(f -> monitor.warning("Failed to create ParticipantContext"));

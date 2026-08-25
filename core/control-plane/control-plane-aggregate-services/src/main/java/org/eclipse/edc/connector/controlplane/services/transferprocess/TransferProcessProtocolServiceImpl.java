@@ -280,7 +280,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
 
     private ServiceResult<ContractAgreement> fetchContractAgreement(ParticipantContext participantContext, TransferRequestMessage message) {
         return Optional.ofNullable(findAgreement(participantContext, message.getContractId()))
-                .filter(agreement -> participantContext.getParticipantContextId().equals(agreement.getParticipantContextId()))
+                .filter(agreement -> participantContext.getId().equals(agreement.getParticipantContextId()))
                 .map(ServiceResult::success)
                 .orElseGet(() -> ServiceResult.notFound(format("Cannot process %s because %s", message.getClass().getSimpleName(), "agreement not found or not valid")));
     }
@@ -291,7 +291,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
             return notFound(transferProcessId);
         }
 
-        if (!participantContext.getParticipantContextId().equals(transferProcess.getParticipantContextId())) {
+        if (!participantContext.getId().equals(transferProcess.getParticipantContextId())) {
             return notFound(transferProcess.getId());
         }
 
@@ -336,7 +336,7 @@ public class TransferProcessProtocolServiceImpl implements TransferProcessProtoc
     }
 
     private ContractAgreement findAgreement(ParticipantContext participantContext, String contractId) {
-        var query = queryByParticipantContextId(participantContext.getParticipantContextId())
+        var query = queryByParticipantContextId(participantContext.getId())
                 .filter(Criterion.criterion("agreementId", "=", contractId))
                 .build();
         try (var stream = negotiationStore.queryAgreements(query)) {

@@ -72,7 +72,7 @@ public abstract class BaseContractNegotiationApiControllerTest extends RestContr
     protected final TypeTransformerRegistry transformerRegistry = mock();
     protected final JsonObjectValidatorRegistry validatorRegistry = mock();
     private final ParticipantContext participantContext = ParticipantContext.Builder.newInstance()
-            .participantContextId("participantContextId")
+            .id("participantContextId")
             .identity("participantId")
             .build();
     protected final SingleParticipantContextSupplier participantContextSupplier = () -> ServiceResult.success(participantContext);
