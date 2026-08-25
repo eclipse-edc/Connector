@@ -10,6 +10,7 @@
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *       Dawex Systems - Add audience validation
+ *       Fraunhofer-Gesellschaft zur Förderung der angewandten Forschung e.V. - improvements to the documentation
  *
  */
 
@@ -61,7 +62,7 @@ public class DelegatedAuthenticationExtension implements ServiceExtension {
     public String participantId;
     @Setting(description = "Default token validation time tolerance (in ms), e.g. for nbf or exp claims", defaultValue = "" + DEFAULT_VALIDATION_TOLERANCE, key = "edc.api.auth.dac.validation.tolerance")
     private int validationTolerance;
-    @Setting(context = CONFIG_ALIAS, description = "Expected audience in the token received by the api management", key = "web.http.management." + AUTH_KEY + "." + AUDIENCE_KEY, required = false)
+    @Setting(description = "Expected audience in the token received by the api management", key = "web.http.management." + AUTH_KEY + "." + AUDIENCE_KEY, required = false)
     private String audience;
     @Inject
     private ApiAuthenticationProviderRegistry providerRegistry;
