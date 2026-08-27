@@ -30,6 +30,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -42,6 +43,7 @@ class JwtValidatorFilterTest {
     @Test
     void filter_success_setsClaimsProperty() {
         var request = mock(ContainerRequestContext.class);
+        when(request.getMethod()).thenReturn("GET");
         when(request.getHeaderString("Authorization")).thenReturn("Bearer valid-token");
 
         var claims = ClaimToken.Builder.newInstance().build();
@@ -51,6 +53,7 @@ class JwtValidatorFilterTest {
 
         filter.filter(request);
 
+        verify(request).getMethod();
         verify(request).getHeaderString("Authorization");
         verify(request).setProperty(REQUEST_PROPERTY_CLAIMS, claims);
         verifyNoMoreInteractions(request);
@@ -59,10 +62,12 @@ class JwtValidatorFilterTest {
     @Test
     void filter_missingAuthorizationHeader_abortsWith401() {
         var request = mock(ContainerRequestContext.class);
+        when(request.getMethod()).thenReturn("GET");
         when(request.getHeaderString("Authorization")).thenReturn(null);
 
         filter.filter(request);
 
+        verify(request).getMethod();
         verify(request).getHeaderString("Authorization");
         verify(request).abortWith(argThat(response ->
                 response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode() &&
@@ -74,10 +79,12 @@ class JwtValidatorFilterTest {
     @Test
     void filter_nonBearerAuthorization_abortsWith401() {
         var request = mock(ContainerRequestContext.class);
+        when(request.getMethod()).thenReturn("GET");
         when(request.getHeaderString("Authorization")).thenReturn("Basic abc");
 
         filter.filter(request);
 
+        verify(request).getMethod();
         verify(request).getHeaderString("Authorization");
         verify(request).abortWith(argThat(response ->
                 response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode() &&
@@ -89,6 +96,7 @@ class JwtValidatorFilterTest {
     @Test
     void filter_tokenValidationFailed_abortsWithFailureDetail() {
         var request = mock(ContainerRequestContext.class);
+        when(request.getMethod()).thenReturn("GET");
         when(request.getHeaderString("Authorization")).thenReturn("Bearer bad-token");
 
         when(tokenValidationService.validate(eq("bad-token"), any(), anyList()))
@@ -96,11 +104,24 @@ class JwtValidatorFilterTest {
 
         filter.filter(request);
 
+        verify(request).getMethod();
         verify(request).getHeaderString("Authorization");
         verify(request).abortWith(argThat(response ->
                 response.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode() &&
                         response.getEntity() instanceof String &&
                         ((String) response.getEntity()).contains("invalid token")));
         verifyNoMoreInteractions(request);
+    }
+
+    @Test
+    void filter_optionsMethod_skipsAuthentication() {
+        var request = mock(ContainerRequestContext.class);
+        when(request.getMethod()).thenReturn("options");
+
+        filter.filter(request);
+
+        verify(request).getMethod();
+        verifyNoMoreInteractions(request);
+        verifyNoInteractions(tokenValidationService);
     }
 }

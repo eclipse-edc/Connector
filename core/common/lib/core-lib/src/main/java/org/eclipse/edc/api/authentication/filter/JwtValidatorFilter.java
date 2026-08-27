@@ -26,6 +26,7 @@ import org.eclipse.edc.token.spi.TokenValidationService;
 
 import java.util.List;
 
+import static jakarta.ws.rs.HttpMethod.OPTIONS;
 import static org.eclipse.edc.api.authentication.filter.Constants.REQUEST_PROPERTY_CLAIMS;
 
 /**
@@ -48,22 +49,25 @@ public class JwtValidatorFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
-        var authHeader = requestContext.getHeaderString("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            abort(requestContext, "Missing Authorization header");
-            return;
+        // OPTIONS requests don't have credentials - do not authenticate
+        if (!OPTIONS.equalsIgnoreCase(requestContext.getMethod())) {
+            var authHeader = requestContext.getHeaderString("Authorization");
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                abort(requestContext, "Missing Authorization header");
+                return;
+            }
+
+            var token = authHeader.substring("Bearer ".length()).trim();
+
+            var tokenValidationResult = tokenValidationService.validate(token, publicKeyResolver, rules);
+
+            if (tokenValidationResult.failed()) {
+                abort(requestContext, tokenValidationResult.getFailureDetail());
+                return;
+            }
+
+            requestContext.setProperty(REQUEST_PROPERTY_CLAIMS, tokenValidationResult.getContent());
         }
-
-        var token = authHeader.substring("Bearer ".length()).trim();
-
-        var tokenValidationResult = tokenValidationService.validate(token, publicKeyResolver, rules);
-
-        if (tokenValidationResult.failed()) {
-            abort(requestContext, tokenValidationResult.getFailureDetail());
-            return;
-        }
-
-        requestContext.setProperty(REQUEST_PROPERTY_CLAIMS, tokenValidationResult.getContent());
     }
 
 
