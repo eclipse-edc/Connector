@@ -26,8 +26,8 @@ import org.eclipse.edc.token.spi.TokenValidationService;
 
 import java.util.List;
 
-import static org.eclipse.edc.api.authentication.filter.Constants.REQUEST_PROPERTY_CLAIMS;
 import static jakarta.ws.rs.HttpMethod.OPTIONS;
+import static org.eclipse.edc.api.authentication.filter.Constants.REQUEST_PROPERTY_CLAIMS;
 
 /**
  * Validates the JWT signature against the IdP's public key and validates basic claims, such as {@code iss} and {@code exp}.
@@ -53,8 +53,8 @@ public class JwtValidatorFilter implements ContainerRequestFilter {
         if (!OPTIONS.equalsIgnoreCase(requestContext.getMethod())) {
             var authHeader = requestContext.getHeaderString("Authorization");
             if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-              abort(requestContext, "Missing Authorization header");
-              return;
+                abort(requestContext, "Missing Authorization header");
+                return;
             }
 
             var token = authHeader.substring("Bearer ".length()).trim();
@@ -62,8 +62,8 @@ public class JwtValidatorFilter implements ContainerRequestFilter {
             var tokenValidationResult = tokenValidationService.validate(token, publicKeyResolver, rules);
 
             if (tokenValidationResult.failed()) {
-              abort(requestContext, tokenValidationResult.getFailureDetail());
-              return;
+                abort(requestContext, tokenValidationResult.getFailureDetail());
+                return;
             }
 
             requestContext.setProperty(REQUEST_PROPERTY_CLAIMS, tokenValidationResult.getContent());
