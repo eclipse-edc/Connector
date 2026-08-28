@@ -29,12 +29,13 @@ import java.util.List;
 public class DidDocument {
 
     public static final String DID_CONTEXT = "https://www.w3.org/ns/did/v1";
-    private final List<Service> service = new ArrayList<>();
+    private String id;
     @JsonProperty("@context")
     private final List<Object> context = new ArrayList<>();
+    private final List<Service> service = new ArrayList<>();
     private final List<VerificationMethod> verificationMethod = new ArrayList<>();
     private final List<String> authentication = new ArrayList<>();
-    private String id;
+    private final List<String> capabilityInvocation = new ArrayList<>();
 
     public String getId() {
         return id;
@@ -54,6 +55,10 @@ public class DidDocument {
 
     public List<String> getAuthentication() {
         return authentication;
+    }
+
+    public List<String> getCapabilityInvocation() {
+        return capabilityInvocation;
     }
 
     @Override
@@ -97,6 +102,11 @@ public class DidDocument {
 
         public Builder authentication(List<String> authentication) {
             document.authentication.addAll(authentication);
+            return this;
+        }
+
+        public Builder capabilityInvocation(List<String> capabilityInvocation) {
+            document.capabilityInvocation.addAll(capabilityInvocation);
             return this;
         }
 
