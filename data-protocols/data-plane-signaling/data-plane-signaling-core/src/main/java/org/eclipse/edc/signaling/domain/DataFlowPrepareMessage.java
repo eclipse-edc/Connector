@@ -23,7 +23,7 @@ public final class DataFlowPrepareMessage {
     private String participantId;
     private String counterPartyId;
     private String dataspaceContext;
-    private String processId;
+    private String dataFlowId;
     private String agreementId;
     private String datasetId;
     private URI callbackAddress;
@@ -51,8 +51,8 @@ public final class DataFlowPrepareMessage {
         return dataspaceContext;
     }
 
-    public String getProcessId() {
-        return processId;
+    public String getDataFlowId() {
+        return dataFlowId;
     }
 
     public String getAgreementId() {
@@ -119,8 +119,8 @@ public final class DataFlowPrepareMessage {
             return this;
         }
 
-        public Builder processId(String processId) {
-            instance.processId = processId;
+        public Builder dataFlowId(String processId) {
+            instance.dataFlowId = processId;
             return this;
         }
 
