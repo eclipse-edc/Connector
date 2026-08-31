@@ -66,8 +66,7 @@ class PostgresDialectStatementsTest {
             return Stream.of(
                     arguments(criterion("policy.permissions.duties.target", "=", "true")),
                     arguments(criterion("policy.prohibitions.action.type", "=", "true")),
-                    arguments(criterion("policy.obligations.assignee", "=", "true")),
-                    arguments(criterion("policy.extensibleProperties.something", "=", "true"))
+                    arguments(criterion("policy.obligations.assignee", "=", "true"))
             );
         }
     }

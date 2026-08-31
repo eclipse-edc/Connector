@@ -66,7 +66,6 @@ class ScopeFilterTest {
                 .permission(permission)
                 .duty(duty)
                 .prohibition(prohibition)
-                .extensibleProperty("key", "value")
                 .build();
 
         var filteredPolicy = scopeFilter.applyScope(policy, BOUND_SCOPE);
@@ -80,7 +79,6 @@ class ScopeFilterTest {
         assertThat(filteredPolicy.getPermissions()).isNotEmpty();
         assertThat(filteredPolicy.getObligations()).isNotEmpty();
         assertThat(filteredPolicy.getProhibitions()).isNotEmpty();
-        assertThat(filteredPolicy.getExtensibleProperties()).isNotEmpty();
     }
 
     @Test

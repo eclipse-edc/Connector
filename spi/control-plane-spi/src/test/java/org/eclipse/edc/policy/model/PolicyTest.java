@@ -19,8 +19,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PolicyTest {
@@ -50,7 +48,6 @@ class PolicyTest {
                 .assignee("assignee")
                 .inheritsFrom("inheritsFroms")
                 .type(PolicyType.SET)
-                .extensibleProperties(new HashMap<>())
                 .build();
 
         var copy = policy.withTarget(target);
@@ -60,7 +57,6 @@ class PolicyTest {
         assertThat(copy.getAssignee()).isEqualTo(policy.getAssignee());
         assertThat(copy.getInheritsFrom()).isEqualTo(policy.getInheritsFrom());
         assertThat(copy.getType()).isEqualTo(policy.getType());
-        assertThat(copy.getExtensibleProperties()).isEqualTo(policy.getExtensibleProperties());
         assertThat(copy.getTarget()).isEqualTo(target);
     }
 

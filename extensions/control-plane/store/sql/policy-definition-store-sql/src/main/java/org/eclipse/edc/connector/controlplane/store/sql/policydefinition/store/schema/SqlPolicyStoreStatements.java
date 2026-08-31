@@ -70,10 +70,6 @@ public interface SqlPolicyStoreStatements extends SqlStatements {
         return "profiles";
     }
 
-    default String getExtensiblePropertiesColumn() {
-        return "extensible_properties";
-    }
-
     default String getInheritsFromColumn() {
         return "inherits_from";
     }

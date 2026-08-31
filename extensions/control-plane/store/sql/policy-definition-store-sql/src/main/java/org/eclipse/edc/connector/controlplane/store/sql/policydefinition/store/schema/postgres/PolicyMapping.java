@@ -24,7 +24,6 @@ public class PolicyMapping extends TranslationMapping {
         add("prohibitions", new JsonFieldTranslator(PostgresDialectStatements.PROHIBITIONS_ALIAS));
         add("obligations", new JsonFieldTranslator(PostgresDialectStatements.OBLIGATIONS_ALIAS));
         add("profiles", new JsonFieldTranslator(PostgresDialectStatements.PROFILES_ALIES));
-        add("extensibleProperties", new JsonFieldTranslator(PostgresDialectStatements.EXT_PROPERTIES_ALIAS));
         add("inheritsFrom", statements.getInheritsFromColumn());
         add("assigner", statements.getAssignerColumn());
         add("assignee", statements.getAssigneeColumn());

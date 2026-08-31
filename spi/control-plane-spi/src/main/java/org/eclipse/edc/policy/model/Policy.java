@@ -20,9 +20,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -37,7 +35,6 @@ public class Policy {
     private final List<Prohibition> prohibitions = new ArrayList<>();
     private final List<Duty> obligations = new ArrayList<>();
     private final List<String> profiles = new ArrayList<>();
-    private final Map<String, Object> extensibleProperties = new HashMap<>();
     private String inheritsFrom;
     private String assigner;
     private String assignee;
@@ -86,17 +83,13 @@ public class Policy {
         return type;
     }
 
-    public Map<String, Object> getExtensibleProperties() {
-        return extensibleProperties;
-    }
-
     public <R> R accept(Visitor<R> visitor) {
         return visitor.visitPolicy(this);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(permissions, prohibitions, obligations, extensibleProperties, inheritsFrom, assigner, assignee, target, type);
+        return Objects.hash(permissions, prohibitions, obligations, inheritsFrom, assigner, assignee, target, type);
     }
 
     @Override
@@ -107,8 +100,8 @@ public class Policy {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        Policy policy = (Policy) o;
-        return permissions.equals(policy.permissions) && prohibitions.equals(policy.prohibitions) && obligations.equals(policy.obligations) && profiles.equals(policy.profiles) && extensibleProperties.equals(policy.extensibleProperties) &&
+        var policy = (Policy) o;
+        return permissions.equals(policy.permissions) && prohibitions.equals(policy.prohibitions) && obligations.equals(policy.obligations) && profiles.equals(policy.profiles) &&
                 Objects.equals(inheritsFrom, policy.inheritsFrom) && Objects.equals(assigner, policy.assigner) && Objects.equals(assignee, policy.assignee) && Objects.equals(target, policy.target) && type == policy.type;
     }
 
@@ -127,7 +120,6 @@ public class Policy {
                 .assignee(assignee)
                 .inheritsFrom(inheritsFrom)
                 .type(type)
-                .extensibleProperties(extensibleProperties)
                 .target(target)
                 .profiles(profiles)
                 .build();
@@ -145,7 +137,6 @@ public class Policy {
                 .assignee(assignee)
                 .inheritsFrom(inheritsFrom)
                 .type(type)
-                .extensibleProperties(extensibleProperties)
                 .target(target)
                 .profiles(profiles);
     }
@@ -226,16 +217,6 @@ public class Policy {
         @JsonProperty("@type")
         public Builder type(PolicyType type) {
             policy.type = type;
-            return this;
-        }
-
-        public Builder extensibleProperty(String key, Object value) {
-            policy.extensibleProperties.put(key, value);
-            return this;
-        }
-
-        public Builder extensibleProperties(Map<String, Object> properties) {
-            policy.extensibleProperties.putAll(properties);
             return this;
         }
 

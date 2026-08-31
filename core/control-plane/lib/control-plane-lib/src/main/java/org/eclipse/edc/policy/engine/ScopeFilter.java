@@ -67,7 +67,6 @@ public class ScopeFilter {
                 .duties(filteredObligations)
                 .permissions(filteredPermissions)
                 .prohibitions(filteredProhibitions)
-                .extensibleProperties(policy.getExtensibleProperties())
                 .build();
     }
 

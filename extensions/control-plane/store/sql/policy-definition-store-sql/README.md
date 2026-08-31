@@ -24,7 +24,6 @@ entity edc_policydefinitions {
   * permissions: string <<json>>
   * prohibitions: string <<json>>
   * duties: string <<json>>
-  * extensible_properties: string <<json>>
   * inherits_from: string
   * assigner: string
   * assignee: string
