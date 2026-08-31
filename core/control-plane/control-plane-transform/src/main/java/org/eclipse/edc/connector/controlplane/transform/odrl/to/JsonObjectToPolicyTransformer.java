@@ -115,7 +115,7 @@ public class JsonObjectToPolicyTransformer extends AbstractJsonLdTransformer<Jso
             case ODRL_ASSIGNEE_ATTRIBUTE ->
                     v -> builder.assignee(participantIdMapper.fromIri(transformString(v, context)));
             case ODRL_PROFILE_ATTRIBUTE -> v -> builder.profiles(transformProfile(v));
-            default -> v -> builder.extensibleProperty(key, transformGenericProperty(v, context));
+            default -> v -> {};
         });
 
         return builderResult(builder::build, context);

@@ -270,14 +270,12 @@ public abstract class PolicyDefinitionStoreTestBase {
             policy.getPolicy().getPermissions().add(updatedPermission);
             policy.getPolicy().getProhibitions().add(updatedProhibition);
             policy.getPolicy().getObligations().add(updatedDuty);
-            policy.getPolicy().getExtensibleProperties().put("updatedKey", "updatedValue");
 
             var result = store.update(policy);
             assertThat(result.succeeded()).isTrue();
             assertThat(result.getContent()).isEqualTo(policy);
 
             var updatedPolicy = result.getContent().getPolicy();
-            assertThat(updatedPolicy.getExtensibleProperties()).containsEntry("updatedKey", "updatedValue");
             assertThat(updatedPolicy.getPermissions().get(1)).isEqualTo(updatedPermission);
             assertThat(updatedPolicy.getProhibitions().get(1)).isEqualTo(updatedProhibition);
             assertThat(updatedPolicy.getObligations().get(1)).isEqualTo(updatedDuty);
@@ -316,7 +314,6 @@ public abstract class PolicyDefinitionStoreTestBase {
                     .permission(updatedPermission)
                     .prohibition(updatedProhibition)
                     .duty(updatedDuty)
-                    .extensibleProperty("updatedKey", "updatedValue")
                     .build();
 
             var result = store.update(PolicyDefinition.Builder.newInstance().id(policyId).policy(updatedPolicy).build());
@@ -324,7 +321,6 @@ public abstract class PolicyDefinitionStoreTestBase {
             var content = result.getContent().getPolicy();
             assertThat(content).isEqualTo(updatedPolicy);
 
-            assertThat(content.getExtensibleProperties()).containsEntry("updatedKey", "updatedValue");
             assertThat(content.getPermissions().get(0)).isEqualTo(updatedPermission);
             assertThat(content.getProhibitions().get(0)).isEqualTo(updatedProhibition);
             assertThat(content.getObligations().get(0)).isEqualTo(updatedDuty);

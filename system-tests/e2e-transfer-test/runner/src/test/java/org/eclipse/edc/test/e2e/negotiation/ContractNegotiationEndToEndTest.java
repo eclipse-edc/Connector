@@ -44,6 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiationStates.TERMINATED;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.atomicConstraint;
+import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.inForceDatePermission;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.noConstraintPolicy;
 import static org.eclipse.edc.connector.controlplane.test.system.utils.PolicyFixtures.policy;
 import static org.eclipse.edc.spi.query.Criterion.criterion;
@@ -200,8 +201,7 @@ class ContractNegotiationEndToEndTest {
 
         @Test
         void contractNegotiation_policyMismatch_failure(@Runtime(PROVIDER_NAME) ManagementApiClientV4 provider,
-                                                        @Runtime(CONSUMER_NAME) ManagementApiClientV4 consumer,
-                                                        @Runtime(PROVIDER_NAME) CelPolicyExpressionService expressionService) {
+                                                        @Runtime(CONSUMER_NAME) ManagementApiClientV4 consumer) {
             var assetId = UUID.randomUUID().toString();
             createResourcesOnProvider(provider, assetId, httpSourceDataAddress());
 
@@ -210,7 +210,8 @@ class ContractNegotiationEndToEndTest {
 
             var faultyPolicy = createObjectBuilder(policy)
                     .add("action", "access")
-                    .add("permission", createArrayBuilder())
+                    .add("permission", createArrayBuilder()
+                            .add(inForceDatePermission("gteq", "contractAgreement+0s", "lteq", "contractAgreement+10s")))
                     .add("assigner", provider.getParticipantId())
                     .add("target", assetId)
                     .build();

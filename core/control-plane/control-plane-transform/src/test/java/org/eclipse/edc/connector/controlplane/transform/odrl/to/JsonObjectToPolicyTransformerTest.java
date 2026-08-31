@@ -17,7 +17,6 @@ package org.eclipse.edc.connector.controlplane.transform.odrl.to;
 import jakarta.json.Json;
 import jakarta.json.JsonBuilderFactory;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonValue;
 import org.eclipse.edc.jsonld.test.TestJsonLd;
 import org.eclipse.edc.participant.spi.ParticipantIdMapper;
 import org.eclipse.edc.policy.model.Duty;
@@ -121,28 +120,6 @@ class JsonObjectToPolicyTransformerTest {
         verify(context, times(1)).transform(isA(JsonObject.class), eq(Duty.class));
         verify(participantIdMapper).fromIri("assignee");
         verify(participantIdMapper).fromIri("assigner");
-    }
-
-    @Test
-    void transform_policyWithAdditionalProperty_returnPolicy() {
-        var propertyKey = "policy:prop:key";
-        var propertyValue = "value";
-
-        when(context.transform(any(JsonValue.class), eq(Object.class))).thenReturn(propertyValue);
-
-        var policy = jsonFactory.createObjectBuilder()
-                .add(TYPE, ODRL_POLICY_TYPE_SET)
-                .add(propertyKey, propertyValue)
-                .build();
-
-        var result = transformer.transform(TestJsonLd.expand(policy), context);
-
-        assertThat(result).isNotNull();
-        assertThat(result.getExtensibleProperties()).hasSize(1);
-        assertThat(result.getExtensibleProperties()).containsEntry(propertyKey, propertyValue);
-
-        verify(context, never()).reportProblem(anyString());
-        verify(context, times(1)).transform(any(JsonValue.class), eq(Object.class));
     }
 
     @ParameterizedTest
