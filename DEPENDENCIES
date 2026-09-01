@@ -106,9 +106,9 @@ maven/mavencentral/io.cloudevents/cloudevents-core/5.0.0, Apache-2.0, approved, 
 maven/mavencentral/io.cloudevents/cloudevents-http-basic/5.0.0, Apache-2.0, approved, #29989
 maven/mavencentral/io.cloudevents/cloudevents-json-jackson/5.0.0, Apache-2.0, approved, #29987
 maven/mavencentral/io.github.classgraph/classgraph/4.8.184, MIT, approved, CQ22530
-maven/mavencentral/io.micrometer/micrometer-commons/1.17.0, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #28746
-maven/mavencentral/io.micrometer/micrometer-core/1.17.0, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #28755
-maven/mavencentral/io.micrometer/micrometer-observation/1.17.0, Apache-2.0, approved, #28734
+maven/mavencentral/io.micrometer/micrometer-commons/1.17.1, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #28746
+maven/mavencentral/io.micrometer/micrometer-core/1.17.1, Apache-2.0 AND (Apache-2.0 AND MIT), approved, #28755
+maven/mavencentral/io.micrometer/micrometer-observation/1.17.1, Apache-2.0, approved, #28734
 maven/mavencentral/io.nats/jnats/2.26.2, Apache-2.0, approved, #29938
 maven/mavencentral/io.opentelemetry.instrumentation/opentelemetry-instrumentation-annotations/2.31.1, , restricted, clearlydefined
 maven/mavencentral/io.opentelemetry.proto/opentelemetry-proto/1.11.0-alpha, Apache-2.0, approved, #30126
@@ -290,6 +290,7 @@ maven/mavencentral/org.jetbrains/annotations/13.0, Apache-2.0, approved, clearly
 maven/mavencentral/org.jetbrains/annotations/17.0.0, Apache-2.0, approved, #19678
 maven/mavencentral/org.jetbrains/annotations/26.1.0, Apache-2.0, approved, #26477
 maven/mavencentral/org.jspecify/jspecify/1.0.0, Apache-2.0, approved, #21897
+maven/mavencentral/org.jspecify/jspecify/1.0.1, Apache-2.0, approved, #21897
 maven/mavencentral/org.junit-pioneer/junit-pioneer/2.3.0, EPL-2.0, approved, #16678
 maven/mavencentral/org.junit.jupiter/junit-jupiter-api/6.0.3, EPL-2.0, approved, #22892
 maven/mavencentral/org.junit.jupiter/junit-jupiter-api/6.1.2, EPL-2.0, approved, #28330
