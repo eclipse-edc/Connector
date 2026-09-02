@@ -25,6 +25,7 @@ import org.eclipse.edc.connector.controlplane.services.query.QueryValidator;
 import org.eclipse.edc.connector.controlplane.services.spi.asset.AssetService;
 import org.eclipse.edc.policy.model.Policy;
 import org.eclipse.edc.spi.monitor.Monitor;
+import org.eclipse.edc.spi.query.Criterion;
 import org.eclipse.edc.spi.query.QuerySpec;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.result.ServiceFailure;
@@ -39,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -46,6 +48,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.InstanceOfAssertFactories.list;
+import static org.eclipse.edc.connector.controlplane.contract.spi.types.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.BAD_REQUEST;
 import static org.eclipse.edc.spi.result.ServiceFailure.Reason.CONFLICT;
@@ -65,6 +68,8 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class AssetServiceImplTest {
+
+    private static final String PARTICIPANT_CONTEXT_ID = "participantContextId";
 
     private final AssetIndex index = mock();
     private final ContractNegotiationStore contractNegotiationStore = mock();
@@ -174,6 +179,7 @@ class AssetServiceImplTest {
     class Delete {
         @Test
         void shouldDeleteAssetIfNotReferenceByContractAgreement() {
+            when(index.findById("assetId")).thenReturn(createAsset("assetId"));
             when(contractNegotiationStore.queryNegotiations(any())).thenReturn(Stream.empty());
             when(index.deleteById("assetId")).thenReturn(StoreResult.success(createAsset("assetId")));
 
@@ -186,12 +192,15 @@ class AssetServiceImplTest {
         @Test
         void shouldNotDeleteIfAssetIsAlreadyPartOfAnAgreement() {
             var asset = createAsset("assetId");
+            when(index.findById("assetId")).thenReturn(asset);
             when(index.deleteById("assetId")).thenReturn(StoreResult.success(asset));
             var contractNegotiation = ContractNegotiation.Builder.newInstance()
                     .id(UUID.randomUUID().toString())
                     .counterPartyId(UUID.randomUUID().toString())
                     .counterPartyAddress("address")
                     .protocol("protocol")
+                    .type(PROVIDER)
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .contractAgreement(ContractAgreement.Builder.newInstance()
                             .id(UUID.randomUUID().toString())
                             .providerId(UUID.randomUUID().toString())
@@ -208,18 +217,22 @@ class AssetServiceImplTest {
             assertThat(deleted.getFailure().getReason()).isEqualTo(CONFLICT);
             verify(contractNegotiationStore).queryNegotiations(any());
             verifyNoMoreInteractions(contractNegotiationStore);
+            verify(index, never()).deleteById(any());
         }
 
         @ParameterizedTest
         @MethodSource("nonFinalStates")
         void shouldNotDeleteIfAssetIsAlreadyPartOfNotFinalNegotiation(ContractNegotiationStates state) {
             var asset = createAsset("assetId");
+            when(index.findById("assetId")).thenReturn(asset);
             when(index.deleteById("assetId")).thenReturn(StoreResult.success(asset));
             var contractNegotiation = ContractNegotiation.Builder.newInstance()
                     .id(UUID.randomUUID().toString())
                     .counterPartyId(UUID.randomUUID().toString())
                     .counterPartyAddress("address")
                     .protocol("protocol")
+                    .type(PROVIDER)
+                    .participantContextId(PARTICIPANT_CONTEXT_ID)
                     .state(state.code())
                     .build();
             when(contractNegotiationStore.queryNegotiations(any())).thenReturn(Stream.of(contractNegotiation));
@@ -234,22 +247,64 @@ class AssetServiceImplTest {
 
         @Test
         void shouldFailIfAssetDoesNotExist() {
-            when(index.deleteById("assetId")).thenReturn(StoreResult.notFound("test"));
+            when(index.findById("assetId")).thenReturn(null);
 
             var deleted = service.delete("assetId");
 
             assertThat(deleted.failed()).isTrue();
             assertThat(deleted.getFailure().getReason()).isEqualTo(NOT_FOUND);
+            verifyNoInteractions(contractNegotiationStore);
+            verify(index, never()).deleteById(any());
         }
 
         @Test
         @DisplayName("Verifies that the query matches the internal data model")
         void verifyCorrectQuery() {
+            when(index.findById("test-asset")).thenReturn(createAsset("test-asset"));
             when(index.deleteById(any())).thenReturn(StoreResult.success());
 
             var deleted = service.delete("test-asset");
+
             assertThat(deleted.succeeded()).isTrue();
-            verify(contractNegotiationStore).queryNegotiations(argThat(argument -> argument.getFilterExpression().size() == 1 && argument.getFilterExpression().get(0).getOperandLeft().equals("contractAgreement.assetId")));
+            var captor = ArgumentCaptor.forClass(QuerySpec.class);
+            verify(contractNegotiationStore).queryNegotiations(captor.capture());
+            assertThat(captor.getValue().getFilterExpression())
+                    .containsExactlyInAnyOrder(
+                            new Criterion("contractAgreement.assetId", "=", "test-asset"),
+                            new Criterion("type", "=", "PROVIDER"),
+                            new Criterion("participantContextId", "=", PARTICIPANT_CONTEXT_ID));
+        }
+
+        @Test
+        void shouldNotBeBlockedByConsumerNegotiationsOnTheSameAssetId() {
+            when(index.findById("assetId")).thenReturn(createAsset("assetId"));
+            when(index.deleteById("assetId")).thenReturn(StoreResult.success(createAsset("assetId")));
+            // the store only returns negotiations matching the query, consumer ones are filtered out by the `type` criterion
+            when(contractNegotiationStore.queryNegotiations(any())).thenReturn(Stream.empty());
+
+            var deleted = service.delete("assetId");
+
+            assertThat(deleted).isSucceeded();
+            var captor = ArgumentCaptor.forClass(QuerySpec.class);
+            verify(contractNegotiationStore).queryNegotiations(captor.capture());
+            assertThat(captor.getValue().getFilterExpression())
+                    .contains(new Criterion("type", "=", "PROVIDER"));
+        }
+
+        @Test
+        void shouldFilterNegotiationsByAssetParticipantContext() {
+            var asset = createAssetBuilder("assetId").participantContextId("another-context").build();
+            when(index.findById("assetId")).thenReturn(asset);
+            when(index.deleteById("assetId")).thenReturn(StoreResult.success(asset));
+            when(contractNegotiationStore.queryNegotiations(any())).thenReturn(Stream.empty());
+
+            var deleted = service.delete("assetId");
+
+            assertThat(deleted).isSucceeded();
+            var captor = ArgumentCaptor.forClass(QuerySpec.class);
+            verify(contractNegotiationStore).queryNegotiations(captor.capture());
+            assertThat(captor.getValue().getFilterExpression())
+                    .contains(new Criterion("participantContextId", "=", "another-context"));
         }
 
         private static Stream<Arguments> nonFinalStates() {
@@ -319,6 +374,7 @@ class AssetServiceImplTest {
     }
 
     private Asset.Builder createAssetBuilder(String assetId) {
-        return Asset.Builder.newInstance().id(assetId).dataAddress(DataAddress.Builder.newInstance().type("any").build());
+        return Asset.Builder.newInstance().id(assetId).participantContextId(PARTICIPANT_CONTEXT_ID)
+                .dataAddress(DataAddress.Builder.newInstance().type("any").build());
     }
 }
