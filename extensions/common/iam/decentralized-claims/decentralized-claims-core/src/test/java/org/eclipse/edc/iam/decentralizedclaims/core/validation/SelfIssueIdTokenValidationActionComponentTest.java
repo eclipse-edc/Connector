@@ -22,12 +22,13 @@ import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension;
 import org.eclipse.edc.iam.decentralizedclaims.spi.SecureTokenService;
+import org.eclipse.edc.iam.did.spi.document.DidDocument;
 import org.eclipse.edc.iam.did.spi.resolution.DidPublicKeyResolver;
+import org.eclipse.edc.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.edc.json.JacksonTypeManager;
 import org.eclipse.edc.junit.annotations.ComponentTest;
 import org.eclipse.edc.junit.extensions.DependencyInjectionExtension;
 import org.eclipse.edc.jwt.validation.jti.JtiValidationStore;
-import org.eclipse.edc.spi.EdcException;
 import org.eclipse.edc.spi.iam.TokenRepresentation;
 import org.eclipse.edc.spi.result.Result;
 import org.eclipse.edc.spi.system.ExecutorInstrumentation;
@@ -43,16 +44,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.text.ParseException;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.edc.iam.decentralizedclaims.core.DcpCoreExtension.PARTICIPANT_DID;
 import static org.eclipse.edc.iam.decentralizedclaims.spi.TestFunctions.createToken;
 import static org.eclipse.edc.junit.assertions.AbstractResultAssert.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -70,9 +71,10 @@ public class SelfIssueIdTokenValidationActionComponentTest {
     private final JtiValidationStore storeMock = mock();
     private final TypeTransformerRegistry transformerRegistry = mock();
     private final DidPublicKeyResolver publicKeyResolver = mock();
+    private final DidResolverRegistry didResolverRegistry = mock();
     private final TokenValidationRulesRegistryImpl ruleRegistry = new TokenValidationRulesRegistryImpl();
     private final TokenValidationService tokenValidationService = new TokenValidationServiceImpl();
-    private final SelfIssueIdTokenValidationAction verifier = new SelfIssueIdTokenValidationAction(tokenValidationService, ruleRegistry, publicKeyResolver, (it) -> EXPECTED_AUDIENCE);
+    private final SelfIssueIdTokenValidationAction verifier = new SelfIssueIdTokenValidationAction(tokenValidationService, ruleRegistry, publicKeyResolver, (it) -> EXPECTED_AUDIENCE, didResolverRegistry);
 
     public static ECKey generateEcKey(String kid) {
         try {
@@ -98,14 +100,23 @@ public class SelfIssueIdTokenValidationActionComponentTest {
                 CLEANUP_PERIOD, "1"
         ));
         when(context.getConfig()).thenReturn(config);
+
+        // default: any DID resolves to a document with all known test keys in capabilityInvocation,
+        // so tests not exercising this specific check are not affected
+        when(didResolverRegistry.resolve(anyString())).thenReturn(Result.success(
+                DidDocument.Builder.newInstance()
+                        .id(CONSUMER_DID)
+                        .capabilityInvocation(List.of(CONSUMER_DID_KEY, "did:web:issuer#key"))
+                        .build()));
     }
 
     @Test
     void verify_invalidToken(ServiceExtensionContext context, DcpCoreExtension extension) {
         extension.initialize(context);
-        assertThatThrownBy(() -> verifier.validate(PARTICIPANT_CONTEXT_ID, TokenRepresentation.Builder.newInstance().token("token").build()))
-                .isInstanceOf(EdcException.class)
-                .hasCauseInstanceOf(ParseException.class);
+
+        var result = verifier.validate(PARTICIPANT_CONTEXT_ID, TokenRepresentation.Builder.newInstance().token("token").build());
+
+        assertThat(result).isFailed().messages().anyMatch(m -> m.contains("Error parsing JWT"));
     }
 
     @Test
@@ -123,6 +134,27 @@ public class SelfIssueIdTokenValidationActionComponentTest {
         when(publicKeyResolver.resolveKey(CONSUMER_DID_KEY)).thenReturn(Result.success(key.toPublicKey()));
         var token = createToken(claims, key);
         assertThat(verifier.validate(PARTICIPANT_CONTEXT_ID, token)).isSucceeded();
+    }
+
+    @Test
+    void verify_whenKeyNotInCapabilityInvocation(ServiceExtensionContext context, DcpCoreExtension extension) throws JOSEException {
+        extension.initialize(context);
+        var key = generateEcKey(CONSUMER_DID_KEY);
+        var claims = new JWTClaimsSet.Builder()
+                .issuer(CONSUMER_DID)
+                .subject(CONSUMER_DID)
+                .audience(EXPECTED_AUDIENCE)
+                .claim("token", "accessToken")
+                .expirationTime(Date.from(Instant.now().plusSeconds(10)))
+                .build();
+
+        when(publicKeyResolver.resolveKey(CONSUMER_DID_KEY)).thenReturn(Result.success(key.toPublicKey()));
+        when(didResolverRegistry.resolve(CONSUMER_DID)).thenReturn(Result.success(
+                DidDocument.Builder.newInstance().id(CONSUMER_DID).capabilityInvocation(List.of("did:web:consumer#other-key")).build()));
+        var token = createToken(claims, key);
+        assertThat(verifier.validate(PARTICIPANT_CONTEXT_ID, token)).isFailed()
+                .detail()
+                .contains("is not listed in the 'capabilityInvocation' section");
     }
 
 
