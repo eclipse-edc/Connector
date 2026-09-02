@@ -128,6 +128,55 @@ class JwtToVerifiableCredentialTransformerTest {
         verifyNoInteractions(context);
     }
 
+    @Test
+    @DisplayName("VCDM 2.0 credential without credentialSubject.id and without JWT 'sub' claim")
+    void transform_vcdm20_subjectWithoutIdAndNoFallback() {
+        var jwt = createVcdm20Jwt(null);
+
+        var vc = transformer.transform(jwt, context);
+
+        assertThat(vc).isNotNull();
+        assertThat(vc.getCredentialSubject()).hasSize(1).first().satisfies(subject -> {
+            assertThat(subject.getId()).isNull();
+            assertThat(subject.getClaims()).containsEntry("foo", "bar");
+        });
+        verifyNoInteractions(context);
+    }
+
+    @Test
+    @DisplayName("Credential without credentialSubject.id falls back to the JWT 'sub' claim")
+    void transform_subjectWithoutId_fallsBackToJwtSubject() {
+        var jwt = createVcdm20Jwt("did:example:fallback");
+
+        var vc = transformer.transform(jwt, context);
+
+        assertThat(vc).isNotNull();
+        assertThat(vc.getCredentialSubject()).hasSize(1).first().satisfies(subject -> {
+            assertThat(subject.getId()).isEqualTo("did:example:fallback");
+            assertThat(subject.getClaims()).containsEntry("foo", "bar");
+        });
+        verifyNoInteractions(context);
+    }
+
+    private String createVcdm20Jwt(String jwtSubject) {
+        try {
+            var claimsSet = new JWTClaimsSet.Builder()
+                    .issuer("https://university.example/issuers/14")
+                    .subject(jwtSubject)
+                    .claim("@context", List.of("https://www.w3.org/ns/credentials/v2"))
+                    .claim("type", List.of("VerifiableCredential"))
+                    .claim("validFrom", "2010-01-01T19:23:24Z")
+                    .claim("credentialSubject", Map.of("foo", "bar"))
+                    .build();
+
+            var jwt = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claimsSet);
+            jwt.sign(new MACSigner("test-secret-test-secret-test-secret-12345".getBytes()));
+            return jwt.serialize();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private String createJwt(Map<String, Object> additionalVcProps) {
         try {
             var vcClaims = new HashMap<String, Object>();
