@@ -28,8 +28,8 @@ import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
-@OpenAPIDefinition(info = @Info(title = "Discovery Management API", version = "v5beta"))
-@Tag(name = "Discovery v5beta")
+@OpenAPIDefinition(info = @Info(title = "Discovery Management API", version = "v5"))
+@Tag(name = "Discovery v5")
 public interface DiscoveryApiV5 {
 
     @Operation(description = "Discovers the dataspace profiles usable to communicate with a counter party. " +

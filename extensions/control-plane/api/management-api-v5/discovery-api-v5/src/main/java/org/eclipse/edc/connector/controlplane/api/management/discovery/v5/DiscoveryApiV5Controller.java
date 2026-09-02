@@ -41,7 +41,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v5beta/participants/{participantContextId}/discover")
+@Path("/v5/participants/{participantContextId}/discover")
 public class DiscoveryApiV5Controller implements DiscoveryApiV5 {
 
     private final AuthorizationService authorizationService;

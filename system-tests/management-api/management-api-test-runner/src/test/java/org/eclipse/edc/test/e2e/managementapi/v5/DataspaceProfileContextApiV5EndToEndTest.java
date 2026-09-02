@@ -67,7 +67,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
-                    .get("/v5beta/participants/" + participantContextId + "/profiles")
+                    .get("/v5/participants/" + participantContextId + "/profiles")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -92,7 +92,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
-                    .get("/v5beta/participants/" + participantContextId + "/profiles")
+                    .get("/v5/participants/" + participantContextId + "/profiles")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -109,7 +109,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
-                    .get("/v5beta/participants/" + participantContextId + "/profiles")
+                    .get("/v5/participants/" + participantContextId + "/profiles")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -133,7 +133,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
             var token = authServer.createToken(otherParticipantId);
 
             context.baseRequest(token)
-                    .get("/v5beta/participants/" + participantContextId + "/profiles")
+                    .get("/v5/participants/" + participantContextId + "/profiles")
                     .then()
                     .statusCode(403);
         }
@@ -151,7 +151,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(profiles)
-                    .put("/v5beta/participants/" + participantContextId + "/profiles")
+                    .put("/v5/participants/" + participantContextId + "/profiles")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(204);
@@ -173,7 +173,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(profiles)
-                    .put("/v5beta/participants/" + participantContextId + "/profiles")
+                    .put("/v5/participants/" + participantContextId + "/profiles")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(400)
@@ -193,7 +193,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(profiles)
-                    .put("/v5beta/participants/" + participantContextId + "/profiles")
+                    .put("/v5/participants/" + participantContextId + "/profiles")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(400)
@@ -213,7 +213,7 @@ public class DataspaceProfileContextApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(profiles)
-                    .put("/v5beta/participants/" + participantContextId + "/profiles")
+                    .put("/v5/participants/" + participantContextId + "/profiles")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(403);

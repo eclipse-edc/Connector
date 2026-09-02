@@ -104,7 +104,7 @@ public class ContractNegotiationApiV5EndToEndTest {
             var id = context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(requestJson.toString())
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -126,7 +126,7 @@ public class ContractNegotiationApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(requestJson.toString())
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(400);
@@ -140,7 +140,7 @@ public class ContractNegotiationApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(requestJson.toString())
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(400)
@@ -162,7 +162,7 @@ public class ContractNegotiationApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(requestJson.toString())
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(403)
@@ -183,7 +183,7 @@ public class ContractNegotiationApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(requestJson.toString())
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(403)
@@ -200,7 +200,7 @@ public class ContractNegotiationApiV5EndToEndTest {
             var id = context.baseRequest(token)
                     .contentType(JSON)
                     .body(requestJson.toString())
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -216,7 +216,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1")
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -239,7 +239,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(JSON)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1")
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1")
                     .then()
                     .statusCode(403);
         }
@@ -252,7 +252,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(JSON)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1")
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1")
                     .then()
                     .statusCode(403);
         }
@@ -264,7 +264,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/state")
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/state")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -284,7 +284,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(JSON)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/state")
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/state")
                     .then()
                     .statusCode(403);
 
@@ -299,7 +299,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(JSON)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/state")
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/state")
                     .then()
                     .statusCode(403);
 
@@ -312,7 +312,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/agreement")
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/agreement")
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -337,7 +337,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(JSON)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/agreement")
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/agreement")
                     .then()
                     .statusCode(403);
 
@@ -353,7 +353,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(JSON)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/agreement")
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/agreement")
                     .then()
                     .statusCode(403);
 
@@ -388,7 +388,7 @@ public class ContractNegotiationApiV5EndToEndTest {
             var jsonPath = context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(query.toString())
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/request")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/request")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -440,7 +440,7 @@ public class ContractNegotiationApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(query.toString())
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/request")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/request")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -481,7 +481,7 @@ public class ContractNegotiationApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(query.toString())
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/request")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/request")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -523,7 +523,7 @@ public class ContractNegotiationApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(query.toString())
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/request")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/request")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(403)
@@ -543,7 +543,7 @@ public class ContractNegotiationApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/terminate")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/terminate")
                     .then()
                     .log().ifError()
                     .statusCode(204);
@@ -568,7 +568,7 @@ public class ContractNegotiationApiV5EndToEndTest {
             context.baseRequest(token)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/terminate")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/terminate")
                     .then()
                     .log().ifError()
                     .statusCode(403);
@@ -590,7 +590,7 @@ public class ContractNegotiationApiV5EndToEndTest {
             context.baseRequest(token)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/terminate")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1/terminate")
                     .then()
                     .log().ifError()
                     .statusCode(403);
@@ -603,7 +603,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
-                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1")
+                    .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1")
                     .then()
                     .statusCode(204);
 
@@ -617,7 +617,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
-                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1")
+                    .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1")
                     .then()
                     .statusCode(409);
 
@@ -637,7 +637,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(JSON)
-                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1")
+                    .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1")
                     .then()
                     .statusCode(403);
         }
@@ -651,7 +651,7 @@ public class ContractNegotiationApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(JSON)
-                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1")
+                    .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/contractnegotiations/cn1")
                     .then()
                     .statusCode(403);
         }

@@ -69,7 +69,7 @@ class CachedDocumentApiV5ControllerTest extends RestControllerTestBase {
         baseRequest()
                 .contentType("application/json")
                 .body(requestBody)
-                .post("/v5beta/cacheddocuments")
+                .post("/v5/cacheddocuments")
                 .then()
                 .statusCode(200)
                 .body("@id", is(context.getId()));
@@ -84,7 +84,7 @@ class CachedDocumentApiV5ControllerTest extends RestControllerTestBase {
         baseRequest()
                 .contentType("application/json")
                 .body("{ }")
-                .post("/v5beta/cacheddocuments")
+                .post("/v5/cacheddocuments")
                 .then()
                 .statusCode(400);
 
@@ -96,7 +96,7 @@ class CachedDocumentApiV5ControllerTest extends RestControllerTestBase {
         when(service.findById("missing")).thenReturn(null);
 
         baseRequest()
-                .get("/v5beta/cacheddocuments/missing")
+                .get("/v5/cacheddocuments/missing")
                 .then()
                 .statusCode(404);
     }
@@ -109,7 +109,7 @@ class CachedDocumentApiV5ControllerTest extends RestControllerTestBase {
                 .thenReturn(Result.success(Json.createObjectBuilder().add("@id", "id1").build()));
 
         baseRequest()
-                .get("/v5beta/cacheddocuments/id1")
+                .get("/v5/cacheddocuments/id1")
                 .then()
                 .statusCode(200)
                 .body("'@id'", is("id1"));
@@ -123,7 +123,7 @@ class CachedDocumentApiV5ControllerTest extends RestControllerTestBase {
                 .thenReturn(Result.success(Json.createObjectBuilder().add("@id", "id1").build()));
 
         baseRequest()
-                .get("/v5beta/cacheddocuments")
+                .get("/v5/cacheddocuments")
                 .then()
                 .statusCode(200)
                 .body("size()", is(1));
@@ -134,7 +134,7 @@ class CachedDocumentApiV5ControllerTest extends RestControllerTestBase {
         when(service.deleteById("id1")).thenReturn(ServiceResult.success(context()));
 
         baseRequest()
-                .delete("/v5beta/cacheddocuments/id1")
+                .delete("/v5/cacheddocuments/id1")
                 .then()
                 .statusCode(204);
 
@@ -156,7 +156,7 @@ class CachedDocumentApiV5ControllerTest extends RestControllerTestBase {
         baseRequest()
                 .contentType("application/json")
                 .body(requestBody)
-                .put("/v5beta/cacheddocuments/id1")
+                .put("/v5/cacheddocuments/id1")
                 .then()
                 .statusCode(204);
 

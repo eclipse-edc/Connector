@@ -28,8 +28,8 @@ import jakarta.json.JsonObject;
 import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
-@OpenAPIDefinition(info = @Info(title = "Dataspace Profile Context Management API", version = "v5beta"))
-@Tag(name = "Dataspace Profile Context  v5beta")
+@OpenAPIDefinition(info = @Info(title = "Dataspace Profile Context Management API", version = "v5"))
+@Tag(name = "Dataspace Profile Context  v5")
 public interface DataspaceProfileContextApiV5 {
 
     @Operation(description = "Gets Dataspace Profile contexts configured for the participant context id.",

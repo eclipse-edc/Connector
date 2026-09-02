@@ -100,7 +100,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             var id = context.baseRequest(participantTokenJwt)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
                     .then()
                     .log().ifValidationFails()
                     .contentType(JSON)
@@ -108,7 +108,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
                     .extract().jsonPath().getString(ID);
 
             context.baseRequest(participantTokenJwt)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -146,7 +146,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             var id = context.baseRequest(participantTokenJwt)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
                     .then()
                     .log().ifValidationFails()
                     .contentType(JSON)
@@ -154,7 +154,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
                     .extract().jsonPath().getString(ID);
 
             context.baseRequest(participantTokenJwt)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -180,7 +180,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             var id = context.baseRequest(participantTokenJwt)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
                     .then()
                     .contentType(JSON)
                     .extract().jsonPath().getString(ID);
@@ -196,7 +196,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
                     .extracting(PolicyDefinition::getPrivateProperties).isEqualTo(privateProp);
 
             context.baseRequest(participantTokenJwt)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
                     .then()
                     .statusCode(200)
                     .contentType(JSON)
@@ -216,7 +216,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
                     .then()
                     .log().ifValidationFails()
                     .contentType(JSON)
@@ -243,7 +243,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             context.baseRequest(token)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
                     .then()
                     .log().ifError()
                     .contentType(JSON)
@@ -267,7 +267,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             context.baseRequest(token)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
                     .then()
                     .log().ifError()
                     .statusCode(403)
@@ -289,7 +289,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(requestBody.toString())
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200);
@@ -310,7 +310,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(requestBody.toString())
-                    .post("/v5beta/participants/not-valid/policydefinitions")
+                    .post("/v5/participants/not-valid/policydefinitions")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(404);
@@ -328,7 +328,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
 
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId())
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId())
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -353,7 +353,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(JSON)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId())
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId())
                     .then()
                     .log().ifError()
                     .statusCode(403);
@@ -373,7 +373,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(JSON)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId())
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId())
                     .then()
                     .log().ifError()
                     .statusCode(403);
@@ -394,7 +394,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             var id = context.baseRequest(participantTokenJwt)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
                     .then()
                     .contentType(JSON)
                     .extract().jsonPath().getString(ID);
@@ -407,7 +407,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .body(matchingQuery.toString())
                     .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/request")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -422,7 +422,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .body(nonMatchingQuery.toString())
                     .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/request")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -443,7 +443,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
 
             var result = context.baseRequest(token)
                     .contentType(ContentType.JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/request")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -469,7 +469,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
 
             var result = context.baseRequest(token)
                     .contentType(ContentType.JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/request")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/request")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -496,7 +496,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(query)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/assets/request")
                     .then()
                     .log().ifError()
                     .statusCode(403)
@@ -515,14 +515,14 @@ public class PolicyDefinitionApiV5EndToEndTest {
             var id = context.baseRequest(participantTokenJwt)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
                     .then()
                     .statusCode(200)
                     .extract().jsonPath().getString(ID);
 
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
                     .then()
                     .statusCode(200);
 
@@ -533,7 +533,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
                             .add("privateProperties", createObjectBuilder().add("privateProperty", "value"))
                             .build()
                             .toString())
-                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
+                    .put("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
                     .then()
                     .statusCode(204);
 
@@ -558,14 +558,14 @@ public class PolicyDefinitionApiV5EndToEndTest {
             var id = context.baseRequest(participantTokenJwt)
                     .body(validRequestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
                     .then()
                     .contentType(JSON)
                     .extract().jsonPath().getString(ID);
 
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
                     .then()
                     .statusCode(200);
 
@@ -578,7 +578,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(inValidRequestBody.toString())
-                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
+                    .put("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
                     .then()
                     .statusCode(400)
                     .contentType(JSON)
@@ -597,7 +597,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/id")
+                    .put("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/id")
                     .then()
                     .log().ifValidationFails()
                     .contentType(JSON)
@@ -631,7 +631,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
                             .add("privateProperties", createObjectBuilder().add("privateProperty", "value"))
                             .build()
                             .toString())
-                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId())
+                    .put("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId())
                     .then()
                     .statusCode(403);
 
@@ -663,7 +663,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
                             .add("privateProperties", createObjectBuilder().add("privateProperty", "value"))
                             .build()
                             .toString())
-                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId())
+                    .put("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId())
                     .then()
                     .statusCode(403);
 
@@ -681,19 +681,19 @@ public class PolicyDefinitionApiV5EndToEndTest {
             var id = context.baseRequest(participantTokenJwt)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
                     .then()
                     .log().ifError()
                     .statusCode(200)
                     .extract().jsonPath().getString(ID);
 
             context.baseRequest(participantTokenJwt)
-                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
+                    .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
                     .then()
                     .statusCode(204);
 
             context.baseRequest(participantTokenJwt)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
                     .then()
                     .statusCode(404);
         }
@@ -712,18 +712,18 @@ public class PolicyDefinitionApiV5EndToEndTest {
             var id = context.baseRequest(participantTokenJwt)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
                     .then()
                     .statusCode(200)
                     .extract().jsonPath().getString(ID);
 
             context.baseRequest(participantTokenJwt)
-                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
+                    .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
                     .then()
                     .statusCode(204);
 
             context.baseRequest(participantTokenJwt)
-                    .get("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
+                    .get("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id)
                     .then()
                     .statusCode(404);
         }
@@ -744,7 +744,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             var token = authServer.createToken(otherParticipantId);
 
             context.baseRequest(token)
-                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId())
+                    .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId())
                     .then()
                     .statusCode(403);
         }
@@ -764,7 +764,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             var token = authServer.createToken(PARTICIPANT_CONTEXT_ID, Map.of("scope", "management-api:read"));
 
             context.baseRequest(token)
-                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId())
+                    .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId())
                     .then()
                     .statusCode(403);
 
@@ -781,7 +781,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
                     .then()
                     .log().ifError()
                     .statusCode(400)
@@ -801,7 +801,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             var id = context.baseRequest(participantTokenJwt)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions")
                     .then()
                     .statusCode(200)
                     .extract().jsonPath().getString(ID);
@@ -815,7 +815,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(JSON)
                     .body(planBody.toString())
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id + "/evaluationplan")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + id + "/evaluationplan")
                     .then()
                     .statusCode(200)
                     .body("preValidators.size()", is(0))
@@ -860,7 +860,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(planBody.toString())
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId() + "/evaluationplan")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId() + "/evaluationplan")
                     .then()
                     .log().ifError()
                     .statusCode(403);
@@ -888,7 +888,7 @@ public class PolicyDefinitionApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(JSON)
                     .body(planBody.toString())
-                    .post("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId() + "/evaluationplan")
+                    .post("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/policydefinitions/" + stored.getId() + "/evaluationplan")
                     .then()
                     .statusCode(403);
 

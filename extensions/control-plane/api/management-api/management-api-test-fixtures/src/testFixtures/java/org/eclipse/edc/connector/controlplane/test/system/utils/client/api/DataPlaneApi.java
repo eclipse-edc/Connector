@@ -40,7 +40,7 @@ public class DataPlaneApi {
                 .contentType(JSON)
                 .body(dataPlaneRegistration)
                 .when()
-                .put("/v5beta/participants/%s/dataplanes".formatted(participantContextId))
+                .put("/v5/participants/%s/dataplanes".formatted(participantContextId))
                 .then()
                 .log().ifValidationFails()
                 .statusCode(200);

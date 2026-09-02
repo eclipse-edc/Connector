@@ -78,7 +78,7 @@ public class DataPlaneRegistrationApiV5EndToEndTest {
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
                     .body(message)
-                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes")
+                    .put("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes")
                     .then()
                     .log().all()
                     .statusCode(200)
@@ -106,7 +106,7 @@ public class DataPlaneRegistrationApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(message)
-                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes")
+                    .put("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes")
                     .then()
                     .log().all()
                     .statusCode(403)
@@ -123,7 +123,7 @@ public class DataPlaneRegistrationApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(message)
-                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes")
+                    .put("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes")
                     .then()
                     .log().all()
                     .statusCode(403)
@@ -139,7 +139,7 @@ public class DataPlaneRegistrationApiV5EndToEndTest {
             context.baseRequest(authServer.createAdminToken())
                     .contentType(ContentType.JSON)
                     .body(message)
-                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes")
+                    .put("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes")
                     .then()
                     .log().all()
                     .statusCode(200)
@@ -155,7 +155,7 @@ public class DataPlaneRegistrationApiV5EndToEndTest {
             context.baseRequest(authServer.createAdminToken())
                     .contentType(ContentType.JSON)
                     .body(message)
-                    .put("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes")
+                    .put("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes")
                     .then()
                     .log().all()
                     .statusCode(200)
@@ -174,7 +174,7 @@ public class DataPlaneRegistrationApiV5EndToEndTest {
 
             context.baseRequest(participantTokenJwt)
                     .contentType(ContentType.JSON)
-                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes/" + instance.getId())
+                    .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes/" + instance.getId())
                     .then()
                     .log().all()
                     .statusCode(200);
@@ -200,7 +200,7 @@ public class DataPlaneRegistrationApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
-                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes/" + instance.getId())
+                    .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes/" + instance.getId())
                     .then()
                     .log().all()
                     .statusCode(403);
@@ -220,7 +220,7 @@ public class DataPlaneRegistrationApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
-                    .delete("/v5beta/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes/" + instance.getId())
+                    .delete("/v5/participants/" + PARTICIPANT_CONTEXT_ID + "/dataplanes/" + instance.getId())
                     .then()
                     .log().all()
                     .statusCode(403);

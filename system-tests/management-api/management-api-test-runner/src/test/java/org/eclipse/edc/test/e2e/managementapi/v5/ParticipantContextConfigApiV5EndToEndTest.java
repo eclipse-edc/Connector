@@ -75,7 +75,7 @@ public class ParticipantContextConfigApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(body)
-                    .put("/v5beta/participants/" + participantContextId + "/config")
+                    .put("/v5/participants/" + participantContextId + "/config")
                     .then()
                     .log().all()
                     .statusCode(204);
@@ -102,7 +102,7 @@ public class ParticipantContextConfigApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(body)
-                    .put("/v5beta/participants/" + participantContextId + "/config")
+                    .put("/v5/participants/" + participantContextId + "/config")
                     .then()
                     .statusCode(400)
                     .body("[0].message", equalTo("string found, object expected"))
@@ -127,7 +127,7 @@ public class ParticipantContextConfigApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(body)
-                    .put("/v5beta/participants/" + participantContextId + "/config")
+                    .put("/v5/participants/" + participantContextId + "/config")
                     .then()
                     .statusCode(403);
 
@@ -153,7 +153,7 @@ public class ParticipantContextConfigApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(body)
-                    .patch("/v5beta/participants/" + participantContextId + "/config")
+                    .patch("/v5/participants/" + participantContextId + "/config")
                     .then()
                     .log().all()
                     .statusCode(204);
@@ -186,7 +186,7 @@ public class ParticipantContextConfigApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(body)
-                    .patch("/v5beta/participants/" + participantContextId + "/config")
+                    .patch("/v5/participants/" + participantContextId + "/config")
                     .then()
                     .log().all()
                     .statusCode(204);
@@ -215,7 +215,7 @@ public class ParticipantContextConfigApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(body)
-                    .put("/v5beta/participants/" + participantContextId + "/config")
+                    .put("/v5/participants/" + participantContextId + "/config")
                     .then()
                     .statusCode(400);
         }
@@ -236,7 +236,7 @@ public class ParticipantContextConfigApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(body)
-                    .patch("/v5beta/participants/" + participantContextId + "/config")
+                    .patch("/v5/participants/" + participantContextId + "/config")
                     .then()
                     .statusCode(204);
 
@@ -257,7 +257,7 @@ public class ParticipantContextConfigApiV5EndToEndTest {
             var token = authServer.createAdminToken();
 
             var su = context.baseRequest(token)
-                    .get("/v5beta/participants/" + participantContextId + "/config")
+                    .get("/v5/participants/" + participantContextId + "/config")
                     .then()
                     .statusCode(200)
                     .extract().body().as(Map.class);
@@ -272,7 +272,7 @@ public class ParticipantContextConfigApiV5EndToEndTest {
             var token = authServer.createToken(participantContextId);
 
             context.baseRequest(token)
-                    .get("/v5beta/participants/" + participantContextId + "/config")
+                    .get("/v5/participants/" + participantContextId + "/config")
                     .then()
                     .statusCode(403);
 

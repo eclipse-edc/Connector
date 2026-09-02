@@ -111,7 +111,7 @@ public class CachedDocumentApiV5EndToEndTest {
             var id = context.baseRequest(adminToken)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/cacheddocuments")
+                    .post("/v5/cacheddocuments")
                     .then()
                     .log().ifValidationFails()
                     .contentType(JSON)
@@ -131,7 +131,7 @@ public class CachedDocumentApiV5EndToEndTest {
             context.baseRequest(adminToken)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/cacheddocuments")
+                    .post("/v5/cacheddocuments")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(400);
@@ -150,7 +150,7 @@ public class CachedDocumentApiV5EndToEndTest {
             var id = context.baseRequest(adminToken)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/cacheddocuments")
+                    .post("/v5/cacheddocuments")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -169,7 +169,7 @@ public class CachedDocumentApiV5EndToEndTest {
 
             context.baseRequest(adminToken)
                     .contentType(JSON)
-                    .get("/v5beta/cacheddocuments/" + created.getId())
+                    .get("/v5/cacheddocuments/" + created.getId())
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -183,7 +183,7 @@ public class CachedDocumentApiV5EndToEndTest {
         void get_notFound(ManagementEndToEndV5TestContext context) {
             context.baseRequest(adminToken)
                     .contentType(JSON)
-                    .get("/v5beta/cacheddocuments/not-found")
+                    .get("/v5/cacheddocuments/not-found")
                     .then()
                     .log().ifError()
                     .statusCode(404);
@@ -196,7 +196,7 @@ public class CachedDocumentApiV5EndToEndTest {
 
             context.baseRequest(adminToken)
                     .contentType(JSON)
-                    .get("/v5beta/cacheddocuments")
+                    .get("/v5/cacheddocuments")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -215,7 +215,7 @@ public class CachedDocumentApiV5EndToEndTest {
             context.baseRequest(adminToken)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .put("/v5beta/cacheddocuments/" + created.getId())
+                    .put("/v5/cacheddocuments/" + created.getId())
                     .then()
                     .log().ifError()
                     .statusCode(204);
@@ -232,12 +232,12 @@ public class CachedDocumentApiV5EndToEndTest {
                     .orElseThrow(f -> new AssertionError(f.getFailureDetail()));
 
             context.baseRequest(adminToken)
-                    .delete("/v5beta/cacheddocuments/" + created.getId())
+                    .delete("/v5/cacheddocuments/" + created.getId())
                     .then()
                     .statusCode(204);
 
             context.baseRequest(adminToken)
-                    .delete("/v5beta/cacheddocuments/" + created.getId())
+                    .delete("/v5/cacheddocuments/" + created.getId())
                     .then()
                     .statusCode(404);
         }
@@ -252,7 +252,7 @@ public class CachedDocumentApiV5EndToEndTest {
             context.baseRequest(nonAdminToken(authServer))
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/cacheddocuments")
+                    .post("/v5/cacheddocuments")
                     .then()
                     .log().ifError()
                     .statusCode(403)
@@ -263,7 +263,7 @@ public class CachedDocumentApiV5EndToEndTest {
         void getAll_notAdmin(ManagementEndToEndV5TestContext context, OauthServer authServer) {
             context.baseRequest(nonAdminToken(authServer))
                     .contentType(JSON)
-                    .get("/v5beta/cacheddocuments")
+                    .get("/v5/cacheddocuments")
                     .then()
                     .log().ifError()
                     .statusCode(403)
@@ -274,7 +274,7 @@ public class CachedDocumentApiV5EndToEndTest {
         void get_notAdmin(ManagementEndToEndV5TestContext context, OauthServer authServer) {
             context.baseRequest(nonAdminToken(authServer))
                     .contentType(JSON)
-                    .get("/v5beta/cacheddocuments/any-id")
+                    .get("/v5/cacheddocuments/any-id")
                     .then()
                     .log().ifError()
                     .statusCode(403)
@@ -291,7 +291,7 @@ public class CachedDocumentApiV5EndToEndTest {
             context.baseRequest(nonAdminToken(authServer))
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .put("/v5beta/cacheddocuments/any-id")
+                    .put("/v5/cacheddocuments/any-id")
                     .then()
                     .log().ifError()
                     .statusCode(403)
@@ -301,7 +301,7 @@ public class CachedDocumentApiV5EndToEndTest {
         @Test
         void delete_notAdmin(ManagementEndToEndV5TestContext context, OauthServer authServer) {
             context.baseRequest(nonAdminToken(authServer))
-                    .delete("/v5beta/cacheddocuments/any-id")
+                    .delete("/v5/cacheddocuments/any-id")
                     .then()
                     .log().ifError()
                     .statusCode(403)
@@ -312,7 +312,7 @@ public class CachedDocumentApiV5EndToEndTest {
         void refresh_notAdmin(ManagementEndToEndV5TestContext context, OauthServer authServer) {
             context.baseRequest(nonAdminToken(authServer))
                     .contentType(JSON)
-                    .post("/v5beta/cacheddocuments/any-id/refresh")
+                    .post("/v5/cacheddocuments/any-id/refresh")
                     .then()
                     .log().ifError()
                     .statusCode(403)
@@ -352,7 +352,7 @@ public class CachedDocumentApiV5EndToEndTest {
             context.baseRequest(adminToken)
                     .body(requestBody.toString())
                     .contentType(JSON)
-                    .post("/v5beta/cacheddocuments")
+                    .post("/v5/cacheddocuments")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200);

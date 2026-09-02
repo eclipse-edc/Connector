@@ -43,7 +43,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v5beta/dcpscopes")
+@Path("/v5/dcpscopes")
 public class DcpScopeApiV5Controller implements DcpScopeApiV5 {
 
     private final DcpScopeRegistry scopeRegistry;

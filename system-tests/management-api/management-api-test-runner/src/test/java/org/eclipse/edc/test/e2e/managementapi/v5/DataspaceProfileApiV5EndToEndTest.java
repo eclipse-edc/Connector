@@ -62,7 +62,7 @@ public class DataspaceProfileApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(profileJson(name))
-                    .post("/v5beta/dataspaceprofiles")
+                    .post("/v5/dataspaceprofiles")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -71,7 +71,7 @@ public class DataspaceProfileApiV5EndToEndTest {
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
-                    .get("/v5beta/dataspaceprofiles/" + name)
+                    .get("/v5/dataspaceprofiles/" + name)
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -88,7 +88,7 @@ public class DataspaceProfileApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(context.query())
-                    .post("/v5beta/dataspaceprofiles/request")
+                    .post("/v5/dataspaceprofiles/request")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -96,13 +96,13 @@ public class DataspaceProfileApiV5EndToEndTest {
                     .body("name", hasItem(name));
 
             context.baseRequest(token)
-                    .delete("/v5beta/dataspaceprofiles/" + name)
+                    .delete("/v5/dataspaceprofiles/" + name)
                     .then()
                     .log().ifValidationFails()
                     .statusCode(204);
 
             context.baseRequest(token)
-                    .get("/v5beta/dataspaceprofiles/" + name)
+                    .get("/v5/dataspaceprofiles/" + name)
                     .then()
                     .statusCode(404);
         }
@@ -115,7 +115,7 @@ public class DataspaceProfileApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(profileJson(name))
-                    .post("/v5beta/dataspaceprofiles")
+                    .post("/v5/dataspaceprofiles")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200);
@@ -135,14 +135,14 @@ public class DataspaceProfileApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(updated)
-                    .put("/v5beta/dataspaceprofiles")
+                    .put("/v5/dataspaceprofiles")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(204);
 
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
-                    .get("/v5beta/dataspaceprofiles/" + name)
+                    .get("/v5/dataspaceprofiles/" + name)
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -156,7 +156,7 @@ public class DataspaceProfileApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(profileJson("unknown-profile"))
-                    .put("/v5beta/dataspaceprofiles")
+                    .put("/v5/dataspaceprofiles")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(404);
@@ -170,7 +170,7 @@ public class DataspaceProfileApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(profileJson(name))
-                    .post("/v5beta/dataspaceprofiles")
+                    .post("/v5/dataspaceprofiles")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200);
@@ -178,7 +178,7 @@ public class DataspaceProfileApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(profileJson(name))
-                    .post("/v5beta/dataspaceprofiles")
+                    .post("/v5/dataspaceprofiles")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(409);
@@ -189,7 +189,7 @@ public class DataspaceProfileApiV5EndToEndTest {
             var token = authServer.createAdminToken();
 
             context.baseRequest(token)
-                    .delete("/v5beta/dataspaceprofiles/unknown")
+                    .delete("/v5/dataspaceprofiles/unknown")
                     .then()
                     .statusCode(404);
         }
@@ -208,7 +208,7 @@ public class DataspaceProfileApiV5EndToEndTest {
             context.baseRequest(token)
                     .contentType(ContentType.JSON)
                     .body(invalidProfile)
-                    .post("/v5beta/dataspaceprofiles")
+                    .post("/v5/dataspaceprofiles")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(400);

@@ -47,7 +47,7 @@ import static org.eclipse.edc.web.spi.exception.ServiceResultHandler.exceptionMa
 
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
-@Path("/v5beta/celexpressions")
+@Path("/v5/celexpressions")
 public class CelExpressionApiV5Controller implements CelExpressionApiV5 {
 
     private final CelPolicyExpressionService service;

@@ -27,9 +27,9 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import org.eclipse.edc.api.management.schema.ManagementApiJsonSchema;
 
-@OpenAPIDefinition(info = @Info(version = "v5beta", title = "Document Cache API",
+@OpenAPIDefinition(info = @Info(version = "v5", title = "Document Cache API",
         description = "Endpoints to dynamically manage the documents (JSON-LD contexts and JSON schemas) cached by the connector."))
-@Tag(name = "Document Cache v5beta")
+@Tag(name = "Document Cache v5")
 public interface CachedDocumentApiV5 {
 
     @Operation(description = "Returns all cached documents.",

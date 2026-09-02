@@ -116,7 +116,7 @@ public class SchemaValidatorRegistrationApiV5EndToEndTest {
             context.baseRequest(adminToken)
                     .body(registrationBody("v5", "CustomType", SCHEMA_ID).toString())
                     .contentType(JSON)
-                    .post("/v5beta/schemavalidators")
+                    .post("/v5/schemavalidators")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200)
@@ -128,7 +128,7 @@ public class SchemaValidatorRegistrationApiV5EndToEndTest {
             context.baseRequest(adminToken)
                     .body(registrationBody("v5", "CustomType", "https://example.com/schema/not-cached.json").toString())
                     .contentType(JSON)
-                    .post("/v5beta/schemavalidators")
+                    .post("/v5/schemavalidators")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(400);
@@ -139,7 +139,7 @@ public class SchemaValidatorRegistrationApiV5EndToEndTest {
             context.baseRequest(adminToken)
                     .body(registrationBody("v5", "CustomType", null).toString())
                     .contentType(JSON)
-                    .post("/v5beta/schemavalidators")
+                    .post("/v5/schemavalidators")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(400);
@@ -152,7 +152,7 @@ public class SchemaValidatorRegistrationApiV5EndToEndTest {
 
             context.baseRequest(adminToken)
                     .contentType(JSON)
-                    .get("/v5beta/schemavalidators")
+                    .get("/v5/schemavalidators")
                     .then()
                     .log().ifError()
                     .statusCode(200)
@@ -161,7 +161,7 @@ public class SchemaValidatorRegistrationApiV5EndToEndTest {
 
             context.baseRequest(adminToken)
                     .contentType(JSON)
-                    .get("/v5beta/schemavalidators/" + id)
+                    .get("/v5/schemavalidators/" + id)
                     .then()
                     .statusCode(200)
                     .body("schema", is(SCHEMA_ID));
@@ -173,12 +173,12 @@ public class SchemaValidatorRegistrationApiV5EndToEndTest {
             var id = createRegistration(context, cacheService);
 
             context.baseRequest(adminToken)
-                    .delete("/v5beta/schemavalidators/" + id)
+                    .delete("/v5/schemavalidators/" + id)
                     .then()
                     .statusCode(204);
 
             context.baseRequest(adminToken)
-                    .delete("/v5beta/schemavalidators/" + id)
+                    .delete("/v5/schemavalidators/" + id)
                     .then()
                     .statusCode(404);
         }
@@ -188,7 +188,7 @@ public class SchemaValidatorRegistrationApiV5EndToEndTest {
             context.baseRequest(nonAdminToken(authServer))
                     .body(registrationBody("v5", "CustomType", SCHEMA_ID).toString())
                     .contentType(JSON)
-                    .post("/v5beta/schemavalidators")
+                    .post("/v5/schemavalidators")
                     .then()
                     .log().ifError()
                     .statusCode(403)
@@ -199,7 +199,7 @@ public class SchemaValidatorRegistrationApiV5EndToEndTest {
             return context.baseRequest(adminToken)
                     .body(registrationBody("v5", "CustomType", SCHEMA_ID).toString())
                     .contentType(JSON)
-                    .post("/v5beta/schemavalidators")
+                    .post("/v5/schemavalidators")
                     .then()
                     .statusCode(200)
                     .extract().jsonPath().getString(ID);
@@ -244,7 +244,7 @@ public class SchemaValidatorRegistrationApiV5EndToEndTest {
             assertThat(validatorRegistry.validate("v5:CustomType", valid).succeeded()).isTrue();
 
             context.baseRequest(adminToken)
-                    .delete("/v5beta/schemavalidators/" + id)
+                    .delete("/v5/schemavalidators/" + id)
                     .then()
                     .statusCode(204);
 

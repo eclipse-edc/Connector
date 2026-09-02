@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
 @ApiTest
 class DcpScopeApiV5ControllerTest extends RestControllerTestBase {
 
-    private static final String BASE_URL = "/v5beta/dcpscopes";
+    private static final String BASE_URL = "/v5/dcpscopes";
 
     private final DcpScopeRegistry scopeRegistry = mock();
     private final TypeTransformerRegistry transformerRegistry = mock();

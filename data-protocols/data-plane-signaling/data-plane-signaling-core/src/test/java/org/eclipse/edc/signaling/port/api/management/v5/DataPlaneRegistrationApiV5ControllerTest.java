@@ -62,7 +62,7 @@ class DataPlaneRegistrationApiV5ControllerTest extends RestControllerTestBase {
                     .port(port)
                     .contentType(ContentType.JSON)
                     .body(message)
-                    .put("/v5beta/participants/%s/dataplanes".formatted(participantContextId))
+                    .put("/v5/participants/%s/dataplanes".formatted(participantContextId))
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200);
@@ -87,7 +87,7 @@ class DataPlaneRegistrationApiV5ControllerTest extends RestControllerTestBase {
                     .port(port)
                     .contentType(ContentType.JSON)
                     .body(message)
-                    .put("/v5beta/participants/%s/dataplanes".formatted(participantContextId))
+                    .put("/v5/participants/%s/dataplanes".formatted(participantContextId))
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200);
@@ -107,7 +107,7 @@ class DataPlaneRegistrationApiV5ControllerTest extends RestControllerTestBase {
                     .port(port)
                     .contentType(ContentType.JSON)
                     .body(message)
-                    .put("/v5beta/participants/{participantContextId}/dataplanes", participantContextId)
+                    .put("/v5/participants/{participantContextId}/dataplanes", participantContextId)
                     .then()
                     .log().ifValidationFails()
                     .statusCode(409);
@@ -124,7 +124,7 @@ class DataPlaneRegistrationApiV5ControllerTest extends RestControllerTestBase {
             given()
                     .port(port)
                     .contentType(ContentType.JSON)
-                    .delete("/v5beta/participants/{participantContextId}/dataplanes/{dataplaneId}", participantContextId, "dp-id")
+                    .delete("/v5/participants/{participantContextId}/dataplanes/{dataplaneId}", participantContextId, "dp-id")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(200);
@@ -139,7 +139,7 @@ class DataPlaneRegistrationApiV5ControllerTest extends RestControllerTestBase {
             given()
                     .port(port)
                     .contentType(ContentType.JSON)
-                    .delete("/v5beta/participants/{participantContextId}/dataplanes/{dataplaneId}", participantContextId, "dp-id")
+                    .delete("/v5/participants/{participantContextId}/dataplanes/{dataplaneId}", participantContextId, "dp-id")
                     .then()
                     .log().ifValidationFails()
                     .statusCode(404);
